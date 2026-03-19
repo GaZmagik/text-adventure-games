@@ -1,0 +1,26 @@
+# Local configuration
+*.local.md
+
+# Agent memory (per-session, not shared)
+.claude/agent-memory/
+
+# Cache and temporary files
+*.cache
+.cache/
+.claude/cache/
+tmp/
+*.tmp
+
+# Zip archives
+*.zip
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# PDF source files (too large for git)
+star-wars-rpg/*.pdf
