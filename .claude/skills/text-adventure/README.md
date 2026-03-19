@@ -14,17 +14,24 @@ SKILL.md (orchestrator)
   scene rendering, panel system, combat, maps, XP/levelling, visual rules.
 
 modules/
-  scenarios.md            Starter scenarios and theme adaptation (space, fantasy, horror, etc.)
+  adventure-authoring.md  .lore.md file format for authored adventures
+  ai-npc.md               Live AI-powered NPC dialogue via Anthropic API
+  bestiary.md             Adversary templates, encounter building, threat tiers
   character-creation.md   Archetypes, stats, equipment, theme-adapted names
   core-systems.md         Inventory, economy, factions, quests, time, XP, session recap
-  ship-systems.md         Vessel integrity, power allocation, damage, repair
   crew-manifest.md        Living crew with morale, tensions, secrets
-  star-chart.md           Sector navigation, jump routes, faction territory
-  lore-codex.md           Player-facing encyclopaedia with discovery states
-  ai-npc.md               Live AI-powered NPC dialogue via Anthropic API
-  procedural-world-gen.md Seed-based deterministic world generation
+  die-rolls.md            Progressive d20 resolution (declare → animate → resolve → continue)
+  genre-mechanics.md      Genre-specific mechanical additions
   geo-map.md              On-world maps: settlements, wilderness, dungeons
+  lore-codex.md           Player-facing encyclopaedia with discovery states
+  procedural-world-gen.md Seed-based deterministic world generation
+  rpg-systems.md          Alternative systems: GURPS Lite, PF2e Lite, Shadowrun 5e Lite, Narrative
   save-codex.md           Session persistence via copyable strings
+  scenarios.md            Starter scenarios and theme adaptation (space, fantasy, horror, etc.)
+  ship-systems.md         Vessel integrity, power allocation, damage, repair
+  star-chart.md           Sector navigation, jump routes, faction territory
+  story-architect.md      Plotline tracking, foreshadowing, consequence chains, dramatic pacing
+  world-history.md        Pre-adventure world building, epochs, power structures, cultural layer
 
 styles/
   style-reference.md    Structural patterns: panel CSS, scene skeleton, loading messages,

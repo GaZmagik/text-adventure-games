@@ -24,7 +24,7 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: all other
 ## Architecture Overview
 
 ```
-Player triggers save
+GM renders scene widget
         ↓
 Save Codex reads gmState (character, flags, visited rooms, NPC mutations, codex mutations)
         ↓
@@ -35,9 +35,12 @@ Full:     full state → JSON → LZ compress → base64
         ↓
 Version header + checksum prepended → final save string
         ↓
-Save widget renders: string displayed, copy button, QR code option, slot label
+Compact: save string embedded in scene widget as hidden #save-data div
+Full:    save generated on demand via sendPrompt fallback (payload too large to embed)
+        ↓
+Player clicks Save → .save.md file downloaded (compact) or save widget opens (full)
         ═══════════════════════════════════════════════════
-Player pastes save string into resume prompt
+Player resumes: pastes save string, uploads .save.md, or pastes .save.md content
         ↓
 Save Codex decodes: base64 → decompress (if needed) → JSON
         ↓
@@ -47,6 +50,194 @@ Compact: regenerate world from seed → apply mutation patches
 Full:    restore full gmState directly
         ↓
 Send gmState to GM via sendPrompt → session resumes
+```
+
+---
+
+## Save File Format — `.save.md`
+
+Every scene widget includes a hidden pre-computed save that the player can download as a
+`.save.md` file. The file uses YAML frontmatter for metadata and markdown body for the
+save payload. This format is both human-readable (the frontmatter) and machine-parseable
+(the payload string).
+
+### File structure
+
+```yaml
+---
+format: text-adventure-save
+version: 1
+skill-version: "2.0"
+character: "Gareth Williams"
+class: "Bartender"
+level: 2
+scene: 7
+location: "The Oxidiser — Bar Floor"
+date-saved: "2026-03-19T22:30:00Z"
+game-title: "Freeport Meridian"
+theme: "space"
+seed: "pale-threshold-7"
+mode: "compact"
+---
+
+# Save — Gareth Williams, Scene 7
+
+To resume this adventure, paste the string below into a new conversation along with
+the instruction "Continue this text adventure":
+
+```
+SC1:eyJ2IjoxLCJtb2RlIjoiY29tcGFjdCIsInNlZWQiOiJwYWxlLXRocmVzaG9sZC03...
+```
+
+*Saved from Freeport Meridian — The Oxidiser, Bar Floor*
+*Scene 7 · Level 2 · 2026-03-19*
+```
+
+### Frontmatter fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `format` | Yes | Always `text-adventure-save` — identifies the file type |
+| `version` | Yes | Save format version (integer, currently `1`) |
+| `skill-version` | Yes | Text-adventure skill version for compatibility checking |
+| `character` | Yes | Character name |
+| `class` | Yes | Character class/archetype |
+| `level` | Yes | Current level |
+| `scene` | Yes | Scene number |
+| `location` | Yes | Current location name |
+| `date-saved` | Yes | ISO 8601 timestamp |
+| `game-title` | Yes | Adventure/campaign title |
+| `theme` | Yes | Genre theme (space, fantasy, horror, etc.) |
+| `seed` | If compact | World generation seed |
+| `mode` | Yes | `compact` or `full` |
+
+---
+
+## Per-Scene Save Generation
+
+Every scene widget includes a pre-computed save payload as a hidden data attribute.
+This enables instant save downloads without requiring a `sendPrompt()` round-trip.
+
+### Implementation
+
+The GM embeds the save data in every scene widget:
+
+```html
+<div id="save-data" style="display:none"
+  data-save="SC1:eyJ2Ij..."
+  data-character="Gareth Williams"
+  data-class="Bartender"
+  data-level="2"
+  data-scene="7"
+  data-location="The Oxidiser — Bar Floor"
+  data-title="Freeport Meridian"
+  data-theme="space"
+  data-seed="pale-threshold-7"
+  data-mode="compact">
+</div>
+```
+
+The footer Save button triggers a file download via client-side JS — no new message needed.
+
+### Save Download Script
+
+```js
+function downloadSave() {
+  const el = document.getElementById('save-data');
+  if (!el) return;
+
+  const saveString = el.dataset.save;
+  const character = el.dataset.character || 'Unknown';
+  const charClass = el.dataset.class || 'Adventurer';
+  const level = el.dataset.level || '1';
+  const scene = el.dataset.scene || '1';
+  const location = el.dataset.location || 'Unknown';
+  const title = el.dataset.title || 'Text Adventure';
+  const theme = el.dataset.theme || 'space';
+  const seed = el.dataset.seed || '';
+  const mode = el.dataset.mode || 'full';
+  const now = new Date().toISOString();
+  const dateShort = now.split('T')[0];
+
+  // Build YAML frontmatter
+  let frontmatter = '---\n';
+  frontmatter += 'format: text-adventure-save\n';
+  frontmatter += 'version: 1\n';
+  frontmatter += 'skill-version: "2.0"\n';
+  frontmatter += 'character: "' + character + '"\n';
+  frontmatter += 'class: "' + charClass + '"\n';
+  frontmatter += 'level: ' + level + '\n';
+  frontmatter += 'scene: ' + scene + '\n';
+  frontmatter += 'location: "' + location + '"\n';
+  frontmatter += 'date-saved: "' + now + '"\n';
+  frontmatter += 'game-title: "' + title + '"\n';
+  frontmatter += 'theme: "' + theme + '"\n';
+  if (seed) frontmatter += 'seed: "' + seed + '"\n';
+  frontmatter += 'mode: "' + mode + '"\n';
+  frontmatter += '---\n\n';
+
+  // Build markdown body
+  let body = '# Save — ' + character + ', Scene ' + scene + '\n\n';
+  body += 'To resume this adventure, paste the string below into a new conversation along with\n';
+  body += 'the instruction "Continue this text adventure":\n\n';
+  body += '```\n' + saveString + '\n```\n\n';
+  body += '*Saved from ' + title + ' — ' + location + '*\n';
+  body += '*Scene ' + scene + ' · Level ' + level + ' · ' + dateShort + '*\n';
+
+  // Download
+  const blob = new Blob([frontmatter + body], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = character.toLowerCase().replace(/\s+/g, '-') + '-scene' + scene + '.save.md';
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  URL.revokeObjectURL(url);
+  a.remove();
+}
+```
+
+### Save Button Wiring
+
+```js
+document.getElementById('save-btn').addEventListener('click', function() {
+  downloadSave();
+  this.textContent = 'Saved!';
+  setTimeout(() => { this.textContent = 'Save'; }, 2000);
+});
+```
+
+### GM Instruction — Embedding Save Data
+
+The GM **must** embed the `#save-data` div in every scene widget, populated with the current
+`gmState` serialisation. This replaces the old "generate save on demand" pattern for compact
+mode saves. The GM builds the save string at render time using `buildCompactSave(gmState)` or
+`buildFullSave(gmState)` and injects the result into the `data-save` attribute along with all
+metadata fields.
+
+**Compact saves** are embedded and downloadable instantly — the payload is small enough to
+include in every scene widget without noticeable overhead.
+
+**Full saves** (hand-authored worlds) are too large to embed in every scene widget. For full
+mode, the old `sendPrompt('Save the game.')` pattern remains as a fallback. The Save button
+detects the mode: if `#save-data` is present, it downloads instantly; if not, it falls back
+to `sendPrompt('Save the game.')` to request the GM generate the save widget.
+
+```js
+document.getElementById('save-btn').addEventListener('click', function() {
+  const el = document.getElementById('save-data');
+  if (el && el.dataset.save) {
+    downloadSave();
+    this.textContent = 'Saved!';
+    setTimeout(() => { this.textContent = 'Save'; }, 2000);
+  } else {
+    // Full-mode fallback — request save widget from GM
+    if (typeof sendPrompt === 'function') {
+      sendPrompt('Save the game.');
+    }
+  }
+});
 ```
 
 ---
@@ -1005,17 +1196,39 @@ with you. [Continue with normal scene widget for currentRoom]"
 Extend the scene widget footer with a save button alongside the codex button:
 
 ```html
-<button class="footer-btn" data-prompt="Save the game."
+<button class="footer-btn" id="save-btn"
   style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.08em;
   background:transparent; border:0.5px solid var(--color-border-tertiary);
   border-radius:var(--border-radius-md); padding:4px 10px;
   color:var(--color-text-tertiary); cursor:pointer;">
-  Save ↗
+  Save
 </button>
 ```
 
-When the GM receives `'Save the game.'`, render the save widget with the current `gmState`
-injected. The player picks a slot, copies their code, and the scene continues without interruption.
+Save no longer triggers `sendPrompt()`. Instead, the button triggers an inline download of a
+`.save.md` file containing the pre-computed save payload. The `#save-data` div must be present
+in the scene widget for this to work (see Per-Scene Save Generation above).
+
+For compact mode saves, the download is instant — no round-trip required. For full mode saves
+where the payload is too large to embed, the button falls back to the `sendPrompt('Save the game.')`
+pattern to request the GM generate the full save widget.
+
+The player can also use a "Copy string" link within the save-data area to copy just the raw
+save payload to the clipboard if they prefer the old paste-to-resume flow.
+
+### Resume Formats
+
+The resume flow accepts any of the following inputs:
+
+- **Raw save string** — pasting the checksummed save string directly into the chat (the
+  original method, still fully supported).
+- **Uploading the `.save.md` file** — Claude reads the YAML frontmatter for version checking
+  and extracts the save payload from the fenced code block in the markdown body.
+- **Pasting the entire `.save.md` content** (frontmatter + body) — Claude parses the YAML
+  frontmatter for metadata and extracts the payload string from the code block.
+
+In all three cases, the GM validates the checksum, detects the mode, and reconstructs `gmState`
+using the standard resume protocol documented below.
 
 ---
 
