@@ -150,7 +150,7 @@ Close button only; the scene footer is not their responsibility.
   <!-- Progressive reveal wrapper -->
   <div id="reveal-brief">
     <p class="brief-text">Brief confirmation text</p>
-    <button class="continue-btn" onclick="...">Continue</button>
+    <button class="continue-btn" id="continue-reveal-btn">Continue</button>
   </div>
   <div id="reveal-full" style="display:none">
     <div id="scene-content">

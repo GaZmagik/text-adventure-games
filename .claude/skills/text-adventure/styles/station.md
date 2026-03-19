@@ -226,6 +226,9 @@ All WCAG AA contrast ratios are calculated against `--sta-bg-primary` (`#1A1D2E`
   --sta-color-warning-border:  rgba(240, 165, 0, 0.5);
   --sta-color-warning-bg:      rgba(240, 165, 0, 0.10);
 
+  /* Label text — sub-14px UI labels that must pass AA 4.5:1 */
+  --sta-text-label:            #6E7298;   /* 4.5:1 on bg-primary — section labels, atmo pills, badges */
+
   /* Bright white — emphasis, dramatic character names */
   --sta-color-text-emphasis:   #FFFFFF;   /* 18.9:1 — used sparingly */
 
@@ -317,6 +320,7 @@ All WCAG AA contrast ratios are calculated against `--sta-bg-primary` (`#1A1D2E`
     --sta-text-primary:    #181B2E;
     --sta-text-secondary:  #3A4060;
     --sta-text-tertiary:   #7880A8;
+    --sta-text-label:      #5A5E80;   /* 4.5:1 on light bg */
 
     /* Saturations reduced for light surfaces */
     --sta-color-location:        #1A8F87;
@@ -366,7 +370,6 @@ All WCAG AA contrast ratios are calculated against `--sta-bg-primary` (`#1A1D2E`
     /* Re-assign contract variables for light mode */
     --ta-color-accent:           var(--sta-color-accent);
     --ta-color-accent-hover:     var(--sta-color-accent-hover);
-    --ta-color-accent-hover:     var(--sta-color-accent-hover);
     --ta-color-accent-bg:        var(--sta-color-accent-bg);
     --ta-color-accent-bg-hover:  var(--sta-color-accent-bg-hover);
     --ta-color-success:          var(--sta-color-success);
@@ -406,8 +409,9 @@ All WCAG AA contrast ratios are calculated against `--sta-bg-primary` (`#1A1D2E`
 --sta-space-lg: 20px;
 --sta-space-xl: 28px;
 
-/* Widget padding */
+/* Widget padding and max-width */
 --sta-widget-padding: 1rem 0 1.5rem;
+--sta-content-max: 680px;
 
 /* Touch target floor — WCAG 2.5.5 */
 --sta-touch-target: 44px;
@@ -418,8 +422,9 @@ All WCAG AA contrast ratios are calculated against `--sta-bg-primary` (`#1A1D2E`
 
 Layout uses flexbox throughout. No CSS Grid is used in widget bodies to maximise
 compatibility inside sandboxed iframes. All flex containers use `flex-wrap: wrap` so
-content reflows gracefully at narrow iframe widths. Max-width is never applied to the
-root element.
+content reflows gracefully at narrow iframe widths. The root element uses
+`max-width: 680px; margin: 0 auto` to prevent line lengths exceeding 80 characters
+on wide chat panels — this does not affect iframe height reporting.
 
 **Hierarchy of breathing room:**
 - Between major sections (loc-bar → narrative, narrative → actions): 14–16px
@@ -1679,6 +1684,9 @@ handle that case independently.
   font-family: var(--sta-font-mono);
   color: var(--sta-text-primary);
   padding: var(--sta-widget-padding);
+  max-width: var(--sta-content-max, 680px);
+  margin-left: auto;
+  margin-right: auto;
 }
 #reveal-full { animation: sta-fade-in 0.25s ease-out; }
 
@@ -1912,7 +1920,10 @@ button:focus-visible, [data-prompt]:focus-visible {
 
 /* --- Combat: Player Status --- */
 .player-status { display: flex; align-items: center; gap: var(--sta-space-md); flex-wrap: wrap; padding: var(--sta-space-sm) 0; margin-bottom: var(--sta-space-md); border-top: var(--sta-border-width) solid var(--sta-border-tertiary); border-bottom: var(--sta-border-width) solid var(--sta-border-tertiary); font-family: var(--sta-font-mono); font-size: var(--sta-text-sm); color: var(--sta-text-primary); }
-.condition-tag { font-family: var(--sta-font-mono); font-size: var(--sta-text-xs); letter-spacing: 0.08em; padding: 2px 8px; border-radius: var(--sta-radius-pill); border: var(--sta-border-width) solid var(--sta-border-tertiary); color: var(--sta-text-tertiary); }
+.condition-tag { font-family: var(--sta-font-mono); font-size: var(--sta-text-xs); letter-spacing: 0.08em; padding: 2px 8px; border-radius: var(--sta-radius-pill); border: var(--sta-border-width) solid var(--sta-border-tertiary); color: var(--sta-text-label, var(--sta-text-tertiary)); }
+.condition-tag.debuff { border-color: var(--sta-color-warning-border); color: var(--sta-color-warning); }
+.condition-tag.buff { border-color: var(--sta-color-success-border); color: var(--sta-color-success); }
+.condition-tag.neutral { border-color: var(--sta-border-tertiary); color: var(--sta-text-label, var(--sta-text-tertiary)); }
 
 /* --- Combat: Encounter Heading --- */
 .encounter-heading { font-family: var(--sta-font-display); font-size: var(--sta-text-md); font-weight: 700; color: var(--sta-text-primary); margin: 0 0 4px; }
