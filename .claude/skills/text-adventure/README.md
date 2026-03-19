@@ -13,9 +13,6 @@ SKILL.md (orchestrator)
   Core game engine: session lifecycle, character creation, die rolls,
   scene rendering, panel system, combat, maps, XP/levelling, visual rules.
 
-reference.md (implementation code)
-  TTS engine, panel CSS, scene widget skeleton, loading messages.
-
 modules/
   scenarios.md            Starter scenarios and theme adaptation (space, fantasy, horror, etc.)
   character-creation.md   Archetypes, stats, equipment, theme-adapted names
@@ -28,6 +25,12 @@ modules/
   procedural-world-gen.md Seed-based deterministic world generation
   geo-map.md              On-world maps: settlements, wilderness, dungeons
   save-codex.md           Session persistence via copyable strings
+
+styles/
+  style-reference.md    Structural patterns: panel CSS, scene skeleton, loading messages,
+                        CSS custom property contract, worked examples.
+  *.md                  Visual style definitions (one per theme) providing colours,
+                        fonts, and decorative CSS as CSS custom properties.
 ```
 
 The orchestrator (`SKILL.md`) is self-sufficient for running a basic text adventure. Modules
@@ -355,9 +358,14 @@ archetypes, and module selection adapt accordingly.
 
 ## Visual Standards
 
-- **Fonts:** Syne (headings), IBM Plex Mono (stats/dice), system sans-serif (body)
-- **Colours:** Blue (info), teal (success), amber (warning), coral (danger), purple (mystery)
-- **Dark mode:** All widgets use CSS variables; art SVGs have explicit dark-mode overrides
+- **Fonts and colours are defined by the active visual style.** Visual style files in
+  `styles/` provide CSS custom properties consumed by all widgets. The structural
+  reference (`styles/style-reference.md`) defines the contract that styles must fulfil.
+- **Visual styles** are selectable per session — one `.md` file per theme (e.g., Terminal,
+  Parchment, Neon, Gothic). The player chooses during game setup, or the GM auto-selects
+  based on the scenario.
+- **Dark mode:** All widgets use CSS variables; visual style files provide
+  `@media (prefers-color-scheme: dark)` overrides where needed.
 - **No emoji** — SVG icons and CSS shapes only
 - **No text outside widgets** — every output is a `visualize:show_widget` call
 

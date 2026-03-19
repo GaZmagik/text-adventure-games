@@ -593,7 +593,7 @@ time. The GM injects the current `gmState.codex` as a JSON literal when building
 
   <p id="lc-fallback" style="display:none; font-size:11px; padding:8px 12px; margin:0.5rem 0; background:var(--color-background-warning); border:0.5px solid var(--color-border-warning); border-radius:var(--border-radius-md); color:var(--color-text-warning); word-break:break-word; user-select:all;"></p>
 
-  <!-- Overlay controls (not a scene footer — see reference.md for the canonical scene footer) -->
+  <!-- Overlay controls (not a scene footer — see styles/style-reference.md for the canonical scene footer) -->
   <div class="footer-row">
     <span class="entry-counter" id="entry-counter"></span>
     <button class="close-btn" data-prompt="Close the codex. Continue the adventure.">Close codex ↗</button>
@@ -927,7 +927,7 @@ them. The codex records what the player's character actually knows.
 
 ## Scene Footer Integration
 
-Use the canonical scene footer from `reference.md`. This module adds the **Codex**
+Use the canonical scene footer from `styles/style-reference.md`. This module adds the **Codex**
 panel button to the footer when loaded. The codex widget is an overlay with its own
 Close button — it does not define its own footer.
 

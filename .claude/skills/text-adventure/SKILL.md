@@ -16,10 +16,53 @@ description: >
 
 This skill runs the complete text adventure game experience using `visualize:show_widget`.
 Expansion modules in `modules/` add optional depth. Additional implementation code (panel
-CSS, scene skeleton, loading messages) lives in `reference.md`.
+CSS, scene skeleton, loading messages) lives in `styles/style-reference.md`.
+Visual style definitions (colours, fonts, decorative CSS) live in `styles/` as
+individual `.md` files — one per theme.
 
-**Before rendering any widget, read `reference.md` in full.** It contains panel styling
-and supplementary templates that this file references.
+**Before rendering any widget, read `styles/style-reference.md` in full.** It
+contains structural patterns and supplementary templates that this file references.
+Also read the active visual style file to obtain CSS custom property values.
+
+## Architecture
+
+```
+SKILL.md (orchestrator)
+  Core game engine: session lifecycle, character creation, die rolls,
+  scene rendering, panel system, combat, maps, XP/levelling, visual rules.
+
+modules/
+  scenarios.md            Starter scenarios and theme adaptation (space, fantasy, horror, etc.)
+  character-creation.md   Archetypes, stats, equipment, theme-adapted names
+  core-systems.md         Inventory, economy, factions, quests, time, XP, session recap
+  die-rolls.md            Progressive d20 resolution (declare → animate → resolve → continue)
+  rpg-systems.md          Alternative systems: GURPS Lite, PF2e Lite, Shadowrun 5e Lite, Narrative
+  bestiary.md             Adversary templates, encounter building, threat tiers
+  ship-systems.md         Vessel integrity, power allocation, damage, repair
+  crew-manifest.md        Living crew with morale, tensions, secrets
+  star-chart.md           Sector navigation, jump routes, faction territory
+  geo-map.md              On-world maps: settlements, wilderness, dungeons
+  lore-codex.md           Player-facing encyclopaedia with discovery states
+  ai-npc.md               Live AI-powered NPC dialogue via Anthropic API
+  procedural-world-gen.md Seed-based deterministic world generation
+  save-codex.md           Session persistence via copyable strings
+  genre-mechanics.md      Genre-specific mechanical additions
+
+styles/
+  style-reference.md      Structural patterns: panel CSS, scene skeleton, die shapes,
+                          loading messages, CSS custom property contract, worked examples.
+  station.md              Default — serif narrative, semantic colours, numbered action cards
+  terminal.md             CRT monospace, electric accents, scanline effects
+  parchment.md            Warm serif, paper grain, earth tones, drop caps
+  neon.md                 Saturated colours, glow effects, synthwave
+  brutalist.md            System fonts, black/white/red, zero decoration
+  art-deco.md             Gold/navy, geometric serif, engraved buttons
+  ink-wash.md             Near-monochrome, generous whitespace, vermillion seal
+  blueprint.md            Graph-paper grid, blue/white, technical drawing
+  stained-glass.md        Jewel tones, leaded borders, radial luminance
+  weathered.md            Rust/olive, asymmetric, distressed, jury-rigged
+  holographic.md          Translucent panels, iridescent borders, glassmorphism
+```
 
 ---
 
@@ -32,7 +75,7 @@ and supplementary templates that this file references.
   decides, always. If there is nothing left to decide in a scene, present the next decision point.
 - **Never editorially guide the player.** No "safe", "risky", or "recommended" labels.
 - **Progressive reveal.** Show brief confirmation + continue button before full scene text (see pattern below).
-- **Read `reference.md` before rendering.** It contains panel CSS and the scene skeleton.
+- **Read `styles/style-reference.md` and the active visual style before rendering.** They contain structural patterns and theme CSS custom properties.
 - **Use the `frontend-design` skill if available.** It elevates the visual quality of widgets
   with polished, distinctive HTML/CSS. Apply its design principles to every widget rendered.
 - **Never reference stat names or values in narrative prose.** "Your hands are steady" not
@@ -75,6 +118,7 @@ by the chosen scenario.
 | Rulebook | Simple d20, GURPS Lite, Pathfinder 2e Lite, Shadowrun 5e Lite, Narrative Engine, Custom | Simple d20 |
 | Difficulty | Easy (DCs −2), Normal, Hard (DCs +2), Brutal (DCs +4) | Normal |
 | Pacing | Fast (shorter scenes), Normal, Slow (deeper exploration) | Normal |
+| Visual Style | Any `.md` file in `styles/` (e.g., Terminal, Parchment, Neon, Gothic) | Auto-select based on scenario theme |
 | Active Modules | Checkboxes (pre-selected per scenario type) | Per scenario defaults |
 
 **Simple d20 (default):** STR/DEX/INT/WIS/CON/CHA, d20 rolls, DC thresholds, modifiers = `floor((stat - 10) / 2)`.
@@ -88,6 +132,26 @@ Narrative Engine (no dice, momentum-based, fiction-first). See `modules/rpg-syst
 
 > **Note:** This skill is system-agnostic. Specific game systems (such as Star Wars: Edge of the Empire)
 > have their own dedicated skills with tailored dice mechanics, character creation, and adventures.
+
+### Visual Style
+
+During game setup, the player selects a visual style or the GM auto-selects based on the genre:
+
+| Style | Best for |
+|-------|----------|
+| Station (default) | Sci-fi, space opera, thriller, mystery |
+| Terminal | Cyberpunk, hacking, military sci-fi |
+| Parchment | Fantasy, gothic horror, historical |
+| Neon | Pulp adventure, action, cyberpunk |
+| Brutalist | Post-apocalyptic, horror, survival |
+| Art Deco | Noir, 1920s, political intrigue |
+| Ink Wash | Wuxia, meditation, literary fiction |
+| Blueprint | Engineering, military, heist |
+| Stained Glass | Dark fantasy, religious, medieval |
+| Weathered | Survival, dystopian, dieselpunk |
+| Holographic | Space opera, far-future, AI themes |
+
+**Before rendering any widget, read `styles/style-reference.md` and the active visual style file.** The style-reference defines structural patterns (HTML skeleton, JS, component layout). The visual style file provides colours, typography, and decorative CSS.
 
 ---
 
@@ -612,12 +676,49 @@ Examples: `crew_medic_morale`, `core_rations_count`, `ship_hull_hp`, `star_reput
 
 ## Visual Consistency
 
-- **Fonts:** Syne (headings), IBM Plex Mono (stats/dice), `var(--font-sans)` (body).
-  Modules may use Playfair Display for flavour text (e.g., codex entries, NPC dialogue).
-- **Colours:** Blue (info), teal (success), amber (warning), coral (danger), purple (mystery).
-- **Dark mode:** CSS variables throughout. Hardcoded hex only in SVG with `@media (prefers-color-scheme: dark)`.
+- **Fonts and colours are defined by the active visual style.** The style file provides
+  CSS custom properties (`--ta-font-heading`, `--ta-color-accent`, etc.) that all widgets
+  consume. See `styles/style-reference.md` for the full contract.
+- **Dark mode:** CSS variables throughout. Visual style files provide
+  `@media (prefers-color-scheme: dark)` overrides where needed.
 - **No emoji.** SVG icons and CSS shapes only. HP pips are small SVG circles or CSS `border-radius: 50%` elements.
 - **No text outside widgets.**
+
+---
+
+## Visual Styles
+
+Visual styles live in `styles/` as individual `.md` files — one per theme. Each file
+defines a `:root` block of CSS custom properties that control all colours, fonts, borders,
+shadows, and decorative CSS across widgets. The structural patterns (HTML skeletons, JS logic,
+component layouts) are defined separately in `styles/style-reference.md`.
+
+**One visual style is active per session.** The player selects a visual style during game
+setup (settings widget), or the GM auto-selects one based on the output style or scenario.
+
+### Suggested Style Mappings
+
+These are suggestions, not constraints — players may choose any combination:
+
+| Output Style / Genre | Suggested Visual Styles |
+|---------------------|------------------------|
+| Sci-fi, cyberpunk | Terminal, Neon |
+| Fantasy, historical | Parchment, Gothic |
+| Horror, thriller | Gothic, Terminal |
+| Pulp, action | Neon, Terminal |
+| Mystery, noir | Terminal, Gothic |
+| General / neutral | Any — player's preference |
+
+### Loading a Visual Style
+
+Before rendering the first widget of a session:
+1. Read `styles/style-reference.md` for structural patterns and the CSS custom property contract.
+2. Read the selected visual style file (e.g., `styles/terminal.md`).
+3. Include the visual style's `:root` CSS block at the top of every widget's `<style>` section.
+
+If no visual style file is available for the selected theme, fall back to using Claude.ai host
+theme variables directly (the widgets remain functional without custom properties, using host
+defaults).
 
 ---
 
@@ -772,7 +873,7 @@ person present tense. `PANEL_DATA` populated. Progressive reveal used.
 - Never use `sendPrompt()` for panel toggles — pure JS only.
 - Never render scenes without populating `PANEL_DATA` from `gmState`.
 - Never skip reading module files when active.
-- Never skip reading `reference.md` before rendering widgets.
+- Never skip reading `styles/style-reference.md` and the active visual style before rendering widgets.
 - Never mention DC/modifier values, stat names, or stat values in narrative prose.
 - Never skip the progressive reveal pattern.
 - Never reference character attributes by name or number in story text ("Your WIS of 15",
