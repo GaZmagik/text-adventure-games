@@ -93,7 +93,7 @@ Players can enable or disable individual modules before play begins.
 
 ### Text-to-Speech
 
-TTS defaults to **On** with a British English voice (`en-GB`, Google UK English preferred).
+TTS defaults to **On** with a English voice (Google UK English preferred, falls back to any available English voice).
 When enabled, scene narrative is read aloud using the Web Speech API. TTS activates
 automatically on scene reveal and can be toggled via the footer button.
 

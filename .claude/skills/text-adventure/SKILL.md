@@ -32,7 +32,6 @@ and supplementary templates that this file references.
   decides, always. If there is nothing left to decide in a scene, present the next decision point.
 - **Never editorially guide the player.** No "safe", "risky", or "recommended" labels.
 - **Progressive reveal.** Show brief confirmation + continue button before full scene text (see pattern below).
-- **British English throughout.** All narrative, UI text, and dialogue.
 - **Read `reference.md` before rendering.** It contains panel CSS and the scene skeleton.
 - **Use the `frontend-design` skill if available.** It elevates the visual quality of widgets
   with polished, distinctive HTML/CSS. Apply its design principles to every widget rendered.
