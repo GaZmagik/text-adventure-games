@@ -1,7 +1,8 @@
 # Local configuration
 *.local.md
 
-# Agent memory (per-session, not shared)
+# Memory (managed by memory CLI, not shared)
+.claude/memory/
 .claude/agent-memory/
 
 # Cache and temporary files
