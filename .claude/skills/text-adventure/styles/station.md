@@ -366,6 +366,7 @@ All WCAG AA contrast ratios are calculated against `--sta-bg-primary` (`#1A1D2E`
     /* Re-assign contract variables for light mode */
     --ta-color-accent:           var(--sta-color-accent);
     --ta-color-accent-hover:     var(--sta-color-accent-hover);
+    --ta-color-accent-hover:     var(--sta-color-accent-hover);
     --ta-color-accent-bg:        var(--sta-color-accent-bg);
     --ta-color-accent-bg-hover:  var(--sta-color-accent-bg-hover);
     --ta-color-success:          var(--sta-color-success);
