@@ -12,8 +12,8 @@
 tmp/
 *.tmp
 
-# Zip archives
-*.zip
+# Zip archives (except root-level distribution files)
+.claude/**/*.zip
 
 # Logs
 *.log
