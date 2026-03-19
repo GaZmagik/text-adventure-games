@@ -8,11 +8,11 @@ A modular text adventure engine for Claude Desktop, built entirely as Claude ski
 
 | File | Description |
 |------|-------------|
-| `text-adventure.zip` | Core text adventure engine — orchestrator with 15 modular expansions covering character creation, combat, ship systems, crew management, navigation, procedural world generation, and more. Supports multiple rule systems (d20, GURPS Lite, Pathfinder 2e Lite, Shadowrun 5e Lite, Narrative Engine). |
+| `text-adventure.zip` | Core text adventure engine — orchestrator with 18 modular expansions covering character creation, combat, ship systems, crew management, navigation, procedural world generation, and more. Supports multiple rule systems (d20, GURPS Lite, Pathfinder 2e Lite, Shadowrun 5e Lite, Narrative Engine). |
 
 ### Output Styles
 
-Four narrative voice styles that change how the game narrates events without altering game mechanics. Browse the `.claude/output-styles/` folder to find them.
+Five narrative voice styles that change how the game narrates events without altering game mechanics. Browse the `.claude/output-styles/` folder to find them.
 
 ### Visual Styles
 
@@ -38,6 +38,7 @@ The game engine selects a visual style during setup based on the genre, or the p
 - **Noir-Detective** — Hard-boiled, cynical narrator. Rain-soaked prose, moral ambiguity, everyone has an angle.
 - **Pulp-Adventure** — Breathless, exclamatory narrator. Larger-than-life heroes, breakneck pacing, cliffhanger endings.
 - **Gothic-Horror** — Measured dread and psychological unease. The house is watching. Beauty and decay coexist.
+- **Sci-Fi-Narrator** — Literary sci-fi voice inspired by Banks, Le Guin, and Chambers. Scale and intimacy coexist.
 
 ## Installation
 
@@ -71,6 +72,8 @@ Once the skill and a style are installed, start a new conversation in Claude Des
 - **"Play a text adventure"** — starts the engine with genre/setting selection
 - **"Run a gothic horror campaign"** — starts with the Gothic Horror style active
 - **"Play a space adventure"** — starts a sci-fi themed game
+- **Upload a `.lore.md` file** — starts a pre-authored adventure with full world history and story structure
+- **Upload a `.save.md` file** — resumes a previous session from a saved checkpoint
 
 The engine will guide you through settings, character creation, and into the adventure.
 
@@ -83,17 +86,20 @@ The project uses an **orchestrator + modules** pattern:
 
 All game output is rendered inside `visualize:show_widget` panels. No plain text output — everything is styled, interactive, and widget-based.
 
+- **`.lore.md` files** are authored adventures — upload one to start a pre-crafted campaign with world history, NPC roster, and branching story beats.
+- **`.save.md` files** are portable save states — download one during play, upload it later to resume exactly where you left off.
+
 ## Output Style Comparison
 
-| Aspect | Master-Storyteller | Noir-Detective | Pulp-Adventure | Gothic-Horror |
-|--------|-------------------|----------------|----------------|---------------|
-| Tone | Confident, atmospheric | Tired, cynical | Breathless, bold | Measured, unsettling |
-| Pacing | Varies by scene | Investigation-driven | Always forward | Deliberately slow |
-| Failure | Complication | Data point | Dramatic escalation | Revelation |
-| Success | Earned competence | Relief | Triumphant | Temporary, uneasy |
-| Humour | Permitted, not default | Dry, observational | Banter and absurdity | Gallows only |
-| Opening | Specific moment | Mid-complication | Explosion | Beauty that curdles |
-| Ending | Epilogue by implication | Unanswered question | Hook for next adventure | Door left ajar |
+| Aspect | Master-Storyteller | Noir-Detective | Pulp-Adventure | Gothic-Horror | Sci-Fi-Narrator |
+|--------|-------------------|----------------|----------------|---------------|-----------------|
+| Tone | Confident, atmospheric | Tired, cynical | Breathless, bold | Measured, unsettling | Intelligent, humane, curious |
+| Pacing | Varies by scene | Investigation-driven | Always forward | Deliberately slow | Multiple timescales simultaneously |
+| Failure | Complication | Data point | Dramatic escalation | Revelation | Systemic, not personal |
+| Success | Earned competence | Relief | Triumphant | Temporary, uneasy | Competence within constraints |
+| Humour | Permitted, not default | Dry, observational | Banter and absurdity | Gallows only | Wry, observational |
+| Opening | Specific moment | Mid-complication | Explosion | Beauty that curdles | A specific moment in a lived-in world |
+| Ending | Epilogue by implication | Unanswered question | Hook for next adventure | Door left ajar | Gestures at futures never seen |
 
 ## Licence
 

@@ -1,5 +1,6 @@
 ---
 name: text-adventure
+
 description: >
   Use this skill whenever the user wants to play, run, or build an interactive text adventure game.
   Triggers include: "text adventure", "play a game", "run a campaign", "tabletop RPG", "D&D-style game",
@@ -10,6 +11,8 @@ description: >
   contains the complete core game engine and loads expansion modules from the modules/ directory as
   needed. Do NOT use for purely creative writing tasks that require no player agency or mechanical
   resolution.
+metadata:
+  version: "1.0.0"
 ---
 
 # Text Adventure Game — Core Engine
@@ -47,6 +50,9 @@ modules/
   procedural-world-gen.md Seed-based deterministic world generation
   save-codex.md           Session persistence via copyable strings
   genre-mechanics.md      Genre-specific mechanical additions
+  story-architect.md      Plotline tracking, foreshadowing, consequence chains, dramatic pacing
+  world-history.md        Pre-adventure world building, epochs, power structures, cultural layer
+  adventure-authoring.md  .lore.md file format for authored adventures
 
 styles/
   style-reference.md      Structural patterns: panel CSS, scene skeleton, die shapes,
@@ -332,9 +338,10 @@ Modules define their own `PANEL_DATA` field contents and summary render function
 
 - **Footer panel toggles** (Character, Codex, Ship, Nav): pure JS via `togglePanel()` — never `sendPrompt()`.
 - **Actions within panels** (repair, reroute, use item, plot course): `sendPrompt()` — these change state.
-- **Save button:** `sendPrompt('Save the game.')` — requires GM to generate payload.
-- The `↗` suffix marks footer buttons that fire `sendPrompt()` (currently only Save).
-  Inline action buttons within scenes and panels use `sendPrompt()` but do not need the `↗` suffix.
+- **Save button:** Inline `.save.md` file download for compact mode (no `sendPrompt()`).
+  Falls back to `sendPrompt('Save the game.')` for full mode saves only.
+- No footer buttons currently use `sendPrompt()` — Save is now an inline download, and all
+  panel toggles are pure JS. Inline action buttons within scenes and panels use `sendPrompt()`.
 
 ---
 
@@ -574,7 +581,7 @@ Never continue gameplay past HP 0 without resolving this widget first.
 
 ### Save System Integration
 
-The save system uses the `save-codex` module to generate a portable save string. This
+The save system uses the `save-codex` module to generate a portable `.save.md` file. This
 section defines **when** and **how** saves are surfaced during play.
 
 #### When to Offer Save
@@ -586,17 +593,28 @@ section defines **when** and **how** saves are surfaced during play.
 
 #### How to Surface It
 
-The scene widget footer includes a save icon (SVG floppy disc, styled as an inline icon
-button). It is **always visible** but **greyed out and disabled** during combat and dialogue
-sequences.
+The scene widget footer includes a Save button (`id="save-btn"`). It is **always visible**
+but **greyed out and disabled** during combat and dialogue sequences.
 
-- **Manual save:** Clicking the icon triggers `sendPrompt('Save the game.')`. The GM then
-  generates a save payload via the save-codex module and presents it in a dedicated widget
-  with a copyable string and instructions.
+- **Compact mode (inline download):** The GM embeds a hidden `#save-data` div in every scene
+  widget containing the pre-computed save payload and metadata. Clicking Save triggers an
+  instant `.save.md` file download via client-side JS — no `sendPrompt()` round-trip needed.
+  The button shows brief "Saved!" feedback for 2 seconds.
+- **Full mode (sendPrompt fallback):** Full-mode saves are too large to embed in every scene
+  widget. If no `#save-data` div is present, the Save button falls back to
+  `sendPrompt('Save the game.')`, which opens the full save widget with slots and copy options.
 - **Auto-save suggestion:** At scene transitions, display a subtle inline prompt beneath the
   continue button: *"Would you like to save before continuing?"* with Yes / No buttons. This
   is non-blocking — the player can ignore it and proceed. Never interrupt pacing with a modal
   save dialogue.
+
+#### Per-Scene Save Data Embedding
+
+The GM **must** embed the `#save-data` div in every scene widget for compact mode games.
+This div contains `data-save` (the checksummed save string) and metadata attributes
+(`data-character`, `data-class`, `data-level`, `data-scene`, `data-location`, `data-title`,
+`data-theme`, `data-seed`, `data-mode`). See `modules/save-codex.md` for the full
+implementation pattern.
 
 #### What Gets Saved
 
@@ -638,6 +656,9 @@ const gmState = {
   navState: null,         // star-chart module
   mapState: null,         // geo-map module
   codex: [],              // lore-codex module
+  storyArchitect: null,   // story-architect module
+  worldHistory: null,     // world-history module
+  adventureLore: null,    // adventure-authoring module (.lore.md data)
   activeModules: [],      // list of loaded module names
 };
 ```
@@ -742,6 +763,10 @@ Modules in `modules/` add optional depth. Load based on scenario and settings.
 | World Gen | `modules/procedural-world-gen.md` | Procedural or hybrid scenario mode only (see Scenario Modes) |
 | Bestiary | `modules/bestiary.md` | Always (adversary templates, encounter building, threat tiers) |
 | Save Codex | `modules/save-codex.md` | Player wants to save/resume |
+| Genre Mechanics | `modules/genre-mechanics.md` | When scenario theme activates a genre overlay (magic, sanity, chi, hacking, powers, scarcity, reputation) |
+| Story Architect | `modules/story-architect.md` | Always (recommended for adventures >3 scenes) |
+| World History | `modules/world-history.md` | Recommended for all adventures |
+| Adventure Authoring | `modules/adventure-authoring.md` | When player uploads .lore.md or GM creates an adventure |
 
 ### Loading Protocol
 

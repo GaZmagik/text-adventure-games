@@ -128,8 +128,8 @@ Every scene widget includes this footer outside the progressive reveal wrapper.
 **Structure:**
 - **Left side:** Panel toggle buttons — one per loaded module panel. Only render
   buttons for modules active in the current session. Use `data-panel` attributes + `addEventListener`.
-- **Right side:** Save button using `data-prompt` + `addEventListener` pattern.
-  Label: `Save ↗` (the `↗` suffix indicates `sendPrompt()`).
+- **Right side:** Save button (`id="save-btn"`) using `addEventListener` pattern.
+  Label: `Save` (inline `.save.md` download for compact mode; `sendPrompt()` fallback for full mode only).
 
 **Available panel buttons (render only when the corresponding module is loaded):**
 - `Character` — always present (core)
@@ -178,7 +178,7 @@ Close button only; the scene footer is not their responsibility.
     <!-- <button class="footer-btn" data-panel="nav" aria-expanded="false">Nav chart</button> -->
     <!-- <button class="footer-btn" data-panel="map" aria-expanded="false">Map</button> -->
     <!-- <button class="footer-btn" data-panel="quests" aria-expanded="false">Quests</button> -->
-    <!-- <button class="footer-btn" data-prompt="Save the game.">Save ↗</button> -->
+    <!-- <button class="footer-btn" id="save-btn">Save</button> -->
   </div>
 </div>
 
