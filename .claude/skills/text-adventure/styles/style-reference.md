@@ -115,7 +115,7 @@ This is a structural guide, not a rigid template. Claude generates the full mark
 dynamically for each scene. The key requirements are:
 - `id="panel-overlay"` and `id="scene-content"` for the panel toggle system.
 - `id="reveal-brief"` and `id="reveal-full"` for progressive reveal.
-- Panel toggle buttons use `onclick="togglePanel('...')"` — never `sendPrompt()`.
+- Panel toggle buttons use `data-panel` attributes + `addEventListener` — never inline `onclick` or `sendPrompt()`.
 - The `↗` suffix on footer buttons indicates `sendPrompt()` (currently only Save).
 
 ### Canonical Scene Footer
@@ -125,7 +125,7 @@ Every scene widget includes this footer outside the progressive reveal wrapper.
 
 **Structure:**
 - **Left side:** Panel toggle buttons — one per loaded module panel. Only render
-  buttons for modules active in the current session. Use `onclick="togglePanel('...')"`.
+  buttons for modules active in the current session. Use `data-panel` attributes + `addEventListener`.
 - **Right side:** Save button using `data-prompt` + `addEventListener` pattern.
   Label: `Save ↗` (the `↗` suffix indicates `sendPrompt()`).
 
@@ -159,7 +159,7 @@ Close button only; the scene footer is not their responsibility.
     <div id="panel-overlay" style="display:none">
       <div class="panel-header">
         <span class="panel-title"></span>
-        <button class="panel-close-btn" onclick="closePanel()">Close</button>
+        <button class="panel-close-btn" id="panel-close-btn">Close</button>
       </div>
       <div class="panel-content" data-panel="character"></div>
       <div class="panel-content" data-panel="codex"></div>
@@ -169,16 +169,23 @@ Close button only; the scene footer is not their responsibility.
   </div>
   <!-- Footer (always visible, outside reveal) -->
   <div class="footer-row">
-    <button class="footer-btn" onclick="togglePanel('character')">Character</button>
+    <button class="footer-btn" data-panel="character">Character</button>
     <!-- Add per active module: -->
-    <!-- <button class="footer-btn" onclick="togglePanel('codex')">Codex</button> -->
-    <!-- <button class="footer-btn" onclick="togglePanel('ship')">Ship</button> -->
-    <!-- <button class="footer-btn" onclick="togglePanel('nav')">Nav chart</button> -->
-    <!-- <button class="footer-btn" onclick="togglePanel('map')">Map</button> -->
-    <!-- <button class="footer-btn" onclick="togglePanel('quests')">Quests</button> -->
+    <!-- <button class="footer-btn" data-panel="codex">Codex</button> -->
+    <!-- <button class="footer-btn" data-panel="ship">Ship</button> -->
+    <!-- <button class="footer-btn" data-panel="nav">Nav chart</button> -->
+    <!-- <button class="footer-btn" data-panel="map">Map</button> -->
+    <!-- <button class="footer-btn" data-panel="quests">Quests</button> -->
     <!-- <button class="footer-btn" data-prompt="Save the game.">Save ↗</button> -->
   </div>
 </div>
+
+<script>
+document.querySelectorAll('[data-panel]').forEach(btn => {
+  btn.addEventListener('click', () => togglePanel(btn.dataset.panel));
+});
+document.getElementById('panel-close-btn').addEventListener('click', closePanel);
+</script>
 ```
 
 **Note:** Widget types not templated here (die roll, character creation, settings, scenario
@@ -331,13 +338,6 @@ and `transform` to create their specific form.
   line-height: 1;
 }
 
-.die-hint {
-  font-family: var(--ta-font-body);
-  font-size: 11px;
-  color: var(--color-text-tertiary);
-  margin-top: 8px;
-  text-align: center;
-}
 ```
 
 ---
@@ -379,6 +379,8 @@ and `transform` to create their specific form.
 .die-d6 {
   border-radius: 12px; /* slightly rounded corners — standard cube face */
   clip-path: none;
+  perspective: 300px;
+  transform-style: preserve-3d;
 }
 
 /* d6: single-axis rotation — tumbles forward */
@@ -907,9 +909,10 @@ These classes are taken directly from the proven pattern.
         document.getElementById('resultArea').classList.add('show');
         document.getElementById('diceHint').textContent = 'Roll locked in';
 
+        const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 400;
         setTimeout(function() {
           document.getElementById('proceedBtn').classList.add('show');
-        }, 400);
+        }, delay);
       }
     }, 55);
   });
@@ -1030,7 +1033,7 @@ with staggered delays for sequential reveal.
 
 /* Card body */
 .obs-body {
-  font-family: var(--ta-font-body);
+  font-family: var(--ta-font-serif, Georgia, 'Times New Roman', serif);
   font-size: 12px;
   line-height: 1.7;
   color: var(--color-text-secondary);
@@ -1056,7 +1059,7 @@ with staggered delays for sequential reveal.
 }
 
 .obs-detail-text {
-  font-family: var(--ta-font-body);
+  font-family: var(--ta-font-serif, Georgia, 'Times New Roman', serif);
   font-size: 11px;
   line-height: 1.6;
   color: var(--color-text-secondary);
@@ -1069,7 +1072,7 @@ with staggered delays for sequential reveal.
 <!-- Stagger delays applied via inline custom property -->
 <div class="obs-card obs-warning" style="--obs-delay: 0s">
   <div class="obs-head">
-    <span class="obs-icon">&#x1F441;</span>
+    <span class="obs-icon" aria-hidden="true">&#x1F441;</span>
     <span class="obs-name">Tomas Vrek</span>
     <span class="obs-role">Regular — corner booth</span>
     <span class="obs-status warning">Nervous</span>
@@ -1079,7 +1082,7 @@ with staggered delays for sequential reveal.
     every few seconds — always the same interval, like clockwork.
   </p>
   <div class="obs-detail">
-    <span class="obs-detail-icon">&#x1F50E;</span>
+    <span class="obs-detail-icon" aria-hidden="true">&#x1F50E;</span>
     <span class="obs-detail-text">
       <strong>High roll detail:</strong> The rhythm is too regular. He's counting
       something — waiting for a signal, not a person.
@@ -1089,7 +1092,7 @@ with staggered delays for sequential reveal.
 
 <div class="obs-card obs-neutral" style="--obs-delay: 0.15s">
   <div class="obs-head">
-    <span class="obs-icon">&#x1F464;</span>
+    <span class="obs-icon" aria-hidden="true">&#x1F464;</span>
     <span class="obs-name">Couple — window seats</span>
     <span class="obs-role">Civilians</span>
     <span class="obs-status">Normal</span>
@@ -1101,7 +1104,7 @@ with staggered delays for sequential reveal.
 
 <div class="obs-card obs-danger" style="--obs-delay: 0.3s">
   <div class="obs-head">
-    <span class="obs-icon">&#x26A0;</span>
+    <span class="obs-icon" aria-hidden="true">&#x26A0;</span>
     <span class="obs-name">Unknown — near service exit</span>
     <span class="obs-role">Position is wrong for a customer</span>
     <span class="obs-status danger">Threat</span>
@@ -1111,7 +1114,7 @@ with staggered delays for sequential reveal.
     heavy for the station's climate.
   </p>
   <div class="obs-detail">
-    <span class="obs-detail-icon">&#x1F50E;</span>
+    <span class="obs-detail-icon" aria-hidden="true">&#x1F50E;</span>
     <span class="obs-detail-text">
       <strong>High roll detail:</strong> The bulge under the left arm is a
       shoulder holster, not a comm unit.
@@ -1189,7 +1192,6 @@ where each option has distinct mechanical weight.
 }
 
 .action-card-title {
-  font-family: var(--ta-font-body);
   font-size: 13px;
   font-weight: 600;
   color: var(--color-text-primary);
@@ -1197,7 +1199,6 @@ where each option has distinct mechanical weight.
 }
 
 .action-card-desc {
-  font-family: var(--ta-font-body);
   font-size: 12px;
   line-height: 1.6;
   color: var(--color-text-secondary);
@@ -1376,6 +1377,11 @@ three POI buttons, three action buttons, status bar, and panel footer.
     background: var(--ta-color-success); border: 0.5px solid var(--ta-color-success-border);
   }
   .pip.empty { background: transparent; border-color: var(--color-border-tertiary); }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+  }
   .xp-track {
     width: 60px; height: 3px; background: var(--color-border-tertiary);
     border-radius: 2px; overflow: hidden;
@@ -1421,6 +1427,10 @@ three POI buttons, three action buttons, status bar, and panel footer.
   .panel-content { display: none; font-size: 12px; line-height: 1.7; color: var(--color-text-secondary); }
 
   .fallback-text { font-size: 11px; color: var(--color-text-tertiary); margin-top: 8px; display: none; }
+
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+  #reveal-full.revealed { animation: fade-in 0.25s ease-out; }
+  @media (prefers-reduced-motion: reduce) { #reveal-full.revealed { animation: none; } }
 </style>
 
 <div class="root">
@@ -1484,6 +1494,7 @@ three POI buttons, three action buttons, status bar, and panel footer.
         <div class="hp-pips">
           <span class="pip"></span><span class="pip"></span><span class="pip"></span>
           <span class="pip"></span><span class="pip"></span><span class="pip"></span>
+          <span class="sr-only">6 of 6 HP</span>
         </div>
         <span>XP</span>
         <div class="xp-track"><div class="xp-fill" style="width:0%"></div></div>
@@ -1494,8 +1505,8 @@ three POI buttons, three action buttons, status bar, and panel footer.
     <!-- Panel overlay -->
     <div id="panel-overlay" style="display:none">
       <div class="panel-header">
-        <span class="panel-title" id="panel-title-text"></span>
-        <button class="panel-close-btn" onclick="closePanel()">Close</button>
+        <span class="panel-title" id="panel-title-text" tabindex="-1"></span>
+        <button class="panel-close-btn" id="panel-close-btn">Close</button>
       </div>
       <div class="panel-content" data-panel="character">
         <p><strong>Kael — Soldier</strong><br>Level 1 &middot; 0 / 100 XP</p>
@@ -1517,10 +1528,10 @@ three POI buttons, three action buttons, status bar, and panel footer.
 
   <!-- Footer — always visible -->
   <div class="footer-row">
-    <button class="footer-btn" onclick="togglePanel('character')">Character</button>
-    <button class="footer-btn" onclick="togglePanel('codex')">Codex</button>
-    <button class="footer-btn" onclick="togglePanel('ship')">Ship</button>
-    <button class="footer-btn" onclick="togglePanel('nav')">Nav chart</button>
+    <button class="footer-btn" data-panel="character">Character</button>
+    <button class="footer-btn" data-panel="codex">Codex</button>
+    <button class="footer-btn" data-panel="ship">Ship</button>
+    <button class="footer-btn" data-panel="nav">Nav chart</button>
   </div>
 </div>
 
@@ -1529,6 +1540,7 @@ three POI buttons, three action buttons, status bar, and panel footer.
 document.getElementById('continue-reveal-btn').addEventListener('click', function() {
   document.getElementById('reveal-brief').style.display = 'none';
   document.getElementById('reveal-full').style.display = 'block';
+  document.getElementById('reveal-full').classList.add('revealed');
 });
 
 /* Panel toggle system */
@@ -1546,12 +1558,19 @@ function togglePanel(panelId) {
   title.textContent = panelId.charAt(0).toUpperCase() + panelId.slice(1);
   document.querySelectorAll('.panel-content').forEach(p =>
     p.style.display = p.dataset.panel === panelId ? 'block' : 'none');
+  if (title) title.focus();
 }
 function closePanel() {
   document.getElementById('panel-overlay').style.display = 'none';
   document.getElementById('scene-content').style.display = 'block';
   activePanel = null;
 }
+
+/* Panel toggle + close — event delegation via data-panel attributes */
+document.querySelectorAll('[data-panel]').forEach(btn => {
+  btn.addEventListener('click', () => togglePanel(btn.dataset.panel));
+});
+document.getElementById('panel-close-btn').addEventListener('click', closePanel);
 
 /* sendPrompt with fallback — all data-prompt buttons */
 document.querySelectorAll('[data-prompt]').forEach(btn => {
@@ -1631,6 +1650,11 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
     border: 0.5px solid var(--ta-color-danger-border); background: var(--ta-color-danger);
   }
   .pip.empty { background: transparent; border-color: var(--color-border-tertiary); }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+  }
 
   /* Player status */
   .player-status {
@@ -1696,6 +1720,7 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
         <span class="hp-label">HP</span>
         <span class="pip"></span><span class="pip"></span>
         <span class="pip"></span><span class="pip"></span>
+        <span class="sr-only">4 of 4 HP</span>
       </div>
     </div>
     <div class="enemy-card">
@@ -1705,6 +1730,7 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
         <span class="hp-label">HP</span>
         <span class="pip"></span><span class="pip"></span>
         <span class="pip"></span><span class="pip"></span>
+        <span class="sr-only">4 of 4 HP</span>
       </div>
     </div>
     <div class="enemy-card">
@@ -1714,6 +1740,7 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
         <span class="hp-label">HP</span>
         <span class="pip"></span><span class="pip"></span>
         <span class="pip"></span><span class="pip"></span>
+        <span class="sr-only">4 of 4 HP</span>
       </div>
     </div>
   </div>
@@ -1726,6 +1753,7 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
       <span class="player-pip"></span><span class="player-pip"></span>
       <span class="player-pip"></span><span class="player-pip"></span>
       <span class="player-pip"></span><span class="player-pip"></span>
+      <span class="sr-only">6 of 6 HP</span>
     </div>
     <span>6 / 6</span>
     <span class="condition-tag">No conditions</span>
@@ -1868,6 +1896,7 @@ revealed sequentially via button clicks — never combined or skipped.
   .continue-btn {
     font-family: var(--ta-font-body); font-size: 11px;
     letter-spacing: 0.1em; padding: 8px 20px;
+    min-height: 44px; min-width: 44px; box-sizing: border-box;
     background: transparent; border: 0.5px solid var(--color-border-secondary);
     border-radius: var(--border-radius-md); color: var(--color-text-primary);
     cursor: pointer;
@@ -1995,7 +2024,10 @@ revealed sequentially via button clicks — never combined or skipped.
           const fallbackPrompt = document.getElementById('roll-fallback-prompt');
           fallbackPrompt.textContent = promptText;
 
-          document.getElementById('continue-stage').style.display = 'block';
+          const revealDelay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 400;
+          setTimeout(function() {
+            document.getElementById('continue-stage').style.display = 'block';
+          }, revealDelay);
         }, 300);
       }
     }, 50);
@@ -2101,6 +2133,7 @@ barter, and leave buttons use `data-prompt` + `addEventListener`.
   .btn-action {
     font-family: var(--ta-font-body);
     font-size: 10px; letter-spacing: 0.06em; padding: 6px 12px;
+    min-height: 44px; min-width: 44px; box-sizing: border-box;
     background: var(--ta-color-accent-bg); border: 0.5px solid var(--ta-color-accent);
     border-radius: var(--border-radius-md); color: var(--color-text-primary);
     cursor: pointer; transition: background 0.12s;
@@ -2109,6 +2142,7 @@ barter, and leave buttons use `data-prompt` + `addEventListener`.
   .btn-poi {
     font-family: var(--ta-font-body);
     font-size: 10px; letter-spacing: 0.06em; padding: 6px 12px;
+    min-height: 44px; min-width: 44px; box-sizing: border-box;
     background: transparent; border: var(--ta-border-style-poi) var(--color-border-secondary);
     border-radius: var(--border-radius-md); color: var(--color-text-secondary);
     cursor: pointer; transition: background 0.12s;
@@ -2125,7 +2159,7 @@ barter, and leave buttons use `data-prompt` + `addEventListener`.
   /* Sell tab — empty state */
   .sell-empty {
     font-size: 11px; color: var(--color-text-tertiary); padding: 16px 0;
-    text-align: centre;
+    text-align: center;
   }
 
   /* Focus-visible for keyboard navigation */
