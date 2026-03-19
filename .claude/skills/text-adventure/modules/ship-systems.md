@@ -711,7 +711,7 @@ any system crosses into critical.
 
   <p class="ss-fallback" id="ss-fallback" style="display:none; font-size:11px; padding:8px 12px; margin:0.5rem 0; background:var(--color-background-warning); border:0.5px solid var(--color-border-warning); border-radius:var(--border-radius-md); color:var(--color-text-warning); word-break:break-word; user-select:all;"></p>
 
-  <!-- Overlay controls (not a scene footer — see reference.md for the canonical scene footer) -->
+  <!-- Overlay controls (not a scene footer — see styles/style-reference.md for the canonical scene footer) -->
   <div class="ss-footer">
     <button class="close-btn" data-prompt="Close the ship status. Continue the adventure.">Close</button>
     <button class="close-btn" data-prompt="I want to reallocate ship power.">Reallocate power</button>
@@ -959,7 +959,7 @@ if (Object.values(shipState.systems).some(s => s.status === 'critical' || s.stat
 
 ## Scene Footer Integration
 
-Use the canonical scene footer from `reference.md`. This module adds the **Ship**
+Use the canonical scene footer from `styles/style-reference.md`. This module adds the **Ship**
 panel button to the footer when loaded. The ship status widget is an overlay with
 its own Close button — it does not define its own footer.
 

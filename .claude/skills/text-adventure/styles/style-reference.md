@@ -1,9 +1,82 @@
-# Text Adventure — Implementation Reference
+# Text Adventure — Style Reference
+
+> **This file defines structural patterns only.** Visual styling — colours, fonts,
+> decorative borders, shadows, and animations — is provided by visual-style files in
+> this folder. Load one visual style per session. If no visual style is selected, the
+> GM auto-selects one based on the output style or scenario theme.
 
 > **This file is mandatory reading before rendering any widget.**
 > The orchestrator (SKILL.md) defines rules and inlines the critical patterns (progressive
 > reveal, panel toggle, PANEL_DATA). This file provides supplementary implementation code:
 > panel CSS, scene skeleton, and loading messages.
+
+---
+
+## CSS Custom Property Contract
+
+Every visual style file **must** define all of the following CSS custom properties inside
+a `:root` block. Widgets reference these properties for all visual presentation. The
+structural patterns in this file use only these variables — never hardcoded colour or
+font values.
+
+### Required Custom Properties
+
+```css
+:root {
+  /* ── Typography ──────────────────────────────────────────────── */
+  --ta-font-heading:        /* Heading / display font stack */;
+  --ta-font-body:           /* Body / UI mono font stack */;
+
+  /* ── Colour — Core palette ───────────────────────────────────── */
+  --ta-color-accent:        /* Primary accent (action buttons, active states) */;
+  --ta-color-accent-hover:  /* Accent hover / pressed state */;
+  --ta-color-accent-bg:     /* Accent translucent background */;
+  --ta-color-accent-bg-hover: /* Accent translucent background — hover */;
+
+  /* ── Colour — Semantic ───────────────────────────────────────── */
+  --ta-color-success:       /* Success / positive (HP pips, teal badges) */;
+  --ta-color-success-border:/* Success border / darker tint */;
+  --ta-color-danger:        /* Danger / negative (enemy HP, attack) */;
+  --ta-color-danger-border: /* Danger border / darker tint */;
+  --ta-color-danger-bg:     /* Danger translucent background */;
+  --ta-color-danger-bg-hover:/* Danger translucent background — hover */;
+  --ta-color-warning:       /* Warning / caution (amber badges, suspicious) */;
+  --ta-color-warning-border:/* Warning border */;
+  --ta-color-warning-bg:    /* Warning translucent background */;
+  --ta-color-xp:            /* XP bar fill colour */;
+  --ta-color-focus:         /* Focus-visible outline colour */;
+
+  /* ── Colour — Conviction / social ────────────────────────────── */
+  --ta-color-conviction:        /* Conviction pip fill */;
+  --ta-color-conviction-border: /* Conviction pip border */;
+
+  /* ── Colour — Outcome badges ─────────────────────────────────── */
+  --ta-badge-success-bg:    /* Success badge background */;
+  --ta-badge-success-text:  /* Success badge text */;
+  --ta-badge-partial-bg:    /* Partial success badge background */;
+  --ta-badge-partial-text:  /* Partial success badge text */;
+  --ta-badge-failure-bg:    /* Failure badge background */;
+  --ta-badge-failure-text:  /* Failure badge text */;
+  --ta-badge-crit-success-border: /* Critical success badge border */;
+  --ta-badge-crit-failure-border: /* Critical failure badge border */;
+
+  /* ── Colour — Credits / currency ─────────────────────────────── */
+  --ta-color-credits:       /* Currency display colour */;
+
+  /* ── Colour — Tab active indicator ───────────────────────────── */
+  --ta-color-tab-active:    /* Active tab underline colour */;
+
+  /* ── Decorative — borders & shapes ───────────────────────────── */
+  --ta-border-style-poi:    /* POI button border style (e.g. "1px dashed") */;
+
+  /* ── Animation — die roll ────────────────────────────────────── */
+  --ta-die-spin-duration:   /* Die spin animation duration (e.g. "0.6s") */;
+}
+```
+
+**Dark mode overrides:** Visual style files should provide `@media (prefers-color-scheme: dark)` overrides for any properties that need adjustment. The structural patterns do not contain dark-mode colour logic — that responsibility belongs entirely to the visual style.
+
+**Host theme variables:** Widgets also use the Claude.ai host variables (`var(--color-text-primary)`, `var(--color-border-tertiary)`, etc.) for base text, borders, and backgrounds. These are provided by the host and need not be redefined by visual styles.
 
 ---
 
@@ -19,11 +92,11 @@ Use `#panel-overlay` (ID selector) to match the HTML element.
   border-bottom: 0.5px solid var(--color-border-tertiary);
 }
 .panel-title {
-  font-family: 'Syne', 'Segoe UI', system-ui, sans-serif;
+  font-family: var(--ta-font-heading);
   font-size: 18px; font-weight: 600; color: var(--color-text-primary);
 }
 .panel-close-btn {
-  font-family: 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  font-family: var(--ta-font-body);
   font-size: 11px; letter-spacing: 0.08em;
   background: transparent; border: 0.5px solid var(--color-border-tertiary);
   border-radius: var(--border-radius-md); padding: 8px 14px;
@@ -161,11 +234,1048 @@ Use these as placeholder text while widgets generate:
 
 ---
 
+## Die Shapes
+
+Structural CSS-only die shapes for tabletop RPG dice. Visual styles skin these
+with their own colours by overriding the custom properties below. All shapes use
+a consistent box model so animations and states work identically across die types.
+
+### Die Custom Properties
+
+```css
+/* These properties must be set by the visual style, or fall back to the host
+   theme. Die shapes reference only these variables — never hardcoded colours. */
+:root {
+  --die-border-color:       /* Default die border */;
+  --die-bg:                 /* Default die background */;
+  --die-text-color:         /* Die label / face value colour */;
+  --die-hover-bg:           /* Background on hover */;
+  --die-hover-border:       /* Border colour on hover */;
+  --die-rolled-bg:          /* Background after roll is locked */;
+  --die-rolled-border:      /* Border colour after roll is locked */;
+  --die-animation-duration: /* Spin/roll animation duration (e.g. "0.6s") */;
+}
+```
+
+### Size Modifier Classes
+
+```css
+/* Applied alongside die shape classes: .die-d20.die--sm, .die-d20.die--lg */
+.die--sm  { --die-size: 80px;  }
+.die--md  { --die-size: 100px; } /* default */
+.die--lg  { --die-size: 120px; }
+```
+
+### Shared Die Base
+
+All die classes share this base. Shape classes override `clip-path`, `border-radius`,
+and `transform` to create their specific form.
+
+```css
+[class^="die-"] {
+  --die-size: 100px; /* overridden by .die--sm / .die--lg */
+  width:  var(--die-size);
+  height: var(--die-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 2px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+  background: var(--die-bg);
+  border: 1.5px solid var(--die-border-color);
+  color: var(--die-text-color);
+  position: relative;
+  user-select: none;
+}
+
+[class^="die-"]:hover {
+  background: var(--die-hover-bg);
+  border-color: var(--die-hover-border);
+  transform: scale(1.05);
+}
+
+[class^="die-"]:active {
+  transform: scale(0.95);
+}
+
+[class^="die-"]:focus-visible {
+  outline: 2px solid var(--ta-color-focus);
+  outline-offset: 3px;
+}
+
+/* Rolled / locked state — dimmed, non-interactive */
+[class^="die-"].rolled {
+  background: var(--die-rolled-bg);
+  border-color: var(--die-rolled-border);
+  cursor: default;
+  pointer-events: none;
+  opacity: 0.55;
+  transform: none;
+}
+
+.die-label {
+  font-family: var(--ta-font-body);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: inherit;
+}
+
+.die-face {
+  font-family: var(--ta-font-body);
+  font-size: 26px;
+  font-weight: 500;
+  color: inherit;
+  line-height: 1;
+}
+
+.die-hint {
+  font-family: var(--ta-font-body);
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  margin-top: 8px;
+  text-align: center;
+}
+```
+
+---
+
+### d4 — Triangle / Tetrahedron
+
+```css
+.die-d4 {
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  border-radius: 0;
+  border: none; /* clip-path clips the border; use box-shadow instead */
+  /* For a bordered triangle, use a wrapper technique or SVG border */
+}
+
+/* d4: wobble / tip animation — rolls on its point */
+@keyframes die-d4-wobble {
+  0%   { transform: rotate(0deg)   scale(1);    }
+  15%  { transform: rotate(-18deg) scale(1.1);  }
+  35%  { transform: rotate(14deg)  scale(1.08); }
+  55%  { transform: rotate(-10deg) scale(1.05); }
+  75%  { transform: rotate(6deg)   scale(1.02); }
+  90%  { transform: rotate(-3deg)  scale(1.01); }
+  100% { transform: rotate(0deg)   scale(1);    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .die-d4.rolling {
+    animation: die-d4-wobble var(--die-animation-duration, 0.7s) ease-in-out;
+    pointer-events: none;
+  }
+}
+```
+
+---
+
+### d6 — Square with Rounded Corners
+
+```css
+.die-d6 {
+  border-radius: 12px; /* slightly rounded corners — standard cube face */
+  clip-path: none;
+}
+
+/* d6: single-axis rotation — tumbles forward */
+@keyframes die-d6-rotate {
+  0%   { transform: rotateX(0deg)   scale(1);    }
+  25%  { transform: rotateX(90deg)  scale(1.08); }
+  50%  { transform: rotateX(180deg) scale(1.05); }
+  75%  { transform: rotateX(270deg) scale(1.08); }
+  100% { transform: rotateX(360deg) scale(1);    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .die-d6.rolling {
+    animation: die-d6-rotate var(--die-animation-duration, 0.6s) ease-in-out;
+    pointer-events: none;
+  }
+}
+```
+
+---
+
+### d8 — Diamond / Rhombus
+
+```css
+.die-d8 {
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  border-radius: 0;
+  border: none;
+}
+
+/* d8: diamond spin — rotates on its axis through all four points */
+@keyframes die-d8-spin {
+  0%   { transform: rotate(0deg)   scale(1);    }
+  20%  { transform: rotate(90deg)  scale(1.12); }
+  40%  { transform: rotate(180deg) scale(1.05); }
+  60%  { transform: rotate(270deg) scale(1.1);  }
+  80%  { transform: rotate(330deg) scale(1.02); }
+  100% { transform: rotate(360deg) scale(1);    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .die-d8.rolling {
+    animation: die-d8-spin var(--die-animation-duration, 0.65s) ease-in-out;
+    pointer-events: none;
+  }
+}
+```
+
+---
+
+### d10 — Elongated Diamond / Kite
+
+```css
+.die-d10 {
+  /* Taller than wide: 60% width at widest, point at top and bottom */
+  clip-path: polygon(50% 0%, 95% 40%, 50% 100%, 5% 40%);
+  border-radius: 0;
+  border: none;
+}
+
+/* d10: flip animation — tumbles end-over-end on the Y axis */
+@keyframes die-d10-flip {
+  0%   { transform: perspective(300px) rotateY(0deg)   scale(1);    }
+  30%  { transform: perspective(300px) rotateY(120deg) scale(1.1);  }
+  60%  { transform: perspective(300px) rotateY(240deg) scale(1.05); }
+  100% { transform: perspective(300px) rotateY(360deg) scale(1);    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .die-d10.rolling {
+    animation: die-d10-flip var(--die-animation-duration, 0.7s) ease-in-out;
+    pointer-events: none;
+  }
+}
+```
+
+---
+
+### d12 — Pentagon
+
+```css
+.die-d12 {
+  /* Regular pentagon — point up */
+  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+  border-radius: 0;
+  border: none;
+}
+
+/* d12: complex multi-axis rotation — the heaviest-feeling die */
+@keyframes die-d12-tumble {
+  0%   { transform: rotate(0deg)   rotateX(0deg)    scale(1);    }
+  20%  { transform: rotate(72deg)  rotateX(60deg)   scale(1.15); }
+  40%  { transform: rotate(144deg) rotateX(120deg)  scale(1.08); }
+  60%  { transform: rotate(216deg) rotateX(180deg)  scale(1.12); }
+  80%  { transform: rotate(288deg) rotateX(240deg)  scale(1.04); }
+  100% { transform: rotate(360deg) rotateX(360deg)  scale(1);    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .die-d12.rolling {
+    animation: die-d12-tumble var(--die-animation-duration, 0.8s) ease-in-out;
+    pointer-events: none;
+  }
+}
+```
+
+---
+
+### d20 — Circle
+
+The established pattern from the game (perception_check_scene.html). The circle
+is the simplest and most recognisable form for the most iconic RPG die.
+
+```css
+.die-d20 {
+  border-radius: 50%;
+}
+
+/* d20: rotate + scale — proven from perception_check_scene.html */
+@keyframes die-d20-roll {
+  0%   { transform: rotate(0deg)   scale(1);    }
+  20%  { transform: rotate(72deg)  scale(1.15); }
+  40%  { transform: rotate(180deg) scale(1.05); }
+  60%  { transform: rotate(270deg) scale(1.12); }
+  80%  { transform: rotate(340deg) scale(1.02); }
+  100% { transform: rotate(360deg) scale(1);    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .die-d20.rolling {
+    animation: die-d20-roll var(--die-animation-duration, 0.6s) ease-in-out;
+    pointer-events: none;
+  }
+}
+```
+
+---
+
+### d100 — Double Circle (Percentile)
+
+Two concentric circles suggest the tens and units dice of a percentile roll.
+The outer ring is the structural element; the inner pip indicates the units die.
+
+```css
+.die-d100 {
+  border-radius: 50%;
+  position: relative;
+}
+
+/* Inner pip — represents the units die */
+.die-d100::before {
+  content: '';
+  position: absolute;
+  width: 35%;
+  height: 35%;
+  border-radius: 50%;
+  border: 1.5px solid var(--die-border-color);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.5;
+}
+
+/* d100: two-stage roll — outer (tens) then inner (units) */
+@keyframes die-d100-tens {
+  0%   { transform: rotate(0deg)   scale(1);    }
+  45%  { transform: rotate(180deg) scale(1.1);  }
+  100% { transform: rotate(360deg) scale(1);    }
+}
+
+@keyframes die-d100-units {
+  0%   { transform: translate(-50%, -50%) rotate(0deg);    }
+  100% { transform: translate(-50%, -50%) rotate(-540deg); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .die-d100.rolling {
+    animation: die-d100-tens var(--die-animation-duration, 0.9s) ease-in-out;
+    pointer-events: none;
+  }
+
+  .die-d100.rolling::before {
+    animation: die-d100-units var(--die-animation-duration, 0.9s) ease-in-out;
+  }
+}
+```
+
+---
+
+## Die Roll Widget Pattern
+
+The complete, proven HTML structure for a die roll check widget. This pattern
+is extracted from the game (perception_check_scene.html) and generalised for
+any attribute check. It follows four sequential stages:
+
+1. **Narrative context** — sets the scene for why the check matters
+2. **Check panel** — shows the attribute, modifiers, and breakdown cells
+3. **Die button** — clickable die that animates and locks on roll
+4. **Result + Proceed** — outcome badge and full-width CTA to continue
+
+### Check Breakdown Row
+
+The `D20 ROLL | + | MOD | + | PROF | = | TOTAL` strip used inside the check panel.
+These classes are taken directly from the proven pattern.
+
+```css
+/* Check panel container */
+.check-panel {
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--die-border-color);
+  border-radius: var(--border-radius-lg);
+  padding: 1.25rem;
+  margin-bottom: 14px;
+}
+
+.check-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.check-title {
+  font-family: var(--ta-font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--die-text-color);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.06em;
+}
+
+/* Accent bar before title */
+.check-title::before {
+  content: '';
+  width: 3px;
+  height: 14px;
+  background: var(--die-text-color);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.check-bonus {
+  font-family: var(--ta-font-body);
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  background: var(--color-background-secondary);
+  padding: 3px 10px;
+  border-radius: var(--border-radius-md);
+  border: 0.5px solid var(--color-border-tertiary);
+}
+
+/* Breakdown row */
+.check-breakdown {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.cb-item {
+  text-align: center;
+  padding: 8px 12px;
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: 6px;
+  min-width: 80px;
+}
+
+.cb-item.cb-total {
+  border-color: var(--die-border-color); /* highlighted total cell */
+}
+
+.cb-label {
+  font-family: var(--ta-font-body);
+  font-size: 9px;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.cb-val {
+  font-family: var(--ta-font-body);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-top: 2px;
+}
+
+.cb-val.cb-total-val {
+  color: var(--die-text-color); /* accent colour for total */
+}
+
+/* Operator glyphs */
+.cb-plus {
+  font-family: var(--ta-font-body);
+  font-size: 20px;
+  color: var(--color-text-tertiary);
+  display: flex;
+  align-items: center;
+}
+
+.cb-eq {
+  font-family: var(--ta-font-body);
+  font-size: 20px;
+  color: var(--die-text-color);
+  display: flex;
+  align-items: center;
+}
+
+/* Die zone */
+.dice-zone {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.die-hint {
+  font-family: var(--ta-font-body);
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  margin-top: 8px;
+}
+
+/* Result reveal area — hidden until roll completes */
+.result-area {
+  display: none;
+}
+
+.result-area.show {
+  display: block;
+  animation: die-result-reveal 0.5s ease-out;
+}
+
+@keyframes die-result-reveal {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1);    }
+}
+
+.result-total {
+  text-align: center;
+  margin: 12px 0;
+}
+
+.result-num {
+  font-family: var(--ta-font-body);
+  font-size: 42px;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.result-tag {
+  font-family: var(--ta-font-body);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Proceed button — full-width CTA, hidden until result shows */
+.proceed-btn {
+  display: none;
+  width: 100%;
+  margin-top: 10px;
+  background: var(--ta-color-accent-bg);
+  border: 0.5px solid var(--ta-color-accent);
+  color: var(--color-text-primary);
+  font-family: var(--ta-font-body);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 12px;
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  letter-spacing: 0.06em;
+}
+
+.proceed-btn:hover {
+  background: var(--ta-color-accent-bg-hover);
+  transform: translateY(-1px);
+}
+
+.proceed-btn.show {
+  display: block;
+  animation: die-result-reveal 0.5s ease-out;
+}
+
+.proceed-btn:focus-visible {
+  outline: 2px solid var(--ta-color-focus);
+  outline-offset: 2px;
+}
+```
+
+### Complete Die Roll Widget HTML
+
+```html
+<style>
+  /* Die custom properties — set by visual style */
+  :root {
+    --die-border-color: var(--color-border-secondary);
+    --die-bg:           transparent;
+    --die-text-color:   var(--color-text-primary);
+    --die-hover-bg:     var(--color-background-secondary);
+    --die-hover-border: var(--color-border-primary);
+    --die-rolled-bg:    var(--color-background-secondary);
+    --die-rolled-border:var(--color-border-tertiary);
+    --die-animation-duration: 0.6s;
+  }
+
+  /* ... paste die base + .die-d20 CSS here from above ... */
+  /* ... paste check panel CSS here from above ... */
+</style>
+
+<div class="roll-root">
+  <!-- Narrative context -->
+  <h2 class="roll-heading">Perception Check</h2>
+  <p class="roll-action">
+    You scan the room, watching for anything out of place.
+  </p>
+
+  <!-- Check panel -->
+  <div class="check-panel">
+    <div class="check-header">
+      <div class="check-title">Wisdom — Perception</div>
+      <div class="check-bonus">Proficient</div>
+    </div>
+
+    <!-- Breakdown: D20 ROLL + WIS MOD + PROFICIENCY = TOTAL -->
+    <div class="check-breakdown">
+      <div class="cb-item">
+        <div class="cb-label">d20 roll</div>
+        <div class="cb-val" id="rawRoll">?</div>
+      </div>
+      <div class="cb-plus">+</div>
+      <div class="cb-item">
+        <div class="cb-label">WIS mod</div>
+        <div class="cb-val">+2</div>
+      </div>
+      <div class="cb-plus">+</div>
+      <div class="cb-item">
+        <div class="cb-label">Proficiency</div>
+        <div class="cb-val">+2</div>
+      </div>
+      <div class="cb-eq">=</div>
+      <div class="cb-item cb-total">
+        <div class="cb-label">Total</div>
+        <div class="cb-val cb-total-val" id="totalRoll">?</div>
+      </div>
+    </div>
+
+    <!-- Die button (d20 circle) -->
+    <div class="dice-zone">
+      <button class="die-d20" id="diceBtn">
+        <div class="die-label">d20</div>
+        <div class="die-face" id="diceFace">?</div>
+      </button>
+      <div class="die-hint" id="diceHint">Click the die to roll</div>
+    </div>
+
+    <!-- Result reveal -->
+    <div class="result-area" id="resultArea">
+      <div class="result-total">
+        <div class="result-num" id="resultNum"></div>
+        <div class="result-tag" id="resultTag"></div>
+      </div>
+    </div>
+
+    <!-- Proceed CTA -->
+    <button class="proceed-btn" id="proceedBtn">Continue</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  const MODIFIER   = 2;  /* attribute modifier */
+  const PROFICIENCY = 2;  /* proficiency bonus — 0 if not proficient */
+  const DC         = 14;  /* difficulty class */
+
+  let rolled = false;
+  let rawVal = 0;
+  let finalTotal = 0;
+
+  document.getElementById('diceBtn').addEventListener('click', function() {
+    if (rolled) return;
+    const btn  = this;
+    const face = document.getElementById('diceFace');
+    btn.classList.add('rolling');
+
+    /* Flicker animation — show random numbers before landing */
+    let flicks = 0;
+    const maxFlicks = 12;
+    const interval = setInterval(function() {
+      face.textContent = Math.floor(Math.random() * 20) + 1;
+      flicks++;
+      if (flicks >= maxFlicks) {
+        clearInterval(interval);
+        rawVal     = Math.floor(Math.random() * 20) + 1;
+        finalTotal = rawVal + MODIFIER + PROFICIENCY;
+        face.textContent = rawVal;
+        document.getElementById('rawRoll').textContent   = rawVal;
+        document.getElementById('totalRoll').textContent = finalTotal;
+        btn.classList.remove('rolling');
+        btn.classList.add('rolled');
+        rolled = true;
+
+        /* Determine outcome */
+        const resultNum = document.getElementById('resultNum');
+        const resultTag = document.getElementById('resultTag');
+        resultNum.textContent = finalTotal;
+
+        if (rawVal === 20) {
+          resultTag.textContent = 'Natural 20 — Critical Success';
+        } else if (rawVal === 1) {
+          resultTag.textContent = 'Natural 1 — Critical Failure';
+        } else if (finalTotal >= DC + 5) {
+          resultTag.textContent = 'Exceptional Success';
+        } else if (finalTotal >= DC) {
+          resultTag.textContent = 'Success';
+        } else if (DC - finalTotal <= 3) {
+          resultTag.textContent = 'Partial Success';
+        } else {
+          resultTag.textContent = 'Failure';
+        }
+
+        document.getElementById('resultArea').classList.add('show');
+        document.getElementById('diceHint').textContent = 'Roll locked in';
+
+        setTimeout(function() {
+          document.getElementById('proceedBtn').classList.add('show');
+        }, 400);
+      }
+    }, 55);
+  });
+
+  document.getElementById('proceedBtn').addEventListener('click', function() {
+    const prompt = 'I rolled a natural ' + rawVal + ' on the d20, plus modifier '
+      + MODIFIER + ', plus proficiency ' + PROFICIENCY
+      + ', for a total of ' + finalTotal + ' against DC ' + DC + '. Continue.';
+    if (typeof sendPrompt === 'function') {
+      sendPrompt(prompt);
+    } else {
+      /* Fallback: show copyable prompt */
+      const hint = document.getElementById('diceHint');
+      hint.textContent = prompt;
+    }
+  });
+})();
+</script>
+```
+
+---
+
+## Observation Card Pattern
+
+Used for sequential NPC / environmental observation reveals. Each card has a
+coloured left accent bar, a header row with icon + name + role + status tag,
+a description body, and an optional perception detail block. Cards animate in
+with staggered delays for sequential reveal.
+
+```css
+/* Observation card — coloured left accent bar via ::before */
+.obs-card {
+  position: relative;
+  padding: 12px 14px 12px 18px;
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md);
+  background: var(--color-background-secondary);
+  margin-bottom: 10px;
+  animation: obs-card-in 0.4s ease-out both;
+}
+
+.obs-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: var(--border-radius-md) 0 0 var(--border-radius-md);
+  background: var(--ta-color-accent); /* visual style overrides per card type */
+}
+
+/* Accent variants — visual styles provide the actual colour values */
+.obs-card.obs-danger::before   { background: var(--ta-color-danger);  }
+.obs-card.obs-warning::before  { background: var(--ta-color-warning); }
+.obs-card.obs-success::before  { background: var(--ta-color-success); }
+.obs-card.obs-neutral::before  { background: var(--color-border-secondary); }
+
+/* Staggered reveal — apply nth-of-type delays or inline style="--obs-delay: Ns" */
+.obs-card { animation-delay: var(--obs-delay, 0s); }
+
+@keyframes obs-card-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Animation already wrapped above — no extra work needed */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .obs-card { animation: none; }
+}
+
+/* Card header: icon + name + role + status tag */
+.obs-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.obs-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.obs-name {
+  font-family: var(--ta-font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.obs-role {
+  font-family: var(--ta-font-body);
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.06em;
+}
+
+.obs-status {
+  font-family: var(--ta-font-body);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 0.5px solid var(--color-border-tertiary);
+  color: var(--color-text-tertiary);
+  margin-left: auto; /* push to right of header row */
+}
+
+.obs-status.danger  { border-color: var(--ta-color-danger-border);  color: var(--ta-color-danger);  background: var(--ta-color-danger-bg);  }
+.obs-status.warning { border-color: var(--ta-color-warning-border); color: var(--ta-color-warning); background: var(--ta-color-warning-bg); }
+.obs-status.success { border-color: var(--ta-color-success-border); color: var(--ta-color-success);                                         }
+
+/* Card body */
+.obs-body {
+  font-family: var(--ta-font-body);
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+}
+
+/* Perception detail block — e.g. "EYE" / high-roll bonus detail */
+.obs-detail {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--border-radius-md);
+  background: var(--ta-color-accent-bg);
+  border: 0.5px solid var(--ta-color-accent);
+  margin-top: 4px;
+}
+
+.obs-detail-icon {
+  font-size: 13px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.obs-detail-text {
+  font-family: var(--ta-font-body);
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+```
+
+### Observation Card HTML Example
+
+```html
+<!-- Stagger delays applied via inline custom property -->
+<div class="obs-card obs-warning" style="--obs-delay: 0s">
+  <div class="obs-head">
+    <span class="obs-icon">&#x1F441;</span>
+    <span class="obs-name">Tomas Vrek</span>
+    <span class="obs-role">Regular — corner booth</span>
+    <span class="obs-status warning">Nervous</span>
+  </div>
+  <p class="obs-body">
+    He hasn't touched his drink in twenty minutes. His eyes track the door
+    every few seconds — always the same interval, like clockwork.
+  </p>
+  <div class="obs-detail">
+    <span class="obs-detail-icon">&#x1F50E;</span>
+    <span class="obs-detail-text">
+      <strong>High roll detail:</strong> The rhythm is too regular. He's counting
+      something — waiting for a signal, not a person.
+    </span>
+  </div>
+</div>
+
+<div class="obs-card obs-neutral" style="--obs-delay: 0.15s">
+  <div class="obs-head">
+    <span class="obs-icon">&#x1F464;</span>
+    <span class="obs-name">Couple — window seats</span>
+    <span class="obs-role">Civilians</span>
+    <span class="obs-status">Normal</span>
+  </div>
+  <p class="obs-body">
+    Absorbed in their own conversation. Not relevant.
+  </p>
+</div>
+
+<div class="obs-card obs-danger" style="--obs-delay: 0.3s">
+  <div class="obs-head">
+    <span class="obs-icon">&#x26A0;</span>
+    <span class="obs-name">Unknown — near service exit</span>
+    <span class="obs-role">Position is wrong for a customer</span>
+    <span class="obs-status danger">Threat</span>
+  </div>
+  <p class="obs-body">
+    Standing, not sitting. Facing the room, not the bar. Jacket is too
+    heavy for the station's climate.
+  </p>
+  <div class="obs-detail">
+    <span class="obs-detail-icon">&#x1F50E;</span>
+    <span class="obs-detail-text">
+      <strong>High roll detail:</strong> The bulge under the left arm is a
+      shoulder holster, not a comm unit.
+    </span>
+  </div>
+</div>
+```
+
+---
+
+## Numbered Action Card Pattern
+
+Full-width button cards presenting player choices with a number circle, title,
+description, and optional mechanical check info. Used for scene action selection
+where each option has distinct mechanical weight.
+
+```css
+/* Action card — full-width clickable button */
+.action-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  background: transparent;
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  margin-bottom: 8px;
+  font-family: var(--ta-font-body);
+}
+
+.action-card:hover {
+  background: var(--ta-color-accent-bg);
+  border-color: var(--ta-color-accent);
+}
+
+.action-card:focus-visible {
+  outline: 2px solid var(--ta-color-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .action-card { transition: none; }
+}
+
+/* Card inner layout */
+.action-card-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* Number circle */
+.action-card-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--ta-color-accent-bg);
+  border: 1px solid var(--ta-color-accent);
+  color: var(--ta-color-accent);
+  font-family: var(--ta-font-body);
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Text column */
+.action-card-body {
+  flex: 1;
+}
+
+.action-card-title {
+  font-family: var(--ta-font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 3px;
+}
+
+.action-card-desc {
+  font-family: var(--ta-font-body);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin-bottom: 6px;
+}
+
+/* Mechanical check info — monospace, tertiary colour */
+.action-card-mech {
+  font-family: var(--ta-font-body);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--color-text-tertiary);
+  padding: 3px 8px;
+  border-radius: var(--border-radius-md);
+  border: 0.5px solid var(--color-border-tertiary);
+  display: inline-block;
+}
+```
+
+### Numbered Action Card HTML Example
+
+```html
+<p class="section-label">What do you do?</p>
+
+<button class="action-card" data-prompt="I keep wiping the bar and say nothing. Passive observation.">
+  <div class="action-card-inner">
+    <div class="action-card-num">1</div>
+    <div class="action-card-body">
+      <div class="action-card-title">Stay quiet. Keep working.</div>
+      <p class="action-card-desc">
+        You say nothing. Thirty years behind this bar have taught you that
+        silence is its own kind of answer — and its own kind of pressure.
+      </p>
+      <span class="action-card-mech">WIS check — DC 10 — Insight passive</span>
+    </div>
+  </div>
+</button>
+
+<button class="action-card" data-prompt="I slide the chip back across the bar toward him.">
+  <div class="action-card-inner">
+    <div class="action-card-num">2</div>
+    <div class="action-card-body">
+      <div class="action-card-title">Slide the chip back.</div>
+      <p class="action-card-desc">
+        You push the credit chip back across the bar without a word.
+        The message is clear enough.
+      </p>
+      <span class="action-card-mech">CHA check — DC 12 — Persuasion or Intimidation</span>
+    </div>
+  </div>
+</button>
+
+<button class="action-card" data-prompt="I lean in and ask him quietly what he wants.">
+  <div class="action-card-inner">
+    <div class="action-card-num">3</div>
+    <div class="action-card-body">
+      <div class="action-card-title">Ask him directly.</div>
+      <p class="action-card-desc">
+        You lean across the bar, voice low enough that only he hears it.
+        "What is it you actually want?"
+      </p>
+      <span class="action-card-mech">CHA check — DC 13 — Persuasion</span>
+    </div>
+  </div>
+</button>
+```
+
+---
+
 ## Worked Examples
 
-Five complete HTML widget examples demonstrating the core patterns. Each is
-renderable as-is inside `visualize:show_widget`. CSS variables (e.g.
+Five complete HTML widget examples demonstrating the core structural patterns. Each is
+renderable as-is inside `visualize:show_widget`. CSS variables prefixed `--ta-` are
+provided by the active visual style; variables without the prefix (e.g.
 `var(--color-text-primary)`) reference the Claude.ai host theme.
+
+**Note:** These examples use CSS custom properties for all visual presentation. The active
+visual style file defines the values. See the CSS Custom Property Contract above.
 
 ---
 
@@ -176,10 +1286,7 @@ three POI buttons, three action buttons, status bar, and panel footer.
 
 ```html
 <style>
-  /* Google Fonts may be CSP-blocked in Claude.ai sandbox — fallback stack must produce acceptable results. */
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
-
-  .root { font-family: 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace; padding: 1rem 0 1.5rem; }
+  .root { font-family: var(--ta-font-body); padding: 1rem 0 1.5rem; }
 
   /* Progressive reveal */
   .brief-text {
@@ -187,14 +1294,14 @@ three POI buttons, three action buttons, status bar, and panel footer.
     margin: 0 0 1rem;
   }
   .continue-btn {
-    font-family: 'IBM Plex Mono', var(--font-mono); font-size: 11px;
+    font-family: var(--ta-font-body); font-size: 11px;
     letter-spacing: 0.1em; padding: 8px 20px; min-height: 44px; min-width: 44px; box-sizing: border-box;
     background: transparent; border: 0.5px solid var(--color-border-secondary);
     border-radius: var(--border-radius-md); color: var(--color-text-primary);
     cursor: pointer;
   }
   .continue-btn:hover { background: var(--color-background-secondary); }
-  button:focus-visible, [data-prompt]:focus-visible { outline: 2px solid var(--color-border-primary, #4a90d9); outline-offset: 2px; }
+  button:focus-visible, [data-prompt]:focus-visible { outline: 2px solid var(--ta-color-focus); outline-offset: 2px; }
 
   /* Location bar */
   .loc-bar {
@@ -203,7 +1310,7 @@ three POI buttons, three action buttons, status bar, and panel footer.
     border-bottom: 0.5px solid var(--color-border-tertiary);
   }
   .loc-name {
-    font-family: 'Syne', 'Segoe UI', system-ui, sans-serif; font-size: 16px; font-weight: 700;
+    font-family: var(--ta-font-heading); font-size: 16px; font-weight: 700;
     color: var(--color-text-primary); margin: 0;
   }
   .scene-num {
@@ -234,9 +1341,9 @@ three POI buttons, three action buttons, status bar, and panel footer.
 
   /* POI/explore buttons — outlined style, no fill */
   .poi-btn, .btn-poi {
-    font-family: 'IBM Plex Mono', var(--font-mono); font-size: 11px;
+    font-family: var(--ta-font-body); font-size: 11px;
     letter-spacing: 0.06em; padding: 7px 14px;
-    background: transparent; border: 1px dashed var(--color-border-secondary);
+    background: transparent; border: var(--ta-border-style-poi) var(--color-border-secondary);
     border-radius: var(--border-radius-md); color: var(--color-text-secondary);
     cursor: pointer; transition: background 0.12s;
   }
@@ -245,21 +1352,15 @@ three POI buttons, three action buttons, status bar, and panel footer.
     border-style: solid;
   }
 
-  /* Action/advance buttons — solid fill with accent colour */
+  /* Action/advance buttons — accent-coloured */
   .action-btn, .btn-action {
-    font-family: 'IBM Plex Mono', var(--font-mono); font-size: 11px;
+    font-family: var(--ta-font-body); font-size: 11px;
     letter-spacing: 0.06em; padding: 7px 14px;
-    background: rgba(231, 111, 81, 0.09); border: 0.5px solid #E76F51;
+    background: var(--ta-color-accent-bg); border: 0.5px solid var(--ta-color-accent);
     border-radius: var(--border-radius-md); color: var(--color-text-primary);
     cursor: pointer; transition: background 0.12s;
   }
-  .action-btn:hover, .btn-action:hover { background: rgba(231, 111, 81, 0.18); }
-  @media (prefers-color-scheme: dark) {
-    .action-btn, .btn-action {
-      background: rgba(231, 111, 81, 0.12); border-color: #E76F51;
-    }
-    .action-btn:hover, .btn-action:hover { background: rgba(231, 111, 81, 0.24); }
-  }
+  .action-btn:hover, .btn-action:hover { background: var(--ta-color-accent-bg-hover); }
 
   /* Status bar */
   .status-bar {
@@ -272,14 +1373,14 @@ three POI buttons, three action buttons, status bar, and panel footer.
   .hp-pips { display: flex; gap: 4px; align-items: center; }
   .pip {
     width: 8px; height: 8px; border-radius: 50%;
-    background: #2BA882; border: 0.5px solid #1F8A6A;
+    background: var(--ta-color-success); border: 0.5px solid var(--ta-color-success-border);
   }
   .pip.empty { background: transparent; border-color: var(--color-border-tertiary); }
   .xp-track {
     width: 60px; height: 3px; background: var(--color-border-tertiary);
     border-radius: 2px; overflow: hidden;
   }
-  .xp-fill { height: 100%; width: 0%; background: #7C6BF0; border-radius: 2px; }
+  .xp-fill { height: 100%; width: 0%; background: var(--ta-color-xp); border-radius: 2px; }
 
   /* Footer */
   .footer-row {
@@ -288,7 +1389,7 @@ three POI buttons, three action buttons, status bar, and panel footer.
     border-top: 0.5px solid var(--color-border-tertiary);
   }
   .footer-btn {
-    font-family: 'IBM Plex Mono', var(--font-mono); font-size: 10px;
+    font-family: var(--ta-font-body); font-size: 10px;
     letter-spacing: 0.08em; padding: 8px 14px;
     min-height: 44px; min-width: 44px; box-sizing: border-box;
     background: transparent; border: 0.5px solid var(--color-border-tertiary);
@@ -305,11 +1406,11 @@ three POI buttons, three action buttons, status bar, and panel footer.
     border-bottom: 0.5px solid var(--color-border-tertiary);
   }
   .panel-title {
-    font-family: 'Syne', 'Segoe UI', system-ui, sans-serif; font-size: 18px; font-weight: 600;
+    font-family: var(--ta-font-heading); font-size: 18px; font-weight: 600;
     color: var(--color-text-primary);
   }
   .panel-close-btn {
-    font-family: 'IBM Plex Mono', var(--font-mono); font-size: 10px;
+    font-family: var(--ta-font-body); font-size: 10px;
     letter-spacing: 0.08em; background: transparent;
     border: 0.5px solid var(--color-border-tertiary);
     border-radius: var(--border-radius-md); padding: 8px 14px;
@@ -363,7 +1464,7 @@ three POI buttons, three action buttons, status bar, and panel footer.
         <button class="btn-poi" data-prompt="I approach the stranger in the flight jacket.">&#x1F50D; Talk to the stranger</button>
       </div>
 
-      <!-- Actions — solid fill (btn-action) -->
+      <!-- Actions — accent-coloured (btn-action) -->
       <p class="section-label">What do you do?</p>
       <div class="btn-row">
         <button class="btn-action" data-prompt="I head straight through the inner door into the station.">Push deeper into the station</button>
@@ -480,10 +1581,7 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
 
 ```html
 <style>
-  /* Google Fonts may be CSP-blocked in Claude.ai sandbox — fallback stack must produce acceptable results. */
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
-
-  .combat-root { font-family: 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace; padding: 1rem 0 1.5rem; }
+  .combat-root { font-family: var(--ta-font-body); padding: 1rem 0 1.5rem; }
 
   /* Initiative bar */
   .init-bar {
@@ -500,12 +1598,12 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
     color: var(--color-text-secondary);
   }
   .init-chip.active {
-    border-color: #2BA882; color: #2BA882; font-weight: 500;
+    border-color: var(--ta-color-success); color: var(--ta-color-success); font-weight: 500;
   }
 
   /* Encounter heading */
   .encounter-heading {
-    font-family: 'Syne', 'Segoe UI', system-ui, sans-serif; font-size: 16px; font-weight: 700;
+    font-family: var(--ta-font-heading); font-size: 16px; font-weight: 700;
     color: var(--color-text-primary); margin: 0 0 4px;
   }
   .encounter-sub {
@@ -530,7 +1628,7 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
   .hp-label { font-size: 9px; color: var(--color-text-tertiary); margin-right: 4px; }
   .pip {
     width: 8px; height: 8px; border-radius: 50%;
-    border: 0.5px solid #C0392B; background: #E74C3C;
+    border: 0.5px solid var(--ta-color-danger-border); background: var(--ta-color-danger);
   }
   .pip.empty { background: transparent; border-color: var(--color-border-tertiary); }
 
@@ -544,7 +1642,7 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
   }
   .player-pip {
     width: 8px; height: 8px; border-radius: 50%;
-    background: #2BA882; border: 0.5px solid #1F8A6A;
+    background: var(--ta-color-success); border: 0.5px solid var(--ta-color-success-border);
   }
   .player-pip.empty { background: transparent; border-color: var(--color-border-tertiary); }
   .player-pips { display: flex; gap: 4px; align-items: center; }
@@ -561,15 +1659,15 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
   }
   .action-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
   .action-btn {
-    font-family: 'IBM Plex Mono', var(--font-mono); font-size: 11px;
+    font-family: var(--ta-font-body); font-size: 11px;
     letter-spacing: 0.06em; padding: 8px 16px;
     background: transparent; border: 0.5px solid var(--color-border-secondary);
     border-radius: var(--border-radius-md); color: var(--color-text-primary);
     cursor: pointer; transition: background 0.12s;
   }
   .action-btn:hover { background: var(--color-background-secondary); }
-  .action-btn.attack { border-color: #E74C3C; color: #E74C3C; }
-  .action-btn.attack:hover { background: rgba(231,76,60,0.08); }
+  .action-btn.attack { border-color: var(--ta-color-danger); color: var(--ta-color-danger); }
+  .action-btn.attack:hover { background: var(--ta-color-danger-bg); }
   .action-btn.retreat { border-color: var(--color-text-tertiary); color: var(--color-text-tertiary); }
 
   .fallback-text { font-size: 11px; color: var(--color-text-tertiary); margin-top: 8px; display: none; }
@@ -678,13 +1776,10 @@ revealed sequentially via button clicks — never combined or skipped.
 
 ```html
 <style>
-  /* Google Fonts may be CSP-blocked in Claude.ai sandbox — fallback stack must produce acceptable results. */
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
-
-  .roll-root { font-family: 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace; padding: 1rem 0 1.5rem; }
+  .roll-root { font-family: var(--ta-font-body); padding: 1rem 0 1.5rem; }
 
   .roll-heading {
-    font-family: 'Syne', 'Segoe UI', system-ui, sans-serif; font-size: 16px; font-weight: 700;
+    font-family: var(--ta-font-heading); font-size: 16px; font-weight: 700;
     color: var(--color-text-primary); margin: 0 0 4px;
   }
   .roll-action {
@@ -708,7 +1803,7 @@ revealed sequentially via button clicks — never combined or skipped.
 
   /* Roll button */
   .roll-btn {
-    font-family: 'IBM Plex Mono', var(--font-mono); font-size: 14px;
+    font-family: var(--ta-font-body); font-size: 14px;
     font-weight: 500; letter-spacing: 0.12em; padding: 12px 32px;
     background: transparent; border: 1px solid var(--color-border-primary);
     border-radius: var(--border-radius-md); color: var(--color-text-primary);
@@ -731,7 +1826,7 @@ revealed sequentially via button clicks — never combined or skipped.
     50%  { transform: rotateX(180deg); opacity: 0.7; }
     100% { transform: rotateX(360deg); opacity: 1;   }
   }
-  .die-value.spinning { animation: die-spin 0.6s ease-out; }
+  .die-value.spinning { animation: die-spin var(--ta-die-spin-duration, 0.6s) ease-out; }
 
   /* Reduced motion — disable die animation and all transitions */
   @media (prefers-reduced-motion: reduce) {
@@ -762,23 +1857,16 @@ revealed sequentially via button clicks — never combined or skipped.
     letter-spacing: 0.14em; text-transform: uppercase;
     padding: 5px 16px; border-radius: var(--border-radius-md);
   }
-  .badge.success     { background: #E1F5EE; color: #085041; }
-  .badge.partial     { background: #FAEEDA; color: #633806; }
-  .badge.failure     { background: #FCEBEB; color: #791F1F; }
-  .badge.crit-success { background: #E1F5EE; color: #085041; border: 1px solid #2BA882; }
-  .badge.crit-failure { background: #FCEBEB; color: #791F1F; border: 1px solid #E74C3C; }
-  @media (prefers-color-scheme: dark) {
-    .badge.success     { background: #085041; color: #9FE1CB; }
-    .badge.partial     { background: #633806; color: #FAC775; }
-    .badge.failure     { background: #791F1F; color: #FFD0D0; }
-    .badge.crit-success { background: #085041; color: #9FE1CB; border-color: #2BA882; }
-    .badge.crit-failure { background: #791F1F; color: #FFD0D0; border-color: #E74C3C; }
-  }
+  .badge.success      { background: var(--ta-badge-success-bg); color: var(--ta-badge-success-text); }
+  .badge.partial      { background: var(--ta-badge-partial-bg); color: var(--ta-badge-partial-text); }
+  .badge.failure      { background: var(--ta-badge-failure-bg); color: var(--ta-badge-failure-text); }
+  .badge.crit-success { background: var(--ta-badge-success-bg); color: var(--ta-badge-success-text); border: 1px solid var(--ta-badge-crit-success-border); }
+  .badge.crit-failure { background: var(--ta-badge-failure-bg); color: var(--ta-badge-failure-text); border: 1px solid var(--ta-badge-crit-failure-border); }
 
   /* Continue stage */
   .continue-stage { display: none; text-align: center; }
   .continue-btn {
-    font-family: 'IBM Plex Mono', var(--font-mono); font-size: 11px;
+    font-family: var(--ta-font-body); font-size: 11px;
     letter-spacing: 0.1em; padding: 8px 20px;
     background: transparent; border: 0.5px solid var(--color-border-secondary);
     border-radius: var(--border-radius-md); color: var(--color-text-primary);
@@ -937,10 +2025,7 @@ barter, and leave buttons use `data-prompt` + `addEventListener`.
 
 ```html
 <style>
-  /* Google Fonts may be CSP-blocked in Claude.ai sandbox — fallback stack must produce acceptable results. */
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
-
-  .shop-root { font-family: 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace; padding: 1rem 0 1.5rem; }
+  .shop-root { font-family: var(--ta-font-body); padding: 1rem 0 1.5rem; }
 
   /* Merchant header */
   .merchant-header {
@@ -949,12 +2034,12 @@ barter, and leave buttons use `data-prompt` + `addEventListener`.
     border-bottom: 0.5px solid var(--color-border-tertiary);
   }
   .merchant-name {
-    font-family: 'Syne', 'Segoe UI', system-ui, sans-serif; font-size: 16px; font-weight: 700;
+    font-family: var(--ta-font-heading); font-size: 16px; font-weight: 700;
     color: var(--color-text-primary); margin: 0;
   }
   .credits-display {
     font-size: 12px; font-weight: 500; letter-spacing: 0.06em;
-    color: #2BA882;
+    color: var(--ta-color-credits);
   }
   .merchant-flavour {
     font-size: 11px; color: var(--color-text-tertiary); margin: 4px 0 14px;
@@ -967,7 +2052,7 @@ barter, and leave buttons use `data-prompt` + `addEventListener`.
     border-bottom: 0.5px solid var(--color-border-tertiary);
   }
   .tab-btn {
-    font-family: 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+    font-family: var(--ta-font-body);
     font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
     padding: 8px 16px; background: transparent; border: none;
     border-bottom: 2px solid transparent;
@@ -977,7 +2062,7 @@ barter, and leave buttons use `data-prompt` + `addEventListener`.
   .tab-btn:hover { color: var(--color-text-secondary); }
   .tab-btn.active {
     color: var(--color-text-primary);
-    border-bottom-color: #E76F51;
+    border-bottom-color: var(--ta-color-tab-active);
   }
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
@@ -1014,21 +2099,17 @@ barter, and leave buttons use `data-prompt` + `addEventListener`.
 
   /* Button styles — action (buy/barter) and poi (inspect) */
   .btn-action {
-    font-family: 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+    font-family: var(--ta-font-body);
     font-size: 10px; letter-spacing: 0.06em; padding: 6px 12px;
-    background: rgba(231, 111, 81, 0.09); border: 0.5px solid #E76F51;
+    background: var(--ta-color-accent-bg); border: 0.5px solid var(--ta-color-accent);
     border-radius: var(--border-radius-md); color: var(--color-text-primary);
     cursor: pointer; transition: background 0.12s;
   }
-  .btn-action:hover { background: rgba(231, 111, 81, 0.18); }
-  @media (prefers-color-scheme: dark) {
-    .btn-action { background: rgba(231, 111, 81, 0.12); border-color: #E76F51; }
-    .btn-action:hover { background: rgba(231, 111, 81, 0.24); }
-  }
+  .btn-action:hover { background: var(--ta-color-accent-bg-hover); }
   .btn-poi {
-    font-family: 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+    font-family: var(--ta-font-body);
     font-size: 10px; letter-spacing: 0.06em; padding: 6px 12px;
-    background: transparent; border: 1px dashed var(--color-border-secondary);
+    background: transparent; border: var(--ta-border-style-poi) var(--color-border-secondary);
     border-radius: var(--border-radius-md); color: var(--color-text-secondary);
     cursor: pointer; transition: background 0.12s;
   }
@@ -1049,7 +2130,7 @@ barter, and leave buttons use `data-prompt` + `addEventListener`.
 
   /* Focus-visible for keyboard navigation */
   button:focus-visible {
-    outline: 2px solid #7C6BF0; outline-offset: 2px;
+    outline: 2px solid var(--ta-color-focus); outline-offset: 2px;
   }
 
   /* Reduced motion */
@@ -1201,10 +2282,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 
 ```html
 <style>
-  /* Google Fonts may be CSP-blocked in Claude.ai sandbox — fallback stack must produce acceptable results. */
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
-
-  .social-root { font-family: 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace; padding: 1rem 0 1.5rem; }
+  .social-root { font-family: var(--ta-font-body); padding: 1rem 0 1.5rem; }
 
   /* NPC header */
   .npc-header {
@@ -1213,7 +2291,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
     border-bottom: 0.5px solid var(--color-border-tertiary);
   }
   .npc-name {
-    font-family: 'Syne', 'Segoe UI', system-ui, sans-serif; font-size: 16px; font-weight: 700;
+    font-family: var(--ta-font-heading); font-size: 16px; font-weight: 700;
     color: var(--color-text-primary); margin: 0;
   }
   .disposition-badge {
@@ -1222,14 +2300,8 @@ All approach buttons use `data-prompt` + `addEventListener`.
     padding: 3px 12px; border-radius: 999px;
   }
   .disposition-badge.suspicious {
-    background: rgba(243, 156, 18, 0.12); color: #D4860B;
-    border: 0.5px solid rgba(243, 156, 18, 0.4);
-  }
-  @media (prefers-color-scheme: dark) {
-    .disposition-badge.suspicious {
-      background: rgba(243, 156, 18, 0.15); color: #F5B742;
-      border-color: rgba(243, 156, 18, 0.5);
-    }
+    background: var(--ta-color-warning-bg); color: var(--ta-color-warning);
+    border: 0.5px solid var(--ta-color-warning-border);
   }
 
   /* Stakes text */
@@ -1255,15 +2327,11 @@ All approach buttons use `data-prompt` + `addEventListener`.
   .conviction-pips { display: flex; gap: 6px; align-items: center; }
   .conviction-pip {
     width: 10px; height: 10px; border-radius: 50%;
-    border: 0.5px solid #1A9E8F;
+    border: 0.5px solid var(--ta-color-conviction-border);
     background: transparent;
   }
   .conviction-pip.filled {
-    background: #2BBCAB; border-color: #1A9E8F;
-  }
-  @media (prefers-color-scheme: dark) {
-    .conviction-pip { border-color: #1A9E8F; }
-    .conviction-pip.filled { background: #2BBCAB; border-color: #23A899; }
+    background: var(--ta-color-conviction); border-color: var(--ta-color-conviction-border);
   }
 
   /* Round indicator */
@@ -1279,17 +2347,13 @@ All approach buttons use `data-prompt` + `addEventListener`.
   }
   .approach-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
   .btn-action {
-    font-family: 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+    font-family: var(--ta-font-body);
     font-size: 11px; letter-spacing: 0.06em; padding: 8px 14px;
-    background: rgba(231, 111, 81, 0.09); border: 0.5px solid #E76F51;
+    background: var(--ta-color-accent-bg); border: 0.5px solid var(--ta-color-accent);
     border-radius: var(--border-radius-md); color: var(--color-text-primary);
     cursor: pointer; transition: background 0.12s;
   }
-  .btn-action:hover { background: rgba(231, 111, 81, 0.18); }
-  @media (prefers-color-scheme: dark) {
-    .btn-action { background: rgba(231, 111, 81, 0.12); border-color: #E76F51; }
-    .btn-action:hover { background: rgba(231, 111, 81, 0.24); }
-  }
+  .btn-action:hover { background: var(--ta-color-accent-bg-hover); }
   .approach-stat {
     font-size: 9px; color: var(--color-text-tertiary); margin-left: 4px;
   }
@@ -1306,7 +2370,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 
   /* Focus-visible for keyboard navigation */
   button:focus-visible {
-    outline: 2px solid #7C6BF0; outline-offset: 2px;
+    outline: 2px solid var(--ta-color-focus); outline-offset: 2px;
   }
 
   /* Reduced motion */

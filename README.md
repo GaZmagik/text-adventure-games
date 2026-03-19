@@ -14,6 +14,26 @@ A modular text adventure engine for Claude Desktop, built entirely as Claude ski
 
 Four narrative voice styles that change how the game narrates events without altering game mechanics. Browse the `.claude/output-styles/` folder to find them.
 
+### Visual Styles
+
+11 visual CSS themes that change how the game looks — colours, typography, borders, and animations — without altering game logic. Found in `.claude/skills/text-adventure/styles/`.
+
+| Style | Identity |
+|-------|----------|
+| **Station** (default) | Serif narrative + monospace mechanics, semantic colours, dark navy |
+| **Terminal** | CRT monospace, electric accents, scanline effects |
+| **Parchment** | Warm serif, paper grain, earth tones, drop caps |
+| **Neon** | Saturated colours, glow effects, synthwave aesthetic |
+| **Brutalist** | System fonts only, black/white/red, zero decoration |
+| **Art Deco** | Gold/navy/jade, geometric serif, engraved buttons |
+| **Ink Wash** | Near-monochrome, generous whitespace, vermillion seal |
+| **Blueprint** | Graph-paper grid, blue/white, technical drawing |
+| **Stained Glass** | Jewel tones, leaded borders, radial luminance |
+| **Weathered** | Rust/olive, asymmetric padding, distressed feel |
+| **Holographic** | Translucent panels, iridescent borders, glassmorphism |
+
+The game engine selects a visual style during setup based on the genre, or the player can choose manually.
+
 - **Master-Storyteller** — Atmospheric, genre-adaptive GM voice. Writes like a novelist, thinks like a game designer.
 - **Noir-Detective** — Hard-boiled, cynical narrator. Rain-soaked prose, moral ambiguity, everyone has an angle.
 - **Pulp-Adventure** — Breathless, exclamatory narrator. Larger-than-life heroes, breakneck pacing, cliffhanger endings.

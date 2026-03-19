@@ -1020,7 +1020,7 @@ crewState.roster.forEach(m => {
 Object.assign(gmState.worldFlags, crewFlags);
 ```
 
-**Scene footer:** Use the canonical scene footer from `reference.md`. This module adds
+**Scene footer:** Use the canonical scene footer from `styles/style-reference.md`. This module adds
 the **Crew** panel button to the footer when loaded. Do not define a custom footer here.
 
 ---
