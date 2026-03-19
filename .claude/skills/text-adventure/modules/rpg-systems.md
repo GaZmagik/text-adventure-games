@@ -1,5 +1,4 @@
 # RPG Systems — Alternative Rule Systems
-
 > Module for text-adventure orchestrator. Provides alternative RPG rule systems that replace or overlay the default D&D 5e-lite mechanics in core-systems. One system is active per session, selected during game setup.
 
 Loaded by the text-adventure orchestrator (SKILL.md). Depends on: core-systems, die-rolls.
@@ -20,7 +19,7 @@ cards. Each card shows the system name, a one-line summary, the resolution mecha
 | **Pathfinder 2e Lite** | d20 + modifier + proficiency vs DC. Three-action economy, crit ranges. | Tactical combat-focused play. |
 | **Shadowrun 5e Lite** | Dice pool (d6s), hits on 5+. Edge resource, matrix/magic subsystems. | Cyberpunk and near-future settings. |
 | **Narrative Engine** | No dice. Fiction-first momentum track. | Story-driven play where mechanics should be invisible. |
-| **SWRPG (Narrative Dice)** | Narrative dice pool (custom symbols). Triumph/Despair, Advantage/Threat. | Star Wars and other cinematic settings. Standalone; enhanced if `star-wars-eote` skill is available. |
+| **SWRPG (Narrative Dice)** | Narrative dice pool (custom symbols). Triumph/Despair, Advantage/Threat. | Star Wars and other cinematic settings. |
 
 When a system is selected, it **replaces** the corresponding sections in core-systems (stats,
 resolution, combat) but does **not** replace universal systems (inventory, economy, conditions,
@@ -885,8 +884,6 @@ Each character begins with a starting Obligation that ties them to the setting a
 - **Animate:** Roll all dice simultaneously with staggered animation (0.05s per die). Each die lands showing its symbol results. Colour-code symbols: green for Success, blue for Advantage, gold for Triumph, red for Failure, orange for Threat, dark red for Despair.
 - **Resolve:** Cancel Success vs Failure, then cancel Advantage vs Threat. Display net results on both axes. Show Triumph and Despair separately (they cannot be cancelled). Badge: TRIUMPH / SUCCESS + ADVANTAGE / SUCCESS + THREAT / FAILURE + ADVANTAGE / FAILURE + THREAT / DESPAIR. Offer contextual spending options for net Advantage or Threat as selectable buttons.
 - **Continue:** Standard continue pattern.
-
-> **Note:** If the `star-wars-eote` skill is available and loaded, it provides expanded content: full species/career/specialisation trees, published adventure modules, sourcebook lore, and the complete EotE talent system. This standalone definition covers the core mechanics needed for any narrative dice pool game.
 
 ---
 

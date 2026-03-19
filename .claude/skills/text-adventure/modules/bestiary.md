@@ -1,5 +1,4 @@
 # Bestiary — Adversaries and Creatures
-
 > Module for text-adventure orchestrator. Provides reusable adversary templates across all genres. Loaded alongside core-systems.
 
 Loaded by the text-adventure orchestrator (SKILL.md). Depends on: core-systems.

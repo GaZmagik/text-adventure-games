@@ -1,5 +1,4 @@
 # Core Systems — Inventory, Economy, Factions, Quests, Time, and Session Recap
-
 > Module for text-adventure orchestrator. Always loaded — these are fundamental gameplay systems.
 
 These systems are core to every text adventure regardless of theme or setting. They govern

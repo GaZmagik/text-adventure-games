@@ -1,5 +1,4 @@
 # Die Rolls — Resolution Mechanics
-
 > Module for text-adventure orchestrator. Always loaded — governs all mechanical resolution.
 
 This module defines how uncertain actions are resolved: the dice mechanics, the widget
