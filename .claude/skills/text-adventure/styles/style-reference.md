@@ -47,8 +47,10 @@ font values.
   --ta-color-focus:         /* Focus-visible outline colour */;
 
   /* ── Colour — Conviction / social ────────────────────────────── */
-  --ta-color-conviction:        /* Conviction pip fill */;
-  --ta-color-conviction-border: /* Conviction pip border */;
+  /* IMPORTANT: Must be purple/violet — distinct from --ta-color-accent (location cyan).
+     Suggested values: fill #7C6BF0, border #6B5CE0 */
+  --ta-color-conviction:        /* Conviction pip fill — use purple/violet, not cyan */;
+  --ta-color-conviction-border: /* Conviction pip border — use purple/violet, not cyan */;
 
   /* ── Colour — Outcome badges ─────────────────────────────────── */
   --ta-badge-success-bg:    /* Success badge background */;
@@ -169,13 +171,13 @@ Close button only; the scene footer is not their responsibility.
   </div>
   <!-- Footer (always visible, outside reveal) -->
   <div class="footer-row">
-    <button class="footer-btn" data-panel="character">Character</button>
+    <button class="footer-btn" data-panel="character" aria-expanded="false">Character</button>
     <!-- Add per active module: -->
-    <!-- <button class="footer-btn" data-panel="codex">Codex</button> -->
-    <!-- <button class="footer-btn" data-panel="ship">Ship</button> -->
-    <!-- <button class="footer-btn" data-panel="nav">Nav chart</button> -->
-    <!-- <button class="footer-btn" data-panel="map">Map</button> -->
-    <!-- <button class="footer-btn" data-panel="quests">Quests</button> -->
+    <!-- <button class="footer-btn" data-panel="codex" aria-expanded="false">Codex</button> -->
+    <!-- <button class="footer-btn" data-panel="ship" aria-expanded="false">Ship</button> -->
+    <!-- <button class="footer-btn" data-panel="nav" aria-expanded="false">Nav chart</button> -->
+    <!-- <button class="footer-btn" data-panel="map" aria-expanded="false">Map</button> -->
+    <!-- <button class="footer-btn" data-panel="quests" aria-expanded="false">Quests</button> -->
     <!-- <button class="footer-btn" data-prompt="Save the game.">Save ↗</button> -->
   </div>
 </div>
@@ -348,8 +350,18 @@ and `transform` to create their specific form.
 .die-d4 {
   clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
   border-radius: 0;
-  border: none; /* clip-path clips the border; use box-shadow instead */
-  /* For a bordered triangle, use a wrapper technique or SVG border */
+  border: none; /* clip-path clips the border; use ::before pseudo-element instead */
+  position: relative;
+}
+
+/* Simulated border: a slightly larger shape behind the die in the border colour */
+.die-d4::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  background: var(--die-border-color);
+  z-index: -1;
 }
 
 /* d4: wobble / tip animation — rolls on its point */
@@ -408,7 +420,18 @@ and `transform` to create their specific form.
 .die-d8 {
   clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
   border-radius: 0;
-  border: none;
+  border: none; /* clip-path clips the border; use ::before pseudo-element instead */
+  position: relative;
+}
+
+/* Simulated border: a slightly larger shape behind the die in the border colour */
+.die-d8::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  background: var(--die-border-color);
+  z-index: -1;
 }
 
 /* d8: diamond spin — rotates on its axis through all four points */
@@ -438,7 +461,18 @@ and `transform` to create their specific form.
   /* Taller than wide: 60% width at widest, point at top and bottom */
   clip-path: polygon(50% 0%, 95% 40%, 50% 100%, 5% 40%);
   border-radius: 0;
-  border: none;
+  border: none; /* clip-path clips the border; use ::before pseudo-element instead */
+  position: relative;
+}
+
+/* Simulated border: a slightly larger shape behind the die in the border colour */
+.die-d10::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  clip-path: polygon(50% 0%, 95% 40%, 50% 100%, 5% 40%);
+  background: var(--die-border-color);
+  z-index: -1;
 }
 
 /* d10: flip animation — tumbles end-over-end on the Y axis */
@@ -466,7 +500,18 @@ and `transform` to create their specific form.
   /* Regular pentagon — point up */
   clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
   border-radius: 0;
-  border: none;
+  border: none; /* clip-path clips the border; use ::before pseudo-element instead */
+  position: relative;
+}
+
+/* Simulated border: a slightly larger shape behind the die in the border colour */
+.die-d12::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+  background: var(--die-border-color);
+  z-index: -1;
 }
 
 /* d12: complex multi-axis rotation — the heaviest-feeling die */
@@ -659,7 +704,7 @@ These classes are taken directly from the proven pattern.
 
 .cb-label {
   font-family: var(--ta-font-body);
-  font-size: 9px;
+  font-size: 10px;
   color: var(--color-text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -1017,7 +1062,7 @@ with staggered delays for sequential reveal.
 
 .obs-status {
   font-family: var(--ta-font-body);
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 2px 8px;
@@ -1335,7 +1380,7 @@ three POI buttons, three action buttons, status bar, and panel footer.
 
   /* POI + action buttons */
   .section-label {
-    font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
     color: var(--color-text-tertiary); margin: 16px 0 8px;
   }
   .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
@@ -1427,6 +1472,14 @@ three POI buttons, three action buttons, status bar, and panel footer.
   .panel-content { display: none; font-size: 12px; line-height: 1.7; color: var(--color-text-secondary); }
 
   .fallback-text { font-size: 11px; color: var(--color-text-tertiary); margin-top: 8px; display: none; }
+  .copy-btn {
+    font-family: var(--ta-font-body); font-size: 10px; letter-spacing: 0.06em;
+    padding: 4px 10px; min-height: 44px; min-width: 44px; box-sizing: border-box;
+    background: transparent; border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-md); color: var(--color-text-tertiary);
+    cursor: pointer; margin-left: 8px; vertical-align: middle;
+  }
+  .copy-btn:hover { border-color: var(--color-border-secondary); color: var(--color-text-secondary); }
 
   @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
   #reveal-full.revealed { animation: fade-in 0.25s ease-out; }
@@ -1485,7 +1538,7 @@ three POI buttons, three action buttons, status bar, and panel footer.
       <!-- Fallback prompt -->
       <p class="fallback-text" id="fallback">
         If the buttons above do not work, copy one of these prompts and paste it into the chat:<br>
-        <code id="fallback-prompt"></code>
+        <code id="fallback-prompt"></code><button class="copy-btn" id="fallback-copy-btn">Copy</button>
       </p>
 
       <!-- Status bar -->
@@ -1528,10 +1581,10 @@ three POI buttons, three action buttons, status bar, and panel footer.
 
   <!-- Footer — always visible -->
   <div class="footer-row">
-    <button class="footer-btn" data-panel="character">Character</button>
-    <button class="footer-btn" data-panel="codex">Codex</button>
-    <button class="footer-btn" data-panel="ship">Ship</button>
-    <button class="footer-btn" data-panel="nav">Nav chart</button>
+    <button class="footer-btn" data-panel="character" aria-expanded="false">Character</button>
+    <button class="footer-btn" data-panel="codex" aria-expanded="false">Codex</button>
+    <button class="footer-btn" data-panel="ship" aria-expanded="false">Ship</button>
+    <button class="footer-btn" data-panel="nav" aria-expanded="false">Nav chart</button>
   </div>
 </div>
 
@@ -1551,19 +1604,24 @@ function togglePanel(panelId) {
   const title = document.getElementById('panel-title-text');
   if (activePanel === panelId) {
     overlay.style.display = 'none'; scene.style.display = 'block';
-    activePanel = null; return;
+    activePanel = null;
+    document.querySelectorAll('[data-panel]').forEach(b => b.setAttribute('aria-expanded', 'false'));
+    return;
   }
   overlay.style.display = 'block'; scene.style.display = 'none';
   activePanel = panelId;
   title.textContent = panelId.charAt(0).toUpperCase() + panelId.slice(1);
   document.querySelectorAll('.panel-content').forEach(p =>
     p.style.display = p.dataset.panel === panelId ? 'block' : 'none');
-  if (title) title.focus();
+  document.querySelectorAll('[data-panel]').forEach(b =>
+    b.setAttribute('aria-expanded', b.dataset.panel === panelId ? 'true' : 'false'));
+  title.focus();
 }
 function closePanel() {
   document.getElementById('panel-overlay').style.display = 'none';
   document.getElementById('scene-content').style.display = 'block';
   activePanel = null;
+  document.querySelectorAll('[data-panel]').forEach(b => b.setAttribute('aria-expanded', 'false'));
 }
 
 /* Panel toggle + close — event delegation via data-panel attributes */
@@ -1588,6 +1646,19 @@ document.querySelectorAll('[data-prompt]').forEach(btn => {
     }
   });
 });
+
+/* Copy button — fallback prompt */
+document.querySelectorAll('.copy-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    const code = this.previousElementSibling;
+    if (code && navigator.clipboard) {
+      navigator.clipboard.writeText(code.textContent).then(() => {
+        this.textContent = 'Copied!';
+        setTimeout(() => { this.textContent = 'Copy'; }, 2000);
+      });
+    }
+  });
+});
 </script>
 ```
 
@@ -1608,7 +1679,7 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
     padding-bottom: 10px; border-bottom: 0.5px solid var(--color-border-tertiary);
   }
   .init-label {
-    font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
     color: var(--color-text-tertiary); margin-right: 4px;
   }
   .init-chip {
@@ -1644,7 +1715,7 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
     font-size: 10px; color: var(--color-text-tertiary); margin: 0 0 8px;
   }
   .hp-row { display: flex; gap: 4px; align-items: center; }
-  .hp-label { font-size: 9px; color: var(--color-text-tertiary); margin-right: 4px; }
+  .hp-label { font-size: 10px; color: var(--color-text-tertiary); margin-right: 4px; }
   .pip {
     width: 8px; height: 8px; border-radius: 50%;
     border: 0.5px solid var(--ta-color-danger-border); background: var(--ta-color-danger);
@@ -1671,14 +1742,14 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
   .player-pip.empty { background: transparent; border-color: var(--color-border-tertiary); }
   .player-pips { display: flex; gap: 4px; align-items: center; }
   .condition-tag {
-    font-size: 9px; letter-spacing: 0.08em; padding: 2px 8px;
+    font-size: 10px; letter-spacing: 0.08em; padding: 2px 8px;
     border-radius: 999px; border: 0.5px solid var(--color-border-tertiary);
     color: var(--color-text-tertiary);
   }
 
   /* Action panel */
   .section-label {
-    font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
     color: var(--color-text-tertiary); margin: 0 0 8px;
   }
   .action-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
@@ -1695,6 +1766,14 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
   .action-btn.retreat { border-color: var(--color-text-tertiary); color: var(--color-text-tertiary); }
 
   .fallback-text { font-size: 11px; color: var(--color-text-tertiary); margin-top: 8px; display: none; }
+  .copy-btn {
+    font-family: var(--ta-font-body); font-size: 10px; letter-spacing: 0.06em;
+    padding: 4px 10px; min-height: 44px; min-width: 44px; box-sizing: border-box;
+    background: transparent; border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-md); color: var(--color-text-tertiary);
+    cursor: pointer; margin-left: 8px; vertical-align: middle;
+  }
+  .copy-btn:hover { border-color: var(--color-border-secondary); color: var(--color-text-secondary); }
 </style>
 
 <div class="combat-root">
@@ -1771,7 +1850,7 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
   <!-- Fallback -->
   <p class="fallback-text" id="combat-fallback">
     If the buttons above do not work, copy one of these prompts and paste it into the chat:<br>
-    <code id="combat-fallback-prompt"></code>
+    <code id="combat-fallback-prompt"></code><button class="copy-btn" id="combat-copy-btn">Copy</button>
   </p>
 </div>
 
@@ -1788,6 +1867,19 @@ document.querySelectorAll('[data-prompt]').forEach(btn => {
         fp.textContent = prompt;
         fb.style.display = 'block';
       }
+    }
+  });
+});
+
+/* Copy button — fallback prompt */
+document.querySelectorAll('.copy-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    const code = this.previousElementSibling;
+    if (code && navigator.clipboard) {
+      navigator.clipboard.writeText(code.textContent).then(() => {
+        this.textContent = 'Copied!';
+        setTimeout(() => { this.textContent = 'Copy'; }, 2000);
+      });
     }
   });
 });
@@ -1905,6 +1997,14 @@ revealed sequentially via button clicks — never combined or skipped.
   .fallback-text {
     font-size: 11px; color: var(--color-text-tertiary); margin-top: 8px; display: none;
   }
+  .copy-btn {
+    font-family: var(--ta-font-body); font-size: 10px; letter-spacing: 0.06em;
+    padding: 4px 10px; min-height: 44px; min-width: 44px; box-sizing: border-box;
+    background: transparent; border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-md); color: var(--color-text-tertiary);
+    cursor: pointer; margin-left: 8px; vertical-align: middle;
+  }
+  .copy-btn:hover { border-color: var(--color-border-secondary); color: var(--color-text-secondary); }
 </style>
 
 <div class="roll-root">
@@ -1953,7 +2053,7 @@ revealed sequentially via button clicks — never combined or skipped.
     <button class="continue-btn" id="continue-btn" data-prompt="">Continue</button>
     <p class="fallback-text" id="roll-fallback">
       If the button above does not work, copy this prompt and paste it into the chat:<br>
-      <code id="roll-fallback-prompt"></code>
+      <code id="roll-fallback-prompt"></code><button class="copy-btn" id="roll-copy-btn">Copy</button>
     </p>
   </div>
 </div>
@@ -2042,6 +2142,19 @@ revealed sequentially via button clicks — never combined or skipped.
       document.getElementById('roll-fallback').style.display = 'block';
     }
   });
+
+  /* Copy button — fallback prompt */
+  document.querySelectorAll('.copy-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const code = this.previousElementSibling;
+      if (code && navigator.clipboard) {
+        navigator.clipboard.writeText(code.textContent).then(() => {
+          this.textContent = 'Copied!';
+          setTimeout(() => { this.textContent = 'Copy'; }, 2000);
+        });
+      }
+    });
+  });
 })();
 </script>
 ```
@@ -2114,7 +2227,7 @@ barter, and leave buttons use `data-prompt` + `addEventListener`.
     margin: 0 0 2px;
   }
   .item-type-badge {
-    display: inline-block; font-size: 9px; letter-spacing: 0.08em;
+    display: inline-block; font-size: 10px; letter-spacing: 0.08em;
     text-transform: uppercase; padding: 2px 8px;
     border-radius: 999px; border: 0.5px solid var(--color-border-tertiary);
     color: var(--color-text-tertiary); margin-right: 6px;
@@ -2173,6 +2286,14 @@ barter, and leave buttons use `data-prompt` + `addEventListener`.
   }
 
   .fallback-text { font-size: 11px; color: var(--color-text-tertiary); margin-top: 8px; display: none; }
+  .copy-btn {
+    font-family: var(--ta-font-body); font-size: 10px; letter-spacing: 0.06em;
+    padding: 4px 10px; min-height: 44px; min-width: 44px; box-sizing: border-box;
+    background: transparent; border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-md); color: var(--color-text-tertiary);
+    cursor: pointer; margin-left: 8px; vertical-align: middle;
+  }
+  .copy-btn:hover { border-color: var(--color-border-secondary); color: var(--color-text-secondary); }
 </style>
 
 <div class="shop-root">
@@ -2261,7 +2382,7 @@ barter, and leave buttons use `data-prompt` + `addEventListener`.
   <!-- Fallback -->
   <p class="fallback-text" id="shop-fallback">
     If the buttons above do not work, copy one of these prompts and paste it into the chat:<br>
-    <code id="shop-fallback-prompt"></code>
+    <code id="shop-fallback-prompt"></code><button class="copy-btn" id="shop-copy-btn">Copy</button>
   </p>
 </div>
 
@@ -2301,6 +2422,19 @@ barter, and leave buttons use `data-prompt` + `addEventListener`.
       }
     });
   });
+
+  /* Copy button — fallback prompt */
+  document.querySelectorAll('.copy-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var code = this.previousElementSibling;
+      if (code && navigator.clipboard) {
+        navigator.clipboard.writeText(code.textContent).then(function() {
+          btn.textContent = 'Copied!';
+          setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
+        });
+      }
+    });
+  });
 })();
 </script>
 ```
@@ -2329,7 +2463,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
     color: var(--color-text-primary); margin: 0;
   }
   .disposition-badge {
-    display: inline-block; font-size: 9px; font-weight: 500;
+    display: inline-block; font-size: 10px; font-weight: 500;
     letter-spacing: 0.1em; text-transform: uppercase;
     padding: 3px 12px; border-radius: 999px;
   }
@@ -2347,7 +2481,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
     border: 0.5px solid var(--color-border-tertiary);
   }
   .stakes-label {
-    font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
     color: var(--color-text-tertiary); display: block; margin-bottom: 4px;
   }
 
@@ -2376,7 +2510,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 
   /* Approach buttons */
   .section-label {
-    font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
     color: var(--color-text-tertiary); margin: 0 0 8px;
   }
   .approach-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
@@ -2389,7 +2523,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
   }
   .btn-action:hover { background: var(--ta-color-accent-bg-hover); }
   .approach-stat {
-    font-size: 9px; color: var(--color-text-tertiary); margin-left: 4px;
+    font-size: 10px; color: var(--color-text-tertiary); margin-left: 4px;
   }
 
   /* NPC reaction area */
@@ -2413,6 +2547,14 @@ All approach buttons use `data-prompt` + `addEventListener`.
   }
 
   .fallback-text { font-size: 11px; color: var(--color-text-tertiary); margin-top: 8px; display: none; }
+  .copy-btn {
+    font-family: var(--ta-font-body); font-size: 10px; letter-spacing: 0.06em;
+    padding: 4px 10px; min-height: 44px; min-width: 44px; box-sizing: border-box;
+    background: transparent; border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-md); color: var(--color-text-tertiary);
+    cursor: pointer; margin-left: 8px; vertical-align: middle;
+  }
+  .copy-btn:hover { border-color: var(--color-border-secondary); color: var(--color-text-secondary); }
 </style>
 
 <div class="social-root">
@@ -2462,7 +2604,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
   <!-- Fallback -->
   <p class="fallback-text" id="social-fallback">
     If the buttons above do not work, copy one of these prompts and paste it into the chat:<br>
-    <code id="social-fallback-prompt"></code>
+    <code id="social-fallback-prompt"></code><button class="copy-btn" id="social-copy-btn">Copy</button>
   </p>
 </div>
 
@@ -2485,6 +2627,19 @@ All approach buttons use `data-prompt` + `addEventListener`.
         sendPrompt(prompt);
       } else {
         showFallback(prompt);
+      }
+    });
+  });
+
+  /* Copy button — fallback prompt */
+  document.querySelectorAll('.copy-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var code = this.previousElementSibling;
+      if (code && navigator.clipboard) {
+        navigator.clipboard.writeText(code.textContent).then(function() {
+          btn.textContent = 'Copied!';
+          setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
+        });
       }
     });
   });
