@@ -1,5 +1,4 @@
 # Character Creation — Archetypes, Stats, and Identity
-
 > Module for text-adventure orchestrator. Always loaded — governs character creation and stat generation.
 
 This module defines how characters are built: the archetypes available, stat generation methods,

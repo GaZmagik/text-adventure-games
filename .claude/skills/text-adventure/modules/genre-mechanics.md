@@ -1,5 +1,4 @@
 # Genre Mechanics — Optional Rule Overlays
-
 > Module for text-adventure orchestrator. Loaded when the scenario theme activates genre-specific mechanics. Provides thematic systems that layer on top of core-systems without replacing them.
 
 Loaded by the text-adventure orchestrator (SKILL.md). Depends on: core-systems.

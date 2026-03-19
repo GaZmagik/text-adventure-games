@@ -1,5 +1,4 @@
 # Scenarios — Starter Scenarios and Theme Adaptation
-
 > Module for text-adventure orchestrator. Always loaded — provides scenario selection and theme adaptation.
 
 This module defines the starter scenarios presented to the player at game start and the rules

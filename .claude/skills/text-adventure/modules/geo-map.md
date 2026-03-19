@@ -1,5 +1,4 @@
 # Geographical Map — On-World Navigation Engine
-
 > Module for text-adventure orchestrator. Loaded for on-world exploration: settlements, wilderness, dungeons, and interiors.
 
 Where the star-chart module handles the void between worlds, this module handles the ground
