@@ -1454,7 +1454,7 @@ component (D20 ROLL, modifier, proficiency, etc.) with + signs between them.
 ## Complete CSS Block
 
 Inject this entire block into the `<style>` tag of any widget to apply the Station theme.
-This block is self-contained and overrides the base structural styles from `reference.md`.
+This block is self-contained and overrides the base structural styles from `style-reference.md`.
 The `@import` will silently no-op if Google Fonts is CSP-blocked — the fallback stacks
 handle that case independently.
 

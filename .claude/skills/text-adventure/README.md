@@ -15,6 +15,7 @@ SKILL.md (orchestrator)
 
 modules/
   adventure-authoring.md  .lore.md file format for authored adventures
+  adventure-exporting.md  Export live game world as shareable .lore.md file
   ai-npc.md               Live AI-powered NPC dialogue via Anthropic API
   bestiary.md             Adversary templates, encounter building, threat tiers
   character-creation.md   Archetypes, stats, equipment, theme-adapted names
@@ -23,6 +24,7 @@ modules/
   die-rolls.md            Progressive d20 resolution (declare → animate → resolve → continue)
   genre-mechanics.md      Genre-specific mechanical additions
   geo-map.md              On-world maps: settlements, wilderness, dungeons
+  gm-checklist.md         Mandatory quality gates for all gameplay moments
   lore-codex.md           Player-facing encyclopaedia with discovery states
   procedural-world-gen.md Seed-based deterministic world generation
   rpg-systems.md          Alternative systems: GURPS Lite, PF2e Lite, Shadowrun 5e Lite, Narrative
