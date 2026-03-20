@@ -35,10 +35,11 @@ Full:     full state → JSON → LZ compress → base64
         ↓
 Version header + checksum prepended → final save string
         ↓
-Compact: save string embedded in scene widget as hidden #save-data div
-Full:    save generated on demand via sendPrompt fallback (payload too large to embed)
+Save string embedded in scene widget as hidden #save-data div (fallback display)
         ↓
-Player clicks Save → .save.md file downloaded (compact) or save widget opens (full)
+Player clicks Save ↗ → sendPrompt asks Claude to generate .save.md artifact
+        ↓
+Fallback (sendPrompt unavailable): save string shown inline as copyable text
         ═══════════════════════════════════════════════════
 Player resumes: pastes save string, uploads .save.md, or pastes .save.md content
         ↓
@@ -56,10 +57,11 @@ Send gmState to GM via sendPrompt → session resumes
 
 ## Save File Format — `.save.md`
 
-Every scene widget includes a hidden pre-computed save that the player can download as a
-`.save.md` file. The file uses YAML frontmatter for metadata and markdown body for the
-save payload. This format is both human-readable (the frontmatter) and machine-parseable
-(the payload string).
+Every scene widget includes a hidden pre-computed save payload. When the player clicks
+Save, `sendPrompt()` asks Claude to generate the `.save.md` file as a downloadable
+conversation artifact. The file uses YAML frontmatter for metadata and markdown body for
+the save payload. This format is both human-readable (the frontmatter) and
+machine-parseable (the payload string).
 
 ### File structure
 
@@ -116,7 +118,7 @@ SC1:eyJ2IjoxLCJtb2RlIjoiY29tcGFjdCIsInNlZWQiOiJwYWxlLXRocmVzaG9sZC03...
 ## Per-Scene Save Generation
 
 Every scene widget includes a pre-computed save payload as a hidden data attribute.
-This enables instant save downloads without requiring a `sendPrompt()` round-trip.
+This enables the inline fallback display if `sendPrompt()` is unavailable.
 
 ### Implementation
 
@@ -137,64 +139,73 @@ The GM embeds the save data in every scene widget:
 </div>
 ```
 
-The footer Save button triggers a file download via client-side JS — no new message needed.
+The footer Save button uses `sendPrompt()` to ask Claude to generate the `.save.md` file
+as a downloadable conversation artifact. The pre-computed `#save-data` div serves as a
+fallback — if `sendPrompt()` is unavailable, the save string is displayed inline in a
+readonly textarea for the player to copy manually.
 
-### Save Download Script
+### Save Button Script — sendPrompt Primary, Inline Fallback
+
+The Save button uses `sendPrompt()` to ask Claude to generate the `.save.md` file as a
+downloadable artifact. If `sendPrompt()` is unavailable (timing, sandboxing), the button
+falls back to displaying the pre-computed save string in a readonly textarea with a copy
+button so the player can copy it manually.
 
 ```js
-function downloadSave() {
+function showInlineSave() {
   const el = document.getElementById('save-data');
-  if (!el) return;
+  if (!el || !el.dataset.save) return;
 
   const saveString = el.dataset.save;
   const character = el.dataset.character || 'Unknown';
-  const charClass = el.dataset.class || 'Adventurer';
-  const level = el.dataset.level || '1';
   const scene = el.dataset.scene || '1';
-  const location = el.dataset.location || 'Unknown';
-  const title = el.dataset.title || 'Text Adventure';
-  const theme = el.dataset.theme || 'space';
-  const seed = el.dataset.seed || '';
-  const mode = el.dataset.mode || 'full';
-  const now = new Date().toISOString();
-  const dateShort = now.split('T')[0];
 
-  // Build YAML frontmatter
-  let frontmatter = '---\n';
-  frontmatter += 'format: text-adventure-save\n';
-  frontmatter += 'version: 1\n';
-  frontmatter += 'skill-version: "2.0"\n';
-  frontmatter += 'character: "' + character + '"\n';
-  frontmatter += 'class: "' + charClass + '"\n';
-  frontmatter += 'level: ' + level + '\n';
-  frontmatter += 'scene: ' + scene + '\n';
-  frontmatter += 'location: "' + location + '"\n';
-  frontmatter += 'date-saved: "' + now + '"\n';
-  frontmatter += 'game-title: "' + title + '"\n';
-  frontmatter += 'theme: "' + theme + '"\n';
-  if (seed) frontmatter += 'seed: "' + seed + '"\n';
-  frontmatter += 'mode: "' + mode + '"\n';
-  frontmatter += '---\n\n';
+  // Create or reuse the inline save display
+  var container = document.getElementById('inline-save-display');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'inline-save-display';
+    container.style.cssText = 'margin-top:0.75rem;padding:0.75rem 1rem;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);background:var(--color-background-secondary);';
 
-  // Build markdown body
-  let body = '# Save — ' + character + ', Scene ' + scene + '\n\n';
-  body += 'To resume this adventure, paste the string below into a new conversation along with\n';
-  body += 'the instruction "Continue this text adventure":\n\n';
-  body += '```\n' + saveString + '\n```\n\n';
-  body += '*Saved from ' + title + ' — ' + location + '*\n';
-  body += '*Scene ' + scene + ' · Level ' + level + ' · ' + dateShort + '*\n';
+    var label = document.createElement('p');
+    label.style.cssText = 'font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-text-tertiary);margin:0 0 6px;';
+    label.textContent = 'Save string — copy and paste to resume later';
+    container.appendChild(label);
 
-  // Download
-  const blob = new Blob([frontmatter + body], { type: 'text/markdown' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = character.toLowerCase().replace(/\s+/g, '-') + '-scene' + scene + '.save.md';
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  URL.revokeObjectURL(url);
-  a.remove();
+    var ta = document.createElement('textarea');
+    ta.id = 'inline-save-textarea';
+    ta.readOnly = true;
+    ta.rows = 4;
+    ta.style.cssText = 'width:100%;box-sizing:border-box;padding:8px 10px;font-family:monospace;font-size:11px;line-height:1.5;background:var(--color-background-tertiary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);color:var(--color-text-secondary);word-break:break-all;resize:none;';
+    container.appendChild(ta);
+
+    var copyBtn = document.createElement('button');
+    copyBtn.textContent = 'Copy';
+    copyBtn.style.cssText = 'margin-top:6px;padding:4px 12px;font-family:monospace;font-size:10px;letter-spacing:0.08em;background:transparent;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);color:var(--color-text-secondary);cursor:pointer;';
+    copyBtn.addEventListener('click', function() {
+      navigator.clipboard.writeText(saveString).then(function() {
+        copyBtn.textContent = 'Copied!';
+        setTimeout(function() { copyBtn.textContent = 'Copy'; }, 2200);
+      }).catch(function() {
+        ta.select();
+        document.execCommand('copy');
+        copyBtn.textContent = 'Copied!';
+        setTimeout(function() { copyBtn.textContent = 'Copy'; }, 2200);
+      });
+    });
+    container.appendChild(copyBtn);
+
+    // Insert after the save button or at end of footer
+    var saveBtn = document.getElementById('save-btn');
+    if (saveBtn && saveBtn.parentNode) {
+      saveBtn.parentNode.insertAdjacentElement('afterend', container);
+    } else {
+      document.querySelector('.root').appendChild(container);
+    }
+  }
+
+  document.getElementById('inline-save-textarea').value = saveString;
+  container.style.display = 'block';
 }
 ```
 
@@ -202,43 +213,41 @@ function downloadSave() {
 
 ```js
 document.getElementById('save-btn').addEventListener('click', function() {
-  downloadSave();
-  this.textContent = 'Saved!';
-  setTimeout(() => { this.textContent = 'Save'; }, 2000);
+  if (typeof sendPrompt === 'function') {
+    sendPrompt('Generate my save file as a downloadable .save.md file.');
+    this.textContent = 'Generating...';
+    this.disabled = true;
+  } else {
+    // Fallback: display save string inline as copyable text
+    showInlineSave();
+    this.textContent = 'Shown below';
+    setTimeout(function() { document.getElementById('save-btn').textContent = 'Save \u2197'; }, 2000);
+  }
 });
 ```
 
 ### GM Instruction — Embedding Save Data
 
 The GM **must** embed the `#save-data` div in every scene widget, populated with the current
-`gmState` serialisation. This replaces the old "generate save on demand" pattern for compact
-mode saves. The GM builds the save string at render time using `buildCompactSave(gmState)` or
-`buildFullSave(gmState)` and injects the result into the `data-save` attribute along with all
-metadata fields.
+`gmState` serialisation. The GM builds the save string at render time using
+`buildCompactSave(gmState)` or `buildFullSave(gmState)` and injects the result into the
+`data-save` attribute along with all metadata fields.
 
-**Compact saves** are embedded and downloadable instantly — the payload is small enough to
-include in every scene widget without noticeable overhead.
+The `#save-data` div is used for the **inline fallback display** — if `sendPrompt()` is
+unavailable, the save string is shown in a readonly textarea for manual copying.
 
-**Full saves** (hand-authored worlds) are too large to embed in every scene widget. For full
-mode, the old `sendPrompt('Save the game.')` pattern remains as a fallback. The Save button
-detects the mode: if `#save-data` is present, it downloads instantly; if not, it falls back
-to `sendPrompt('Save the game.')` to request the GM generate the save widget.
+The **primary save path** is `sendPrompt()`: when the player clicks Save, the button fires
+`sendPrompt('Generate my save file as a downloadable .save.md file.')`. Claude receives this
+prompt and must:
 
-```js
-document.getElementById('save-btn').addEventListener('click', function() {
-  const el = document.getElementById('save-data');
-  if (el && el.dataset.save) {
-    downloadSave();
-    this.textContent = 'Saved!';
-    setTimeout(() => { this.textContent = 'Save'; }, 2000);
-  } else {
-    // Full-mode fallback — request save widget from GM
-    if (typeof sendPrompt === 'function') {
-      sendPrompt('Save the game.');
-    }
-  }
-});
-```
+1. Compute the save payload from the current `gmState` using `buildCompactSave()` or
+   `buildFullSave()` as appropriate.
+2. Build the complete `.save.md` content (YAML frontmatter + markdown body with the save
+   payload in a fenced code block — see the Save File Format section above).
+3. Present the `.save.md` as a downloadable artifact in the response.
+
+This approach bypasses the iframe sandbox restrictions that silently block Blob downloads
+in Claude.ai widgets.
 
 ---
 
@@ -1207,24 +1216,23 @@ Extend the scene widget footer with a save button alongside the codex button:
 
 ```html
 <button class="footer-btn" id="save-btn"
+  data-prompt="Generate my save file as a downloadable .save.md file."
   style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.08em;
   background:transparent; border:0.5px solid var(--color-border-tertiary);
   border-radius:var(--border-radius-md); padding:4px 10px;
   color:var(--color-text-tertiary); cursor:pointer;">
-  Save
+  Save ↗
 </button>
 ```
 
-Save no longer triggers `sendPrompt()`. Instead, the button triggers an inline download of a
-`.save.md` file containing the pre-computed save payload. The `#save-data` div must be present
-in the scene widget for this to work (see Per-Scene Save Generation above).
+The Save button uses `sendPrompt()` to ask Claude to generate the `.save.md` file as a
+downloadable conversation artifact. The `↗` suffix indicates this button triggers a
+`sendPrompt()` call. The `#save-data` div must be present in the scene widget for the
+inline fallback display (see Per-Scene Save Generation above).
 
-For compact mode saves, the download is instant — no round-trip required. For full mode saves
-where the payload is too large to embed, the button falls back to the `sendPrompt('Save the game.')`
-pattern to request the GM generate the full save widget.
-
-The player can also use a "Copy string" link within the save-data area to copy just the raw
-save payload to the clipboard if they prefer the old paste-to-resume flow.
+If `sendPrompt()` is unavailable, the button falls back to displaying the pre-computed
+save string from the `#save-data` div in a readonly textarea with a copy button. The
+player copies the string manually and pastes it to resume later.
 
 ### Resume Formats
 

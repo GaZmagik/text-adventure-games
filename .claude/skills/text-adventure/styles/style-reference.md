@@ -118,7 +118,7 @@ dynamically for each scene. The key requirements are:
 - `id="panel-overlay"` and `id="scene-content"` for the panel toggle system.
 - `id="reveal-brief"` and `id="reveal-full"` for progressive reveal.
 - Panel toggle buttons use `data-panel` attributes + `addEventListener` — never inline `onclick` or `sendPrompt()`.
-- The `↗` suffix on footer buttons indicates `sendPrompt()` (currently only Save).
+- The `↗` suffix on footer buttons indicates `sendPrompt()`. The Save button uses this suffix.
 
 ### Canonical Scene Footer
 
@@ -128,8 +128,9 @@ Every scene widget includes this footer outside the progressive reveal wrapper.
 **Structure:**
 - **Left side:** Panel toggle buttons — one per loaded module panel. Only render
   buttons for modules active in the current session. Use `data-panel` attributes + `addEventListener`.
-- **Right side:** Save button (`id="save-btn"`) using `addEventListener` pattern.
-  Label: `Save` (inline `.save.md` download for compact mode; `sendPrompt()` fallback for full mode only).
+- **Right side:** Save button (`id="save-btn"`) using `data-prompt` + `addEventListener` pattern.
+  Label: `Save ↗` (uses `sendPrompt()` to ask Claude to generate the `.save.md` file as a
+  downloadable artifact; falls back to inline copyable text display if `sendPrompt()` is unavailable).
 
 **Available panel buttons (render only when the corresponding module is loaded):**
 - `Character` — always present (core)
@@ -178,7 +179,7 @@ Close button only; the scene footer is not their responsibility.
     <!-- <button class="footer-btn" data-panel="nav" aria-expanded="false">Nav chart</button> -->
     <!-- <button class="footer-btn" data-panel="map" aria-expanded="false">Map</button> -->
     <!-- <button class="footer-btn" data-panel="quests" aria-expanded="false">Quests</button> -->
-    <!-- <button class="footer-btn" id="save-btn">Save</button> -->
+    <!-- <button class="footer-btn" id="save-btn" data-prompt="Generate my save file as a downloadable .save.md file.">Save ↗</button> -->
   </div>
 </div>
 
