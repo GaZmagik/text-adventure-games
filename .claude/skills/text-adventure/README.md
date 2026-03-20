@@ -369,7 +369,7 @@ archetypes, and module selection adapt accordingly.
   `styles/` provide CSS custom properties consumed by all widgets. The structural
   reference (`styles/style-reference.md`) defines the contract that styles must fulfil.
 - **Visual styles** are selectable per session — one `.md` file per theme (e.g., Terminal,
-  Parchment, Neon, Gothic). The player chooses during game setup, or the GM auto-selects
+  Parchment, Neon, Stained Glass). The player chooses during game setup, or the GM auto-selects
   based on the scenario.
 - **Dark mode:** All widgets use CSS variables; visual style files provide
   `@media (prefers-color-scheme: dark)` overrides where needed.
