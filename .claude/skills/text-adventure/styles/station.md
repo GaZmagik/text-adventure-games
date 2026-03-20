@@ -117,7 +117,7 @@ results independently):
 ### Sizing Scale
 
 ```css
---sta-text-xs:    9px;   /* labels, badges, uppercase caps, atmo pills */
+--sta-text-xs:   10px;   /* labels, badges, uppercase caps, atmo pills */
 --sta-text-sm:   11px;   /* secondary UI, monospace stat labels, fallback prompts */
 --sta-text-base: 15px;   /* narrative body — comfortable reading size */
 --sta-text-md:   18px;   /* location names, panel headings */
@@ -288,8 +288,8 @@ All WCAG AA contrast ratios are calculated against `--sta-bg-primary` (`#1A1D2E`
   --ta-color-warning-bg:       var(--sta-color-warning-bg);
   --ta-color-xp:               var(--sta-color-xp);
   --ta-color-focus:            var(--sta-color-location);
-  --ta-color-conviction:       var(--sta-color-location);
-  --ta-color-conviction-border: var(--sta-color-location);
+  --ta-color-conviction:       #7C6BF0;
+  --ta-color-conviction-border: #6B5CE0;
   --ta-badge-success-bg:       var(--sta-badge-success-bg);
   --ta-badge-success-text:     var(--sta-badge-success-text);
   --ta-badge-partial-bg:       var(--sta-badge-partial-bg);
@@ -383,8 +383,8 @@ All WCAG AA contrast ratios are calculated against `--sta-bg-primary` (`#1A1D2E`
     --ta-color-warning-bg:       var(--sta-color-warning-bg);
     --ta-color-xp:               var(--sta-color-xp);
     --ta-color-focus:            var(--sta-color-location);
-    --ta-color-conviction:       var(--sta-color-location);
-    --ta-color-conviction-border: var(--sta-color-location);
+    --ta-color-conviction:       #7C6BF0;
+    --ta-color-conviction-border: #6B5CE0;
     --ta-badge-success-bg:       var(--sta-badge-success-bg);
     --ta-badge-success-text:     var(--sta-badge-success-text);
     --ta-badge-partial-bg:       var(--sta-badge-partial-bg);
@@ -1398,8 +1398,8 @@ component (D20 ROLL, modifier, proficiency, etc.) with + signs between them.
 .conviction-row { display: flex; align-items: center; gap: 10px; margin-bottom: var(--sta-space-md); }
 .conviction-label { font-family: var(--sta-font-mono); font-size: var(--sta-text-xs); letter-spacing: 0.08em; color: var(--sta-text-tertiary); }
 .conviction-pips { display: flex; gap: 6px; align-items: center; }
-.conviction-pip { width: 10px; height: 10px; border-radius: 50%; border: 0.5px solid var(--sta-color-location); background: transparent; }
-.conviction-pip.filled { background: var(--sta-color-location); border-color: var(--sta-color-location); }
+.conviction-pip { width: 10px; height: 10px; border-radius: 50%; border: 0.5px solid var(--ta-color-conviction, #7C6BF0); background: transparent; }
+.conviction-pip.filled { background: var(--ta-color-conviction, #7C6BF0); border-color: var(--ta-color-conviction-border, #6B5CE0); }
 .round-indicator { font-family: var(--sta-font-mono); font-size: var(--sta-text-xs); letter-spacing: 0.08em; color: var(--sta-text-tertiary); margin-bottom: var(--sta-space-md); }
 .approach-stat { font-size: var(--sta-text-xs); color: var(--sta-text-tertiary); margin-left: 4px; }
 ```
@@ -1475,7 +1475,7 @@ handle that case independently.
   --sta-font-mono:    'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
   --sta-font-display: 'Syne', 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
 
-  --sta-text-xs:    9px;
+  --sta-text-xs:   10px;
   --sta-text-sm:   11px;
   --sta-text-base: 15px;
   --sta-text-md:   18px;
@@ -1577,8 +1577,8 @@ handle that case independently.
   --ta-color-warning-bg:        var(--sta-color-warning-bg);
   --ta-color-xp:                var(--sta-color-xp);
   --ta-color-focus:             var(--sta-color-location);
-  --ta-color-conviction:        var(--sta-color-location);
-  --ta-color-conviction-border: var(--sta-color-location);
+  --ta-color-conviction:        #7C6BF0;
+  --ta-color-conviction-border: #6B5CE0;
   --ta-badge-success-bg:        var(--sta-badge-success-bg);
   --ta-badge-success-text:      var(--sta-badge-success-text);
   --ta-badge-partial-bg:        var(--sta-badge-partial-bg);
@@ -1636,8 +1636,8 @@ handle that case independently.
     --ta-color-warning-bg:        var(--sta-color-warning-bg);
     --ta-color-xp:                var(--sta-color-xp);
     --ta-color-focus:             var(--sta-color-location);
-    --ta-color-conviction:        var(--sta-color-location);
-    --ta-color-conviction-border: var(--sta-color-location);
+    --ta-color-conviction:        #5B49D4;
+    --ta-color-conviction-border: #4A3BBF;
     --ta-badge-success-bg:        var(--sta-badge-success-bg);
     --ta-badge-success-text:      var(--sta-badge-success-text);
     --ta-badge-partial-bg:        var(--sta-badge-partial-bg);
@@ -2012,8 +2012,8 @@ button:focus-visible, [data-prompt]:focus-visible {
 .conviction-row { display: flex; align-items: center; gap: 10px; margin-bottom: var(--sta-space-md); }
 .conviction-label { font-family: var(--sta-font-mono); font-size: var(--sta-text-xs); letter-spacing: 0.08em; color: var(--sta-text-tertiary); }
 .conviction-pips { display: flex; gap: 6px; align-items: center; }
-.conviction-pip { width: 10px; height: 10px; border-radius: 50%; border: 0.5px solid var(--sta-color-location); background: transparent; }
-.conviction-pip.filled { background: var(--sta-color-location); border-color: var(--sta-color-location); }
+.conviction-pip { width: 10px; height: 10px; border-radius: 50%; border: 0.5px solid var(--ta-color-conviction, #7C6BF0); background: transparent; }
+.conviction-pip.filled { background: var(--ta-color-conviction, #7C6BF0); border-color: var(--ta-color-conviction-border, #6B5CE0); }
 
 /* --- Panel Overlay --- */
 #panel-overlay { display: none; padding: 0; }
