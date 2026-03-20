@@ -128,9 +128,11 @@ Every scene widget includes this footer outside the progressive reveal wrapper.
 **Structure:**
 - **Left side:** Panel toggle buttons — one per loaded module panel. Only render
   buttons for modules active in the current session. Use `data-panel` attributes + `addEventListener`.
-- **Right side:** Save button (`id="save-btn"`) using `data-prompt` + `addEventListener` pattern.
-  Label: `Save ↗` (uses `sendPrompt()` to ask Claude to generate the `.save.md` file as a
-  downloadable artifact; falls back to inline copyable text display if `sendPrompt()` is unavailable).
+- **Right side:** Save and Export buttons using `data-prompt` + `addEventListener` pattern.
+  - `Save ↗` (`id="save-btn"`) — uses `sendPrompt()` to ask Claude to generate the `.save.md` file
+    as a downloadable artifact; falls back to inline copyable text display if `sendPrompt()` is unavailable.
+  - `Export ↗` (`id="export-btn"`) — uses `sendPrompt()` to ask Claude to generate a `.lore.md` file
+    that shares the world for other players. Only rendered when adventure-exporting module is active.
 
 **Available panel buttons (render only when the corresponding module is loaded):**
 - `Character` — always present (core)
@@ -180,6 +182,7 @@ Close button only; the scene footer is not their responsibility.
     <!-- <button class="footer-btn" data-panel="map" aria-expanded="false">Map</button> -->
     <!-- <button class="footer-btn" data-panel="quests" aria-expanded="false">Quests</button> -->
     <!-- <button class="footer-btn" id="save-btn" data-prompt="Generate my save file as a downloadable .save.md file.">Save ↗</button> -->
+    <!-- <button class="footer-btn" id="export-btn" data-prompt="Export my world as a downloadable .lore.md file.">Export ↗</button> -->
   </div>
 </div>
 

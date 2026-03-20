@@ -345,8 +345,10 @@ Modules define their own `PANEL_DATA` field contents and summary render function
   Claude generates the file as a conversation artifact the player can download. Falls back to
   inline copyable text display if `sendPrompt()` is unavailable. The `#save-data` div is
   pre-computed in every scene widget for the fallback path.
-- The Save button (`Save ↗`) is the only footer button that uses `sendPrompt()`. All panel
+- The Save (`Save ↗`) and Export (`Export ↗`) footer buttons use `sendPrompt()`. All panel
   toggles are pure JS. Inline action buttons within scenes and panels also use `sendPrompt()`.
+- **Export button:** `sendPrompt('Export my world as a downloadable .lore.md file.')` — only
+  rendered when the adventure-exporting module is active. Generates a shareable world file.
 
 ---
 
