@@ -164,10 +164,50 @@ When using a custom rulebook:
 
 ## Character Naming
 
-The name input is a free text field. If the player leaves it blank, generate a thematically
-appropriate name. For space themes, mix cultural influences. For historical themes, use
-period-appropriate naming conventions. For fantasy, follow genre conventions but avoid
-overused tropes (no "Shadowblade Darkfyre").
+The name input is a free text field with a **Random Name** button beside it. When clicked,
+the button generates a thematically appropriate name based on the active scenario and theme.
+
+### Random Name Button
+
+The character creation widget includes a button next to the name input that generates a
+random name on click. The button uses `addEventListener` (not inline onclick) and populates
+the name input field:
+
+```html
+<div class="name-row">
+  <input type="text" id="char-name" class="name-input" placeholder="Enter your name...">
+  <button class="name-random-btn" id="random-name-btn">Random</button>
+</div>
+```
+
+```js
+document.getElementById('random-name-btn').addEventListener('click', function() {
+  var input = document.getElementById('char-name');
+  if (input) input.value = generateName();
+});
+```
+
+The `generateName()` function is defined by the GM at render time, drawing from a name pool
+appropriate to the theme:
+
+- **Space / Sci-Fi:** Mix cultural origins — East Asian, Slavic, Latin, West African, Nordic.
+  Surnames can be occupational, locational, or patronymic. Example pool: Kael Osei, Mira Sokolov,
+  Renn Achebe, Suki Nakamura, Aris Johanssen.
+- **Fantasy:** Follow genre conventions but avoid overused tropes (no "Shadowblade Darkfyre").
+  Use phonetic patterns that feel pronounceable. Example pool: Elara Thornwood, Caius Dawnforge,
+  Wren Ashvale, Theron Mossbell.
+- **Historical:** Period-appropriate naming conventions. A Roman campaign uses praenomen + nomen +
+  cognomen. A Victorian campaign uses formal given + surname.
+- **Horror / Modern:** Ordinary names that ground the character in reality. The mundane name
+  contrasts with the extraordinary situation.
+- **Post-Apocalyptic:** Short, functional names — often single names or nicknames earned through
+  survival. Example pool: Flint, Cinder, Patch, Rust, Wren.
+
+The button can be clicked multiple times to cycle through options. Each click generates a
+fresh name — it does not cycle through a fixed list.
+
+If the player leaves the name input blank and proceeds, generate a name automatically using
+the same theme-appropriate logic.
 
 ---
 
