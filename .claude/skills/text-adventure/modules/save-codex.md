@@ -759,8 +759,8 @@ QR code for mobile sharing, and the paste-to-resume flow.
   </div>
 
   <div class="tab-row">
-    <button class="tab-btn active" onclick="showTab('save')">Save</button>
-    <button class="tab-btn"        onclick="showTab('load')">Load / Resume</button>
+    <button class="tab-btn active" data-tab="save">Save</button>
+    <button class="tab-btn"        data-tab="load">Load / Resume</button>
   </div>
 
   <!-- SAVE TAB -->
@@ -770,13 +770,12 @@ QR code for mobile sharing, and the paste-to-resume flow.
     <div id="code-section" style="display:none;">
       <div class="code-block">
         <textarea class="code-display" id="code-display" readonly rows="4"></textarea>
-        <button class="copy-btn" id="copy-btn" onclick="copyCode()">Copy</button>
+        <button class="copy-btn" id="copy-btn">Copy</button>
       </div>
       <div id="qr-wrap" class="qr-wrap" style="display:none;">
         <canvas id="qr-canvas"></canvas>
       </div>
-      <button style="font-size:10px;color:var(--color-text-tertiary);background:none;border:none;cursor:pointer;font-family:'IBM Plex Mono',monospace;letter-spacing:0.06em;margin-top:4px;"
-        onclick="toggleQR()">
+      <button id="qr-toggle-btn" style="font-size:10px;color:var(--color-text-tertiary);background:none;border:none;cursor:pointer;font-family:'IBM Plex Mono',monospace;letter-spacing:0.06em;margin-top:4px;">
         <span id="qr-toggle-label">Show QR code ↓</span>
       </button>
     </div>
@@ -790,7 +789,7 @@ QR code for mobile sharing, and the paste-to-resume flow.
     </p>
     <div class="paste-row">
       <input class="paste-input" id="paste-input" type="text" placeholder="Paste save code here…" oninput="validatePaste()" />
-      <button class="load-btn" onclick="loadSave()">Resume ↗</button>
+      <button class="load-btn" id="load-btn">Resume ↗</button>
     </div>
     <p class="status-msg" id="load-status"></p>
 
@@ -901,7 +900,7 @@ function renderSlots() {
         <span class="slot-num">${i+1}</span>
         <span class="slot-empty">Empty slot</span>
         <div class="slot-actions">
-          <button class="slot-btn" onclick="saveToSlot(${i})">Save here</button>
+          <button class="slot-btn" data-save-slot="${i}">Save here</button>
         </div>
       </div>`;
 
@@ -909,7 +908,7 @@ function renderSlots() {
     const hpClass = hpPct != null ? (hpPct > 60 ? 'hp-high' : hpPct > 30 ? 'hp-mid' : 'hp-low') : '';
     const ts = new Date(slot.ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
     return `
-      <div class="slot-row occupied" onclick="showSlotCode(${i})">
+      <div class="slot-row occupied" data-show-slot="${i}">
         <span class="slot-num">${i+1}</span>
         <div class="slot-info">
           <div class="slot-label">${slot.label}</div>
@@ -920,11 +919,22 @@ function renderSlots() {
           <span style="font-size:10px;color:var(--color-text-tertiary);">${slot.hp}/${slot.maxHp}</span>
         </div>` : ''}
         <div class="slot-actions">
-          <button class="slot-btn" onclick="event.stopPropagation();saveToSlot(${i})">Overwrite</button>
-          <button class="slot-btn danger" onclick="event.stopPropagation();clearSlot(${i})">×</button>
+          <button class="slot-btn" data-save-slot="${i}">Overwrite</button>
+          <button class="slot-btn danger" data-clear-slot="${i}">×</button>
         </div>
       </div>`;
   }).join('');
+
+  // Wire dynamic slot buttons via addEventListener
+  document.querySelectorAll('[data-save-slot]').forEach(function(btn) {
+    btn.addEventListener('click', function(e) { e.stopPropagation(); saveToSlot(parseInt(this.dataset.saveSlot)); });
+  });
+  document.querySelectorAll('[data-clear-slot]').forEach(function(btn) {
+    btn.addEventListener('click', function(e) { e.stopPropagation(); clearSlot(parseInt(this.dataset.clearSlot)); });
+  });
+  document.querySelectorAll('[data-show-slot]').forEach(function(row) {
+    row.addEventListener('click', function() { showSlotCode(parseInt(this.dataset.showSlot)); });
+  });
 }
 
 function saveToSlot(i) {
