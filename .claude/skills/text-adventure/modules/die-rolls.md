@@ -321,16 +321,18 @@ within the check panel layout (see style-reference.md Die Roll Widget Pattern).
 </style>
 
 <div class="tray">
-  <div class="die-card"><canvas id="d4" width="160" height="160"></canvas><div class="die-card-label">d4</div><div class="die-card-val" id="d4-val"></div><div class="die-card-hint" id="d4-hint">Click to roll</div></div>
-  <div class="die-card"><canvas id="d6" width="160" height="160"></canvas><div class="die-card-label">d6</div><div class="die-card-val" id="d6-val"></div><div class="die-card-hint" id="d6-hint">Click to roll</div></div>
-  <div class="die-card"><canvas id="d8" width="160" height="160"></canvas><div class="die-card-label">d8</div><div class="die-card-val" id="d8-val"></div><div class="die-card-hint" id="d8-hint">Click to roll</div></div>
-  <div class="die-card"><canvas id="d12" width="160" height="160"></canvas><div class="die-card-label">d12</div><div class="die-card-val" id="d12-val"></div><div class="die-card-hint" id="d12-hint">Click to roll</div></div>
+  <div class="die-card"><canvas id="d4" width="160" height="160" role="button" aria-label="Roll d4" tabindex="0"></canvas><div class="die-card-label">d4</div><div class="die-card-val" id="d4-val" aria-live="polite"></div><div class="die-card-hint" id="d4-hint">Click to roll</div></div>
+  <div class="die-card"><canvas id="d6" width="160" height="160" role="button" aria-label="Roll d6" tabindex="0"></canvas><div class="die-card-label">d6</div><div class="die-card-val" id="d6-val" aria-live="polite"></div><div class="die-card-hint" id="d6-hint">Click to roll</div></div>
+  <div class="die-card"><canvas id="d8" width="160" height="160" role="button" aria-label="Roll d8" tabindex="0"></canvas><div class="die-card-label">d8</div><div class="die-card-val" id="d8-val" aria-live="polite"></div><div class="die-card-hint" id="d8-hint">Click to roll</div></div>
+  <div class="die-card"><canvas id="d12" width="160" height="160" role="button" aria-label="Roll d12" tabindex="0"></canvas><div class="die-card-label">d12</div><div class="die-card-val" id="d12-val" aria-live="polite"></div><div class="die-card-hint" id="d12-hint">Click to roll</div></div>
 </div>
 <div class="reset-row"><button class="reset-btn" id="resetAll">Reset all</button></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"
+  onerror="document.querySelectorAll('.die-card canvas').forEach(function(c){c.style.display='none';c.parentElement.querySelector('.die-card-hint').textContent='3D dice unavailable — use CSS dice from style-reference.md';})"></script>
 <script>
-(function(){
+if (typeof THREE === 'undefined') { /* Three.js failed to load — fallback handled by onerror above */ }
+else (function(){
   var isDk = matchMedia('(prefers-color-scheme:dark)').matches;
   var root = document.documentElement;
   var cs = getComputedStyle(root);

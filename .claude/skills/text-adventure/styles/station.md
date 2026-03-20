@@ -1547,7 +1547,7 @@ handle that case independently.
   --sta-border-tertiary:  rgba(84, 88, 128, 0.4);
 
   --sta-modifier-positive: #2BA882;
-  --sta-modifier-zero:     #545880;
+  --sta-modifier-zero:     var(--sta-text-tertiary); /* adapts via cascade: dark #545880, light #7880A8 */
   --sta-modifier-negative: #E84855;
 
   --sta-badge-success-bg:          rgba(43, 168, 130, 0.15);
