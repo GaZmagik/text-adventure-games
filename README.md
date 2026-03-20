@@ -101,7 +101,3 @@ All game output is rendered inside `visualize:show_widget` panels. No plain text
 | Humour | Permitted, not default | Dry, observational | Banter and absurdity | Gallows only | Wry, observational |
 | Opening | Specific moment | Mid-complication | Explosion | Beauty that curdles | A specific moment in a lived-in world |
 | Ending | Epilogue by implication | Unanswered question | Hook for next adventure | Door left ajar | Gestures at futures never seen |
-
-## Licence
-
-This project is provided for personal use with Claude Desktop.
