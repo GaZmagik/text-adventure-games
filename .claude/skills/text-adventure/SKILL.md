@@ -53,6 +53,7 @@ modules/
   story-architect.md      Plotline tracking, foreshadowing, consequence chains, dramatic pacing
   world-history.md        Pre-adventure world building, epochs, power structures, cultural layer
   adventure-authoring.md  .lore.md file format for authored adventures
+  adventure-exporting.md  Export live game world as shareable .lore.md file
 
 styles/
   style-reference.md      Structural patterns: panel CSS, scene skeleton, die shapes,
@@ -340,10 +341,12 @@ Modules define their own `PANEL_DATA` field contents and summary render function
 
 - **Footer panel toggles** (Character, Codex, Ship, Nav): pure JS via `togglePanel()` — never `sendPrompt()`.
 - **Actions within panels** (repair, reroute, use item, plot course): `sendPrompt()` — these change state.
-- **Save button:** Inline `.save.md` file download for compact mode (no `sendPrompt()`).
-  Falls back to `sendPrompt('Save the game.')` for full mode saves only.
-- No footer buttons currently use `sendPrompt()` — Save is now an inline download, and all
-  panel toggles are pure JS. Inline action buttons within scenes and panels use `sendPrompt()`.
+- **Save button:** Uses `sendPrompt('Generate my save file as a downloadable .save.md file.')`.
+  Claude generates the file as a conversation artifact the player can download. Falls back to
+  inline copyable text display if `sendPrompt()` is unavailable. The `#save-data` div is
+  pre-computed in every scene widget for the fallback path.
+- The Save button (`Save ↗`) is the only footer button that uses `sendPrompt()`. All panel
+  toggles are pure JS. Inline action buttons within scenes and panels also use `sendPrompt()`.
 
 ---
 
@@ -598,13 +601,14 @@ section defines **when** and **how** saves are surfaced during play.
 The scene widget footer includes a Save button (`id="save-btn"`). It is **always visible**
 but **greyed out and disabled** during combat and dialogue sequences.
 
-- **Compact mode (inline download):** The GM embeds a hidden `#save-data` div in every scene
-  widget containing the pre-computed save payload and metadata. Clicking Save triggers an
-  instant `.save.md` file download via client-side JS — no `sendPrompt()` round-trip needed.
-  The button shows brief "Saved!" feedback for 2 seconds.
-- **Full mode (sendPrompt fallback):** Full-mode saves are too large to embed in every scene
-  widget. If no `#save-data` div is present, the Save button falls back to
-  `sendPrompt('Save the game.')`, which opens the full save widget with slots and copy options.
+- **Primary (sendPrompt):** The Save button uses `sendPrompt('Generate my save file as a
+  downloadable .save.md file.')` to ask Claude to generate the save file as a conversation
+  artifact the player can download. This bypasses the iframe sandbox restrictions that
+  silently block Blob downloads in Claude.ai widgets. The button label is `Save ↗` (the
+  `↗` suffix indicates a `sendPrompt()` call).
+- **Fallback (inline display):** If `sendPrompt()` is unavailable, the Save button falls
+  back to displaying the pre-computed save string from the hidden `#save-data` div in a
+  readonly textarea with a copy button. The player copies the string manually.
 - **Auto-save suggestion:** At scene transitions, display a subtle inline prompt beneath the
   continue button: *"Would you like to save before continuing?"* with Yes / No buttons. This
   is non-blocking — the player can ignore it and proceed. Never interrupt pacing with a modal
@@ -661,6 +665,7 @@ const gmState = {
   storyArchitect: null,   // story-architect module
   worldHistory: null,     // world-history module
   adventureLore: null,    // adventure-authoring module (.lore.md data)
+  exportState: null,      // adventure-exporting module
   activeModules: [],      // list of loaded module names
 };
 ```
@@ -769,6 +774,7 @@ Modules in `modules/` add optional depth. Load based on scenario and settings.
 | Story Architect | `modules/story-architect.md` | Always (recommended for adventures >3 scenes) |
 | World History | `modules/world-history.md` | Recommended for all adventures |
 | Adventure Authoring | `modules/adventure-authoring.md` | When player uploads .lore.md or GM creates an adventure |
+| Adventure Exporting | `modules/adventure-exporting.md` | On demand — player requests world export or GM offers at milestone |
 
 ### Loading Protocol
 
