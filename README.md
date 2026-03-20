@@ -16,7 +16,7 @@ Five narrative voice styles that change how the game narrates events without alt
 
 ### Visual Styles
 
-11 visual CSS themes that change how the game looks — colours, typography, borders, and animations — without altering game logic. Found in `.claude/skills/text-adventure/styles/`.
+12 visual CSS themes that change how the game looks — colours, typography, borders, and animations — without altering game logic. Found in `.claude/skills/text-adventure/styles/`.
 
 | Style | Identity |
 |-------|----------|
@@ -29,6 +29,7 @@ Five narrative voice styles that change how the game narrates events without alt
 | **Ink Wash** | Near-monochrome, generous whitespace, vermillion seal |
 | **Blueprint** | Graph-paper grid, blue/white, technical drawing |
 | **Stained Glass** | Jewel tones, leaded borders, radial luminance |
+| **SvelteKit** | Light-mode first, Svelte orange accent, system fonts, component cards |
 | **Weathered** | Rust/olive, asymmetric padding, distressed feel |
 | **Holographic** | Translucent panels, iridescent borders, glassmorphism |
 

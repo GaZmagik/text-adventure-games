@@ -66,6 +66,7 @@ styles/
   ink-wash.md             Near-monochrome, generous whitespace, vermillion seal
   blueprint.md            Graph-paper grid, blue/white, technical drawing
   stained-glass.md        Jewel tones, leaded borders, radial luminance
+  sveltekit.md            Light-mode first, Svelte orange accent, system fonts, component cards
   weathered.md            Rust/olive, asymmetric, distressed, jury-rigged
   holographic.md          Translucent panels, iridescent borders, glassmorphism
 ```
@@ -124,7 +125,7 @@ by the chosen scenario.
 | Rulebook | Simple d20, GURPS Lite, Pathfinder 2e Lite, Shadowrun 5e Lite, Narrative Engine, Custom | Simple d20 |
 | Difficulty | Easy (DCs −2), Normal, Hard (DCs +2), Brutal (DCs +4) | Normal |
 | Pacing | Fast (shorter scenes), Normal, Slow (deeper exploration) | Normal |
-| Visual Style | Any `.md` file in `styles/` (e.g., Terminal, Parchment, Neon, Gothic) | Auto-select based on scenario theme |
+| Visual Style | Any `.md` file in `styles/` (e.g., Terminal, Parchment, Neon, Stained Glass) | Auto-select based on scenario theme |
 | Active Modules | Checkboxes (pre-selected per scenario type) | Per scenario defaults |
 
 **Simple d20 (default):** STR/DEX/INT/WIS/CON/CHA, d20 rolls, DC thresholds, modifiers = `floor((stat - 10) / 2)`.
@@ -154,6 +155,7 @@ During game setup, the player selects a visual style or the GM auto-selects base
 | Ink Wash | Wuxia, meditation, literary fiction |
 | Blueprint | Engineering, military, heist |
 | Stained Glass | Dark fantasy, religious, medieval |
+| SvelteKit | Contemporary, urban, heist, comedy, near-future |
 | Weathered | Survival, dystopian, dieselpunk |
 | Holographic | Space opera, far-future, AI themes |
 
@@ -724,10 +726,10 @@ These are suggestions, not constraints — players may choose any combination:
 | Output Style / Genre | Suggested Visual Styles |
 |---------------------|------------------------|
 | Sci-fi, cyberpunk | Terminal, Neon |
-| Fantasy, historical | Parchment, Gothic |
-| Horror, thriller | Gothic, Terminal |
+| Fantasy, historical | Parchment, Stained Glass |
+| Horror, thriller | Brutalist, Terminal |
 | Pulp, action | Neon, Terminal |
-| Mystery, noir | Terminal, Gothic |
+| Mystery, noir | Terminal, Brutalist |
 | General / neutral | Any — player's preference |
 
 ### Loading a Visual Style
