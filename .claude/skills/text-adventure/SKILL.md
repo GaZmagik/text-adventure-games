@@ -54,6 +54,7 @@ modules/
   world-history.md        Pre-adventure world building, epochs, power structures, cultural layer
   adventure-authoring.md  .lore.md file format for authored adventures
   adventure-exporting.md  Export live game world as shareable .lore.md file
+  gm-checklist.md         Mandatory quality gates: new game, scene, die roll, combat checklists
 
 styles/
   style-reference.md      Structural patterns: panel CSS, scene skeleton, die shapes,
@@ -799,6 +800,7 @@ Modules in `modules/` add optional depth. Load based on scenario and settings.
 | World History | `modules/world-history.md` | Recommended for all adventures |
 | Adventure Authoring | `modules/adventure-authoring.md` | When player uploads .lore.md or GM creates an adventure |
 | Adventure Exporting | `modules/adventure-exporting.md` | On demand — player requests world export or GM offers at milestone |
+| GM Checklist | `modules/gm-checklist.md` | Always — read FIRST before any other module |
 
 ### Loading Protocol
 
