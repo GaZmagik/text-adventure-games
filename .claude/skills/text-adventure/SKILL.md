@@ -122,13 +122,13 @@ by the chosen scenario.
 
 | Setting | Options | Default |
 |---------|---------|---------|
-| Rulebook | Simple d20, GURPS Lite, Pathfinder 2e Lite, Shadowrun 5e Lite, Narrative Engine, Custom | Simple d20 |
+| Rulebook | d20 System, GURPS Lite, Pathfinder 2e Lite, Shadowrun 5e Lite, Narrative Engine, Custom | d20 System |
 | Difficulty | Easy (DCs −2), Normal, Hard (DCs +2), Brutal (DCs +4) | Normal |
 | Pacing | Fast (shorter scenes), Normal, Slow (deeper exploration) | Normal |
 | Visual Style | Any `.md` file in `styles/` (e.g., Terminal, Parchment, Neon, Stained Glass) | Auto-select based on scenario theme |
 | Active Modules | Checkboxes (pre-selected per scenario type) | Per scenario defaults |
 
-**Simple d20 (default):** STR/DEX/INT/WIS/CON/CHA, d20 rolls, DC thresholds, modifiers = `floor((stat - 10) / 2)`.
+**d20 System (default):** STR/DEX/INT/WIS/CON/CHA, d20 rolls, DC thresholds, modifiers = `floor((stat - 10) / 2)`.
 The built-in system from core-systems.md. Best for casual play.
 
 **Alternative systems:** GURPS Lite (3d6 roll-under, point-buy), Pathfinder 2e Lite (three-action

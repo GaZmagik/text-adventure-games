@@ -13,7 +13,7 @@ cards. Each card shows the system name, a one-line summary, the resolution mecha
 
 | System | Resolution | Best For |
 |--------|-----------|----------|
-| **Simple d20** (default) | d20 + modifier vs DC. 4 stats, HP tracking. | Casual play, newcomers, fast sessions. |
+| **d20 System** (default) | d20 + modifier vs DC. 4 stats, HP tracking. | Casual play, newcomers, fast sessions. |
 | **D&D 5e** | d20 + ability mod + proficiency vs DC. 6 ability scores, class features, spell slots. | Classic fantasy RPG, faithful to 5th Edition rules. |
 | **GURPS Lite** | 3d6 roll-under. Point-buy characters, advantages/disadvantages. | Realistic and simulationist play. |
 | **Pathfinder 2e Lite** | d20 + modifier + proficiency vs DC. Three-action economy, crit ranges. | Tactical combat-focused play. |
@@ -26,12 +26,12 @@ resolution, combat) but does **not** replace universal systems (inventory, econo
 save). The universal systems adapt their language — e.g., "STR modifier" becomes "ST bonus" in
 GURPS — but the underlying tracking (slots, currency, faction scores) remains identical.
 
-Store the active system in `gmState.settings.rulebook` using one of: `'simple_d20'`,
+Store the active system in `gmState.settings.rulebook` using one of: `'d20_system'`,
 `'dnd_5e'`, `'gurps_lite'`, `'pf2e_lite'`, `'shadowrun_lite'`, `'narrative_engine'`, `'swrpg_narrative'`.
 
 ---
 
-## Simple d20 (Default)
+## d20 System (Default)
 
 This is the built-in system from `core-systems.md` and `die-rolls.md`. No additional rules
 are needed — selecting this option activates the standard engine as documented in those files.
@@ -895,7 +895,7 @@ When a non-default system is selected, the following modules adapt their behavio
 
 | Active System | Resolution Display |
 |---------------|-------------------|
-| Simple d20 | d20 + modifier vs DC (standard four-stage pattern) |
+| d20 System | d20 + modifier vs DC (standard four-stage pattern) |
 | D&D 5e | d20 + ability mod + proficiency vs DC/AC (four-stage, advantage/disadvantage shows 2d20) |
 | GURPS Lite | 3d6 roll-under vs effective skill (four-stage, target shown before roll) |
 | Pathfinder 2e Lite | d20 + modifier + proficiency vs DC (four-stage, crit range ±10) |
@@ -907,7 +907,7 @@ When a non-default system is selected, the following modules adapt their behavio
 
 | Active System | Action Economy |
 |---------------|---------------|
-| Simple d20 | 1 action per turn (Attack / Skill / Item / Retreat) |
+| d20 System | 1 action per turn (Attack / Skill / Item / Retreat) |
 | D&D 5e | 1 Action + 1 Bonus Action + 1 Movement + 1 Free Object Interaction |
 | GURPS Lite | 1 action per turn (Attack / Defend / Move / Use Item) |
 | Pathfinder 2e Lite | 3 actions per turn (shown as action pips ●●●) |
@@ -919,7 +919,7 @@ When a non-default system is selected, the following modules adapt their behavio
 
 | Active System | Chargen Flow |
 |---------------|-------------|
-| Simple d20 | Archetype selection → stat reveal → proficiency pick → confirm |
+| d20 System | Archetype selection → stat reveal → proficiency pick → confirm |
 | D&D 5e | Race → class → background → ability scores (standard array) → equipment → confirm |
 | GURPS Lite | Point-buy characteristics → advantages/disadvantages → skills → confirm |
 | Pathfinder 2e Lite | Ancestry → background → class → ability scores → confirm |
@@ -934,7 +934,7 @@ system-appropriate statistics:
 
 | System | Stat Block Contains |
 |--------|-------------------|
-| Simple d20 | HP, AC, Attack bonus, Damage, Defence rating |
+| d20 System | HP, AC, Attack bonus, Damage, Defence rating |
 | D&D 5e | HP, AC, Ability Scores, Saving Throws, Skills, Attacks, Damage, CR, Traits |
 | GURPS Lite | ST, DX, IQ, HT, HP, DR, Skills, Damage |
 | Pathfinder 2e Lite | HP, AC, Saves (Fort/Ref/Will), Attacks, Abilities, Level |
@@ -962,7 +962,7 @@ where they exist:
 When this module is active, the following fields are added or modified in `gmState`:
 
 ```js
-gmState.settings.rulebook = 'simple_d20'; // or 'dnd_5e', 'gurps_lite', 'pf2e_lite', 'shadowrun_lite', 'narrative_engine', 'swrpg_narrative'
+gmState.settings.rulebook = 'd20_system'; // or 'dnd_5e', 'gurps_lite', 'pf2e_lite', 'shadowrun_lite', 'narrative_engine', 'swrpg_narrative'
 
 // D&D 5e additions
 gmState.character.dnd5e = {
