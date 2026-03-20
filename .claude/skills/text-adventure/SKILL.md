@@ -579,10 +579,32 @@ When HP reaches 0:
 - **Down:** Player is incapacitated. Present a death save mechanic (3 successes to stabilise,
   3 failures to die — or a single dramatic roll at the GM's discretion based on pacing).
 - **Death:** If death occurs, show a solemn widget with: cause of death, final stats, a
-  "The story ends here" message, and options: `sendPrompt('Start a new character.')` or
-  `sendPrompt('Reload from last save.')` (if save-codex module is active).
+  "The story ends here" message, and options: `sendPrompt('Start a new character.')`,
+  `sendPrompt('Reload from last save.')` (if save-codex module is active), or
+  `sendPrompt('Export my world as a downloadable .lore.md file.')` (if adventure-exporting
+  module is active — lets the player share the world even after their character dies).
 
 Never continue gameplay past HP 0 without resolving this widget first.
+
+### Adventure Conclusion
+
+When the main story arc resolves (final quest completed, climax resolved, villain defeated
+or escaped), present a **conclusion widget** with:
+
+- **Epilogue text** — a brief denouement scene (the output style's Ending rules apply)
+- **Adventure summary** — scenes completed, quests resolved, NPCs met, key choices made
+- **Final character stats** — level, XP, inventory highlights
+- **Post-adventure options:**
+  - `sendPrompt('Start a new adventure in this world.')` — begins a new adventure with the
+    same character in the same world (sequel)
+  - `sendPrompt('Export my world as a downloadable .lore.md file.')` — share the world for
+    someone else to play (if adventure-exporting module is active)
+  - `sendPrompt('Generate my save file as a downloadable .save.md file.')` — final save
+  - `sendPrompt('Start a completely new game.')` — fresh start
+
+The Export option is particularly valuable at conclusion — the world is at its richest state,
+shaped by every decision the player made. Another player inheriting this world gets the most
+interesting starting position possible.
 
 ---
 
