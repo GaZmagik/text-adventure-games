@@ -1004,7 +1004,7 @@ Safe to use on focusable containers. Disabled under `prefers-reduced-motion`.
 ## Complete CSS Block
 
 Inject this entire block into the `<style>` tag of any widget to apply the Neon theme.
-This block is self-contained and overrides the base structural styles from `reference.md`.
+This block is self-contained and overrides the base structural styles from `style-reference.md`.
 The `@import` line will silently no-op if Google Fonts is CSP-blocked — the fallback stacks
 handle that case.
 

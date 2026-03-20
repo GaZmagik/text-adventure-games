@@ -579,7 +579,7 @@ The continue button pulses softly to draw attention when the brief text loads.
 ## Component Overrides
 
 How each widget type should be rendered in the terminal style. These override
-the base structural styles defined in `reference.md`.
+the base structural styles defined in `style-reference.md`.
 
 ### Location Bar
 
