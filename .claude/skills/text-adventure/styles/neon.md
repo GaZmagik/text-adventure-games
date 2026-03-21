@@ -171,6 +171,39 @@ inverts the surface/text relationship.
   --color-credits:   var(--neon-acid);
   --color-crit:      var(--neon-acid);
   --color-retreat:   var(--neon-text-tertiary);
+
+  /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
+  --ta-font-heading:              var(--font-display);
+  --ta-font-body:                 var(--font-mono);
+  --ta-color-accent:              var(--neon-blue);
+  --ta-color-accent-hover:        #33ECFF;
+  --ta-color-accent-bg:           var(--neon-blue-dim);
+  --ta-color-accent-bg-hover:     rgba(0, 196, 232, 0.25);
+  --ta-color-success:             var(--neon-green);
+  --ta-color-success-border:      #2BD474;
+  --ta-color-danger:              var(--neon-pink);
+  --ta-color-danger-border:       #E0206A;
+  --ta-color-danger-bg:           var(--neon-pink-dim);
+  --ta-color-danger-bg-hover:     rgba(255, 45, 120, 0.25);
+  --ta-color-warning:             var(--neon-orange);
+  --ta-color-warning-border:      #E05A28;
+  --ta-color-warning-bg:          var(--neon-orange-dim);
+  --ta-color-xp:                  var(--neon-violet);
+  --ta-color-focus:               var(--neon-blue);
+  --ta-color-conviction:          var(--neon-violet);
+  --ta-color-conviction-border:   #9040E0;
+  --ta-badge-success-bg:          var(--neon-green-dim);
+  --ta-badge-success-text:        var(--neon-green);
+  --ta-badge-partial-bg:          var(--neon-orange-dim);
+  --ta-badge-partial-text:        var(--neon-orange);
+  --ta-badge-failure-bg:          var(--neon-pink-dim);
+  --ta-badge-failure-text:        var(--neon-pink);
+  --ta-badge-crit-success-border: var(--neon-acid);
+  --ta-badge-crit-failure-border: var(--neon-pink);
+  --ta-color-credits:             var(--neon-acid);
+  --ta-color-tab-active:          var(--neon-blue);
+  --ta-border-style-poi:          1px dashed;
+  --ta-die-spin-duration:         0.6s;
 }
 ```
 

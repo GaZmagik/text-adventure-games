@@ -59,21 +59,21 @@ degrades gracefully: Cascadia Code (Windows Dev builds) → SF Mono (macOS) → 
 ### Scale
 
 ```
---font-size-xs:    0.625rem   /* 10px — annotation labels, measurement units */
---font-size-sm:    0.75rem    /* 12px — secondary labels, metadata */
---font-size-base:  0.875rem   /* 14px — body text, narrative */
---font-size-md:    1rem       /* 16px — stat values, roll results */
---font-size-lg:    1.125rem   /* 18px — section headers */
---font-size-xl:    1.375rem   /* 22px — widget title / scene heading */
---font-size-2xl:   1.75rem    /* 28px — die face numeral */
+--bp-font-size-xs:    0.625rem   /* 10px — annotation labels, measurement units */
+--bp-font-size-sm:    0.75rem    /* 12px — secondary labels, metadata */
+--bp-font-size-base:  0.875rem   /* 14px — body text, narrative */
+--bp-font-size-md:    1rem       /* 16px — stat values, roll results */
+--bp-font-size-lg:    1.125rem   /* 18px — section headers */
+--bp-font-size-xl:    1.375rem   /* 22px — widget title / scene heading */
+--bp-font-size-2xl:   1.75rem    /* 28px — die face numeral */
 
---line-height-tight:  1.3
---line-height-base:   1.6
---line-height-loose:  1.9     /* narrative paragraphs — readable at small size */
+--bp-line-height-tight:  1.3
+--bp-line-height-base:   1.6
+--bp-line-height-loose:  1.9     /* narrative paragraphs — readable at small size */
 
---letter-spacing-label:  0.12em   /* uppercase annotation labels */
---letter-spacing-tight:  0.02em   /* body text */
---letter-spacing-wide:   0.2em    /* section divider text */
+--bp-letter-spacing-label:  0.12em   /* uppercase annotation labels */
+--bp-letter-spacing-tight:  0.02em   /* body text */
+--bp-letter-spacing-wide:   0.2em    /* section divider text */
 ```
 
 ---
@@ -83,31 +83,31 @@ degrades gracefully: Cascadia Code (Windows Dev builds) → SF Mono (macOS) → 
 ### Dark Mode (default — cyanotype blueprint)
 
 ```
---color-bg-primary:        #1B3A5C   /* deep blueprint blue — main background */
---color-bg-secondary:      #152E4A   /* darker blue — recessed panels, overlays */
---color-bg-tertiary:       #0F2235   /* darkest — inset wells, code blocks */
---color-bg-elevated:       #1F4268   /* slightly lighter — hover surfaces */
+--bp-color-bg-primary:        #1B3A5C   /* deep blueprint blue — main background */
+--bp-color-bg-secondary:      #152E4A   /* darker blue — recessed panels, overlays */
+--bp-color-bg-tertiary:       #0F2235   /* darkest — inset wells, code blocks */
+--bp-color-bg-elevated:       #1F4268   /* slightly lighter — hover surfaces */
 
---color-text-primary:      #E8F0FE   /* near-white blue — primary text */
---color-text-secondary:    #8BB8E8   /* medium blue — secondary labels */
---color-text-tertiary:     #5A8ABF   /* dimmed blue — placeholder, muted info */
---color-text-inverse:      #1B3A5C   /* for text on light callout buttons */
+--bp-color-text-primary:      #E8F0FE   /* near-white blue — primary text */
+--bp-color-text-secondary:    #8BB8E8   /* medium blue — secondary labels */
+--bp-color-text-tertiary:     #5A8ABF   /* dimmed blue — placeholder, muted info */
+--bp-color-text-inverse:      #1B3A5C   /* for text on light callout buttons */
 
---color-line-primary:      #8BB8E8   /* main grid lines, primary borders */
---color-line-secondary:    #3D6B9A   /* secondary grid lines, dashed separators */
---color-line-accent:       #E8F0FE   /* bright white-blue — emphasis lines */
+--bp-color-line-primary:      #8BB8E8   /* main grid lines, primary borders */
+--bp-color-line-secondary:    #3D6B9A   /* secondary grid lines, dashed separators */
+--bp-color-line-accent:       #E8F0FE   /* bright white-blue — emphasis lines */
 
---color-accent-info:       #5BA4E8   /* information / neutral status */
---color-accent-success:    #4EC9A8   /* teal — success, operational */
---color-accent-warning:    #E8B84B   /* amber — warning, degraded */
---color-accent-danger:     #E86060   /* coral-red — danger, critical */
---color-accent-mystery:    #9B7FE8   /* purple — unknown, encrypted */
+--bp-color-accent-info:       #5BA4E8   /* information / neutral status */
+--bp-color-accent-success:    #4EC9A8   /* teal — success, operational */
+--bp-color-accent-warning:    #E8B84B   /* amber — warning, degraded */
+--bp-color-accent-danger:     #E86060   /* coral-red — danger, critical */
+--bp-color-accent-mystery:    #9B7FE8   /* purple — unknown, encrypted */
 
---color-roll-critical:     #FFD700   /* gold — nat 20, critical success */
---color-roll-failure:      #E86060   /* red — nat 1, critical failure */
+--bp-color-roll-critical:     #FFD700   /* gold — nat 20, critical success */
+--bp-color-roll-failure:      #E86060   /* red — nat 1, critical failure */
 
---color-focus-ring:        #8BB8E8   /* keyboard focus outline */
---color-selection-bg:      rgba(139, 184, 232, 0.25)
+--bp-color-focus-ring:        #8BB8E8   /* keyboard focus outline */
+--bp-color-selection-bg:      rgba(139, 184, 232, 0.25)
 ```
 
 ### Light Mode (drafting paper)
@@ -115,31 +115,31 @@ degrades gracefully: Cascadia Code (Windows Dev builds) → SF Mono (macOS) → 
 Activated via `@media (prefers-color-scheme: light)` and `[data-theme="light"]`.
 
 ```
---color-bg-primary:        #FAFCFF   /* near-white — drafting paper */
---color-bg-secondary:      #F0F5FF   /* light blue-white — panel backgrounds */
---color-bg-tertiary:       #E4EDFA   /* pale blue — inset wells */
---color-bg-elevated:       #FFFFFF   /* pure white — hover surfaces */
+--bp-color-bg-primary:        #FAFCFF   /* near-white — drafting paper */
+--bp-color-bg-secondary:      #F0F5FF   /* light blue-white — panel backgrounds */
+--bp-color-bg-tertiary:       #E4EDFA   /* pale blue — inset wells */
+--bp-color-bg-elevated:       #FFFFFF   /* pure white — hover surfaces */
 
---color-text-primary:      #1B3A5C   /* dark blueprint blue — primary text */
---color-text-secondary:    #2D5F8A   /* mid blue — secondary labels */
---color-text-tertiary:     #5A8ABF   /* light blue — placeholder, muted */
---color-text-inverse:      #E8F0FE   /* for text on dark callout buttons */
+--bp-color-text-primary:      #1B3A5C   /* dark blueprint blue — primary text */
+--bp-color-text-secondary:    #2D5F8A   /* mid blue — secondary labels */
+--bp-color-text-tertiary:     #5A8ABF   /* light blue — placeholder, muted */
+--bp-color-text-inverse:      #E8F0FE   /* for text on dark callout buttons */
 
---color-line-primary:      #2D5F8A   /* main grid lines */
---color-line-secondary:    #8BB8E8   /* secondary grid, dashed separators */
---color-line-accent:       #1B3A5C   /* dark blue emphasis lines */
+--bp-color-line-primary:      #2D5F8A   /* main grid lines */
+--bp-color-line-secondary:    #8BB8E8   /* secondary grid, dashed separators */
+--bp-color-line-accent:       #1B3A5C   /* dark blue emphasis lines */
 
---color-accent-info:       #1A6BBF   /* deeper blue for readability on white */
---color-accent-success:    #1A8F72   /* darker teal */
---color-accent-warning:    #BF7C00   /* darker amber */
---color-accent-danger:     #BF2424   /* darker red */
---color-accent-mystery:    #6344BF   /* darker purple */
+--bp-color-accent-info:       #1A6BBF   /* deeper blue for readability on white */
+--bp-color-accent-success:    #1A8F72   /* darker teal */
+--bp-color-accent-warning:    #BF7C00   /* darker amber */
+--bp-color-accent-danger:     #BF2424   /* darker red */
+--bp-color-accent-mystery:    #6344BF   /* darker purple */
 
---color-roll-critical:     #9B7000   /* dark gold on white */
---color-roll-failure:      #BF2424
+--bp-color-roll-critical:     #9B7000   /* dark gold on white */
+--bp-color-roll-failure:      #BF2424
 
---color-focus-ring:        #1B3A5C
---color-selection-bg:      rgba(27, 58, 92, 0.12)
+--bp-color-focus-ring:        #1B3A5C
+--bp-color-selection-bg:      rgba(27, 58, 92, 0.12)
 ```
 
 ### Grid Overlay Colours
@@ -148,12 +148,12 @@ The graph paper effect uses semi-transparent lines over the background:
 
 ```
 /* Dark mode grid */
---color-grid-major:  rgba(139, 184, 232, 0.12)   /* major grid — every 40px */
---color-grid-minor:  rgba(139, 184, 232, 0.05)   /* minor grid — every 8px */
+--bp-color-grid-major:  rgba(139, 184, 232, 0.12)   /* major grid — every 40px */
+--bp-color-grid-minor:  rgba(139, 184, 232, 0.05)   /* minor grid — every 8px */
 
 /* Light mode grid */
---color-grid-major:  rgba(27, 58, 92, 0.10)
---color-grid-minor:  rgba(27, 58, 92, 0.04)
+--bp-color-grid-major:  rgba(27, 58, 92, 0.10)
+--bp-color-grid-minor:  rgba(27, 58, 92, 0.04)
 ```
 
 ---
@@ -161,26 +161,26 @@ The graph paper effect uses semi-transparent lines over the background:
 ## Spacing & Layout
 
 ```
---space-1:   4px
---space-2:   8px
---space-3:   12px
---space-4:   16px
---space-5:   20px
---space-6:   24px
---space-8:   32px
---space-10:  40px
---space-12:  48px
---space-16:  64px
+--bp-space-1:   4px
+--bp-space-2:   8px
+--bp-space-3:   12px
+--bp-space-4:   16px
+--bp-space-5:   20px
+--bp-space-6:   24px
+--bp-space-8:   32px
+--bp-space-10:  40px
+--bp-space-12:  48px
+--bp-space-16:  64px
 
 --widget-max-width:    680px
---widget-padding:      var(--space-6)
---section-gap:         var(--space-8)
---component-gap:       var(--space-4)
---label-gap:           var(--space-2)
+--widget-padding:      var(--bp-space-6)
+--section-gap:         var(--bp-space-8)
+--component-gap:       var(--bp-space-4)
+--label-gap:           var(--bp-space-2)
 
 /* Grid overlay dimensions */
---grid-minor-size:     8px
---grid-major-size:     40px
+--bp-grid-minor-size:     8px
+--bp-grid-major-size:     40px
 ```
 
 Layout is single-column within widgets. No floats. Flexbox for rows, grid for stat blocks.
@@ -194,28 +194,28 @@ Blueprint uses a strict two-weight border system. No shadows — elevation is co
 through border weight and background tone only.
 
 ```
---border-width-primary:    1px
---border-width-secondary:  1px    /* same weight, different colour */
---border-style-primary:    solid
---border-style-secondary:  dashed
+--bp-border-width-primary:    1px
+--bp-border-width-secondary:  1px    /* same weight, different colour */
+--bp-border-style-primary:    solid
+--bp-border-style-secondary:  dashed
 
---border-radius-none:      0
---border-radius-sm:        2px    /* callout buttons only */
---border-radius-md:        2px    /* panel close button */
+--bp-border-radius-none:      0
+--bp-border-radius-sm:        2px    /* callout buttons only */
+--bp-border-radius-md:        2px    /* panel close button */
 
 /* Convenience shorthands */
---border-primary:     1px solid var(--color-line-primary)
---border-secondary:   1px dashed var(--color-line-secondary)
---border-accent:      1px solid var(--color-line-accent)
+--bp-border-primary:     1px solid var(--bp-color-line-primary)
+--bp-border-secondary:   1px dashed var(--bp-color-line-secondary)
+--bp-border-accent:      1px solid var(--bp-color-line-accent)
 ```
 
 ### Surface Rules
 
-- Main widget container: `--border-primary` on all four sides
-- Panel overlays: `--border-primary` top only (inset from widget)
-- Section dividers: `--border-secondary` bottom
-- Inset wells (stat blocks, code displays): `--border-secondary` all sides,
-  `--color-bg-tertiary` background
+- Main widget container: `--bp-border-primary` on all four sides
+- Panel overlays: `--bp-border-primary` top only (inset from widget)
+- Section dividers: `--bp-border-secondary` bottom
+- Inset wells (stat blocks, code displays): `--bp-border-secondary` all sides,
+  `--bp-color-bg-tertiary` background
 - No `box-shadow` anywhere — not a blueprint aesthetic
 
 ### Annotation Leader Lines
@@ -228,7 +228,7 @@ Annotation labels sit 8px to the right of a 16px horizontal CSS border line:
   display: inline-block;
   width: 16px;
   height: 0;
-  border-top: 1px solid var(--color-line-secondary);
+  border-top: 1px solid var(--bp-color-line-secondary);
   vertical-align: middle;
   margin-right: 6px;
 }
@@ -246,17 +246,17 @@ the thing they control.
 
 ```
 Min touch target:  44px height, 44px width
-Font:              var(--font-mono), var(--font-size-sm)
-Letter-spacing:    var(--letter-spacing-label)
+Font:              var(--bp-font-mono), var(--bp-font-size-sm)
+Letter-spacing:    var(--bp-letter-spacing-label)
 Text-transform:    uppercase
 ```
 
 **Primary button** — filled with accent blue, dark text:
 
 ```
-Background:  var(--color-line-primary)
-Color:       var(--color-text-inverse)
-Border:      1px solid var(--color-line-primary)
+Background:  var(--bp-color-line-primary)
+Color:       var(--bp-color-text-inverse)
+Border:      1px solid var(--bp-color-line-primary)
 Padding:     10px 18px
 ```
 
@@ -264,8 +264,8 @@ Padding:     10px 18px
 
 ```
 Background:  transparent
-Color:       var(--color-text-secondary)
-Border:      var(--border-primary)
+Color:       var(--bp-color-text-secondary)
+Border:      var(--bp-border-primary)
 Padding:     10px 18px
 ```
 
@@ -273,18 +273,18 @@ Padding:     10px 18px
 
 ```
 Background:  transparent
-Color:       var(--color-text-tertiary)
-Border:      var(--border-secondary)
+Color:       var(--bp-color-text-tertiary)
+Border:      var(--bp-border-secondary)
 Padding:     8px 14px
-Font-size:   var(--font-size-xs)
+Font-size:   var(--bp-font-size-xs)
 ```
 
 **Danger button** — for destructive or high-stakes actions:
 
 ```
 Background:  transparent
-Color:       var(--color-accent-danger)
-Border:      1px solid var(--color-accent-danger)
+Color:       var(--bp-color-accent-danger)
+Border:      1px solid var(--bp-color-accent-danger)
 ```
 
 ### Hover States
@@ -294,13 +294,13 @@ only border brightness and background tone shift.
 
 ```
 Secondary hover:
-  Border-color:  var(--color-line-accent)
-  Color:         var(--color-text-primary)
-  Background:    var(--color-bg-elevated)
+  Border-color:  var(--bp-color-line-accent)
+  Color:         var(--bp-color-text-primary)
+  Background:    var(--bp-color-bg-elevated)
 
 Footer hover:
-  Border-color:  var(--color-line-primary)
-  Color:         var(--color-text-secondary)
+  Border-color:  var(--bp-color-line-primary)
+  Color:         var(--bp-color-text-secondary)
 ```
 
 ### Focus States
@@ -309,7 +309,7 @@ Keyboard focus uses a 2px outline offset by 2px — clearly visible, no rounded 
 
 ```css
 :focus-visible {
-  outline: 2px solid var(--color-focus-ring);
+  outline: 2px solid var(--bp-color-focus-ring);
   outline-offset: 2px;
   border-radius: 0;
 }
@@ -321,18 +321,18 @@ Action choice rows use a left-border annotation style rather than full buttons:
 
 ```
 Display:      block
-Border-left:  3px solid var(--color-line-secondary)
+Border-left:  3px solid var(--bp-color-line-secondary)
 Padding:      8px 12px
 Background:   transparent
-Color:        var(--color-text-secondary)
+Color:        var(--bp-color-text-secondary)
 Cursor:       pointer
 ```
 
 Hover:
 ```
-Border-left-color:  var(--color-line-primary)
-Color:              var(--color-text-primary)
-Background:         var(--color-bg-elevated)
+Border-left-color:  var(--bp-color-line-primary)
+Color:              var(--bp-color-text-primary)
+Background:         var(--bp-color-bg-elevated)
 ```
 
 ---
@@ -399,8 +399,8 @@ No ripple — a precision instrument does not ripple. Instead: a 40ms inset bord
 ```css
 button:active {
   transform: none;
-  border-color: var(--color-line-accent);
-  background: var(--color-bg-tertiary);
+  border-color: var(--bp-color-line-accent);
+  background: var(--bp-color-bg-tertiary);
   transition: all 0.04s ease-out;
 }
 ```
@@ -427,8 +427,8 @@ When HP or system values change, the value flashes once.
 
 ```css
 @keyframes blueprint-readout-flash {
-  0%   { color: var(--color-line-accent); }
-  100% { color: var(--color-text-primary); }
+  0%   { color: var(--bp-color-line-accent); }
+  100% { color: var(--bp-color-text-primary); }
 }
 
 .stat-value.updated {
@@ -447,36 +447,36 @@ measurement strip with cross-hair markers at each end.
 
 ```
 .loc-bar:
-  Font-size:      var(--font-size-xs)
-  Letter-spacing: var(--letter-spacing-label)
+  Font-size:      var(--bp-font-size-xs)
+  Letter-spacing: var(--bp-letter-spacing-label)
   Text-transform: uppercase
-  Color:          var(--color-text-tertiary)
-  Border-bottom:  var(--border-secondary)
-  Padding:        var(--space-2) 0
+  Color:          var(--bp-color-text-tertiary)
+  Border-bottom:  var(--bp-border-secondary)
+  Padding:        var(--bp-space-2) 0
   Display:        flex
-  Gap:            var(--space-4)
+  Gap:            var(--bp-space-4)
 
   Before pseudo (cross-hair left):
     Content: '+'
-    Color: var(--color-line-secondary)
-    Margin-right: var(--space-2)
+    Color: var(--bp-color-line-secondary)
+    Margin-right: var(--bp-space-2)
 
 .atmo-strip (atmospheric condition banner):
-  Font-size:      var(--font-size-xs)
-  Letter-spacing: var(--letter-spacing-label)
-  Color:          var(--color-text-tertiary)
-  Border:         var(--border-secondary)
-  Padding:        var(--space-1) var(--space-3)
+  Font-size:      var(--bp-font-size-xs)
+  Letter-spacing: var(--bp-letter-spacing-label)
+  Color:          var(--bp-color-text-tertiary)
+  Border:         var(--bp-border-secondary)
+  Padding:        var(--bp-space-1) var(--bp-space-3)
   Text-transform: uppercase
-  Background:     var(--color-bg-tertiary)
+  Background:     var(--bp-color-bg-tertiary)
 
 .narrative:
-  Font-size:   var(--font-size-base)
-  Line-height: var(--line-height-loose)
-  Color:       var(--color-text-primary)
-  Border-left: 3px solid var(--color-line-secondary)
-  Padding:     var(--space-3) var(--space-4)
-  Background:  var(--color-bg-secondary)
+  Font-size:   var(--bp-font-size-base)
+  Line-height: var(--bp-line-height-loose)
+  Color:       var(--bp-color-text-primary)
+  Border-left: 3px solid var(--bp-color-line-secondary)
+  Padding:     var(--bp-space-3) var(--bp-space-4)
+  Background:  var(--bp-color-bg-secondary)
 ```
 
 ### Die Roll Widget
@@ -486,18 +486,18 @@ units. The die face is a square with corner tick marks.
 
 ```
 .die-widget:
-  Border:     var(--border-primary)
-  Background: var(--color-bg-secondary)
-  Padding:    var(--space-6)
-  Font-family: var(--font-mono)
+  Border:     var(--bp-border-primary)
+  Background: var(--bp-color-bg-secondary)
+  Padding:    var(--bp-space-6)
+  Font-family: var(--bp-font-mono)
 
 .die-face:
   Width:        80px
   Height:       80px
-  Border:       var(--border-accent)
+  Border:       var(--bp-border-accent)
   Border-radius: 0            /* no rounding — it's a technical readout */
-  Font-size:    var(--font-size-2xl)
-  Color:        var(--color-text-primary)
+  Font-size:    var(--bp-font-size-2xl)
+  Color:        var(--bp-color-text-primary)
   Display:      grid
   Place-items:  center
   Position:     relative
@@ -507,34 +507,34 @@ units. The die face is a square with corner tick marks.
     Position: absolute
     Top: -4px; Left: -4px
     Width: 8px; Height: 8px
-    Border-top: 2px solid var(--color-line-accent)
-    Border-left: 2px solid var(--color-line-accent)
+    Border-top: 2px solid var(--bp-color-line-accent)
+    Border-left: 2px solid var(--bp-color-line-accent)
 
 .die-label:
-  Font-size:      var(--font-size-xs)
-  Letter-spacing: var(--letter-spacing-label)
+  Font-size:      var(--bp-font-size-xs)
+  Letter-spacing: var(--bp-letter-spacing-label)
   Text-transform: uppercase
-  Color:          var(--color-text-tertiary)
+  Color:          var(--bp-color-text-tertiary)
 
 .die-modifier-row:
   Display:        flex
-  Gap:            var(--space-4)
-  Font-size:      var(--font-size-sm)
-  Color:          var(--color-text-secondary)
-  Border-top:     var(--border-secondary)
-  Padding-top:    var(--space-3)
-  Margin-top:     var(--space-3)
+  Gap:            var(--bp-space-4)
+  Font-size:      var(--bp-font-size-sm)
+  Color:          var(--bp-color-text-secondary)
+  Border-top:     var(--bp-border-secondary)
+  Padding-top:    var(--bp-space-3)
+  Margin-top:     var(--bp-space-3)
 
 .die-result-total:
-  Font-size:  var(--font-size-xl)
-  Color:      var(--color-text-primary)
+  Font-size:  var(--bp-font-size-xl)
+  Color:      var(--bp-color-text-primary)
 
   Critical success (nat 20 or equivalent):
-    Color:    var(--color-roll-critical)
+    Color:    var(--bp-color-roll-critical)
     After content: ' [CRIT]'
 
   Critical failure:
-    Color:    var(--color-roll-failure)
+    Color:    var(--bp-color-roll-failure)
     After content: ' [FAIL]'
 ```
 
@@ -545,26 +545,26 @@ not gradients.
 
 ```
 .combat-header:
-  Font-size:      var(--font-size-xs)
-  Letter-spacing: var(--letter-spacing-label)
+  Font-size:      var(--bp-font-size-xs)
+  Letter-spacing: var(--bp-letter-spacing-label)
   Text-transform: uppercase
-  Color:          var(--color-text-tertiary)
-  Border-bottom:  var(--border-primary)
-  Padding-bottom: var(--space-2)
+  Color:          var(--bp-color-text-tertiary)
+  Border-bottom:  var(--bp-border-primary)
+  Padding-bottom: var(--bp-space-2)
 
 .combatant-row:
   Display:     grid
   Grid-template-columns: 2fr 1fr 1fr 1fr
-  Gap:         var(--space-3)
-  Padding:     var(--space-2) 0
-  Border-bottom: var(--border-secondary)
-  Font-size:   var(--font-size-sm)
+  Gap:         var(--bp-space-3)
+  Padding:     var(--bp-space-2) 0
+  Border-bottom: var(--bp-border-secondary)
+  Font-size:   var(--bp-font-size-sm)
   Align-items: center
 
   Active turn:
-    Background: var(--color-bg-elevated)
-    Border-left: 3px solid var(--color-line-accent)
-    Padding-left: var(--space-3)
+    Background: var(--bp-color-bg-elevated)
+    Border-left: 3px solid var(--bp-color-line-accent)
+    Padding-left: var(--bp-space-3)
 
 .hp-track:
   Display: flex
@@ -573,20 +573,20 @@ not gradients.
 .hp-pip:
   Width:  8px
   Height: 8px
-  Border: 1px solid var(--color-line-secondary)
+  Border: 1px solid var(--bp-color-line-secondary)
   Background: transparent
 
   Filled:
-    Background: var(--color-accent-success)
-    Border-color: var(--color-accent-success)
+    Background: var(--bp-color-accent-success)
+    Border-color: var(--bp-color-accent-success)
 
   Damaged:
-    Background: var(--color-accent-warning)
-    Border-color: var(--color-accent-warning)
+    Background: var(--bp-color-accent-warning)
+    Border-color: var(--bp-color-accent-warning)
 
   Critical:
-    Background: var(--color-accent-danger)
-    Border-color: var(--color-accent-danger)
+    Background: var(--bp-color-accent-danger)
+    Border-color: var(--bp-color-accent-danger)
 ```
 
 ### Dialogue Widget
@@ -596,41 +596,41 @@ and a horizontal rule separating incoming from response options.
 
 ```
 .dialogue-header:
-  Font-size:      var(--font-size-xs)
-  Letter-spacing: var(--letter-spacing-label)
+  Font-size:      var(--bp-font-size-xs)
+  Letter-spacing: var(--bp-letter-spacing-label)
   Text-transform: uppercase
-  Color:          var(--color-text-tertiary)
-  Margin-bottom:  var(--space-3)
+  Color:          var(--bp-color-text-tertiary)
+  Margin-bottom:  var(--bp-space-3)
 
   NPC name:
-    Color: var(--color-text-secondary)
-    Font-size: var(--font-size-sm)
+    Color: var(--bp-color-text-secondary)
+    Font-size: var(--bp-font-size-sm)
 
 .dialogue-speech:
-  Border-left:   3px solid var(--color-line-primary)
-  Padding:       var(--space-3) var(--space-4)
-  Background:    var(--color-bg-secondary)
-  Font-size:     var(--font-size-base)
-  Line-height:   var(--line-height-loose)
-  Color:         var(--color-text-primary)
-  Margin-bottom: var(--space-4)
+  Border-left:   3px solid var(--bp-color-line-primary)
+  Padding:       var(--bp-space-3) var(--bp-space-4)
+  Background:    var(--bp-color-bg-secondary)
+  Font-size:     var(--bp-font-size-base)
+  Line-height:   var(--bp-line-height-loose)
+  Color:         var(--bp-color-text-primary)
+  Margin-bottom: var(--bp-space-4)
 
 .disposition-bar:
-  Font-size:  var(--font-size-xs)
-  Color:      var(--color-text-tertiary)
+  Font-size:  var(--bp-font-size-xs)
+  Color:      var(--bp-color-text-tertiary)
   Display:    flex
-  Gap:        var(--space-2)
+  Gap:        var(--bp-space-2)
   Align-items: center
-  Margin-bottom: var(--space-4)
+  Margin-bottom: var(--bp-space-4)
 
   Readout strip (visual track):
     Height:     2px
-    Background: var(--color-line-secondary)
+    Background: var(--bp-color-line-secondary)
     Flex:       1
 
     Fill portion:
       Height:  100%
-      Background: var(--color-accent-info)
+      Background: var(--bp-color-accent-info)
       Transition: width 0.3s ease-out
 ```
 
@@ -643,47 +643,47 @@ are measurement fields.
 .form-field:
   Display:        grid
   Grid-template-columns: 140px 1fr
-  Gap:            var(--space-4)
+  Gap:            var(--bp-space-4)
   Align-items:    start
-  Padding:        var(--space-3) 0
-  Border-bottom:  var(--border-secondary)
+  Padding:        var(--bp-space-3) 0
+  Border-bottom:  var(--bp-border-secondary)
 
 .form-label:
-  Font-size:      var(--font-size-xs)
-  Letter-spacing: var(--letter-spacing-label)
+  Font-size:      var(--bp-font-size-xs)
+  Letter-spacing: var(--bp-letter-spacing-label)
   Text-transform: uppercase
-  Color:          var(--color-text-tertiary)
+  Color:          var(--bp-color-text-tertiary)
   Padding-top:    2px
 
   Annotation leader:
-    Before pseudo: 8px horizontal line in --color-line-secondary
+    Before pseudo: 8px horizontal line in --bp-color-line-secondary
 
 input, select:
-  Background:  var(--color-bg-tertiary)
-  Border:      var(--border-primary)
+  Background:  var(--bp-color-bg-tertiary)
+  Border:      var(--bp-border-primary)
   Border-radius: 0
-  Color:       var(--color-text-primary)
-  Font-family: var(--font-mono)
-  Font-size:   var(--font-size-sm)
-  Padding:     var(--space-2) var(--space-3)
+  Color:       var(--bp-color-text-primary)
+  Font-family: var(--bp-font-mono)
+  Font-size:   var(--bp-font-size-sm)
+  Padding:     var(--bp-space-2) var(--bp-space-3)
   Min-height:  44px
   Width:       100%
   Box-sizing:  border-box
 
   Focus:
-    Outline: 2px solid var(--color-focus-ring)
+    Outline: 2px solid var(--bp-color-focus-ring)
     Outline-offset: 2px
 ```
 
 ### Map Widget (SVG)
 
 Map overlays use blueprint line weights. Room labels are uppercase monospaced.
-Unexplored areas are `--color-bg-tertiary` fill; explored use `--color-bg-secondary`.
+Unexplored areas are `--bp-color-bg-tertiary` fill; explored use `--bp-color-bg-secondary`.
 
 ```
 SVG stroke-width: 1px (rooms), 0.5px (corridors)
-SVG stroke: var(--color-line-primary) on dark, var(--color-line-primary) on light
-SVG fill: var(--color-bg-secondary) for rooms
+SVG stroke: var(--bp-color-line-primary) on dark, var(--bp-color-line-primary) on light
+SVG fill: var(--bp-color-bg-secondary) for rooms
 Room label text: font-family monospace, font-size 9px, letter-spacing 0.1em, uppercase
 Grid overlay: visible behind map at 8px minor / 40px major
 ```
@@ -693,54 +693,54 @@ Grid overlay: visible behind map at 8px minor / 40px major
 ```
 .status-bar:
   Display:      flex
-  Gap:          var(--space-6)
-  Padding:      var(--space-3) 0
-  Border-top:   var(--border-secondary)
-  Font-size:    var(--font-size-xs)
+  Gap:          var(--bp-space-6)
+  Padding:      var(--bp-space-3) 0
+  Border-top:   var(--bp-border-secondary)
+  Font-size:    var(--bp-font-size-xs)
 
 .status-item:
   Display:    flex
-  Gap:        var(--space-2)
+  Gap:        var(--bp-space-2)
   Align-items: baseline
 
 .status-label:
-  Letter-spacing: var(--letter-spacing-label)
+  Letter-spacing: var(--bp-letter-spacing-label)
   Text-transform: uppercase
-  Color:          var(--color-text-tertiary)
+  Color:          var(--bp-color-text-tertiary)
 
 .status-value:
-  Color:     var(--color-text-primary)
-  Font-size: var(--font-size-sm)
+  Color:     var(--bp-color-text-primary)
+  Font-size: var(--bp-font-size-sm)
 
 .status-unit:
-  Color:     var(--color-text-tertiary)
-  Font-size: var(--font-size-xs)
+  Color:     var(--bp-color-text-tertiary)
+  Font-size: var(--bp-font-size-xs)
 ```
 
 ### Panel Overlay
 
 ```
 #panel-overlay:
-  Background:    var(--color-bg-secondary)
-  Border-top:    var(--border-primary)
-  Padding:       var(--space-6)
+  Background:    var(--bp-color-bg-secondary)
+  Border-top:    var(--bp-border-primary)
+  Padding:       var(--bp-space-6)
 
 .panel-title:
-  Font-family:    var(--font-mono)
-  Font-size:      var(--font-size-lg)
-  Letter-spacing: var(--letter-spacing-label)
+  Font-family:    var(--bp-font-mono)
+  Font-size:      var(--bp-font-size-lg)
+  Letter-spacing: var(--bp-letter-spacing-label)
   Text-transform: uppercase
-  Color:          var(--color-text-primary)
+  Color:          var(--bp-color-text-primary)
 
 .panel-close-btn:
-  Font-family:    var(--font-mono)
-  Font-size:      var(--font-size-xs)
-  Letter-spacing: var(--letter-spacing-label)
+  Font-family:    var(--bp-font-mono)
+  Font-size:      var(--bp-font-size-xs)
+  Letter-spacing: var(--bp-letter-spacing-label)
   Text-transform: uppercase
-  Border:         var(--border-primary)
+  Border:         var(--bp-border-primary)
   Border-radius:  2px
   Background:     transparent
-  Color:          var(--color-text-tertiary)
+  Color:          var(--bp-color-text-tertiary)
   Min-height:     44px
   Padding:        8px 16px
 ```
@@ -765,148 +765,181 @@ definitions and can be applied selectively.
 /* --- CSS Custom Properties: Dark Mode (default) ------------ */
 :root {
   /* Typography */
-  --font-mono: 'IBM Plex Mono', 'Cascadia Code', 'SF Mono', 'Consolas', 'Courier New', monospace;
-  --font-sans: var(--font-mono); /* Blueprint uses mono throughout */
+  --bp-font-mono: 'IBM Plex Mono', 'Cascadia Code', 'SF Mono', 'Consolas', 'Courier New', monospace;
+  --bp-font-sans: var(--bp-font-mono); /* Blueprint uses mono throughout */
 
-  --font-size-xs:   0.625rem;
-  --font-size-sm:   0.75rem;
-  --font-size-base: 0.875rem;
-  --font-size-md:   1rem;
-  --font-size-lg:   1.125rem;
-  --font-size-xl:   1.375rem;
-  --font-size-2xl:  1.75rem;
+  --bp-font-size-xs:   0.625rem;
+  --bp-font-size-sm:   0.75rem;
+  --bp-font-size-base: 0.875rem;
+  --bp-font-size-md:   1rem;
+  --bp-font-size-lg:   1.125rem;
+  --bp-font-size-xl:   1.375rem;
+  --bp-font-size-2xl:  1.75rem;
 
-  --line-height-tight: 1.3;
-  --line-height-base:  1.6;
-  --line-height-loose: 1.9;
+  --bp-line-height-tight: 1.3;
+  --bp-line-height-base:  1.6;
+  --bp-line-height-loose: 1.9;
 
-  --letter-spacing-label: 0.12em;
-  --letter-spacing-tight: 0.02em;
-  --letter-spacing-wide:  0.2em;
+  --bp-letter-spacing-label: 0.12em;
+  --bp-letter-spacing-tight: 0.02em;
+  --bp-letter-spacing-wide:  0.2em;
 
   /* Spacing */
-  --space-1:  4px;
-  --space-2:  8px;
-  --space-3:  12px;
-  --space-4:  16px;
-  --space-5:  20px;
-  --space-6:  24px;
-  --space-8:  32px;
-  --space-10: 40px;
-  --space-12: 48px;
-  --space-16: 64px;
+  --bp-space-1:  4px;
+  --bp-space-2:  8px;
+  --bp-space-3:  12px;
+  --bp-space-4:  16px;
+  --bp-space-5:  20px;
+  --bp-space-6:  24px;
+  --bp-space-8:  32px;
+  --bp-space-10: 40px;
+  --bp-space-12: 48px;
+  --bp-space-16: 64px;
 
   /* Borders */
-  --border-radius-none: 0;
-  --border-radius-sm:   2px;
-  --border-radius-md:   2px;
+  --bp-border-radius-none: 0;
+  --bp-border-radius-sm:   2px;
+  --bp-border-radius-md:   2px;
 
   /* Grid overlay */
-  --grid-minor-size: 8px;
-  --grid-major-size: 40px;
+  --bp-grid-minor-size: 8px;
+  --bp-grid-major-size: 40px;
 
   /* Dark mode colours */
-  --color-bg-primary:        #1B3A5C;
-  --color-bg-secondary:      #152E4A;
-  --color-bg-tertiary:       #0F2235;
-  --color-bg-elevated:       #1F4268;
+  --bp-color-bg-primary:        #1B3A5C;
+  --bp-color-bg-secondary:      #152E4A;
+  --bp-color-bg-tertiary:       #0F2235;
+  --bp-color-bg-elevated:       #1F4268;
 
-  --color-text-primary:      #E8F0FE;
-  --color-text-secondary:    #8BB8E8;
-  --color-text-tertiary:     #5A8ABF;
-  --color-text-inverse:      #1B3A5C;
+  --bp-color-text-primary:      #E8F0FE;
+  --bp-color-text-secondary:    #8BB8E8;
+  --bp-color-text-tertiary:     #5A8ABF;
+  --bp-color-text-inverse:      #1B3A5C;
 
-  --color-line-primary:      #8BB8E8;
-  --color-line-secondary:    #3D6B9A;
-  --color-line-accent:       #E8F0FE;
+  --bp-color-line-primary:      #8BB8E8;
+  --bp-color-line-secondary:    #3D6B9A;
+  --bp-color-line-accent:       #E8F0FE;
 
-  --color-accent-info:       #5BA4E8;
-  --color-accent-success:    #4EC9A8;
-  --color-accent-warning:    #E8B84B;
-  --color-accent-danger:     #E86060;
-  --color-accent-mystery:    #9B7FE8;
+  --bp-color-accent-info:       #5BA4E8;
+  --bp-color-accent-success:    #4EC9A8;
+  --bp-color-accent-warning:    #E8B84B;
+  --bp-color-accent-danger:     #E86060;
+  --bp-color-accent-mystery:    #9B7FE8;
 
-  --color-roll-critical:     #FFD700;
-  --color-roll-failure:      #E86060;
+  --bp-color-roll-critical:     #FFD700;
+  --bp-color-roll-failure:      #E86060;
 
-  --color-focus-ring:        #8BB8E8;
-  --color-selection-bg:      rgba(139, 184, 232, 0.25);
+  --bp-color-focus-ring:        #8BB8E8;
+  --bp-color-selection-bg:      rgba(139, 184, 232, 0.25);
 
-  --color-grid-major:        rgba(139, 184, 232, 0.12);
-  --color-grid-minor:        rgba(139, 184, 232, 0.05);
+  --bp-color-grid-major:        rgba(139, 184, 232, 0.12);
+  --bp-color-grid-minor:        rgba(139, 184, 232, 0.05);
 
   /* Convenience border shorthands */
-  --border-primary:   1px solid var(--color-line-primary);
-  --border-secondary: 1px dashed var(--color-line-secondary);
-  --border-accent:    1px solid var(--color-line-accent);
+  --bp-border-primary:   1px solid var(--bp-color-line-primary);
+  --bp-border-secondary: 1px dashed var(--bp-color-line-secondary);
+  --bp-border-accent:    1px solid var(--bp-color-line-accent);
 
   /* Legacy aliases for engine compatibility */
-  --color-border-tertiary:   var(--color-line-secondary);
-  --color-border-secondary:  var(--color-line-primary);
+  --bp-color-border-tertiary:   var(--bp-color-line-secondary);
+  --bp-color-border-secondary:  var(--bp-color-line-primary);
+
+  /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
+  --ta-font-heading:              var(--bp-font-sans);
+  --ta-font-body:                 var(--bp-font-mono);
+  --ta-color-accent:              var(--bp-color-accent-info);
+  --ta-color-accent-hover:        color-mix(in srgb, var(--bp-color-accent-info) 85%, white);
+  --ta-color-accent-bg:           var(--bp-color-bg-elevated);
+  --ta-color-accent-bg-hover:     color-mix(in srgb, var(--bp-color-bg-elevated) 70%, var(--bp-color-accent-info));
+  --ta-color-success:             var(--bp-color-accent-success);
+  --ta-color-success-border:      color-mix(in srgb, var(--bp-color-accent-success) 70%, black);
+  --ta-color-danger:              var(--bp-color-accent-danger);
+  --ta-color-danger-border:       color-mix(in srgb, var(--bp-color-accent-danger) 70%, black);
+  --ta-color-danger-bg:           rgba(200, 60, 60, 0.12);
+  --ta-color-danger-bg-hover:     rgba(200, 60, 60, 0.20);
+  --ta-color-warning:             var(--bp-color-accent-warning);
+  --ta-color-warning-border:      color-mix(in srgb, var(--bp-color-accent-warning) 70%, black);
+  --ta-color-warning-bg:          rgba(200, 160, 40, 0.12);
+  --ta-color-xp:                  var(--bp-color-accent-mystery);
+  --ta-color-focus:               var(--bp-color-focus-ring);
+  --ta-color-conviction:          var(--bp-color-accent-mystery);
+  --ta-color-conviction-border:   color-mix(in srgb, var(--bp-color-accent-mystery) 70%, black);
+  --ta-badge-success-bg:          rgba(60, 160, 100, 0.12);
+  --ta-badge-success-text:        var(--bp-color-accent-success);
+  --ta-badge-partial-bg:          rgba(200, 160, 40, 0.12);
+  --ta-badge-partial-text:        var(--bp-color-accent-warning);
+  --ta-badge-failure-bg:          rgba(200, 60, 60, 0.12);
+  --ta-badge-failure-text:        var(--bp-color-accent-danger);
+  --ta-badge-crit-success-border: var(--bp-color-accent-success);
+  --ta-badge-crit-failure-border: var(--bp-color-accent-danger);
+  --ta-color-credits:             var(--bp-color-accent-info);
+  --ta-color-tab-active:          var(--bp-color-line-accent);
+  --ta-border-style-poi:          1px dashed;
+  --ta-die-spin-duration:         0.5s;
 }
 
 /* --- CSS Custom Properties: Light Mode --------------------- */
 @media (prefers-color-scheme: light) {
   :root {
-    --color-bg-primary:        #FAFCFF;
-    --color-bg-secondary:      #F0F5FF;
-    --color-bg-tertiary:       #E4EDFA;
-    --color-bg-elevated:       #FFFFFF;
+    --bp-color-bg-primary:        #FAFCFF;
+    --bp-color-bg-secondary:      #F0F5FF;
+    --bp-color-bg-tertiary:       #E4EDFA;
+    --bp-color-bg-elevated:       #FFFFFF;
 
-    --color-text-primary:      #1B3A5C;
-    --color-text-secondary:    #2D5F8A;
-    --color-text-tertiary:     #5A8ABF;
-    --color-text-inverse:      #E8F0FE;
+    --bp-color-text-primary:      #1B3A5C;
+    --bp-color-text-secondary:    #2D5F8A;
+    --bp-color-text-tertiary:     #5A8ABF;
+    --bp-color-text-inverse:      #E8F0FE;
 
-    --color-line-primary:      #2D5F8A;
-    --color-line-secondary:    #8BB8E8;
-    --color-line-accent:       #1B3A5C;
+    --bp-color-line-primary:      #2D5F8A;
+    --bp-color-line-secondary:    #8BB8E8;
+    --bp-color-line-accent:       #1B3A5C;
 
-    --color-accent-info:       #1A6BBF;
-    --color-accent-success:    #1A8F72;
-    --color-accent-warning:    #BF7C00;
-    --color-accent-danger:     #BF2424;
-    --color-accent-mystery:    #6344BF;
+    --bp-color-accent-info:       #1A6BBF;
+    --bp-color-accent-success:    #1A8F72;
+    --bp-color-accent-warning:    #BF7C00;
+    --bp-color-accent-danger:     #BF2424;
+    --bp-color-accent-mystery:    #6344BF;
 
-    --color-roll-critical:     #9B7000;
-    --color-roll-failure:      #BF2424;
+    --bp-color-roll-critical:     #9B7000;
+    --bp-color-roll-failure:      #BF2424;
 
-    --color-focus-ring:        #1B3A5C;
-    --color-selection-bg:      rgba(27, 58, 92, 0.12);
+    --bp-color-focus-ring:        #1B3A5C;
+    --bp-color-selection-bg:      rgba(27, 58, 92, 0.12);
 
-    --color-grid-major:        rgba(27, 58, 92, 0.10);
-    --color-grid-minor:        rgba(27, 58, 92, 0.04);
+    --bp-color-grid-major:        rgba(27, 58, 92, 0.10);
+    --bp-color-grid-minor:        rgba(27, 58, 92, 0.04);
 
-    --border-primary:   1px solid var(--color-line-primary);
-    --border-secondary: 1px dashed var(--color-line-secondary);
-    --border-accent:    1px solid var(--color-line-accent);
+    --bp-border-primary:   1px solid var(--bp-color-line-primary);
+    --bp-border-secondary: 1px dashed var(--bp-color-line-secondary);
+    --bp-border-accent:    1px solid var(--bp-color-line-accent);
 
-    --color-border-tertiary:   var(--color-line-secondary);
-    --color-border-secondary:  var(--color-line-primary);
+    --bp-color-border-tertiary:   var(--bp-color-line-secondary);
+    --bp-color-border-secondary:  var(--bp-color-line-primary);
   }
 }
 
 /* Data attribute override for explicit theme switching */
 [data-theme="light"] {
-  --color-bg-primary:        #FAFCFF;
-  --color-bg-secondary:      #F0F5FF;
-  --color-bg-tertiary:       #E4EDFA;
-  --color-bg-elevated:       #FFFFFF;
-  --color-text-primary:      #1B3A5C;
-  --color-text-secondary:    #2D5F8A;
-  --color-text-tertiary:     #5A8ABF;
-  --color-text-inverse:      #E8F0FE;
-  --color-line-primary:      #2D5F8A;
-  --color-line-secondary:    #8BB8E8;
-  --color-line-accent:       #1B3A5C;
-  --color-accent-info:       #1A6BBF;
-  --color-accent-success:    #1A8F72;
-  --color-accent-warning:    #BF7C00;
-  --color-accent-danger:     #BF2424;
-  --color-accent-mystery:    #6344BF;
-  --color-grid-major:        rgba(27, 58, 92, 0.10);
-  --color-grid-minor:        rgba(27, 58, 92, 0.04);
-  --color-focus-ring:        #1B3A5C;
+  --bp-color-bg-primary:        #FAFCFF;
+  --bp-color-bg-secondary:      #F0F5FF;
+  --bp-color-bg-tertiary:       #E4EDFA;
+  --bp-color-bg-elevated:       #FFFFFF;
+  --bp-color-text-primary:      #1B3A5C;
+  --bp-color-text-secondary:    #2D5F8A;
+  --bp-color-text-tertiary:     #5A8ABF;
+  --bp-color-text-inverse:      #E8F0FE;
+  --bp-color-line-primary:      #2D5F8A;
+  --bp-color-line-secondary:    #8BB8E8;
+  --bp-color-line-accent:       #1B3A5C;
+  --bp-color-accent-info:       #1A6BBF;
+  --bp-color-accent-success:    #1A8F72;
+  --bp-color-accent-warning:    #BF7C00;
+  --bp-color-accent-danger:     #BF2424;
+  --bp-color-accent-mystery:    #6344BF;
+  --bp-color-grid-major:        rgba(27, 58, 92, 0.10);
+  --bp-color-grid-minor:        rgba(27, 58, 92, 0.04);
+  --bp-color-focus-ring:        #1B3A5C;
 }
 
 /* --- Reduced Motion ---------------------------------------- */
@@ -927,49 +960,49 @@ definitions and can be applied selectively.
 }
 
 ::selection {
-  background: var(--color-selection-bg);
-  color: var(--color-text-primary);
+  background: var(--bp-color-selection-bg);
+  color: var(--bp-color-text-primary);
 }
 
 /* --- Root Widget Container --------------------------------- */
 .root {
-  font-family:      var(--font-mono);
-  font-size:        var(--font-size-base);
-  line-height:      var(--line-height-base);
-  letter-spacing:   var(--letter-spacing-tight);
-  color:            var(--color-text-primary);
-  background-color: var(--color-bg-primary);
+  font-family:      var(--bp-font-mono);
+  font-size:        var(--bp-font-size-base);
+  line-height:      var(--bp-line-height-base);
+  letter-spacing:   var(--bp-letter-spacing-tight);
+  color:            var(--bp-color-text-primary);
+  background-color: var(--bp-color-bg-primary);
   background-image:
     repeating-linear-gradient(
       0deg,
       transparent,
-      transparent calc(var(--grid-minor-size) - 1px),
-      var(--color-grid-minor) calc(var(--grid-minor-size) - 1px),
-      var(--color-grid-minor) var(--grid-minor-size)
+      transparent calc(var(--bp-grid-minor-size) - 1px),
+      var(--bp-color-grid-minor) calc(var(--bp-grid-minor-size) - 1px),
+      var(--bp-color-grid-minor) var(--bp-grid-minor-size)
     ),
     repeating-linear-gradient(
       90deg,
       transparent,
-      transparent calc(var(--grid-minor-size) - 1px),
-      var(--color-grid-minor) calc(var(--grid-minor-size) - 1px),
-      var(--color-grid-minor) var(--grid-minor-size)
+      transparent calc(var(--bp-grid-minor-size) - 1px),
+      var(--bp-color-grid-minor) calc(var(--bp-grid-minor-size) - 1px),
+      var(--bp-color-grid-minor) var(--bp-grid-minor-size)
     ),
     repeating-linear-gradient(
       0deg,
       transparent,
-      transparent calc(var(--grid-major-size) - 1px),
-      var(--color-grid-major) calc(var(--grid-major-size) - 1px),
-      var(--color-grid-major) var(--grid-major-size)
+      transparent calc(var(--bp-grid-major-size) - 1px),
+      var(--bp-color-grid-major) calc(var(--bp-grid-major-size) - 1px),
+      var(--bp-color-grid-major) var(--bp-grid-major-size)
     ),
     repeating-linear-gradient(
       90deg,
       transparent,
-      transparent calc(var(--grid-major-size) - 1px),
-      var(--color-grid-major) calc(var(--grid-major-size) - 1px),
-      var(--color-grid-major) var(--grid-major-size)
+      transparent calc(var(--bp-grid-major-size) - 1px),
+      var(--bp-color-grid-major) calc(var(--bp-grid-major-size) - 1px),
+      var(--bp-color-grid-major) var(--bp-grid-major-size)
     );
-  border:           var(--border-primary);
-  padding:          var(--space-6);
+  border:           var(--bp-border-primary);
+  padding:          var(--bp-space-6);
   max-width:        680px;
   margin:           0 auto;
   position:         relative;
@@ -978,24 +1011,24 @@ definitions and can be applied selectively.
 
 /* --- Typography -------------------------------------------- */
 h1, h2, h3, h4, h5, h6 {
-  font-family:    var(--font-mono);
+  font-family:    var(--bp-font-mono);
   font-weight:    600;
-  letter-spacing: var(--letter-spacing-label);
+  letter-spacing: var(--bp-letter-spacing-label);
   text-transform: uppercase;
-  color:          var(--color-text-primary);
-  line-height:    var(--line-height-tight);
-  margin-bottom:  var(--space-3);
+  color:          var(--bp-color-text-primary);
+  line-height:    var(--bp-line-height-tight);
+  margin-bottom:  var(--bp-space-3);
 }
 
-h1 { font-size: var(--font-size-xl); }
-h2 { font-size: var(--font-size-lg); }
-h3 { font-size: var(--font-size-md); }
+h1 { font-size: var(--bp-font-size-xl); }
+h2 { font-size: var(--bp-font-size-lg); }
+h3 { font-size: var(--bp-font-size-md); }
 
 p {
-  font-size:     var(--font-size-base);
-  line-height:   var(--line-height-loose);
-  color:         var(--color-text-primary);
-  margin-bottom: var(--space-4);
+  font-size:     var(--bp-font-size-base);
+  line-height:   var(--bp-line-height-loose);
+  color:         var(--bp-color-text-primary);
+  margin-bottom: var(--bp-space-4);
 }
 
 /* --- Annotation Labels ------------------------------------- */
@@ -1003,13 +1036,13 @@ p {
 .stat-label,
 .form-label,
 .panel-section-label {
-  font-size:      var(--font-size-xs);
-  letter-spacing: var(--letter-spacing-label);
+  font-size:      var(--bp-font-size-xs);
+  letter-spacing: var(--bp-letter-spacing-label);
   text-transform: uppercase;
-  color:          var(--color-text-tertiary);
+  color:          var(--bp-color-text-tertiary);
   display:        flex;
   align-items:    center;
-  gap:            var(--space-2);
+  gap:            var(--bp-space-2);
 }
 
 .label::before {
@@ -1017,18 +1050,18 @@ p {
   display:     inline-block;
   width:       16px;
   height:      0;
-  border-top:  1px solid var(--color-line-secondary);
+  border-top:  1px solid var(--bp-color-line-secondary);
   flex-shrink: 0;
 }
 
 /* --- Buttons ----------------------------------------------- */
 button {
-  font-family:    var(--font-mono);
-  font-size:      var(--font-size-sm);
-  letter-spacing: var(--letter-spacing-label);
+  font-family:    var(--bp-font-mono);
+  font-size:      var(--bp-font-size-sm);
+  letter-spacing: var(--bp-letter-spacing-label);
   text-transform: uppercase;
   cursor:         pointer;
-  border-radius:  var(--border-radius-sm);
+  border-radius:  var(--bp-border-radius-sm);
   min-height:     44px;
   min-width:      44px;
   padding:        10px 18px;
@@ -1037,42 +1070,42 @@ button {
 }
 
 button:active {
-  border-color: var(--color-line-accent) !important;
-  background:   var(--color-bg-tertiary) !important;
+  border-color: var(--bp-color-line-accent) !important;
+  background:   var(--bp-color-bg-tertiary) !important;
   transition:   all 0.04s ease-out;
 }
 
 .btn-primary {
-  background:   var(--color-line-primary);
-  color:        var(--color-text-inverse);
-  border:       1px solid var(--color-line-primary);
+  background:   var(--bp-color-line-primary);
+  color:        var(--bp-color-text-inverse);
+  border:       1px solid var(--bp-color-line-primary);
 }
 
 .btn-primary:hover {
-  background:   var(--color-line-accent);
-  border-color: var(--color-line-accent);
+  background:   var(--bp-color-line-accent);
+  border-color: var(--bp-color-line-accent);
 }
 
 .btn-secondary,
 .action-btn,
 .continue-btn {
   background:  transparent;
-  color:       var(--color-text-secondary);
-  border:      var(--border-primary);
+  color:       var(--bp-color-text-secondary);
+  border:      var(--bp-border-primary);
 }
 
 .btn-secondary:hover,
 .action-btn:hover,
 .continue-btn:hover {
-  border-color: var(--color-line-accent);
-  color:        var(--color-text-primary);
-  background:   var(--color-bg-elevated);
+  border-color: var(--bp-color-line-accent);
+  color:        var(--bp-color-text-primary);
+  background:   var(--bp-color-bg-elevated);
 }
 
 .btn-danger {
   background:  transparent;
-  color:       var(--color-accent-danger);
-  border:      1px solid var(--color-accent-danger);
+  color:       var(--bp-color-accent-danger);
+  border:      1px solid var(--bp-color-accent-danger);
 }
 
 .btn-danger:hover {
@@ -1081,22 +1114,22 @@ button:active {
 
 .footer-btn {
   background:     transparent;
-  color:          var(--color-text-tertiary);
-  border:         var(--border-secondary);
-  font-size:      var(--font-size-xs);
+  color:          var(--bp-color-text-tertiary);
+  border:         var(--bp-border-secondary);
+  font-size:      var(--bp-font-size-xs);
   padding:        8px 14px;
   min-height:     44px;
-  border-radius:  var(--border-radius-sm);
+  border-radius:  var(--bp-border-radius-sm);
 }
 
 .footer-btn:hover {
-  border-color: var(--color-line-primary);
-  color:        var(--color-text-secondary);
+  border-color: var(--bp-color-line-primary);
+  color:        var(--bp-color-text-secondary);
 }
 
 /* --- Focus States ------------------------------------------ */
 :focus-visible {
-  outline:        2px solid var(--color-focus-ring);
+  outline:        2px solid var(--bp-color-focus-ring);
   outline-offset: 2px;
   border-radius:  0;
 }
@@ -1105,20 +1138,20 @@ button:active {
 .actions-list {
   display:        flex;
   flex-direction: column;
-  gap:            var(--space-1);
-  margin:         var(--space-4) 0;
+  gap:            var(--bp-space-1);
+  margin:         var(--bp-space-4) 0;
 }
 
 .action-option {
   display:        block;
   border:         none;
-  border-left:    3px solid var(--color-line-secondary);
-  padding:        var(--space-2) var(--space-3);
+  border-left:    3px solid var(--bp-color-line-secondary);
+  padding:        var(--bp-space-2) var(--bp-space-3);
   background:     transparent;
-  color:          var(--color-text-secondary);
-  font-family:    var(--font-mono);
-  font-size:      var(--font-size-sm);
-  letter-spacing: var(--letter-spacing-tight);
+  color:          var(--bp-color-text-secondary);
+  font-family:    var(--bp-font-mono);
+  font-size:      var(--bp-font-size-sm);
+  letter-spacing: var(--bp-letter-spacing-tight);
   text-transform: none;
   text-align:     left;
   cursor:         pointer;
@@ -1128,88 +1161,88 @@ button:active {
 }
 
 .action-option:hover {
-  border-left-color: var(--color-line-primary);
-  color:             var(--color-text-primary);
-  background:        var(--color-bg-elevated);
+  border-left-color: var(--bp-color-line-primary);
+  color:             var(--bp-color-text-primary);
+  background:        var(--bp-color-bg-elevated);
 }
 
 /* --- Narrative Block --------------------------------------- */
 .narrative {
-  border-left:   3px solid var(--color-line-secondary);
-  padding:       var(--space-3) var(--space-4);
-  background:    var(--color-bg-secondary);
-  font-size:     var(--font-size-base);
-  line-height:   var(--line-height-loose);
-  color:         var(--color-text-primary);
-  margin-bottom: var(--space-4);
+  border-left:   3px solid var(--bp-color-line-secondary);
+  padding:       var(--bp-space-3) var(--bp-space-4);
+  background:    var(--bp-color-bg-secondary);
+  font-size:     var(--bp-font-size-base);
+  line-height:   var(--bp-line-height-loose);
+  color:         var(--bp-color-text-primary);
+  margin-bottom: var(--bp-space-4);
 }
 
 /* --- Location Bar ------------------------------------------ */
 .loc-bar {
   display:        flex;
   align-items:    center;
-  gap:            var(--space-4);
-  font-size:      var(--font-size-xs);
-  letter-spacing: var(--letter-spacing-label);
+  gap:            var(--bp-space-4);
+  font-size:      var(--bp-font-size-xs);
+  letter-spacing: var(--bp-letter-spacing-label);
   text-transform: uppercase;
-  color:          var(--color-text-tertiary);
-  border-bottom:  var(--border-secondary);
-  padding-bottom: var(--space-2);
-  margin-bottom:  var(--space-4);
+  color:          var(--bp-color-text-tertiary);
+  border-bottom:  var(--bp-border-secondary);
+  padding-bottom: var(--bp-space-2);
+  margin-bottom:  var(--bp-space-4);
 }
 
 .loc-bar::before {
   content: '+';
-  color:   var(--color-line-secondary);
+  color:   var(--bp-color-line-secondary);
   flex-shrink: 0;
 }
 
 /* --- Atmosphere Strip ------------------------------------- */
 .atmo-strip {
-  font-size:      var(--font-size-xs);
-  letter-spacing: var(--letter-spacing-label);
+  font-size:      var(--bp-font-size-xs);
+  letter-spacing: var(--bp-letter-spacing-label);
   text-transform: uppercase;
-  color:          var(--color-text-tertiary);
-  border:         var(--border-secondary);
-  padding:        var(--space-1) var(--space-3);
-  background:     var(--color-bg-tertiary);
-  margin-bottom:  var(--space-4);
+  color:          var(--bp-color-text-tertiary);
+  border:         var(--bp-border-secondary);
+  padding:        var(--bp-space-1) var(--bp-space-3);
+  background:     var(--bp-color-bg-tertiary);
+  margin-bottom:  var(--bp-space-4);
   display:        inline-block;
 }
 
 /* --- Status Bar ------------------------------------------- */
 .status-bar {
   display:      flex;
-  gap:          var(--space-6);
-  padding:      var(--space-3) 0;
-  border-top:   var(--border-secondary);
-  margin-top:   var(--space-4);
+  gap:          var(--bp-space-6);
+  padding:      var(--bp-space-3) 0;
+  border-top:   var(--bp-border-secondary);
+  margin-top:   var(--bp-space-4);
   flex-wrap:    wrap;
 }
 
 .status-item {
   display:     flex;
-  gap:         var(--space-2);
+  gap:         var(--bp-space-2);
   align-items: baseline;
 }
 
 .stat-label {
-  font-size:      var(--font-size-xs);
-  letter-spacing: var(--letter-spacing-label);
+  font-size:      var(--bp-font-size-xs);
+  letter-spacing: var(--bp-letter-spacing-label);
   text-transform: uppercase;
-  color:          var(--color-text-tertiary);
+  color:          var(--bp-color-text-tertiary);
 }
 
 .stat-value,
 .status-value {
-  font-size:  var(--font-size-sm);
-  color:      var(--color-text-primary);
+  font-size:  var(--bp-font-size-sm);
+  color:      var(--bp-color-text-primary);
   font-weight: 500;
 }
 
 .status-unit {
-  font-size: var(--font-size-xs);
-  color:     var(--color-text-tertiary);
+  font-size: var(--bp-font-size-xs);
+  color:     var(--bp-color-text-tertiary);
 }
 
 /* --- HP Pip Track ----------------------------------------- */
@@ -1222,34 +1255,34 @@ button:active {
 .hp-pip {
   width:  8px;
   height: 8px;
-  border: 1px solid var(--color-line-secondary);
+  border: 1px solid var(--bp-color-line-secondary);
   background: transparent;
 }
 
-.hp-pip.filled     { background: var(--color-accent-success); border-color: var(--color-accent-success); }
-.hp-pip.damaged    { background: var(--color-accent-warning); border-color: var(--color-accent-warning); }
-.hp-pip.critical   { background: var(--color-accent-danger);  border-color: var(--color-accent-danger);  }
+.hp-pip.filled     { background: var(--bp-color-accent-success); border-color: var(--bp-color-accent-success); }
+.hp-pip.damaged    { background: var(--bp-color-accent-warning); border-color: var(--bp-color-accent-warning); }
+.hp-pip.critical   { background: var(--bp-color-accent-danger);  border-color: var(--bp-color-accent-danger);  }
 
 /* --- Die Roll Widget --------------------------------------- */
 .die-widget {
-  border:     var(--border-primary);
-  background: var(--color-bg-secondary);
-  padding:    var(--space-6);
-  font-family: var(--font-mono);
+  border:     var(--bp-border-primary);
+  background: var(--bp-color-bg-secondary);
+  padding:    var(--bp-space-6);
+  font-family: var(--bp-font-mono);
 }
 
 .die-face {
   position:    relative;
   width:       80px;
   height:      80px;
-  border:      var(--border-accent);
+  border:      var(--bp-border-accent);
   border-radius: 0;
-  font-size:   var(--font-size-2xl);
+  font-size:   var(--bp-font-size-2xl);
   font-weight: 600;
-  color:       var(--color-text-primary);
+  color:       var(--bp-color-text-primary);
   display:     grid;
   place-items: center;
-  margin:      var(--space-4) auto;
+  margin:      var(--bp-space-4) auto;
 }
 
 /* Corner tick marks */
@@ -1264,106 +1297,106 @@ button:active {
 .die-face::before {
   top:          -4px;
   left:         -4px;
-  border-top:   2px solid var(--color-line-accent);
-  border-left:  2px solid var(--color-line-accent);
+  border-top:   2px solid var(--bp-color-line-accent);
+  border-left:  2px solid var(--bp-color-line-accent);
 }
 
 .die-face::after {
   bottom:        -4px;
   right:         -4px;
-  border-bottom: 2px solid var(--color-line-accent);
-  border-right:  2px solid var(--color-line-accent);
+  border-bottom: 2px solid var(--bp-color-line-accent);
+  border-right:  2px solid var(--bp-color-line-accent);
 }
 
 .die-label {
-  font-size:      var(--font-size-xs);
-  letter-spacing: var(--letter-spacing-label);
+  font-size:      var(--bp-font-size-xs);
+  letter-spacing: var(--bp-letter-spacing-label);
   text-transform: uppercase;
-  color:          var(--color-text-tertiary);
+  color:          var(--bp-color-text-tertiary);
   text-align:     center;
 }
 
 .die-modifier-row {
   display:        flex;
-  gap:            var(--space-4);
-  font-size:      var(--font-size-sm);
-  color:          var(--color-text-secondary);
-  border-top:     var(--border-secondary);
-  padding-top:    var(--space-3);
-  margin-top:     var(--space-3);
+  gap:            var(--bp-space-4);
+  font-size:      var(--bp-font-size-sm);
+  color:          var(--bp-color-text-secondary);
+  border-top:     var(--bp-border-secondary);
+  padding-top:    var(--bp-space-3);
+  margin-top:     var(--bp-space-3);
 }
 
 .die-result-total {
-  font-size:  var(--font-size-xl);
+  font-size:  var(--bp-font-size-xl);
   font-weight: 600;
-  color:       var(--color-text-primary);
+  color:       var(--bp-color-text-primary);
   text-align:  center;
-  padding:     var(--space-3) 0;
+  padding:     var(--bp-space-3) 0;
 }
 
-.die-result-total.critical { color: var(--color-roll-critical); }
-.die-result-total.failure  { color: var(--color-roll-failure);  }
+.die-result-total.critical { color: var(--bp-color-roll-critical); }
+.die-result-total.failure  { color: var(--bp-color-roll-failure);  }
 
 /* --- Panel Overlay ---------------------------------------- */
 #panel-overlay {
   display:    none;
   padding:    0;
-  background: var(--color-bg-secondary);
-  border-top: var(--border-primary);
+  background: var(--bp-color-bg-secondary);
+  border-top: var(--bp-border-primary);
 }
 
 .panel-header {
   display:         flex;
   align-items:     baseline;
   justify-content: space-between;
-  padding:         var(--space-4) var(--space-6) var(--space-3);
-  border-bottom:   var(--border-secondary);
-  margin-bottom:   var(--space-4);
+  padding:         var(--bp-space-4) var(--bp-space-6) var(--bp-space-3);
+  border-bottom:   var(--bp-border-secondary);
+  margin-bottom:   var(--bp-space-4);
 }
 
 .panel-title {
-  font-family:    var(--font-mono);
-  font-size:      var(--font-size-lg);
+  font-family:    var(--bp-font-mono);
+  font-size:      var(--bp-font-size-lg);
   font-weight:    600;
-  letter-spacing: var(--letter-spacing-label);
+  letter-spacing: var(--bp-letter-spacing-label);
   text-transform: uppercase;
-  color:          var(--color-text-primary);
+  color:          var(--bp-color-text-primary);
 }
 
 .panel-close-btn {
-  font-family:    var(--font-mono);
-  font-size:      var(--font-size-xs);
-  letter-spacing: var(--letter-spacing-label);
+  font-family:    var(--bp-font-mono);
+  font-size:      var(--bp-font-size-xs);
+  letter-spacing: var(--bp-letter-spacing-label);
   text-transform: uppercase;
   background:     transparent;
-  border:         var(--border-primary);
-  border-radius:  var(--border-radius-md);
+  border:         var(--bp-border-primary);
+  border-radius:  var(--bp-border-radius-md);
   padding:        8px 16px;
   min-height:     44px;
   min-width:      44px;
-  color:          var(--color-text-tertiary);
+  color:          var(--bp-color-text-tertiary);
   cursor:         pointer;
   transition:     border-color 0.08s ease-out, color 0.08s ease-out;
 }
 
 .panel-close-btn:hover {
-  border-color: var(--color-line-primary);
-  color:        var(--color-text-secondary);
+  border-color: var(--bp-color-line-primary);
+  color:        var(--bp-color-text-secondary);
 }
 
 .panel-content {
   display: none;
-  padding: 0 var(--space-6) var(--space-6);
+  padding: 0 var(--bp-space-6) var(--bp-space-6);
 }
 
 /* --- Footer Row ------------------------------------------- */
 .footer-row {
   display:      flex;
   flex-wrap:    wrap;
-  gap:          var(--space-2);
-  padding-top:  var(--space-4);
-  border-top:   var(--border-secondary);
-  margin-top:   var(--space-4);
+  gap:          var(--bp-space-2);
+  padding-top:  var(--bp-space-4);
+  border-top:   var(--bp-border-secondary);
+  margin-top:   var(--bp-space-4);
   align-items:  center;
 }
 
@@ -1375,33 +1408,33 @@ button:active {
 .inset-well,
 .stat-block,
 .readout {
-  background:    var(--color-bg-tertiary);
-  border:        var(--border-secondary);
-  padding:       var(--space-3) var(--space-4);
-  font-size:     var(--font-size-sm);
-  font-family:   var(--font-mono);
-  color:         var(--color-text-secondary);
-  margin-bottom: var(--space-3);
+  background:    var(--bp-color-bg-tertiary);
+  border:        var(--bp-border-secondary);
+  padding:       var(--bp-space-3) var(--bp-space-4);
+  font-size:     var(--bp-font-size-sm);
+  font-family:   var(--bp-font-mono);
+  color:         var(--bp-color-text-secondary);
+  margin-bottom: var(--bp-space-3);
 }
 
 /* --- Section Divider --------------------------------------- */
 .section-divider {
   border:        none;
-  border-bottom: var(--border-secondary);
-  margin:        var(--space-6) 0;
+  border-bottom: var(--bp-border-secondary);
+  margin:        var(--bp-space-6) 0;
   position:      relative;
 }
 
 .section-divider-label {
   position:       absolute;
   top:            -8px;
-  left:           var(--space-4);
-  background:     var(--color-bg-primary);
-  padding:        0 var(--space-2);
-  font-size:      var(--font-size-xs);
-  letter-spacing: var(--letter-spacing-wide);
+  left:           var(--bp-space-4);
+  background:     var(--bp-color-bg-primary);
+  padding:        0 var(--bp-space-2);
+  font-size:      var(--bp-font-size-xs);
+  letter-spacing: var(--bp-letter-spacing-wide);
   text-transform: uppercase;
-  color:          var(--color-text-tertiary);
+  color:          var(--bp-color-text-tertiary);
 }
 
 /* --- Animations ------------------------------------------- */
@@ -1422,8 +1455,8 @@ button:active {
 }
 
 @keyframes blueprint-readout-flash {
-  0%   { color: var(--color-line-accent);   }
-  100% { color: var(--color-text-primary);  }
+  0%   { color: var(--bp-color-line-accent);   }
+  100% { color: var(--bp-color-text-primary);  }
 }
 
 #reveal-full                    { animation: blueprint-scan       0.4s ease-out forwards; }

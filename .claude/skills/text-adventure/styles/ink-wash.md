@@ -137,6 +137,39 @@ attributes — use the custom properties only.
   --iw-radius-sm: 2px;
   --iw-radius-md: 3px;
   --iw-radius-lg: 4px;
+
+  /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
+  --ta-font-heading:              'Noto Serif', Georgia, 'Times New Roman', serif;
+  --ta-font-body:                 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  --ta-color-accent:              var(--iw-accent);
+  --ta-color-accent-hover:        var(--iw-accent-muted);
+  --ta-color-accent-bg:           var(--iw-bg-tertiary);
+  --ta-color-accent-bg-hover:     var(--iw-bg-wash);
+  --ta-color-success:             var(--iw-success);
+  --ta-color-success-border:      color-mix(in srgb, var(--iw-success) 70%, var(--iw-ink-primary));
+  --ta-color-danger:              var(--iw-danger);
+  --ta-color-danger-border:       color-mix(in srgb, var(--iw-danger) 70%, var(--iw-ink-primary));
+  --ta-color-danger-bg:           var(--iw-danger-bg);
+  --ta-color-danger-bg-hover:     color-mix(in srgb, var(--iw-danger-bg) 80%, var(--iw-danger));
+  --ta-color-warning:             var(--iw-warning);
+  --ta-color-warning-border:      color-mix(in srgb, var(--iw-warning) 70%, var(--iw-ink-primary));
+  --ta-color-warning-bg:          var(--iw-warning-bg);
+  --ta-color-xp:                  var(--iw-accent);
+  --ta-color-focus:               var(--iw-accent);
+  --ta-color-conviction:          var(--iw-accent);
+  --ta-color-conviction-border:   var(--iw-accent-border);
+  --ta-badge-success-bg:          var(--iw-success-bg);
+  --ta-badge-success-text:        var(--iw-success);
+  --ta-badge-partial-bg:          var(--iw-warning-bg);
+  --ta-badge-partial-text:        var(--iw-warning);
+  --ta-badge-failure-bg:          var(--iw-danger-bg);
+  --ta-badge-failure-text:        var(--iw-danger);
+  --ta-badge-crit-success-border: var(--iw-success);
+  --ta-badge-crit-failure-border: var(--iw-danger);
+  --ta-color-credits:             var(--iw-accent);
+  --ta-color-tab-active:          var(--iw-accent);
+  --ta-border-style-poi:          0.5px dashed;
+  --ta-die-spin-duration:         0.5s;
 }
 ```
 
@@ -183,6 +216,39 @@ attributes — use the custom properties only.
       rgba(197, 192, 182, 0.04) 0%,
       transparent 70%
     );
+
+    /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
+    --ta-font-heading:              'Noto Serif', Georgia, 'Times New Roman', serif;
+    --ta-font-body:                 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+    --ta-color-accent:              var(--iw-accent);
+    --ta-color-accent-hover:        var(--iw-accent-muted);
+    --ta-color-accent-bg:           var(--iw-bg-tertiary);
+    --ta-color-accent-bg-hover:     var(--iw-bg-wash);
+    --ta-color-success:             var(--iw-success);
+    --ta-color-success-border:      color-mix(in srgb, var(--iw-success) 70%, var(--iw-ink-primary));
+    --ta-color-danger:              var(--iw-danger);
+    --ta-color-danger-border:       color-mix(in srgb, var(--iw-danger) 70%, var(--iw-ink-primary));
+    --ta-color-danger-bg:           var(--iw-danger-bg);
+    --ta-color-danger-bg-hover:     color-mix(in srgb, var(--iw-danger-bg) 80%, var(--iw-danger));
+    --ta-color-warning:             var(--iw-warning);
+    --ta-color-warning-border:      color-mix(in srgb, var(--iw-warning) 70%, var(--iw-ink-primary));
+    --ta-color-warning-bg:          var(--iw-warning-bg);
+    --ta-color-xp:                  var(--iw-accent);
+    --ta-color-focus:               var(--iw-accent);
+    --ta-color-conviction:          var(--iw-accent);
+    --ta-color-conviction-border:   var(--iw-accent-border);
+    --ta-badge-success-bg:          var(--iw-success-bg);
+    --ta-badge-success-text:        var(--iw-success);
+    --ta-badge-partial-bg:          var(--iw-warning-bg);
+    --ta-badge-partial-text:        var(--iw-warning);
+    --ta-badge-failure-bg:          var(--iw-danger-bg);
+    --ta-badge-failure-text:        var(--iw-danger);
+    --ta-badge-crit-success-border: var(--iw-success);
+    --ta-badge-crit-failure-border: var(--iw-danger);
+    --ta-color-credits:             var(--iw-accent);
+    --ta-color-tab-active:          var(--iw-accent);
+    --ta-border-style-poi:          0.5px dashed;
+    --ta-die-spin-duration:         0.5s;
   }
 }
 ```
