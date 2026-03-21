@@ -3,7 +3,7 @@ name: text-adventure
 
 description: Use this skill whenever the user wants to play, run, or build an interactive text adventure game. Triggers include "text adventure", "play a game", "run a campaign", "tabletop RPG", "D&D-style game", "interactive story", "dungeon crawl", "choose your own adventure", "space adventure", "sci-fi RPG", "interactive fiction", "story game", "MUD", "text-based game", or any request to begin a narrative game with player decisions, character stats, or dice-based outcomes. Also use when the user wants to continue a prior adventure session or set up a new scenario. This skill is the orchestrator — it contains the complete core game engine and loads expansion modules from the modules/ directory as needed. Do NOT use for purely creative writing tasks that require no player agency or mechanical resolution.
 metadata:
-  version: "1.2.1"
+  version: "1.2.2"
 ---
 
 # Text Adventure Game — Core Engine
@@ -100,7 +100,14 @@ styles/
   decides, always. If there is nothing left to decide in a scene, present the next decision point.
 - **Never editorially guide the player.** No "safe", "risky", or "recommended" labels.
 - **Progressive reveal.** Show brief confirmation + continue button before full scene text (see pattern below).
-- **Read `styles/style-reference.md` and the active visual style before rendering.** They contain structural patterns and theme CSS custom properties.
+- **Read module and style files whenever they are required — every time, not from memory.**
+  Module files contain widget patterns, CSS classes, JS code, and HTML templates that the GM
+  must use verbatim. Never improvise HTML structure, CSS classes, or JS patterns from memory
+  when the module file defines the canonical version. If a module defines a component (divider,
+  panel, button, widget), use that component — do not invent a new one.
+- **Read `styles/style-reference.md` and the active visual style before rendering.** They contain
+  structural patterns, the Module Footer Button Table, and theme CSS custom properties. The
+  visual style file defines CSS classes the GM must use — never invent replacement CSS.
 - **Use the `frontend-design` skill if available.** It elevates the visual quality of widgets
   with polished, distinctive HTML/CSS. Apply its design principles to every widget rendered.
 - **Never reference stat names or values in narrative prose.** "Your hands are steady" not

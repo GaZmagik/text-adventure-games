@@ -134,14 +134,33 @@ Every scene widget includes this footer outside the progressive reveal wrapper.
   - `Export ↗` (`id="export-btn"`) — uses `sendPrompt()` to ask Claude to generate a `.lore.md` file
     that shares the world for other players. Only rendered when adventure-exporting module is active.
 
-**Available panel buttons (render only when the corresponding module is loaded):**
-- `Character` — always present (core)
-- `Codex` — lore-codex module
-- `Ship` — ship-systems module
-- `Crew` — crew-manifest module
-- `Nav chart` — star-chart module
-- `Map` — geo-map module
-- `Quests` — core-systems module (if quest tracking is active)
+### Module Footer Button Table
+
+When assembling the scene footer, iterate `modules_active` from `#scene-meta` and include
+the button and panel-content div for every matching row. Character and Save are ALWAYS
+included regardless of `modules_active`. Export is included only when `adventure-exporting`
+appears in `modules_active`. **Do NOT guess or improvise — use this table.**
+
+| `modules_active` value | Footer button HTML | Panel-content div |
+|---|---|---|
+| *(always)* | `<button class="footer-btn" data-panel="character" aria-expanded="false">Character</button>` | `<div class="panel-content" data-panel="character"></div>` |
+| `lore-codex` | `<button class="footer-btn" data-panel="codex" aria-expanded="false">Codex</button>` | `<div class="panel-content" data-panel="codex"></div>` |
+| `ship-systems` | `<button class="footer-btn" data-panel="ship" aria-expanded="false">Ship</button>` | `<div class="panel-content" data-panel="ship"></div>` |
+| `crew-manifest` | `<button class="footer-btn" data-panel="crew" aria-expanded="false">Crew</button>` | `<div class="panel-content" data-panel="crew"></div>` |
+| `star-chart` | `<button class="footer-btn" data-panel="nav" aria-expanded="false">Nav chart</button>` | `<div class="panel-content" data-panel="nav"></div>` |
+| `geo-map` | `<button class="footer-btn" data-panel="map" aria-expanded="false">Map</button>` | `<div class="panel-content" data-panel="map"></div>` |
+| `core-systems` | `<button class="footer-btn" data-panel="quests" aria-expanded="false">Quests</button>` | `<div class="panel-content" data-panel="quests"></div>` |
+| *(always)* | `<button class="footer-btn" id="save-btn" data-prompt="Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md. Use YAML frontmatter plus an encoded SC1: or SF1: payload string. Never write game state as human-readable markdown.">Save ↗</button>` | *(none)* |
+| `adventure-exporting` | `<button class="footer-btn" id="export-btn" data-prompt="Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format.">Export ↗</button>` | *(none)* |
+
+**Algorithm (every scene widget):**
+1. Start with Character button (always present).
+2. Read `modules_active` from the current `#scene-meta`.
+3. For each value in `modules_active`, if it appears in the table above, include both
+   its footer button and its panel-content div.
+4. Always append the Save button last on the right side.
+5. If `adventure-exporting` is in `modules_active`, append the Export button after Save.
+6. Do NOT include buttons for modules not in `modules_active`.
 
 **Rule: Panel widgets are overlays, not standalone pages.** Crew manifest, ship
 status, codex, and other panel widgets are overlays opened from footer buttons.
@@ -176,15 +195,13 @@ Close button only; the scene footer is not their responsibility.
   <div id="scene-meta" style="display:none" data-meta='{ SEE SCHEMA BELOW }'></div>
   <!-- Footer (always visible, outside reveal) -->
   <div class="footer-row">
+    <!-- REQUIRED: Use the Module Footer Button Table above to build this row.
+         For each value in modules_active, include the matching button from the table.
+         Do NOT guess button labels or data-panel values — copy from the table. -->
     <button class="footer-btn" data-panel="character" aria-expanded="false">Character</button>
-    <!-- Add per active module: -->
-    <!-- <button class="footer-btn" data-panel="codex" aria-expanded="false">Codex</button> -->
-    <!-- <button class="footer-btn" data-panel="ship" aria-expanded="false">Ship</button> -->
-    <!-- <button class="footer-btn" data-panel="nav" aria-expanded="false">Nav chart</button> -->
-    <!-- <button class="footer-btn" data-panel="map" aria-expanded="false">Map</button> -->
-    <!-- <button class="footer-btn" data-panel="quests" aria-expanded="false">Quests</button> -->
-    <!-- <button class="footer-btn" id="save-btn" data-prompt="Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md. Use YAML frontmatter plus an encoded SC1: or SF1: payload string. Never write game state as human-readable markdown.">Save ↗</button> -->
-    <!-- <button class="footer-btn" id="export-btn" data-prompt="Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format.">Export ↗</button> -->
+    <!-- Add one button per active module from the Module Footer Button Table -->
+    <button class="footer-btn" id="save-btn" data-prompt="Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md. Use YAML frontmatter plus an encoded SC1: or SF1: payload string. Never write game state as human-readable markdown.">Save ↗</button>
+    <!-- Include Export ↗ only if adventure-exporting is in modules_active -->
   </div>
 </div>
 
@@ -220,7 +237,7 @@ not gated behind the continue button.
 
 ```json
 {
-  "skill_version": "1.2.1",
+  "skill_version": "1.2.2",
   "arc": 1,
   "theme": "historical",
   "mode": "procedural",
@@ -298,7 +315,7 @@ Turn-Start Module Checklist will flag it as an error and force a reload.
 
 ```html
 <div id="scene-meta" style="display:none" data-meta='{
-  "skill_version": "1.2.1",
+  "skill_version": "1.2.2",
   "arc": 1,
   "theme": "historical",
   "mode": "procedural",

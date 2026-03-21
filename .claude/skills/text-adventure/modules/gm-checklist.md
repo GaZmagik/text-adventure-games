@@ -205,7 +205,12 @@ NEW SCENE CHECKLIST
   Widget Assembly
 □ 11. Build the widget HTML with the active visual style's CSS
 □ 12. Include: loc-bar, atmo-strip, narrative, POIs, actions, status bar
-□ 13. Include: footer with panel buttons + Save ↗ + Export ↗ (if module active)
+□ 13. Build footer using the Module Footer Button Table in style-reference.md:
+      — Always: Character button + Save ↗ button
+      — For each value in modules_active: look up and include its button from the table
+      — If adventure-exporting in modules_active: include Export ↗
+      — Do NOT include buttons for modules not in modules_active
+      — Do NOT guess button labels or data-panel values — copy from the table
 □ 14. Include: pre-computed #save-data div for save fallback
 □ 15. Include: #scene-meta hidden div with scene metadata (see style-reference.md)
 □ 16. Every interactive button uses data-prompt + addEventListener (no inline onclick)
@@ -358,7 +363,9 @@ POST-SCENE VERIFICATION
 □ 3. Are all buttons wired with addEventListener? (No inline onclick on sendPrompt paths)
 □ 4. Do all sendPrompt buttons have fallback text?
 □ 5. Is the status bar present and accurate? (HP, XP, level)
-□ 6. Does the footer have the correct panel buttons for active modules?
+□ 6. Footer button audit: compare rendered footer buttons against modules_active
+     using the Module Footer Button Table in style-reference.md. Every active module
+     must have its button. No inactive module should have a button.
 □ 7. Is #save-data present with pre-computed save metadata?
 □ 8. Did I advance at least one story thread?
 □ 9. Is the gmState updated? (scene number, room, flags, time)
