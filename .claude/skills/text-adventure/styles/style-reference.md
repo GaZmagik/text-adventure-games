@@ -181,8 +181,8 @@ Close button only; the scene footer is not their responsibility.
     <!-- <button class="footer-btn" data-panel="nav" aria-expanded="false">Nav chart</button> -->
     <!-- <button class="footer-btn" data-panel="map" aria-expanded="false">Map</button> -->
     <!-- <button class="footer-btn" data-panel="quests" aria-expanded="false">Quests</button> -->
-    <!-- <button class="footer-btn" id="save-btn" data-prompt="Generate my save file as a downloadable .save.md file.">Save ↗</button> -->
-    <!-- <button class="footer-btn" id="export-btn" data-prompt="Export my world as a downloadable .lore.md file.">Export ↗</button> -->
+    <!-- <button class="footer-btn" id="save-btn" data-prompt="Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md. Use YAML frontmatter plus an encoded SC1: or SF1: payload string. Never write game state as human-readable markdown.">Save ↗</button> -->
+    <!-- <button class="footer-btn" id="export-btn" data-prompt="Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format.">Export ↗</button> -->
   </div>
 </div>
 

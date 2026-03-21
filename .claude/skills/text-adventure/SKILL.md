@@ -3,7 +3,7 @@ name: text-adventure
 
 description: Use this skill whenever the user wants to play, run, or build an interactive text adventure game. Triggers include "text adventure", "play a game", "run a campaign", "tabletop RPG", "D&D-style game", "interactive story", "dungeon crawl", "choose your own adventure", "space adventure", "sci-fi RPG", "interactive fiction", "story game", "MUD", "text-based game", or any request to begin a narrative game with player decisions, character stats, or dice-based outcomes. Also use when the user wants to continue a prior adventure session or set up a new scenario. This skill is the orchestrator — it contains the complete core game engine and loads expansion modules from the modules/ directory as needed. Do NOT use for purely creative writing tasks that require no player agency or mechanical resolution.
 metadata:
-  version: "1.0.4"
+  version: "1.0.5"
 ---
 
 # Text Adventure Game — Core Engine
@@ -348,13 +348,13 @@ Modules define their own `PANEL_DATA` field contents and summary render function
 
 - **Footer panel toggles** (Character, Codex, Ship, Nav): pure JS via `togglePanel()` — never `sendPrompt()`.
 - **Actions within panels** (repair, reroute, use item, plot course): `sendPrompt()` — these change state.
-- **Save button:** Uses `sendPrompt('Generate my save file as a downloadable .save.md file.')`.
+- **Save button:** Uses `sendPrompt('Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md. Use YAML frontmatter plus an encoded SC1: or SF1: payload string. Never write game state as human-readable markdown.')`.
   Claude generates the file as a conversation artifact the player can download. Falls back to
   inline copyable text display if `sendPrompt()` is unavailable. The `#save-data` div is
   pre-computed in every scene widget for the fallback path.
 - The Save (`Save ↗`) and Export (`Export ↗`) footer buttons use `sendPrompt()`. All panel
   toggles are pure JS. Inline action buttons within scenes and panels also use `sendPrompt()`.
-- **Export button:** `sendPrompt('Export my world as a downloadable .lore.md file.')` — only
+- **Export button:** `sendPrompt('Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format.')` — only
   rendered when the adventure-exporting module is active. Generates a shareable world file.
 
 ---
@@ -588,7 +588,7 @@ When HP reaches 0:
 - **Death:** If death occurs, show a solemn widget with: cause of death, final stats, a
   "The story ends here" message, and options: `sendPrompt('Start a new character.')`,
   `sendPrompt('Reload from last save.')` (if save-codex module is active), or
-  `sendPrompt('Export my world as a downloadable .lore.md file.')` (if adventure-exporting
+  `sendPrompt('Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format.')` (if adventure-exporting
   module is active — lets the player share the world even after their character dies).
 
 Never continue gameplay past HP 0 without resolving this widget first.
@@ -604,9 +604,9 @@ or escaped), present a **conclusion widget** with:
 - **Post-adventure options:**
   - `sendPrompt('Start a new adventure in this world.')` — begins a new adventure with the
     same character in the same world (sequel)
-  - `sendPrompt('Export my world as a downloadable .lore.md file.')` — share the world for
+  - `sendPrompt('Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format.')` — share the world for
     someone else to play (if adventure-exporting module is active)
-  - `sendPrompt('Generate my save file as a downloadable .save.md file.')` — final save
+  - `sendPrompt('Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md. Use YAML frontmatter plus an encoded SC1: or SF1: payload string. Never write game state as human-readable markdown.')` — final save
   - `sendPrompt('Start a completely new game.')` — fresh start
 
 The Export option is particularly valuable at conclusion — the world is at its richest state,
@@ -627,16 +627,31 @@ section defines **when** and **how** saves are surfaced during play.
 - When the player explicitly requests it.
 - **Never** mid-combat or mid-dialogue — saves are blocked during active resolution.
 
+#### When to Offer Export
+
+If the `adventure-exporting` module is active, offer an Export button alongside Save at
+key narrative moments — not just at adventure conclusion. See
+`modules/adventure-exporting.md` for the full trigger and block rules. Key moments:
+
+- **After completing a major story arc** — Act 1, Act 2, or a major quest resolution.
+- **At natural pause points** — before a time skip, after a climactic battle, at the end
+  of a session where the world has changed significantly.
+- **After the adventure concludes** — the denouement scene, when the world is at its
+  richest state.
+- **Never** mid-combat, mid-dialogue, or during active resolution.
+
 #### How to Surface It
 
 The scene widget footer includes a Save button (`id="save-btn"`). It is **always visible**
 but **greyed out and disabled** during combat and dialogue sequences.
 
-- **Primary (sendPrompt):** The Save button uses `sendPrompt('Generate my save file as a
-  downloadable .save.md file.')` to ask Claude to generate the save file as a conversation
-  artifact the player can download. This bypasses the iframe sandbox restrictions that
-  silently block Blob downloads in Claude.ai widgets. The button label is `Save ↗` (the
-  `↗` suffix indicates a `sendPrompt()` call).
+- **Primary (sendPrompt):** The Save button uses `sendPrompt()` with the full format-enforcing
+  prompt (see sendPrompt Rules above) to ask Claude to generate the save file as a conversation
+  artifact the player can download. The save **must** follow the `.save.md` format from
+  `modules/save-codex.md` — YAML frontmatter plus encoded `SC1:`/`SF1:` payload string, never
+  human-readable markdown. This bypasses the iframe sandbox restrictions that silently block
+  Blob downloads in Claude.ai widgets. The button label is `Save ↗` (the `↗` suffix indicates
+  a `sendPrompt()` call).
 - **Fallback (inline display):** If `sendPrompt()` is unavailable, the Save button falls
   back to displaying the pre-computed save string from the hidden `#save-data` div in a
   readonly textarea with a copy button. The player copies the string manually.
