@@ -11,6 +11,104 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: lore-code
 
 ---
 
+## CRITICAL — NPC Stats and Levels
+
+Every NPC with narrative weight has a stat block. Stats inform contested checks (see
+Hidden Contested Rolls below) and shape the NPC's system prompt for dialogue.
+
+### Stat Block Schema
+
+Add a `stats` field to every NPC definition object:
+
+```js
+stats: {
+  STR: 10, DEX: 12, CON: 11, INT: 14, WIS: 13, CHA: 15,
+  level: 3,
+},
+```
+
+### NPC Stat Ranges by Level
+
+NPC level reflects narrative importance, not combat power. Set stats to match the
+NPC's archetype — a scientist gets high INT/WIS, a dock worker gets high STR/CON.
+
+| NPC Level | Stat Range | Typical Role |
+|-----------|-----------|--------------|
+| 1-2 | 8-12 | Commoner, minor background character |
+| 3-4 | 10-14 | Competent professional, recurring NPC |
+| 5-6 | 12-16 | Skilled specialist, faction operative |
+| 7-8 | 13-17 | Expert, faction leader, antagonist |
+| 9-10 | 14-18 | Master, legendary figure, final adversary |
+
+The GM generates stats when the NPC is first introduced, based on their narrative role.
+Stats persist in `gmState.rosterMutations` and carry forward across arcs.
+
+### Stat Modifier Table
+
+| Stat Value | Modifier |
+|-----------|----------|
+| 8-9 | -1 |
+| 10-11 | +0 |
+| 12-13 | +1 |
+| 14-15 | +2 |
+| 16-17 | +3 |
+| 18-19 | +4 |
+
+### System Prompt Stat Integration
+
+When building the NPC's system prompt for dialogue, translate stats into narrative
+capabilities. Never expose numbers — describe what the NPC can do:
+
+| High Stat | System Prompt Addition |
+|-----------|----------------------|
+| STR 14+ | "You are physically imposing. People think twice before challenging you." |
+| DEX 14+ | "You are quick and precise. You notice small movements and react fast." |
+| CON 14+ | "You are resilient and hard to rattle. Pain and discomfort barely register." |
+| INT 14+ | "You are sharp and analytical. You spot logical flaws and inconsistencies." |
+| WIS 14+ | "You are perceptive and intuitive. You read people well and notice what others miss." |
+| CHA 14+ | "You are magnetic and persuasive. People naturally listen when you speak." |
+
+---
+
+## Hidden Contested Rolls — NPC Side
+
+When a player attempts a contested action against an NPC (persuade, deceive,
+intimidate, pickpocket, sneak past, etc.), the GM resolves the NPC's opposing
+check **secretly**. See `modules/die-rolls.md` for the full Hidden Roll Resolution
+Pattern and the contested attribute pairings table.
+
+### NPC Roll Resolution
+
+1. Identify the NPC's opposing attribute from the pairings table in `die-rolls.md`
+2. Look up the NPC's stat modifier from their stat block
+3. Internally compute: `d20 + NPC modifier` (generate a random result mentally)
+4. The player rolls normally (visible 4-stage die roll)
+5. Compare: player total vs NPC total
+6. Show outcome badge with **narrative description only** — never the NPC's numbers
+
+### What the Player Sees vs What the GM Knows
+
+| Component | Player Sees | GM Knows |
+|-----------|-------------|----------|
+| Player's roll | Yes (3D animated) | Yes |
+| Player's modifier | Yes (shown in Stage 1) | Yes |
+| Player's total | Yes (shown in Stage 3) | Yes |
+| DC or target | **No** — narrative outcome only | NPC's total |
+| NPC's roll | **No** | d20 result |
+| NPC's modifier | **No** | Stat modifier |
+| NPC's stats | **No** — never | Full stat block |
+| Outcome | Narrative badge | Margin of success/failure |
+
+### NPCs Without Explicit Stats
+
+If an NPC was generated before v1.1.0 or lacks a stat block, the GM assigns
+level-appropriate defaults based on the NPC's narrative role:
+- Background NPC: level 2, all stats 10
+- Named recurring NPC: level 4, primary stat 13, others 10-11
+- Faction leader or antagonist: level 7, primary stat 16, secondary 14, others 11-12
+
+---
+
 ## Architecture Overview
 
 ```

@@ -132,6 +132,27 @@ state. The pipeline calls must always happen in the same order — geography fir
 or the world will differ between runs even with the same seed. Never call `rng()` outside the
 pipeline without accounting for it.
 
+### Arc-Based Seed Derivation
+
+When generating a world for arc 2+, derive a new seed from the original to ensure
+deterministic but distinct world generation per arc:
+
+```js
+function deriveArcSeed(originalSeed, arcNumber) {
+  if (arcNumber <= 1) return originalSeed;
+  return originalSeed + '_arc' + arcNumber;
+}
+
+// Usage:
+// Arc 1: createPRNG('pale-threshold-7')        → original world
+// Arc 2: createPRNG('pale-threshold-7_arc2')    → same seed family, different world
+// Arc 3: createPRNG('pale-threshold-7_arc3')    → same seed family, different world
+```
+
+The derived seed produces a world in the same "family" as the original — similar
+structure, related faction names, recognisable geography — but with different room
+layouts, NPC placements, and encounter distributions.
+
 ---
 
 ## The Seed Format
@@ -750,6 +771,26 @@ function generateQuestHooks(rng, factions, roster, rooms) {
 ## The Master Pipeline
 
 Assemble all stages into a single `generateWorld()` call.
+
+### Arc Context — carryForward Integration
+
+When generating a world for arc 2+, the pipeline receives a `carryForward` object
+from the save-codex. This influences generation:
+
+- **Faction placement:** Carried faction standings affect starting territory and
+  disposition. A faction the player allied with in arc 1 controls more territory in
+  arc 2. A hostile faction is more entrenched and aggressive.
+- **NPC placement:** Alive NPCs with strong dispositions (trust > 70 or < 30) from
+  the previous arc appear in the new world. Their roles may change (a former ally
+  becomes a faction leader; a former enemy operates in the shadows).
+- **Quest seeding:** The new arc's main quest hook derives from the previous arc's
+  `worldConsequences`. If the player exposed a conspiracy, the new arc deals with
+  the fallout. If they covered it up, the conspiracy grows.
+- **Geography continuity:** If the same sector/region is used, familiar locations
+  may reappear (with changes reflecting time passage and consequences).
+
+If `carryForward` is null (arc 1 or fresh start), the pipeline runs without
+modifications — standard procedural generation from seed alone.
 
 ```js
 function generateWorld(seedStr, themeOverride) {

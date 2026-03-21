@@ -55,6 +55,7 @@ step IN ORDER. Do not skip ahead. Do not combine steps.
 ```
 NEW GAME CHECKLIST
 ═══════════════════════════════════════════
+□  0. Read all Tier 1 modules IN FULL (see SKILL.md Architecture — Tiered Loading)
 □  1. Present the Settings widget (rulebook, difficulty, pacing, visual style, modules)
 □  2. Wait for player to confirm settings — do NOT proceed without confirmation
 □  3. Present Scenario Selection widget (3–4 scenario cards with genre pills)
@@ -85,24 +86,54 @@ RESUME FROM SAVE CHECKLIST
 ═══════════════════════════════════════════
 □  1. Parse and validate the save payload (checksum, version, mode)
 □  2. Warn (do not block) if skill-version differs from current version
-□  3. Determine visual style from save metadata (or use default: station)
-□  4. Read the active visual style file from styles/
-□  5. Read styles/style-reference.md for structural patterns
-□  6. Determine required modules from save metadata (theme, mode, world flags)
-□  7. Load all required modules — same set as a new game for this scenario type
-□  8. Reconstruct gmState from save payload (compact: regenerate + apply deltas;
+□  3. Check for arc field — if present, load arc context and carryForward data
+□  4. Determine visual style from save metadata (or use default: station)
+□  5. Read the active visual style file from styles/
+□  6. Read styles/style-reference.md for structural patterns
+□  7. Determine required modules from save metadata (theme, mode, world flags)
+□  8. Load all required modules — same set as a new game for this scenario type
+□  9. Reconstruct gmState from save payload (compact: regenerate + apply deltas;
      full: restore directly)
-□  9. Reinitialise storyArchitect from worldFlags and codexMutations
-□ 10. Reinitialise worldHistory context from seed/theme (if procedural)
-□ 11. Render the resume scene as a widget using the active visual style
-□ 12. Include: footer with panel buttons + Save ↗ + Export ↗ (if module active)
-□ 13. Include: pre-computed #save-data div for save fallback
-□ 14. Verify: is ALL game content inside the widget? No prose outside?
+□ 10. Reinitialise storyArchitect from worldFlags and codexMutations
+□ 11. Reinitialise worldHistory context from seed/theme (if procedural)
+□ 12. Render the resume scene as a widget using the active visual style
+□ 13. Include: footer with panel buttons + Save ↗ + Export ↗ (if module active)
+□ 14. Include: pre-computed #save-data div for save fallback
+□ 15. Verify: is ALL game content inside the widget? No prose outside?
 ```
 
-**Critical:** Steps 4–7 are the ones most commonly skipped on resume. Without them,
+**Critical:** Steps 5–8 are the ones most commonly skipped on resume. Without them,
 Claude falls back to default styling and missing module behaviour. The resume flow
 must boot the full engine, not just restore the data.
+
+---
+
+## Arc Transition Checklist
+
+When the player transitions to a new arc (clicks "Continue to next arc" at adventure
+conclusion), verify each step IN ORDER. An arc transition is a full engine reboot
+with carried state — it is NOT a simple scene transition.
+
+```
+ARC TRANSITION CHECKLIST
+═══════════════════════════════════════════
+□  1. Build carryForward from current gmState (see save-codex.md)
+□  2. Cap previousArcSummaries at 3 entries — drop oldest if 4th added
+□  3. Derive new seed: originalSeed + '_arc' + newArcNumber
+□  4. Reset gmState: clear inventory, quests, scene, room, conditions, rollHistory
+□  5. Restore HP to maxHp
+□  6. Apply carryForward: character stats/level/XP, faction standings, NPC dispositions
+□  7. Generate starting gear based on character level (see core-systems.md table)
+□  8. Seed new storyArchitect threads from carryForward.worldConsequences
+□  9. If branching arc: use the player's chosen path to select scenario template
+□ 10. If epic arc: verify player level >= 5 before proceeding
+□ 11. Read the active visual style file from styles/ (from save metadata)
+□ 12. Read styles/style-reference.md for structural patterns
+□ 13. Generate new world from derived seed (procedural) or load authored content
+□ 14. Present arc opening scene — reference prior arc consequences in narrative
+□ 15. Embed updated save data with new arc number in #save-data div
+□ 16. Verify: ALL content inside widget, no prose outside
+```
 
 ---
 
@@ -157,6 +188,36 @@ DIE ROLL CHECKLIST
 □ 11. The widget is the ONLY output — no prose before or after
 □ 12. Never use flat CSS circles or rectangles for dice — always 3D polyhedra
 ```
+
+---
+
+## NPC Hidden Roll Checklist
+
+When the player attempts a contested action against an NPC or adversary (persuade,
+deceive, intimidate, pickpocket, sneak past, etc.), verify each step.
+
+```
+NPC HIDDEN ROLL CHECKLIST
+═══════════════════════════════════════════
+□  1. Identify the contested action (persuade, deceive, intimidate, etc.)
+□  2. Determine player's relevant attribute from die-rolls.md pairings table
+□  3. Determine NPC's opposing attribute from the same table
+□  4. Look up NPC stats from definition object (ai-npc.md) or tier (bestiary.md)
+□  5. Player rolls normally — visible 4-stage die roll widget with 3D dice
+□  6. GM secretly resolves NPC roll: d20 + NPC attribute modifier
+□  7. Compare totals — player result vs NPC result
+□  8. Determine margin of success/failure (decisive/narrow/tie)
+□  9. Show outcome badge with NARRATIVE description only
+□ 10. NEVER reveal: NPC roll, NPC modifier, NPC stats, the word "contested"
+□ 11. Narrate outcome using the narrative language table from die-rolls.md
+□ 12. If NPC is from bestiary: use tier-based resistance modifier, not full stats
+```
+
+**Common mistakes:**
+- Showing "vs DC 15" on a contested check — contested checks show narrative only
+- Revealing the NPC's roll value or modifier in the outcome text
+- Using the word "contested" or "opposed" in player-facing text
+- Applying a fixed DC when the check is against a specific NPC with stats
 
 ---
 

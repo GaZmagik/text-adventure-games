@@ -8,7 +8,7 @@ A modular text adventure engine for Claude, built entirely as Claude skills. Wor
 
 | File | Description |
 |------|-------------|
-| `text-adventure.zip` | Core text adventure engine — orchestrator with 20 modular expansions covering character creation, combat, ship systems, crew management, navigation, procedural world generation, and more. Supports multiple rule systems (d20, GURPS Lite, Pathfinder 2e Lite, Shadowrun 5e Lite, Narrative Engine). |
+| `text-adventure.zip` | Core text adventure engine — orchestrator with 22 modular expansions covering character creation, combat, ship systems, crew management, navigation, procedural world generation, and more. Supports multiple rule systems (d20, GURPS Lite, Pathfinder 2e Lite, Shadowrun 5e Lite, Narrative Engine). |
 
 ### Output Styles
 
@@ -64,6 +64,25 @@ The game engine selects a visual style during setup based on the genre, or the p
 3. Click **Customise Claude** (the sliders icon in the bottom-left).
 4. Under **Skills**, click **Add Skill**.
 5. Drag and drop the `.zip` file onto the skill upload area, or click to browse and select it.
+
+### Upgrading to a New Version
+
+If you already have an older version of the skill installed:
+
+1. **Save your current game** — click the Save button in-game to generate a `.save.md` file.
+   Download it. Your progress is safe.
+2. **Download the new `text-adventure.zip`** from the
+   [GitHub releases page](https://github.com/GaZmagik/text-adventure-games/releases).
+3. **Upload the new zip** — in Claude Desktop or claude.ai, go to **Customise Claude** >
+   **Skills** and upload the new `.zip`. When prompted, choose to **replace** the existing
+   skill.
+4. **Verify the version** — check the skill section shows the updated version number.
+5. **Start a new conversation** — upload or paste your `.save.md` file and say
+   "Resume my adventure from this save file." Your character, world, and progress
+   will be restored.
+
+> **Note:** Saves are forward-compatible. A save from v1.0.x will load in v1.1.0 —
+> new features (arcs, NPC stats) will activate automatically with sensible defaults.
 
 ### Installing Output Styles
 

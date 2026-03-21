@@ -41,6 +41,74 @@ of optimisation.
 
 ---
 
+## CRITICAL — Hidden Roll Resolution Pattern
+
+When the GM resolves a **contested check** against an NPC or adversary, the opposing
+roll is resolved internally. The player never sees the NPC's roll, modifier, stats, or
+the word "contested". This applies to all player-vs-NPC interactions: persuade, deceive,
+intimidate, pickpocket, sneak past, outwit, read intentions, arm wrestle, etc.
+
+### How It Works
+
+The player's die roll widget works identically to a standard check — four stages, 3D
+dice, visible result. The difference is in **Stage 3 (Resolve)**:
+
+| Check Type | Stage 3 Display |
+|------------|----------------|
+| Standard (vs DC) | Player total + "vs DC 15" + outcome badge |
+| Contested (vs NPC) | Player total + outcome badge + **narrative line only** |
+
+The player sees:
+- Stage 1: Their action, their attribute, their modifier
+- Stage 2: Their 3D die roll (animated as normal)
+- Stage 3: Their total — but instead of "vs DC 15", show ONLY the outcome badge
+  with a narrative description
+- Stage 4: Continue button as normal
+
+The player **NEVER** sees:
+- The NPC's roll value
+- The NPC's modifier or stats
+- The competing total
+- The words "contested", "opposed", or "vs NPC"
+
+### Outcome Badge Text for Contested Checks
+
+| Margin | Outcome | Example Narration |
+|--------|---------|-------------------|
+| Player wins by 5+ | Decisive success | "Your words land with precision. Their resistance crumbles." |
+| Player wins by 1-4 | Narrow success | "They hesitate — for a moment you are not sure — but they relent." |
+| Tie (NPC favoured) | Narrow failure | "They study you carefully. Something in your delivery does not quite land." |
+| NPC wins by 1-4 | Failure | "They see right through your opening gambit, but you notice a flicker of doubt." |
+| NPC wins by 5+ | Decisive failure | "Your attempt falls flat. They were expecting exactly this." |
+
+### GM Internal Resolution
+
+The GM resolves the NPC's check silently:
+
+1. Look up the NPC's relevant stat modifier (from `ai-npc.md` stat block or `bestiary.md` tier)
+2. Internally compute: `d20 + NPC modifier` (use a mental random number, do NOT show dice)
+3. Compare: `player_total` vs `npc_total`
+4. Determine margin and select outcome badge + narrative from the table above
+5. Render the outcome in the die roll widget as if it were a standard check — the player
+   cannot tell whether this was a contested or fixed-DC check
+
+### Contested Check Attribute Pairings
+
+| Player Action | Player Attribute | NPC Opposing Attribute |
+|---------------|-----------------|----------------------|
+| Persuade | CHA | WIS |
+| Deceive | CHA | WIS or INT |
+| Intimidate | STR or CHA | WIS or CHA |
+| Pickpocket | DEX | WIS |
+| Sneak past | DEX | WIS |
+| Arm wrestle | STR | STR |
+| Outwit | INT | INT or WIS |
+| Read intentions | WIS | CHA |
+| Resist charm | WIS | CHA |
+| Spot deception | WIS or INT | CHA |
+
+---
+
 ## D&D 5e — Four Progressive Stages
 
 Never skip or combine stages. Each stage is revealed sequentially within a single widget.
