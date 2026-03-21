@@ -125,6 +125,39 @@ attribute override is also provided for runtime switching.
   --sg-border-subtle:    1px solid var(--sg-lead-subtle);
   --sg-radius:           2px;       /* nearly square — glass doesn't curve */
   --sg-radius-btn:       2px;
+
+  /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
+  --ta-font-heading:              'Cinzel', 'EB Garamond', 'Palatino Linotype', 'Palatino', 'Book Antiqua', Georgia, 'Times New Roman', serif;
+  --ta-font-body:                 'EB Garamond', 'Palatino Linotype', 'Palatino', 'Book Antiqua', Georgia, serif;
+  --ta-color-accent:              var(--sg-sapphire);
+  --ta-color-accent-hover:        var(--sg-sapphire-glow);
+  --ta-color-accent-bg:           var(--sg-sapphire-tint);
+  --ta-color-accent-bg-hover:     color-mix(in srgb, var(--sg-sapphire-tint) 70%, var(--sg-sapphire));
+  --ta-color-success:             var(--sg-emerald);
+  --ta-color-success-border:      color-mix(in srgb, var(--sg-emerald) 70%, black);
+  --ta-color-danger:              var(--sg-ruby);
+  --ta-color-danger-border:       color-mix(in srgb, var(--sg-ruby) 70%, black);
+  --ta-color-danger-bg:           var(--sg-ruby-tint);
+  --ta-color-danger-bg-hover:     color-mix(in srgb, var(--sg-ruby-tint) 70%, var(--sg-ruby));
+  --ta-color-warning:             var(--sg-amber);
+  --ta-color-warning-border:      color-mix(in srgb, var(--sg-amber) 70%, black);
+  --ta-color-warning-bg:          var(--sg-amber-tint);
+  --ta-color-xp:                  var(--sg-amethyst);
+  --ta-color-focus:               var(--sg-sapphire);
+  --ta-color-conviction:          var(--sg-amethyst);
+  --ta-color-conviction-border:   color-mix(in srgb, var(--sg-amethyst) 70%, black);
+  --ta-badge-success-bg:          var(--sg-emerald-tint);
+  --ta-badge-success-text:        var(--sg-emerald);
+  --ta-badge-partial-bg:          var(--sg-amber-tint);
+  --ta-badge-partial-text:        var(--sg-amber);
+  --ta-badge-failure-bg:          var(--sg-ruby-tint);
+  --ta-badge-failure-text:        var(--sg-ruby);
+  --ta-badge-crit-success-border: var(--sg-emerald);
+  --ta-badge-crit-failure-border: var(--sg-ruby);
+  --ta-color-credits:             var(--sg-amber);
+  --ta-color-tab-active:          var(--sg-sapphire);
+  --ta-border-style-poi:          2px dashed;
+  --ta-die-spin-duration:         0.6s;
 }
 ```
 

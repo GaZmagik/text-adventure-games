@@ -846,6 +846,39 @@ any host page styles.
   color: var(--w-text-primary);
   padding: 1rem 0 1.5rem;
   position: relative;
+
+  /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
+  --ta-font-heading:              var(--w-font-heading);
+  --ta-font-body:                 var(--w-font-mono);
+  --ta-color-accent:              var(--w-rust);
+  --ta-color-accent-hover:        var(--w-rust-dim);
+  --ta-color-accent-bg:           var(--w-rust-tint);
+  --ta-color-accent-bg-hover:     var(--w-rust-glow);
+  --ta-color-success:             var(--w-status-ok);
+  --ta-color-success-border:      color-mix(in srgb, var(--w-status-ok) 70%, black);
+  --ta-color-danger:              var(--w-blood);
+  --ta-color-danger-border:       color-mix(in srgb, var(--w-blood) 70%, black);
+  --ta-color-danger-bg:           var(--w-blood-tint);
+  --ta-color-danger-bg-hover:     rgba(92, 26, 26, 0.18);
+  --ta-color-warning:             var(--w-brass);
+  --ta-color-warning-border:      color-mix(in srgb, var(--w-brass) 70%, black);
+  --ta-color-warning-bg:          rgba(139, 125, 60, 0.10);
+  --ta-color-xp:                  var(--w-brass);
+  --ta-color-focus:               var(--w-rust);
+  --ta-color-conviction:          #7C6BF0;
+  --ta-color-conviction-border:   #6B5CE0;
+  --ta-badge-success-bg:          rgba(74, 103, 65, 0.12);
+  --ta-badge-success-text:        var(--w-status-ok);
+  --ta-badge-partial-bg:          rgba(139, 125, 60, 0.12);
+  --ta-badge-partial-text:        var(--w-brass);
+  --ta-badge-failure-bg:          var(--w-blood-tint);
+  --ta-badge-failure-text:        var(--w-blood);
+  --ta-badge-crit-success-border: var(--w-status-ok);
+  --ta-badge-crit-failure-border: var(--w-blood);
+  --ta-color-credits:             var(--w-brass);
+  --ta-color-tab-active:          var(--w-rust);
+  --ta-border-style-poi:          1px dashed;
+  --ta-die-spin-duration:         0.5s;
 }
 
 /* --- Dark mode token overrides --- */

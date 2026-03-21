@@ -3,7 +3,7 @@ name: text-adventure
 
 description: Use this skill whenever the user wants to play, run, or build an interactive text adventure game. Triggers include "text adventure", "play a game", "run a campaign", "tabletop RPG", "D&D-style game", "interactive story", "dungeon crawl", "choose your own adventure", "space adventure", "sci-fi RPG", "interactive fiction", "story game", "MUD", "text-based game", or any request to begin a narrative game with player decisions, character stats, or dice-based outcomes. Also use when the user wants to continue a prior adventure session or set up a new scenario. This skill is the orchestrator — it contains the complete core game engine and loads expansion modules from the modules/ directory as needed. Do NOT use for purely creative writing tasks that require no player agency or mechanical resolution.
 metadata:
-  version: "1.0.3"
+  version: "1.0.4"
 ---
 
 # Text Adventure Game — Core Engine
@@ -12,7 +12,14 @@ This skill runs the complete text adventure game experience using `visualize:sho
 Expansion modules in `modules/` add optional depth. Additional implementation code (panel
 CSS, scene skeleton, loading messages) lives in `styles/style-reference.md`.
 Visual style definitions (colours, fonts, decorative CSS) live in `styles/` as
-individual `.md` files — one per theme.
+individual `.md` files — one per theme. This skill is designed to be used
+alongside a narrative output style configured by the user in Claude Desktop
+or claude.ai — see the project `README.md` for available output styles.
+
+Two portable file formats support session persistence and content sharing:
+`.save.md` files (via `modules/save-codex.md`) capture game state for later
+resumption, and `.lore.md` files (via `modules/adventure-authoring.md`) package
+authored adventures for distribution.
 
 **Before rendering any widget, read `styles/style-reference.md` in full.** It
 contains structural patterns and supplementary templates that this file references.
@@ -906,9 +913,10 @@ content is created and how the lore-codex is populated.
 
 ## Narrative Craft
 
-Follow the **Master Storyteller** output style for all narrative rules: prose variety, NPC voice
-differentiation, player agency, pacing, and difficulty calibration. The output style is the
-authoritative guide for how the GM writes and presents the story.
+Follow the active narrative output style (configured by the user in Claude Desktop or
+claude.ai) for all narrative rules: prose variety, NPC voice differentiation, player agency,
+pacing, and difficulty calibration. The output style is the authoritative guide for how the
+GM writes and presents the story. See the project `README.md` for available output styles.
 
 **Scene checklist:** Non-visual sensory detail. History detail. No right/wrong labels. Second
 person present tense. `PANEL_DATA` populated. Progressive reveal used.

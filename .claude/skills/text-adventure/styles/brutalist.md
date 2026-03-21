@@ -137,6 +137,39 @@ Invert everything. White borders on black, red stays red (it always stands out).
     --color-overlay-bg:            #000000;
     --color-selection-bg:          #FFFFFF;
     --color-selection-text:        #000000;
+
+    /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
+    --ta-font-heading:              var(--font-sans);
+    --ta-font-body:                 var(--font-mono);
+    --ta-color-accent:              var(--color-accent);
+    --ta-color-accent-hover:        var(--color-accent-muted);
+    --ta-color-accent-bg:           var(--color-interactive-bg);
+    --ta-color-accent-bg-hover:     var(--color-interactive-bg-hover);
+    --ta-color-success:             var(--color-success);
+    --ta-color-success-border:      color-mix(in srgb, var(--color-success) 70%, black);
+    --ta-color-danger:              var(--color-danger);
+    --ta-color-danger-border:       color-mix(in srgb, var(--color-danger) 70%, black);
+    --ta-color-danger-bg:           rgba(255, 0, 0, 0.08);
+    --ta-color-danger-bg-hover:     rgba(255, 0, 0, 0.15);
+    --ta-color-warning:             var(--color-warning);
+    --ta-color-warning-border:      color-mix(in srgb, var(--color-warning) 70%, black);
+    --ta-color-warning-bg:          rgba(255, 200, 0, 0.08);
+    --ta-color-xp:                  var(--color-info);
+    --ta-color-focus:               var(--color-accent);
+    --ta-color-conviction:          var(--color-accent);
+    --ta-color-conviction-border:   var(--color-accent-muted);
+    --ta-badge-success-bg:          rgba(0, 128, 0, 0.10);
+    --ta-badge-success-text:        var(--color-success);
+    --ta-badge-partial-bg:          rgba(255, 200, 0, 0.10);
+    --ta-badge-partial-text:        var(--color-warning);
+    --ta-badge-failure-bg:          rgba(255, 0, 0, 0.10);
+    --ta-badge-failure-text:        var(--color-danger);
+    --ta-badge-crit-success-border: var(--color-success);
+    --ta-badge-crit-failure-border: var(--color-danger);
+    --ta-color-credits:             var(--color-warning);
+    --ta-color-tab-active:          var(--color-accent);
+    --ta-border-style-poi:          2px dashed;
+    --ta-die-spin-duration:         0.3s;
   }
 }
 ```

@@ -917,6 +917,39 @@ acceptable result if CSP blocks the request.
   --border-radius-md:           6px;
   --font-sans: 'Exo 2', ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: 'Share Tech Mono', 'IBM Plex Mono', 'SF Mono', monospace;
+
+  /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
+  --ta-font-heading:              'Exo 2', 'Orbitron', 'Rajdhani', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --ta-font-body:                 'Share Tech Mono', 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  --ta-color-accent:              var(--holo-cyan);
+  --ta-color-accent-hover:        color-mix(in srgb, var(--holo-cyan) 85%, white);
+  --ta-color-accent-bg:           var(--holo-cyan-dim);
+  --ta-color-accent-bg-hover:     rgba(0, 229, 255, 0.25);
+  --ta-color-success:             var(--holo-teal);
+  --ta-color-success-border:      var(--holo-teal-dim);
+  --ta-color-danger:              var(--holo-pink);
+  --ta-color-danger-border:       var(--holo-pink-dim);
+  --ta-color-danger-bg:           rgba(255, 128, 171, 0.10);
+  --ta-color-danger-bg-hover:     rgba(255, 128, 171, 0.20);
+  --ta-color-warning:             var(--holo-lavender);
+  --ta-color-warning-border:      var(--holo-lavender-dim);
+  --ta-color-warning-bg:          rgba(179, 136, 255, 0.10);
+  --ta-color-xp:                  var(--holo-lavender);
+  --ta-color-focus:               var(--holo-cyan);
+  --ta-color-conviction:          var(--holo-lavender);
+  --ta-color-conviction-border:   var(--holo-lavender-dim);
+  --ta-badge-success-bg:          rgba(0, 191, 165, 0.10);
+  --ta-badge-success-text:        var(--holo-teal);
+  --ta-badge-partial-bg:          rgba(0, 229, 255, 0.08);
+  --ta-badge-partial-text:        var(--holo-cyan);
+  --ta-badge-failure-bg:          rgba(255, 128, 171, 0.10);
+  --ta-badge-failure-text:        var(--holo-pink);
+  --ta-badge-crit-success-border: var(--holo-lavender);
+  --ta-badge-crit-failure-border: var(--holo-pink);
+  --ta-color-credits:             var(--holo-cyan);
+  --ta-color-tab-active:          var(--holo-cyan);
+  --ta-border-style-poi:          1px dashed;
+  --ta-die-spin-duration:         0.6s;
 }
 
 @media (prefers-color-scheme: light) {

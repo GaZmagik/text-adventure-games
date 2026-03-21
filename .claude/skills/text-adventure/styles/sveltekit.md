@@ -1524,39 +1524,6 @@ properties are defined inline alongside all other tokens; no external resources 
   --die-rolled-bg:          #EFEFEF;
   --die-rolled-border:      #E2E2E2;
   --die-animation-duration: 0.55s;
-
-  /* ── CSS Contract ────────────────────────────────────────────────────── */
-  --ta-font-heading:              var(--svk-font-primary);
-  --ta-font-body:                 var(--svk-font-mono);
-  --ta-color-accent:              var(--svk-color-accent-display);
-  --ta-color-accent-hover:        var(--svk-color-accent-hover);
-  --ta-color-accent-bg:           var(--svk-color-accent-bg);
-  --ta-color-accent-bg-hover:     var(--svk-color-accent-bg-hover);
-  --ta-color-success:             var(--svk-color-success);
-  --ta-color-success-border:      var(--svk-color-success-border);
-  --ta-color-danger:              var(--svk-color-danger);
-  --ta-color-danger-border:       var(--svk-color-danger-border);
-  --ta-color-danger-bg:           var(--svk-color-danger-bg);
-  --ta-color-danger-bg-hover:     var(--svk-color-danger-bg-hover);
-  --ta-color-warning:             var(--svk-color-warning);
-  --ta-color-warning-border:      var(--svk-color-warning-border);
-  --ta-color-warning-bg:          var(--svk-color-warning-bg);
-  --ta-color-xp:                  var(--svk-color-xp);
-  --ta-color-focus:               var(--svk-color-accent-display);
-  --ta-color-conviction:          #5B49D4;
-  --ta-color-conviction-border:   #4A39C0;
-  --ta-badge-success-bg:          var(--svk-badge-success-bg);
-  --ta-badge-success-text:        var(--svk-badge-success-text);
-  --ta-badge-partial-bg:          var(--svk-badge-partial-bg);
-  --ta-badge-partial-text:        var(--svk-badge-partial-text);
-  --ta-badge-failure-bg:          var(--svk-badge-failure-bg);
-  --ta-badge-failure-text:        var(--svk-badge-failure-text);
-  --ta-badge-crit-success-border: var(--svk-badge-crit-success-border);
-  --ta-badge-crit-failure-border: var(--svk-badge-crit-failure-border);
-  --ta-color-credits:             var(--svk-color-currency);
-  --ta-color-tab-active:          var(--svk-color-accent-display);
-  --ta-border-style-poi:          1px dashed;
-  --ta-die-spin-duration:         0.55s;
 }
 
 /* ── Dark Mode ─────────────────────────────────────────────────────────── */

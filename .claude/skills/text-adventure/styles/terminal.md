@@ -128,6 +128,39 @@ badges only. Headings and buttons use sentence case.
 /* Scanline effect — applied via pseudo-element, motion-safe only */
 --t-scanline-color: rgba(0, 0, 0, 0.18);
 --t-scanline-size:  3px;
+
+  /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
+  --ta-font-heading:              'IBM Plex Mono', 'Cascadia Code', 'SF Mono', 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+  --ta-font-body:                 'IBM Plex Mono', 'Cascadia Code', 'SF Mono', 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+  --ta-color-accent:              var(--t-accent-cyan);
+  --ta-color-accent-hover:        color-mix(in srgb, var(--t-accent-cyan) 85%, white);
+  --ta-color-accent-bg:           var(--t-accent-cyan-bg);
+  --ta-color-accent-bg-hover:     color-mix(in srgb, var(--t-accent-cyan-bg) 80%, var(--t-accent-cyan));
+  --ta-color-success:             var(--t-success);
+  --ta-color-success-border:      var(--t-success-dim);
+  --ta-color-danger:              var(--t-danger);
+  --ta-color-danger-border:       color-mix(in srgb, var(--t-danger) 70%, black);
+  --ta-color-danger-bg:           var(--t-danger-bg);
+  --ta-color-danger-bg-hover:     color-mix(in srgb, var(--t-danger-bg) 80%, var(--t-danger));
+  --ta-color-warning:             var(--t-warning);
+  --ta-color-warning-border:      color-mix(in srgb, var(--t-warning) 70%, black);
+  --ta-color-warning-bg:          var(--t-warning-bg);
+  --ta-color-xp:                  var(--t-special);
+  --ta-color-focus:               var(--t-accent-cyan);
+  --ta-color-conviction:          #7C6BF0;
+  --ta-color-conviction-border:   #6B5CE0;
+  --ta-badge-success-bg:          var(--t-success-bg);
+  --ta-badge-success-text:        var(--t-success);
+  --ta-badge-partial-bg:          var(--t-warning-bg);
+  --ta-badge-partial-text:        var(--t-warning);
+  --ta-badge-failure-bg:          var(--t-danger-bg);
+  --ta-badge-failure-text:        var(--t-danger);
+  --ta-badge-crit-success-border: var(--t-success);
+  --ta-badge-crit-failure-border: var(--t-danger);
+  --ta-color-credits:             var(--t-accent-magenta);
+  --ta-color-tab-active:          var(--t-accent-cyan);
+  --ta-border-style-poi:          1px dashed;
+  --ta-die-spin-duration:         0.4s;
 ```
 
 ### Design Tokens — Light Mode
@@ -1127,6 +1160,39 @@ the iframe into the host page.
 
   --t-special:           #BD00FF;
   --t-special-bg:        #BD00FF14;
+
+  /* ── CSS Custom Property Contract (required by style-reference.md) ── */
+  --ta-font-heading:              'IBM Plex Mono', 'Cascadia Code', 'SF Mono', 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+  --ta-font-body:                 'IBM Plex Mono', 'Cascadia Code', 'SF Mono', 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+  --ta-color-accent:              var(--t-accent-cyan);
+  --ta-color-accent-hover:        color-mix(in srgb, var(--t-accent-cyan) 85%, white);
+  --ta-color-accent-bg:           var(--t-accent-cyan-bg);
+  --ta-color-accent-bg-hover:     color-mix(in srgb, var(--t-accent-cyan-bg) 80%, var(--t-accent-cyan));
+  --ta-color-success:             var(--t-success);
+  --ta-color-success-border:      var(--t-success-dim);
+  --ta-color-danger:              var(--t-danger);
+  --ta-color-danger-border:       color-mix(in srgb, var(--t-danger) 70%, black);
+  --ta-color-danger-bg:           var(--t-danger-bg);
+  --ta-color-danger-bg-hover:     color-mix(in srgb, var(--t-danger-bg) 80%, var(--t-danger));
+  --ta-color-warning:             var(--t-warning);
+  --ta-color-warning-border:      color-mix(in srgb, var(--t-warning) 70%, black);
+  --ta-color-warning-bg:          var(--t-warning-bg);
+  --ta-color-xp:                  var(--t-special);
+  --ta-color-focus:               var(--t-accent-cyan);
+  --ta-color-conviction:          #7C6BF0;
+  --ta-color-conviction-border:   #6B5CE0;
+  --ta-badge-success-bg:          var(--t-success-bg);
+  --ta-badge-success-text:        var(--t-success);
+  --ta-badge-partial-bg:          var(--t-warning-bg);
+  --ta-badge-partial-text:        var(--t-warning);
+  --ta-badge-failure-bg:          var(--t-danger-bg);
+  --ta-badge-failure-text:        var(--t-danger);
+  --ta-badge-crit-success-border: var(--t-success);
+  --ta-badge-crit-failure-border: var(--t-danger);
+  --ta-color-credits:             var(--t-accent-magenta);
+  --ta-color-tab-active:          var(--t-accent-cyan);
+  --ta-border-style-poi:          1px dashed;
+  --ta-die-spin-duration:         0.4s;
 }
 
 /* ── Light mode token overrides ────────────────────────────── */

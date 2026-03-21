@@ -1558,39 +1558,6 @@ handle that case independently.
   --sta-badge-failure-text:        #F08090;
   --sta-badge-crit-success-border: #2BA882;
   --sta-badge-crit-failure-border: #E84855;
-
-  /* CSS Custom Property Contract — required by style-reference.md */
-  --ta-font-heading:            var(--sta-font-display);
-  --ta-font-body:               var(--sta-font-mono);
-  --ta-color-accent:            var(--sta-color-accent);
-  --ta-color-accent-hover:      var(--sta-color-accent-hover);
-  --ta-color-accent-bg:         var(--sta-color-accent-bg);
-  --ta-color-accent-bg-hover:   var(--sta-color-accent-bg-hover);
-  --ta-color-success:           var(--sta-color-success);
-  --ta-color-success-border:    var(--sta-color-success-border);
-  --ta-color-danger:            var(--sta-color-danger);
-  --ta-color-danger-border:     var(--sta-color-danger-border);
-  --ta-color-danger-bg:         var(--sta-color-danger-bg);
-  --ta-color-danger-bg-hover:   var(--sta-color-danger-bg-hover);
-  --ta-color-warning:           var(--sta-color-warning);
-  --ta-color-warning-border:    var(--sta-color-warning-border);
-  --ta-color-warning-bg:        var(--sta-color-warning-bg);
-  --ta-color-xp:                var(--sta-color-xp);
-  --ta-color-focus:             var(--sta-color-location);
-  --ta-color-conviction:        #7C6BF0;
-  --ta-color-conviction-border: #6B5CE0;
-  --ta-badge-success-bg:        var(--sta-badge-success-bg);
-  --ta-badge-success-text:      var(--sta-badge-success-text);
-  --ta-badge-partial-bg:        var(--sta-badge-partial-bg);
-  --ta-badge-partial-text:      var(--sta-badge-partial-text);
-  --ta-badge-failure-bg:        var(--sta-badge-failure-bg);
-  --ta-badge-failure-text:      var(--sta-badge-failure-text);
-  --ta-badge-crit-success-border: var(--sta-badge-crit-success-border);
-  --ta-badge-crit-failure-border: var(--sta-badge-crit-failure-border);
-  --ta-color-credits:           var(--sta-color-currency);
-  --ta-color-tab-active:        var(--sta-color-location);
-  --ta-border-style-poi:        1px dashed;
-  --ta-die-spin-duration:       0.5s;
 }
 
 /* --- Light Mode Override --- */

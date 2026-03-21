@@ -564,6 +564,39 @@ tag after the base engine styles. It uses the CSS cascade — only override what
   --pt-font-mono:  'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
 
   --pt-content-max: 680px;
+
+  /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
+  --ta-font-heading:              var(--pt-font-serif);
+  --ta-font-body:                 var(--pt-font-mono);
+  --ta-color-accent:              var(--pt-accent-burgundy);
+  --ta-color-accent-hover:        var(--pt-accent-burgundy-dark);
+  --ta-color-accent-bg:           rgba(139, 34, 82, 0.08);
+  --ta-color-accent-bg-hover:     rgba(139, 34, 82, 0.15);
+  --ta-color-success:             var(--pt-accent-green);
+  --ta-color-success-border:      var(--pt-accent-green-mid);
+  --ta-color-danger:              var(--pt-accent-burgundy);
+  --ta-color-danger-border:       var(--pt-accent-burgundy-dark);
+  --ta-color-danger-bg:           rgba(139, 34, 82, 0.08);
+  --ta-color-danger-bg-hover:     rgba(139, 34, 82, 0.15);
+  --ta-color-warning:             var(--pt-accent-gold);
+  --ta-color-warning-border:      color-mix(in srgb, var(--pt-accent-gold) 70%, black);
+  --ta-color-warning-bg:          rgba(196, 150, 60, 0.08);
+  --ta-color-xp:                  var(--pt-accent-gold);
+  --ta-color-focus:               var(--pt-accent-burgundy);
+  --ta-color-conviction:          #7C6BF0;
+  --ta-color-conviction-border:   #6B5CE0;
+  --ta-badge-success-bg:          rgba(45, 80, 22, 0.10);
+  --ta-badge-success-text:        var(--pt-accent-green);
+  --ta-badge-partial-bg:          rgba(196, 150, 60, 0.10);
+  --ta-badge-partial-text:        var(--pt-accent-gold);
+  --ta-badge-failure-bg:          rgba(139, 34, 82, 0.10);
+  --ta-badge-failure-text:        var(--pt-accent-burgundy);
+  --ta-badge-crit-success-border: var(--pt-accent-green-mid);
+  --ta-badge-crit-failure-border: var(--pt-accent-burgundy);
+  --ta-color-credits:             var(--pt-accent-gold);
+  --ta-color-tab-active:          var(--pt-accent-burgundy);
+  --ta-border-style-poi:          1px dashed;
+  --ta-die-spin-duration:         0.5s;
 }
 
 /* ── Custom Properties: Dark ─────────────────────────────────────── */
@@ -599,6 +632,39 @@ tag after the base engine styles. It uses the CSS cascade — only override what
                               inset 0 1px 0 rgba(255,255,255,0.08);
     --pt-shadow-button-press: 0 1px  2px rgba(0, 0, 0, 0.50),
                               inset 0 2px 4px rgba(0, 0, 0, 0.30);
+
+  /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
+  --ta-font-heading:              var(--pt-font-serif);
+  --ta-font-body:                 var(--pt-font-mono);
+  --ta-color-accent:              var(--pt-accent-burgundy);
+  --ta-color-accent-hover:        var(--pt-accent-burgundy-dark);
+  --ta-color-accent-bg:           rgba(139, 34, 82, 0.08);
+  --ta-color-accent-bg-hover:     rgba(139, 34, 82, 0.15);
+  --ta-color-success:             var(--pt-accent-green);
+  --ta-color-success-border:      var(--pt-accent-green-mid);
+  --ta-color-danger:              var(--pt-accent-burgundy);
+  --ta-color-danger-border:       var(--pt-accent-burgundy-dark);
+  --ta-color-danger-bg:           rgba(139, 34, 82, 0.08);
+  --ta-color-danger-bg-hover:     rgba(139, 34, 82, 0.15);
+  --ta-color-warning:             var(--pt-accent-gold);
+  --ta-color-warning-border:      color-mix(in srgb, var(--pt-accent-gold) 70%, black);
+  --ta-color-warning-bg:          rgba(196, 150, 60, 0.08);
+  --ta-color-xp:                  var(--pt-accent-gold);
+  --ta-color-focus:               var(--pt-accent-burgundy);
+  --ta-color-conviction:          #7C6BF0;
+  --ta-color-conviction-border:   #6B5CE0;
+  --ta-badge-success-bg:          rgba(45, 80, 22, 0.10);
+  --ta-badge-success-text:        var(--pt-accent-green);
+  --ta-badge-partial-bg:          rgba(196, 150, 60, 0.10);
+  --ta-badge-partial-text:        var(--pt-accent-gold);
+  --ta-badge-failure-bg:          rgba(139, 34, 82, 0.10);
+  --ta-badge-failure-text:        var(--pt-accent-burgundy);
+  --ta-badge-crit-success-border: var(--pt-accent-green-mid);
+  --ta-badge-crit-failure-border: var(--pt-accent-burgundy);
+  --ta-color-credits:             var(--pt-accent-gold);
+  --ta-color-tab-active:          var(--pt-accent-burgundy);
+  --ta-border-style-poi:          1px dashed;
+  --ta-die-spin-duration:         0.5s;
   }
 }
 
