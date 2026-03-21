@@ -31,6 +31,7 @@ the resume scene, the GM **must** follow the **Resume from Save Checklist** in
 2. **Read `styles/style-reference.md`** for structural patterns
 3. **Load all required modules** for the scenario type
 4. **Reinitialise storyArchitect and worldHistory** from restored state
+5. **If the save contains an `arc` field**, load arc context and apply `carryForward` data before generating the world
 
 Skipping these causes visual style drift, missing module behaviour, and broken
 narrative tracking. A resume is not "just render a scene" — it is a full engine boot
@@ -98,6 +99,8 @@ theme: "space"
 visual-style: "station"
 seed: "pale-threshold-7"
 mode: "compact"
+arc: 1
+arc-type: "standard"
 ---
 
 # Save — Gareth Williams, Scene 7
@@ -131,6 +134,8 @@ SC1:eyJ2IjoxLCJtb2RlIjoiY29tcGFjdCIsInNlZWQiOiJwYWxlLXRocmVzaG9sZC03...
 | `visual-style` | Yes | Active visual style filename without extension (e.g. `station`, `neon`) |
 | `seed` | If compact | World generation seed |
 | `mode` | Yes | `compact` or `full` |
+| `arc` | No (defaults to 1) | Current arc number |
+| `arc-type` | No (defaults to standard) | `standard`, `epic`, or `branching` |
 
 ---
 
@@ -337,6 +342,162 @@ const gmState = {
 };
 ```
 
+---
+
+## Arc System — carryForward
+
+When the player transitions to a new arc at adventure conclusion, the save-codex
+builds a `carryForward` object that captures everything the new arc needs from the
+previous one. This object is embedded in the save payload and applied to the fresh
+gmState when the new arc begins.
+
+### carryForward Schema
+
+```js
+const carryForward = {
+  characterIdentity: {
+    name: 'Tessa Marchetti',
+    class: 'Cargo Runner',
+    level: 5,
+    xp: 2400,
+    stats: { STR: 10, DEX: 16, CON: 11, INT: 11, WIS: 10, CHA: 14 },
+    proficiencies: ['Stealth', 'Deception', 'Persuasion', 'Acrobatics'],
+    abilities: ['Evasion', 'Quick Draw'],
+    reputation: 'Known smuggler-turned-whistleblower. Allied with naval intelligence.',
+  },
+  factionStates: {
+    meridian_shipping: -80,  // hostile after exposure
+    naval_intelligence: 65,  // allied through cooperation
+    dock_workers_union: 30,  // neutral-positive
+  },
+  npcDispositions: [
+    { id: 'strand', alive: true, disposition: 'allied', toward_player: 85 },
+    { id: 'karim', alive: true, disposition: 'friendly', toward_player: 72 },
+    { id: 'mori', alive: true, disposition: 'guarded', toward_player: 35 },
+    { id: 'harlow', alive: false },
+  ],
+  worldConsequences: [
+    'Meridian Shipping conspiracy exposed — corporate leadership arrested.',
+    'Josue rescued from container — revealed as naval intelligence asset.',
+    'Chief Purser Mori cooperated under duress — daughter relocated to safety.',
+    'Helios Reach arrived at Brannock Colonies under naval escort.',
+  ],
+  codexDiscoveries: [
+    { id: 'faction_meridian', state: 'discovered' },
+    { id: 'character_josue', state: 'discovered' },
+    { id: 'location_hold3', state: 'discovered' },
+  ],
+  previousArcSummaries: [
+    {
+      arc: 1,
+      title: 'The Quiet Berth',
+      summary: 'Cargo runner Tessa Marchetti uncovered a human trafficking operation aboard the liner Helios Reach. Allied with the captain and ship doctor to rescue the prisoner and expose the corporate conspiracy.',
+      keyOutcome: 'conspiracy_exposed',
+    },
+  ],
+};
+```
+
+### Building carryForward at Arc Conclusion
+
+When the player clicks "Continue to next arc", the GM builds the carryForward
+object from the current gmState:
+
+```js
+function buildCarryForward(gmState) {
+  const c = gmState.character;
+  return {
+    characterIdentity: {
+      name: c.name,
+      class: c.class,
+      level: c.level,
+      xp: c.xp,
+      stats: { ...c.stats },
+      proficiencies: [...(c.proficiencies || [])],
+      abilities: [...(c.abilities || [])],
+      reputation: generateReputationSummary(gmState),  // GM writes 1-2 sentences
+    },
+    factionStates: { ...gmState.worldFlags }
+      .filter(([k]) => k.startsWith('faction_'))
+      .reduce((acc, [k, v]) => { acc[k.replace('faction_', '')] = v; return acc; }, {}),
+    npcDispositions: (gmState.rosterMutations || [])
+      .filter(n => n.toward_player > 70 || n.toward_player < 30 || !n.alive)
+      .map(n => ({ id: n.id, alive: n.alive !== false, disposition: n.disposition, toward_player: n.toward_player })),
+    worldConsequences: generateConsequenceSummaries(gmState),  // GM writes 3-5 sentences
+    codexDiscoveries: (gmState.codexMutations || [])
+      .filter(m => m.state === 'discovered')
+      .map(m => ({ id: m.id, state: m.state })),
+    previousArcSummaries: [
+      ...(gmState.arcHistory || []).slice(-2),  // keep last 2
+      {
+        arc: gmState.arc || 1,
+        title: gmState.adventureTitle || 'Untitled',
+        summary: generateArcSummary(gmState),  // GM writes 2-3 sentences
+        keyOutcome: deriveKeyOutcome(gmState),
+      },
+    ],
+  };
+}
+```
+
+### Arc Summaries Cap
+
+The `previousArcSummaries` array is capped at **3 entries** (FIFO). When a 4th arc
+completes, the oldest summary is dropped. This prevents the carryForward object from
+growing unboundedly and competing with the skill instructions for context space.
+
+### Applying carryForward to New Arc
+
+When the new arc begins, the GM applies carryForward to the fresh gmState:
+
+```js
+function applyCarryForward(gmState, carryForward) {
+  // Character identity and progression
+  gmState.character = {
+    name: carryForward.characterIdentity.name,
+    class: carryForward.characterIdentity.class,
+    level: carryForward.characterIdentity.level,
+    xp: carryForward.characterIdentity.xp,
+    stats: { ...carryForward.characterIdentity.stats },
+    proficiencies: [...carryForward.characterIdentity.proficiencies],
+    abilities: [...carryForward.characterIdentity.abilities],
+    hp: calculateMaxHp(carryForward.characterIdentity),  // full HP
+    maxHp: calculateMaxHp(carryForward.characterIdentity),
+    inventory: generateStartingGear(carryForward.characterIdentity.level),  // see core-systems.md
+    conditions: [],
+  };
+
+  // World state from previous arc
+  carryForward.factionStates.forEach(([faction, standing]) => {
+    gmState.worldFlags['faction_' + faction] = standing;
+  });
+
+  // NPC dispositions as initial mutations
+  gmState.rosterMutations = carryForward.npcDispositions;
+
+  // Codex discoveries
+  gmState.codexMutations = carryForward.codexDiscoveries;
+
+  // Arc metadata
+  gmState.arc = (carryForward.previousArcSummaries.length || 0) + 1;
+  gmState.arcHistory = carryForward.previousArcSummaries;
+  gmState.carryForward = carryForward;
+
+  return gmState;
+}
+```
+
+### Seed Derivation for New Arcs
+
+The new arc's world seed is derived from the original:
+
+```js
+const newSeed = originalSeed + '_arc' + newArcNumber;
+// See modules/procedural-world-gen.md for deriveArcSeed()
+```
+
+---
+
 **What is never stored in the save payload:**
 - `worldData` — always regenerated from `seed` + `theme` in compact mode
 - `rollHistory` — cosmetic; not needed to resume
@@ -374,6 +535,10 @@ function buildCompactSave(gmState) {
     flags: gmState.worldFlags,
     npcs: compressRosterMutations(gmState.rosterMutations),
     codex: compressCodexMutations(gmState.codexMutations),
+    arc: gmState.arc || 1,
+    arcType: gmState.arcType || 'standard',
+    carry: gmState.carryForward ? compressCarryForward(gmState.carryForward) : null,
+    arcHist: gmState.arcHistory || [],
   };
   const json = JSON.stringify(payload);
   const code = 'SC1:' + btoa(json);
@@ -458,6 +623,10 @@ function restoreCompactSave(saveString) {
     rosterMutations,
     codexMutations,
     rollHistory: [],
+    arc: payload.arc || 1,
+    arcType: payload.arcType || 'standard',
+    carryForward: payload.carry || null,
+    arcHistory: payload.arcHist || [],
   };
 }
 
@@ -530,6 +699,10 @@ function buildFullSave(gmState) {
     flags: gmState.worldFlags,
     npcs: gmState.rosterMutations || [],
     codex: gmState.codexMutations || [],
+    arc: gmState.arc || 1,
+    arcType: gmState.arcType || 'standard',
+    carry: gmState.carryForward || null,
+    arcHist: gmState.arcHistory || [],
     // Hand-authored worlds store their room graph minimally
     worldSnapshot: buildWorldSnapshot(gmState),
   };
@@ -575,6 +748,10 @@ function restoreFullSave(saveString) {
       ? { rooms: payload.worldSnapshot.rooms, startRoom: payload.worldSnapshot.startRoom }
       : null,
     rollHistory: [],
+    arc: payload.arc || 1,
+    arcType: payload.arcType || 'standard',
+    carryForward: payload.carry || null,
+    arcHistory: payload.arcHist || [],
   };
 }
 ```

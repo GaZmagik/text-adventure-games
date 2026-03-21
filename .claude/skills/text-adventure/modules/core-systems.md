@@ -9,6 +9,50 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: all other
 
 ---
 
+## CRITICAL — Arc Transition Rules
+
+When the player transitions to a new arc (via the "Continue to next arc" button at
+adventure conclusion), the following state changes apply. These rules are mandatory.
+
+### Carries Forward (persistent across arcs)
+
+- **Character identity:** name, class
+- **Character progression:** level, XP, stats (STR/DEX/CON/INT/WIS/CHA), proficiencies, abilities
+- **Character reputation:** narrative summary carried as world context
+- **Faction standings:** numeric values (-100 to +100) for each faction
+- **NPC dispositions:** alive/dead status, disposition state, trust score (0-100)
+- **Codex discoveries:** all lore entries the character has uncovered
+- **World consequences:** 3-5 major choice outcomes that shape the new arc's starting conditions
+
+### Resets (fresh start each arc)
+
+- **Inventory:** cleared — replaced with level-appropriate starting gear (see table below)
+- **HP:** restored to maxHp
+- **Active conditions:** cleared (no carried-over poison, curses, etc.)
+- **Scene position:** reset to scene 1, current room cleared
+- **Visited rooms:** cleared
+- **Active quests:** cleared — new arc generates new objectives
+- **Roll history:** cleared
+- **Time:** reset to arc start
+
+### Starting Gear by Level (new arc equipment)
+
+When a character transitions to a new arc, they receive gear appropriate to their
+current level. The GM may theme the gear to match the new arc's setting.
+
+| Level | Weapon | Armour | Consumables | Credits |
+|-------|--------|--------|-------------|---------|
+| 1-2 | Tier 1 (1d6 damage) | Light (AC +1) | 1 stim pack | 100 |
+| 3-4 | Tier 2 (1d8 damage) | Light (AC +1) | 2 stim packs, 1 med kit | 200 |
+| 5-6 | Tier 2 (1d8+1 damage) | Medium (AC +2) | 2 stim packs, 1 med kit | 350 |
+| 7-8 | Tier 3 (1d10 damage) | Medium (AC +2) | 3 stim packs, 2 med kits | 500 |
+| 9-10 | Tier 3 (1d10+2 damage) | Heavy (AC +3) | 3 stim packs, 2 med kits, 1 rare item | 750 |
+
+The weapon and armour tiers adapt to the setting — a Tier 2 weapon is a "plasma pistol"
+in a space arc, a "fine longsword" in fantasy, or a "combat shotgun" in post-apocalyptic.
+
+---
+
 ## Inventory System
 
 Inventory has limited capacity: **8 slots** by default, expandable via bags or equipment.

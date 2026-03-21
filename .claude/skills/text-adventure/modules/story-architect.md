@@ -12,6 +12,87 @@ procedural-world-gen, and session state from save-codex).
 
 ---
 
+## CRITICAL — Cross-Arc Thread Continuation
+
+When an arc concludes, the Story Architect determines which threads carry forward
+into the next arc. This is the narrative bridge between adventures.
+
+### Thread Fate at Arc Conclusion
+
+| Thread Status | Fate |
+|--------------|------|
+| `resolved` | Archived. Referenced in arc summary but not carried forward. |
+| `active` or `escalating` | If marked `crossArc: true`: seeded into new arc as `dormant`. Otherwise: force-resolved in epilogue. |
+| `climaxing` | Must resolve before arc ends. Cannot carry forward mid-climax. |
+| `dormant` | Carried forward automatically — these are unfinished business. |
+| `abandoned` | Dropped. Not carried forward. |
+
+### Marking Threads for Cross-Arc Carry
+
+Add `crossArc: true` to any thread that should persist across arc boundaries:
+
+```js
+{
+  id: 'naval-conspiracy',
+  type: 'faction',
+  status: 'active',
+  crossArc: true,  // this thread continues in the next arc
+  crossArcNote: 'The conspiracy extends beyond this ship.',
+}
+```
+
+### Seeding Threads from carryForward
+
+When a new arc begins, the Story Architect seeds threads from the previous arc's
+carryForward data:
+
+```js
+function seedThreadsFromCarryForward(carryForward, newArcNumber) {
+  const threads = [];
+
+  // Main thread: derived from world consequences
+  threads.push({
+    id: 'main-quest-arc' + newArcNumber,
+    type: 'main',
+    status: 'seeded',
+    priority: 1,
+    seedScene: 1,
+    crossArcOrigin: carryForward.worldConsequences,
+    // GM generates title and beats from consequences
+  });
+
+  // NPC threads: from NPCs with strong dispositions
+  carryForward.npcDispositions
+    .filter(n => n.alive && (n.toward_player > 70 || n.toward_player < 30))
+    .forEach(n => {
+      threads.push({
+        id: 'npc-' + n.id + '-arc' + newArcNumber,
+        type: 'npc-arc',
+        status: 'seeded',
+        priority: 3,
+        crossArcOrigin: { npcId: n.id, disposition: n.disposition },
+      });
+    });
+
+  // Faction threads: from factions with extreme standings
+  Object.entries(carryForward.factionStates)
+    .filter(([, standing]) => standing > 60 || standing < -60)
+    .forEach(([faction, standing]) => {
+      threads.push({
+        id: 'faction-' + faction + '-arc' + newArcNumber,
+        type: 'faction',
+        status: 'seeded',
+        priority: 2,
+        crossArcOrigin: { faction, standing },
+      });
+    });
+
+  return threads;
+}
+```
+
+---
+
 ## Architecture Overview
 
 ```
@@ -273,6 +354,62 @@ When it reaches 0, the next escalating thread should shift to climaxing.
   recentBeats: ["action", "dialogue", "discovery", "action", "confrontation"]
 }
 ```
+
+### Epic Arc Pacing (Level 5+ Required)
+
+Epic arcs extend the standard 3-act structure for longer, more complex narratives.
+They are only available when the player's character is level 5 or above.
+
+| Act | Scenes | Tension | Purpose |
+|-----|--------|---------|---------|
+| 1 | 1-6 | 2-5 | Extended establishment, multiple thread introductions, deeper world-building |
+| 2 | 7-14 | 4-9 | Multiple reversals, faction power shifts, alliance tests |
+| 3 | 15-20 | 6-10→3-4 | Multi-stage climax, cascading consequences, extended denouement |
+
+Epic arcs have:
+- **Higher complication budget:** 6-8 complications (vs 4-6 for standard)
+- **Tension ceiling of 10+** for climax moments (standard caps at 8)
+- **Multiple simultaneous escalating threads** (3-4 vs standard's 2-3)
+- **At least one major reversal** per act (standard has one in Act 2)
+
+### Branching Arc Paths
+
+Branching arcs add decision points at arc conclusion that determine the next arc's
+scenario. The Story Architect tracks these via `branchPoints`:
+
+```js
+branchPoints: [
+  {
+    scene: 15,                // when the branch is presented
+    description: 'The conspiracy is exposed. What does Tessa do next?',
+    paths: [
+      {
+        id: 'witness-protection',
+        label: 'Enter witness protection',
+        consequence: 'Tessa disappears. New identity, new station, old enemies.',
+        nextArcSeed: 'witness-protection',
+      },
+      {
+        id: 'double-agent',
+        label: 'Go undercover inside Meridian',
+        consequence: 'Tessa becomes a double agent. Higher stakes, deeper cover.',
+        nextArcSeed: 'double-agent',
+      },
+      {
+        id: 'freelance',
+        label: 'Go freelance with the evidence',
+        consequence: 'Tessa sells information to the highest bidder. Everyone is a client and a threat.',
+        nextArcSeed: 'freelance',
+      },
+    ],
+    chosen: null,  // set when player decides
+  },
+]
+```
+
+At arc conclusion, branching arcs present the paths as action cards in the conclusion
+widget instead of a single "Continue to next arc" button. The chosen path determines
+the `nextArcSeed` which is passed to `deriveArcSeed()` in procedural-world-gen.
 
 ---
 

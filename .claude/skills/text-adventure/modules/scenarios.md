@@ -220,3 +220,86 @@ The player may describe their own scenario concept. In this case:
 - Never omit the fourth "GM's Choice" scenario — it provides creative range.
 - Never copy scenario hooks verbatim between sessions — generate fresh hooks each time,
   even if using the same structural archetypes.
+
+---
+
+## Arc Templates
+
+Arcs define how adventures connect across multiple sessions. Each adventure is one
+arc. The arc type determines scope, difficulty, and narrative structure.
+
+### Standard Arcs (Level 1+)
+
+Standard arcs are self-contained stories with beginning, middle, and end. They are
+available from level 1 and follow the standard 3-act pacing (10-15 scenes).
+
+At standard arc conclusion, the player is offered:
+- **Continue to next arc** — carry character forward into a new adventure
+- **Save** — preserve game state for later
+- **Export** — share the world as `.lore.md`
+- **New game** — fresh start
+
+Standard arcs generate a follow-on scenario based on the `carryForward` world
+consequences. The GM creates new scenario cards that reflect what happened — not
+the default starter scenarios.
+
+### Epic Arcs (Level 5+ Required)
+
+Epic arcs are longer, more complex narratives (15-20 scenes) with higher stakes
+and deeper faction interplay. They are only offered when the player's character
+has reached level 5 or above.
+
+Epic scenario cards display an **EPIC** badge and include:
+- A hook that references the player's existing reputation and faction standings
+- Higher-tier adversaries (from bestiary.md elite/boss tiers)
+- Multi-faction conflict as a central theme
+- At least one scene that requires the player to choose between allied factions
+
+**Epic Arc Scenario Hooks by Genre:**
+
+| Genre | Epic Arc Hook |
+|-------|--------------|
+| Space | "The Covenant Conspiracy" — a multi-system investigation into a corporate cover-up that reaches the colonial government |
+| Fantasy | "The Sundering" — a continent-spanning threat requiring alliances between rival kingdoms |
+| Horror | "The Convergence" — ancient entities stir across multiple sites, each connected to the player's past choices |
+| Cyberpunk | "Protocol Zero" — a rogue AI has compromised every faction the player has dealt with |
+| Post-Apocalyptic | "The Last Frequency" — a signal from before the fall offers salvation or extinction |
+| Historical | "The Crown Conspiracy" — political intrigue spanning three courts, each with agents the player has encountered |
+
+### Branching Arcs
+
+Branching arcs present 2-3 possible follow-on arcs at conclusion. The player's
+choice determines the next adventure's scenario, setting, and stakes.
+
+Branching scenario cards display a **BRANCHING** badge and include:
+- A description of each path's consequences
+- Visual differentiation between paths (different genre pills, tone indicators)
+- No "recommended" labels — the player decides
+
+**Example Branching Structure:**
+
+```
+Arc 1: The Quiet Berth (standard)
+  └─ Conclusion: conspiracy exposed
+     ├─ Path A: "Witness Protection" — new identity, station-based intrigue
+     ├─ Path B: "The Double Agent" — undercover inside Meridian Shipping
+     └─ Path C: "Free Agent" — freelance intelligence broker, everyone is a client
+
+Arc 2: [chosen path] (standard or epic if level 5+)
+  └─ Conclusion: depends on path
+     ├─ ...further branching...
+     └─ ...or convergence to a shared climax...
+```
+
+### Arc Continuation Scenario Generation
+
+When starting a new arc (not a fresh game), the GM generates scenario cards that
+reflect the `carryForward` state rather than using the default starter scenarios:
+
+1. Read `carryForward.worldConsequences` — these are the hooks for the new arc
+2. Read `carryForward.factionStates` — faction standings shape available scenarios
+3. Read `carryForward.previousArcSummaries` — narrative continuity
+4. Generate 3-4 scenario cards that continue the story naturally
+5. If the player is level 5+, include at least one epic arc option
+6. If the previous arc was branching, use the chosen path's `nextArcSeed`
+7. Present cards with the same format as starter scenarios (genre badge, hook, flavour tags, selection button)

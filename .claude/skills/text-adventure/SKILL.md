@@ -3,7 +3,7 @@ name: text-adventure
 
 description: Use this skill whenever the user wants to play, run, or build an interactive text adventure game. Triggers include "text adventure", "play a game", "run a campaign", "tabletop RPG", "D&D-style game", "interactive story", "dungeon crawl", "choose your own adventure", "space adventure", "sci-fi RPG", "interactive fiction", "story game", "MUD", "text-based game", or any request to begin a narrative game with player decisions, character stats, or dice-based outcomes. Also use when the user wants to continue a prior adventure session or set up a new scenario. This skill is the orchestrator — it contains the complete core game engine and loads expansion modules from the modules/ directory as needed. Do NOT use for purely creative writing tasks that require no player agency or mechanical resolution.
 metadata:
-  version: "1.0.6"
+  version: "1.1.0"
 ---
 
 # Text Adventure Game — Core Engine
@@ -32,27 +32,44 @@ SKILL.md (orchestrator)
   Core game engine: session lifecycle, character creation, die rolls,
   scene rendering, panel system, combat, maps, XP/levelling, visual rules.
 
-modules/
-  scenarios.md            Starter scenarios and theme adaptation (space, fantasy, horror, etc.)
-  character-creation.md   Archetypes, stats, equipment, theme-adapted names
-  core-systems.md         Inventory, economy, factions, quests, time, XP, session recap
-  die-rolls.md            Progressive d20 resolution (declare → animate → resolve → continue)
-  rpg-systems.md          Alternative systems: GURPS Lite, PF2e Lite, Shadowrun 5e Lite, Narrative
-  bestiary.md             Adversary templates, encounter building, threat tiers
-  ship-systems.md         Vessel integrity, power allocation, damage, repair
-  crew-manifest.md        Living crew with morale, tensions, secrets
-  star-chart.md           Sector navigation, jump routes, faction territory
-  geo-map.md              On-world maps: settlements, wilderness, dungeons
-  lore-codex.md           Player-facing encyclopaedia with discovery states
-  ai-npc.md               Live AI-powered NPC dialogue via Anthropic API
-  procedural-world-gen.md Seed-based deterministic world generation
-  save-codex.md           Session persistence via copyable strings
-  genre-mechanics.md      Genre-specific mechanical additions
-  story-architect.md      Plotline tracking, foreshadowing, consequence chains, dramatic pacing
-  world-history.md        Pre-adventure world building, epochs, power structures, cultural layer
-  adventure-authoring.md  .lore.md file format for authored adventures
-  adventure-exporting.md  Export live game world as shareable .lore.md file
-  gm-checklist.md         Mandatory quality gates: new game, scene, die roll, combat checklists
+TIER 1 — MUST READ before rendering any widget
+  You MUST read every file in this tier IN FULL before generating the
+  first widget of any session. Skipping these produces broken widgets,
+  missing mechanics, and visual style drift. This is not optional.
+
+  modules/gm-checklist.md         Mandatory quality gates — read FIRST
+  styles/style-reference.md       Structural patterns, CSS contract, worked examples
+  styles/{active-style}.md        Active visual style CSS custom properties
+  modules/die-rolls.md            Four-stage d20 resolution, 3D dice, DC tables
+  modules/character-creation.md   Archetypes, stats, equipment, theme-adapted names
+  modules/core-systems.md         Inventory, economy, factions, quests, time, XP
+  modules/scenarios.md            Starter scenarios, theme adaptation, arc templates
+
+TIER 2 — READ when scenario activates (before opening scene)
+  Load based on scenario type and player settings. Read after Tier 1
+  is complete, before the opening scene renders.
+
+  modules/save-codex.md           Session persistence (always load)
+  modules/bestiary.md             Adversary templates, encounter building (always load)
+  modules/story-architect.md      Plotline tracking (recommended for >3 scenes)
+  modules/ship-systems.md         When player commands a vessel (optional)
+  modules/crew-manifest.md        When player has a crew (optional)
+  modules/star-chart.md           When space travel between systems (optional)
+  modules/geo-map.md              When on-world exploration (optional)
+  modules/procedural-world-gen.md When procedural or hybrid mode (optional)
+  modules/world-history.md        Recommended for all adventures (optional)
+  modules/lore-codex.md           Lore discovery tracking, codex entry states (always load)
+  modules/rpg-systems.md          Alternative rule systems — load if non-default rulebook selected at setup
+  modules/ai-npc.md               NPC stats, dialogue, hidden contested rolls (always load)
+  modules/atmosphere.md           Visual atmosphere: particles, lighting, UI degradation (optional)
+  modules/audio.md                Procedural soundscapes via Web Audio API (optional)
+
+TIER 3 — READ on demand when player triggers
+  Do not pre-load. Read only when the player triggers the feature.
+
+  modules/adventure-exporting.md  When player requests world export
+  modules/adventure-authoring.md  When player uploads .lore.md
+  modules/genre-mechanics.md      When genre overlay activated (magic, sanity, etc.)
 
 styles/
   style-reference.md      Structural patterns: panel CSS, scene skeleton, die shapes,
@@ -96,11 +113,16 @@ styles/
 [Scenario Select] → [Game Settings] → [Character Creation] → [Opening Scene]
     → [Explore / Decide] → [Roll to Resolve] → [Outcome] → [World Updates]
     → [Next Scene] → ... → [Level Up] → [Climax / Ending]
+    → [Arc Conclusion Widget] → [Continue to Next Arc | Save | Export | New Game]
+    → [Arc Transition: build carryForward, derive seed, reset state]
+    → [New Arc Opening Scene] → ...
 ```
 
 Scenario is selected first so that game settings (including active modules) can be
 tailored to the chosen scenario. Always advance in order — never skip character creation,
-never reveal outcomes before rolls.
+never reveal outcomes before rolls. Arc transitions follow the **Arc Transition Checklist**
+in `modules/gm-checklist.md` — the GM must build the carryForward object, derive a new
+seed, and reset state before rendering the new arc's opening scene.
 
 ---
 
@@ -127,6 +149,13 @@ by the chosen scenario.
 | Pacing | Fast (shorter scenes), Normal, Slow (deeper exploration) | Normal |
 | Visual Style | Any `.md` file in `styles/` (e.g., Terminal, Parchment, Neon, Stained Glass) | Auto-select based on scenario theme |
 | Active Modules | Checkboxes (pre-selected per scenario type) | Per scenario defaults |
+| Atmosphere | On / Off | On |
+| Audio | On / Off | Off |
+
+- **Atmosphere:** On / Off (default: On) — enables visual atmosphere effects (particles,
+  dynamic lighting, screen shake, UI degradation). See `modules/atmosphere.md`.
+- **Audio:** On / Off (default: Off) — enables procedural ambient soundscapes. Sounds play
+  on demand via Play/Stop button, max 30 seconds, no auto-loop. See `modules/audio.md`.
 
 **d20 System (default):** STR/DEX/INT/WIS/CON/CHA, d20 rolls, DC thresholds, modifiers = `floor((stat - 10) / 2)`.
 The built-in system from core-systems.md. Best for casual play.
@@ -602,16 +631,39 @@ or escaped), present a **conclusion widget** with:
 - **Adventure summary** — scenes completed, quests resolved, NPCs met, key choices made
 - **Final character stats** — level, XP, inventory highlights
 - **Post-adventure options:**
+  - `sendPrompt('Continue to the next arc. Carry my character forward.')` — **arc continuation**:
+    builds carryForward, derives new seed, transitions to new arc (see Arc Transition below)
   - `sendPrompt('Start a new adventure in this world.')` — begins a new adventure with the
-    same character in the same world (sequel)
+    same character in the same world (sequel, no arc carry-forward)
   - `sendPrompt('Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format.')` — share the world for
     someone else to play (if adventure-exporting module is active)
   - `sendPrompt('Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md. Use YAML frontmatter plus an encoded SC1: or SF1: payload string. Never write game state as human-readable markdown.')` — final save
   - `sendPrompt('Start a completely new game.')` — fresh start
 
+For **branching arcs**, replace the single "Continue to next arc" button with 2-3 path
+buttons, each describing a different follow-on arc:
+- `sendPrompt('Continue to arc: [Path Name]. Carry my character forward.')`
+
+For **epic arcs**, show an **EPIC** badge on the continue option if the player is level 5+.
+If the player is below level 5, epic arc options are hidden.
+
 The Export option is particularly valuable at conclusion — the world is at its richest state,
 shaped by every decision the player made. Another player inheriting this world gets the most
 interesting starting position possible.
+
+### Arc Transition
+
+When the player clicks "Continue to next arc", the GM follows the **Arc Transition Checklist**
+in `modules/gm-checklist.md`. The key steps:
+
+1. Build `carryForward` from current `gmState` (see `modules/save-codex.md`)
+2. Derive new seed: `originalSeed + '_arc' + newArcNumber`
+3. Reset state per `modules/core-systems.md` Arc Transition Rules
+4. Apply carried character, factions, NPC dispositions, world consequences
+5. Generate starting gear based on character level
+6. Seed new story threads from carryForward (see `modules/story-architect.md`)
+7. Generate new world from derived seed
+8. Present arc opening scene — reference prior arc consequences in narrative
 
 ---
 
@@ -701,6 +753,11 @@ const gmState = {
   quests: [],             // quest tracker
   factions: {},           // faction standing (-100 to +100)
   time: { period: 'morning', day: 1, date: null, calendar: null },
+  // Arc system — campaign carry-forward (see save-codex.md)
+  arc: 1,                 // current arc number (default 1)
+  arcType: 'standard',    // 'standard' | 'epic' | 'branching'
+  arcHistory: [],         // summaries of previous arcs (max 3, FIFO)
+  carryForward: null,     // carried state from previous arc (null for arc 1)
   // Module state — populated when modules are active
   shipState: null,        // ship-systems module
   crewState: null,        // crew-manifest module
