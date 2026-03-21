@@ -228,21 +228,57 @@ theme, stat arrays stay fixed.
 
 ### Character Confirm Button
 
-The confirm button MUST serialise the character name, class, and stats into the sendPrompt
-payload. Without this, Claude knows the character is "ready" but not who they are.
+The confirm button MUST serialise the character data AND the game settings into the
+sendPrompt payload. By the time the player confirms their character, the settings
+confirmation is 2–3 messages back in the conversation. If settings are not re-stated
+here, Claude loses track of which modules, difficulty, visual style, atmosphere, and
+audio were selected — resulting in missing atmosphere effects, absent audio, and
+incorrect module loading on the opening scene.
+
+The GM must embed the confirmed settings as a hidden `#game-settings` div in the
+character creation widget so the confirm button can read them:
+
+```html
+<!-- GM embeds this when rendering the character creation widget -->
+<div id="game-settings" style="display:none"
+  data-rulebook="d20_system"
+  data-difficulty="normal"
+  data-pacing="normal"
+  data-style="parchment"
+  data-atmosphere="on"
+  data-audio="on"
+  data-modules="save-codex,bestiary,story-architect,lore-codex,ai-npc,geo-map,atmosphere,audio">
+</div>
+```
 
 ```js
 const name = document.getElementById('char-name').value || 'Unnamed';
 const archetype = document.querySelector('[name="archetype"]:checked')?.value || 'Soldier';
 const stats = JSON.parse(document.getElementById('stat-block').dataset.stats || '{}');
+const profs = Array.from(document.querySelectorAll('.prof-selected')).map(el => el.textContent);
+const gear = Array.from(document.querySelectorAll('.equip-tag')).map(el => el.textContent);
 
-const prompt = `My character is ready. Name: ${name}. Class: ${archetype}. `
-  + `Stats: STR ${stats.STR}, DEX ${stats.DEX}, INT ${stats.INT}, `
-  + `WIS ${stats.WIS}, CON ${stats.CON}, CHA ${stats.CHA}. Begin the adventure.`;
+// Read settings from hidden div embedded by the GM
+const gs = document.getElementById('game-settings');
+const settingsStr = gs
+  ? `Rulebook: ${gs.dataset.rulebook}. Difficulty: ${gs.dataset.difficulty}. `
+    + `Pacing: ${gs.dataset.pacing}. Visual style: ${gs.dataset.style}. `
+    + `Atmosphere: ${gs.dataset.atmosphere}. Audio: ${gs.dataset.audio}. `
+    + `Active modules: ${gs.dataset.modules}.`
+  : '';
+
+const prompt = `My character is ready. Begin the adventure. `
+  + `Name: ${name}. Class: ${archetype}. `
+  + `STR: ${stats.STR}, DEX: ${stats.DEX}, INT: ${stats.INT}, `
+  + `WIS: ${stats.WIS}, CON: ${stats.CON}, CHA: ${stats.CHA}. `
+  + `Proficiencies: ${profs.join(', ')}. `
+  + `Equipment: ${gear.join(', ')}. `
+  + settingsStr;
 ```
 
-**Rule:** Never use a static string like "My character is ready" — the name, class, and
-stats must be in the prompt or Claude will invent them.
+**Rule:** Never use a static string like "My character is ready" — the name, class,
+stats, AND game settings must be in the prompt or Claude will invent the character
+and forget which modules are active.
 
 ---
 
