@@ -17,6 +17,8 @@ modules/
   adventure-authoring.md  .lore.md file format for authored adventures
   adventure-exporting.md  Export live game world as shareable .lore.md file
   ai-npc.md               Live AI-powered NPC dialogue via Anthropic API
+  atmosphere.md           Visual atmosphere: particles, lighting, screen shake, UI degradation
+  audio.md                Procedural ambient soundscapes via Web Audio API
   bestiary.md             Adversary templates, encounter building, threat tiers
   character-creation.md   Archetypes, stats, equipment, theme-adapted names
   core-systems.md         Inventory, economy, factions, quests, time, XP, session recap
@@ -24,11 +26,12 @@ modules/
   die-rolls.md            Progressive d20 resolution (declare → animate → resolve → continue)
   genre-mechanics.md      Genre-specific mechanical additions
   geo-map.md              On-world maps: settlements, wilderness, dungeons
-  gm-checklist.md         Mandatory quality gates for all gameplay moments
+  gm-checklist.md         Mandatory quality gates, turn-start module loading, prose verification
   lore-codex.md           Player-facing encyclopaedia with discovery states
-  procedural-world-gen.md Seed-based deterministic world generation
+  procedural-world-gen.md Seed-based deterministic world generation (seeded NPC pronouns + stats)
+  prose-craft.md          Sentence-level prose quality: show-don't-tell, rhythm, dialogue craft
   rpg-systems.md          Alternative systems: GURPS Lite, PF2e Lite, Shadowrun 5e Lite, Narrative
-  save-codex.md           Session persistence via copyable strings
+  save-codex.md           Session persistence: character, world, story threads, ship, crew, map, time
   scenarios.md            Starter scenarios and theme adaptation (space, fantasy, horror, etc.)
   ship-systems.md         Vessel integrity, power allocation, damage, repair
   star-chart.md           Sector navigation, jump routes, faction territory
