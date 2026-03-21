@@ -1,6 +1,6 @@
 # Text Adventure Games for Claude
 
-A modular text adventure engine for Claude Desktop, built entirely as Claude skills. Play immersive, widget-rendered adventures with full RPG mechanics, procedural generation, and multiple narrative styles.
+A modular text adventure engine for Claude, built entirely as Claude skills. Works on both **claude.ai** and **Claude Desktop**. Play immersive, widget-rendered adventures with full RPG mechanics, procedural generation, and multiple narrative styles.
 
 ## What's Included
 
@@ -45,9 +45,19 @@ The game engine selects a visual style during setup based on the genre, or the p
 
 ### Prerequisites
 
-- [Claude Desktop](https://claude.ai/download) (macOS or Windows)
+- [claude.ai](https://claude.ai) (web) or [Claude Desktop](https://claude.ai/download) (macOS or Windows)
 
 ### Installing the Skill
+
+#### claude.ai (web)
+
+1. Download `text-adventure.zip` from this repository.
+2. Open **claude.ai** in your browser.
+3. Click **Customise Claude** (the sliders icon in the sidebar).
+4. Under **Skills**, click **Add Skill**.
+5. Upload the `.zip` file.
+
+#### Claude Desktop
 
 1. Download `text-adventure.zip` from this repository.
 2. Open **Claude Desktop**.
@@ -60,7 +70,7 @@ The game engine selects a visual style during setup based on the genre, or the p
 1. Navigate to the `.claude/output-styles/` folder in this repository.
 2. Open the `.md` file for the style you want (e.g., `Gothic-Horror.md`).
 3. Copy the entire contents of the file.
-4. In **Claude Desktop**, click **Customise Claude**.
+4. In **claude.ai** or **Claude Desktop**, click **Customise Claude**.
 5. Under **Output Styles**, click **Add Style**.
 6. Paste the contents and save.
 
@@ -68,7 +78,7 @@ The game engine selects a visual style during setup based on the genre, or the p
 
 ## Getting Started
 
-Once the skill and a style are installed, start a new conversation in Claude Desktop and say:
+Once the skill and a style are installed, start a new conversation and say:
 
 - **"Play a text adventure"** — starts the engine with genre/setting selection
 - **"Run a gothic horror campaign"** — starts with the Gothic Horror style active
