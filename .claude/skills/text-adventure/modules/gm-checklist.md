@@ -112,14 +112,17 @@ DIE ROLL CHECKLIST
 □  1. The player has already committed to an action (never pre-announce the check)
 □  2. The attribute was NOT revealed in the action options
 □  3. The DC is set but NOT revealed to the player
-□  4. Stage 1 (Declare): show action, attribute, modifier — NOT the DC
-□  5. Stage 2 (Animate): die button is clickable, NOT auto-rolled
-□  6. Stage 3 (Resolve): show raw roll + modifier + proficiency (if applicable) = total,
+□  4. Use the 3D Three.js die — load from CDN, render the correct polyhedron
+     for the die type (d20=icosahedron, d6=cube, d8=octahedron, etc.)
+□  5. Stage 1 (Declare): show action, attribute, modifier — NOT the DC
+□  6. Stage 2 (Animate): 3D die button is clickable, NOT auto-rolled — tumble animation
+□  7. Stage 3 (Resolve): show raw roll + modifier + proficiency (if applicable) = total,
      THEN reveal DC, THEN outcome badge
-□  7. Stage 4 (Continue): proceed button with sendPrompt + fallback
-□  8. All four stages are in a SINGLE widget — never split across messages
-□  9. No consequences described in the roll widget — those go in the next scene
-□ 10. The widget is the ONLY output — no prose before or after
+□  8. Stage 4 (Continue): proceed button with sendPrompt + fallback
+□  9. All four stages are in a SINGLE widget — never split across messages
+□ 10. No consequences described in the roll widget — those go in the next scene
+□ 11. The widget is the ONLY output — no prose before or after
+□ 12. Never use flat CSS circles or rectangles for dice — always 3D polyhedra
 ```
 
 ---
