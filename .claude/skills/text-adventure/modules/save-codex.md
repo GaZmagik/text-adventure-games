@@ -21,6 +21,23 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: all other
 
 ---
 
+## CRITICAL — Resume Setup Requirements
+
+**Resuming from a save requires the same engine boot as a new game.** Before rendering
+the resume scene, the GM **must** follow the **Resume from Save Checklist** in
+`modules/gm-checklist.md`. The most commonly skipped steps:
+
+1. **Read the active visual style file** from `styles/` (determined by save metadata)
+2. **Read `styles/style-reference.md`** for structural patterns
+3. **Load all required modules** for the scenario type
+4. **Reinitialise storyArchitect and worldHistory** from restored state
+
+Skipping these causes visual style drift, missing module behaviour, and broken
+narrative tracking. A resume is not "just render a scene" — it is a full engine boot
+with pre-loaded state.
+
+---
+
 ## Architecture Overview
 
 ```
@@ -78,6 +95,7 @@ location: "The Oxidiser — Bar Floor"
 date-saved: "2026-03-19T22:30:00Z"
 game-title: "Freeport Meridian"
 theme: "space"
+visual-style: "station"
 seed: "pale-threshold-7"
 mode: "compact"
 ---
@@ -110,6 +128,7 @@ SC1:eyJ2IjoxLCJtb2RlIjoiY29tcGFjdCIsInNlZWQiOiJwYWxlLXRocmVzaG9sZC03...
 | `date-saved` | Yes | ISO 8601 timestamp |
 | `game-title` | Yes | Adventure/campaign title |
 | `theme` | Yes | Genre theme (space, fantasy, horror, etc.) |
+| `visual-style` | Yes | Active visual style filename without extension (e.g. `station`, `neon`) |
 | `seed` | If compact | World generation seed |
 | `mode` | Yes | `compact` or `full` |
 
@@ -1197,11 +1216,27 @@ gmState.codex = applyCodexMutations(
 );
 ```
 
-### Step 4 — Render the resume scene
+### Step 4 — Boot the engine (CRITICAL)
 
-Once `gmState` is reconstructed, render a scene widget for the current room with a
-brief "resumed from save" context note — one sentence only, then the scene continues normally.
-Do not replay what happened before. The player remembers; the codex remembers.
+**Before rendering anything**, follow the **Resume from Save Checklist** in
+`modules/gm-checklist.md`. This means:
+
+1. Read the active visual style file from `styles/` (use `visual-style` from save
+   metadata, or default to `station`)
+2. Read `styles/style-reference.md` for structural patterns
+3. Load all required modules for the scenario type
+4. Reinitialise storyArchitect from worldFlags and codexMutations
+5. Reinitialise worldHistory context from seed/theme (if procedural)
+
+**Do not skip this step.** Without it, the resume scene renders with default styling
+and missing module behaviour.
+
+### Step 5 — Render the resume scene
+
+Once the engine is booted and `gmState` is reconstructed, render a scene widget for
+the current room with a brief "resumed from save" context note — one sentence only,
+then the scene continues normally. Do not replay what happened before. The player
+remembers; the codex remembers.
 
 ```
 "You find yourself back in the [room name]. The weight of everything that's happened is still
