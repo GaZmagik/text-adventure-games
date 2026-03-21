@@ -137,27 +137,17 @@ document.querySelectorAll('.prof-choice-btn').forEach(btn => {
 });
 ```
 
-**CRITICAL:** The confirmation `sendPrompt` must include ALL character data — name,
-archetype, stats, proficiencies, and starting equipment. There is no persistent client-side
-`gmState` between widget renders. Each widget is a fresh iframe. The ONLY data that crosses
-the boundary between the player's widget and the GM is the sendPrompt string. If data is
-not in the prompt, the GM does not have it.
+**CRITICAL:** The confirmation `sendPrompt` must include ALL character data AND the game
+settings from the previous step. There is no persistent client-side `gmState` between widget
+renders. Each widget is a fresh iframe. The ONLY data that crosses the boundary between the
+player's widget and the GM is the sendPrompt string. If data is not in the prompt, the GM
+does not have it.
 
-```js
-// Build the confirm prompt with all character data serialised
-const name = document.getElementById('char-name').value || 'Unnamed';
-const archetype = document.querySelector('[name="archetype"]:checked')?.value;
-const stats = JSON.parse(document.getElementById('stat-block').dataset.stats || '{}');
-const profs = Array.from(document.querySelectorAll('.prof-selected')).map(el => el.textContent);
-const gear = Array.from(document.querySelectorAll('.equip-tag')).map(el => el.textContent);
-
-const prompt = `My character is ready. Begin the adventure. `
-  + `Name: ${name}. Class: ${archetype}. `
-  + `STR: ${stats.STR}, DEX: ${stats.DEX}, INT: ${stats.INT}, `
-  + `WIS: ${stats.WIS}, CON: ${stats.CON}, CHA: ${stats.CHA}. `
-  + `Proficiencies: ${profs.join(', ')}. `
-  + `Equipment: ${gear.join(', ')}.`;
-```
+The GM must embed the confirmed game settings as a hidden `#game-settings` div when
+rendering this widget (see SKILL.md § Character Confirm Button for the full pattern).
+The confirm button reads from that div and includes both character data and settings
+in the sendPrompt string. Without this, the GM forgets which modules, atmosphere, audio,
+and visual style were selected — resulting in a broken opening scene.
 
 ---
 

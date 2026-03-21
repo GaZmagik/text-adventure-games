@@ -63,13 +63,19 @@ NEW GAME CHECKLIST
 □  5. Load required modules for the selected scenario
 □  6. Read the active visual style file from styles/
 □  7. Read styles/style-reference.md for structural patterns
-□  8. Present Character Creation widget (name input with Random button, archetype selection)
+□  8. Present Character Creation widget — MUST embed confirmed settings as a hidden
+     #game-settings div so the confirm button can forward them (see SKILL.md)
 □  9. Wait for player to confirm character — do NOT auto-generate without input
-□ 10. Initialise gmState with all module-specific state properties
-□ 11. Initialise storyArchitect with seeded threads for the scenario
-□ 12. Initialise worldHistory with epochs and power structures
-□ 13. Generate the opening scene as a widget — NOT as plain text
-□ 14. Verify: is ALL game content inside the widget? No prose outside?
+□ 10. Parse settings AND character data from the confirm prompt — the prompt contains
+     both (rulebook, difficulty, pacing, style, atmosphere, audio, modules, AND
+     name, class, stats, proficiencies, equipment). Apply ALL settings now.
+□ 11. Initialise gmState with all module-specific state properties
+□ 12. Initialise storyArchitect with seeded threads for the scenario
+□ 13. Initialise worldHistory with epochs and power structures
+□ 14. Generate the opening scene as a widget — NOT as plain text
+     Include atmosphere effects if atmosphere=on. Include audio if audio=on.
+     Apply the correct visual style. Load geo-map if active.
+□ 15. Verify: is ALL game content inside the widget? No prose outside?
 ```
 
 ---
