@@ -8,7 +8,7 @@ A modular text adventure engine for Claude, built entirely as Claude skills. Wor
 
 | File | Description |
 |------|-------------|
-| `text-adventure.zip` | Core text adventure engine — orchestrator with 22 modular expansions covering character creation, combat, ship systems, crew management, navigation, procedural world generation, and more. Supports multiple rule systems (d20, GURPS Lite, Pathfinder 2e Lite, Shadowrun 5e Lite, Narrative Engine). |
+| `text-adventure.zip` | Core text adventure engine — orchestrator with 24 modular expansions covering character creation, combat, ship systems, crew management, navigation, procedural world generation, prose craft, atmosphere, audio, and more. Supports multiple rule systems (d20, GURPS Lite, Pathfinder 2e Lite, Shadowrun 5e Lite, Narrative Engine). Full save persistence for story threads, ship damage, crew morale, map state, and time tracking. |
 
 ### Output Styles
 
@@ -81,8 +81,9 @@ If you already have an older version of the skill installed:
    "Resume my adventure from this save file." Your character, world, and progress
    will be restored.
 
-> **Note:** Saves are forward-compatible. A save from v1.0.x will load in v1.1.0 —
-> new features (arcs, NPC stats) will activate automatically with sensible defaults.
+> **Note:** Saves are forward-compatible. A save from any earlier version will load in v1.2.0 —
+> new features (arcs, NPC pronouns/stats, story threads, ship state, crew morale, map state,
+> time tracking) will activate automatically with sensible defaults.
 
 ### Installing Output Styles
 
