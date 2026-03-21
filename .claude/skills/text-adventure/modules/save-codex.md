@@ -214,7 +214,7 @@ function showInlineSave() {
 ```js
 document.getElementById('save-btn').addEventListener('click', function() {
   if (typeof sendPrompt === 'function') {
-    sendPrompt('Generate my save file as a downloadable .save.md file.');
+    sendPrompt('Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md. Use YAML frontmatter plus an encoded SC1: or SF1: payload string. Never write game state as human-readable markdown.');
     this.textContent = 'Generating...';
     this.disabled = true;
   } else {
@@ -237,7 +237,7 @@ The `#save-data` div is used for the **inline fallback display** — if `sendPro
 unavailable, the save string is shown in a readonly textarea for manual copying.
 
 The **primary save path** is `sendPrompt()`: when the player clicks Save, the button fires
-`sendPrompt('Generate my save file as a downloadable .save.md file.')`. Claude receives this
+`sendPrompt('Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md. Use YAML frontmatter plus an encoded SC1: or SF1: payload string. Never write game state as human-readable markdown.')`. Claude receives this
 prompt and must:
 
 1. Compute the save payload from the current `gmState` using `buildCompactSave()` or
@@ -1216,7 +1216,7 @@ Extend the scene widget footer with a save button alongside the codex button:
 
 ```html
 <button class="footer-btn" id="save-btn"
-  data-prompt="Generate my save file as a downloadable .save.md file."
+  data-prompt="Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md. Use YAML frontmatter plus an encoded SC1: or SF1: payload string. Never write game state as human-readable markdown."
   style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.08em;
   background:transparent; border:0.5px solid var(--color-border-tertiary);
   border-radius:var(--border-radius-md); padding:4px 10px;

@@ -450,7 +450,7 @@ silently block Blob downloads in Claude.ai widgets.
 
 When the player clicks the Export button, the widget fires:
 ```js
-sendPrompt('Export my world as a downloadable .lore.md file.');
+sendPrompt('Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format.');
 ```
 
 Claude receives this prompt and must:
@@ -561,7 +561,7 @@ of what is included versus stripped, and the download mechanism.
 
   <!-- Actions -->
   <div class="export-actions">
-    <button class="export-btn export-btn-primary" id="export-btn" data-prompt="Export my world as a downloadable .lore.md file.">Export .lore.md ↗</button>
+    <button class="export-btn export-btn-primary" id="export-btn" data-prompt="Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format.">Export .lore.md ↗</button>
     <button class="export-btn export-btn-secondary" id="copy-btn">Copy to clipboard</button>
     <button class="export-btn export-btn-secondary" data-prompt="Cancel the export. Continue the adventure.">Cancel ↗</button>
   </div>
