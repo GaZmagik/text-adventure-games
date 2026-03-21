@@ -73,6 +73,39 @@ NEW GAME CHECKLIST
 
 ---
 
+## Resume from Save Checklist
+
+When resuming from a save file (player pastes a save string, uploads a `.save.md`, or
+says "continue from save"), verify each step IN ORDER. The resume flow must perform the
+same setup as a new game — skipping these steps causes visual style drift, missing
+modules, and broken narrative tracking.
+
+```
+RESUME FROM SAVE CHECKLIST
+═══════════════════════════════════════════
+□  1. Parse and validate the save payload (checksum, version, mode)
+□  2. Warn (do not block) if skill-version differs from current version
+□  3. Determine visual style from save metadata (or use default: station)
+□  4. Read the active visual style file from styles/
+□  5. Read styles/style-reference.md for structural patterns
+□  6. Determine required modules from save metadata (theme, mode, world flags)
+□  7. Load all required modules — same set as a new game for this scenario type
+□  8. Reconstruct gmState from save payload (compact: regenerate + apply deltas;
+     full: restore directly)
+□  9. Reinitialise storyArchitect from worldFlags and codexMutations
+□ 10. Reinitialise worldHistory context from seed/theme (if procedural)
+□ 11. Render the resume scene as a widget using the active visual style
+□ 12. Include: footer with panel buttons + Save ↗ + Export ↗ (if module active)
+□ 13. Include: pre-computed #save-data div for save fallback
+□ 14. Verify: is ALL game content inside the widget? No prose outside?
+```
+
+**Critical:** Steps 4–7 are the ones most commonly skipped on resume. Without them,
+Claude falls back to default styling and missing module behaviour. The resume flow
+must boot the full engine, not just restore the data.
+
+---
+
 ## New Scene Checklist
 
 Before generating EVERY scene widget, verify each item. No exceptions — not even for
