@@ -172,6 +172,8 @@ Close button only; the scene footer is not their responsibility.
       <div class="panel-content" data-panel="nav"></div>
     </div>
   </div>
+  <!-- Scene metadata (hidden, machine-readable — consumed by Turn-Start Module Checklist) -->
+  <div id="scene-meta" style="display:none" data-meta='{ SEE SCHEMA BELOW }'></div>
   <!-- Footer (always visible, outside reveal) -->
   <div class="footer-row">
     <button class="footer-btn" data-panel="character" aria-expanded="false">Character</button>
@@ -198,6 +200,133 @@ document.getElementById('panel-close-btn').addEventListener('click', closePanel)
 select, map, combat, outcome, level-up, death/down) are generated dynamically by the GM
 following the rules in SKILL.md. They do not need fixed templates — Claude builds them fresh
 each time, following the structural and visual rules defined in the orchestrator.
+
+---
+
+## Scene Metadata (`#scene-meta`)
+
+Every scene widget must include a hidden `#scene-meta` div containing JSON metadata about
+the current scene. This div is invisible to the player but is consumed by the GM's
+Turn-Start Module Checklist (see `modules/gm-checklist.md`) to determine which modules
+are required for the next turn.
+
+### Placement
+
+The `#scene-meta` div sits between `#reveal-full` and the footer row (see scene skeleton
+above). It is outside the reveal wrapper — it must be present and parseable immediately,
+not gated behind the continue button.
+
+### Schema
+
+```json
+{
+  "skill_version": "1.2.0",
+  "arc": 1,
+  "theme": "historical",
+  "mode": "procedural",
+  "rulebook": "d20_system",
+  "scene": 5,
+  "type": "exploration",
+  "location": "The Agora",
+  "time": {
+    "period": "midday",
+    "date": "Day 3 of the Siege",
+    "elapsed": 3,
+    "hour": 12
+  },
+  "modules_active": [
+    "prose-craft",
+    "story-architect",
+    "ai-npc",
+    "core-systems"
+  ],
+  "npcs_present": ["Herald", "Magistrate Varro"],
+  "threads_advanced": ["main-quest", "faction-tension"],
+  "pending_rolls": [],
+  "atmosphere": {
+    "visual": "marble columns catching low sun",
+    "auditory": "crowd murmur, sandals on stone",
+    "other": "dry heat rising from the flagstones"
+  },
+  "next_scene_hints": {
+    "likely_type": "social",
+    "modules_needed": ["ai-npc", "prose-craft"],
+    "anticipated_rolls": ["CHA", "WIS"]
+  }
+}
+```
+
+### Field Reference
+
+**Session context (set at game start, rarely changes):**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `skill_version` | string | yes | Current skill version — enables compatibility checks on resume |
+| `arc` | integer | yes | Current campaign arc number (starts at 1) |
+| `theme` | string | yes | Genre: `space`, `fantasy`, `horror`, `historical`, `post-apocalyptic` |
+| `mode` | string | yes | World generation: `procedural`, `authored`, `hybrid` — determines if procedural-world-gen loads |
+| `rulebook` | string | yes | Active rule system: `d20_system`, `gurps_lite`, `pf2e_lite`, `shadowrun_lite`, `narrative_engine` |
+
+**Scene state (changes every turn):**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `scene` | integer | yes | Current scene number from gmState |
+| `type` | string | yes | Scene category: `exploration`, `social`, `combat`, `discovery`, `quiet`, `transition` |
+| `location` | string | yes | Current location name |
+| `time` | object | yes | Current in-world time — `period`, `date`, `elapsed` (days), `hour` (0–23 internal). Only expose `date`/`hour` in player-facing UI if `playerKnowsDate`/`playerKnowsTime` is true in gmState. |
+| `modules_active` | string[] | yes | All modules currently loaded — used by Turn-Start Module Checklist to verify continuity |
+| `npcs_present` | string[] | yes | Named NPCs in the scene (empty array if none) |
+| `threads_advanced` | string[] | yes | Story threads touched by this scene |
+| `pending_rolls` | object[] | no | Unresolved rolls carried into next turn (rare) |
+| `atmosphere` | object | yes | Two or three sensory properties used in this scene's prose |
+| `next_scene_hints` | object | no | GM's anticipation of what the next turn will need — informs pre-loading |
+
+### `next_scene_hints` Sub-Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `likely_type` | string | Best guess at next scene type based on player options presented |
+| `modules_needed` | string[] | Modules the GM anticipates needing — Turn-Start Checklist uses this to pre-load |
+| `anticipated_rolls` | string[] | Attributes likely to be tested if the player takes the expected path |
+
+**Rule:** `modules_active` must always include `prose-craft`. If it doesn't, the
+Turn-Start Module Checklist will flag it as an error and force a reload.
+
+### HTML Pattern
+
+```html
+<div id="scene-meta" style="display:none" data-meta='{
+  "skill_version": "1.2.0",
+  "arc": 1,
+  "theme": "historical",
+  "mode": "procedural",
+  "rulebook": "d20_system",
+  "scene": 5,
+  "type": "exploration",
+  "location": "The Agora",
+  "time": { "period": "midday", "date": "Day 3 of the Siege", "elapsed": 3, "hour": 12 },
+  "modules_active": ["prose-craft", "story-architect", "ai-npc", "core-systems"],
+  "npcs_present": ["Herald"],
+  "threads_advanced": ["main-quest"],
+  "pending_rolls": [],
+  "atmosphere": {
+    "visual": "marble columns catching low sun",
+    "auditory": "crowd murmur, sandals on stone",
+    "other": "dry heat rising from the flagstones"
+  },
+  "next_scene_hints": {
+    "likely_type": "social",
+    "modules_needed": ["ai-npc", "prose-craft"],
+    "anticipated_rolls": ["CHA"]
+  }
+}'></div>
+```
+
+**Escaping:** The JSON value sits inside a single-quoted HTML attribute (`data-meta='...'`).
+Use double quotes for all JSON keys and string values. If any string value contains a
+single quote (apostrophe), use `&#39;` or restructure the value to avoid it.
 
 ---
 

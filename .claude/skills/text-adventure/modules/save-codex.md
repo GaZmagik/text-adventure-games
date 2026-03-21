@@ -87,7 +87,7 @@ machine-parseable (the payload string).
 ---
 format: text-adventure-save
 version: 1
-skill-version: "2.0"
+skill-version: "1.2.0"
 character: "Gareth Williams"
 class: "Bartender"
 level: 2
@@ -324,9 +324,12 @@ const gmState = {
 
   // ── NPC roster mutations (ai-npc module) ──────────────────────────────
   // Only NPCs whose state has diverged from the generated default are stored.
+  // pronouns is always stored — it is not part of the procedural seed in
+  // authored adventures and must survive resume even in procedural mode as
+  // a consistency safeguard.
   rosterMutations: [
-    { id: 'maren_voss', alive: false, killedInScene: 5 },
-    { id: 'finn_holt',  disposition: 'friendly', trust: 72, currentRoom: 'room_6' },
+    { id: 'maren_voss', pronouns: 'she/her', alive: false, killedInScene: 5 },
+    { id: 'finn_holt',  pronouns: 'he/him', disposition: 'friendly', trust: 72, currentRoom: 'room_6' },
   ],
 
   // ── Codex mutations (lore-codex module) ────────────────────────────────
@@ -339,6 +342,98 @@ const gmState = {
     { id: 'item_keycard_b',         state: 'discovered', discoveredAt: 4, via: 'read:keycard label' },
     { id: 'quest_main',             state: 'discovered', discoveredAt: 2, via: 'deduced:direct observation' },
   ],
+
+  // ── Time state (core-systems module) ──────────────────────────────────
+  // The GM always tracks internal truth. Player visibility is a separate concern —
+  // a pre-clock character may only see "dusk" while the GM knows "18:30, Day 3".
+  time: {
+    period: 'dusk',                     // dawn | morning | midday | afternoon | dusk | evening | night | late_night | small_hours
+    date: 'Day 3 of the Siege',         // setting-appropriate date format (internal truth)
+    elapsed: 3,                          // days elapsed since adventure start (always tracked)
+    hour: 18,                            // 0–23 internal hour (always tracked, even in pre-clock settings)
+    playerKnowsDate: false,              // does the character have access to a calendar?
+    playerKnowsTime: false,              // does the character have a clock, sundial, or equivalent?
+    calendarSystem: 'custom',            // gregorian | stardate | roman | custom | elapsed-only
+    deadline: null,                      // null or { label: 'Storm arrives', remainingScenes: 4 }
+  },
+
+  // ── Story Architect state (story-architect module) ────────────────────
+  // Persists ALL narrative scaffolding — threads, foreshadowing, consequences.
+  // Without this, the GM loses the entire plot structure on resume.
+  storyArchitect: {
+    threads: [
+      { id: 'main-quest', type: 'main', status: 'active', priority: 1,
+        seedScene: 1, lastTouched: 7, crossArc: false,
+        beats: ['discovered contamination', 'confronted Voss', 'accessed section 7'] },
+      { id: 'maren-guilt', type: 'character', status: 'escalating', priority: 2,
+        seedScene: 3, lastTouched: 6, crossArc: true,
+        beats: ['first evasion', 'player showed evidence'] },
+    ],
+    foreshadowing: [
+      { id: 'fs_cargo_noise', planted: 2, reinforced: [4], status: 'planted' },
+    ],
+    consequences: [
+      { trigger: 'alarm_triggered', immediate: 'escalationTier +1',
+        delayed: [{ effect: 'security_lockdown', deliverAfterScenes: 2, delivered: false }] },
+    ],
+    pacing: { act: 1, actProgress: 0.4, recentBeats: ['action','discovery','action'] },
+  },
+
+  // ── Ship state (ship-systems module) ──────────────────────────────────
+  // Persists vessel damage, power allocation, conditions. Without this,
+  // a ship at 15% hull resumes at full health and DC modifiers silently change.
+  shipState: {
+    name: 'Ulysses',
+    systems: {
+      hull:         { integrity: 85, status: 'operational', conditions: [] },
+      engines:      { integrity: 45, status: 'degraded',    conditions: ['venting'] },
+      power_core:   { integrity: 100, status: 'operational', conditions: [] },
+      life_support: { integrity: 70, status: 'operational', conditions: [] },
+      weapons:      { integrity: 0,  status: 'offline',     conditions: [] },
+      sensors:      { integrity: 60, status: 'degraded',    conditions: [] },
+      shields:      { integrity: 30, status: 'critical',    conditions: [] },
+    },
+    powerAllocations: { engines: 2, life_support: 2, weapons: 0, sensors: 1, shields: 1 },
+    repairParts: 3,
+    scenesSinceRepair: 2,
+  },
+
+  // ── Crew state (crew-manifest module) ─────────────────────────────────
+  // Persists individual morale, loyalty, stress — without this, a mutinous
+  // crew member resumes as a happy employee.
+  crewMutations: [
+    { id: 'petrov_vas', pronouns: 'he/him', morale: 35, loyalty: 40, stress: 70,
+      status: 'active', assignedTo: 'engines',
+      relationships: { chen_ora: 'hostile', sable_rin: 'bonded' } },
+    { id: 'chen_ora', pronouns: 'she/her', morale: 60, loyalty: 55, stress: 30,
+      status: 'active', assignedTo: null,
+      relationships: { petrov_vas: 'wary' } },
+  ],
+
+  // ── Map state (geo-map module) ────────────────────────────────────────
+  // Persists progressive revelation, door states, wilderness supplies.
+  mapState: {
+    activeMapType: 'settlement',          // settlement | wilderness | dungeon
+    revealedRooms: ['room_3', 'room_5'],  // revealed but not yet visited
+    doorStates: {                          // only doors whose state changed from default
+      'room_2_north': 'open',             // open | closed | locked | jammed | destroyed
+      'room_5_east': 'locked',
+    },
+    supplies: { rations: 5, water: 3 },   // wilderness survival tracking
+  },
+
+  // ── RPG system resources (rpg-systems module) ─────────────────────────
+  // System-specific resource pools that reset incorrectly without persistence.
+  systemResources: null,                   // null for d20_system (no extra resources)
+  // Examples for other systems:
+  // { spellSlots: [3, 2, 1], hitDice: 4, hitDiceUsed: 1 }              // D&D 5e
+  // { momentum: 3 }                                                      // Narrative Engine
+  // { fatigue: 2 }                                                       // GURPS Lite
+  // { edge: 2 }                                                          // Shadowrun
+
+  // ── Navigation state (star-chart module) ──────────────────────────────
+  // plottedCourse is the only nav field not captured by worldFlags.
+  navPlottedCourse: null,                  // null or ['system_a', 'system_b', 'system_c']
 };
 ```
 
@@ -371,10 +466,10 @@ const carryForward = {
     dock_workers_union: 30,  // neutral-positive
   },
   npcDispositions: [
-    { id: 'strand', alive: true, disposition: 'allied', toward_player: 85 },
-    { id: 'karim', alive: true, disposition: 'friendly', toward_player: 72 },
-    { id: 'mori', alive: true, disposition: 'guarded', toward_player: 35 },
-    { id: 'harlow', alive: false },
+    { id: 'strand', pronouns: 'he/him', alive: true, disposition: 'allied', toward_player: 85 },
+    { id: 'karim', pronouns: 'she/her', alive: true, disposition: 'friendly', toward_player: 72 },
+    { id: 'mori', pronouns: 'she/her', alive: true, disposition: 'guarded', toward_player: 35 },
+    { id: 'harlow', pronouns: 'he/him', alive: false },
   ],
   worldConsequences: [
     'Meridian Shipping conspiracy exposed — corporate leadership arrested.',
@@ -417,12 +512,12 @@ function buildCarryForward(gmState) {
       abilities: [...(c.abilities || [])],
       reputation: generateReputationSummary(gmState),  // GM writes 1-2 sentences
     },
-    factionStates: { ...gmState.worldFlags }
+    factionStates: Object.entries(gmState.worldFlags)
       .filter(([k]) => k.startsWith('faction_'))
       .reduce((acc, [k, v]) => { acc[k.replace('faction_', '')] = v; return acc; }, {}),
     npcDispositions: (gmState.rosterMutations || [])
       .filter(n => n.toward_player > 70 || n.toward_player < 30 || !n.alive)
-      .map(n => ({ id: n.id, alive: n.alive !== false, disposition: n.disposition, toward_player: n.toward_player })),
+      .map(n => ({ id: n.id, pronouns: n.pronouns, alive: n.alive !== false, disposition: n.disposition, toward_player: n.toward_player })),
     worldConsequences: generateConsequenceSummaries(gmState),  // GM writes 3-5 sentences
     codexDiscoveries: (gmState.codexMutations || [])
       .filter(m => m.state === 'discovered')
@@ -508,9 +603,20 @@ const newSeed = originalSeed + '_arc' + newArcNumber;
 - Everything in `character` (player progression is not regenerable)
 - `worldFlags` in full (every flag is a permanent consequence)
 - `rosterMutations` for any NPC that is dead, has moved rooms, or has a trust score above 60
-  or below 40 (i.e., meaningfully diverged from neutral)
+  or below 40 (i.e., meaningfully diverged from neutral) — always include `pronouns`
 - `codexMutations` for every entry that has transitioned out of `locked`
 - `scene` and `currentRoom`
+- `time` (period, date, deadline) — without this, in-world time resets on resume
+- `storyArchitect` (threads, foreshadowing, consequences, pacing) — without this, all
+  narrative scaffolding is lost and the GM must reconstruct plot structure from worldFlags alone
+- `shipState` when ship-systems module is active — without this, all vessel damage, power
+  allocation, and system conditions reset to defaults, silently changing DC modifiers
+- `crewMutations` when crew-manifest module is active — without this, individual morale,
+  loyalty, and stress reset to template defaults
+- `mapState` when geo-map module is active — without this, revealed zones, door states,
+  and wilderness supplies are lost
+- `systemResources` when using non-default rulebooks with resource tracking
+- `navPlottedCourse` when star-chart module is active
 
 ---
 
@@ -539,6 +645,14 @@ function buildCompactSave(gmState) {
     arcType: gmState.arcType || 'standard',
     carry: gmState.carryForward ? compressCarryForward(gmState.carryForward) : null,
     arcHist: gmState.arcHistory || [],
+    // v1.2.0 additions — all optional, omitted when module inactive
+    time: gmState.time || null,
+    story: compressStoryArchitect(gmState.storyArchitect),
+    ship: compressShipState(gmState.shipState),
+    crew: compressCrewMutations(gmState.crewMutations),
+    map: compressMapState(gmState.mapState),
+    res: gmState.systemResources || null,
+    navCourse: gmState.navPlottedCourse || null,
   };
   const json = JSON.stringify(payload);
   const code = 'SC1:' + btoa(json);
@@ -560,12 +674,15 @@ function compressCharacter(c) {
   };
 }
 
-// Only mutations that diverge meaningfully from generated defaults
+// Only mutations that diverge meaningfully from generated defaults.
+// pronouns is ALWAYS included — it is cheap (3–7 chars) and prevents
+// gender drift on resume, which is a jarring continuity break.
 function compressRosterMutations(mutations) {
   return (mutations || [])
-    .filter(m => !m.alive || m.trust < 40 || m.trust > 60 || m.currentRoom)
+    .filter(m => !m.alive || m.trust < 40 || m.trust > 60 || m.currentRoom || m.pronouns)
     .map(m => {
       const out = { id: m.id };
+      if (m.pronouns)          out.pr = m.pronouns;  // 'she/her','he/him','they/them'
       if (m.alive === false)   out.dead = 1;
       if (m.trust !== undefined && (m.trust < 40 || m.trust > 60)) out.tr = m.trust;
       if (m.disposition)       out.di = m.disposition.slice(0, 3); // 'gua','neu','fri','hos','des'
@@ -583,6 +700,73 @@ function compressCodexMutations(mutations) {
     if (m.secrets && m.secrets.length) out.sec = m.secrets;
     return out;
   });
+}
+
+// Story threads, foreshadowing, and consequence chains — the entire narrative scaffold.
+// Compressed keys: th=threads, fs=foreshadowing, cq=consequences, pa=pacing
+function compressStoryArchitect(sa) {
+  if (!sa) return null;
+  return {
+    th: (sa.threads || []).map(t => ({
+      id: t.id, tp: t.type, s: t.status, p: t.priority,
+      ss: t.seedScene, lt: t.lastTouched, ca: t.crossArc || false,
+      b: t.beats || [],
+    })),
+    fs: (sa.foreshadowing || []).map(f => ({
+      id: f.id, pl: f.planted, rf: f.reinforced || [], s: f.status,
+    })),
+    cq: (sa.consequences || []).map(c => ({
+      tr: c.trigger, im: c.immediate,
+      dl: (c.delayed || []).map(d => ({ ef: d.effect, af: d.deliverAfterScenes, dv: d.delivered })),
+    })),
+    pa: sa.pacing ? { a: sa.pacing.act, ap: sa.pacing.actProgress, rb: sa.pacing.recentBeats } : null,
+  };
+}
+
+// Ship integrity, power, conditions — 7 systems + allocations + repair state.
+function compressShipState(ship) {
+  if (!ship) return null;
+  const sys = {};
+  Object.entries(ship.systems || {}).forEach(([k, v]) => {
+    sys[k] = { i: v.integrity, s: v.status.slice(0, 3) }; // 'ope','deg','cri','fai','off'
+    if (v.conditions && v.conditions.length) sys[k].c = v.conditions;
+  });
+  return {
+    nm: ship.name,
+    sys,
+    pw: ship.powerAllocations,
+    rp: ship.repairParts,
+    sr: ship.scenesSinceRepair,
+  };
+}
+
+// Crew morale, loyalty, stress, assignments, relationships.
+// Only crew members whose state has diverged from template defaults.
+function compressCrewMutations(crew) {
+  if (!crew) return null;
+  return crew.map(c => {
+    const out = { id: c.id };
+    if (c.pronouns)      out.pr = c.pronouns;
+    if (c.morale !== undefined)  out.mo = c.morale;
+    if (c.loyalty !== undefined) out.lo = c.loyalty;
+    if (c.stress !== undefined)  out.st = c.stress;
+    if (c.status && c.status !== 'active') out.s = c.status;
+    if (c.assignedTo)    out.at = c.assignedTo;
+    if (c.relationships) out.rel = c.relationships;
+    if (c.alive === false) out.dead = 1;
+    return out;
+  });
+}
+
+// Map state: revealed rooms, door states, wilderness supplies.
+function compressMapState(map) {
+  if (!map) return null;
+  return {
+    tp: map.activeMapType,
+    rv: map.revealedRooms || [],
+    dr: map.doorStates || {},
+    sp: map.supplies || null,
+  };
 }
 ```
 
@@ -627,6 +811,14 @@ function restoreCompactSave(saveString) {
     arcType: payload.arcType || 'standard',
     carryForward: payload.carry || null,
     arcHistory: payload.arcHist || [],
+    // v1.2.0 additions — restore if present, default to null if absent (pre-1.2.0 save)
+    time: payload.time || null,
+    storyArchitect: expandStoryArchitect(payload.story),
+    shipState: expandShipState(payload.ship),
+    crewMutations: expandCrewMutations(payload.crew),
+    mapState: expandMapState(payload.map),
+    systemResources: payload.res || null,
+    navPlottedCourse: payload.navCourse || null,
   };
 }
 
@@ -653,10 +845,11 @@ function expandRosterMutations(npcs) {
   const dispMap = { gua:'guarded', neu:'neutral', fri:'friendly', hos:'hostile', des:'desperate' };
   return (npcs || []).map(m => {
     const out = { id: m.id };
-    if (m.dead)  out.alive = false;
-    if (m.tr)    out.trust = m.tr;
-    if (m.di)    out.disposition = dispMap[m.di] || m.di;
-    if (m.rm)    out.currentRoom = m.rm;
+    if (m.pr)                    out.pronouns = m.pr;
+    if (m.dead)                  out.alive = false;
+    if (m.tr !== undefined)      out.trust = m.tr;  // !== undefined: trust of 0 is valid
+    if (m.di)                    out.disposition = dispMap[m.di] || m.di;
+    if (m.rm)                    out.currentRoom = m.rm;
     return out;
   });
 }
@@ -670,6 +863,76 @@ function expandCodexMutations(codex) {
     via: m.via || null,
     secrets: m.sec || [],
   }));
+}
+
+// v1.2.0 expand functions — return null gracefully for pre-1.2.0 saves
+
+function expandStoryArchitect(sa) {
+  if (!sa) return null;
+  return {
+    threads: (sa.th || []).map(t => ({
+      id: t.id, type: t.tp, status: t.s, priority: t.p,
+      seedScene: t.ss, lastTouched: t.lt, crossArc: t.ca || false,
+      beats: t.b || [],
+    })),
+    foreshadowing: (sa.fs || []).map(f => ({
+      id: f.id, planted: f.pl, reinforced: f.rf || [], status: f.s,
+    })),
+    consequences: (sa.cq || []).map(c => ({
+      trigger: c.tr, immediate: c.im,
+      delayed: (c.dl || []).map(d => ({
+        effect: d.ef, deliverAfterScenes: d.af, delivered: d.dv,
+      })),
+    })),
+    pacing: sa.pa ? {
+      act: sa.pa.a, actProgress: sa.pa.ap, recentBeats: sa.pa.rb || [],
+    } : { act: 1, actProgress: 0, recentBeats: [] },
+  };
+}
+
+function expandShipState(ship) {
+  if (!ship) return null;
+  const statusMap = { ope:'operational', deg:'degraded', cri:'critical', fai:'failing', off:'offline' };
+  const systems = {};
+  Object.entries(ship.sys || {}).forEach(([k, v]) => {
+    systems[k] = {
+      integrity: v.i,
+      status: statusMap[v.s] || 'operational',
+      conditions: v.c || [],
+    };
+  });
+  return {
+    name: ship.nm,
+    systems,
+    powerAllocations: ship.pw || {},
+    repairParts: ship.rp || 0,
+    scenesSinceRepair: ship.sr || 0,
+  };
+}
+
+function expandCrewMutations(crew) {
+  if (!crew) return null;
+  return crew.map(c => ({
+    id: c.id,
+    pronouns: c.pr || null,
+    morale: c.mo !== undefined ? c.mo : 50,
+    loyalty: c.lo !== undefined ? c.lo : 50,
+    stress: c.st !== undefined ? c.st : 0,
+    status: c.s || 'active',
+    assignedTo: c.at || null,
+    relationships: c.rel || {},
+    alive: c.dead ? false : true,
+  }));
+}
+
+function expandMapState(map) {
+  if (!map) return null;
+  return {
+    activeMapType: map.tp || 'settlement',
+    revealedRooms: map.rv || [],
+    doorStates: map.dr || {},
+    supplies: map.sp || null,
+  };
 }
 ```
 
@@ -705,6 +968,14 @@ function buildFullSave(gmState) {
     arcHist: gmState.arcHistory || [],
     // Hand-authored worlds store their room graph minimally
     worldSnapshot: buildWorldSnapshot(gmState),
+    // v1.2.0 additions — stored uncompressed in full mode (LZ-String handles size)
+    time: gmState.time || null,
+    story: gmState.storyArchitect || null,
+    ship: gmState.shipState || null,
+    crew: gmState.crewMutations || null,
+    map: gmState.mapState || null,
+    res: gmState.systemResources || null,
+    navCourse: gmState.navPlottedCourse || null,
   };
   const json = JSON.stringify(payload);
   const compressed = LZString.compressToBase64(json);
@@ -752,6 +1023,14 @@ function restoreFullSave(saveString) {
     arcType: payload.arcType || 'standard',
     carryForward: payload.carry || null,
     arcHistory: payload.arcHist || [],
+    // v1.2.0 additions — stored uncompressed, restore directly
+    time: payload.time || null,
+    storyArchitect: payload.story || null,
+    shipState: payload.ship || null,
+    crewMutations: payload.crew || null,
+    mapState: payload.map || null,
+    systemResources: payload.res || null,
+    navPlottedCourse: payload.navCourse || null,
   };
 }
 ```
