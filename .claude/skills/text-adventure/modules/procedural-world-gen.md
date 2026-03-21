@@ -497,13 +497,36 @@ function generateNPCProfile(rng, theme, faction) {
   let trait2 = randPick(rng, PERSONALITY_TRAITS);
   while (trait2 === trait1) trait2 = randPick(rng, PERSONALITY_TRAITS);
 
+  // Pronouns — seeded so they are deterministic on regeneration.
+  // Distribution: ~45% she/her, ~45% he/him, ~10% they/them.
+  const pronouns = randWeighted(rng,
+    ['she/her', 'he/him', 'they/them'],
+    [9, 9, 2]
+  );
+
+  // Stats — seeded so contested rolls are consistent across sessions.
+  // NPCs get 8–16 per attribute (broader than player range to allow
+  // notably strong or weak NPCs). Level scales with faction influence.
+  const stats = {
+    STR: randInt(rng, 8, 16),
+    DEX: randInt(rng, 8, 16),
+    CON: randInt(rng, 8, 16),
+    INT: randInt(rng, 8, 16),
+    WIS: randInt(rng, 8, 16),
+    CHA: randInt(rng, 8, 16),
+  };
+  const level = randInt(rng, 1, 6);
+
   return {
     name,
+    pronouns,
     faction: faction.id,
     factionName: faction.name,
     trait: `${trait1}, ${trait2}`,
     speech: randPick(rng, SPEECH_PATTERNS),
     wants: randPick(rng, WANTS),
+    stats,
+    level,
     initialTrust: randInt(rng, 30, 60),
     initialDisposition: randWeighted(rng,
       ['hostile','guarded','neutral','friendly'],
@@ -549,7 +572,9 @@ function generateNPCRoster(rng, rooms, factions, theme) {
 into a full ai-npc `NPC` object before rendering the dialogue widget. Use `profile.trait`,
 `profile.speech`, and `profile.wants` to write `voice.pattern`. Use `profile.hasSecret` and
 `profile.secretCategory` to populate `knowledge.will_lie_about`. Map `profile.faction` to
-faction ideology for `agenda`. This separation keeps world-gen fast (pure data) and NPC depth
+faction ideology for `agenda`. Copy `profile.pronouns` and `profile.stats` directly into the
+NPC definition — these are seeded and must not be overridden, as they ensure consistency
+across save/resume cycles. This separation keeps world-gen fast (pure data) and NPC depth
 in the hands of the GM where craft matters.
 
 ---

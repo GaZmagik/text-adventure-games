@@ -94,17 +94,21 @@ RESUME FROM SAVE CHECKLIST
 □  8. Load all required modules — same set as a new game for this scenario type
 □  9. Reconstruct gmState from save payload (compact: regenerate + apply deltas;
      full: restore directly)
-□ 10. Reinitialise storyArchitect from worldFlags and codexMutations
-□ 11. Reinitialise worldHistory context from seed/theme (if procedural)
-□ 12. Render the resume scene as a widget using the active visual style
-□ 13. Include: footer with panel buttons + Save ↗ + Export ↗ (if module active)
-□ 14. Include: pre-computed #save-data div for save fallback
-□ 15. Verify: is ALL game content inside the widget? No prose outside?
+□ 10. Verify NPC identity: apply pronouns from rosterMutations to all NPC
+     definitions. If compact mode, confirm seeded pronouns match saved pronouns.
+     Use saved pronouns as authoritative if they conflict.
+□ 11. Reinitialise storyArchitect from worldFlags and codexMutations
+□ 12. Reinitialise worldHistory context from seed/theme (if procedural)
+□ 13. Render the resume scene as a widget using the active visual style
+□ 14. Include: footer with panel buttons + Save ↗ + Export ↗ (if module active)
+□ 15. Include: pre-computed #save-data div for save fallback
+□ 16. Verify: is ALL game content inside the widget? No prose outside?
 ```
 
 **Critical:** Steps 5–8 are the ones most commonly skipped on resume. Without them,
-Claude falls back to default styling and missing module behaviour. The resume flow
-must boot the full engine, not just restore the data.
+Claude falls back to default styling and missing module behaviour. Step 10 (NPC identity)
+is new in v1.1.1 — without it, NPC pronouns drift on resume, breaking immersion.
+The resume flow must boot the full engine, not just restore the data.
 
 ---
 
@@ -137,30 +141,72 @@ ARC TRANSITION CHECKLIST
 
 ---
 
+## Turn-Start Module Checklist
+
+Before EVERY turn — before the New Scene Checklist, before any prose is written —
+verify that the correct modules are loaded for this scene. This checklist ensures
+the GM never writes prose without the craft rules loaded, and never renders a scene
+with missing module context.
+
+```
+TURN-START MODULE CHECKLIST
+═══════════════════════════════════════════
+□  1. Read modules/prose-craft.md — ALWAYS, every turn, no exceptions
+□  2. Check #scene-meta from the previous widget (if any) for modules_active list
+□  3. Verify all modules_active are still loaded in context
+□  4. Determine if this turn introduces new module requirements:
+       — Ship entering scene? → ship-systems.md, crew-manifest.md
+       — Space travel? → star-chart.md
+       — On-world exploration? → geo-map.md
+       — Named NPC with narrative weight? → ai-npc.md (should already be loaded)
+       — Genre overlay triggered? → genre-mechanics.md
+       — Atmosphere/audio active? → atmosphere.md, audio.md
+□  5. Load any newly required modules before proceeding
+□  6. Proceed to New Scene Checklist
+```
+
+**Critical:** Step 1 is non-negotiable. The prose-craft module contains sentence-level
+quality rules that degrade rapidly when not actively in context. Loading it once at
+game start is not sufficient — it must be re-read before every scene to maintain
+prose quality across long sessions.
+
+---
+
 ## New Scene Checklist
 
 Before generating EVERY scene widget, verify each item. No exceptions — not even for
-"simple" scenes or transitions.
+"simple" scenes or transitions. The Turn-Start Module Checklist must be completed
+before this checklist begins.
 
 ```
 NEW SCENE CHECKLIST
 ═══════════════════════════════════════════
-□  1. Consult storyArchitect: which thread(s) does this scene advance?
+
+  Narrative Threading (consult storyArchitect)
+□  1. Which thread(s) does this scene advance?
 □  2. Check foreshadowing registry: any seeds to reinforce or pay off?
 □  3. Check consequence chains: any pending effects to deliver?
 □  4. Check pacing tracker: what scene type should this be? (action/discovery/dialogue/quiet)
 □  5. Has any thread been untouched for 3+ scenes? Touch it.
 □  6. Are any NPCs due for an arc beat?
+
+  Prose Craft (consult prose-craft.md)
 □  7. Determine the scene's location, atmosphere, and narrative content
-□  8. Build the widget HTML with the active visual style's CSS
-□  9. Include: loc-bar, atmo-strip, narrative, POIs, actions, status bar
-□ 10. Include: footer with panel buttons + Save ↗ + Export ↗ (if module active)
-□ 11. Include: pre-computed #save-data div for save fallback
-□ 12. Every interactive button uses data-prompt + addEventListener (no inline onclick)
-□ 13. Every sendPrompt button has a copyable fallback
-□ 14. ALL narrative content is inside the widget — NOTHING outside
-□ 15. Update gmState: scene number, current room, world flags, time
-□ 16. Output ONLY the widget — no text before, no text after
+□  8. Write narrative: zero meta-commentary, zero emotion labels, zero filter words
+□  9. Verify: sentence length varies, strong verbs, at least one non-visual sense
+□ 10. Verify: each NPC voice is distinct, no cliché clusters, no summarising tic
+
+  Widget Assembly
+□ 11. Build the widget HTML with the active visual style's CSS
+□ 12. Include: loc-bar, atmo-strip, narrative, POIs, actions, status bar
+□ 13. Include: footer with panel buttons + Save ↗ + Export ↗ (if module active)
+□ 14. Include: pre-computed #save-data div for save fallback
+□ 15. Include: #scene-meta hidden div with scene metadata (see style-reference.md)
+□ 16. Every interactive button uses data-prompt + addEventListener (no inline onclick)
+□ 17. Every sendPrompt button has a copyable fallback
+□ 18. ALL narrative content is inside the widget — NOTHING outside
+□ 19. Update gmState: scene number, current room, world flags, time
+□ 20. Output ONLY the widget — no text before, no text after
 ```
 
 ---

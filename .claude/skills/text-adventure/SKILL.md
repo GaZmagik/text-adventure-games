@@ -3,7 +3,7 @@ name: text-adventure
 
 description: Use this skill whenever the user wants to play, run, or build an interactive text adventure game. Triggers include "text adventure", "play a game", "run a campaign", "tabletop RPG", "D&D-style game", "interactive story", "dungeon crawl", "choose your own adventure", "space adventure", "sci-fi RPG", "interactive fiction", "story game", "MUD", "text-based game", or any request to begin a narrative game with player decisions, character stats, or dice-based outcomes. Also use when the user wants to continue a prior adventure session or set up a new scenario. This skill is the orchestrator — it contains the complete core game engine and loads expansion modules from the modules/ directory as needed. Do NOT use for purely creative writing tasks that require no player agency or mechanical resolution.
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # Text Adventure Game — Core Engine
@@ -38,6 +38,7 @@ TIER 1 — MUST READ before rendering any widget
   missing mechanics, and visual style drift. This is not optional.
 
   modules/gm-checklist.md         Mandatory quality gates — read FIRST
+  modules/prose-craft.md          Sentence-level prose quality — read EVERY TURN
   styles/style-reference.md       Structural patterns, CSS contract, worked examples
   styles/{active-style}.md        Active visual style CSS custom properties
   modules/die-rolls.md            Four-stage d20 resolution, 3D dice, DC tables
@@ -190,6 +191,30 @@ During game setup, the player selects a visual style or the GM auto-selects base
 
 **Before rendering any widget, read `styles/style-reference.md` and the active visual style file.** The style-reference defines structural patterns (HTML skeleton, JS, component layout). The visual style file provides colours, typography, and decorative CSS.
 
+### Settings Confirm Button
+
+The confirm button MUST serialise all player selections into the sendPrompt payload.
+Without this, Claude receives "settings confirmed" but has no idea what was selected.
+
+```js
+// Build prompt from current widget state — all settings must be included
+const rulebook = document.querySelector('[name="rulebook"]:checked')?.value || 'd20_system';
+const difficulty = document.querySelector('[name="difficulty"]:checked')?.value || 'normal';
+const pacing = document.querySelector('[name="pacing"]:checked')?.value || 'normal';
+const style = document.querySelector('[name="style"]:checked')?.value || 'station';
+const atmosphere = document.querySelector('[name="atmosphere"]:checked')?.value || 'on';
+const audio = document.querySelector('[name="audio"]:checked')?.value || 'off';
+const modules = Array.from(document.querySelectorAll('[name="module"]:checked'))
+  .map(el => el.value).join(', ');
+
+const prompt = `Settings confirmed. Rulebook: ${rulebook}. Difficulty: ${difficulty}. `
+  + `Pacing: ${pacing}. Visual style: ${style}. Atmosphere: ${atmosphere}. Audio: ${audio}. `
+  + `Active modules: ${modules}. Present character creation.`;
+```
+
+**Rule:** Never use a static string like "Settings confirmed" — every player choice must be
+in the prompt or Claude will fall back to defaults and ignore what the player selected.
+
 ---
 
 ## Character Creation
@@ -199,7 +224,25 @@ equipment, theme-adapted names, and custom rulebook character creation.
 
 Widget with name input, archetype selector, and stat block populated via JS (no sendPrompt).
 Six default archetypes (Soldier, Scout, Engineer, Medic, Diplomat, Smuggler) — names adapt to
-theme, stat arrays stay fixed. Confirm via `sendPrompt('My character is ready. Begin the adventure.')`.
+theme, stat arrays stay fixed.
+
+### Character Confirm Button
+
+The confirm button MUST serialise the character name, class, and stats into the sendPrompt
+payload. Without this, Claude knows the character is "ready" but not who they are.
+
+```js
+const name = document.getElementById('char-name').value || 'Unnamed';
+const archetype = document.querySelector('[name="archetype"]:checked')?.value || 'Soldier';
+const stats = JSON.parse(document.getElementById('stat-block').dataset.stats || '{}');
+
+const prompt = `My character is ready. Name: ${name}. Class: ${archetype}. `
+  + `Stats: STR ${stats.STR}, DEX ${stats.DEX}, INT ${stats.INT}, `
+  + `WIS ${stats.WIS}, CON ${stats.CON}, CHA ${stats.CHA}. Begin the adventure.`;
+```
+
+**Rule:** Never use a static string like "My character is ready" — the name, class, and
+stats must be in the prompt or Claude will invent them.
 
 ---
 
@@ -268,9 +311,11 @@ The primary widget. Structure (inside `#reveal-full` > `#scene-content`):
 - **Action buttons:** 2–5 choices. `sendPrompt('I [action].')`. No right/wrong labels.
 - **Status bar:** HP pips, XP progress bar, inventory tags, active conditions.
 - **Footer:** Panel toggle buttons (pure JS) + module-specific buttons.
+- **Scene metadata:** Hidden `#scene-meta` div with JSON scene data (see `styles/style-reference.md` § Scene Metadata).
 
 **Writing rules:** Atmosphere first, detail second, interactables last. No mechanical terms
 in prose. At least one detail implying history. Exits stated without suggesting which to take.
+All narrative must pass the Prose Craft Checklist in `modules/prose-craft.md`.
 
 ---
 
@@ -985,13 +1030,23 @@ content is created and how the lore-codex is populated.
 
 ## Narrative Craft
 
-Follow the active narrative output style (configured by the user in Claude Desktop or
-claude.ai) for all narrative rules: prose variety, NPC voice differentiation, player agency,
-pacing, and difficulty calibration. The output style is the authoritative guide for how the
-GM writes and presents the story. See the project `README.md` for available output styles.
+Prose quality is enforced at two levels:
+
+1. **Output style** (configured by the user in Claude Desktop or claude.ai) — sets voice,
+   genre, pacing, structure, and point of view. This is the high-level guide for *what*
+   the story sounds like. See the project `README.md` for available output styles.
+
+2. **`modules/prose-craft.md`** (Tier 1, always loaded) — enforces sentence-level quality:
+   no meta-commentary, show-don't-tell, strong verbs, sensory writing, dialogue craft,
+   and LLM-specific anti-patterns. This module must be re-read before every turn via
+   the Turn-Start Module Checklist in `modules/gm-checklist.md`.
+
+The output style provides the *what*. The prose-craft module provides the *how*.
+Both are mandatory. Neither overrides the other.
 
 **Scene checklist:** Non-visual sensory detail. History detail. No right/wrong labels. Second
-person present tense. `PANEL_DATA` populated. Progressive reveal used.
+person present tense. `PANEL_DATA` populated. Progressive reveal used. Prose Craft Checklist
+passed (see `modules/prose-craft.md`).
 
 ---
 
@@ -1014,12 +1069,10 @@ person present tense. `PANEL_DATA` populated. Progressive reveal used.
 - Never skip reading `styles/style-reference.md` and the active visual style before rendering widgets.
 - Never mention DC/modifier values, stat names, or stat values in narrative prose.
 - Never skip the progressive reveal pattern.
-- Never reference character attributes by name or number in story text ("Your WIS of 15",
-  "Your high Dexterity") — describe the *effect*, not the stat.
-- Never develop repetitive sentence patterns — vary structure, rhythm, and vocabulary.
 - Never time-skip playable decisions into narrated summary.
-- Never give two NPCs the same speech pattern — each needs distinct diction.
 - Never let bonus stacking trivialise die rolls — escalate DCs to maintain tension.
+- All general prose craft rules (sentence rhythm, dialogue voice, show-don't-tell,
+  meta-commentary, sensory writing) live in `modules/prose-craft.md` — consult it.
 - Never rely solely on `sendPrompt()` buttons — always provide a copyable fallback prompt.
 - Never use inline `onclick` with `sendPrompt()` — use `data-prompt` + `addEventListener`.
 - Never use contractions (apostrophes) in sendPrompt strings — contractions (apostrophes) in

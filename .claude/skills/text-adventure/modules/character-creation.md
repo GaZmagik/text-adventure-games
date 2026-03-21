@@ -19,7 +19,7 @@ Present a widget with:
 - Six attributes: `[name] — [value] ([modifier])` (e.g., "STR — 16 (+3)")
 - Derived stats: HP, AC, Initiative, Speed — displayed as a 2×2 metric card grid
 - Equipment list: three starting items shown as tags
-- Confirm button: `sendPrompt('My character is ready. Begin the adventure.')`
+- Confirm button: serialises all character data into the sendPrompt string (see below)
 
 ### Stat Generation (D&D 5e)
 
@@ -95,8 +95,8 @@ widget. This step appears between the stat block reveal and the final confirmati
 3. Each skill button shows the skill name and its governing attribute in a subtle label
    (e.g., "Stealth — AGI").
 4. Once 2 skills are selected, highlight them and enable the confirmation button.
-5. Store the full set of 4 proficiencies (2 fixed + 2 chosen) in
-   `gmState.character.proficiencies`.
+5. Track the full set of 4 proficiencies (2 fixed + 2 chosen) in widget JS state —
+   these are serialised into the confirm sendPrompt string (see below).
 
 **Widget addition — proficiency picker (inserted after the stat block):**
 
@@ -137,8 +137,27 @@ document.querySelectorAll('.prof-choice-btn').forEach(btn => {
 });
 ```
 
-The confirmation `sendPrompt` string remains unchanged — proficiency data is stored in
-`gmState` client-side before the prompt fires.
+**CRITICAL:** The confirmation `sendPrompt` must include ALL character data — name,
+archetype, stats, proficiencies, and starting equipment. There is no persistent client-side
+`gmState` between widget renders. Each widget is a fresh iframe. The ONLY data that crosses
+the boundary between the player's widget and the GM is the sendPrompt string. If data is
+not in the prompt, the GM does not have it.
+
+```js
+// Build the confirm prompt with all character data serialised
+const name = document.getElementById('char-name').value || 'Unnamed';
+const archetype = document.querySelector('[name="archetype"]:checked')?.value;
+const stats = JSON.parse(document.getElementById('stat-block').dataset.stats || '{}');
+const profs = Array.from(document.querySelectorAll('.prof-selected')).map(el => el.textContent);
+const gear = Array.from(document.querySelectorAll('.equip-tag')).map(el => el.textContent);
+
+const prompt = `My character is ready. Begin the adventure. `
+  + `Name: ${name}. Class: ${archetype}. `
+  + `STR: ${stats.STR}, DEX: ${stats.DEX}, INT: ${stats.INT}, `
+  + `WIS: ${stats.WIS}, CON: ${stats.CON}, CHA: ${stats.CHA}. `
+  + `Proficiencies: ${profs.join(', ')}. `
+  + `Equipment: ${gear.join(', ')}.`;
+```
 
 ---
 

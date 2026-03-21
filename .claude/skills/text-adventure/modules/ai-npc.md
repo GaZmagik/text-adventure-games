@@ -142,6 +142,7 @@ system prompt, the portrait, the disposition engine, and the knowledge fence.
 const npc = {
   id: 'maren_voss',
   name: 'Dr Maren Voss',
+  pronouns: 'she/her',   // she/her | he/him | they/them — MUST match procedural seed if generated
   role: 'Chief Science Officer, Ulysses Covenant',
   portrait: { initials: 'MV', ramp: 'purple' },
 
@@ -199,6 +200,9 @@ const npc = {
 ```
 
 **Field rules:**
+- `pronouns` is mandatory. Use it consistently in all narrative prose, system prompts, and
+  dialogue tags. For procedurally generated NPCs, this value comes from the seed and must
+  not be overridden — it ensures gender consistency across save/resume cycles.
 - `voice.never_says` is enforced in the system prompt as an explicit prohibition.
 - `knowledge.will_lie_about` items are stated in the system prompt with the lie content and the
   disposition threshold at which the truth becomes available.

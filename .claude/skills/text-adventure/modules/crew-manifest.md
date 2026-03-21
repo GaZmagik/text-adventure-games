@@ -134,6 +134,7 @@ const CREW_ROLES = {
 const crewMember = {
   id:          'petrov_vas',
   name:        'Petrov Vas',
+  pronouns:    'he/him',   // she/her | he/him | they/them — must persist across save/resume
   role:        'engineer',
   portrait:    { initials: 'PV', ramp: 'teal' },
 
