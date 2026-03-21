@@ -3,7 +3,7 @@ name: text-adventure
 
 description: Use this skill whenever the user wants to play, run, or build an interactive text adventure game. Triggers include "text adventure", "play a game", "run a campaign", "tabletop RPG", "D&D-style game", "interactive story", "dungeon crawl", "choose your own adventure", "space adventure", "sci-fi RPG", "interactive fiction", "story game", "MUD", "text-based game", or any request to begin a narrative game with player decisions, character stats, or dice-based outcomes. Also use when the user wants to continue a prior adventure session or set up a new scenario. This skill is the orchestrator — it contains the complete core game engine and loads expansion modules from the modules/ directory as needed. Do NOT use for purely creative writing tasks that require no player agency or mechanical resolution.
 metadata:
-  version: "1.0.2"
+  version: "1.0.3"
 ---
 
 # Text Adventure Game — Core Engine
@@ -171,6 +171,14 @@ theme, stat arrays stay fixed. Confirm via `sendPrompt('My character is ready. B
 
 See `modules/die-rolls.md` for the full resolution system: four-stage widget pattern, DC table,
 critical rules, attribute variety, DC escalation, and sendPrompt fallback.
+
+**3D Dice (mandatory):** All die rolls MUST use the Three.js 3D dice system defined in
+`modules/die-rolls.md` § "3D Dice Rendering (Three.js)". The widget renders proper 3D
+polyhedra — d4 tetrahedron, d6 cube, d8 octahedron, d12 dodecahedron, d20 icosahedron —
+with numbered faces, tumble animation, and easeOutBack settle. Load Three.js from CDN:
+`https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js`. If the CDN fails,
+the `onerror` handler degrades gracefully with a message. Never use flat CSS circles or
+rectangles for dice — always use the 3D polyhedra.
 
 **Key rules (always apply):**
 - Never reveal which attribute a check tests in the action options — the player chooses what
