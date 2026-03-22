@@ -72,37 +72,16 @@ capabilities. Never expose numbers — describe what the NPC can do:
 
 ## Hidden Contested Rolls — NPC Side
 
-When a player attempts a contested action against an NPC (persuade, deceive,
-intimidate, pickpocket, sneak past, etc.), the GM resolves the NPC's opposing
-check **secretly**. See `modules/die-rolls.md` for the full Hidden Roll Resolution
-Pattern and the contested attribute pairings table.
-
-### NPC Roll Resolution
-
-1. Identify the NPC's opposing attribute from the pairings table in `die-rolls.md`
-2. Look up the NPC's stat modifier from their stat block
-3. Internally compute: `d20 + NPC modifier` (generate a random result mentally)
-4. The player rolls normally (visible 4-stage die roll)
-5. Compare: player total vs NPC total
-6. Show outcome badge with **narrative description only** — never the NPC's numbers
-
-### What the Player Sees vs What the GM Knows
-
-| Component | Player Sees | GM Knows |
-|-----------|-------------|----------|
-| Player's roll | Yes (3D animated) | Yes |
-| Player's modifier | Yes (shown in Stage 1) | Yes |
-| Player's total | Yes (shown in Stage 3) | Yes |
-| DC or target | **No** — narrative outcome only | NPC's total |
-| NPC's roll | **No** | d20 result |
-| NPC's modifier | **No** | Stat modifier |
-| NPC's stats | **No** — never | Full stat block |
-| Outcome | Narrative badge | Margin of success/failure |
+For contested actions against NPCs (persuade, deceive, intimidate, pickpocket,
+sneak past, etc.), follow the **Hidden Roll Resolution Pattern** in
+`modules/die-rolls.md` § Hidden Roll Resolution. NPCs use their individual stat
+blocks (above) rather than tier-based modifiers. The GM looks up the NPC's
+opposing attribute from the pairings table in `die-rolls.md` § Attribute Pairings,
+then resolves the NPC's roll secretly using their stat modifier.
 
 ### NPCs Without Explicit Stats
 
-If an NPC was generated before v1.1.0 or lacks a stat block, the GM assigns
-level-appropriate defaults based on the NPC's narrative role:
+If an NPC lacks a stat block, the GM assigns level-appropriate defaults:
 - Background NPC: level 2, all stats 10
 - Named recurring NPC: level 4, primary stat 13, others 10-11
 - Faction leader or antagonist: level 7, primary stat 16, secondary 14, others 11-12

@@ -7,35 +7,18 @@ Loaded by the text-adventure orchestrator (SKILL.md). Depends on: core-systems.
 
 ## CRITICAL — Hidden Adversary Rolls
 
-When a player attempts a non-combat interaction with an adversary (sneak past,
-persuade, distract, etc.), the GM resolves the adversary's resistance check
-**secretly** using the same Hidden Roll Resolution Pattern defined in
-`modules/die-rolls.md`.
+For non-combat interactions with adversaries (sneak past, persuade, distract, etc.),
+follow the **Hidden Roll Resolution Pattern** in `modules/die-rolls.md` § Hidden Roll
+Resolution. Adversaries use tier-based resistance modifiers (below) instead of
+individual stat blocks (which are reserved for named NPCs in `ai-npc.md`).
 
 ### Tier-Based Resistance Modifiers
-
-Adversaries use their threat tier to determine resistance modifiers for non-combat
-checks, rather than individual stat blocks (which are reserved for NPCs in
-`ai-npc.md`).
 
 | Threat Tier | Resistance Modifier | Example Adversaries |
 |-------------|-------------------|---------------------|
 | Minion | +0 to +2 | Standard guard, patrol drone, street thug |
 | Lieutenant | +3 to +5 | Squad leader, security chief, trained operative |
 | Boss | +5 to +8 | Crime lord, military commander, apex predator |
-
-### How It Works
-
-1. Player declares a non-combat action against an adversary (e.g., "I try to sneak past the guards")
-2. GM determines the player's relevant attribute (e.g., DEX for stealth)
-3. GM assigns a resistance modifier based on the adversary's tier and the situation:
-   - A guard on alert: tier modifier + 1 (advantage)
-   - A guard distracted: tier modifier - 2 (disadvantage)
-   - A guard in their element: full tier modifier
-4. Player rolls normally (visible 4-stage die roll)
-5. GM secretly resolves: `d20 + adversary resistance modifier`
-6. Compare totals — player vs adversary
-7. Show outcome badge with narrative description only (see die-rolls.md for the outcome language table)
 
 ### Situational Modifier Adjustments
 
@@ -46,12 +29,6 @@ checks, rather than individual stat blocks (which are reserved for NPCs in
 | Adversary is in darkness/poor conditions | -1 to -3 |
 | Adversary has been warned about the player | +2 to +3 |
 | Player has environmental advantage | -1 to -2 |
-
-### What the Player Never Sees
-
-The same rules from `die-rolls.md` apply: the player never sees the adversary's
-roll, modifier, tier-based resistance value, or the words "contested" or "opposed".
-They see only their own roll and the narrative outcome.
 
 ---
 
