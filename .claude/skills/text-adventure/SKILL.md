@@ -3,7 +3,7 @@ name: text-adventure
 
 description: Use this skill whenever the user wants to play, run, or build an interactive text adventure game. Triggers include "text adventure", "play a game", "run a campaign", "tabletop RPG", "D&D-style game", "interactive story", "dungeon crawl", "choose your own adventure", "space adventure", "sci-fi RPG", "interactive fiction", "story game", "MUD", "text-based game", or any request to begin a narrative game with player decisions, character stats, or dice-based outcomes. Also use when the user wants to continue a prior adventure session or set up a new scenario. This skill is the orchestrator — it contains the complete core game engine and loads expansion modules from the modules/ directory as needed. Do NOT use for purely creative writing tasks that require no player agency or mechanical resolution.
 metadata:
-  version: "1.2.3"
+  version: "1.2.4"
 ---
 
 # Text Adventure Game — Core Engine
@@ -1095,28 +1095,14 @@ passed (see `modules/prose-craft.md` § Prose Checklist).
 
 ## Anti-Patterns
 
-- Never write narrative outside a widget.
-- Never auto-roll or auto-select.
-- Never advance the story or narrate the player's actions without explicit player input.
-- Never signal which choice is better.
-- Never describe outcomes before resolving rolls.
-- Never repeat scene descriptions verbatim on revisit.
+For narrative and gameplay anti-patterns (writing outside widgets, auto-resolving,
+skipping die stages, forgetting sendPrompt fallbacks, etc.), see the full list with
+explanations in `modules/gm-checklist.md` § Common Mistakes to Avoid. The following
+are **technical anti-patterns** not covered there:
+
 - Never use `position: fixed` (breaks iframe height).
-- Never use `localStorage`/`sessionStorage` as the primary persistence layer (unsupported in Claude.ai). Modules may use `sessionStorage` as a convenience cache with graceful fallback.
-- Never continue combat past HP 0 without the death/down widget.
-- Never forget world state flags after events.
-- Never reveal unexplored map rooms until adjacent.
-- Never use `sendPrompt()` for panel toggles — pure JS only.
-- Never render scenes without populating `PANEL_DATA` from `gmState`.
-- Never skip reading module files when active.
-- Never skip reading `styles/style-reference.md` and the active visual style before rendering widgets.
-- Never mention DC/modifier values, stat names, or stat values in narrative prose.
-- Never skip the progressive reveal pattern.
-- Never time-skip playable decisions into narrated summary.
-- Never let bonus stacking trivialise die rolls — escalate DCs to maintain tension.
-- All general prose craft rules (sentence rhythm, dialogue voice, show-don't-tell,
-  meta-commentary, sensory writing) live in `modules/prose-craft.md` § Prose Checklist.
-- Never rely solely on `sendPrompt()` buttons — always provide a copyable fallback prompt.
-- Never use inline `onclick` with `sendPrompt()` — use `data-prompt` + `addEventListener`.
-- Never use contractions (apostrophes) in sendPrompt strings — contractions (apostrophes) in
-  sendPrompt strings can break HTML attribute escaping silently.
+- Never use `localStorage`/`sessionStorage` as the primary persistence layer (unsupported
+  in Claude.ai). Modules may use `sessionStorage` as a convenience cache with graceful fallback.
+- Never use contractions (apostrophes) in sendPrompt strings — they break HTML attribute
+  escaping silently.
+- All prose craft rules live in `modules/prose-craft.md` § Prose Checklist.
