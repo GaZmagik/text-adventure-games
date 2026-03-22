@@ -69,12 +69,15 @@ NEW GAME CHECKLIST
 □ 10. Parse settings AND character data from the confirm prompt — the prompt contains
      both (rulebook, difficulty, pacing, style, atmosphere, audio, modules, AND
      name, class, stats, proficiencies, equipment). Apply ALL settings now.
-□ 11. Initialise gmState with all module-specific state properties
-□ 12. Initialise storyArchitect with seeded threads for the scenario
-□ 13. Initialise worldHistory with epochs and power structures
-□ 14. Generate the opening scene as a widget — NOT as plain text
-     Include atmosphere effects if atmosphere=on. Include audio if audio=on.
-     Apply the correct visual style. Load geo-map if active.
+□ 11. Initialise gmState (see modules/save-codex.md § The Full gmState Contract for schema;
+     read each active module file for its state field definitions)
+□ 12. Initialise storyArchitect (see modules/story-architect.md § Seeding Threads)
+□ 13. Initialise worldHistory (see modules/world-history.md § Epoch Schema)
+□ 14. Generate the opening scene as a widget — NOT as plain text.
+     Include atmosphere effects if atmosphere=on (read modules/atmosphere.md).
+     Include audio if audio=on (read modules/audio.md).
+     Apply the correct visual style (read styles/{style-name}.md).
+     Load geo-map if active (read modules/geo-map.md).
 □ 15. Verify: is ALL game content inside the widget? No prose outside?
 ```
 
@@ -101,7 +104,9 @@ RESUME FROM SAVE CHECKLIST
 □  9. Reconstruct gmState from save payload (compact: regenerate + apply deltas;
      full: restore directly)
 □ 10. Verify NPC identity: apply pronouns from rosterMutations to all NPC
-     definitions. If compact mode, confirm seeded pronouns match saved pronouns.
+     definitions (see modules/ai-npc.md § NPC Definition Object for schema,
+     modules/save-codex.md § compressRosterMutations for saved fields).
+     If compact mode, confirm seeded pronouns match saved pronouns.
      Use saved pronouns as authoritative if they conflict.
 □ 11. Reinitialise storyArchitect from worldFlags and codexMutations
 □ 12. Reinitialise worldHistory context from seed/theme (if procedural)
@@ -157,7 +162,7 @@ with missing module context.
 ```
 TURN-START MODULE CHECKLIST
 ═══════════════════════════════════════════
-□  1. Read modules/prose-craft.md — ALWAYS, every turn, no exceptions
+□  1. Read modules/prose-craft.md § Prose Checklist — ALWAYS, every turn, no exceptions
 □  2. Check #scene-meta from the previous widget (if any) for modules_active list
 □  3. Verify all modules_active are still loaded in context
 □  4. Determine if this turn introduces new module requirements:
@@ -188,7 +193,7 @@ before this checklist begins.
 NEW SCENE CHECKLIST
 ═══════════════════════════════════════════
 
-  Narrative Threading (consult storyArchitect)
+  Narrative Threading (consult modules/story-architect.md § Pre-Scene Checklist)
 □  1. Which thread(s) does this scene advance?
 □  2. Check foreshadowing registry: any seeds to reinforce or pay off?
 □  3. Check consequence chains: any pending effects to deliver?
@@ -205,6 +210,8 @@ NEW SCENE CHECKLIST
   Widget Assembly
 □ 11. Build the widget HTML with the active visual style's CSS
 □ 12. Include: loc-bar, atmo-strip, narrative, POIs, actions, status bar
+      (see SKILL.md § Scene Widget for component specs and styles/style-reference.md
+      § Scene Widget — HTML Skeleton for structural pattern)
 □ 13. Build footer using the Module Footer Button Table in style-reference.md:
       — Always: Character button + Save ↗ button
       — For each value in modules_active: look up and include its button from the table
@@ -212,7 +219,7 @@ NEW SCENE CHECKLIST
       — Do NOT include buttons for modules not in modules_active
       — Do NOT guess button labels or data-panel values — copy from the table
 □ 14. Include: pre-computed #save-data div for save fallback
-□ 15. Include: #scene-meta hidden div with scene metadata (see style-reference.md)
+□ 15. Include: #scene-meta hidden div (see styles/style-reference.md § Scene Metadata)
 □ 16. Every interactive button uses data-prompt + addEventListener (no inline onclick)
 □ 17. Every sendPrompt button has a copyable fallback
 □ 18. ALL narrative content is inside the widget — NOTHING outside
@@ -233,10 +240,14 @@ DIE ROLL CHECKLIST
 □  1. The player has already committed to an action (never pre-announce the check)
 □  2. The attribute was NOT revealed in the action options
 □  3. The DC is set but NOT revealed to the player
-□  4. Use the 3D Three.js die — load from CDN, render the correct polyhedron
-     for the die type (d20=icosahedron, d6=cube, d8=octahedron, etc.)
+□  4. Read die-rolls.md § "3D Dice Rendering" and use the COMPLETE code from
+     § "Complete 3D Die Widget" — texture atlas, face clustering, opposite-face
+     pairing, UV mapping, quaternion settle. Do NOT write simplified replacements.
+     The module code renders numbered faces on the polyhedron; a bare shape
+     without numbers is not a die, it is a geometry lesson.
 □  5. Stage 1 (Declare): show action, attribute, modifier — NOT the DC
 □  6. Stage 2 (Animate): 3D die button is clickable, NOT auto-rolled — tumble animation
+     with numbered faces visible. Die settles with rolled value facing camera.
 □  7. Stage 3 (Resolve): show raw roll + modifier + proficiency (if applicable) = total,
      THEN reveal DC, THEN outcome badge
 □  8. Stage 4 (Continue): proceed button with sendPrompt + fallback
@@ -244,6 +255,7 @@ DIE ROLL CHECKLIST
 □ 10. No consequences described in the roll widget — those go in the next scene
 □ 11. The widget is the ONLY output — no prose before or after
 □ 12. Never use flat CSS circles or rectangles for dice — always 3D polyhedra
+     with numbered faces from the die-rolls.md code. Never simplify the code.
 ```
 
 ---
@@ -257,16 +269,17 @@ deceive, intimidate, pickpocket, sneak past, etc.), verify each step.
 NPC HIDDEN ROLL CHECKLIST
 ═══════════════════════════════════════════
 □  1. Identify the contested action (persuade, deceive, intimidate, etc.)
-□  2. Determine player's relevant attribute from die-rolls.md pairings table
+□  2. Determine player's relevant attribute (see modules/die-rolls.md § Attribute Pairings)
 □  3. Determine NPC's opposing attribute from the same table
-□  4. Look up NPC stats from definition object (ai-npc.md) or tier (bestiary.md)
+□  4. Look up NPC stats from definition object (see modules/ai-npc.md § NPC Definition Object)
+     or threat tier (see modules/bestiary.md § Threat Tiers)
 □  5. Player rolls normally — visible 4-stage die roll widget with 3D dice
 □  6. GM secretly resolves NPC roll: d20 + NPC attribute modifier
 □  7. Compare totals — player result vs NPC result
 □  8. Determine margin of success/failure (decisive/narrow/tie)
 □  9. Show outcome badge with NARRATIVE description only
 □ 10. NEVER reveal: NPC roll, NPC modifier, NPC stats, the word "contested"
-□ 11. Narrate outcome using the narrative language table from die-rolls.md
+□ 11. Narrate outcome using modules/die-rolls.md § Narrative Language Table
 □ 12. If NPC is from bestiary: use tier-based resistance modifier, not full stats
 ```
 

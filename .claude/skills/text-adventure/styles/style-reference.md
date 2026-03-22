@@ -134,7 +134,7 @@ Every scene widget includes this footer outside the progressive reveal wrapper.
   - `Export ↗` (`id="export-btn"`) — uses `sendPrompt()` to ask Claude to generate a `.lore.md` file
     that shares the world for other players. Only rendered when adventure-exporting module is active.
 
-### Module Footer Button Table
+### § Module Footer Button Table
 
 When assembling the scene footer, iterate `modules_active` from `#scene-meta` and include
 the button and panel-content div for every matching row. Character and Save are ALWAYS
@@ -237,7 +237,7 @@ not gated behind the continue button.
 
 ```json
 {
-  "skill_version": "1.2.2",
+  "skill_version": "1.2.3",
   "arc": 1,
   "theme": "historical",
   "mode": "procedural",
@@ -315,7 +315,7 @@ Turn-Start Module Checklist will flag it as an error and force a reload.
 
 ```html
 <div id="scene-meta" style="display:none" data-meta='{
-  "skill_version": "1.2.2",
+  "skill_version": "1.2.3",
   "arc": 1,
   "theme": "historical",
   "mode": "procedural",
