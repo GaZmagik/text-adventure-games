@@ -155,6 +155,10 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     return styleNotSet();
   }
 
+  if (styleName && !/^[a-zA-Z0-9_-]+$/.test(styleName)) {
+    return fail('Style name contains invalid characters.', 'Use alphanumeric, hyphens, and underscores only.', 'render');
+  }
+
   // Extract CSS from the style file + style-reference.md (structural patterns, atmosphere CSS)
   const styleFilePath = join(import.meta.dir, '../../styles/', styleName + '.md');
   const styleRefPath = join(import.meta.dir, '../../styles/style-reference.md');

@@ -103,7 +103,7 @@ export function renderSettings(state: GmState | null, css: string, options?: Rec
 </div>
 <script>
 (function() {
-  var selections = ${JSON.stringify(defaults)};
+  var selections = ${JSON.stringify(defaults).replace(/</g, '\\u003c').replace(/>/g, '\\u003e')};
   var selectedModules = [];
 
   // Single-select groups

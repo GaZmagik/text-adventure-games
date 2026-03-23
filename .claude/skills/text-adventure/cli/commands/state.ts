@@ -110,6 +110,9 @@ function recordHistory(
     newValue,
   };
   state._stateHistory.push(entry);
+  if (state._stateHistory.length > 100) {
+    state._stateHistory = state._stateHistory.slice(-100);
+  }
 }
 
 /** Suggest similar top-level keys for corrective messages. */

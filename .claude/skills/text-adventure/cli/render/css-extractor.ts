@@ -4,7 +4,10 @@
 // This prevents documentation CSS examples from being duplicated alongside
 // the Complete CSS Block that already contains everything.
 
+const cssCache = new Map<string, string>();
+
 export async function extractAllCss(filePath: string): Promise<string> {
+  if (cssCache.has(filePath)) return cssCache.get(filePath)!;
   try {
     const file = Bun.file(filePath);
     if (!(await file.exists())) return '';
@@ -24,7 +27,9 @@ export async function extractAllCss(filePath: string): Promise<string> {
     }
 
     // Prefer marked blocks — avoids duplicating documentation examples
-    return (markedBlocks.length > 0 ? markedBlocks : allBlocks).join('\n\n');
+    const result = (markedBlocks.length > 0 ? markedBlocks : allBlocks).join('\n\n');
+    cssCache.set(filePath, result);
+    return result;
   } catch {
     return '';
   }

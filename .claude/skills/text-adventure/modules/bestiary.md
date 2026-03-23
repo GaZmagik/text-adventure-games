@@ -8,8 +8,8 @@ Loaded by the text-adventure orchestrator (SKILL.md). Depends on: core-systems.
 ## CRITICAL — Hidden Adversary Rolls
 
 For non-combat interactions with adversaries (sneak past, persuade, distract, etc.),
-follow the **Hidden Roll Resolution Pattern** in `modules/die-rolls.md` § Hidden Roll
-Resolution. Adversaries use tier-based resistance modifiers (below) instead of
+follow the **Hidden Roll Resolution Pattern** in `modules/die-rolls.md` § CRITICAL — Hidden Roll
+Resolution Pattern. Adversaries use tier-based resistance modifiers (below) instead of
 individual stat blocks (which are reserved for named NPCs in `ai-npc.md`).
 
 ### Tier-Based Resistance Modifiers

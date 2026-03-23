@@ -13,7 +13,7 @@ cards. Each card shows the system name, a one-line summary, the resolution mecha
 
 | System | Resolution | Best For |
 |--------|-----------|----------|
-| **d20 System** (default) | d20 + modifier vs DC. 4 stats, HP tracking. | Casual play, newcomers, fast sessions. |
+| **d20 System** (default) | d20 + modifier vs DC. 6 ability scores (STR, DEX, CON, INT, WIS, CHA), HP tracking. | Casual play, newcomers, fast sessions. |
 | **D&D 5e** | d20 + ability mod + proficiency vs DC. 6 ability scores, class features, spell slots. | Classic fantasy RPG, faithful to 5th Edition rules. |
 | **GURPS Lite** | 3d6 roll-under. Point-buy characters, advantages/disadvantages. | Realistic and simulationist play. |
 | **Pathfinder 2e Lite** | d20 + modifier + proficiency vs DC. Three-action economy, crit ranges. | Tactical combat-focused play. |

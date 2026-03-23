@@ -102,7 +102,7 @@ widget. This step appears between the stat block reveal and the final confirmati
 1. Display the 2 fixed proficiencies granted by the chosen archetype (shown as locked tags).
 2. Present the remaining 10 skills as selectable buttons. The player chooses exactly 2.
 3. Each skill button shows the skill name and its governing attribute in a subtle label
-   (e.g., "Stealth — AGI").
+   (e.g., "Stealth — DEX").
 4. Once 2 skills are selected, highlight them and enable the confirmation button.
 5. Track the full set of 4 proficiencies (2 fixed + 2 chosen) in widget JS state —
    these are serialised into the confirm sendPrompt string (see below).
@@ -118,10 +118,11 @@ player's widget and the GM is the sendPrompt string. If data is not in the promp
 does not have it.
 
 The GM must embed the confirmed game settings as a hidden `#game-settings` div when
-rendering this widget (see SKILL.md § Character Confirm Button for the full pattern).
-The confirm button reads from that div and includes both character data and settings
-in the sendPrompt string. Without this, the GM forgets which modules, atmosphere, audio,
-and visual style were selected — resulting in a broken opening scene.
+rendering this widget. The `tag render character-creation` command handles this
+automatically when `--data` includes the settings JSON. The confirm button reads
+from that div and includes both character data and settings in the sendPrompt string.
+Without this, the GM forgets which modules, atmosphere, audio, and visual style were
+selected — resulting in a broken opening scene.
 
 ---
 

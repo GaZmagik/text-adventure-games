@@ -76,8 +76,8 @@ NEW GAME CHECKLIST
      name, class, stats, proficiencies, equipment). Apply ALL settings now.
 □ 12. Store character in state: `tag state set character '<json>'`
 □ 13. Set visual style: `tag state set visualStyle <style-name>`
-□ 14. Initialise storyArchitect (see modules/story-architect.md § Seeding Threads)
-□ 15. Initialise worldHistory (see modules/world-history.md § Epoch Schema)
+□ 14. Initialise storyArchitect (see modules/story-architect.md § Seeding Threads from carryForward)
+□ 15. Initialise worldHistory (see modules/world-history.md § Historical Epoch System)
 □ 16. ARC SETUP — Create ALL content for this arc BEFORE the first scene.
      This is a batch operation. Do NOT create NPCs, quests, or factions mid-arc.
      Plan the arc's full cast, key locations, faction dynamics, and quest structure,
@@ -260,12 +260,12 @@ NEW SCENE CHECKLIST
       `tag state set character.xp += <xp_earned>` (if XP awarded)
       `tag state set factions.<id> += <delta>` (if faction changed)
       `tag state set worldFlags.<flag> true` (if discovery made)
-□ 15. Include: #scene-meta hidden div (see styles/style-reference.md § Scene Metadata)
-□ 16. Every interactive button uses data-prompt + addEventListener (no inline onclick)
-□ 17. Every sendPrompt button has a copyable fallback
-□ 18. ALL narrative content is inside the widget — NOTHING outside
-□ 19. Update gmState: scene number, current room, world flags, time
-□ 20. Output ONLY the widget — no text before, no text after
+□ 16. Include: #scene-meta hidden div (see styles/style-reference.md § Scene Metadata)
+□ 17. Every interactive button uses data-prompt + addEventListener (no inline onclick)
+□ 18. Every sendPrompt button has a copyable fallback
+□ 19. ALL narrative content is inside the widget — NOTHING outside
+□ 20. Update gmState: scene number, current room, world flags, time
+□ 21. Output ONLY the widget — no text before, no text after
 ```
 
 ---
@@ -282,7 +282,7 @@ DIE ROLL CHECKLIST
 □  2. The attribute was NOT revealed in the action options
 □  3. The DC is set but NOT revealed to the player
 □  4. Read die-rolls.md § "3D Dice Rendering" and use the COMPLETE code from
-     § "Complete 3D Die Widget" — texture atlas, face clustering, opposite-face
+     § "3D Dice Rendering (Three.js)" — texture atlas, face clustering, opposite-face
      pairing, UV mapping, quaternion settle. Do NOT write simplified replacements.
      The module code renders numbered faces on the polyhedron; a bare shape
      without numbers is not a die, it is a geometry lesson.
@@ -296,7 +296,7 @@ DIE ROLL CHECKLIST
 □ 10. No consequences described in the roll widget — those go in the next scene
 □ 11. The widget is the ONLY output — no prose before or after
 □ 12. Never use flat CSS circles or rectangles for dice — always 3D polyhedra
-     with numbered faces from the die-rolls.md code. Never simplify the code.
+     with numbered faces from tag render dice --style <style>. Never simplify the code.
 ```
 
 ---
@@ -310,7 +310,7 @@ deceive, intimidate, pickpocket, sneak past, etc.), verify each step.
 NPC HIDDEN ROLL CHECKLIST
 ═══════════════════════════════════════════
 □  1. Identify the contested action (persuade, deceive, intimidate, etc.)
-□  2. Determine player's relevant attribute (see modules/die-rolls.md § Attribute Pairings)
+□  2. Determine player's relevant attribute (see modules/die-rolls.md § Contested Check Attribute Pairings)
 □  3. Determine NPC's opposing attribute from the same table
 □  4. Look up NPC stats from definition object (see modules/ai-npc.md § NPC Definition Object)
      or threat tier (see modules/bestiary.md § Threat Tiers)
@@ -320,7 +320,7 @@ NPC HIDDEN ROLL CHECKLIST
 □  8. Determine margin of success/failure (decisive/narrow/tie)
 □  9. Show outcome badge with NARRATIVE description only
 □ 10. NEVER reveal: NPC roll, NPC modifier, NPC stats, the word "contested"
-□ 11. Narrate outcome using modules/die-rolls.md § Narrative Language Table
+□ 11. Narrate outcome using modules/die-rolls.md § Outcome Badge Text for Contested Checks
 □ 12. If NPC is from bestiary: use tier-based resistance modifier, not full stats
 ```
 

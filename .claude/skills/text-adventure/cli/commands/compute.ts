@@ -113,13 +113,17 @@ async function hazard(args: string[]): Promise<CommandResult> {
   }
 
   const stat = args[0].toUpperCase() as StatName;
+  if (!VALID_STATS.includes(stat)) {
+    return fail(`Invalid stat: "${stat}".`, `Valid stats: ${VALID_STATS.join(', ')}`, 'compute hazard');
+  }
+
   const dcStr = parseFlag(args, '--dc');
   if (!dcStr) {
     return fail('Missing required flag: --dc <number>', 'tag compute hazard CON --dc 14', 'compute hazard');
   }
 
   const dc = parseInt(dcStr, 10);
-  if (isNaN(dc)) {
+  if (Number.isNaN(dc)) {
     return fail(`Invalid DC value: ${dcStr}`, 'tag compute hazard CON --dc 14', 'compute hazard');
   }
 

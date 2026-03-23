@@ -84,11 +84,12 @@ renderer reads the NPC's current disposition from state.
 
 | Command | Subcommands | Key Flags | Example |
 |---------|-------------|-----------|---------|
-| `tag state` | `get`, `set`, `reset`, `create-npc`, `validate`, `history` | `--tier`, `--name`, `--pronouns`, `--role` | `tag state create-npc nyx_01 --tier boss --name "Nyx" --pronouns they/them --role antagonist` |
-| `tag compute` | `contest`, `hazard`, `encounter` | `--advantage`, `--disadvantage` | `tag compute contest WIS spy_03` |
-| `tag render` | `scene`, `combat-turn`, `dialogue`, `die-roll`, `character-creation`, `settings`, `panel` | `--style`, `--npc` | `tag render scene --style parchment` |
-| `tag save` | `generate`, `load`, `validate`, `migrate` | `--mode compact\|full` | `tag save generate --mode compact` |
+| `tag state` | `get`, `set`, `reset`, `create-npc`, `validate`, `history` | `--tier`, `--name`, `--pronouns`, `--role` | `tag state create-npc nyx_01 --tier nemesis --name "Nyx" --pronouns they/them --role antagonist` |
+| `tag compute` | `contest`, `hazard`, `encounter` | None | `tag compute contest WIS spy_03` |
+| `tag render` | `scene`, `combat-turn`, `dialogue`, `dice`, `character-creation`, `settings`, `character`, `ticker`, `ship`, `crew`, `codex`, `map`, `starchart`, `footer`, `save-div`, `levelup`, `recap`, `scenario-select` | `--style`, `--npc` | `tag render scene --style parchment` |
+| `tag save` | `generate`, `load`, `validate`, `migrate` | None | `tag save generate` |
 | `tag batch` | — | `--commands`, `--dry-run` | `tag batch --commands "state get scene; save validate"` |
+| `tag rules` | (none), `<category>`, `<keyword>` | None | `tag rules output` |
 
 ---
 

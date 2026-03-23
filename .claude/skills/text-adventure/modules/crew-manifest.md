@@ -360,9 +360,12 @@ function generateCrew(worldSeed, shipClass, crewSize) {
     const ramp = rampPool[rampIdx++ % rampPool.length];
     const hasSecret = rng() < 0.65;
 
+    const pronouns = pick(['he/him','she/her','they/them']);
+
     return {
       id:     name.toLowerCase().replace(/\s+/g,'_'),
       name,
+      pronouns,
       role,
       portrait: { initials, ramp },
       morale:  ri(55, 80),

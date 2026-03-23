@@ -3,6 +3,23 @@ import { ok, fail, noState } from '../lib/errors';
 import { loadState, saveState, stateExists, createDefaultState } from '../lib/state-store';
 import { attachChecksum, validateAndDecode } from '../lib/fnv32';
 
+async function resolveSaveString(input: string): Promise<string> {
+  if (input.startsWith('/') || input.startsWith('./') || input.endsWith('.md') || input.endsWith('.save')) {
+    try {
+      const file = Bun.file(input);
+      const content = await file.text();
+      const match = content.match(/```[\s\S]*?([\da-fA-F]{8}\.SF[12]:[\S]+)[\s\S]*?```/);
+      if (match) return match[1];
+      const lineMatch = content.match(/([\da-fA-F]{8}\.SF[12]:[\S]+)/);
+      if (lineMatch) return lineMatch[1];
+      return content.trim();
+    } catch {
+      return input;
+    }
+  }
+  return input;
+}
+
 async function generate(): Promise<CommandResult> {
   if (!(await stateExists())) return noState();
 
@@ -63,30 +80,7 @@ async function load(args: string[]): Promise<CommandResult> {
     );
   }
 
-  let saveString = args[0];
-
-  // If the argument looks like a file path, read the save string from it
-  if (saveString.endsWith('.md') || saveString.endsWith('.save') || saveString.includes('/')) {
-    try {
-      const file = Bun.file(saveString);
-      if (await file.exists()) {
-        const content = await file.text();
-        // Extract save string from fenced code block or bare string
-        const codeBlockMatch = content.match(/```\s*\n([0-9a-f]{8}\.[A-Z][A-Z0-9]+:[\s\S]*?)```/);
-        if (codeBlockMatch) {
-          saveString = codeBlockMatch[1].trim();
-        } else {
-          // Try to find a bare save string (checksum.payload pattern)
-          const bareMatch = content.match(/([0-9a-f]{8}\.[A-Z][A-Z0-9]+:[A-Za-z0-9+/=]+)/);
-          if (bareMatch) {
-            saveString = bareMatch[1];
-          }
-        }
-      }
-    } catch {
-      // Fall through — treat as a raw save string
-    }
-  }
+  const saveString = await resolveSaveString(args[0]);
 
   const decoded = validateAndDecode(saveString);
 
@@ -98,7 +92,7 @@ async function load(args: string[]): Promise<CommandResult> {
     );
   }
 
-  const payload = decoded.payload!;
+  const payload = decoded.payload;
 
   // Rebuild GmState from payload
   const state = createDefaultState();
@@ -145,7 +139,8 @@ async function validate(args: string[]): Promise<CommandResult> {
     return fail('Usage: tag save validate <save-string>', 'tag save validate <checksummed-string>', 'save validate');
   }
 
-  const decoded = validateAndDecode(args[0]);
+  const saveString = await resolveSaveString(args[0]);
+  const decoded = validateAndDecode(saveString);
   return ok({
     valid: decoded.valid,
     mode: decoded.mode ?? null,

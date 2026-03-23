@@ -13,12 +13,9 @@ export function attachChecksum(code: string): string {
   return fnv32(code) + '.' + code;
 }
 
-interface DecodeResult {
-  valid: boolean;
-  error?: string;
-  payload?: Record<string, unknown>;
-  mode?: 'compact' | 'full';
-}
+export type DecodeResult =
+  | { valid: true; payload: Record<string, unknown>; mode: 'compact' | 'full' }
+  | { valid: false; error: string };
 
 export function validateAndDecode(saveString: string): DecodeResult {
   const dotIdx = saveString.indexOf('.');

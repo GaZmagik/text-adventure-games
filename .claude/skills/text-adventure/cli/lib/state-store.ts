@@ -1,12 +1,11 @@
 import { join } from 'path';
 import { homedir } from 'os';
-import { mkdirSync, existsSync } from 'fs';
+import { mkdirSync, existsSync, renameSync } from 'fs';
 import type { GmState } from '../types';
 
 function getStateDir(): string {
   return process.env.TAG_STATE_DIR || join(homedir(), '.tag');
 }
-
 export function getStatePath(): string {
   return join(getStateDir(), 'state.json');
 }
@@ -30,7 +29,27 @@ export async function saveState(state: GmState): Promise<void> {
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true });
   }
-  await Bun.write(getStatePath(), JSON.stringify(state, null, 2));
+  // Cap unbounded arrays to prevent state bloat
+  if (state._stateHistory && state._stateHistory.length > 100) {
+    state._stateHistory = state._stateHistory.slice(-100);
+  }
+  if (state.rollHistory && state.rollHistory.length > 50) {
+    state.rollHistory = state.rollHistory.slice(-50);
+  }
+  const path = getStatePath();
+  const tmpPath = path + '.tmp';
+  await Bun.write(tmpPath, JSON.stringify(state));
+  renameSync(tmpPath, path);
+}
+
+export async function tryLoadState(): Promise<GmState | null> {
+  try {
+    const file = Bun.file(getStatePath());
+    if (!(await file.exists())) return null;
+    return await file.json() as GmState;
+  } catch {
+    return null;
+  }
 }
 
 export function createDefaultState(): GmState {

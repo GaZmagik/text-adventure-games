@@ -64,7 +64,7 @@ through play.
 | Source | What is exported | Transformation |
 |--------|-----------------|----------------|
 | `gmState.worldHistory` | Epochs, power structures, past conflicts, cultural layer | Direct copy + new entries from resolved threads |
-| `gmState.npcProfiles` / ai-npc roster | All NPCs with current state | Dispositions, secrets (ALL — revealed and unrevealed), alive/dead status preserved |
+| `gmState.rosterMutations` / ai-npc roster | All NPCs with current state | Dispositions, secrets (ALL — revealed and unrevealed), alive/dead status preserved |
 | `gmState.mapState` / geo-map | All locations (discovered and undiscovered) | Current physical state preserved (damage, changes, items); discovery states reset to undiscovered |
 | `gmState.storyArchitect.storyThreads` | All story threads | Resolved -> world history events; Active/Escalating -> seeded threads; Dormant -> dormant; Abandoned -> removed |
 | `gmState.factions` | All faction standings | Current standings become the starting state for the new player |
@@ -472,7 +472,7 @@ The GM provides the export data via `tag state` fields:
 | `characterClass` | `gmState.character.class` |
 | `scenesPlayed` | `gmState.scene` |
 | `locationCount` | `Object.keys(gmState.mapState?.rooms ?? {}).length` |
-| `npcCount` | `(gmState.npcProfiles ?? []).length` |
+| `npcCount` | `(gmState.rosterMutations ?? []).length` |
 | `threadCount` | `(gmState.storyArchitect?.storyThreads ?? []).length` |
 | `factionCount` | `Object.keys(gmState.factions ?? {}).length` |
 | `flagCount` | `Object.keys(gmState.worldFlags ?? {}).length` |

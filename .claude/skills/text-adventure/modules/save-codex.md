@@ -98,7 +98,7 @@ machine-parseable (the payload string).
 ---
 format: text-adventure-save
 version: 1
-skill-version: "1.3.0.a"
+skill-version: "1.3.0"
 character: "Gareth Williams"
 class: "Bartender"
 level: 2

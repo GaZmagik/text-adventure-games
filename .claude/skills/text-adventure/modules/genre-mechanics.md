@@ -127,7 +127,7 @@ settings where internal energy and martial discipline are central.
 
 ### Chi Pool
 
-Equal to WIL x 2 (or WIS x 2 if the rulebook uses WIS instead of WIL). Recovers 1d4 per
+Equal to WIS x 2. Recovers 1d4 per
 round of meditation (requires an action). Full recovery on rest.
 
 ### Martial Techniques
@@ -148,7 +148,7 @@ round of meditation (requires an action). Full recovery on rest.
 ### Using Techniques
 
 Using a technique requires an action. Each technique costs 1–3 chi depending on its power.
-Roll d20 + relevant stat (STR for Strikes, AGI for Flow, INT for Pressure Points, WIL for
+Roll d20 + relevant stat (STR for Strikes, DEX for Flow, INT for Pressure Points, WIS for
 Inner/External Force). Success = technique takes effect.
 
 **Chaining:** If a technique succeeds, the character may immediately attempt a second
@@ -465,7 +465,7 @@ genreSanity: {
 
 // Chi/Ki System
 genreChi: {
-  chi: 0,              // current chi (WIL x 2 max)
+  chi: 0,              // current chi (WIS x 2 max)
   maxChi: 0,
   techniques: [],      // { name, type, chiCost, description }
   honour: 5,           // 0–10 scale

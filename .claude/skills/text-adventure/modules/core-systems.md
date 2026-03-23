@@ -91,8 +91,8 @@ remaining uses (if consumable), and a "Use" or "Drop" button.
 ### Capacity
 
 Each character can carry items with total encumbrance up to **5 + STR modifier**. Exceeding
-capacity imposes **−1 to AGI checks per point over the limit**. The GM enforces this on every
-AGI-based roll — no silent ignoring of overencumbrance.
+capacity imposes **−1 to DEX checks per point over the limit**. The GM enforces this on every
+DEX-based roll — no silent ignoring of overencumbrance.
 
 ### Item Slots
 
@@ -452,7 +452,7 @@ Display active conditions as badges in the status bar.
 | Stunned | Skip next action entirely. | 1 round | Automatic (wears off). |
 | Poisoned | Lose 1d4 HP at the start of each round. | 3 rounds or until cured | INT check (DC 14) as an action, or antidote item. |
 | Frightened | Disadvantage on all checks whilst the source is present. | Until source removed | Remove or defeat the source; Medic's Purify; Diplomat's Rally. |
-| Injured | −2 to all physical checks (STR, DEX, CON/AGI). | Until healed | Healing (any source) or rest at a safe location. |
+| Injured | −2 to all physical checks (STR, DEX, CON/DEX). | Until healed | Healing (any source) or rest at a safe location. |
 | Exhausted | −1 to all checks. Cumulative (stacks). | Until rested | Rest at a safe location removes all stacks. |
 
 **Applying conditions:** Conditions are applied by enemy attacks, environmental hazards,
@@ -483,11 +483,11 @@ them consistently.
 | Toxic atmosphere | STR | 14 | Poisoned condition; 1d6 damage per round without mask | Until clean air/mask |
 | Vacuum/decompression | STR | 16 | 2d6 damage per round; unconscious after 2 rounds | Until pressurised |
 | Radiation | INT | 14 | 1d4 damage per round; Injured condition after 3 rounds | Until shielded area |
-| Low gravity | AGI | 10 | Disadvantage on physical checks until acclimatised (3 rounds) | Ongoing |
+| Low gravity | DEX | 10 | Disadvantage on physical checks until acclimatised (3 rounds) | Ongoing |
 | High gravity | STR | 12 | −1 to all physical checks; encumbrance capacity halved | Ongoing |
 | Darkness | INT | 10 | Disadvantage on Perception; cannot target beyond short range | Until light source |
-| Unstable terrain | AGI | 12 | Fall prone; 1d6 damage on critical failure | Per movement |
-| Electrical hazard | AGI | 14 | 2d6 damage; Stunned on failure | One-time per source |
+| Unstable terrain | DEX | 12 | Fall prone; 1d6 damage on critical failure | Per movement |
+| Electrical hazard | DEX | 14 | 2d6 damage; Stunned on failure | One-time per source |
 
 ### Hazard Rules
 
@@ -511,7 +511,7 @@ adds a bonus to checks using that skill, reflecting competence beyond raw attrib
 | Attribute | Skills |
 |-----------|--------|
 | STR | Athletics, Intimidation |
-| AGI | Acrobatics, Stealth, Sleight of Hand |
+| DEX | Acrobatics, Stealth, Sleight of Hand |
 | INT | Investigation, Medicine, Mechanics |
 | CHA | Persuasion, Deception, Insight, Performance |
 
