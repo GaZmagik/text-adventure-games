@@ -39,6 +39,17 @@ with pre-loaded state.
 
 ---
 
+## § CLI Commands for This Module
+
+| Action | Command | Tool |
+|--------|---------|------|
+| Generate save | `tag save generate` | Run via Bash tool |
+| Load save | `tag save load <file.save.md>` | Run via Bash tool |
+| Validate save | `tag save validate <file.save.md>` | Run via Bash tool |
+| Migrate old save | `tag save migrate <file>` | Run via Bash tool |
+
+---
+
 ## Architecture Overview
 
 ```
@@ -149,138 +160,29 @@ This enables the inline fallback display if `sendPrompt()` is unavailable.
 
 ### Implementation
 
-The GM embeds the save data in every scene widget:
+The GM generates save data for every scene by running:
 
-```html
-<div id="save-data" style="display:none"
-  data-save="SC1:eyJ2Ij..."
-  data-character="Gareth Williams"
-  data-class="Bartender"
-  data-level="2"
-  data-scene="7"
-  data-location="The Oxidiser — Bar Floor"
-  data-title="Freeport Meridian"
-  data-theme="space"
-  data-seed="pale-threshold-7"
-  data-mode="compact">
-</div>
-```
-
-The footer Save button uses `sendPrompt()` to ask Claude to generate the `.save.md` file
-as a downloadable conversation artifact. The pre-computed `#save-data` div serves as a
-fallback — if `sendPrompt()` is unavailable, the save string is displayed inline in a
-readonly textarea for the player to copy manually.
-
-### Save Button Script — sendPrompt Primary, Inline Fallback
-
-The Save button uses `sendPrompt()` to ask Claude to generate the `.save.md` file as a
-downloadable artifact. If `sendPrompt()` is unavailable (timing, sandboxing), the button
-falls back to displaying the pre-computed save string in a readonly textarea with a copy
-button so the player can copy it manually.
-
-```js
-function showInlineSave() {
-  const el = document.getElementById('save-data');
-  if (!el || !el.dataset.save) return;
-
-  const saveString = el.dataset.save;
-  const character = el.dataset.character || 'Unknown';
-  const scene = el.dataset.scene || '1';
-
-  // Create or reuse the inline save display
-  var container = document.getElementById('inline-save-display');
-  if (!container) {
-    container = document.createElement('div');
-    container.id = 'inline-save-display';
-    container.style.cssText = 'margin-top:0.75rem;padding:0.75rem 1rem;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);background:var(--color-background-secondary);';
-
-    var label = document.createElement('p');
-    label.style.cssText = 'font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-text-tertiary);margin:0 0 6px;';
-    label.textContent = 'Save string — copy and paste to resume later';
-    container.appendChild(label);
-
-    var ta = document.createElement('textarea');
-    ta.id = 'inline-save-textarea';
-    ta.readOnly = true;
-    ta.rows = 4;
-    ta.style.cssText = 'width:100%;box-sizing:border-box;padding:8px 10px;font-family:monospace;font-size:11px;line-height:1.5;background:var(--color-background-tertiary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);color:var(--color-text-secondary);word-break:break-all;resize:none;';
-    container.appendChild(ta);
-
-    var copyBtn = document.createElement('button');
-    copyBtn.textContent = 'Copy';
-    copyBtn.style.cssText = 'margin-top:6px;padding:4px 12px;font-family:monospace;font-size:10px;letter-spacing:0.08em;background:transparent;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);color:var(--color-text-secondary);cursor:pointer;';
-    copyBtn.addEventListener('click', function() {
-      navigator.clipboard.writeText(saveString).then(function() {
-        copyBtn.textContent = 'Copied!';
-        setTimeout(function() { copyBtn.textContent = 'Copy'; }, 2200);
-      }).catch(function() {
-        ta.select();
-        document.execCommand('copy');
-        copyBtn.textContent = 'Copied!';
-        setTimeout(function() { copyBtn.textContent = 'Copy'; }, 2200);
-      });
-    });
-    container.appendChild(copyBtn);
-
-    // Insert after the save button or at end of footer
-    var saveBtn = document.getElementById('save-btn');
-    if (saveBtn && saveBtn.parentNode) {
-      saveBtn.parentNode.insertAdjacentElement('afterend', container);
-    } else {
-      document.querySelector('.root').appendChild(container);
-    }
-  }
-
-  document.getElementById('inline-save-textarea').value = saveString;
-  container.style.display = 'block';
-}
-```
-
-### Save Generation — MUST Use `tag save generate`
-
-When the player requests a save, you MUST use the CLI to generate the save payload:
 ```bash
 tag save generate
 ```
-This produces a checksummed, encoded save string using the correct FNV-1a algorithm.
-Never compute checksums manually or write custom encoding scripts.
 
-### Save Button Wiring
+The CLI produces the checksummed, encoded save payload. The footer Save button uses
+`sendPrompt()` to ask Claude to generate the `.save.md` file as a downloadable
+conversation artifact.
 
-```js
-document.getElementById('save-btn').addEventListener('click', function() {
-  if (typeof sendPrompt === 'function') {
-    sendPrompt('Run `tag save generate` and create a downloadable .save.md file from the output. Use YAML frontmatter plus the encoded payload string from the CLI output.');
-    this.textContent = 'Generating...';
-    this.disabled = true;
-  } else {
-    // Fallback: display save string inline as copyable text
-    showInlineSave();
-    this.textContent = 'Shown below';
-    setTimeout(function() { document.getElementById('save-btn').textContent = 'Save \u2197'; }, 2000);
-  }
-});
-```
 
-### GM Instruction — Embedding Save Data
 
-The GM **must** embed the `#save-data` div in every scene widget, populated with the current
-`gmState` serialisation. The GM builds the save string at render time using
-`buildCompactSave(gmState)` or `buildFullSave(gmState)` and injects the result into the
-`data-save` attribute along with all metadata fields.
 
-The `#save-data` div is used for the **inline fallback display** — if `sendPrompt()` is
-unavailable, the save string is shown in a readonly textarea for manual copying.
+### GM Instruction — Generating Saves
 
-The **primary save path** is `sendPrompt()`: when the player clicks Save, the button fires
-`sendPrompt('Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md. Use YAML frontmatter plus an encoded SC1: or SF1: payload string. Never write game state as human-readable markdown.')`. Claude receives this
-prompt and must:
+The GM **must** run `tag save generate` via the Bash tool to produce the save payload.
+Never hand-code save encoding, checksums, or base64. The CLI handles all of this.
 
-1. Compute the save payload from the current `gmState` using `buildCompactSave()` or
-   `buildFullSave()` as appropriate.
-2. Build the complete `.save.md` content (YAML frontmatter + markdown body with the save
-   payload in a fenced code block — see the Save File Format section above).
-3. Present the `.save.md` as a downloadable artifact in the response.
+When the player clicks Save, the scene widget fires a `sendPrompt()` that instructs the
+GM to:
+
+1. Run `tag save generate` via the Bash tool.
+2. Take the CLI output and present it as a downloadable `.save.md` artifact.
 
 This approach bypasses the iframe sandbox restrictions that silently block Blob downloads
 in Claude.ai widgets.
@@ -293,6 +195,7 @@ Before building the save payload, the Save Codex must understand the complete st
 contributed by each skill in the toolkit. This is the canonical `gmState` schema when all skills
 are active:
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const gmState = {
   // ── Core (orchestrator) ─────────────────────────────────────
@@ -460,6 +363,7 @@ gmState when the new arc begins.
 
 ### carryForward Schema
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const carryForward = {
   characterIdentity: {
@@ -510,6 +414,7 @@ const carryForward = {
 When the player clicks "Continue to next arc", the GM builds the carryForward
 object from the current gmState:
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 function buildCarryForward(gmState) {
   const c = gmState.character;
@@ -557,6 +462,7 @@ growing unboundedly and competing with the skill instructions for context space.
 
 When the new arc begins, the GM applies carryForward to the fresh gmState:
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 function applyCarryForward(gmState, carryForward) {
   // Character identity and progression
@@ -598,6 +504,7 @@ function applyCarryForward(gmState, carryForward) {
 
 The new arc's world seed is derived from the original:
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const newSeed = originalSeed + '_arc' + newArcNumber;
 // See modules/procedural-world-gen.md for deriveArcSeed()
@@ -639,6 +546,7 @@ player progress. The world itself is regenerated from the seed.
 
 ### Build
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 function buildCompactSave(gmState) {
   const payload = {
@@ -784,6 +692,7 @@ function compressMapState(map) {
 
 ### Restore
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 function restoreCompactSave(saveString) {
   const { payload, valid } = validateAndDecode(saveString);
@@ -962,6 +871,7 @@ https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js
 
 ### Build
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 function buildFullSave(gmState) {
   const payload = {
@@ -1013,6 +923,7 @@ function buildWorldSnapshot(gmState) {
 
 ### Restore
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 function restoreFullSave(saveString) {
   const { payload, valid } = validateAndDecode(saveString);
@@ -1053,6 +964,7 @@ function restoreFullSave(saveString) {
 
 Every save string carries a CRC32-style checksum to detect corruption or truncation.
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 // Simple FNV-1a 32-bit hash — fast, good distribution
 function fnv32(str) {
@@ -1113,6 +1025,7 @@ checks `payload.v` and applies a migration function if loading an older save int
 Within a session, the save widget maintains up to five named save slots in JS module scope.
 Slots persist across widget re-renders within the same browser tab.
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 // Module-scoped slot store — resets when the page reloads (by design)
 const SAVE_SLOTS = {
@@ -1153,536 +1066,48 @@ decoding. They include: scene number, character name, current HP, location, and 
 
 ## The Save Widget
 
-The full interactive save/load widget. Handles writing slots, copying the save string, showing a
-QR code for mobile sharing, and the paste-to-resume flow.
+The save/load widget is rendered by the CLI. Do not hand-code the widget HTML, CSS, or JS.
 
-```html
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@700&display=swap');
-
-  .sv-root { font-family:'IBM Plex Mono',monospace; padding:1rem 0 1.5rem; }
-
-  .sv-header { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:8px; }
-  .sv-title  { font-family:'Syne',sans-serif; font-size:22px; font-weight:700; color:var(--color-text-primary); margin:0; }
-  .sv-sub    { font-size:11px; color:var(--color-text-tertiary); }
-
-  .tab-row   { display:flex; gap:4px; margin-bottom:1rem; }
-  .tab-btn   { padding:5px 14px; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.1em;
-    background:transparent; border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-md);
-    color:var(--color-text-secondary); cursor:pointer; transition:all 0.1s; }
-  .tab-btn:hover  { background:var(--color-background-secondary); }
-  .tab-btn.active { border-color:var(--color-border-info); background:var(--color-background-info); color:var(--color-text-info); }
-
-  .slots-grid { display:flex; flex-direction:column; gap:6px; margin-bottom:1rem; }
-  .slot-row   { display:flex; align-items:center; gap:8px; padding:10px 12px;
-    border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-md);
-    background:var(--color-background-primary); transition:border-color 0.1s; }
-  .slot-row.occupied { cursor:pointer; }
-  .slot-row.occupied:hover { border-color:var(--color-border-secondary); background:var(--color-background-secondary); }
-  .slot-row.active-slot { border-color:var(--color-border-info); background:var(--color-background-info); }
-
-  .slot-num  { font-size:10px; color:var(--color-text-tertiary); min-width:16px; }
-  .slot-info { flex:1; }
-  .slot-label { font-size:12px; font-weight:500; color:var(--color-text-primary); }
-  .slot-meta  { font-size:10px; color:var(--color-text-tertiary); margin-top:2px; }
-  .slot-empty { font-size:11px; color:var(--color-text-tertiary); font-style:italic; }
-
-  .slot-actions { display:flex; gap:4px; }
-  .slot-btn { padding:4px 10px; font-size:10px; letter-spacing:0.08em; font-family:'IBM Plex Mono',monospace;
-    background:transparent; border:0.5px solid var(--color-border-secondary);
-    border-radius:var(--border-radius-md); color:var(--color-text-secondary); cursor:pointer; transition:background 0.1s; }
-  .slot-btn:hover { background:var(--color-background-secondary); }
-  .slot-btn.danger { border-color:var(--color-border-danger); color:var(--color-text-danger); }
-  .slot-btn.danger:hover { background:var(--color-background-danger); }
-
-  .hp-bar-wrap { display:flex; align-items:center; gap:6px; }
-  .hp-bar-track { width:40px; height:3px; background:var(--color-border-tertiary); border-radius:2px; overflow:hidden; }
-  .hp-bar-fill  { height:100%; border-radius:2px; transition:width 0.3s; }
-  .hp-high   { background:#1D9E75; }
-  .hp-mid    { background:#EF9F27; }
-  .hp-low    { background:#D85A30; }
-
-  .code-block { position:relative; margin:0.75rem 0; }
-  .code-display { width:100%; box-sizing:border-box; padding:10px 12px; padding-right:80px;
-    font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.5;
-    background:var(--color-background-tertiary); border:0.5px solid var(--color-border-tertiary);
-    border-radius:var(--border-radius-md); color:var(--color-text-secondary);
-    word-break:break-all; resize:none; min-height:72px; }
-  .code-display:focus { outline:none; }
-  .copy-btn { position:absolute; top:8px; right:8px; padding:4px 10px;
-    font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.08em;
-    background:var(--color-background-primary); border:0.5px solid var(--color-border-secondary);
-    border-radius:var(--border-radius-md); color:var(--color-text-secondary); cursor:pointer;
-    transition:all 0.1s; }
-  .copy-btn:hover { background:var(--color-background-secondary); }
-  .copy-btn.copied { border-color:var(--color-border-success); color:var(--color-text-success); }
-
-  .qr-wrap { display:flex; justify-content:center; padding:1rem 0; }
-  #qr-canvas { border-radius:var(--border-radius-md); }
-
-  .paste-row { display:flex; gap:8px; }
-  .paste-input { flex:1; font-family:'IBM Plex Mono',monospace; font-size:11px;
-    padding:8px 12px; border:0.5px solid var(--color-border-secondary);
-    border-radius:var(--border-radius-md); background:var(--color-background-primary);
-    color:var(--color-text-primary); }
-  .paste-input:focus { outline:none; border-color:var(--color-border-primary); }
-  .paste-input::placeholder { color:var(--color-text-tertiary); }
-  .load-btn { padding:8px 16px; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em;
-    background:transparent; border:0.5px solid var(--color-border-secondary);
-    border-radius:var(--border-radius-md); color:var(--color-text-primary); cursor:pointer; white-space:nowrap; }
-  .load-btn:hover { background:var(--color-background-secondary); }
-
-  .status-msg { font-size:11px; margin-top:8px; min-height:18px; font-style:italic; }
-  .status-ok   { color:var(--color-text-success); }
-  .status-err  { color:var(--color-text-danger); }
-  .status-warn { color:var(--color-text-warning); }
-
-  .footer-row { display:flex; justify-content:space-between; align-items:center; margin-top:1rem;
-    padding-top:0.75rem; border-top:0.5px solid var(--color-border-tertiary); }
-  .close-btn { font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.08em;
-    background:transparent; border:0.5px solid var(--color-border-secondary);
-    border-radius:var(--border-radius-md); padding:5px 12px;
-    color:var(--color-text-secondary); cursor:pointer; }
-  .close-btn:hover { background:var(--color-background-secondary); }
-  .mode-badge { font-size:10px; padding:3px 8px; border-radius:var(--border-radius-md);
-    background:var(--color-background-secondary); color:var(--color-text-tertiary); letter-spacing:0.06em; }
-</style>
-
-<div class="sv-root">
-  <div class="sv-header">
-    <p class="sv-title">Save Codex</p>
-    <span class="sv-sub" id="sv-sub">Session persistence</span>
-  </div>
-
-  <div class="tab-row">
-    <button class="tab-btn active" data-tab="save">Save</button>
-    <button class="tab-btn"        data-tab="load">Load / Resume</button>
-  </div>
-
-  <!-- SAVE TAB -->
-  <div id="tab-save">
-    <div class="slots-grid" id="slots-grid"></div>
-
-    <div id="code-section" style="display:none;">
-      <div class="code-block">
-        <textarea class="code-display" id="code-display" readonly rows="4"></textarea>
-        <button class="copy-btn" id="copy-btn">Copy</button>
-      </div>
-      <div id="qr-wrap" class="qr-wrap" style="display:none;">
-        <canvas id="qr-canvas"></canvas>
-      </div>
-      <button id="qr-toggle-btn" style="font-size:10px;color:var(--color-text-tertiary);background:none;border:none;cursor:pointer;font-family:'IBM Plex Mono',monospace;letter-spacing:0.06em;margin-top:4px;">
-        <span id="qr-toggle-label">Show QR code ↓</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- LOAD TAB -->
-  <div id="tab-load" style="display:none;">
-    <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 0.75rem;line-height:1.7;">
-      Paste a save code to resume a previous session. The world will be reconstructed and play
-      will continue from where you left off.
-    </p>
-    <div class="paste-row">
-      <input class="paste-input" id="paste-input" type="text" placeholder="Paste save code here…" oninput="validatePaste()" />
-      <button class="load-btn" id="load-btn">Resume ↗</button>
-    </div>
-    <p class="status-msg" id="load-status"></p>
-
-    <div id="load-preview" style="display:none;margin-top:1rem;
-      padding:0.75rem 1rem; border:0.5px solid var(--color-border-tertiary);
-      border-radius:var(--border-radius-lg); background:var(--color-background-secondary);">
-      <p style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-text-tertiary);margin:0 0 6px;">Save preview</p>
-      <p style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin:0 0 4px;" id="prev-char">—</p>
-      <p style="font-size:11px;color:var(--color-text-secondary);margin:0;" id="prev-meta">—</p>
-    </div>
-  </div>
-
-  <div class="footer-row">
-    <span class="mode-badge" id="mode-badge">Detecting…</span>
-    <button class="close-btn" data-prompt="Close the save menu. Continue the adventure.">Close ↗</button>
-  </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script>
-// ── INJECT GMSTATE HERE ────────────────────────────────────────────────────
-const GM_STATE = /* INJECT_GMSTATE_JSON */ {};
-// ───────────────────────────────────────────────────────────────────────────
-
-const SAVE_SLOTS = JSON.parse(sessionStorage.getItem('saveSlots') || 'null')
-  || [null, null, null, null, null];
-
-function persistSlots() {
-  try { sessionStorage.setItem('saveSlots', JSON.stringify(SAVE_SLOTS)); } catch(_) {}
-}
-
-// ── PRNG & checksum (inline — no dependency on external PRNG file) ──────
-function fnv32(str) {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = (h * 0x01000193) >>> 0; }
-  return h.toString(16).padStart(8, '0');
-}
-function attachChecksum(code) { return fnv32(code) + '.' + code; }
-function validateAndDecode(raw) {
-  const s = raw.trim();
-  const dotIdx = s.indexOf('.');
-  if (dotIdx !== 8) return { valid: false, error: 'Format error — missing checksum.' };
-  const checksum = s.slice(0, 8);
-  const code = s.slice(9);
-  if (fnv32(code) !== checksum) return { valid: false, error: 'Checksum mismatch — save may be corrupted.' };
-  try {
-    const isCompact = code.startsWith('SC1:');
-    const isFull    = code.startsWith('SF1:');
-    if (!isCompact && !isFull) return { valid: false, error: 'Unknown save format version.' };
-    const encoded = code.slice(4);
-    const json = isCompact ? atob(encoded) : LZString.decompressFromBase64(encoded);
-    if (!json) return { valid: false, error: 'Decompression failed — save may be truncated.' };
-    const payload = JSON.parse(json);
-    return { valid: true, payload, mode: isCompact ? 'compact' : 'full' };
-  } catch(e) { return { valid: false, error: 'Decode error: ' + e.message }; }
-}
-
-// ── Build save ────────────────────────────────────────────────────────────
-function compressChar(c) {
-  if (!c) return {};
-  const st = c.stats ? [c.stats.STR,c.stats.DEX,c.stats.INT,c.stats.WIS,c.stats.CON,c.stats.CHA] : [];
-  return { n:c.name, cl:c.class, hp:c.hp, mhp:c.maxHp, st, inv:(c.inventory||[]).map(i=>({id:i.id,u:i.uses})), cond:c.conditions||[], xp:c.xp||0, lvl:c.level||1 };
-}
-function compressNpcs(npcs) {
-  return (npcs||[]).filter(m=>m.alive===false||(m.trust!=null&&(m.trust<40||m.trust>60))||m.currentRoom)
-    .map(m=>{const o={id:m.id};if(m.alive===false)o.dead=1;if(m.trust!=null&&(m.trust<40||m.trust>60))o.tr=m.trust;if(m.disposition)o.di=m.disposition.slice(0,3);if(m.currentRoom)o.rm=m.currentRoom;return o;});
-}
-function compressCodex(codex) {
-  return (codex||[]).map(m=>{const o={id:m.id,st:m.state==='discovered'?'d':m.state==='partial'?'p':'r'};if(m.discoveredAt)o.sc=m.discoveredAt;if(m.via)o.via=m.via;if(m.secrets&&m.secrets.length)o.sec=m.secrets;return o;});
-}
-
-function buildSave(state) {
-  const isCompact = !!state.seed;
-  if (isCompact) {
-    const p = { v:1, mode:'compact', seed:state.seed, theme:state.theme||'space',
-      scene:state.scene||1, room:state.currentRoom||'room_0',
-      visited:state.visitedRooms||[], char:compressChar(state.character),
-      flags:state.worldFlags||{}, npcs:compressNpcs(state.rosterMutations),
-      codex:compressCodex(state.codexMutations) };
-    return attachChecksum('SC1:' + btoa(JSON.stringify(p)));
-  } else {
-    const snapshot = state.worldData ? (() => {
-      const rooms={};
-      Object.entries(state.worldData.rooms||{}).forEach(([id,r])=>{rooms[id]={type:r.type,connections:r.connections};});
-      return {rooms, startRoom:state.worldData.startRoom};
-    })() : null;
-    const p = { v:1, mode:'full', scene:state.scene||1, room:state.currentRoom||'room_0',
-      visited:state.visitedRooms||[], char:state.character,
-      flags:state.worldFlags||{}, npcs:state.rosterMutations||[],
-      codex:state.codexMutations||[], worldSnapshot:snapshot };
-    return attachChecksum('SF1:' + LZString.compressToBase64(JSON.stringify(p)));
-  }
-}
-
-// ── Slots UI ──────────────────────────────────────────────────────────────
-let currentCode = '';
-let qrVisible = false;
-
-function renderSlots() {
-  const grid = document.getElementById('slots-grid');
-  const mode = GM_STATE.seed ? 'compact' : 'full';
-  document.getElementById('mode-badge').textContent = mode === 'compact' ? 'Compact · seed-based' : 'Full · compressed';
-
-  grid.innerHTML = SAVE_SLOTS.map((slot, i) => {
-    if (!slot) return `
-      <div class="slot-row">
-        <span class="slot-num">${i+1}</span>
-        <span class="slot-empty">Empty slot</span>
-        <div class="slot-actions">
-          <button class="slot-btn" data-save-slot="${i}">Save here</button>
-        </div>
-      </div>`;
-
-    const hpPct = slot.hp != null && slot.maxHp ? Math.round((slot.hp/slot.maxHp)*100) : null;
-    const hpClass = hpPct != null ? (hpPct > 60 ? 'hp-high' : hpPct > 30 ? 'hp-mid' : 'hp-low') : '';
-    const ts = new Date(slot.ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-    return `
-      <div class="slot-row occupied" data-show-slot="${i}">
-        <span class="slot-num">${i+1}</span>
-        <div class="slot-info">
-          <div class="slot-label">${slot.label}</div>
-          <div class="slot-meta">Scene ${slot.scene} · ${ts}${hpPct != null ? ` ·` : ''}</div>
-        </div>
-        ${hpPct != null ? `<div class="hp-bar-wrap">
-          <div class="hp-bar-track"><div class="hp-bar-fill ${hpClass}" style="width:${hpPct}%"></div></div>
-          <span style="font-size:10px;color:var(--color-text-tertiary);">${slot.hp}/${slot.maxHp}</span>
-        </div>` : ''}
-        <div class="slot-actions">
-          <button class="slot-btn" data-save-slot="${i}">Overwrite</button>
-          <button class="slot-btn danger" data-clear-slot="${i}">×</button>
-        </div>
-      </div>`;
-  }).join('');
-
-  // Wire dynamic slot buttons via addEventListener
-  document.querySelectorAll('[data-save-slot]').forEach(function(btn) {
-    btn.addEventListener('click', function(e) { e.stopPropagation(); saveToSlot(parseInt(this.dataset.saveSlot)); });
-  });
-  document.querySelectorAll('[data-clear-slot]').forEach(function(btn) {
-    btn.addEventListener('click', function(e) { e.stopPropagation(); clearSlot(parseInt(this.dataset.clearSlot)); });
-  });
-  document.querySelectorAll('[data-show-slot]').forEach(function(row) {
-    row.addEventListener('click', function() { showSlotCode(parseInt(this.dataset.showSlot)); });
-  });
-}
-
-function saveToSlot(i) {
-  if (!GM_STATE || !GM_STATE.scene) {
-    showStatus('save', 'No active session to save.', 'err'); return;
-  }
-  const code = buildSave(GM_STATE);
-  const char = GM_STATE.character;
-  SAVE_SLOTS[i] = {
-    code, scene: GM_STATE.scene,
-    label: `Scene ${GM_STATE.scene} — ${char?.name || 'Unknown'}`,
-    location: GM_STATE.currentRoom,
-    hp: char?.hp, maxHp: char?.maxHp, ts: Date.now(),
-  };
-  persistSlots();
-  renderSlots();
-  showSlotCode(i);
-}
-
-function showSlotCode(i) {
-  const slot = SAVE_SLOTS[i];
-  if (!slot) return;
-  currentCode = slot.code;
-  document.getElementById('code-display').value = currentCode;
-  document.getElementById('code-section').style.display = 'block';
-  document.getElementById('copy-btn').textContent = 'Copy';
-  document.getElementById('copy-btn').classList.remove('copied');
-  if (qrVisible) renderQR();
-}
-
-function clearSlot(i) {
-  SAVE_SLOTS[i] = null;
-  persistSlots();
-  renderSlots();
-  document.getElementById('code-section').style.display = 'none';
-}
-
-function copyCode() {
-  if (!currentCode) return;
-  navigator.clipboard.writeText(currentCode).then(() => {
-    const btn = document.getElementById('copy-btn');
-    btn.textContent = 'Copied!';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2200);
-  }).catch(() => {
-    const el = document.getElementById('code-display');
-    el.select(); document.execCommand('copy');
-  });
-}
-
-function toggleQR() {
-  qrVisible = !qrVisible;
-  document.getElementById('qr-wrap').style.display = qrVisible ? 'flex' : 'none';
-  document.getElementById('qr-toggle-label').textContent = qrVisible ? 'Hide QR code ↑' : 'Show QR code ↓';
-  if (qrVisible && currentCode) renderQR();
-}
-
-function renderQR() {
-  const canvas = document.getElementById('qr-canvas');
-  canvas.innerHTML = '';
-  try {
-    new QRCode(canvas, { text: currentCode, width: 180, height: 180, colorDark: '#2C2C2A', colorLight: '#FFFFFF' });
-  } catch(e) {
-    canvas.style.cssText = 'font-size:11px;color:var(--color-text-tertiary);font-family:monospace;';
-    canvas.textContent = 'QR unavailable — code may be too long for QR. Use text copy instead.';
-  }
-}
-
-// ── Load tab ──────────────────────────────────────────────────────────────
-function validatePaste() {
-  const raw = document.getElementById('paste-input').value.trim();
-  const status = document.getElementById('load-status');
-  const preview = document.getElementById('load-preview');
-  if (!raw) { status.textContent = ''; preview.style.display = 'none'; return; }
-
-  const result = validateAndDecode(raw);
-  if (!result.valid) {
-    status.className = 'status-msg status-err';
-    status.textContent = result.error;
-    preview.style.display = 'none';
-    return;
-  }
-
-  status.className = 'status-msg status-ok';
-  status.textContent = `Valid ${result.mode} save (v${result.payload.v})`;
-
-  const p = result.payload;
-  const charName = result.mode === 'compact' ? p.char?.n : p.char?.name;
-  const charClass = result.mode === 'compact' ? p.char?.cl : p.char?.class;
-  const hp = result.mode === 'compact' ? p.char?.hp : p.char?.hp;
-  const mhp = result.mode === 'compact' ? p.char?.mhp : p.char?.maxHp;
-
-  document.getElementById('prev-char').textContent = `${charName || 'Unknown'} — ${charClass || ''}`;
-  document.getElementById('prev-meta').textContent =
-    `Scene ${p.scene} · ${p.seed ? `Seed: ${p.seed}` : 'Hand-authored world'} · HP: ${hp ?? '?'}/${mhp ?? '?'}`;
-  preview.style.display = 'block';
-}
-
-function loadSave() {
-  const raw = document.getElementById('paste-input').value.trim();
-  if (!raw) return;
-  const result = validateAndDecode(raw);
-  if (!result.valid) { document.getElementById('load-status').textContent = result.error; return; }
-
-  const p = result.payload;
-  const resumeData = JSON.stringify({
-    mode: result.mode,
-    seed: p.seed || null,
-    theme: p.theme || null,
-    scene: p.scene,
-    room: p.room,
-    visited: p.visited,
-    char: p.char,
-    flags: p.flags,
-    npcs: p.npcs,
-    codex: p.codex,
-    worldSnapshot: p.worldSnapshot || null,
-  });
-
-  sendPrompt(`RESUME_SAVE: ${resumeData}`);
-}
-
-// ── Tab switching ─────────────────────────────────────────────────────────
-function showTab(tab) {
-  document.getElementById('tab-save').style.display = tab === 'save' ? 'block' : 'none';
-  document.getElementById('tab-load').style.display = tab === 'load' ? 'block' : 'none';
-  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', (i===0&&tab==='save')||(i===1&&tab==='load')));
-}
-
-function showStatus(tab, msg, type) {
-  const id = tab === 'save' ? 'sv-sub' : 'load-status';
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.className = type === 'err' ? 'status-msg status-err' : type === 'ok' ? 'status-msg status-ok' : 'sv-sub';
-  el.textContent = msg;
-}
-
-// ── Init ──────────────────────────────────────────────────────────────────
-renderSlots();
-
-// ── sendPrompt wiring (data-prompt + addEventListener pattern) ────────────
-document.querySelectorAll('[data-prompt]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const prompt = btn.dataset.prompt;
-    if (typeof sendPrompt === 'function') { sendPrompt(prompt); }
-  });
-});
-</script>
+```bash
+tag render save-div
 ```
+
+The CLI produces the complete interactive save/load widget with slot management,
+copy functionality, QR code generation, and the paste-to-resume flow.
 
 ---
 
-## Resume Protocol — GM Response to RESUME_SAVE
+## Resume Protocol — Loading a Save
 
-When the GM receives a `sendPrompt()` containing `RESUME_SAVE: {...}`, it must:
+When the player provides a save (pasted string, uploaded file, or pasted `.save.md`
+content), the GM must use the CLI to load it:
 
 ### Step 1 — Parse and validate
 
-```js
-// Extract JSON from the RESUME_SAVE: prefix
-const raw = message.replace('RESUME_SAVE: ', '');
-const saveData = JSON.parse(raw);
+To load a save, run:
+
+```bash
+tag save load <file.save.md>
 ```
+
+The CLI extracts the JSON payload, validates the checksum, and returns the parsed save data.
 
 ### Step 2 — Reconstruct gmState
 
-```js
-async function reconstructFromSave(saveData) {
-  let gmState = {};
+The `tag save load` command handles full reconstruction automatically — it regenerates
+the world from the seed (compact mode) or restores the world snapshot (full mode),
+expands compressed character data, applies NPC mutations, and returns the complete
+`gmState` object ready for use.
 
-  if (saveData.mode === 'compact' && saveData.seed) {
-    // Procedural world: regenerate from seed
-    const worldData = generateWorld(saveData.seed, saveData.theme);
-
-    // Re-expand character (look up item details from loot tables)
-    const allItems = [];
-    Object.values(worldData.rooms).forEach(r => r.loot.forEach(i => allItems.push(i)));
-    const char = saveData.char;
-    const statKeys = ['STR','DEX','INT','WIS','CON','CHA'];
-    const stats = {};
-    statKeys.forEach((k,i) => { stats[k] = char.st[i]; });
-    const inventory = (char.inv||[]).map(saved => {
-      const full = allItems.find(i => i.id === saved.id) || { id: saved.id, name: saved.id };
-      return { ...full, uses: saved.u };
-    });
-    const character = { name:char.n, class:char.cl, hp:char.hp, maxHp:char.mhp, stats, inventory, conditions:char.cond||[], xp:char.xp||0, level:char.lvl||1 };
-
-    // Apply NPC mutations
-    const dispMap = { gua:'guarded',neu:'neutral',fri:'friendly',hos:'hostile',des:'desperate' };
-    const rosterMutations = (saveData.npcs||[]).map(m => {
-      const o = { id:m.id };
-      if (m.dead) o.alive = false;
-      if (m.tr)   o.trust = m.tr;
-      if (m.di)   o.disposition = dispMap[m.di] || m.di;
-      if (m.rm)   o.currentRoom = m.rm;
-      return o;
-    });
-    rosterMutations.forEach(mut => {
-      const npc = worldData.roster.find(n => n.id === mut.id || n.name.toLowerCase().replace(/\s+/g,'_') === mut.id);
-      if (npc) Object.assign(npc, mut);
-    });
-
-    // Expand codex mutations
-    const stMap = { d:'discovered',p:'partial',r:'redacted' };
-    const codexMutations = (saveData.codex||[]).map(m => ({
-      id:m.id, state:stMap[m.st]||'partial', discoveredAt:m.sc||null, via:m.via||null, secrets:m.sec||[]
-    }));
-
-    gmState = { seed:saveData.seed, theme:saveData.theme, scene:saveData.scene, currentRoom:saveData.room,
-      visitedRooms:saveData.visited||[], character, worldFlags:saveData.flags||{},
-      worldData, rosterMutations, codexMutations, rollHistory:[] };
-
-  } else {
-    // Full/hand-authored mode: restore directly
-    const char = saveData.char;
-    gmState = { scene:saveData.scene, currentRoom:saveData.room, visitedRooms:saveData.visited||[],
-      character:char, worldFlags:saveData.flags||{}, rosterMutations:saveData.npcs||[],
-      codexMutations:saveData.codex||[], rollHistory:[],
-      worldData: saveData.worldSnapshot ? { rooms:saveData.worldSnapshot.rooms, startRoom:saveData.worldSnapshot.startRoom } : null };
-  }
-
-  return gmState;
-}
-```
+<!-- CLI implementation detail — do not hand-code -->
 
 ### Step 3 — Rebuild the codex from mutations
 
-After reconstructing `gmState`, re-apply `codexMutations` onto the seeded codex:
+After `tag save load` returns the reconstructed `gmState`, the codex mutations are
+automatically applied onto the seeded codex. The CLI handles the full expansion from
+compressed mutation format back to the complete codex entry structure.
 
-```js
-function applyCodexMutations(codex, mutations) {
-  mutations.forEach(mut => {
-    const entry = codex.find(e => e.id === mut.id);
-    if (!entry) return;
-    entry.state = mut.state;
-    if (mut.discoveredAt) entry.discoveredAt = mut.discoveredAt;
-    if (mut.via) {
-      const [method, source] = (mut.via || ':').split(':');
-      entry.discoveredVia = { method, source: source || 'direct observation' };
-    }
-    if (mut.secrets && mut.secrets.length) {
-      entry.secrets = mut.secrets.map(s => ({ text: s }));
-    }
-  });
-  return codex;
-}
-
-gmState.codex = applyCodexMutations(
-  seedCodexFromWorldData(gmState.worldData),  // fresh seed
-  gmState.codexMutations                       // player's history
-);
-```
+<!-- CLI implementation detail — do not hand-code -->
 
 ### Step 4 — Boot the engine (CRITICAL)
 
@@ -1713,29 +1138,11 @@ with you. [Continue with normal scene widget for currentRoom]"
 
 ---
 
-## Codex Access Button in Scene Widget — Save Extension
+## Save Button in Scene Widget
 
-Extend the scene widget footer with a save button alongside the codex button:
-
-```html
-<button class="footer-btn" id="save-btn"
-  data-prompt="Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md. Use YAML frontmatter plus an encoded SC1: or SF1: payload string. Never write game state as human-readable markdown."
-  style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.08em;
-  background:transparent; border:0.5px solid var(--color-border-tertiary);
-  border-radius:var(--border-radius-md); padding:4px 10px;
-  color:var(--color-text-tertiary); cursor:pointer;">
-  Save ↗
-</button>
-```
-
-The Save button uses `sendPrompt()` to ask Claude to generate the `.save.md` file as a
-downloadable conversation artifact. The `↗` suffix indicates this button triggers a
-`sendPrompt()` call. The `#save-data` div must be present in the scene widget for the
-inline fallback display (see Per-Scene Save Generation above).
-
-If `sendPrompt()` is unavailable, the button falls back to displaying the pre-computed
-save string from the `#save-data` div in a readonly textarea with a copy button. The
-player copies the string manually and pastes it to resume later.
+The save button is included automatically by `tag render scene`. Do not hand-code
+the button HTML. The rendered button uses `sendPrompt()` to trigger `tag save generate`,
+which produces the `.save.md` file as a downloadable conversation artifact.
 
 ### Resume Formats
 
@@ -1748,8 +1155,8 @@ The resume flow accepts any of the following inputs:
 - **Pasting the entire `.save.md` content** (frontmatter + body) — Claude parses the YAML
   frontmatter for metadata and extracts the payload string from the code block.
 
-In all three cases, the GM validates the checksum, detects the mode, and reconstructs `gmState`
-using the standard resume protocol documented below.
+In all three cases, the GM runs `tag save load <file.save.md>` which validates the checksum,
+detects the mode, and reconstructs `gmState` using the standard resume protocol documented above.
 
 ---
 

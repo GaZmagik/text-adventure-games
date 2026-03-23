@@ -445,6 +445,7 @@ A scenario may activate 1–2 overlays to create hybrid genres. Examples:
 
 Genre overlays add the following optional fields to `gmState`:
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 // Magic System
 genreMagic: {

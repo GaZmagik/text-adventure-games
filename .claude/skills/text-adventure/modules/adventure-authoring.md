@@ -823,6 +823,7 @@ overwritten by generated entries.
 
 The Adventure Authoring module adds the following fields to `gmState`:
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 gmState: {
   // ...existing fields...

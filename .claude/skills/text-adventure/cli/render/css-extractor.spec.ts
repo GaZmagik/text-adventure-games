@@ -25,8 +25,8 @@ describe('extractAllCss', () => {
 
   test('captures @keyframes if present', async () => {
     const css = await extractAllCss(join(STYLES_DIR, 'terminal.md'));
-    // Terminal has scanline animation — check for animation-related props at minimum
-    expect(css).toContain('scanline');
+    // Terminal Complete CSS Block has @keyframes for die settle and crit animations
+    expect(css).toContain('@keyframes');
   });
 
   test('returns empty string for non-existent file', async () => {

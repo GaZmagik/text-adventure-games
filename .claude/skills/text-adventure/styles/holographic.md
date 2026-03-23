@@ -839,6 +839,7 @@ The Google Fonts `@import` is attempted first; the fallback stacks produce an
 acceptable result if CSP blocks the request.
 
 ```css
+/* @extract */
 /* ============================================================
    HOLOGRAPHIC THEME — Text Adventure Game Engine
    Visual Style: Translucent iridescent sci-fi HUD

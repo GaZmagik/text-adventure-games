@@ -1,5 +1,8 @@
-// Extracts ALL fenced CSS code blocks from a style .md file.
-// Captures custom properties, @media overrides, @keyframes, @supports.
+// Extracts CSS from a style .md file.
+// Prefers blocks marked with /* @extract */ — if any exist, ONLY those are used.
+// Falls back to extracting ALL blocks when no marked blocks are found.
+// This prevents documentation CSS examples from being duplicated alongside
+// the Complete CSS Block that already contains everything.
 
 export async function extractAllCss(filePath: string): Promise<string> {
   try {
@@ -7,15 +10,21 @@ export async function extractAllCss(filePath: string): Promise<string> {
     if (!(await file.exists())) return '';
 
     const content = await file.text();
-    const blocks: string[] = [];
+    const markedBlocks: string[] = [];
+    const allBlocks: string[] = [];
 
     const regex = /```css\s*\n([\s\S]*?)```/g;
     let match: RegExpExecArray | null;
     while ((match = regex.exec(content)) !== null) {
-      blocks.push(match[1].trim());
+      const block = match[1].trim();
+      allBlocks.push(block);
+      if (block.startsWith('/* @extract */')) {
+        markedBlocks.push(block);
+      }
     }
 
-    return blocks.join('\n\n');
+    // Prefer marked blocks — avoids duplicating documentation examples
+    return (markedBlocks.length > 0 ? markedBlocks : allBlocks).join('\n\n');
   } catch {
     return '';
   }

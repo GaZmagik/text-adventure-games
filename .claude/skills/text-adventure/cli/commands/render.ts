@@ -130,8 +130,8 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   let state: GmState | null = null;
 
   if (isPreGame) {
-    // Pre-game widgets use --data, state is optional
-    if (!parsed.data && await stateExists()) {
+    // Pre-game widgets use --data, but always try to load state for visualStyle fallback
+    if (await stateExists()) {
       state = await loadState();
     }
   } else {

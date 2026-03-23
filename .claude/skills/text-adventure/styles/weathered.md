@@ -779,6 +779,7 @@ declared on `.root` so they scope to the widget iframe and do not bleed into
 any host page styles.
 
 ```css
+/* @extract */
 /* =====================================================================
    WEATHERED THEME — text-adventure engine visual style
    Distressed post-apocalyptic aesthetic. Rust, concrete, survival.

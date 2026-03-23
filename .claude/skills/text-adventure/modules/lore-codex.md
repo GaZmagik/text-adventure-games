@@ -18,6 +18,15 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: ai-npc, p
 
 ---
 
+## § CLI Commands
+
+| Action | Command | Tool |
+|--------|---------|------|
+| Render codex panel | `tag render codex --style <style>` | Run via Bash tool |
+| Set codex state | `tag state set codex.<path> <value>` | Run via Bash tool |
+
+---
+
 ## Architecture Overview
 
 ```
@@ -48,6 +57,7 @@ procedurally built. Discovery logic is pure JS — no API calls needed to unlock
 Every entry follows this structure. All fields are authored at world-generation time; `state` and
 `discoveredVia` are updated at runtime.
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const codexEntry = {
   id: 'faction_hollow_circle',       // unique, stable, kebab-case
@@ -169,20 +179,8 @@ Enemy types and creatures. Stats, behaviours, weaknesses.
 ## Icon Vocabulary
 
 Icons are rendered as small inline SVGs, never emoji. Each category has a default icon.
-Additional icons can be assigned per-entry to add flavour.
-
-```js
-const ICONS = {
-  // Category defaults
-  faction:   '<svg viewBox="0 0 16 16" width="14" height="14"><path fill="none" stroke="currentColor" stroke-width="1.5" d="M8 2L2 6v8h4v-4h4v4h4V6z"/></svg>',
-  location:  '<svg viewBox="0 0 16 16" width="14" height="14"><circle cx="8" cy="6" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path fill="none" stroke="currentColor" stroke-width="1.5" d="M8 9c0 0-5 4-5 0a5 5 0 0110 0c0 4-5 0-5 0z"/></svg>',
-  character: '<svg viewBox="0 0 16 16" width="14" height="14"><circle cx="8" cy="5" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path fill="none" stroke="currentColor" stroke-width="1.5" d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>',
-  item:      '<svg viewBox="0 0 16 16" width="14" height="14"><rect x="2" y="6" width="12" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/><path fill="none" stroke="currentColor" stroke-width="1.5" d="M5 6V5a3 3 0 016 0v1"/></svg>',
-  event:     '<svg viewBox="0 0 16 16" width="14" height="14"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path fill="none" stroke="currentColor" stroke-width="1.5" d="M8 4v4l3 2"/></svg>',
-  secret:    '<svg viewBox="0 0 16 16" width="14" height="14"><path fill="none" stroke="currentColor" stroke-width="1.5" d="M8 2a6 6 0 000 12M8 2a6 6 0 010 12M2 8h12M3.5 4.5C5 6 6.5 7 8 8M3.5 11.5C5 10 6.5 9 8 8"/></svg>',
-  bestiary:  '<svg viewBox="0 0 16 16" width="14" height="14"><path fill="none" stroke="currentColor" stroke-width="1.5" d="M3 13c0-3 1-5 5-5s5 2 5 5M8 4a2.5 2.5 0 000 5M5 3l1 2M11 3l-1 2"/></svg>',
-};
-```
+Additional icons can be assigned per-entry to add flavour. The CLI handles icon rendering
+automatically — icon SVGs are embedded in the `tag render codex` output.
 
 ---
 
@@ -242,6 +240,7 @@ new room before the scene widget renders. The toast notifications stack and dism
 When the procedural-world-gen module is active, the codex is seeded automatically from
 `worldData` at generation time. Use this function:
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 function seedCodexFromWorldData(worldData) {
   const entries = [];
@@ -422,6 +421,7 @@ function seedCodexFromWorldData(worldData) {
 ```
 
 Store the result in `gmState.codex`:
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 gmState.codex = seedCodexFromWorldData(gmState.worldData);
 ```
@@ -446,400 +446,19 @@ time. The GM injects the current `gmState.codex` as a JSON literal when building
 - Recently discovered section (entries unlocked in last 3 scenes)
 - Entry count by category in tab labels
 
-```html
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=Playfair+Display:ital,wght@0,600;1,400&display=swap');
-
-  .codex-root { font-family: 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace; padding: 1rem 0 1.5rem; position: relative; }
-
-  .codex-header { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:8px; }
-  .codex-title { font-family:'Playfair Display',serif; font-size:22px; font-weight:600; color:var(--color-text-primary); margin:0; }
-  .codex-meta { font-size:11px; color:var(--color-text-tertiary); }
-
-  .search-bar { width:100%; box-sizing:border-box; padding:8px 12px; margin-bottom:12px;
-    font-family:'IBM Plex Mono','SF Mono','Cascadia Code','Consolas',monospace; font-size:13px;
-    border:0.5px solid var(--color-border-secondary); border-radius:var(--border-radius-md);
-    background:var(--color-background-primary); color:var(--color-text-primary); }
-  .search-bar:focus { outline: 2px solid var(--color-border-primary, #4a90d9); outline-offset: 2px; border-color:var(--color-border-primary); }
-  .search-bar::placeholder { color:var(--color-text-tertiary); }
-
-  .tab-row { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:12px; }
-  .tab-btn { padding:8px 14px; min-height:44px; min-width:44px; box-sizing:border-box; font-family:'IBM Plex Mono','SF Mono','Cascadia Code','Consolas',monospace; font-size:10px;
-    letter-spacing:0.08em; background:transparent;
-    border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-md);
-    color:var(--color-text-secondary); cursor:pointer; transition:all 0.1s; white-space:nowrap; }
-  .tab-btn:hover { background:var(--color-background-secondary); }
-  .tab-btn.active { border-color:var(--color-border-info); background:var(--color-background-info); color:var(--color-text-info); }
-
-  .codex-body { display:grid; grid-template-columns:200px 1fr; gap:12px; min-height:min(360px, 60vh); }
-  @media (max-width:520px) { .codex-body { grid-template-columns:1fr; } }
-
-  .entry-list { display:flex; flex-direction:column; gap:4px; overflow-y:auto; max-height:420px; }
-
-  .entry-row { display:flex; align-items:center; gap:8px; padding:8px 10px;
-    border-radius:var(--border-radius-md); cursor:pointer;
-    border:0.5px solid transparent; transition:all 0.1s; }
-  .entry-row:hover { background:var(--color-background-secondary); border-color:var(--color-border-tertiary); }
-  .entry-row.selected { background:var(--color-background-info); border-color:var(--color-border-info); }
-  .entry-row.new-entry { border-color:var(--color-border-warning, #ffc107); background:var(--color-background-warning, #fef3cd); }
-
-  .entry-icon { width:14px; height:14px; flex-shrink:0; color:var(--color-text-tertiary); }
-  .entry-row.selected .entry-icon { color:var(--color-text-info); }
-
-  .entry-row-title { font-size:12px; flex:1; color:var(--color-text-primary); line-height:1.3; }
-  .entry-row-title.partial { color:var(--color-text-secondary); }
-
-  .state-dot { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
-  .dot-partial    { background:#EF9F27; }
-  .dot-discovered { background:#1D9E75; }
-  .dot-redacted   { background:#888780; }
-
-  .detail-panel { background:var(--color-background-secondary);
-    border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-lg, 12px);
-    padding:1.25rem; overflow-y:auto; max-height:420px; }
-
-  .detail-empty { display:flex; align-items:center; justify-content:center; height:100%;
-    font-size:12px; color:var(--color-text-tertiary); font-style:italic; }
-
-  .detail-category { font-size:11px; letter-spacing:0.15em; text-transform:uppercase;
-    color:var(--color-text-tertiary); margin-bottom:6px; display:flex; align-items:center; gap:6px; }
-  .detail-title { font-family:'Playfair Display',serif; font-size:18px; font-weight:600;
-    color:var(--color-text-primary); margin:0 0 4px; line-height:1.2; }
-  .discovery-stamp { font-size:10px; color:var(--color-text-tertiary); font-style:italic;
-    margin-bottom:1rem; padding-bottom:0.75rem;
-    border-bottom:0.5px solid var(--color-border-tertiary); }
-
-  .detail-section { margin-bottom:0.75rem; }
-  .detail-section-label { font-size:11px; letter-spacing:0.12em; text-transform:uppercase;
-    color:var(--color-text-tertiary); margin-bottom:4px; }
-  .detail-section-body { font-size:13px; color:var(--color-text-secondary); line-height:1.75; }
-  .detail-section-body.serif { font-family:'Playfair Display',serif; font-style:italic; font-size:14px; }
-
-  .detail-locked { background:var(--color-background-tertiary);
-    border-radius:var(--border-radius-md); padding:8px 12px;
-    font-size:12px; color:var(--color-text-tertiary);
-    font-style:italic; letter-spacing:0.05em; margin-bottom:0.75rem; }
-
-  .mechanical-block { background:var(--color-background-primary);
-    border-left:2px solid var(--color-border-info); padding:8px 12px;
-    border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;
-    font-size:12px; color:var(--color-text-info); line-height:1.6;
-    border-top:0.5px solid var(--color-border-tertiary);
-    border-bottom:0.5px solid var(--color-border-tertiary);
-    border-right:0.5px solid var(--color-border-tertiary);
-    margin-bottom:0.75rem; }
-
-  .secret-block { background:var(--color-background-warning, #fef3cd);
-    border-left:2px solid var(--color-border-warning, #ffc107);
-    border-top:0.5px solid var(--color-border-warning, #ffc107);
-    border-bottom:0.5px solid var(--color-border-warning, #ffc107);
-    border-right:0.5px solid var(--color-border-tertiary);
-    padding:8px 12px; border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;
-    margin-bottom:0.75rem; }
-  .secret-label { font-size:11px; letter-spacing:0.12em; text-transform:uppercase;
-    color:#633806; margin-bottom:4px; }
-  @media (prefers-color-scheme:dark) { .secret-label { color:var(--color-text-warning, #FAC775); } }
-  .secret-text { font-size:12px; font-style:italic; color:var(--color-text-warning, #856404); line-height:1.6; }
-
-  .see-also { display:flex; flex-wrap:wrap; gap:4px; margin-top:0.75rem;
-    padding-top:0.75rem; border-top:0.5px solid var(--color-border-tertiary); }
-  .see-also-label { font-size:11px; letter-spacing:0.12em; text-transform:uppercase;
-    color:var(--color-text-tertiary); width:100%; margin-bottom:2px; }
-  .see-also-link { font-size:10px; padding:2px 8px; border-radius:var(--border-radius-md);
-    background:var(--color-background-primary); border:0.5px solid var(--color-border-secondary);
-    color:var(--color-text-secondary); cursor:pointer; transition:all 0.1s; }
-  .see-also-link:hover { border-color:var(--color-border-info); color:var(--color-text-info); background:var(--color-background-info); }
-
-  .section-divider { font-size:11px; letter-spacing:0.15em; text-transform:uppercase;
-    color:var(--color-text-tertiary); padding:4px 0 6px;
-    border-top:0.5px solid var(--color-border-tertiary); margin-top:6px; }
-
-  .footer-row { display:flex; justify-content:space-between; align-items:center;
-    margin-top:1rem; padding-top:0.75rem;
-    border-top:0.5px solid var(--color-border-tertiary); }
-  .close-btn { font-family:'IBM Plex Mono','SF Mono','Cascadia Code','Consolas',monospace; font-size:10px; letter-spacing:0.08em;
-    background:transparent; border:0.5px solid var(--color-border-secondary);
-    border-radius:var(--border-radius-md); padding:8px 14px; min-height:44px; min-width:44px; box-sizing:border-box;
-    color:var(--color-text-secondary); cursor:pointer; }
-  .close-btn:hover { background:var(--color-background-secondary); }
-  .entry-counter { font-size:11px; color:var(--color-text-tertiary); }
-
-  @media (prefers-reduced-motion: reduce) {
-    * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
-  }
-
-  button:focus-visible, [data-prompt]:focus-visible, input:focus-visible {
-    outline: 2px solid var(--color-border-primary, #4a90d9);
-    outline-offset: 2px;
-  }
-</style>
-
-<div class="codex-root">
-  <div class="codex-header">
-    <p class="codex-title">Field Codex</p>
-    <span class="codex-meta" id="codex-meta">Loading...</span>
-  </div>
-
-  <input class="search-bar" id="search" placeholder="Search entries..." />
-
-  <div class="tab-row" id="tab-row"></div>
-
-  <div class="codex-body">
-    <div class="entry-list" id="entry-list"></div>
-    <div class="detail-panel" id="detail-panel">
-      <div class="detail-empty">Select an entry to read it.</div>
-    </div>
-  </div>
-
-  <p id="lc-fallback" style="display:none; font-size:11px; padding:8px 12px; margin:0.5rem 0; background:var(--color-background-warning); border:0.5px solid var(--color-border-warning); border-radius:var(--border-radius-md); color:var(--color-text-warning); word-break:break-word; user-select:all;"></p>
-
-  <!-- Overlay controls (not a scene footer — see styles/style-reference.md for the canonical scene footer) -->
-  <div class="footer-row">
-    <span class="entry-counter" id="entry-counter"></span>
-    <button class="close-btn" data-prompt="Close the codex. Continue the adventure.">Close codex ↗</button>
-  </div>
-</div>
-
-<script>
-// ── INJECT CODEX DATA HERE ──────────────────────────────────────────────────
-// Replace CODEX_DATA with JSON.stringify(gmState.codex) when building widget
-const CODEX_DATA = /* INJECT_CODEX_JSON */ [];
-const CURRENT_SCENE = /* INJECT_SCENE_NUMBER */ 1;
-// ───────────────────────────────────────────────────────────────────────────
-
-const ICONS_SVG = {
-  faction:   '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2L2 6v8h4v-4h4v4h4V6z"/></svg>',
-  location:  '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="6" r="3"/><path d="M8 9c0 0-5 4-5 0a5 5 0 0110 0c0 4-5 0-5 0z"/></svg>',
-  character: '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>',
-  item:      '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="12" height="8" rx="1"/><path d="M5 6V5a3 3 0 016 0v1"/></svg>',
-  event:     '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/></svg>',
-  secret:    '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2a6 6 0 000 12M8 2a6 6 0 010 12M2 8h12"/></svg>',
-  bestiary:  '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 13c0-3 1-5 5-5s5 2 5 5M8 4a2.5 2.5 0 000 5M5 3l1 2M11 3l-1 2"/></svg>',
-};
-
-const CATEGORIES = ['all','faction','location','character','item','event','bestiary'];
-const CAT_LABELS  = { all:'All', faction:'Factions', location:'Locations', character:'Characters', item:'Items', event:'Events', bestiary:'Bestiary' };
-
-function showFallback(text) {
-  const el = document.getElementById('lc-fallback');
-  if (!el) return;
-  el.textContent = text;
-  el.style.display = 'block';
-}
-
-// esc() escapes interpolated values to prevent XSS when building HTML via innerHTML
-function esc(str) {
-  if (typeof str !== 'string') return str == null ? '' : String(str);
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-let codex = CODEX_DATA.filter(e => e.state !== 'locked');
-let activeCategory = 'all';
-let selectedId = null;
-let searchTerm = '';
-
-function countByCategory(cat) {
-  return codex.filter(e => cat === 'all' || e.category === cat).length;
-}
-
-function buildTabs() {
-  const row = document.getElementById('tab-row');
-  // Uses data-category attribute + event delegation instead of inline onclick
-  row.innerHTML = CATEGORIES.map(c => {
-    const n = countByCategory(c);
-    return `<button class="tab-btn${c === activeCategory ? ' active':''}" data-category="${esc(c)}">${CAT_LABELS[c]} ${n > 0 ? `(${n})` : ''}</button>`;
-  }).join('');
-}
-
-function setCategory(cat) {
-  activeCategory = cat;
-  buildTabs();
-  renderList();
-}
-
-function filterEntries() {
-  searchTerm = document.getElementById('search').value.toLowerCase();
-  renderList();
-}
-
-function visibleEntries() {
-  return codex.filter(e => {
-    const catMatch = activeCategory === 'all' || e.category === activeCategory;
-    const searchMatch = !searchTerm
-      || e.title.toLowerCase().includes(searchTerm)
-      || (e.content.summary || '').toLowerCase().includes(searchTerm);
-    return catMatch && searchMatch;
-  });
-}
-
-function renderList() {
-  const list = document.getElementById('entry-list');
-  const entries = visibleEntries();
-
-  // Split: recent (last 3 scenes) vs rest
-  const recent = entries.filter(e => e.discoveredAt && CURRENT_SCENE - e.discoveredAt <= 3);
-  const rest    = entries.filter(e => !(e.discoveredAt && CURRENT_SCENE - e.discoveredAt <= 3));
-
-  let html = '';
-  if (recent.length) {
-    html += `<div class="section-divider">Recently discovered</div>`;
-    recent.forEach(e => { html += entryRowHTML(e, true); });
-    if (rest.length) html += `<div class="section-divider">All entries</div>`;
-  }
-  rest.forEach(e => { html += entryRowHTML(e, false); });
-
-  if (!entries.length) {
-    html = `<div style="font-size:12px;color:var(--color-text-tertiary);padding:1rem;font-style:italic;">No entries found.</div>`;
-  }
-
-  list.innerHTML = html;
-
-  const discovered = codex.filter(e => e.state === 'discovered').length;
-  const total = codex.length;
-  document.getElementById('codex-meta').textContent = `${discovered}/${total} fully documented`;
-  document.getElementById('entry-counter').textContent = `${entries.length} entr${entries.length !== 1 ? 'ies' : 'y'} shown`;
-}
-
-function entryRowHTML(e, isNew) {
-  const icon = ICONS_SVG[e.icon] || ICONS_SVG[e.category] || '';
-  const dotClass = e.state === 'discovered' ? 'dot-discovered' : e.state === 'partial' ? 'dot-partial' : 'dot-redacted';
-  const isSelected = e.id === selectedId;
-  const titleClass = e.state === 'partial' ? 'entry-row-title partial' : 'entry-row-title';
-  return `<div class="entry-row${isSelected ? ' selected' : ''}${isNew ? ' new-entry' : ''}"
-    data-entry-id="${esc(e.id)}">
-    <span class="entry-icon">${icon}</span>
-    <span class="${titleClass}">${esc(e.title)}</span>
-    <span class="state-dot ${dotClass}"></span>
-  </div>`;
-}
-
-function selectEntry(id) {
-  selectedId = id;
-  renderList();
-  renderDetail();
-}
-
-function renderDetail() {
-  const panel = document.getElementById('detail-panel');
-  const e = codex.find(x => x.id === selectedId);
-  if (!e) { panel.innerHTML = '<div class="detail-empty">Select an entry to read it.</div>'; return; }
-
-  const icon = ICONS_SVG[e.icon] || ICONS_SVG[e.category] || '';
-  const methodMap = { observed:'Direct observation', told:'Told by', read:'Read in', deduced:'Deduced from', overheard:'Overheard from', forced:'Extracted from' };
-  const stamp = e.discoveredVia
-    ? `${esc(methodMap[e.discoveredVia.method] || e.discoveredVia.method)} ${e.discoveredVia.source !== 'direct observation' ? esc(e.discoveredVia.source) : ''} — Scene ${esc(e.discoveredAt)}`
-    : '';
-  const context = esc(e.sceneContext || '');
-
-  let html = `
-    <div class="detail-category">${icon}<span>${esc(CAT_LABELS[e.category] || e.category)}</span></div>
-    <p class="detail-title">${esc(e.title)}</p>
-  `;
-
-  if (stamp || context) {
-    html += `<div class="discovery-stamp">${[stamp, context].filter(Boolean).join(' · ')}</div>`;
-  }
-
-  if (e.state === 'redacted') {
-    html += `<div class="detail-locked">[REDACTED — this knowledge has been taken from you]</div>`;
-    panel.innerHTML = html;
-    return;
-  }
-
-  // Summary — always shown for partial+
-  if (e.content.summary) {
-    html += `<div class="detail-section">
-      <div class="detail-section-body serif">${esc(e.content.summary)}</div>
-    </div>`;
-  }
-
-  // Detail — only at discovered
-  if (e.state === 'discovered' && e.content.detail) {
-    html += `<div class="detail-section">
-      <div class="detail-section-label">Full account</div>
-      <div class="detail-section-body">${esc(e.content.detail)}</div>
-    </div>`;
-  } else if (e.state === 'partial') {
-    html += `<div class="detail-locked">[ Further details undiscovered — investigate further ]</div>`;
-  }
-
-  // Mechanical note — only at discovered
-  if (e.state === 'discovered' && e.content.mechanical) {
-    html += `<div class="mechanical-block">${esc(e.content.mechanical)}</div>`;
-  }
-
-  // Secrets (amendments)
-  if (e.state === 'discovered' && e.secrets && e.secrets.length) {
-    e.secrets.forEach(s => {
-      html += `<div class="secret-block">
-        <div class="secret-label">Secret unlocked</div>
-        <div class="secret-text">${esc(s.text)}</div>
-      </div>`;
-    });
-  }
-
-  // Conditional content — shown if world flag matches
-  // (flags passed in via CODEX_DATA enrichment — GM sets entry.resolvedConditionals at render time)
-  if (e.state === 'discovered' && e.resolvedConditionals && e.resolvedConditionals.length) {
-    e.resolvedConditionals.forEach(c => {
-      html += `<div class="detail-section">
-        <div class="detail-section-label">Additional intelligence</div>
-        <div class="detail-section-body">${esc(c)}</div>
-      </div>`;
-    });
-  }
-
-  // Cross-references
-  const refs = (e.seeAlso || []).filter(refId => codex.find(x => x.id === refId));
-  if (refs.length) {
-    html += `<div class="see-also">
-      <div class="see-also-label">See also</div>
-      ${refs.map(refId => {
-        const ref = codex.find(x => x.id === refId);
-        return `<span class="see-also-link" data-entry-id="${esc(refId)}">${esc(ref.title)}</span>`;
-      }).join('')}
-    </div>`;
-  }
-
-  panel.innerHTML = html;
-}
-
-// Initialise
-buildTabs();
-renderList();
-
-// ── Event delegation for data-category, data-entry-id, and data-prompt ────
-document.querySelector('.codex-root').addEventListener('click', (e) => {
-  // Category tab buttons
-  const tabBtn = e.target.closest('[data-category]');
-  if (tabBtn) { setCategory(tabBtn.dataset.category); return; }
-
-  // Entry row or see-also link clicks
-  const entryEl = e.target.closest('[data-entry-id]');
-  if (entryEl) { selectEntry(entryEl.dataset.entryId); return; }
-
-  // sendPrompt buttons (e.g. Close codex)
-  const promptBtn = e.target.closest('[data-prompt]');
-  if (promptBtn) {
-    const prompt = promptBtn.dataset.prompt;
-    if (typeof sendPrompt === 'function') { sendPrompt(prompt); }
-    else { showFallback(prompt); }
-  }
-});
-
-document.getElementById('search').addEventListener('input', filterEntries);
-</script>
-```
+Run `tag render codex --style <style>` via Bash tool to produce the full codex widget.
+Never hand-code the codex HTML/CSS/JS.
 
 ---
 
 ## Injection Pattern
 
-When rendering the codex widget, the GM must inject the current codex state and scene number
-into the two placeholder constants before calling `visualize:show_widget`.
+When rendering the codex widget, run `tag render codex --style <style>` via Bash tool. The CLI
+handles injection of the current codex state and scene number automatically.
 
 The GM also resolves conditional content flags before injection:
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 function prepareCodexForRender(gmState) {
   return gmState.codex
@@ -863,31 +482,8 @@ function prepareCodexForRender(gmState) {
 ## Toast Notification System
 
 When a LORE_EVENT fires during a scene, a small toast notification appears at the bottom of the
-active scene widget. Add this block to the scene widget template:
-
-```html
-<div id="lore-toast" style="display:none; position:absolute; bottom:12px; right:12px;
-  background:var(--color-background-warning, #fef3cd); border:0.5px solid var(--color-border-warning, #ffc107);
-  border-radius:var(--border-radius-md); padding:6px 12px; font-size:11px;
-  color:var(--color-text-warning, #856404); font-family:'IBM Plex Mono','SF Mono','Cascadia Code','Consolas',monospace;
-  letter-spacing:0.06em; z-index:10; max-width:220px;">
-</div>
-
-<script>
-function showLoreToast(entryTitle) {
-  const t = document.getElementById('lore-toast');
-  if (!t) return;
-  t.textContent = '+ Codex: ' + entryTitle;
-  t.style.display = 'block';
-  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const fadeMs = prefersReduced ? 0 : 500;
-  setTimeout(() => { t.style.opacity = '0'; t.style.transition = prefersReduced ? 'none' : 'opacity 0.5s'; }, 2800);
-  setTimeout(() => { t.style.display = 'none'; t.style.opacity = '1'; t.style.transition = ''; }, 2800 + fadeMs + 100);
-}
-// Called by GM when LORE_EVENT is processed:
-// showLoreToast('The Hollow Circle');
-</script>
-```
+active scene widget. The toast is rendered automatically by the CLI when a LORE_EVENT is
+processed — run `tag render codex --style <style>` via Bash tool. Never hand-code toast HTML/JS.
 
 The toast is non-blocking — it appears, pauses, then fades. It never interrupts player input.
 
@@ -976,6 +572,7 @@ codex panel.
 
 ### gmState Fields
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 // Quest log entries stored in gmState.quests (see core-systems.md)
 // Each quest object:

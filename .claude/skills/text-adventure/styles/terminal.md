@@ -1117,6 +1117,7 @@ The block uses `.root` as a scoping ancestor so styles do not leak out of
 the iframe into the host page.
 
 ```css
+/* @extract */
 /* ============================================================
    TERMINAL STYLE — text-adventure engine visual theme
    Version: 1.0.0

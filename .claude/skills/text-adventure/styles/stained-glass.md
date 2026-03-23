@@ -921,6 +921,7 @@ custom properties, and defines all utility classes. No external dependencies
 beyond the font stack fallbacks are required.
 
 ```css
+/* @extract */
 /* ═══════════════════════════════════════════════════════════════════════
    STAINED GLASS — Text Adventure Visual Theme
    Inject into any widget <style> block.

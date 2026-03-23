@@ -1459,6 +1459,7 @@ The `@import` will silently no-op if Google Fonts is CSP-blocked — the fallbac
 handle that case independently.
 
 ```css
+/* @extract */
 /* =======================================================================
    STATION THEME — text-adventure game engine
    Space-station operations terminal — hybrid serif/mono visual style

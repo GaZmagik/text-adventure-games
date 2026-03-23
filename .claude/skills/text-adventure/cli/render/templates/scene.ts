@@ -144,6 +144,53 @@ export function renderScene(state: GmState | null, css: string, options?: Record
   window.togglePanel = togglePanel;
   window.closePanel = closePanel;
 
+  // Atmosphere helpers — screen shake and colour flash
+  function triggerShake(el) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    el.classList.add('atmo-shake');
+    el.addEventListener('animationend', function() {
+      el.classList.remove('atmo-shake');
+    }, { once: true });
+  }
+
+  function triggerFlash(el, cssColorVar, durationMs) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    durationMs = durationMs || 300;
+    var flash = document.createElement('div');
+    flash.className = 'atmo-flash';
+    flash.style.background = 'var(' + cssColorVar + ')';
+    flash.style.animationDuration = durationMs + 'ms';
+    el.appendChild(flash);
+    flash.addEventListener('animationend', function() { flash.remove(); }, { once: true });
+  }
+
+  function showToast(el, message, durationMs) {
+    durationMs = durationMs || 3000;
+    var toast = document.createElement('div');
+    toast.className = 'atmo-toast';
+    toast.textContent = message;
+    el.appendChild(toast);
+    toast.getBoundingClientRect();
+    toast.classList.add('visible');
+    setTimeout(function() {
+      toast.classList.remove('visible');
+      toast.addEventListener('transitionend', function() { toast.remove(); }, { once: true });
+    }, durationMs);
+  }
+
+  // Expose atmosphere helpers for inline event handlers
+  window.triggerShake = triggerShake;
+  window.triggerFlash = triggerFlash;
+  window.showToast = showToast;
+
+  // Wire up revealable redactions
+  document.querySelectorAll('.atmo-redacted.revealable').forEach(function(el) {
+    el.addEventListener('click', function() {
+      el.classList.add('revealed');
+      el.classList.remove('revealable');
+    }, { once: true });
+  });
+
   // Wire up footer panel buttons
   document.querySelectorAll('.footer-btn[data-panel]').forEach(function(btn) {
     btn.addEventListener('click', function() {

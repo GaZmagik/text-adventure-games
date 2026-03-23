@@ -512,6 +512,7 @@ The following block is the complete injectable stylesheet. Paste into any widget
 tag after the base engine styles. It uses the CSS cascade — only override what diverges.
 
 ```css
+/* @extract */
 /* ================================================================
    PARCHMENT THEME — text-adventure engine visual override
    Version 1.0 | Works inside visualize:show_widget iframes

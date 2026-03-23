@@ -4,6 +4,7 @@ import { loadState, stateExists } from '../lib/state-store';
 import { handleState } from './state';
 import { handleCompute } from './compute';
 import { handleSave } from './save';
+import { handleRender } from './render';
 
 interface ParsedLine {
   raw: string;
@@ -67,8 +68,7 @@ async function dispatch(command: string, args: string[]): Promise<CommandResult>
     case 'compute': return handleCompute(args);
     case 'save': return handleSave(args);
     case 'render':
-      // Render is Phase 4 — stub for now
-      return fail('Render not yet available in batch mode.', 'tag render --help', 'render');
+      return handleRender(args);
     default:
       return fail(`Unknown command in batch: ${command}`, 'tag --help', 'batch');
   }

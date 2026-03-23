@@ -1409,6 +1409,7 @@ into a single deployable stylesheet. The `--svk-font-primary` and `--svk-font-mo
 properties are defined inline alongside all other tokens; no external resources are needed.
 
 ```css
+/* @extract */
 /* ─────────────────────────────────────────────────────────────────────────
    SVELTEKIT VISUAL STYLE — text-adventure engine
    Light-mode primary. Svelte orange accent. Zero external dependencies.

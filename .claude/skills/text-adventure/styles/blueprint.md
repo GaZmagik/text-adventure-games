@@ -754,6 +754,7 @@ the grid overlay, and component resets. Individual component styles follow the v
 definitions and can be applied selectively.
 
 ```css
+/* @extract */
 /* ============================================================
    BLUEPRINT VISUAL STYLE
    Text Adventure Game Engine — Visual Theme Override

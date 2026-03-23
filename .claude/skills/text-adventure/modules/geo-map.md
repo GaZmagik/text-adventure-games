@@ -14,6 +14,15 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: procedura
 
 ---
 
+## § CLI Commands
+
+| Action | Command | Tool |
+|--------|---------|------|
+| Render world map | `tag render map --style <style>` | Run via Bash tool |
+| Set map state | `tag state set mapState.<path> <value>` | Run via Bash tool |
+
+---
+
 ## Architecture Overview
 
 ```
@@ -131,6 +140,7 @@ time pressure (e.g., a collapsing structure, ticking bomb, draining atmosphere).
 
 ## The mapState Object
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 gmState.mapState = {
   activeMapType: 'settlement',  // 'settlement' | 'wilderness' | 'dungeon'
@@ -242,7 +252,8 @@ Room-to-room movement is immediate. No resource cost. The tension comes from:
 
 ## The Map Widget
 
-Interactive SVG rendered via `visualize:show_widget`. The map type determines the visual style.
+Run `tag render map --style <style>` via Bash tool to produce the interactive map widget.
+The map type determines the visual style. Never hand-code the map HTML/CSS/JS.
 
 ### Common elements
 
@@ -311,18 +322,17 @@ Stairs: triangle arrows. Lifts: double-headed arrows.
 
 ## Panel Integration
 
-The geo-map panel is toggled via `togglePanel('map')` in the scene widget footer — pure JS,
-no `sendPrompt()`. The panel shows a summary version of the current map with the player's
-position highlighted.
+The geo-map panel is toggled via the scene widget footer. The panel shows a summary version
+of the current map with the player's position highlighted.
 
 For full interaction (travel, inspect, scout), the player opens the full map widget via
-`sendPrompt('Open the map.')`, which renders the complete interactive SVG.
+`sendPrompt('Open the map.')`. Run `tag render map --style <style>` via Bash tool to
+produce the complete interactive widget.
 
 ### Footer button (when module is active)
 
-```html
-<button class="footer-btn" onclick="togglePanel('map')">Map</button>
-```
+The map panel button is added to the canonical scene footer from `styles/style-reference.md`.
+Run `tag render map --style <style>` via Bash tool to produce the full interactive map widget.
 
 ---
 
@@ -379,6 +389,7 @@ stored — the full zone definitions are regenerable from the seed.
 
 ## gmState Integration
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 // Save-codex compact flags
 const mapFlags = {

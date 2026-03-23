@@ -1005,6 +1005,7 @@ The `@import` for Noto Serif is included as a best-effort attempt; the fallback 
 handles the case where it is CSP-blocked.
 
 ```css
+/* @extract */
 /* ==========================================================================
    INK WASH — text adventure visual theme
    East Asian sumi-e inspired. Near-monochrome. Vermillion seal accent.

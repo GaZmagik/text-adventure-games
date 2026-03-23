@@ -550,6 +550,7 @@ of any widget to apply the brutalist theme. All custom properties are defined on
 `:root` so they cascade to every descendant.
 
 ```css
+/* @extract */
 /* ============================================================
    BRUTALIST THEME — Text Adventure Engine
    Raw, stark, zero decoration. System fonts. Black + white + red.

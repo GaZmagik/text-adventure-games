@@ -112,9 +112,10 @@ renderer reads the NPC's current disposition from state.
 
 ---
 
-## § Fallback
+## § Runtime Requirement
 
-If `tag` is unavailable (Bun not installed, PATH not set, or running in an
-environment without CLI access), the GM reads `.md` files directly and performs
-all computation manually — exactly as v1.2.4 works. The CLI is an accelerator,
-not a dependency. All module files remain the authoritative source of truth.
+The `tag` CLI is the rendering engine for this skill. Module files define game
+rules and narrative guidance — they do not contain widget code. If `tag` is
+unavailable (Bun not installed, PATH not set), prompt the player to run
+`bash setup.sh` via the Bash tool before proceeding. The GM cannot render
+widgets without the CLI.

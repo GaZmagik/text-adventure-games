@@ -25,6 +25,17 @@ seed the generated world's texture), core-systems (factions begin in history), s
 
 ---
 
+## § CLI Commands
+
+| Action | Command | Tool |
+|--------|---------|------|
+| Render codex (includes history) | `tag render codex --style <style>` | Run via Bash tool |
+| Set world history state | `tag state set worldHistory.<path> <value>` | Run via Bash tool |
+
+> **All widget output must be produced by running the `tag` CLI via Bash tool.** Do not hand-code HTML, CSS, or JS for history or codex rendering — use the commands above.
+
+---
+
 ## Architecture Overview
 
 ```

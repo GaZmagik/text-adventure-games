@@ -8,9 +8,18 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: core-syst
 
 ---
 
+## § CLI Commands for This Module
+
+| Action | Command | Tool |
+|--------|---------|------|
+| Render character creation | `tag render character-creation --style <style> --data '<json>'` | Run via Bash tool |
+
+---
+
 ## Character Creation Widget
 
-Present a widget with:
+Render the character creation widget using the `tag` CLI (see § CLI Commands table above).
+The rendered widget includes:
 - **Left panel:** Name input (text field), archetype selector (button grid or radio cards).
 - **Right panel:** Generated stat block — populated via JS after archetype selection
   (no `sendPrompt()` round-trip — stat generation is client-side).
@@ -98,44 +107,9 @@ widget. This step appears between the stat block reveal and the final confirmati
 5. Track the full set of 4 proficiencies (2 fixed + 2 chosen) in widget JS state —
    these are serialised into the confirm sendPrompt string (see below).
 
-**Widget addition — proficiency picker (inserted after the stat block):**
-
-```html
-<div class="proficiency-section">
-  <h3>Proficiencies</h3>
-  <p class="prof-label">Archetype grants:</p>
-  <div class="prof-fixed">
-    <!-- Rendered from archetype.fixedProficiencies -->
-    <span class="prof-tag locked">Athletics (STR)</span>
-    <span class="prof-tag locked">Intimidation (STR)</span>
-  </div>
-  <p class="prof-label">Choose 2 more:</p>
-  <div class="prof-choices" id="prof-choices">
-    <!-- Rendered from remaining skills, excluding fixed ones -->
-  </div>
-  <p class="prof-count" id="prof-count">0 / 2 selected</p>
-</div>
-```
-
-```js
-let chosenProfs = [];
-const fixedProfs = archetype.fixedProficiencies; // e.g. ['Athletics', 'Intimidation']
-
-document.querySelectorAll('.prof-choice-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const skill = btn.dataset.skill;
-    if (chosenProfs.includes(skill)) {
-      chosenProfs = chosenProfs.filter(s => s !== skill);
-      btn.classList.remove('selected');
-    } else if (chosenProfs.length < 2) {
-      chosenProfs.push(skill);
-      btn.classList.add('selected');
-    }
-    document.getElementById('prof-count').textContent = chosenProfs.length + ' / 2 selected';
-    document.getElementById('confirm-btn').disabled = chosenProfs.length !== 2;
-  });
-});
-```
+The proficiency picker is rendered as part of the character creation widget by the `tag` CLI.
+Use the CLI command from the § CLI Commands table — the rendered widget includes the
+proficiency section with locked archetype grants and selectable skill buttons automatically.
 
 **CRITICAL:** The confirmation `sendPrompt` must include ALL character data AND the game
 settings from the previous step. There is no persistent client-side `gmState` between widget
@@ -178,26 +152,12 @@ the button generates a thematically appropriate name based on the active scenari
 
 ### Random Name Button
 
-The character creation widget includes a button next to the name input that generates a
-random name on click. The button uses `addEventListener` (not inline onclick) and populates
-the name input field:
+The character creation widget rendered by `tag render character-creation` includes a name
+input field with a random name button. The random name button generates theme-appropriate
+names from a pool defined in the render data.
 
-```html
-<div class="name-row">
-  <input type="text" id="char-name" class="name-input" placeholder="Enter your name...">
-  <button class="name-random-btn" id="random-name-btn">Random</button>
-</div>
-```
-
-```js
-document.getElementById('random-name-btn').addEventListener('click', function() {
-  var input = document.getElementById('char-name');
-  if (input) input.value = generateName();
-});
-```
-
-The `generateName()` function is defined by the GM at render time, drawing from a name pool
-appropriate to the theme:
+The GM provides name pool data to the CLI via the `--data` JSON parameter. Name pools
+should be appropriate to the theme:
 
 - **Space / Sci-Fi:** Mix cultural origins — East Asian, Slavic, Latin, West African, Nordic.
   Surnames can be occupational, locational, or patronymic. Example pool: Kael Osei, Mira Sokolov,

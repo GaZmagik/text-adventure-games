@@ -14,13 +14,22 @@ interface SettingsData {
 }
 
 export function renderSettings(state: GmState | null, css: string, options?: Record<string, unknown>): string {
-  const data = (options?.data ?? {}) as SettingsData;
+  const raw = (options?.data ?? {}) as Record<string, unknown>;
+  // Accept common field name aliases the GM might naturally use
+  const data: SettingsData = {
+    rulebooks: (raw.rulebooks ?? raw.rules) as string[] | undefined,
+    difficulties: (raw.difficulties ?? raw.difficulty) as string[] | undefined,
+    pacingOptions: (raw.pacingOptions ?? raw.pacing) as string[] | undefined,
+    visualStyles: (raw.visualStyles ?? raw.styles) as string[] | undefined,
+    modules: (raw.modules ?? raw.activeModules) as string[] | undefined,
+    defaults: (raw.defaults ?? {}) as Record<string, string>,
+  };
 
-  const rulebooks = data.rulebooks ?? ['d20_system', 'gurps_lite', 'pf2e_lite', 'shadowrun_lite', 'narrative_engine'];
-  const difficulties = data.difficulties ?? ['easy', 'normal', 'hard', 'nightmare'];
-  const pacingOptions = data.pacingOptions ?? ['relaxed', 'standard', 'intense'];
-  const visualStyles = data.visualStyles ?? ['terminal', 'parchment', 'neon', 'blueprint', 'ink-wash'];
-  const modules = data.modules ?? ['lore-codex', 'ship-systems', 'crew-manifest', 'star-chart', 'geo-map', 'adventure-exporting'];
+  const rulebooks = data.rulebooks ?? ['d20_system', 'gurps_lite', 'pf2e_lite', 'shadowrun_lite', 'narrative_engine', 'custom'];
+  const difficulties = data.difficulties ?? ['easy', 'normal', 'hard', 'brutal'];
+  const pacingOptions = data.pacingOptions ?? ['fast', 'normal', 'slow'];
+  const visualStyles = data.visualStyles ?? ['station', 'terminal', 'parchment', 'neon', 'brutalist', 'art-deco', 'ink-wash', 'blueprint', 'stained-glass', 'sveltekit', 'weathered', 'holographic'];
+  const modules = data.modules ?? ['save-codex', 'bestiary', 'story-architect', 'ship-systems', 'crew-manifest', 'star-chart', 'geo-map', 'procedural-world-gen', 'world-history', 'lore-codex', 'rpg-systems', 'ai-npc', 'atmosphere', 'audio', 'adventure-exporting'];
   const defaults = data.defaults ?? {};
 
   return `

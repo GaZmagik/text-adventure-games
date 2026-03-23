@@ -553,6 +553,7 @@ Google Fonts with graceful fallback, declares all custom properties, and overrid
 every standard component class used by the text adventure engine.
 
 ```css
+/* @extract */
 /* ============================================================
    ART DECO THEME — Text Adventure Visual Style
    Inject into widget <style> block.

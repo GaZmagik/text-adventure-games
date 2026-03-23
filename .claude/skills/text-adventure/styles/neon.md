@@ -1042,6 +1042,7 @@ The `@import` line will silently no-op if Google Fonts is CSP-blocked — the fa
 handle that case.
 
 ```css
+/* @extract */
 /* =======================================================================
    NEON THEME — text-adventure game engine
    Cyberpunk arcade / synthwave visual style

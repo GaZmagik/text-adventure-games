@@ -713,6 +713,16 @@ Defeating through persuasion is a valid (and often more rewarding) victory.
 
 ---
 
+## § CLI Commands
+
+| Command | Purpose |
+|---------|---------|
+| `tag compute encounter --level {n} --tier {minion\|rival\|nemesis}` | Generate an encounter scaled to the player's level using templates from this module |
+| `tag state create-npc --template {template} --tier {tier} --genre {genre}` | Create an adversary NPC from a bestiary template with genre-appropriate reskinning |
+| `tag state get encounter` | Read the current encounter state (active adversaries, round, HP) |
+
+---
+
 ## Encounter Building Guidelines
 
 Use the table below to select appropriate adversary combinations for the player's current
@@ -775,6 +785,7 @@ internally — stat blocks are **never shown to the player**.
 
 This module adds the following field to `gmState`:
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 // Bestiary encounter tracking
 encounter: {

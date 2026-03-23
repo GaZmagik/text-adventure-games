@@ -3,7 +3,7 @@ name: text-adventure
 
 description: Use this skill whenever the user wants to play, run, or build an interactive text adventure game. Triggers include "text adventure", "play a game", "run a campaign", "tabletop RPG", "D&D-style game", "interactive story", "dungeon crawl", "choose your own adventure", "space adventure", "sci-fi RPG", "interactive fiction", "story game", "MUD", "text-based game", or any request to begin a narrative game with player decisions, character stats, or dice-based outcomes. Also use when the user wants to continue a prior adventure session or set up a new scenario. This skill is the orchestrator — it contains the complete core game engine and loads expansion modules from the modules/ directory as needed. Do NOT use for purely creative writing tasks that require no player agency or mechanical resolution.
 metadata:
-  version: "1.3.0.a"
+  version: "1.3.0.b"
 ---
 
 # Text Adventure Game — Core Engine
@@ -24,6 +24,92 @@ authored adventures for distribution.
 **Before rendering any widget, read `styles/style-reference.md` in full.** It
 contains structural patterns and supplementary templates that this file references.
 Also read the active visual style file to obtain CSS custom property values.
+
+---
+
+## CRITICAL — `tag` CLI (Rendering Engine)
+
+**ALL widgets MUST be rendered via `tag render`. Never hand-code HTML, CSS, or JS.**
+The `tag` CLI is the rendering engine for this skill. It produces deterministic,
+style-correct HTML from game state. Module files define game rules and narrative
+guidance — they do not contain widget code.
+
+### Step 0 — Setup (once per session)
+
+Run via the **Bash tool** (called "analysis tool" on Claude.ai):
+
+```bash
+bash setup.sh && tag state reset
+```
+
+This installs Bun (if needed), links the `tag` command, and initialises a blank game state.
+If `tag` is not available after setup, prompt the player to run `bash setup.sh` manually.
+
+### Commands
+
+| Command | Purpose | Example |
+|---------|---------|---------|
+| `tag state` | Game state CRUD + NPC creation | `tag state create-npc guard_01 --tier rival --name "Guard" --pronouns he/him --role guard` |
+| `tag compute` | Hidden rolls, hazard saves | `tag compute contest CHA merchant_01` |
+| `tag render` | Deterministic HTML widgets | `tag render scene --style terminal` |
+| `tag save` | Generate/load/validate saves | `tag save generate` |
+| `tag batch` | Multiple commands in one call | See worked example below |
+
+### Widget Render Inventory
+
+Every widget in this skill has a corresponding `tag render` template. **Use these — do not build widgets by hand.**
+
+| Widget | Command | When to Use |
+|--------|---------|-------------|
+| Settings | `tag render settings --data '<json>'` | Game setup — present options |
+| Scenario Select | `tag render scenario-select --data '<json>'` | Pre-game — pick scenario |
+| Character Creation | `tag render character-creation --data '<json>'` | Pre-game — build character |
+| Scene | `tag render scene --style <style>` | Every scene — main exploration view |
+| Dice | `tag render dice --style <style>` | After any die roll |
+| Combat Turn | `tag render combat-turn --style <style>` | Combat outcome display |
+| Dialogue | `tag render dialogue --style <style>` | NPC conversation |
+| Character | `tag render character --style <style>` | Character sheet panel |
+| Ship | `tag render ship --style <style>` | Ship status panel |
+| Crew | `tag render crew --style <style>` | Crew manifest panel |
+| Codex | `tag render codex --style <style>` | Lore codex panel |
+| Map | `tag render map --style <style>` | World map |
+| Star Chart | `tag render starchart --style <style>` | Star navigation |
+| Ticker | `tag render ticker --style <style>` | Clock/time display |
+| Footer | `tag render footer --style <style>` | Module-aware footer buttons |
+| Level Up | `tag render levelup --style <style>` | Level-up celebration |
+| Recap | `tag render recap --style <style>` | Session summary |
+| Save Div | `tag render save-div` | Save data container |
+
+### MUST Use `tag` For
+
+- **NPC creation** — `tag state create-npc` (never invent NPC stats or modifiers)
+- **Hidden contested rolls** — `tag compute contest` (never improvise NPC rolls)
+- **ALL widget rendering** — `tag render <widget>` (never hand-code HTML/CSS/JS)
+- **Save generation** — `tag save generate` (never hand-build save payloads)
+- **State mutations** — `tag state set` (keep state in sync with the CLI)
+
+For narrative prose, NPC dialogue text, and creative decisions, use your own judgement.
+
+### Worked Example — Typical Scene Turn
+
+Run via the **Bash tool**:
+
+```bash
+tag batch <<'EOF'
+  compute contest DEX guard_01 as dodge_result
+  state set character.hp -= 3
+  render combat-turn --style terminal
+  save generate
+EOF
+```
+
+The batch captures the contest result, applies HP damage, renders the combat widget
+with correct CSS from the active style, and generates a save — all in one call.
+
+See `cli/manual.md` for the full reference with three worked examples (arc setup,
+combat turn, social encounter).
+
+---
 
 ## Architecture
 
@@ -91,33 +177,6 @@ styles/
 
 ---
 
-## CLI — `tag` Tool
-
-The `tag` CLI provides deterministic computation and rendering for game state
-operations. It ships as TypeScript files in `cli/` and runs via Bun.
-
-### Setup (one-time)
-Run `bash setup.sh` to install Bun and link the `tag` command.
-
-### Commands
-| Command | Purpose | Example |
-|---------|---------|---------|
-| `tag state` | Game state CRUD + NPC creation | `tag state create-npc guard_01 --tier rival --name "Guard" --pronouns he/him --role guard` |
-| `tag compute` | Hidden rolls, hazard saves | `tag compute contest CHA merchant_01` |
-| `tag render` | Deterministic HTML widgets | `tag render scene --style terminal` |
-| `tag save` | Generate/load/validate saves | `tag save generate` |
-| `tag batch` | Multiple commands in one call | `tag batch --commands "state get scene; save generate"` |
-
-### When to Use
-You MUST use `tag` for:
-- **NPC creation** — `tag state create-npc` (never invent NPC stats)
-- **Hidden contested rolls** — `tag compute contest` (never improvise NPC modifiers)
-- **Widget rendering** — `tag render <widget>` (never invent CSS)
-
-For narrative prose, NPC dialogue, and creative decisions, continue using your own judgement.
-
-See `cli/manual.md` for full reference with worked examples.
-
 ---
 
 ## Core Mandate
@@ -129,14 +188,13 @@ See `cli/manual.md` for full reference with worked examples.
   decides, always. If there is nothing left to decide in a scene, present the next decision point.
 - **Never editorially guide the player.** No "safe", "risky", or "recommended" labels.
 - **Progressive reveal.** Show brief confirmation + continue button before full scene text (see pattern below).
-- **Read module and style files whenever they are required — every time, not from memory.**
-  Module files contain widget patterns, CSS classes, JS code, and HTML templates that the GM
-  must use verbatim. Never improvise HTML structure, CSS classes, or JS patterns from memory
-  when the module file defines the canonical version. If a module defines a component (divider,
-  panel, button, widget), use that component — do not invent a new one.
+- **ALL widgets MUST be rendered via `tag render <widget> --style <style>`.** Run commands
+  using the Bash tool. Never hand-code HTML, CSS, or JS for any widget. The CLI produces
+  deterministic, style-correct output from game state. Module files define game rules and
+  narrative guidance — they do not contain widget code to copy.
 - **Read `styles/style-reference.md` and the active visual style before rendering.** They contain
   structural patterns, the Module Footer Button Table, and theme CSS custom properties. The
-  visual style file defines CSS classes the GM must use — never invent replacement CSS.
+  `tag render` CLI reads these files automatically via its CSS extractor.
 - **Use the `frontend-design` skill if available.** It elevates the visual quality of widgets
   with polished, distinctive HTML/CSS. Apply its design principles to every widget rendered.
 - **Never reference stat names or values in narrative prose.** "Your hands are steady" not
@@ -227,26 +285,16 @@ During game setup, the player selects a visual style or the GM auto-selects base
 
 **Before rendering any widget, read `styles/style-reference.md` and the active visual style file.** The style-reference defines structural patterns (HTML skeleton, JS, component layout). The visual style file provides colours, typography, and decorative CSS.
 
-### Settings Confirm Button
+### Settings Widget
 
-The confirm button MUST serialise all player selections into the sendPrompt payload.
-Without this, Claude receives "settings confirmed" but has no idea what was selected.
+Render the settings widget via the Bash tool:
 
-```js
-// Build prompt from current widget state — all settings must be included
-const rulebook = document.querySelector('[name="rulebook"]:checked')?.value || 'd20_system';
-const difficulty = document.querySelector('[name="difficulty"]:checked')?.value || 'normal';
-const pacing = document.querySelector('[name="pacing"]:checked')?.value || 'normal';
-const style = document.querySelector('[name="style"]:checked')?.value || 'station';
-const atmosphere = document.querySelector('[name="atmosphere"]:checked')?.value || 'on';
-const audio = document.querySelector('[name="audio"]:checked')?.value || 'off';
-const modules = Array.from(document.querySelectorAll('[name="module"]:checked'))
-  .map(el => el.value).join(', ');
-
-const prompt = `Settings confirmed. Rulebook: ${rulebook}. Difficulty: ${difficulty}. `
-  + `Pacing: ${pacing}. Visual style: ${style}. Atmosphere: ${atmosphere}. Audio: ${audio}. `
-  + `Active modules: ${modules}. Present character creation.`;
+```bash
+tag render settings --data '{"rulebooks":["d20_system","gurps_lite","pathfinder_2e_lite","shadowrun_5e_lite","narrative_engine"],"difficulties":["easy","normal","hard","brutal"],"pacingOptions":["fast","normal","slow"],"visualStyles":["station","terminal","parchment","neon","brutalist","art-deco","ink-wash","blueprint","stained-glass","sveltekit","weathered","holographic"],"modules":["save-codex","bestiary","story-architect","ship-systems","crew-manifest","star-chart","geo-map","procedural-world-gen","world-history","lore-codex","rpg-systems","ai-npc","atmosphere","audio"]}'
 ```
+
+The settings template includes a confirm button that serialises all player selections into
+the sendPrompt payload. Every player choice is included — never a static "Settings confirmed".
 
 **Rule:** Never use a static string like "Settings confirmed" — every player choice must be
 in the prompt or Claude will fall back to defaults and ignore what the player selected.
@@ -262,55 +310,17 @@ Widget with name input, archetype selector, and stat block populated via JS (no 
 Six default archetypes (Soldier, Scout, Engineer, Medic, Diplomat, Smuggler) — names adapt to
 theme, stat arrays stay fixed.
 
-### Character Confirm Button
+### Character Creation Widget
 
-The confirm button MUST serialise the character data AND the game settings into the
-sendPrompt payload. By the time the player confirms their character, the settings
-confirmation is 2–3 messages back in the conversation. If settings are not re-stated
-here, Claude loses track of which modules, difficulty, visual style, atmosphere, and
-audio were selected — resulting in missing atmosphere effects, absent audio, and
-incorrect module loading on the opening scene.
+Render the character creation widget via the Bash tool:
 
-The GM must embed the confirmed settings as a hidden `#game-settings` div in the
-character creation widget so the confirm button can read them:
-
-```html
-<!-- GM embeds this when rendering the character creation widget -->
-<div id="game-settings" style="display:none"
-  data-rulebook="d20_system"
-  data-difficulty="normal"
-  data-pacing="normal"
-  data-style="parchment"
-  data-atmosphere="on"
-  data-audio="on"
-  data-modules="save-codex,bestiary,story-architect,lore-codex,ai-npc,geo-map,atmosphere,audio">
-</div>
+```bash
+tag render character-creation --style <style> --data '{"archetypes":[...],"proficiencies":[...],"defaultName":"Unnamed","settings":{"rulebook":"d20_system","difficulty":"normal","pacing":"normal","style":"parchment","atmosphere":"on","audio":"on","modules":"save-codex,bestiary,story-architect,lore-codex,ai-npc,geo-map,atmosphere,audio"}}'
 ```
 
-```js
-const name = document.getElementById('char-name').value || 'Unnamed';
-const archetype = document.querySelector('[name="archetype"]:checked')?.value || 'Soldier';
-const stats = JSON.parse(document.getElementById('stat-block').dataset.stats || '{}');
-const profs = Array.from(document.querySelectorAll('.prof-selected')).map(el => el.textContent);
-const gear = Array.from(document.querySelectorAll('.equip-tag')).map(el => el.textContent);
-
-// Read settings from hidden div embedded by the GM
-const gs = document.getElementById('game-settings');
-const settingsStr = gs
-  ? `Rulebook: ${gs.dataset.rulebook}. Difficulty: ${gs.dataset.difficulty}. `
-    + `Pacing: ${gs.dataset.pacing}. Visual style: ${gs.dataset.style}. `
-    + `Atmosphere: ${gs.dataset.atmosphere}. Audio: ${gs.dataset.audio}. `
-    + `Active modules: ${gs.dataset.modules}.`
-  : '';
-
-const prompt = `My character is ready. Begin the adventure. `
-  + `Name: ${name}. Class: ${archetype}. `
-  + `STR: ${stats.STR}, DEX: ${stats.DEX}, INT: ${stats.INT}, `
-  + `WIS: ${stats.WIS}, CON: ${stats.CON}, CHA: ${stats.CHA}. `
-  + `Proficiencies: ${profs.join(', ')}. `
-  + `Equipment: ${gear.join(', ')}. `
-  + settingsStr;
-```
+The template embeds game settings as a hidden div and serialises character data + settings
+into the sendPrompt payload on confirm. See `modules/character-creation.md` for archetype
+tables and stat arrays to pass via `--data`.
 
 **Rule:** Never use a static string like "My character is ready" — the name, class,
 stats, AND game settings must be in the prompt or Claude will invent the character
@@ -323,13 +333,10 @@ and forget which modules are active.
 See `modules/die-rolls.md` for the full resolution system: four-stage widget pattern, DC table,
 critical rules, attribute variety, DC escalation, and sendPrompt fallback.
 
-**3D Dice (mandatory):** All die rolls MUST use the Three.js 3D dice system defined in
-`modules/die-rolls.md` § "3D Dice Rendering (Three.js)". The widget renders proper 3D
-polyhedra — d4 tetrahedron, d6 cube, d8 octahedron, d12 dodecahedron, d20 icosahedron —
-with numbered faces, tumble animation, and easeOutBack settle. Load Three.js from CDN:
-`https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js`. If the CDN fails,
-the `onerror` handler degrades gracefully with a message. Never use flat CSS circles or
-rectangles for dice — always use the 3D polyhedra.
+**3D Dice (mandatory):** All die rolls MUST use `tag render dice --style <style>` via the
+Bash tool. The template renders proper 3D polyhedra with numbered faces, tumble animation,
+and easeOutBack settle. Never hand-code dice widgets — the CLI template handles Three.js
+loading, polyhedra geometry, and graceful degradation automatically.
 
 **Key rules (always apply):**
 - Never reveal which attribute a check tests in the action options — the player chooses what
@@ -344,27 +351,8 @@ rectangles for dice — always use the 3D polyhedra.
 
 ## Progressive Reveal Pattern
 
-**Every scene widget must use this pattern.** It prevents visual artefacts during generation.
-
-```html
-<div id="reveal-brief">
-  <p class="brief-text"><!-- 1-2 sentences confirming what happened or setting the mood --></p>
-  <button class="continue-btn" id="continue-reveal-btn">Continue</button>
-</div>
-<div id="reveal-full" style="display:none">
-  <div id="scene-content">
-    <!-- Full scene content: loc-bar, atmo-strip, narrative, POIs, actions, status bar -->
-  </div>
-</div>
-
-<script>
-/* Progressive reveal — addEventListener pattern (never inline onclick) */
-document.getElementById('continue-reveal-btn').addEventListener('click', function() {
-  document.getElementById('reveal-brief').style.display = 'none';
-  document.getElementById('reveal-full').style.display = 'block';
-});
-</script>
-```
+**Every scene widget uses progressive reveal.** This is built into `tag render scene` —
+the template includes the brief/continue/full structure and the JS toggle automatically.
 
 The brief text should be 1–2 sentences: either confirming the player's last action ("You step
 through the airlock.") or setting atmospheric tone ("The lights flicker once, then die.").
@@ -399,64 +387,12 @@ Panels serve two purposes:
 2. **Full interaction** — when the player needs to take action (repair, reroute power, browse
    codex in detail), use `sendPrompt()` to open the module's full standalone widget.
 
-### Panel Toggle (inline in every scene widget)
+### Panel Toggle System
 
-Panel overlay CSS (include in every scene widget's `<style>` block):
-
-```css
-.panel-overlay {
-  opacity: 0;
-  transition: opacity 150ms ease;
-  pointer-events: none;
-}
-.panel-overlay.visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-@media (prefers-reduced-motion: reduce) {
-  .panel-overlay { transition: none; }
-}
-```
-
-Panel toggle JS:
-
-```js
-let activePanel = null;
-function togglePanel(panelId) {
-  const overlay = document.getElementById('panel-overlay');
-  const scene = document.getElementById('scene-content');
-  if (activePanel === panelId) {
-    overlay.classList.remove('visible'); scene.style.display = 'block';
-    activePanel = null; return;
-  }
-  overlay.classList.add('visible'); scene.style.display = 'none';
-  activePanel = panelId;
-  document.querySelectorAll('.panel-content').forEach(p =>
-    p.style.display = p.dataset.panel === panelId ? 'block' : 'none');
-}
-function closePanel() {
-  document.getElementById('panel-overlay').classList.remove('visible');
-  document.getElementById('scene-content').style.display = 'block';
-  activePanel = null;
-}
-```
-
-### Panel Data — derived from gmState at render time
-
-```js
-const PANEL_DATA = {
-  character: gmState.character,   // always present
-  codex: gmState.codex,           // lore-codex module
-  quest_log: gmState.quests,      // quest tracking (lore-codex module)
-  ship: gmState.shipState,        // ship-systems module
-  nav: gmState.navState,          // star-chart module
-  scene: gmState.scene,
-  worldFlags: gmState.worldFlags,
-};
-```
-
-`PANEL_DATA` is a read-only projection of `gmState`. The GM builds it fresh each scene render.
-Modules define their own `PANEL_DATA` field contents and summary render functions.
+The panel overlay CSS, toggle JS, close handler, and PANEL_DATA projection are all built
+into the `tag render scene` template. The scene widget automatically includes panel toggle
+buttons in the footer based on `modulesActive` in game state. Panel data is derived from
+the current game state at render time — the GM does not need to construct it manually.
 
 #### `character` panel (always present)
 
@@ -1038,7 +974,7 @@ ai-npc                → core-systems
 **Step 3 — Present settings and read module files**
 
 1. Present module checkboxes (pre-selected per scenario type) in the Game Settings widget.
-2. **Read each active module file in full** — they contain critical templates and anti-patterns.
+2. **Read each active module file in full** — they contain game rules, CLI command references, and anti-patterns.
 
 **Step 4 — Initialise in dependency order**
 
