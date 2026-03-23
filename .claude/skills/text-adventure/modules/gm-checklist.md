@@ -57,15 +57,15 @@ NEW GAME CHECKLIST
 ═══════════════════════════════════════════
 □  0. Run `bash setup.sh` if first session. Run `tag state reset` to initialise game state.
 □  1. Read all Tier 1 modules IN FULL (see SKILL.md Architecture — Tiered Loading)
-□  2. Present the Settings widget (rulebook, difficulty, pacing, visual style, modules)
+□  2. Present the Settings widget: run `tag render settings --data '<json>'` — do NOT hand-code HTML
 □  3. Wait for player to confirm settings — do NOT proceed without confirmation
-□  4. Present Scenario Selection widget (3–4 scenario cards with genre pills)
+□  4. Present Scenario Selection widget: run `tag render scenario-select --data '<json>'` — do NOT hand-code HTML
 □  5. Wait for player to select a scenario — do NOT auto-select
 □  6. Load required modules for the selected scenario
 □  7. Read the active visual style file from styles/
 □  8. Read styles/style-reference.md for structural patterns
-□  9. Present Character Creation widget — MUST embed confirmed settings as a hidden
-     #game-settings div so the confirm button can forward them (see SKILL.md)
+□  9. Present Character Creation widget: run `tag render character-creation --data '<json>'`
+     The widget MUST embed confirmed settings as a hidden #game-settings div.
 □ 10. Wait for player to confirm character — do NOT auto-generate without input
 □ 11. Parse settings AND character data from the confirm prompt — the prompt contains
      both (rulebook, difficulty, pacing, style, atmosphere, audio, modules, AND
@@ -74,11 +74,14 @@ NEW GAME CHECKLIST
      read each active module file for its state field definitions)
 □ 13. Initialise storyArchitect (see modules/story-architect.md § Seeding Threads)
 □ 14. Initialise worldHistory (see modules/world-history.md § Epoch Schema)
-□ 15. Generate the opening scene as a widget — NOT as plain text.
+□ 15. Create ALL NPCs for the opening scene BEFORE rendering:
+     Run `tag state create-npc <id> --name "<name>" --tier <tier> --pronouns <pronouns> --role <role>`
+     for EVERY NPC who will appear. Never introduce an NPC without creating them in state first.
+□ 16. Set the visual style in state: `tag state set visualStyle <style-name>`
+□ 17. Generate the opening scene: run `tag render scene --style <style-name>`
+     Then compose the narrative prose into the scene HTML output.
      Include atmosphere effects if atmosphere=on (read modules/atmosphere.md).
      Include audio if audio=on (read modules/audio.md).
-     Apply the correct visual style (read styles/{style-name}.md).
-     Load geo-map if active (read modules/geo-map.md).
 □ 16. Verify: is ALL game content inside the widget? No prose outside?
 ```
 

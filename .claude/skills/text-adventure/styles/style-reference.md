@@ -116,8 +116,8 @@ Use `#panel-overlay` (ID selector) to match the HTML element.
 
 ## Scene Widget — HTML Skeleton
 
-This is a structural guide, not a rigid template. Claude generates the full markup
-dynamically for each scene. The key requirements are:
+**You MUST use `tag render scene --style <name>` to generate scene widgets.** The CLI
+produces correct HTML with real CSS from the active style file. The structural requirements are:
 - `id="panel-overlay"` and `id="scene-content"` for the panel toggle system.
 - `id="reveal-brief"` and `id="reveal-full"` for progressive reveal.
 - Panel toggle buttons use `data-panel` attributes + `addEventListener` — never inline `onclick` or `sendPrompt()`.
@@ -216,10 +216,14 @@ document.getElementById('panel-close-btn').addEventListener('click', closePanel)
 </script>
 ```
 
-**Note:** Widget types not templated here (die roll, character creation, settings, scenario
-select, map, combat, outcome, level-up, death/down) are generated dynamically by the GM
-following the rules in SKILL.md. They do not need fixed templates — Claude builds them fresh
-each time, following the structural and visual rules defined in the orchestrator.
+**CRITICAL — Use `tag render` for all widget types.** The `tag render <widget>` CLI command
+produces deterministic HTML with the correct CSS custom properties from the active style file.
+You MUST use `tag render` instead of generating widget HTML manually. This prevents CSS
+hallucination (inventing colours/properties instead of reading the style file).
+
+Available widgets: `scene`, `ticker`, `character`, `dice`, `ship`, `crew`, `codex`, `map`,
+`starchart`, `footer`, `save-div`, `levelup`, `recap`, `combat-turn`, `dialogue`, `settings`,
+`scenario-select`, `character-creation`. See `cli/manual.md` for full reference.
 
 ---
 

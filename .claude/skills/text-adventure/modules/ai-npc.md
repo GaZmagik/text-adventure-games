@@ -40,7 +40,9 @@ NPC's archetype — a scientist gets high INT/WIS, a dock worker gets high STR/C
 | 7-8 | 13-17 | Expert, faction leader, antagonist |
 | 9-10 | 14-18 | Master, legendary figure, final adversary |
 
-The GM generates stats when the NPC is first introduced, based on their narrative role.
+You MUST use `tag state create-npc <id> --name "<name>" --tier <tier> --pronouns <pronouns> --role <role>`
+to create every NPC when they first appear in the narrative. Never invent NPC stats manually.
+The CLI generates a complete stat block from bestiary tier rules and persists it immediately.
 Stats persist in `gmState.rosterMutations` and carry forward across arcs.
 
 ### Stat Modifier Table

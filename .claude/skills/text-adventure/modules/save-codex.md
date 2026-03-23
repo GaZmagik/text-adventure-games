@@ -236,12 +236,21 @@ function showInlineSave() {
 }
 ```
 
+### Save Generation — MUST Use `tag save generate`
+
+When the player requests a save, you MUST use the CLI to generate the save payload:
+```bash
+tag save generate
+```
+This produces a checksummed, encoded save string using the correct FNV-1a algorithm.
+Never compute checksums manually or write custom encoding scripts.
+
 ### Save Button Wiring
 
 ```js
 document.getElementById('save-btn').addEventListener('click', function() {
   if (typeof sendPrompt === 'function') {
-    sendPrompt('Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md. Use YAML frontmatter plus an encoded SC1: or SF1: payload string. Never write game state as human-readable markdown.');
+    sendPrompt('Run `tag save generate` and create a downloadable .save.md file from the output. Use YAML frontmatter plus the encoded payload string from the CLI output.');
     this.textContent = 'Generating...';
     this.disabled = true;
   } else {
