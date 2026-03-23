@@ -174,7 +174,7 @@ describe('render template output', () => {
     };
     state.modulesActive = ['prose-craft', 'core-systems', 'ai-npc'];
     state._lastComputation = {
-      type: 'skill_check',
+      type: 'contested_roll',
       stat: 'STR',
       roll: 14,
       modifier: 3,

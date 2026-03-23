@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { mkdtempSync, rmSync } from 'fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { handleSave } from './save';
@@ -91,6 +91,32 @@ describe('save load', () => {
     const result = await handleSave(['load', 'xxxxxxxx.SC1:garbage']);
     expect(result.ok).toBe(false);
     expect(result.error!.message).toContain('CHECKSUM');
+  });
+
+  test('loads save from a .save.md file path', async () => {
+    // Generate a valid save string from the current state
+    const genResult = await handleSave(['generate']);
+    expect(genResult.ok).toBe(true);
+    const saveString = (genResult.data as Record<string, unknown>).saveString as string;
+
+    // Write a .save.md file with the save string inside a markdown code fence
+    const saveFilePath = join(tempDir, 'game.save.md');
+    writeFileSync(saveFilePath, `# Save File\n\n\`\`\`\n${saveString}\n\`\`\`\n`);
+
+    // Reset state to defaults so we can verify the restore
+    const freshState = createDefaultState();
+    freshState.scene = 0;
+    await saveState(freshState);
+
+    // Load from the .save.md file path
+    const loadResult = await handleSave(['load', saveFilePath]);
+    expect(loadResult.ok).toBe(true);
+
+    // Verify the state was restored from the file
+    const restored = await loadState();
+    expect(restored.scene).toBe(7);
+    expect(restored.factions).toEqual({ rebels: 42 });
+    expect(restored.character!.name).toBe('Test Hero');
   });
 
   test('fails without save string argument', async () => {

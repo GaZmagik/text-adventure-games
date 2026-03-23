@@ -64,13 +64,19 @@ describe('batch mode', () => {
     expect(labelled.sc).toBeDefined();
   });
 
-  test('supports $label.field references', async () => {
-    const result = await handleBatch(['--commands', 'state get character.level as lvl; state get character.name as name']);
+  test('resolves $label.field references in subsequent commands', async () => {
+    // Run batch where second command uses $ref from first
+    // "state get character" returns the full character object as label "char"
+    // "state set scene $char.hp" should resolve $char.hp to 20 (from beforeEach setup)
+    const result = await handleBatch([
+      '--commands',
+      'state get character as char; state set scene $char.hp',
+    ]);
     expect(result.ok).toBe(true);
-    const data = result.data as Record<string, unknown>;
-    const labelled = data.labelled as Record<string, unknown>;
-    expect(labelled.lvl).toBeDefined();
-    expect(labelled.name).toBeDefined();
+
+    // Verify the label was resolved — scene should now be 20 (from char.hp)
+    const updated = await loadState();
+    expect(updated.scene).toBe(20);
   });
 
   test('continues on failure', async () => {
