@@ -195,7 +195,11 @@ TURN-START MODULE CHECKLIST
        — Genre overlay triggered? → genre-mechanics.md
        — Atmosphere/audio active? → atmosphere.md, audio.md
 □  5. Load any newly required modules before proceeding
-□  6. Proceed to New Scene Checklist
+□  6. Sync state — you MUST run these before proceeding:
+     `tag state set scene <N>` (increment scene counter)
+     `tag state set currentRoom <room_id>` (if location changed)
+     `tag state set time '<json>'` (advance time if appropriate)
+□  7. Proceed to New Scene Checklist
 ```
 
 **Critical:** Step 1 is non-negotiable. The prose-craft module contains sentence-level
@@ -229,18 +233,20 @@ NEW SCENE CHECKLIST
 □  9. Verify: sentence length varies, strong verbs, at least one non-visual sense
 □ 10. Verify: each NPC voice is distinct, no cliché clusters, no summarising tic
 
-  Widget Assembly
-□ 11. Build the widget HTML with the active visual style's CSS
-□ 12. Include: loc-bar, atmo-strip, narrative, POIs, actions, status bar
-      (see SKILL.md § Scene Widget for component specs and styles/style-reference.md
-      § Scene Widget — HTML Skeleton for structural pattern)
-□ 13. Build footer using the Module Footer Button Table in style-reference.md:
-      — Always: Character button + Save ↗ button
-      — For each value in modules_active: look up and include its button from the table
-      — If adventure-exporting in modules_active: include Export ↗
-      — Do NOT include buttons for modules not in modules_active
-      — Do NOT guess button labels or data-panel values — copy from the table
+  Widget Assembly — use `tag render`, do NOT hand-code HTML
+□ 11. Run `tag render scene --style <style-name>` to generate the scene skeleton
+      Then compose your narrative prose into the HTML output.
+□ 12. For die rolls, use `tag render dice` — never hand-code the roll widget
+□ 13. For contested checks, FIRST run `tag compute contest <ATTR> <npc_id>`,
+      THEN use the result to render the outcome
 □ 14. Include: pre-computed #save-data div for save fallback
+
+  Post-Scene State Sync — run AFTER rendering
+□ 15. Update any state that changed during this scene:
+      `tag state set character.hp <new_hp>` (if damage taken)
+      `tag state set character.xp += <xp_earned>` (if XP awarded)
+      `tag state set factions.<id> += <delta>` (if faction changed)
+      `tag state set worldFlags.<flag> true` (if discovery made)
 □ 15. Include: #scene-meta hidden div (see styles/style-reference.md § Scene Metadata)
 □ 16. Every interactive button uses data-prompt + addEventListener (no inline onclick)
 □ 17. Every sendPrompt button has a copyable fallback
