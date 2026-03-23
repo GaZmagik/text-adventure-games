@@ -253,13 +253,11 @@ by the chosen scenario.
 | Pacing | Fast (shorter scenes), Normal, Slow (deeper exploration) | Normal |
 | Visual Style | Any `.md` file in `styles/` (e.g., Terminal, Parchment, Neon, Stained Glass) | Auto-select based on scenario theme |
 | Active Modules | Checkboxes (pre-selected per scenario type) | Per scenario defaults |
-| Atmosphere | On / Off | On |
-| Audio | On / Off | Off |
 
-- **Atmosphere:** On / Off (default: On) — enables visual atmosphere effects (particles,
-  dynamic lighting, screen shake, UI degradation). See `modules/atmosphere.md`.
-- **Audio:** On / Off (default: Off) — enables procedural ambient soundscapes. Sounds play
-  on demand via Play/Stop button, max 30 seconds, no auto-loop. See `modules/audio.md`.
+Atmosphere and audio are modules — select them in the Active Modules checkboxes. When
+atmosphere is active, `tag render scene` applies particle effects, dynamic lighting,
+screen shake, and UI degradation automatically. When audio is active, the scene widget
+includes a procedural soundscape player (Play/Stop, max 30 seconds, no auto-loop).
 
 **d20 System (default):** STR/DEX/INT/WIS/CON/CHA, d20 rolls, DC thresholds, modifiers = `floor((stat - 10) / 2)`.
 The built-in system from core-systems.md. Best for casual play.
@@ -324,7 +322,7 @@ theme, stat arrays stay fixed.
 Render the character creation widget via the Bash tool:
 
 ```bash
-tag render character-creation --style <style> --data '{"archetypes":[...],"proficiencies":[...],"defaultName":"Unnamed","settings":{"rulebook":"d20_system","difficulty":"normal","pacing":"normal","style":"parchment","atmosphere":"on","audio":"on","modules":"save-codex,bestiary,story-architect,lore-codex,ai-npc,geo-map,atmosphere,audio"}}'
+tag render character-creation --style <style> --data '{"archetypes":[...],"proficiencies":[...],"defaultName":"Unnamed","settings":{"rulebook":"d20_system","difficulty":"normal","pacing":"normal","style":"parchment","modules":"save-codex,bestiary,story-architect,lore-codex,ai-npc,geo-map,atmosphere,audio"}}'
 ```
 
 The template embeds game settings as a hidden div and serialises character data + settings

@@ -101,8 +101,8 @@ NEW GAME CHECKLIST
      are deterministic from the start and available for contested rolls.
 □ 17. Generate the opening scene: run `tag render scene --style <style-name>`
      Then compose the narrative prose into the scene HTML output.
-     Include atmosphere effects if atmosphere=on (read modules/atmosphere.md).
-     Include audio if audio=on (read modules/audio.md).
+     If atmosphere module is active, effects are applied automatically by tag render scene.
+     If audio module is active, the scene widget includes a soundscape player automatically.
 □ 18. Verify: is ALL game content inside the widget? No prose outside?
 ```
 
