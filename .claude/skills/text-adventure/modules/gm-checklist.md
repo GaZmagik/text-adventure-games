@@ -60,11 +60,12 @@ NEW GAME CHECKLIST
 ═══════════════════════════════════════════
 □  0. Run `bash setup.sh` if first session. Run `tag state reset` to initialise game state.
 □  1. Read all Tier 1 modules IN FULL (see SKILL.md Architecture — Tiered Loading)
-□  2. Present the Settings widget: run `tag render settings --data '<json>'` — do NOT hand-code HTML
-□  3. Wait for player to confirm settings — do NOT proceed without confirmation
-□  4. Present Scenario Selection widget: run `tag render scenario-select --data '<json>'` — do NOT hand-code HTML
-□  5. Wait for player to select a scenario — do NOT auto-select
-□  6. Load required modules for the selected scenario
+□  2. Present Scenario Selection widget: run `tag render scenario-select --data '<json>'` — do NOT hand-code HTML
+□  3. Wait for player to select a scenario — do NOT auto-select
+□  4. Present the Settings widget: run `tag render settings --data '<json>'` — do NOT hand-code HTML
+     Tailor available modules and defaults to the chosen scenario.
+□  5. Wait for player to confirm settings — do NOT proceed without confirmation
+□  6. Load required modules for the selected scenario and confirmed settings
 □  7. Read the active visual style file from styles/
 □  8. Read styles/style-reference.md for structural patterns
 □  9. Present Character Creation widget: run `tag render character-creation --data '<json>'`

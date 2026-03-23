@@ -81,7 +81,7 @@ If you already have an older version of the skill installed:
    "Resume my adventure from this save file." Your character, world, and progress
    will be restored.
 
-> **Note:** Saves are forward-compatible. A save from any earlier version will load in v1.2.0 —
+> **Note:** Saves are forward-compatible. A save from any earlier version will load in v1.3.0 —
 > new features (arcs, NPC pronouns/stats, story threads, ship state, crew morale, map state,
 > time tracking) will activate automatically with sensible defaults.
 
@@ -113,6 +113,7 @@ The engine will guide you through settings, character creation, and into the adv
 The project uses an **orchestrator + modules** pattern:
 
 - **`text-adventure`** is the orchestrator skill — it handles the session lifecycle, widget rendering, core rules, and loads expansion modules on demand.
+- **`tag` CLI** (v1.3.0+) is the rendering engine — a TypeScript/Bun tool that produces deterministic HTML widgets from game state. Six commands: `state`, `compute`, `render`, `save`, `batch`, `rules`. Zero npm dependencies.
 - **Output styles** are independent rendering layers — they change the narrative voice, pacing, and prose craft without touching game logic or mechanics.
 
 All game output is rendered inside `visualize:show_widget` panels. No plain text output — everything is styled, interactive, and widget-based.
