@@ -19,6 +19,9 @@ tmp/
 *.log
 logs/
 
+# TDD ignore (dev-only, not distributed)
+.tddignore
+
 # OS files
 .DS_Store
 Thumbs.db
