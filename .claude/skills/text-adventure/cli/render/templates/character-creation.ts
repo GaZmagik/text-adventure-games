@@ -164,10 +164,12 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
 <\/script>`;
 }
 
-function esc(s: string): string {
+function esc(s: string | undefined | null): string {
+  if (!s) return "";
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-function escAttr(s: string): string {
+function escAttr(s: string | undefined | null): string {
+  if (!s) return "";
   return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }

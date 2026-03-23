@@ -80,7 +80,8 @@ export function renderLevelup(state: GmState | null, css: string, options?: Reco
 </div>`;
 }
 
-function esc(s: string): string {
+function esc(s: string | undefined | null): string {
+  if (!s) return "";
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 

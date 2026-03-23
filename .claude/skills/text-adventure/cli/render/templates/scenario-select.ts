@@ -5,18 +5,23 @@ import type { GmState } from '../../types';
 
 interface Scenario {
   title: string;
-  description: string;
+  description?: string;
+  hook?: string;           // Alias for description (scenarios module uses 'hook')
   genre?: string[];
+  genres?: string[];       // Alias for genre (common variant)
   difficulty?: string;
   players?: string;
+  tags?: string[];
+  modules?: string;
 }
 
 export function renderScenarioSelect(_state: GmState | null, css: string, options?: Record<string, unknown>): string {
   const data = (options?.data ?? {}) as { scenarios?: Scenario[] };
   const scenarios = data.scenarios ?? [];
 
-  const cards = scenarios.map((scenario, i) => {
-    const genres = scenario.genre ?? [];
+  const cards = scenarios.map((scenario) => {
+    const desc = scenario.description ?? scenario.hook ?? '';
+    const genres = scenario.genre ?? scenario.genres ?? [];
     const genrePills = genres.map(g =>
       `<span class="genre-pill">${esc(g)}</span>`,
     ).join(' ');
@@ -24,7 +29,7 @@ export function renderScenarioSelect(_state: GmState | null, css: string, option
     return `
       <div class="scenario-card">
         <div class="scenario-title">${esc(scenario.title)}</div>
-        <div class="scenario-desc">${esc(scenario.description)}</div>
+        <div class="scenario-desc">${esc(desc)}</div>
         ${genrePills ? `<div class="scenario-genres">${genrePills}</div>` : ''}
         <div class="scenario-meta">
           ${scenario.difficulty ? `<span class="scenario-diff">Difficulty: ${esc(scenario.difficulty)}</span>` : ''}
@@ -85,10 +90,12 @@ document.querySelectorAll('.scenario-select-btn[data-prompt]').forEach(function(
 <\/script>`;
 }
 
-function esc(s: string): string {
+function esc(s: string | undefined | null): string {
+  if (!s) return '';
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-function escAttr(s: string): string {
+function escAttr(s: string | undefined | null): string {
+  if (!s) return '';
   return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
