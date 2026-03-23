@@ -90,6 +90,7 @@ font values.
 Use `#panel-overlay` (ID selector) to match the HTML element.
 
 ```css
+/* @extract */
 #panel-overlay { display: none; padding: 0; }
 .panel-header {
   display: flex; align-items: baseline; justify-content: space-between;
@@ -409,6 +410,7 @@ a consistent box model so animations and states work identically across die type
 ### Die Custom Properties
 
 ```css
+/* @extract */
 /* These properties must be set by the visual style, or fall back to the host
    theme. Die shapes reference only these variables — never hardcoded colours. */
 :root {
@@ -426,6 +428,7 @@ a consistent box model so animations and states work identically across die type
 ### Size Modifier Classes
 
 ```css
+/* @extract */
 /* Applied alongside die shape classes: .die-d20.die--sm, .die-d20.die--lg */
 .die--sm  { --die-size: 80px;  }
 .die--md  { --die-size: 100px; } /* default */
@@ -438,6 +441,7 @@ All die classes share this base. Shape classes override `clip-path`, `border-rad
 and `transform` to create their specific form.
 
 ```css
+/* @extract */
 [class^="die-"] {
   --die-size: 100px; /* overridden by .die--sm / .die--lg */
   width:  var(--die-size);
@@ -504,6 +508,7 @@ and `transform` to create their specific form.
 ### d4 — Triangle / Tetrahedron
 
 ```css
+/* @extract */
 .die-d4 {
   clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
   border-radius: 0;
@@ -545,6 +550,7 @@ and `transform` to create their specific form.
 ### d6 — Square with Rounded Corners
 
 ```css
+/* @extract */
 .die-d6 {
   border-radius: 12px; /* slightly rounded corners — standard cube face */
   clip-path: none;
@@ -574,6 +580,7 @@ and `transform` to create their specific form.
 ### d8 — Diamond / Rhombus
 
 ```css
+/* @extract */
 .die-d8 {
   clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
   border-radius: 0;
@@ -614,6 +621,7 @@ and `transform` to create their specific form.
 ### d10 — Elongated Diamond / Kite
 
 ```css
+/* @extract */
 .die-d10 {
   /* Taller than wide: 60% width at widest, point at top and bottom */
   clip-path: polygon(50% 0%, 95% 40%, 50% 100%, 5% 40%);
@@ -653,6 +661,7 @@ and `transform` to create their specific form.
 ### d12 — Pentagon
 
 ```css
+/* @extract */
 .die-d12 {
   /* Regular pentagon — point up */
   clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
@@ -697,6 +706,7 @@ The established pattern from the game (perception_check_scene.html). The circle
 is the simplest and most recognisable form for the most iconic RPG die.
 
 ```css
+/* @extract */
 .die-d20 {
   border-radius: 50%;
 }
@@ -727,6 +737,7 @@ Two concentric circles suggest the tens and units dice of a percentile roll.
 The outer ring is the structural element; the inner pip indicates the units die.
 
 ```css
+/* @extract */
 .die-d100 {
   border-radius: 50%;
   position: relative;
@@ -789,6 +800,7 @@ The `D20 ROLL | + | MOD | + | PROF | = | TOTAL` strip used inside the check pane
 These classes are taken directly from the proven pattern.
 
 ```css
+/* @extract */
 /* Check panel container */
 .check-panel {
   background: var(--color-background-secondary);
@@ -1145,6 +1157,7 @@ a description body, and an optional perception detail block. Cards animate in
 with staggered delays for sequential reveal.
 
 ```css
+/* @extract */
 /* Observation card — coloured left accent bar via ::before */
 .obs-card {
   position: relative;
@@ -1334,6 +1347,7 @@ description, and optional mechanical check info. Used for scene action selection
 where each option has distinct mechanical weight.
 
 ```css
+/* @extract */
 /* Action card — full-width clickable button */
 .action-card {
   display: block;
@@ -2813,6 +2827,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Dust Motes
 
 ```css
+/* @extract */
 .atmo-dust {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -2846,6 +2861,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Rain
 
 ```css
+/* @extract */
 .atmo-rain {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -2880,6 +2896,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Snow
 
 ```css
+/* @extract */
 .atmo-snow {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -2914,6 +2931,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Sparks
 
 ```css
+/* @extract */
 .atmo-sparks {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -2947,6 +2965,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Smoke
 
 ```css
+/* @extract */
 .atmo-smoke {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -2979,6 +2998,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Stars
 
 ```css
+/* @extract */
 .atmo-stars {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -3014,6 +3034,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Embers
 
 ```css
+/* @extract */
 .atmo-embers {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -3048,6 +3069,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Screen Shake
 
 ```css
+/* @extract */
 @keyframes atmo-shake {
   0%, 100% { transform: translate(0); }
   10% { transform: translate(-4px, 2px); }
@@ -3073,6 +3095,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Colour Flash
 
 ```css
+/* @extract */
 .atmo-flash {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -3094,6 +3117,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Cinematic Letterboxing
 
 ```css
+/* @extract */
 .atmo-letterbox::before,
 .atmo-letterbox::after {
   content: '';
@@ -3120,6 +3144,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Dynamic Lighting
 
 ```css
+/* @extract */
 .atmo-light-safe    { filter: brightness(1.05) saturate(1.1); }
 .atmo-light-tense   { filter: brightness(0.95) saturate(0.9); }
 .atmo-light-danger  { filter: brightness(0.9) saturate(1.2) contrast(1.05); }
@@ -3167,6 +3192,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### UI Degradation
 
 ```css
+/* @extract */
 .atmo-degrade-1 {
   filter: saturate(0.9);
 }
@@ -3203,6 +3229,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Day/Night Cycle
 
 ```css
+/* @extract */
 /* Time classes use ::before, lighting classes use ::after — no conflict */
 .atmo-time-dawn::before {
   content: '';
@@ -3243,6 +3270,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Contextual Status Bar
 
 ```css
+/* @extract */
 .atmo-status-safe    .status-bar { border-color: color-mix(in srgb, var(--ta-color-success) 30%, transparent); }
 .atmo-status-caution .status-bar { border-color: color-mix(in srgb, var(--ta-color-warning) 40%, transparent); }
 .atmo-status-danger  .status-bar { border-color: color-mix(in srgb, var(--ta-color-danger)  50%, transparent); }
@@ -3263,6 +3291,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Toast Notifications
 
 ```css
+/* @extract */
 .atmo-toast {
   position: absolute;
   top: -40px; left: 50%;
@@ -3298,6 +3327,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Handwritten Notes
 
 ```css
+/* @extract */
 @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&display=swap');
 
 .atmo-handwritten {
@@ -3316,6 +3346,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Redacted Text
 
 ```css
+/* @extract */
 .atmo-redacted {
   background: currentColor;
   color: transparent;

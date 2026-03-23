@@ -155,17 +155,22 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     return styleNotSet();
   }
 
-  // Extract CSS from the style file
+  // Extract CSS from the style file + style-reference.md (structural patterns, atmosphere CSS)
   const styleFilePath = join(import.meta.dir, '../../styles/', styleName + '.md');
-  const css = await extractAllCss(styleFilePath);
-
-  if (!css) {
+  const styleRefPath = join(import.meta.dir, '../../styles/style-reference.md');
+  const [styleCss, refCss] = await Promise.all([
+    extractAllCss(styleFilePath),
+    extractAllCss(styleRefPath),
+  ]);
+  if (!styleCss) {
     return fail(
       `Style file not found or contains no CSS: "${styleName}".`,
       `Check styles/${styleName}.md exists and contains css code blocks.`,
       'render',
     );
   }
+
+  const css = [refCss, styleCss].filter(Boolean).join('\n\n');
 
   // Build options object
   const options: Record<string, unknown> = {};
