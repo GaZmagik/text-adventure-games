@@ -12,6 +12,9 @@
 
 ---
 
+> **CLI:** The `tag render <widget>` command reads CSS custom properties from the active
+> style file and produces self-contained HTML. This eliminates CSS hallucination.
+
 ## CSS Custom Property Contract
 
 Every visual style file **must** define all of the following CSS custom properties inside

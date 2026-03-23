@@ -55,30 +55,31 @@ step IN ORDER. Do not skip ahead. Do not combine steps.
 ```
 NEW GAME CHECKLIST
 ═══════════════════════════════════════════
-□  0. Read all Tier 1 modules IN FULL (see SKILL.md Architecture — Tiered Loading)
-□  1. Present the Settings widget (rulebook, difficulty, pacing, visual style, modules)
-□  2. Wait for player to confirm settings — do NOT proceed without confirmation
-□  3. Present Scenario Selection widget (3–4 scenario cards with genre pills)
-□  4. Wait for player to select a scenario — do NOT auto-select
-□  5. Load required modules for the selected scenario
-□  6. Read the active visual style file from styles/
-□  7. Read styles/style-reference.md for structural patterns
-□  8. Present Character Creation widget — MUST embed confirmed settings as a hidden
+□  0. Run `bash setup.sh` if first session. Run `tag state reset` to initialise game state.
+□  1. Read all Tier 1 modules IN FULL (see SKILL.md Architecture — Tiered Loading)
+□  2. Present the Settings widget (rulebook, difficulty, pacing, visual style, modules)
+□  3. Wait for player to confirm settings — do NOT proceed without confirmation
+□  4. Present Scenario Selection widget (3–4 scenario cards with genre pills)
+□  5. Wait for player to select a scenario — do NOT auto-select
+□  6. Load required modules for the selected scenario
+□  7. Read the active visual style file from styles/
+□  8. Read styles/style-reference.md for structural patterns
+□  9. Present Character Creation widget — MUST embed confirmed settings as a hidden
      #game-settings div so the confirm button can forward them (see SKILL.md)
-□  9. Wait for player to confirm character — do NOT auto-generate without input
-□ 10. Parse settings AND character data from the confirm prompt — the prompt contains
+□ 10. Wait for player to confirm character — do NOT auto-generate without input
+□ 11. Parse settings AND character data from the confirm prompt — the prompt contains
      both (rulebook, difficulty, pacing, style, atmosphere, audio, modules, AND
      name, class, stats, proficiencies, equipment). Apply ALL settings now.
-□ 11. Initialise gmState (see modules/save-codex.md § The Full gmState Contract for schema;
+□ 12. Initialise gmState (see modules/save-codex.md § The Full gmState Contract for schema;
      read each active module file for its state field definitions)
-□ 12. Initialise storyArchitect (see modules/story-architect.md § Seeding Threads)
-□ 13. Initialise worldHistory (see modules/world-history.md § Epoch Schema)
-□ 14. Generate the opening scene as a widget — NOT as plain text.
+□ 13. Initialise storyArchitect (see modules/story-architect.md § Seeding Threads)
+□ 14. Initialise worldHistory (see modules/world-history.md § Epoch Schema)
+□ 15. Generate the opening scene as a widget — NOT as plain text.
      Include atmosphere effects if atmosphere=on (read modules/atmosphere.md).
      Include audio if audio=on (read modules/audio.md).
      Apply the correct visual style (read styles/{style-name}.md).
      Load geo-map if active (read modules/geo-map.md).
-□ 15. Verify: is ALL game content inside the widget? No prose outside?
+□ 16. Verify: is ALL game content inside the widget? No prose outside?
 ```
 
 ---
@@ -93,6 +94,7 @@ modules, and broken narrative tracking.
 ```
 RESUME FROM SAVE CHECKLIST
 ═══════════════════════════════════════════
+□  0. Run `tag save load <save-string>` to restore game state before rendering.
 □  1. Parse and validate the save payload (checksum, version, mode)
 □  2. Warn (do not block) if skill-version differs from current version
 □  3. Check for arc field — if present, load arc context and carryForward data
@@ -282,6 +284,9 @@ NPC HIDDEN ROLL CHECKLIST
 □ 11. Narrate outcome using modules/die-rolls.md § Narrative Language Table
 □ 12. If NPC is from bestiary: use tier-based resistance modifier, not full stats
 ```
+
+     For contested checks, you MUST use `tag compute contest <ATTR> <npc_id>`.
+     Never invent NPC modifiers — read them from persisted state.
 
 **Common mistakes:**
 - Showing "vs DC 15" on a contested check — contested checks show narrative only

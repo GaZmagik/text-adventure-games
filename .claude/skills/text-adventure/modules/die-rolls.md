@@ -81,6 +81,9 @@ The player **NEVER** sees:
 | NPC wins by 1-4 | Failure | "They see right through your opening gambit, but you notice a flicker of doubt." |
 | NPC wins by 5+ | Decisive failure | "Your attempt falls flat. They were expecting exactly this." |
 
+> **CLI:** For contested checks, use `tag compute contest <ATTR> <npc_id>` to ensure
+> the NPC's modifier is read from persisted state rather than improvised.
+
 ### GM Internal Resolution
 
 The GM resolves the NPC's check silently:

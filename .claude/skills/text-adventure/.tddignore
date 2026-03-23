@@ -9,3 +9,6 @@ cli/help.ts
 
 # Render templates — tested via integration/e2e, not colocated specs
 cli/render/templates/*.ts
+
+# CLI manual — markdown documentation, not testable code
+cli/manual.md

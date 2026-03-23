@@ -139,6 +139,9 @@ SC1:eyJ2IjoxLCJtb2RlIjoiY29tcGFjdCIsInNlZWQiOiJwYWxlLXRocmVzaG9sZC03...
 
 ---
 
+> **CLI:** The `tag save generate` command produces identical save payloads using
+> the same FNV-1a checksum and base64 encoding.
+
 ## Per-Scene Save Generation
 
 Every scene widget includes a pre-computed save payload as a hidden data attribute.

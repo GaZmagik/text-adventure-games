@@ -91,6 +91,35 @@ styles/
 
 ---
 
+## CLI — `tag` Tool
+
+The `tag` CLI provides deterministic computation and rendering for game state
+operations. It ships as TypeScript files in `cli/` and runs via Bun.
+
+### Setup (one-time)
+Run `bash setup.sh` to install Bun and link the `tag` command.
+
+### Commands
+| Command | Purpose | Example |
+|---------|---------|---------|
+| `tag state` | Game state CRUD + NPC creation | `tag state create-npc guard_01 --tier rival --name "Guard" --pronouns he/him --role guard` |
+| `tag compute` | Hidden rolls, hazard saves | `tag compute contest CHA merchant_01` |
+| `tag render` | Deterministic HTML widgets | `tag render scene --style terminal` |
+| `tag save` | Generate/load/validate saves | `tag save generate` |
+| `tag batch` | Multiple commands in one call | `tag batch --commands "state get scene; save generate"` |
+
+### When to Use
+You MUST use `tag` for:
+- **NPC creation** — `tag state create-npc` (never invent NPC stats)
+- **Hidden contested rolls** — `tag compute contest` (never improvise NPC modifiers)
+- **Widget rendering** — `tag render <widget>` (never invent CSS)
+
+For narrative prose, NPC dialogue, and creative decisions, continue using your own judgement.
+
+See `cli/manual.md` for full reference with worked examples.
+
+---
+
 ## Core Mandate
 
 - **All output must live inside widgets.** Never write prose outside `visualize:show_widget`.

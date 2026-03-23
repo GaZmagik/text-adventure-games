@@ -112,6 +112,10 @@ state event needs to propagate (NPC reveals a secret, disposition flips to hosti
 
 ---
 
+> **CLI:** To create a new NPC with guaranteed stat persistence, use
+> `tag state create-npc --id <id> --tier <tier> --name "<name>" --pronouns <pronouns> --role <role>`.
+> Pronouns are mandatory.
+
 ## The NPC Definition Object
 
 Every NPC is encoded as a JavaScript object before the widget renders. This object drives the
