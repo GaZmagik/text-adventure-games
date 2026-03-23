@@ -126,7 +126,6 @@ export async function handleBatch(args: string[]): Promise<CommandResult> {
         ok: true,
         command: `${parsed.command} ${resolvedArgs.join(' ')}`,
         data: null,
-        validated: true,
       });
       if (parsed.label) {
         labelled[parsed.label] = null;
