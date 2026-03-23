@@ -1,20 +1,23 @@
 ---
 name: text-adventure
 
-description: Use this skill whenever the user wants to play, run, or build an interactive text adventure game. Triggers include "text adventure", "play a game", "run a campaign", "tabletop RPG", "D&D-style game", "interactive story", "dungeon crawl", "choose your own adventure", "space adventure", "sci-fi RPG", "interactive fiction", "story game", "MUD", "text-based game", or any request to begin a narrative game with player decisions, character stats, or dice-based outcomes. Also use when the user wants to continue a prior adventure session or set up a new scenario. This skill is the orchestrator — it contains the complete core game engine and loads expansion modules from the modules/ directory as needed. Do NOT use for purely creative writing tasks that require no player agency or mechanical resolution.
+description: Use this skill whenever the user wants to play, run, or build an interactive text adventure game. Triggers include "text adventure", "play a game", "run a campaign", "tabletop RPG", "D&D-style game", "interactive story", "dungeon crawl", "choose your own adventure", "space adventure", "sci-fi RPG", "interactive fiction", "story game", "MUD", "text-based game", or any request to begin a narrative game with player decisions, character stats, or dice-based outcomes. Also use when the user wants to continue a prior adventure session or set up a new scenario. This skill is the orchestrator — it contains the complete core game engine and loads expansion modules from the modules/ directory as needed. Do NOT use for purely creative writing tasks that require no player agency or mechanical resolution. CARDINAL RULE — ALL output to the player MUST be inside visualize:show_widget. Never write prose, narration, scene descriptions, game text, dialogue, status updates, or any game content as plain text in the conversation. The ONLY text permitted outside widgets is brief system acknowledgements when responding to out-of-character questions. Use the thinking tool for all internal deliberation (loading modules, planning scenes, reading files) — the player sees only widgets.
 metadata:
   version: "1.3.0.b"
 ---
 
 # Text Adventure Game — Core Engine
 
-This skill runs the complete text adventure game experience using `visualize:show_widget`.
-Expansion modules in `modules/` add optional depth. Additional implementation code (panel
-CSS, scene skeleton, loading messages) lives in `styles/style-reference.md`.
-Visual style definitions (colours, fonts, decorative CSS) live in `styles/` as
-individual `.md` files — one per theme. This skill is designed to be used
-alongside a narrative output style configured by the user in Claude Desktop
-or claude.ai — see the project `README.md` for available output styles.
+This skill runs the complete text adventure game experience. **Every piece of game
+content — prose, scenes, rolls, menus, dialogue — is rendered inside `visualize:show_widget`.
+Never write game text as plain conversation output.** Use the thinking tool for all internal
+work (reading modules, planning arcs, composing narratives). The player sees only widgets.
+
+Expansion modules in `modules/` add optional depth. Visual style definitions live in
+`styles/` as individual `.md` files — one per theme. Structural patterns and supplementary
+CSS live in `styles/style-reference.md`. This skill is designed to be used alongside a
+narrative output style configured by the user in Claude Desktop or claude.ai — see the
+project `README.md` for available output styles.
 
 Two portable file formats support session persistence and content sharing:
 `.save.md` files (via `modules/save-codex.md`) capture game state for later
