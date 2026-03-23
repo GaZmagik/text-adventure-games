@@ -1,7 +1,7 @@
 import { join } from 'path';
 import type { CommandResult, GmState } from '../types';
 import { ok, fail, styleNotSet } from '../lib/errors';
-import { loadState, stateExists } from '../lib/state-store';
+import { tryLoadState } from '../lib/state-store';
 import { extractAllCss } from '../render/css-extractor';
 
 // Template imports
@@ -131,19 +131,17 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
 
   if (isPreGame) {
     // Pre-game widgets use --data, but always try to load state for visualStyle fallback
-    if (await stateExists()) {
-      state = await loadState();
-    }
+    state = await tryLoadState();
   } else {
     // Game widgets require state
-    if (!(await stateExists())) {
+    state = await tryLoadState();
+    if (!state) {
       return fail(
         'No game state found. In-game widgets require an active state.',
         'tag state reset',
         'render',
       );
     }
-    state = await loadState();
   }
 
   // Resolve style name: --style flag > state.visualStyle > error

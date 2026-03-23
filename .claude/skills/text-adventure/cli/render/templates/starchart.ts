@@ -48,7 +48,7 @@ export function renderStarchart(state: GmState | null, css: string, _options?: R
 
   <div class="section-label">Plotted Course</div>
   ${courseSteps
-    ? `<ol class="course-list">${courseSteps}</ol>`
+    ? `<ol class="course-list" role="list">${courseSteps}</ol>`
     : '<p class="no-course">No course plotted</p>'}
 </div>`;
 }

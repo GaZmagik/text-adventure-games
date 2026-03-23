@@ -1,6 +1,6 @@
 import type { CommandResult, StatName, ComputationResult } from '../types';
 import { ok, fail, noState, npcNotFound } from '../lib/errors';
-import { loadState, saveState, stateExists } from '../lib/state-store';
+import { tryLoadState, saveState } from '../lib/state-store';
 import { rollD20 } from '../lib/dice';
 import { getOpposingAttribute } from '../data/contested-pairings';
 import { STAT_NAMES } from '../lib/constants';
@@ -57,9 +57,8 @@ async function contest(args: string[]): Promise<CommandResult> {
   }
 
   const npcId = args[1];
-  if (!(await stateExists())) return noState();
-
-  const state = await loadState();
+  const state = await tryLoadState();
+  if (!state) return noState();
   const npc = state.rosterMutations.find(n => n.id === npcId);
   if (!npc) return npcNotFound(npcId);
 
@@ -127,9 +126,9 @@ async function hazard(args: string[]): Promise<CommandResult> {
     return fail(`Invalid DC value: ${dcStr}`, 'tag compute hazard CON --dc 14', 'compute hazard');
   }
 
-  if (!(await stateExists())) return noState();
+  const state = await tryLoadState();
+  if (!state) return noState();
 
-  const state = await loadState();
   const modifier = state.character?.modifiers[stat] ?? 0;
   const roll = rollD20();
   const total = roll + modifier;
@@ -164,8 +163,8 @@ async function encounter(args: string[]): Promise<CommandResult> {
     context: { escalation, encounter: enc },
   };
 
-  if (await stateExists()) {
-    const state = await loadState();
+  const state = await tryLoadState();
+  if (state) {
     state._lastComputation = computation;
     await saveState(state);
   }

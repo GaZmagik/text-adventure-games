@@ -3,7 +3,7 @@
 
 import type { CommandResult, GmState, BestiaryTier, Pronouns, StateHistoryEntry } from '../types';
 import { ok, fail, noState } from '../lib/errors';
-import { stateExists, loadState, saveState, createDefaultState } from '../lib/state-store';
+import { tryLoadState, saveState, createDefaultState } from '../lib/state-store';
 import { generateNpcFromTier } from '../data/bestiary-tiers';
 import { validateState } from '../lib/validator';
 import { VALID_TIERS, VALID_PRONOUNS } from '../lib/constants';
@@ -127,9 +127,9 @@ function suggestKeys(state: GmState, attempted: string): string {
 // ── Subcommand handlers ──────────────────────────────────────────
 
 async function handleGet(args: string[]): Promise<CommandResult> {
-  if (!(await stateExists())) return noState();
+  const state = await tryLoadState();
+  if (!state) return noState();
 
-  const state = await loadState();
   const path = args[0] ?? '';
   const result = getByPath(state, path);
 
@@ -145,9 +145,8 @@ async function handleGet(args: string[]): Promise<CommandResult> {
 }
 
 async function handleSet(args: string[]): Promise<CommandResult> {
-  if (!(await stateExists())) return noState();
-
-  const state = await loadState();
+  const state = await tryLoadState();
+  if (!state) return noState();
   const path = args[0];
 
   if (!path) {
@@ -189,8 +188,6 @@ async function handleSet(args: string[]): Promise<CommandResult> {
 }
 
 async function handleCreateNpc(args: string[]): Promise<CommandResult> {
-  if (!(await stateExists())) return noState();
-
   const npcId = args[0];
   if (!npcId) {
     return fail('No NPC id provided.', 'Usage: tag state create-npc <id> --name <n> --tier <tier> --pronouns <p> --role <r>', 'state create-npc');
@@ -221,7 +218,8 @@ async function handleCreateNpc(args: string[]): Promise<CommandResult> {
 
   const role = flags.role ?? 'unspecified';
 
-  const state = await loadState();
+  const state = await tryLoadState();
+  if (!state) return noState();
 
   // Check for duplicate id
   if (state.rosterMutations.some(n => n.id === npcId)) {
@@ -244,9 +242,8 @@ async function handleCreateNpc(args: string[]): Promise<CommandResult> {
 }
 
 async function handleValidate(): Promise<CommandResult> {
-  if (!(await stateExists())) return noState();
-
-  const state = await loadState();
+  const state = await tryLoadState();
+  if (!state) return noState();
   const result = validateState(state);
 
   return ok(result, 'state validate');
@@ -259,9 +256,8 @@ async function handleReset(): Promise<CommandResult> {
 }
 
 async function handleHistory(args: string[]): Promise<CommandResult> {
-  if (!(await stateExists())) return noState();
-
-  const state = await loadState();
+  const state = await tryLoadState();
+  if (!state) return noState();
   const flags = parseFlags(args);
   const limit = flags.limit ? Number(flags.limit) : 10;
 

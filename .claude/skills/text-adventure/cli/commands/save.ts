@@ -1,6 +1,7 @@
 import type { CommandResult } from '../types';
 import { ok, fail, noState } from '../lib/errors';
 import { loadState, saveState, stateExists, createDefaultState } from '../lib/state-store';
+import { validateState } from '../lib/validator';
 import { attachChecksum, validateAndDecode } from '../lib/fnv32';
 
 async function resolveSaveString(input: string): Promise<string> {
@@ -14,6 +15,7 @@ async function resolveSaveString(input: string): Promise<string> {
       if (lineMatch) return lineMatch[1];
       return content.trim();
     } catch {
+      // File path detected but unreadable — fall through to treat as raw save string
       return input;
     }
   }
@@ -124,6 +126,9 @@ async function load(args: string[]): Promise<CommandResult> {
   if (payload.carryForward !== undefined) state.carryForward = payload.carryForward as typeof state.carryForward;
   if (payload.arcHistory) state.arcHistory = payload.arcHistory as typeof state.arcHistory;
 
+  // Validate reconstructed state — warn but still save (user may want partially valid data)
+  const validation = validateState(state);
+
   await saveState(state);
 
   return ok({
@@ -131,6 +136,7 @@ async function load(args: string[]): Promise<CommandResult> {
     mode: decoded.mode,
     scene: state.scene,
     characterName: state.character?.name ?? null,
+    ...(validation.valid ? {} : { warnings: validation.errors }),
   }, 'save load');
 }
 

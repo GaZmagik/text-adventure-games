@@ -30,9 +30,6 @@ export async function saveState(state: GmState): Promise<void> {
     mkdirSync(dir, { recursive: true });
   }
   // Cap unbounded arrays to prevent state bloat
-  if (state._stateHistory && state._stateHistory.length > 100) {
-    state._stateHistory = state._stateHistory.slice(-100);
-  }
   if (state.rollHistory && state.rollHistory.length > 50) {
     state.rollHistory = state.rollHistory.slice(-50);
   }

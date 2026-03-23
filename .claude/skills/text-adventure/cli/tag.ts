@@ -50,40 +50,45 @@ async function main(): Promise<void> {
     return;
   }
 
+  let result: CommandResult;
+
   switch (command) {
     case 'state': {
       const { handleState } = await import('./commands/state');
-      output(await handleState(args.slice(1)));
+      result = await handleState(args.slice(1));
       break;
     }
     case 'compute': {
       const { handleCompute } = await import('./commands/compute');
-      output(await handleCompute(args.slice(1)));
+      result = await handleCompute(args.slice(1));
       break;
     }
     case 'render': {
       const { handleRender } = await import('./commands/render');
-      output(await handleRender(args.slice(1)));
+      result = await handleRender(args.slice(1));
       break;
     }
     case 'save': {
       const { handleSave } = await import('./commands/save');
-      output(await handleSave(args.slice(1)));
+      result = await handleSave(args.slice(1));
       break;
     }
     case 'batch': {
       const { handleBatch } = await import('./commands/batch');
-      output(await handleBatch(args.slice(1)));
+      result = await handleBatch(args.slice(1));
       break;
     }
     case 'rules': {
       const { handleRules } = await import('./commands/rules');
-      output(await handleRules(args.slice(1)));
+      result = await handleRules(args.slice(1));
       break;
     }
     default:
-      output(unknownCommand(command));
+      result = unknownCommand(command);
   }
+
+  output(result);
+  if (!result.ok) process.exit(1);
 }
 
 main().catch((err: Error) => {

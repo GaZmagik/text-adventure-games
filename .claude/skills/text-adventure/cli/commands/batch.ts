@@ -114,6 +114,13 @@ export async function handleBatch(args: string[]): Promise<CommandResult> {
 
     const resolvedArgs = resolveReferences(parsed.args, labelled);
 
+    // Warn on unresolved $ref labels
+    for (const arg of resolvedArgs) {
+      if (arg.startsWith('$') && arg.length > 1 && !arg.startsWith('$$')) {
+        errors.push({ line: i, raw: parsed.raw, error: `Unresolved reference: ${arg}` });
+      }
+    }
+
     if (dryRun) {
       results.push({
         ok: true,

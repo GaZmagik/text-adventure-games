@@ -76,6 +76,7 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
   color: var(--color-text-primary); box-sizing: border-box;
 }
 .name-input:focus { border-color: var(--ta-color-accent); outline: 2px solid var(--ta-color-focus); outline-offset: 2px; }
+.name-error { color: var(--ta-color-danger); font-size: 11px; margin-top: 4px; display: block; }
 .prof-grid { display: flex; flex-wrap: wrap; gap: 6px; }
 .prof-option {
   padding: 8px 12px; font-size: 11px; border: 0.5px solid var(--color-border-tertiary);
@@ -104,6 +105,7 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
   <div class="creation-section">
     <div class="creation-label">Name</div>
     <input class="name-input" id="char-name-input" type="text" placeholder="Enter character name..." value="${escapeAttr(defaultName)}">
+    <span id="name-error" class="name-error" role="alert" style="display:none"></span>
   </div>
 
   ${archetypes.length > 0 ? `
@@ -158,10 +160,20 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
     });
   });
 
+  // Clear name error on input
+  document.getElementById('char-name-input').addEventListener('input', function() {
+    document.getElementById('name-error').textContent = '';
+    document.getElementById('name-error').style.display = 'none';
+  });
+
   // Confirm
   document.getElementById('creation-confirm').addEventListener('click', function() {
     var name = document.getElementById('char-name-input').value.trim();
-    if (!name) { alert('Please enter a character name.'); return; }
+    if (!name) {
+      document.getElementById('name-error').textContent = 'Please enter a character name.';
+      document.getElementById('name-error').style.display = 'block';
+      return;
+    }
 
     var payload = {
       name: name,
