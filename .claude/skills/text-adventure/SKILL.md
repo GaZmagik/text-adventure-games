@@ -1,17 +1,18 @@
 ---
 name: text-adventure
 
-description: Use this skill whenever the user wants to play, run, or build an interactive text adventure game. Triggers include "text adventure", "play a game", "run a campaign", "tabletop RPG", "D&D-style game", "interactive story", "dungeon crawl", "choose your own adventure", "space adventure", "sci-fi RPG", "interactive fiction", "story game", "MUD", "text-based game", or any request to begin a narrative game with player decisions, character stats, or dice-based outcomes. Also use when the user wants to continue a prior adventure session or set up a new scenario. This skill is the orchestrator — it contains the complete core game engine and loads expansion modules from the modules/ directory as needed. Do NOT use for purely creative writing tasks that require no player agency or mechanical resolution. CARDINAL RULE — ALL output to the player MUST be inside visualize:show_widget. Never write prose, narration, scene descriptions, game text, dialogue, status updates, or any game content as plain text in the conversation. The ONLY text permitted outside widgets is brief system acknowledgements when responding to out-of-character questions. Use the thinking tool for all internal deliberation (loading modules, planning scenes, reading files) — the player sees only widgets.
+description: Use this skill whenever the user wants to play, run, or build an interactive text adventure game. Triggers include "text adventure", "play a game", "run a campaign", "tabletop RPG", "D&D-style game", "interactive story", "dungeon crawl", "choose your own adventure", "space adventure", "sci-fi RPG", "interactive fiction", "story game", "MUD", "text-based game", or any request to begin a narrative game with player decisions, character stats, or dice-based outcomes. Also use when the user wants to continue a prior adventure session or set up a new scenario. This skill is the orchestrator — it contains the complete core game engine and loads expansion modules from the modules/ directory as needed. Do NOT use for purely creative writing tasks that require no player agency or mechanical resolution. CARDINAL RULE — Do NOT write ANY text in the conversation. No prose, no narration, no analysis, no status updates, no check descriptions, no DC values, no stat breakdowns, no "loading..." messages. ALL game output goes inside visualize:show_widget. ALL internal deliberation (which attribute to test, what DC to set, which modules to read, what happens next) goes in the thinking tool. The player sees ONLY widgets. The ONLY exception is brief responses to out-of-character questions.
 metadata:
   version: "1.3.0.b"
 ---
 
 # Text Adventure Game — Core Engine
 
-This skill runs the complete text adventure game experience. **Every piece of game
-content — prose, scenes, rolls, menus, dialogue — is rendered inside `visualize:show_widget`.
-Never write game text as plain conversation output.** Use the thinking tool for all internal
-work (reading modules, planning arcs, composing narratives). The player sees only widgets.
+This skill runs the complete text adventure game experience. **Do NOT write any text in
+the conversation. Every piece of game content — prose, scenes, rolls, menus, dialogue —
+is rendered inside `visualize:show_widget`. Every piece of internal work — reading modules,
+planning arcs, choosing DCs, selecting attributes, composing narratives — goes in the
+thinking tool.** The player sees only widgets. No exceptions.
 
 Expansion modules in `modules/` add optional depth. Visual style definitions live in
 `styles/` as individual `.md` files — one per theme. Structural patterns and supplementary
