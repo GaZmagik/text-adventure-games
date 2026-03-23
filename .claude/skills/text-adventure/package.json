@@ -1,0 +1,12 @@
+{
+  "name": "tag-cli",
+  "version": "1.3.0",
+  "description": "Text Adventure Games — deterministic game engine CLI",
+  "type": "module",
+  "bin": {
+    "tag": "./cli/tag.ts"
+  },
+  "scripts": {
+    "test": "bun test"
+  }
+}

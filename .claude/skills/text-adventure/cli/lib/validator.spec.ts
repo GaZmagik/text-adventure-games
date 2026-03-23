@@ -1,0 +1,220 @@
+import { describe, test, expect } from 'bun:test';
+import { validateState } from './validator';
+import { createDefaultState } from './state-store';
+
+describe('validateState', () => {
+  test('valid default state passes validation', () => {
+    const state = createDefaultState();
+    const result = validateState(state);
+    expect(result.valid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test('null input fails validation', () => {
+    const result = validateState(null);
+    expect(result.valid).toBe(false);
+    expect(result.errors.length).toBeGreaterThan(0);
+  });
+
+  test('missing _version fails', () => {
+    const state = createDefaultState() as Record<string, unknown>;
+    delete state._version;
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('_version'))).toBe(true);
+  });
+
+  test('non-numeric _version fails', () => {
+    const state = createDefaultState() as Record<string, unknown>;
+    state._version = 'abc';
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('_version'))).toBe(true);
+  });
+
+  test('valid state with character passes', () => {
+    const state = createDefaultState();
+    state.character = {
+      name: 'Test Hero',
+      class: 'Soldier',
+      hp: 12,
+      maxHp: 12,
+      ac: 14,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
+      stats: { STR: 16, DEX: 10, CON: 14, INT: 10, WIS: 10, CHA: 10 },
+      modifiers: { STR: 3, DEX: 0, CON: 2, INT: 0, WIS: 0, CHA: 0 },
+      proficiencyBonus: 2,
+      proficiencies: ['Athletics', 'Intimidation'],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'Combat knife', armour: 'Light armour' },
+    };
+    const result = validateState(state);
+    expect(result.valid).toBe(true);
+  });
+
+  test('character missing name fails', () => {
+    const state = createDefaultState();
+    state.character = {
+      name: '',
+      class: 'Soldier',
+      hp: 12,
+      maxHp: 12,
+      ac: 14,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
+      stats: { STR: 16, DEX: 10, CON: 14, INT: 10, WIS: 10, CHA: 10 },
+      modifiers: { STR: 3, DEX: 0, CON: 2, INT: 0, WIS: 0, CHA: 0 },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'knife', armour: 'none' },
+    };
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('character.name'))).toBe(true);
+  });
+
+  test('character missing stats attribute fails', () => {
+    const state = createDefaultState();
+    state.character = {
+      name: 'Hero',
+      class: 'Soldier',
+      hp: 12,
+      maxHp: 12,
+      ac: 14,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
+      stats: { STR: 16, DEX: 10, CON: 14, INT: 10, WIS: 10 } as any,
+      modifiers: { STR: 3, DEX: 0, CON: 2, INT: 0, WIS: 0, CHA: 0 },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'knife', armour: 'none' },
+    };
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('CHA'))).toBe(true);
+  });
+
+  test('invalid faction range fails', () => {
+    const state = createDefaultState();
+    state.factions = { rebels: 150 };
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('faction'))).toBe(true);
+  });
+
+  test('valid faction range passes', () => {
+    const state = createDefaultState();
+    state.factions = { rebels: 50, empire: -30 };
+    const result = validateState(state);
+    expect(result.valid).toBe(true);
+  });
+
+  test('NPC without pronouns fails', () => {
+    const state = createDefaultState();
+    state.rosterMutations = [
+      {
+        id: 'npc_01',
+        name: 'Guard',
+        pronouns: undefined as any,
+        role: 'guard',
+        tier: 'minion',
+        level: 1,
+        stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+        modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+        hp: 6,
+        maxHp: 6,
+        ac: 8,
+        soak: 1,
+        damageDice: '1d6',
+        status: 'active',
+        alive: true,
+        trust: 0,
+        disposition: 'neutral',
+        dispositionSeed: 0.5,
+      },
+    ];
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('pronouns'))).toBe(true);
+  });
+
+  test('NPC without tier fails', () => {
+    const state = createDefaultState();
+    state.rosterMutations = [
+      {
+        id: 'npc_01',
+        name: 'Guard',
+        pronouns: 'they/them',
+        role: 'guard',
+        tier: undefined as any,
+        level: 1,
+        stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+        modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+        hp: 6,
+        maxHp: 6,
+        ac: 8,
+        soak: 1,
+        damageDice: '1d6',
+        status: 'active',
+        alive: true,
+        trust: 0,
+        disposition: 'neutral',
+        dispositionSeed: 0.5,
+      },
+    ];
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('tier'))).toBe(true);
+  });
+
+  test('time missing required fields fails', () => {
+    const state = createDefaultState() as any;
+    state.time = { period: 'morning' };
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('time'))).toBe(true);
+  });
+
+  test('valid NPC with all fields passes', () => {
+    const state = createDefaultState();
+    state.rosterMutations = [
+      {
+        id: 'npc_01',
+        name: 'Guard',
+        pronouns: 'he/him',
+        role: 'guard',
+        tier: 'minion',
+        level: 1,
+        stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+        modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+        hp: 6,
+        maxHp: 6,
+        ac: 8,
+        soak: 1,
+        damageDice: '1d6',
+        status: 'active',
+        alive: true,
+        trust: 0,
+        disposition: 'neutral',
+        dispositionSeed: 0.5,
+      },
+    ];
+    const result = validateState(state);
+    expect(result.valid).toBe(true);
+  });
+});

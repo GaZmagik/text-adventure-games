@@ -1,0 +1,11 @@
+# Pure type definitions — no runtime behaviour to test
+cli/types.ts
+
+# CLI entry point — tested via integration
+cli/tag.ts
+
+# Help text — string constants, no logic
+cli/help.ts
+
+# Render templates — tested via integration/e2e, not colocated specs
+cli/render/templates/*.ts

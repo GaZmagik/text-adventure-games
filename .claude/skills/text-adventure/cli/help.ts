@@ -1,0 +1,103 @@
+import type { CommandResult } from './types';
+import { ok } from './lib/errors';
+
+interface SubcommandHelp {
+  name: string;
+  usage: string;
+  description: string;
+  example: string;
+}
+
+interface CommandHelp {
+  command: string;
+  description: string;
+  subcommands: SubcommandHelp[];
+}
+
+const COMMANDS: Record<string, CommandHelp> = {
+  state: {
+    command: 'tag state',
+    description: 'Game state CRUD and NPC creation. Source of truth for all game data.',
+    subcommands: [
+      { name: 'get', usage: 'tag state get <dot.path>', description: 'Read a value from game state by dot-notation path', example: 'tag state get character.stats.STR' },
+      { name: 'set', usage: 'tag state set <dot.path> <value>', description: 'Set, increment (+=), or decrement (-=) a state value', example: 'tag state set character.hp -= 5' },
+      { name: 'create-npc', usage: 'tag state create-npc <id> --name <n> --tier <tier> --pronouns <p> --role <r>', description: 'Generate and persist a complete NPC stat block from bestiary tier rules', example: 'tag state create-npc guard_01 --name "Guard Captain" --tier rival --pronouns he/him --role guard' },
+      { name: 'validate', usage: 'tag state validate', description: 'Check game state against schema and report issues', example: 'tag state validate' },
+      { name: 'reset', usage: 'tag state reset', description: 'Initialise a fresh empty game state', example: 'tag state reset' },
+      { name: 'history', usage: 'tag state history [--limit <n>]', description: 'Show recent state mutations', example: 'tag state history --limit 5' },
+    ],
+  },
+  compute: {
+    command: 'tag compute',
+    description: 'Probabilistic operations reading from state. Writes results to _lastComputation only.',
+    subcommands: [
+      { name: 'contest', usage: 'tag compute contest <ATTR> <npc_id>', description: 'Hidden contested roll — reads NPC modifier from state, rolls d20, computes margin', example: 'tag compute contest CHA merchant_01' },
+      { name: 'hazard', usage: 'tag compute hazard <type> --dc <N>', description: 'Environmental hazard save roll', example: 'tag compute hazard radiation --dc 14' },
+      { name: 'encounter', usage: 'tag compute encounter --escalation <N>', description: 'Random encounter roll against encounter table', example: 'tag compute encounter --escalation 2' },
+    ],
+  },
+  render: {
+    command: 'tag render',
+    description: 'Deterministic HTML widget generation with real CSS from style files.',
+    subcommands: [
+      { name: '<widget>', usage: 'tag render <widget> [--style <name>] [--raw]', description: 'Generate complete HTML for a widget type. Reads state and active style.', example: 'tag render scene --style terminal' },
+    ],
+  },
+  save: {
+    command: 'tag save',
+    description: 'Persistence operations — generate, load, validate, and migrate save files.',
+    subcommands: [
+      { name: 'generate', usage: 'tag save generate', description: 'Generate a save payload from current game state', example: 'tag save generate' },
+      { name: 'load', usage: 'tag save load <string|file>', description: 'Validate and load a save, restoring game state', example: 'tag save load game.save.md' },
+      { name: 'validate', usage: 'tag save validate <string|file>', description: 'Check save integrity without loading', example: 'tag save validate game.save.md' },
+      { name: 'migrate', usage: 'tag save migrate <string|file>', description: 'Forward-migrate an older save to current format', example: 'tag save migrate old-game.save.md' },
+    ],
+  },
+  batch: {
+    command: 'tag batch',
+    description: 'Execute multiple commands in one call. Newline-separated via stdin or semicolon-separated via --commands.',
+    subcommands: [
+      { name: 'stdin', usage: 'tag batch <<\'EOF\'\n...\nEOF', description: 'Pipe commands via heredoc (primary method)', example: 'tag batch <<\'EOF\'\nstate get character.hp\ncompute contest CHA merchant_01 as roll\nEOF' },
+      { name: '--commands', usage: 'tag batch --commands "cmd1; cmd2"', description: 'Semicolon-separated commands (simple sequences)', example: 'tag batch --commands "state get character.hp; compute contest CHA merchant_01"' },
+      { name: '--dry-run', usage: 'tag batch --dry-run <<\'EOF\'\n...\nEOF', description: 'Validate commands without executing', example: 'tag batch --dry-run <<\'EOF\'\nstate get character.hp\nEOF' },
+    ],
+  },
+};
+
+const WIDGET_TYPES = [
+  'scene', 'ticker', 'character', 'dice', 'ship', 'crew', 'codex',
+  'map', 'starchart', 'footer', 'save-div', 'levelup', 'recap',
+  'combat-turn', 'dialogue', 'settings', 'scenario-select', 'character-creation',
+];
+
+export function getTopLevelHelp(): CommandResult {
+  return ok({
+    commands: Object.values(COMMANDS).map(c => ({
+      command: c.command,
+      description: c.description,
+    })),
+    widgetTypes: WIDGET_TYPES,
+    usage: 'tag <command> [subcommand] [options]',
+    examples: [
+      'tag state reset',
+      'tag compute contest CHA merchant_01',
+      'tag render scene --style terminal',
+      'tag save generate',
+    ],
+  }, 'help');
+}
+
+export function getCommandHelp(command: string): CommandResult {
+  const help = COMMANDS[command];
+  if (!help) {
+    return {
+      ok: false,
+      command: 'help',
+      error: {
+        message: `Unknown command: ${command}`,
+        corrective: `Valid commands: ${Object.keys(COMMANDS).join(', ')}`,
+      },
+    };
+  }
+  return ok(help, 'help');
+}

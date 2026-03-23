@@ -1,0 +1,179 @@
+// tag CLI — State Validator
+// Validates gmState structure against the contract in types.ts
+
+import type { StatName } from '../types';
+
+const STAT_NAMES: StatName[] = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
+const VALID_TIERS = ['minion', 'rival', 'nemesis'];
+const VALID_PRONOUNS = ['she/her', 'he/him', 'they/them'];
+
+/** Result of a state validation check. */
+export interface ValidationResult {
+  valid: boolean;
+  errors: string[];
+}
+
+/**
+ * Validate a game state object against the gmState contract.
+ *
+ * Checks:
+ * - _version is a number
+ * - character is null or has required fields (name, stats with all 6 attrs, hp, maxHp, level)
+ * - rosterMutations is an array where each entry has: id, name, pronouns, tier, stats
+ * - factions values are all numbers between -100 and +100
+ * - time has required fields (period, date, elapsed, hour)
+ */
+export function validateState(state: unknown): ValidationResult {
+  const errors: string[] = [];
+
+  if (state === null || state === undefined || typeof state !== 'object') {
+    errors.push('State must be a non-null object.');
+    return { valid: false, errors };
+  }
+
+  const s = state as Record<string, unknown>;
+
+  // _version
+  if (typeof s._version !== 'number') {
+    errors.push('_version must be a number.');
+  }
+
+  // character
+  if (s.character !== null && s.character !== undefined) {
+    validateCharacter(s.character, errors);
+  }
+
+  // rosterMutations
+  if (s.rosterMutations !== undefined) {
+    if (!Array.isArray(s.rosterMutations)) {
+      errors.push('rosterMutations must be an array.');
+    } else {
+      for (let i = 0; i < s.rosterMutations.length; i++) {
+        validateNpc(s.rosterMutations[i], i, errors);
+      }
+    }
+  }
+
+  // factions
+  if (s.factions !== undefined && s.factions !== null) {
+    if (typeof s.factions !== 'object') {
+      errors.push('factions must be an object.');
+    } else {
+      const factions = s.factions as Record<string, unknown>;
+      for (const [key, value] of Object.entries(factions)) {
+        if (typeof value !== 'number') {
+          errors.push(`faction "${key}" value must be a number, got ${typeof value}.`);
+        } else if (value < -100 || value > 100) {
+          errors.push(`faction "${key}" value ${value} is outside the valid range (-100 to +100).`);
+        }
+      }
+    }
+  }
+
+  // time
+  if (s.time !== undefined && s.time !== null) {
+    validateTime(s.time, errors);
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
+function validateCharacter(char: unknown, errors: string[]): void {
+  if (typeof char !== 'object' || char === null) {
+    errors.push('character must be an object.');
+    return;
+  }
+
+  const c = char as Record<string, unknown>;
+
+  if (typeof c.name !== 'string' || c.name.length === 0) {
+    errors.push('character.name must be a non-empty string.');
+  }
+
+  if (typeof c.hp !== 'number') {
+    errors.push('character.hp must be a number.');
+  }
+
+  if (typeof c.maxHp !== 'number') {
+    errors.push('character.maxHp must be a number.');
+  }
+
+  if (typeof c.level !== 'number') {
+    errors.push('character.level must be a number.');
+  }
+
+  // stats
+  if (typeof c.stats !== 'object' || c.stats === null) {
+    errors.push('character.stats must be an object.');
+  } else {
+    const stats = c.stats as Record<string, unknown>;
+    for (const stat of STAT_NAMES) {
+      if (typeof stats[stat] !== 'number') {
+        errors.push(`character.stats.${stat} must be a number.`);
+      }
+    }
+  }
+}
+
+function validateNpc(npc: unknown, index: number, errors: string[]): void {
+  if (typeof npc !== 'object' || npc === null) {
+    errors.push(`rosterMutations[${index}] must be an object.`);
+    return;
+  }
+
+  const n = npc as Record<string, unknown>;
+  const prefix = `rosterMutations[${index}]`;
+
+  if (typeof n.id !== 'string' || n.id.length === 0) {
+    errors.push(`${prefix}.id must be a non-empty string.`);
+  }
+
+  if (typeof n.name !== 'string' || n.name.length === 0) {
+    errors.push(`${prefix}.name must be a non-empty string.`);
+  }
+
+  if (typeof n.pronouns !== 'string' || !VALID_PRONOUNS.includes(n.pronouns)) {
+    errors.push(`${prefix}.pronouns must be one of: ${VALID_PRONOUNS.join(', ')}.`);
+  }
+
+  if (typeof n.tier !== 'string' || !VALID_TIERS.includes(n.tier)) {
+    errors.push(`${prefix}.tier must be one of: ${VALID_TIERS.join(', ')}.`);
+  }
+
+  // stats
+  if (typeof n.stats !== 'object' || n.stats === null) {
+    errors.push(`${prefix}.stats must be an object.`);
+  } else {
+    const stats = n.stats as Record<string, unknown>;
+    for (const stat of STAT_NAMES) {
+      if (typeof stats[stat] !== 'number') {
+        errors.push(`${prefix}.stats.${stat} must be a number.`);
+      }
+    }
+  }
+}
+
+function validateTime(time: unknown, errors: string[]): void {
+  if (typeof time !== 'object' || time === null) {
+    errors.push('time must be an object.');
+    return;
+  }
+
+  const t = time as Record<string, unknown>;
+
+  if (typeof t.period !== 'string') {
+    errors.push('time.period must be a string.');
+  }
+
+  if (typeof t.date !== 'string') {
+    errors.push('time.date must be a string.');
+  }
+
+  if (typeof t.elapsed !== 'number') {
+    errors.push('time.elapsed must be a number.');
+  }
+
+  if (typeof t.hour !== 'number') {
+    errors.push('time.hour must be a number.');
+  }
+}
