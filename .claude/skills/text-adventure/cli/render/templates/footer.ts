@@ -20,6 +20,7 @@ const EXPORT_PROMPT = 'Export my world as a downloadable .lore.md file following
 export function renderFooter(state: GmState | null, css: string, _options?: Record<string, unknown>): string {
   const modules = state?.modulesActive ?? [];
   const hasExport = modules.includes('adventure-exporting');
+  const hasAudio = modules.includes('audio');
 
   // Character button is always present
   const leftButtons: string[] = [
@@ -35,14 +36,21 @@ export function renderFooter(state: GmState | null, css: string, _options?: Reco
     }
   }
 
+  // Audio button — stopped state, player must click to play
+  if (hasAudio) {
+    leftButtons.push(
+      '<button class="footer-btn" id="audio-btn" data-sound="ship-engine" data-duration="25">\u266b Play</button>',
+    );
+  }
+
   // Right-side action buttons
   const rightButtons: string[] = [
-    `<button class="footer-btn" id="save-btn" data-prompt="${escapeAttr(SAVE_PROMPT)}">Save ↗</button>`,
+    `<button class="footer-btn" id="save-btn" data-prompt="${escapeAttr(SAVE_PROMPT)}">Save \u2197</button>`,
   ];
 
   if (hasExport) {
     rightButtons.push(
-      `<button class="footer-btn" id="export-btn" data-prompt="${escapeAttr(EXPORT_PROMPT)}">Export ↗</button>`,
+      `<button class="footer-btn" id="export-btn" data-prompt="${escapeAttr(EXPORT_PROMPT)}">Export \u2197</button>`,
     );
   }
 
