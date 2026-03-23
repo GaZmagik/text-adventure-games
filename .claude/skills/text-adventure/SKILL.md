@@ -57,6 +57,7 @@ If `tag` is not available after setup, prompt the player to run `bash setup.sh` 
 | `tag render` | Deterministic HTML widgets | `tag render scene --style terminal` |
 | `tag save` | Generate/load/validate saves | `tag save generate` |
 | `tag batch` | Multiple commands in one call | See worked example below |
+| `tag rules` | Quick-reference rule cheat sheet | `tag rules output` |
 
 ### Widget Render Inventory
 
@@ -92,6 +93,10 @@ Every widget in this skill has a corresponding `tag render` template. **Use thes
 - **State mutations** — `tag state set` (keep state in sync with the CLI)
 
 For narrative prose, NPC dialogue text, and creative decisions, use your own judgement.
+
+**If unsure about any rule, run `tag rules` via the Bash tool** for a quick reference
+with file/line pointers. Filter by topic: `tag rules output`, `tag rules agency`,
+`tag rules cli`, `tag rules prose`, `tag rules technical`.
 
 ### Worked Example — Typical Scene Turn
 

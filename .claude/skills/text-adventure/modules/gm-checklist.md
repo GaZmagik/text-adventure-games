@@ -45,6 +45,9 @@ module, scenario, or player request.
 8. **Read the active visual style file before rendering any widget.** Apply its CSS
    custom properties.
 
+**If unsure about any rule, run `tag rules` via the Bash tool.** It outputs all 20 rules
+with file references. Filter by topic: `tag rules output`, `tag rules agency`, `tag rules cli`.
+
 ---
 
 ## New Game Checklist

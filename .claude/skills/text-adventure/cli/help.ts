@@ -62,6 +62,15 @@ const COMMANDS: Record<string, CommandHelp> = {
       { name: '--dry-run', usage: 'tag batch --dry-run <<\'EOF\'\n...\nEOF', description: 'Validate commands without executing', example: 'tag batch --dry-run <<\'EOF\'\nstate get character.hp\nEOF' },
     ],
   },
+  rules: {
+    command: 'tag rules',
+    description: 'Quick-reference cheat sheet of game rules with file/line references. Run when unsure about any rule.',
+    subcommands: [
+      { name: '(none)', usage: 'tag rules', description: 'Show all 20 rules across all categories', example: 'tag rules' },
+      { name: '<category>', usage: 'tag rules <category>', description: 'Filter by category: output, agency, cli, prose, technical', example: 'tag rules output' },
+      { name: '<keyword>', usage: 'tag rules <keyword>', description: 'Search rules by keyword', example: 'tag rules widget' },
+    ],
+  },
 };
 
 const WIDGET_TYPES = [
