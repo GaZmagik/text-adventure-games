@@ -70,19 +70,36 @@ NEW GAME CHECKLIST
 □ 11. Parse settings AND character data from the confirm prompt — the prompt contains
      both (rulebook, difficulty, pacing, style, atmosphere, audio, modules, AND
      name, class, stats, proficiencies, equipment). Apply ALL settings now.
-□ 12. Initialise gmState (see modules/save-codex.md § The Full gmState Contract for schema;
-     read each active module file for its state field definitions)
-□ 13. Initialise storyArchitect (see modules/story-architect.md § Seeding Threads)
-□ 14. Initialise worldHistory (see modules/world-history.md § Epoch Schema)
-□ 15. Create ALL NPCs for the opening scene BEFORE rendering:
-     Run `tag state create-npc <id> --name "<name>" --tier <tier> --pronouns <pronouns> --role <role>`
-     for EVERY NPC who will appear. Never introduce an NPC without creating them in state first.
-□ 16. Set the visual style in state: `tag state set visualStyle <style-name>`
+□ 12. Store character in state: `tag state set character '<json>'`
+□ 13. Set visual style: `tag state set visualStyle <style-name>`
+□ 14. Initialise storyArchitect (see modules/story-architect.md § Seeding Threads)
+□ 15. Initialise worldHistory (see modules/world-history.md § Epoch Schema)
+□ 16. ARC SETUP — Create ALL content for this arc BEFORE the first scene.
+     This is a batch operation. Do NOT create NPCs, quests, or factions mid-arc.
+     Plan the arc's full cast, key locations, faction dynamics, and quest structure,
+     then persist everything in one batch call:
+     ```
+     tag batch <<'EOF'
+     state set scene 1
+     state set currentRoom <starting_room>
+     state set time '{"period":"morning","date":"Day 1","elapsed":0,"hour":8,...}'
+     state create-npc <npc_1_id> --name "<name>" --tier <tier> --pronouns <p> --role <role>
+     state create-npc <npc_2_id> --name "<name>" --tier <tier> --pronouns <p> --role <role>
+     state create-npc <npc_3_id> --name "<name>" --tier <tier> --pronouns <p> --role <role>
+     state create-npc <npc_4_id> --name "<name>" --tier <tier> --pronouns <p> --role <role>
+     state set factions '{"faction_1":0,"faction_2":0}'
+     state set quests '[{"id":"main","title":"...","status":"active","objectives":[...]}]'
+     state set modulesActive '["core-systems","die-rolls","bestiary",...]'
+     EOF
+     ```
+     Every NPC who will appear in this arc MUST be created here — not when
+     they first enter a scene. This ensures stats, pronouns, and modifiers
+     are deterministic from the start and available for contested rolls.
 □ 17. Generate the opening scene: run `tag render scene --style <style-name>`
      Then compose the narrative prose into the scene HTML output.
      Include atmosphere effects if atmosphere=on (read modules/atmosphere.md).
      Include audio if audio=on (read modules/audio.md).
-□ 16. Verify: is ALL game content inside the widget? No prose outside?
+□ 18. Verify: is ALL game content inside the widget? No prose outside?
 ```
 
 ---
