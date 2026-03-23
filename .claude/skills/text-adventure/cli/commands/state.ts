@@ -83,6 +83,14 @@ function coerceValue(raw: string): unknown {
   if (raw === 'null') return null;
   const num = Number(raw);
   if (!Number.isNaN(num) && raw.trim().length > 0) return num;
+  // Attempt JSON parse for objects and arrays
+  if (raw.startsWith('{') || raw.startsWith('[')) {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      // Not valid JSON — fall through to string
+    }
+  }
   return raw;
 }
 

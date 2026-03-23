@@ -151,6 +151,41 @@ describe('state set', () => {
     const state = await loadState();
     expect(state.currentRoom).toBe('bridge');
   });
+
+  test('set JSON object values — parses rather than storing as string', async () => {
+    await handleState(['reset']);
+    const charJson = JSON.stringify({ name: 'Rhian', class: 'Medic', hp: 9, maxHp: 9 });
+    const result = await handleState(['set', 'character', charJson]);
+    expect(result.ok).toBe(true);
+
+    const state = await loadState();
+    expect(typeof state.character).toBe('object');
+    expect(state.character).not.toBeNull();
+    expect((state.character as Record<string, unknown>).name).toBe('Rhian');
+    expect((state.character as Record<string, unknown>).hp).toBe(9);
+  });
+
+  test('set JSON array values — parses rather than storing as string', async () => {
+    await handleState(['reset']);
+    const arrJson = JSON.stringify([{ id: 'quest_1', title: 'Find the signal' }]);
+    const result = await handleState(['set', 'quests', arrJson]);
+    expect(result.ok).toBe(true);
+
+    const state = await loadState();
+    expect(Array.isArray(state.quests)).toBe(true);
+    expect(state.quests.length).toBe(1);
+    expect((state.quests[0] as Record<string, unknown>).id).toBe('quest_1');
+  });
+
+  test('set plain string that looks numeric-ish stays string when not a number', async () => {
+    await handleState(['reset']);
+    const result = await handleState(['set', 'currentRoom', 'room_42']);
+    expect(result.ok).toBe(true);
+
+    const state = await loadState();
+    expect(state.currentRoom).toBe('room_42');
+    expect(typeof state.currentRoom).toBe('string');
+  });
 });
 
 // ── create-npc ────────────────────────────────────────────────────
