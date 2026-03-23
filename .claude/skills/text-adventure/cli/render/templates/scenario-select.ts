@@ -78,7 +78,11 @@ export function renderScenarioSelect(_state: GmState | null, css: string, option
   ${scenarios.length > 0 ? `
   <div class="scenario-grid">
     ${cards}
-  </div>` : '<div class="empty-scenarios">No scenarios available. Provide scenario data via --data flag.</div>'}
+  </div>` : `<div class="empty-scenarios">
+  <p>No scenarios provided. Use the --data flag:</p>
+  <pre style="text-align:left;font-size:11px;color:var(--color-text-secondary,#9AA0C0);margin-top:12px;white-space:pre-wrap;word-break:break-word;">tag render scenario-select --style station --data '${esc(JSON.stringify({scenarios:[{title:"Cold Freight",hook:"Your section of the generation ship has been sealed off.",genres:["survival","mystery"],difficulty:"normal"},{title:"The Grit Anvil",hook:"The drill hit something that is not rock.",genres:["horror","blue-collar"],difficulty:"normal"}]}, null, 2))}'</pre>
+  <p style="margin-top:8px;font-size:11px;">Fields: title (required), hook or description, genres or genre, difficulty, tags, modules</p>
+</div>`}
 </div>
 <script>
 document.querySelectorAll('.scenario-select-btn[data-prompt]').forEach(function(btn) {
