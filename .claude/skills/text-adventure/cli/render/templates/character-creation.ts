@@ -3,6 +3,7 @@
 // Confirm fires sendPrompt.
 
 import type { GmState } from '../../types';
+import { esc, escapeAttr } from '../../lib/html';
 
 interface Archetype {
   name: string;
@@ -34,17 +35,17 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
       : '';
 
     return `
-      <div class="archetype-card" data-index="${i}">
+      <button class="archetype-card" data-index="${i}">
         <div class="arch-name">${esc(arch.name)}</div>
         ${arch.description ? `<div class="arch-desc">${esc(arch.description)}</div>` : ''}
         ${stats ? `<div class="arch-stats">${stats}</div>` : ''}
         ${abilities ? `<div class="arch-abilities">${abilities}</div>` : ''}
         ${arch.hp !== undefined ? `<div class="arch-meta">HP ${arch.hp}${arch.ac !== undefined ? ` · AC ${arch.ac}` : ''}</div>` : ''}
-      </div>`;
+      </button>`;
   }).join('\n');
 
   const profOptions = proficiencies.map(p =>
-    `<button class="prof-option" data-prof="${escAttr(p)}">${esc(p)}</button>`,
+    `<button class="prof-option" data-prof="${escapeAttr(p)}">${esc(p)}</button>`,
   ).join('\n        ');
 
   return `
@@ -74,7 +75,7 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
   border: 0.5px solid var(--color-border-tertiary); border-radius: 6px;
   color: var(--color-text-primary); box-sizing: border-box;
 }
-.name-input:focus { border-color: var(--ta-color-accent); outline: none; }
+.name-input:focus { border-color: var(--ta-color-accent); outline: 2px solid var(--ta-color-focus); outline-offset: 2px; }
 .prof-grid { display: flex; flex-wrap: wrap; gap: 6px; }
 .prof-option {
   padding: 4px 10px; font-size: 11px; border: 0.5px solid var(--color-border-tertiary);
@@ -98,7 +99,7 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
 
   <div class="creation-section">
     <div class="creation-label">Name</div>
-    <input class="name-input" id="char-name-input" type="text" placeholder="Enter character name..." value="${escAttr(defaultName)}">
+    <input class="name-input" id="char-name-input" type="text" placeholder="Enter character name..." value="${escapeAttr(defaultName)}">
   </div>
 
   ${archetypes.length > 0 ? `
@@ -162,14 +163,4 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
   });
 })();
 <\/script>`;
-}
-
-function esc(s: string | undefined | null): string {
-  if (!s) return "";
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-function escAttr(s: string | undefined | null): string {
-  if (!s) return "";
-  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }

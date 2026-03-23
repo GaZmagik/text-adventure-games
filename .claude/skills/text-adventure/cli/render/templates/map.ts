@@ -2,6 +2,7 @@
 // Full SVG map generation is complex; this provides the data panel.
 
 import type { GmState } from '../../types';
+import { esc } from '../../lib/html';
 
 export function renderMap(state: GmState | null, css: string, _options?: Record<string, unknown>): string {
   const mapState = state?.mapState;
@@ -74,9 +75,4 @@ export function renderMap(state: GmState | null, css: string, _options?: Record<
   <div class="supplies-row"><span class="supplies-label">Rations: </span>${supplies.rations}</div>
   <div class="supplies-row"><span class="supplies-label">Water: </span>${supplies.water}</div>` : ''}
 </div>`;
-}
-
-function esc(s: string | undefined | null): string {
-  if (!s) return "";
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }

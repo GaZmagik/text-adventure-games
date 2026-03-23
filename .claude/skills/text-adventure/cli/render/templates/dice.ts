@@ -3,6 +3,7 @@
 // Includes Three.js CDN script tag and a basic die canvas.
 
 import type { GmState } from '../../types';
+import { esc } from '../../lib/html';
 
 export function renderDice(state: GmState | null, css: string, _options?: Record<string, unknown>): string {
   const comp = state?._lastComputation;
@@ -82,7 +83,8 @@ export function renderDice(state: GmState | null, css: string, _options?: Record
   ${margin !== 0 ? `<div class="dice-margin">${margin > 0 ? 'Passed' : 'Failed'} by ${Math.abs(margin)}</div>` : ''}
 </div>
 
-<!-- Three.js CDN for 3D die rendering -->
+<!-- Three.js CDN: CSP-blocked in Claude.ai iframes. The canvas will be blank;
+     the CSS die shapes from style-reference.md serve as the visual fallback. -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>
 <script>
 (function() {
@@ -113,28 +115,32 @@ export function renderDice(state: GmState | null, css: string, _options?: Record
   scene.add(light);
   scene.add(new THREE.AmbientLight(0x444466, 0.5));
 
-  // Spin animation
-  var spinDuration = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ta-die-spin-duration')) || 0.6;
-  var totalFrames = Math.round(spinDuration * 60);
-  var frame = 0;
+  // Spin animation — skip if user prefers reduced motion
+  var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  function animate() {
-    if (frame < totalFrames) {
-      var t = frame / totalFrames;
-      var ease = 1 - Math.pow(1 - t, 3);
-      die.rotation.x = ease * Math.PI * 4;
-      die.rotation.y = ease * Math.PI * 3;
-      frame++;
-      requestAnimationFrame(animate);
-    }
+  if (prefersReducedMotion) {
+    // Show final position immediately, no animation
+    die.rotation.x = Math.PI * 4;
+    die.rotation.y = Math.PI * 3;
     renderer.render(scene, camera);
+  } else {
+    var spinDuration = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ta-die-spin-duration')) || 0.6;
+    var totalFrames = Math.round(spinDuration * 60);
+    var frame = 0;
+
+    function animate() {
+      if (frame < totalFrames) {
+        var t = frame / totalFrames;
+        var ease = 1 - Math.pow(1 - t, 3);
+        die.rotation.x = ease * Math.PI * 4;
+        die.rotation.y = ease * Math.PI * 3;
+        frame++;
+        requestAnimationFrame(animate);
+      }
+      renderer.render(scene, camera);
+    }
+    animate();
   }
-  animate();
 })();
 <\/script>`;
-}
-
-function esc(s: string | undefined | null): string {
-  if (!s) return "";
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }

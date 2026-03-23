@@ -2,6 +2,7 @@
 // (locked/partial/discovered/redacted), discovery stamps.
 
 import type { GmState } from '../../types';
+import { esc } from '../../lib/html';
 
 const STATE_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   locked:     { bg: 'var(--color-border-tertiary)', text: 'var(--color-text-tertiary)', label: 'Locked' },
@@ -60,9 +61,4 @@ export function renderCodex(state: GmState | null, css: string, _options?: Recor
   <div class="codex-summary">${discoveredCount} of ${entries.length} entries discovered</div>
   ${rows}
 </div>`;
-}
-
-function esc(s: string | undefined | null): string {
-  if (!s) return "";
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }

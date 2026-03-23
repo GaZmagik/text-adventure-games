@@ -2,6 +2,7 @@
 // plotted course if any.
 
 import type { GmState } from '../../types';
+import { esc } from '../../lib/html';
 
 export function renderStarchart(state: GmState | null, css: string, _options?: Record<string, unknown>): string {
   const currentRoom = state?.currentRoom ?? 'Unknown System';
@@ -50,9 +51,4 @@ export function renderStarchart(state: GmState | null, css: string, _options?: R
     ? `<ol class="course-list">${courseSteps}</ol>`
     : '<p class="no-course">No course plotted</p>'}
 </div>`;
-}
-
-function esc(s: string | undefined | null): string {
-  if (!s) return "";
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }

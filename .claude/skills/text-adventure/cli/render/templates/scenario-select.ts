@@ -2,6 +2,7 @@
 // Each card has title, description, genre pills. Select button fires sendPrompt.
 
 import type { GmState } from '../../types';
+import { esc, escapeAttr } from '../../lib/html';
 
 interface Scenario {
   title: string;
@@ -35,7 +36,7 @@ export function renderScenarioSelect(_state: GmState | null, css: string, option
           ${scenario.difficulty ? `<span class="scenario-diff">Difficulty: ${esc(scenario.difficulty)}</span>` : ''}
           ${scenario.players ? `<span class="scenario-players">${esc(scenario.players)} players</span>` : ''}
         </div>
-        <button class="scenario-select-btn" data-prompt="I choose scenario: ${escAttr(scenario.title)}">Select</button>
+        <button class="scenario-select-btn" data-prompt="I choose scenario: ${escapeAttr(scenario.title)}">Select</button>
       </div>`;
   }).join('\n');
 
@@ -92,14 +93,4 @@ document.querySelectorAll('.scenario-select-btn[data-prompt]').forEach(function(
   });
 });
 <\/script>`;
-}
-
-function esc(s: string | undefined | null): string {
-  if (!s) return '';
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-function escAttr(s: string | undefined | null): string {
-  if (!s) return '';
-  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }

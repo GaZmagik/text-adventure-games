@@ -2,6 +2,7 @@
 // scene-meta hidden div, and composed footer. This is the main game widget.
 
 import type { GmState } from '../../types';
+import { esc, escapeAttr } from '../../lib/html';
 import { renderFooter } from './footer';
 
 export function renderScene(state: GmState | null, css: string, options?: Record<string, unknown>): string {
@@ -64,14 +65,14 @@ export function renderScene(state: GmState | null, css: string, options?: Record
 <div class="root">
   <!-- Progressive reveal -->
   <div id="reveal-brief">
-    <p class="brief-text">Scene ${scene}: You find yourself in ${escapeHtml(room)}.</p>
+    <p class="brief-text">Scene ${scene}: You find yourself in ${esc(room)}.</p>
     <button class="continue-btn" id="continue-reveal-btn">Continue</button>
   </div>
   <div id="reveal-full" style="display:none">
     <div id="scene-content">
       <div class="loc-bar">
-        <span class="loc-name">${escapeHtml(room)}</span>
-        ${time ? `<span class="loc-time">${escapeHtml(time.period)} — ${escapeHtml(time.date)}</span>` : ''}
+        <span class="loc-name">${esc(room)}</span>
+        ${time ? `<span class="loc-time">${esc(time.period)} — ${esc(time.date)}</span>` : ''}
       </div>
       <div class="atmo-strip">
         <span class="atmo-visual">The scene unfolds before you...</span>
@@ -85,9 +86,9 @@ export function renderScene(state: GmState | null, css: string, options?: Record
         <span class="level-display">Lv ${char.level}</span>` : ''}
       </div>
     </div>
-    <div id="panel-overlay" style="display:none">
+    <div id="panel-overlay" role="dialog" aria-modal="true" style="display:none">
       <div class="panel-header">
-        <span class="panel-title"></span>
+        <span class="panel-title" id="panel-title-text"></span>
         <button class="panel-close-btn" id="panel-close-btn">Close</button>
       </div>
       <div class="panel-content" data-panel="character"></div>
@@ -116,20 +117,25 @@ export function renderScene(state: GmState | null, css: string, options?: Record
     });
   }
 
-  function togglePanel(panelName) {
+  var lastPanelTrigger = null;
+
+  function togglePanel(panelName, btn) {
     var overlay = document.getElementById('panel-overlay');
     var sceneContent = document.getElementById('scene-content');
     var panels = overlay.querySelectorAll('.panel-content');
-    var title = overlay.querySelector('.panel-title');
+    var title = document.getElementById('panel-title-text');
 
     panels.forEach(function(p) { p.style.display = 'none'; });
 
     var target = overlay.querySelector('[data-panel="' + panelName + '"]');
     if (target) {
+      if (btn) lastPanelTrigger = btn;
       target.style.display = 'block';
       title.textContent = panelName.charAt(0).toUpperCase() + panelName.slice(1);
       overlay.style.display = 'block';
       sceneContent.style.display = 'none';
+      if (btn) btn.setAttribute('aria-expanded', 'true');
+      document.getElementById('panel-title-text').focus();
     }
   }
 
@@ -138,6 +144,10 @@ export function renderScene(state: GmState | null, css: string, options?: Record
     var sceneContent = document.getElementById('scene-content');
     overlay.style.display = 'none';
     sceneContent.style.display = 'block';
+    document.querySelectorAll('.footer-btn[aria-expanded]').forEach(function(b) {
+      b.setAttribute('aria-expanded', 'false');
+    });
+    if (lastPanelTrigger) lastPanelTrigger.focus();
   }
 
   // Expose for footer buttons
@@ -194,7 +204,7 @@ export function renderScene(state: GmState | null, css: string, options?: Record
   // Wire up footer panel buttons
   document.querySelectorAll('.footer-btn[data-panel]').forEach(function(btn) {
     btn.addEventListener('click', function() {
-      togglePanel(this.getAttribute('data-panel'));
+      togglePanel(this.getAttribute('data-panel'), this);
     });
   });
 
@@ -312,21 +322,4 @@ function buildPanelDivs(modules: string[]): string {
     .filter(m => m in mapping)
     .map(m => `<div class="panel-content" data-panel="${mapping[m]}"></div>`)
     .join('\n      ');
-}
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-function escapeAttr(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/'/g, '&#39;')
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
 }

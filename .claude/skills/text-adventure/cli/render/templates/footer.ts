@@ -3,6 +3,7 @@
 // Uses data-panel + addEventListener pattern (never onclick).
 
 import type { GmState } from '../../types';
+import { escapeAttr } from '../../lib/html';
 
 /** Module-to-button mapping, mirroring § Module Footer Button Table in style-reference.md */
 const MODULE_BUTTONS: { module: string; panel: string; label: string }[] = [
@@ -78,14 +79,4 @@ document.querySelectorAll('.footer-btn[data-prompt]').forEach(function(btn) {
   });
 });
 </script>`;
-}
-
-/** Escape a string for safe use inside an HTML attribute */
-function escapeAttr(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
 }

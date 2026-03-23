@@ -6,10 +6,9 @@ import { ok, fail, noState } from '../lib/errors';
 import { stateExists, loadState, saveState, createDefaultState } from '../lib/state-store';
 import { generateNpcFromTier } from '../data/bestiary-tiers';
 import { validateState } from '../lib/validator';
+import { VALID_TIERS, VALID_PRONOUNS } from '../lib/constants';
 
 const VALID_SUBCOMMANDS = ['get', 'set', 'create-npc', 'validate', 'reset', 'history'];
-const VALID_TIERS: BestiaryTier[] = ['minion', 'rival', 'nemesis'];
-const VALID_PRONOUNS: Pronouns[] = ['she/her', 'he/him', 'they/them'];
 
 /**
  * Parse flags from an args array.

@@ -2,6 +2,7 @@
 // and status badges (operational/degraded/critical/offline).
 
 import type { GmState } from '../../types';
+import { esc } from '../../lib/html';
 
 const STATUS_COLOURS: Record<string, { bg: string; text: string }> = {
   operational: { bg: 'var(--ta-color-success)', text: '#fff' },
@@ -60,9 +61,4 @@ export function renderShip(state: GmState | null, css: string, _options?: Record
   <div class="ship-meta">Repair parts: ${ship.repairParts} · Scenes since repair: ${ship.scenesSinceRepair}</div>
   ${systemCards}
 </div>`;
-}
-
-function esc(s: string | undefined | null): string {
-  if (!s) return "";
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }

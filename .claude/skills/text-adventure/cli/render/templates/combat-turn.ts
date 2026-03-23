@@ -2,6 +2,7 @@
 // hit/miss result, NPC HP change. Parameterised for combatant count via options.
 
 import type { GmState } from '../../types';
+import { esc } from '../../lib/html';
 
 export function renderCombatTurn(state: GmState | null, css: string, options?: Record<string, unknown>): string {
   const comp = state?._lastComputation;
@@ -129,9 +130,4 @@ export function renderCombatTurn(state: GmState | null, css: string, options?: R
     The attack goes wide.
   </div>` : ''}
 </div>`;
-}
-
-function esc(s: string | undefined | null): string {
-  if (!s) return "";
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }

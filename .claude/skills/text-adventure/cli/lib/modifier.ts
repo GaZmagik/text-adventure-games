@@ -1,6 +1,5 @@
-import type { StatBlock, StatName } from '../types';
-
-const STAT_NAMES: StatName[] = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
+import type { StatBlock } from '../types';
+import { STAT_NAMES } from './constants';
 
 export function abilityModifier(score: number): number {
   return Math.floor((score - 10) / 2);

@@ -2,6 +2,7 @@
 // inventory list, conditions, XP bar.
 
 import type { GmState, StatName } from '../../types';
+import { esc } from '../../lib/html';
 
 const STAT_ORDER: StatName[] = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
 
@@ -115,9 +116,4 @@ export function renderCharacter(state: GmState | null, css: string, _options?: R
   <div class="section-title">Abilities</div>
   <div style="font-size:11px;color:var(--color-text-secondary)">${char.abilities.length > 0 ? char.abilities.map(a => esc(a)).join(', ') : 'None'}</div>
 </div>`;
-}
-
-function esc(s: string | undefined | null): string {
-  if (!s) return "";
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }

@@ -2,6 +2,7 @@
 // dialogue option buttons with data-prompt.
 
 import type { GmState } from '../../types';
+import { esc, escapeAttr } from '../../lib/html';
 
 const DISPOSITION_STYLES: Record<string, { bg: string; text: string }> = {
   hostile:    { bg: 'var(--ta-badge-failure-bg)', text: 'var(--ta-badge-failure-text)' },
@@ -88,13 +89,4 @@ export function renderDialogue(state: GmState | null, css: string, options?: Rec
   });
   <\/script>` : ''}
 </div>`;
-}
-
-function esc(s: string | undefined | null): string {
-  if (!s) return "";
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-function escapeAttr(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }

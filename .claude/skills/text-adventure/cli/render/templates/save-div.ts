@@ -2,6 +2,7 @@
 // Read from state or accept data via options.
 
 import type { GmState } from '../../types';
+import { escapeAttr } from '../../lib/html';
 
 export function renderSaveDiv(state: GmState | null, css: string, options?: Record<string, unknown>): string {
   // Accept explicit data or serialise state
@@ -16,13 +17,4 @@ export function renderSaveDiv(state: GmState | null, css: string, options?: Reco
 <div id="save-data" style="display:none" data-payload='${escapeAttr(payload)}'>
   <!-- Pre-computed save payload for consumption by the save command -->
 </div>`;
-}
-
-function escapeAttr(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/'/g, '&#39;')
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
 }

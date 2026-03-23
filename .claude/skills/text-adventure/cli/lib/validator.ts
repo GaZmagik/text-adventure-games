@@ -1,11 +1,7 @@
 // tag CLI — State Validator
 // Validates gmState structure against the contract in types.ts
 
-import type { StatName } from '../types';
-
-const STAT_NAMES: StatName[] = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
-const VALID_TIERS = ['minion', 'rival', 'nemesis'];
-const VALID_PRONOUNS = ['she/her', 'he/him', 'they/them'];
+import { STAT_NAMES, VALID_TIERS, VALID_PRONOUNS } from './constants';
 
 /** Result of a state validation check. */
 export interface ValidationResult {

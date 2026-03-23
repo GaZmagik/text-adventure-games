@@ -2,6 +2,7 @@
 // status badges, and role assignments.
 
 import type { GmState } from '../../types';
+import { esc } from '../../lib/html';
 
 export function renderCrew(state: GmState | null, css: string, _options?: Record<string, unknown>): string {
   const crew = state?.crewMutations;
@@ -70,9 +71,4 @@ export function renderCrew(state: GmState | null, css: string, _options?: Record
     </tbody>
   </table>
 </div>`;
-}
-
-function esc(s: string | undefined | null): string {
-  if (!s) return "";
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }

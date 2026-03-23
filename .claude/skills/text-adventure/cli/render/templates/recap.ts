@@ -2,6 +2,7 @@
 // recent quest status, last few rolls.
 
 import type { GmState } from '../../types';
+import { esc } from '../../lib/html';
 
 export function renderRecap(state: GmState | null, css: string, _options?: Record<string, unknown>): string {
   const char = state?.character;
@@ -91,9 +92,4 @@ export function renderRecap(state: GmState | null, css: string, _options?: Recor
     }).join('\n')}
   </div>` : ''}
 </div>`;
-}
-
-function esc(s: string | undefined | null): string {
-  if (!s) return "";
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }

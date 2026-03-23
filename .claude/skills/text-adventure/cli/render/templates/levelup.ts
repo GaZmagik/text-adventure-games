@@ -2,6 +2,7 @@
 // new proficiency bonus if applicable, ability options.
 
 import type { GmState } from '../../types';
+import { esc, escapeAttr } from '../../lib/html';
 
 export function renderLevelup(state: GmState | null, css: string, options?: Record<string, unknown>): string {
   const char = state?.character;
@@ -78,13 +79,4 @@ export function renderLevelup(state: GmState | null, css: string, options?: Reco
   });
   <\/script>` : ''}
 </div>`;
-}
-
-function esc(s: string | undefined | null): string {
-  if (!s) return "";
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-function escapeAttr(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }

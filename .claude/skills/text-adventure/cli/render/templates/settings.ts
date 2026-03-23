@@ -3,6 +3,7 @@
 // Confirm button fires sendPrompt.
 
 import type { GmState } from '../../types';
+import { esc, escapeAttr } from '../../lib/html';
 
 interface SettingsData {
   rulebooks?: string[];
@@ -67,35 +68,35 @@ export function renderSettings(state: GmState | null, css: string, options?: Rec
   <div class="settings-section">
     <div class="settings-label">Rulebook</div>
     <div class="option-grid" data-group="rulebook">
-      ${rulebooks.map(r => `<button class="option-card${defaults.rulebook === r ? ' selected' : ''}" data-group="rulebook" data-value="${escAttr(r)}">${esc(r.replace(/_/g, ' '))}</button>`).join('\n      ')}
+      ${rulebooks.map(r => `<button class="option-card${defaults.rulebook === r ? ' selected' : ''}" data-group="rulebook" data-value="${escapeAttr(r)}">${esc(r.replace(/_/g, ' '))}</button>`).join('\n      ')}
     </div>
   </div>
 
   <div class="settings-section">
     <div class="settings-label">Difficulty</div>
     <div class="option-grid" data-group="difficulty">
-      ${difficulties.map(d => `<button class="option-card${defaults.difficulty === d ? ' selected' : ''}" data-group="difficulty" data-value="${escAttr(d)}">${esc(d)}</button>`).join('\n      ')}
+      ${difficulties.map(d => `<button class="option-card${defaults.difficulty === d ? ' selected' : ''}" data-group="difficulty" data-value="${escapeAttr(d)}">${esc(d)}</button>`).join('\n      ')}
     </div>
   </div>
 
   <div class="settings-section">
     <div class="settings-label">Pacing</div>
     <div class="option-grid" data-group="pacing">
-      ${pacingOptions.map(p => `<button class="option-card${defaults.pacing === p ? ' selected' : ''}" data-group="pacing" data-value="${escAttr(p)}">${esc(p)}</button>`).join('\n      ')}
+      ${pacingOptions.map(p => `<button class="option-card${defaults.pacing === p ? ' selected' : ''}" data-group="pacing" data-value="${escapeAttr(p)}">${esc(p)}</button>`).join('\n      ')}
     </div>
   </div>
 
   <div class="settings-section">
     <div class="settings-label">Visual Style</div>
     <div class="option-grid" data-group="visualStyle">
-      ${visualStyles.map(v => `<button class="option-card${defaults.visualStyle === v ? ' selected' : ''}" data-group="visualStyle" data-value="${escAttr(v)}">${esc(v)}</button>`).join('\n      ')}
+      ${visualStyles.map(v => `<button class="option-card${defaults.visualStyle === v ? ' selected' : ''}" data-group="visualStyle" data-value="${escapeAttr(v)}">${esc(v)}</button>`).join('\n      ')}
     </div>
   </div>
 
   <div class="settings-section">
     <div class="settings-label">Optional Modules</div>
     <div class="option-grid" data-group="modules">
-      ${modules.map(m => `<button class="option-card module-card" data-group="modules" data-value="${escAttr(m)}"><span class="module-check"></span>${esc(m)}</button>`).join('\n      ')}
+      ${modules.map(m => `<button class="option-card module-card" data-group="modules" data-value="${escapeAttr(m)}"><span class="module-check"></span>${esc(m)}</button>`).join('\n      ')}
     </div>
   </div>
 
@@ -143,14 +144,4 @@ export function renderSettings(state: GmState | null, css: string, options?: Rec
   });
 })();
 <\/script>`;
-}
-
-function esc(s: string | undefined | null): string {
-  if (!s) return "";
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-function escAttr(s: string | undefined | null): string {
-  if (!s) return "";
-  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
