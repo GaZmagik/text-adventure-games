@@ -114,7 +114,9 @@ modules, and broken narrative tracking.
 ```
 RESUME FROM SAVE CHECKLIST
 ═══════════════════════════════════════════
-□  0. Run `tag save load <save-string>` to restore game state before rendering.
+□  0. Run `bash setup.sh` — resuming always starts a new conversation, so the CLI
+     needs installing. Then run `tag save load <file.save.md>` to restore game state.
+     The load command accepts a .save.md file path — it extracts the save string automatically.
 □  1. Parse and validate the save payload (checksum, version, mode)
 □  2. Warn (do not block) if skill-version differs from current version
 □  3. Check for arc field — if present, load arc context and carryForward data

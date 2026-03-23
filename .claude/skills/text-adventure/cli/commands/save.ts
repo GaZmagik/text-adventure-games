@@ -56,10 +56,38 @@ async function generate(): Promise<CommandResult> {
 
 async function load(args: string[]): Promise<CommandResult> {
   if (args.length < 1) {
-    return fail('Usage: tag save load <save-string>', 'tag save load <checksummed-string>', 'save load');
+    return fail(
+      'Usage: tag save load <file.save.md | save-string>',
+      'tag save load /path/to/game.save.md',
+      'save load',
+    );
   }
 
-  const saveString = args[0];
+  let saveString = args[0];
+
+  // If the argument looks like a file path, read the save string from it
+  if (saveString.endsWith('.md') || saveString.endsWith('.save') || saveString.includes('/')) {
+    try {
+      const file = Bun.file(saveString);
+      if (await file.exists()) {
+        const content = await file.text();
+        // Extract save string from fenced code block or bare string
+        const codeBlockMatch = content.match(/```\s*\n([0-9a-f]{8}\.[A-Z][A-Z0-9]+:[\s\S]*?)```/);
+        if (codeBlockMatch) {
+          saveString = codeBlockMatch[1].trim();
+        } else {
+          // Try to find a bare save string (checksum.payload pattern)
+          const bareMatch = content.match(/([0-9a-f]{8}\.[A-Z][A-Z0-9]+:[A-Za-z0-9+/=]+)/);
+          if (bareMatch) {
+            saveString = bareMatch[1];
+          }
+        }
+      }
+    } catch {
+      // Fall through — treat as a raw save string
+    }
+  }
+
   const decoded = validateAndDecode(saveString);
 
   if (!decoded.valid) {
