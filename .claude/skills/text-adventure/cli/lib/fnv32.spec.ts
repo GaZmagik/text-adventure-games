@@ -43,9 +43,11 @@ describe('validateAndDecode', () => {
     const save = attachChecksum(code);
     const result = validateAndDecode(save);
     expect(result.valid).toBe(true);
-    expect(result.payload).toBeDefined();
-    expect(result.payload!.test).toBe(true);
-    expect(result.mode).toBe('compact');
+    if (result.valid) {
+      expect(result.payload).toBeDefined();
+      expect(result.payload.test).toBe(true);
+      expect(result.mode).toBe('compact');
+    }
   });
 
   test('SF2 uncompressed full mode works', () => {
@@ -53,8 +55,10 @@ describe('validateAndDecode', () => {
     const save = attachChecksum(code);
     const result = validateAndDecode(save);
     expect(result.valid).toBe(true);
-    expect(result.mode).toBe('full');
-    expect(result.payload!.data).toBe('test');
+    if (result.valid) {
+      expect(result.mode).toBe('full');
+      expect(result.payload.data).toBe('test');
+    }
   });
 
   test('detects checksum corruption', () => {
@@ -64,13 +68,17 @@ describe('validateAndDecode', () => {
     const corrupted = 'xxxxxxxx' + save.slice(8);
     const result = validateAndDecode(corrupted);
     expect(result.valid).toBe(false);
-    expect(result.error).toContain('CHECKSUM');
+    if (!result.valid) {
+      expect(result.error).toContain('CHECKSUM');
+    }
   });
 
   test('detects missing checksum format', () => {
     const result = validateAndDecode('notavalidsave');
     expect(result.valid).toBe(false);
-    expect(result.error).toContain('FORMAT');
+    if (!result.valid) {
+      expect(result.error).toContain('FORMAT');
+    }
   });
 
   test('detects unknown version prefix', () => {
@@ -78,6 +86,8 @@ describe('validateAndDecode', () => {
     const save = attachChecksum(code);
     const result = validateAndDecode(save);
     expect(result.valid).toBe(false);
-    expect(result.error).toContain('VERSION');
+    if (!result.valid) {
+      expect(result.error).toContain('VERSION');
+    }
   });
 });

@@ -156,7 +156,7 @@ const newEpoch = {
   timeframe: exportSnapshot.time.date + " (recent)",
   definingEvent: resolvedMainThread.resolution,
   consequences: deriveConsequences(exportSnapshot.worldFlags, resolvedMainThread),
-  survivors: deriveSurvivors(exportSnapshot.factions, exportSnapshot.npcProfiles),
+  survivors: deriveSurvivors(exportSnapshot.factions, exportSnapshot.rosterMutations),
   artifacts: deriveArtifacts(exportSnapshot.worldFlags),
   publicKnowledge: true,
   contested: false,

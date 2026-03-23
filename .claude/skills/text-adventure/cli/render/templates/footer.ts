@@ -56,7 +56,7 @@ export function renderFooter(state: GmState | null, css: string, _options?: Reco
   }
 
   return `
-<style>${css}</style>
+${css ? '<style>' + css + '</style>' : ''}
 <div class="footer-row">
   <div class="footer-left">
     ${leftButtons.join('\n    ')}
@@ -64,19 +64,5 @@ export function renderFooter(state: GmState | null, css: string, _options?: Reco
   <div class="footer-right">
     ${rightButtons.join('\n    ')}
   </div>
-</div>
-<script>
-document.querySelectorAll('.footer-btn[data-panel]').forEach(function(btn) {
-  btn.addEventListener('click', function() {
-    var panel = this.getAttribute('data-panel');
-    if (typeof togglePanel === 'function') togglePanel(panel);
-  });
-});
-document.querySelectorAll('.footer-btn[data-prompt]').forEach(function(btn) {
-  btn.addEventListener('click', function() {
-    var prompt = this.getAttribute('data-prompt');
-    if (typeof sendPrompt === 'function') sendPrompt(prompt);
-  });
-});
-</script>`;
+</div>`;
 }

@@ -3,6 +3,7 @@
 
 import type { GmState } from '../../types';
 import { esc, escapeAttr } from '../../lib/html';
+import { VERSION } from '../../lib/version';
 import { renderFooter } from './footer';
 
 export function renderScene(state: GmState | null, css: string, options?: Record<string, unknown>): string {
@@ -14,7 +15,7 @@ export function renderScene(state: GmState | null, css: string, options?: Record
 
   // Build scene-meta JSON
   const sceneMeta = JSON.stringify({
-    skill_version: '1.3.0',
+    skill_version: VERSION,
     arc: state?.arc ?? 1,
     theme: state?.theme ?? 'fantasy',
     mode: 'procedural',
@@ -86,9 +87,9 @@ export function renderScene(state: GmState | null, css: string, options?: Record
         <span class="level-display">Lv ${char.level}</span>` : ''}
       </div>
     </div>
-    <div id="panel-overlay" role="dialog" aria-modal="true" style="display:none">
+    <div id="panel-overlay" role="dialog" aria-modal="true" aria-labelledby="panel-title-text" style="display:none">
       <div class="panel-header">
-        <span class="panel-title" id="panel-title-text"></span>
+        <span class="panel-title" id="panel-title-text" tabindex="-1"></span>
         <button class="panel-close-btn" id="panel-close-btn">Close</button>
       </div>
       <div class="panel-content" data-panel="character"></div>

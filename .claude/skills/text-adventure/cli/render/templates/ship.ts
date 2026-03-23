@@ -16,7 +16,7 @@ export function renderShip(state: GmState | null, css: string, _options?: Record
 
   if (!ship) {
     return `
-<style>${css}</style>
+${css ? '<style>' + css + '</style>' : ''}
 <div class="widget-ship">
   <p class="empty-state">No ship data available.</p>
 </div>`;

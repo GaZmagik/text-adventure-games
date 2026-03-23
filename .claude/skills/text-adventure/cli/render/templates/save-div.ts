@@ -13,7 +13,7 @@ export function renderSaveDiv(state: GmState | null, css: string, options?: Reco
       : '{}';
 
   return `
-<style>${css}</style>
+${css ? '<style>' + css + '</style>' : ''}
 <div id="save-data" style="display:none" data-payload='${escapeAttr(payload)}'>
   <!-- Pre-computed save payload for consumption by the save command -->
 </div>`;

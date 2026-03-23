@@ -36,7 +36,7 @@ Store the active system in `gmState.settings.rulebook` using one of: `'d20_syste
 This is the built-in system from `core-systems.md` and `die-rolls.md`. No additional rules
 are needed — selecting this option activates the standard engine as documented in those files.
 
-**Summary:** 4 stats (STR, AGI, INT, CHA), d20 + modifier vs DC, HP tracking, conditions,
+**Summary:** 6 ability scores (STR, DEX, CON, INT, WIS, CHA), d20 + modifier vs DC, HP tracking, conditions,
 proficiency bonuses, six archetypes. See `core-systems.md` for full details.
 
 ---

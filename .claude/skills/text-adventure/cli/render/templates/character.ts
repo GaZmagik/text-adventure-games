@@ -11,7 +11,7 @@ export function renderCharacter(state: GmState | null, css: string, _options?: R
 
   if (!char) {
     return `
-<style>${css}</style>
+${css ? '<style>' + css + '</style>' : ''}
 <div class="widget-character">
   <p class="empty-state">No character data available.</p>
 </div>`;

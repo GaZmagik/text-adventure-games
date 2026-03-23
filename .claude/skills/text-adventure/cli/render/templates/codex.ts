@@ -16,7 +16,7 @@ export function renderCodex(state: GmState | null, css: string, _options?: Recor
 
   if (entries.length === 0) {
     return `
-<style>${css}</style>
+${css ? '<style>' + css + '</style>' : ''}
 <div class="widget-codex">
   <p class="empty-state">No codex entries recorded.</p>
 </div>`;

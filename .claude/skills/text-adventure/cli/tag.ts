@@ -1,8 +1,7 @@
 #!/usr/bin/env bun
 import { getTopLevelHelp, getCommandHelp } from './help';
 import type { CommandResult } from './types';
-
-const VERSION = '1.3.0';
+import { VERSION } from './lib/version';
 
 function output(result: CommandResult): void {
   console.log(JSON.stringify(result));

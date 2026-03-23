@@ -141,13 +141,24 @@ async function validate(args: string[]): Promise<CommandResult> {
 
   const saveString = await resolveSaveString(args[0]);
   const decoded = validateAndDecode(saveString);
+
+  if (!decoded.valid) {
+    return ok({
+      valid: false,
+      mode: null,
+      error: decoded.error,
+      scene: null,
+      characterName: null,
+    }, 'save validate');
+  }
+
   return ok({
-    valid: decoded.valid,
-    mode: decoded.mode ?? null,
-    error: decoded.error ?? null,
-    scene: decoded.valid ? decoded.payload!.scene : null,
-    characterName: decoded.valid && decoded.payload!.character
-      ? (decoded.payload!.character as Record<string, unknown>).name
+    valid: true,
+    mode: decoded.mode,
+    error: null,
+    scene: decoded.payload.scene ?? null,
+    characterName: decoded.payload.character
+      ? (decoded.payload.character as Record<string, unknown>).name
       : null,
   }, 'save validate');
 }

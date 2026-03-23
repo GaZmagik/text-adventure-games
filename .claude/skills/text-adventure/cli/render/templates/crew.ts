@@ -9,7 +9,7 @@ export function renderCrew(state: GmState | null, css: string, _options?: Record
 
   if (!crew || crew.length === 0) {
     return `
-<style>${css}</style>
+${css ? '<style>' + css + '</style>' : ''}
 <div class="widget-crew">
   <p class="empty-state">No crew manifest available.</p>
 </div>`;

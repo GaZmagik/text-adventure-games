@@ -35,7 +35,7 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
       : '';
 
     return `
-      <button class="archetype-card" data-index="${i}">
+      <button class="archetype-card" data-index="${i}" aria-pressed="false">
         <div class="arch-name">${esc(arch.name)}</div>
         ${arch.description ? `<div class="arch-desc">${esc(arch.description)}</div>` : ''}
         ${stats ? `<div class="arch-stats">${stats}</div>` : ''}
@@ -45,7 +45,7 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
   }).join('\n');
 
   const profOptions = proficiencies.map(p =>
-    `<button class="prof-option" data-prof="${escapeAttr(p)}">${esc(p)}</button>`,
+    `<button class="prof-option" data-prof="${escapeAttr(p)}" aria-pressed="false">${esc(p)}</button>`,
   ).join('\n        ');
 
   return `
@@ -78,9 +78,9 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
 .name-input:focus { border-color: var(--ta-color-accent); outline: 2px solid var(--ta-color-focus); outline-offset: 2px; }
 .prof-grid { display: flex; flex-wrap: wrap; gap: 6px; }
 .prof-option {
-  padding: 4px 10px; font-size: 11px; border: 0.5px solid var(--color-border-tertiary);
+  padding: 8px 12px; font-size: 11px; border: 0.5px solid var(--color-border-tertiary);
   border-radius: 12px; background: transparent; color: var(--color-text-secondary);
-  cursor: pointer; transition: all 0.2s;
+  cursor: pointer; transition: all 0.2s; min-height: 44px;
 }
 .prof-option:hover { border-color: var(--ta-color-accent); }
 .prof-option.selected { border-color: var(--ta-color-accent); background: var(--ta-color-accent-bg); color: var(--ta-color-accent); font-weight: 600; }
@@ -92,6 +92,10 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
   letter-spacing: 0.08em; transition: background 0.2s;
 }
 .confirm-btn:hover { background: var(--ta-color-accent-hover); }
+.archetype-card:focus-visible, .prof-option:focus-visible, .confirm-btn:focus-visible {
+  outline: 2px solid var(--ta-color-focus);
+  outline-offset: 2px;
+}
 </style>
 <div class="widget-char-creation">
   <div class="creation-title">Create Your Character</div>
@@ -127,8 +131,12 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
   // Archetype selection
   document.querySelectorAll('.archetype-card').forEach(function(card) {
     card.addEventListener('click', function() {
-      document.querySelectorAll('.archetype-card').forEach(function(c) { c.classList.remove('selected'); });
+      document.querySelectorAll('.archetype-card').forEach(function(c) {
+        c.classList.remove('selected');
+        c.setAttribute('aria-pressed', 'false');
+      });
       this.classList.add('selected');
+      this.setAttribute('aria-pressed', 'true');
       selectedArchetype = parseInt(this.getAttribute('data-index'), 10);
     });
   });
@@ -141,9 +149,11 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
       if (idx >= 0) {
         selectedProfs.splice(idx, 1);
         this.classList.remove('selected');
+        this.setAttribute('aria-pressed', 'false');
       } else if (selectedProfs.length < 2) {
         selectedProfs.push(prof);
         this.classList.add('selected');
+        this.setAttribute('aria-pressed', 'true');
       }
     });
   });

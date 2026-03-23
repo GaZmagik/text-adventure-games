@@ -9,7 +9,7 @@ export function renderMap(state: GmState | null, css: string, _options?: Record<
 
   if (!mapState) {
     return `
-<style>${css}</style>
+${css ? '<style>' + css + '</style>' : ''}
 <div class="widget-map">
   <p class="empty-state">No map data available.</p>
 </div>`;

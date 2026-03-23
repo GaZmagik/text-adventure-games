@@ -104,7 +104,7 @@ export async function handleBatch(args: string[]): Promise<CommandResult> {
   }
 
   const { lines, dryRun } = input;
-  const results: Record<string, unknown>[] = [];
+  const results: CommandResult[] = [];
   const labelled: Record<string, unknown> = {};
   const errors: { line: number; raw: string; error: string }[] = [];
 

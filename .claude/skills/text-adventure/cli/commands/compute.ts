@@ -3,6 +3,7 @@ import { ok, fail, noState, npcNotFound } from '../lib/errors';
 import { loadState, saveState, stateExists } from '../lib/state-store';
 import { rollD20 } from '../lib/dice';
 import { getOpposingAttribute } from '../data/contested-pairings';
+import { STAT_NAMES } from '../lib/constants';
 
 // Margin → outcome from die-rolls.md § Outcome Badge Text for Contested Checks
 function contestOutcome(margin: number): string {
@@ -36,7 +37,6 @@ function parseFlag(args: string[], flag: string): string | undefined {
   return args[idx + 1];
 }
 
-const VALID_STATS: StatName[] = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
 
 async function contest(args: string[]): Promise<CommandResult> {
   if (args.length < 2) {
@@ -48,9 +48,9 @@ async function contest(args: string[]): Promise<CommandResult> {
   }
 
   const stat = args[0].toUpperCase() as StatName;
-  if (!VALID_STATS.includes(stat)) {
+  if (!STAT_NAMES.includes(stat)) {
     return fail(
-      `Invalid attribute: ${args[0]}. Must be one of: ${VALID_STATS.join(', ')}`,
+      `Invalid attribute: ${args[0]}. Must be one of: ${STAT_NAMES.join(', ')}`,
       'tag compute contest CHA merchant_01',
       'compute contest',
     );
@@ -113,8 +113,8 @@ async function hazard(args: string[]): Promise<CommandResult> {
   }
 
   const stat = args[0].toUpperCase() as StatName;
-  if (!VALID_STATS.includes(stat)) {
-    return fail(`Invalid stat: "${stat}".`, `Valid stats: ${VALID_STATS.join(', ')}`, 'compute hazard');
+  if (!STAT_NAMES.includes(stat)) {
+    return fail(`Invalid stat: "${stat}".`, `Valid stats: ${STAT_NAMES.join(', ')}`, 'compute hazard');
   }
 
   const dcStr = parseFlag(args, '--dc');
