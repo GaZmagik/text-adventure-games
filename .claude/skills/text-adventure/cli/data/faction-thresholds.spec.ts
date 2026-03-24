@@ -16,7 +16,7 @@ describe('FACTION_STANDINGS', () => {
   test('ranges are contiguous with no gaps', () => {
     const sorted = [...FACTION_STANDINGS].sort((a, b) => a.min - b.min);
     for (let i = 1; i < sorted.length; i++) {
-      expect(sorted[i].min).toBe(sorted[i - 1].max + 1);
+      expect(sorted[i]!.min).toBe(sorted[i - 1]!.max + 1);
     }
   });
 

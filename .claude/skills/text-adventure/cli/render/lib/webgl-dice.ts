@@ -1,13 +1,26 @@
 // Generates a self-contained inline JavaScript string (~10KB) that renders
 // a 3D numbered die using raw WebGL. No external dependencies.
-//
-// The generated code expects these variables to be defined before it runs:
-//   CONFIG  — die config object (faceCount, numberRange, geometryType, customVertices, customFaces, trianglesPerFace, paired)
-//   ROLL    — rolled value (number)
-//   FONT_SCALE — font scale for this die type (number)
-//   IS_D2   — boolean
-//   IS_D100 — boolean
 
+/** Variables that must be defined before WEBGL_DICE_CODE executes. */
+export type WebGLDiceContext = {
+  diceCount: number;
+  diceSides: number;
+  diceResults: number[];
+  diceLabel: string;
+  diceModifier: number;
+};
+
+/**
+ * Self-contained WebGL die renderer (~10KB). Inject into a `<script>` block.
+ *
+ * Requires the following variables to be defined in scope before execution
+ * (see {@link WebGLDiceContext}):
+ *   CONFIG     — die config object (faceCount, numberRange, geometryType, customVertices, customFaces, trianglesPerFace, paired)
+ *   ROLL       — rolled value (number)
+ *   FONT_SCALE — font scale for this die type (number)
+ *   IS_D2      — boolean
+ *   IS_D100    — boolean
+ */
 export const WEBGL_DICE_CODE: string = `
 // ══════════════════════════════════════════════════
 // Minimal WebGL Dice Renderer — no dependencies

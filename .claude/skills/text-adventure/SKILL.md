@@ -2,7 +2,7 @@
 name: text-adventure
 description: Interactive text adventure game engine. Triggers on "text adventure", "play a game", "tabletop RPG", "interactive fiction", "dungeon crawl", or any narrative game request. Also for resuming prior sessions. CARDINAL RULE — Do NOT write ANY text in the conversation. No prose, narration, analysis, status updates, check descriptions, DC values, or stat breakdowns. ALL game output goes inside visualize:show_widget. ALL deliberation goes in the thinking tool. The player sees ONLY widgets. Exception — brief responses to out-of-character questions. Do NOT use for creative writing without player agency. Loads modules from modules/ directory as needed.
 metadata:
-  version: "1.3.0.e"
+  version: "1.3.0.f"
 ---
 
 # Text Adventure Game — Core Engine
@@ -39,13 +39,13 @@ guidance — they do not contain widget code.
 
 ### Step 0 — Setup (once per session)
 
-Run via the **Bash tool** (called "analysis tool" on Claude.ai):
+Run via the **Bash tool** (called "analysis tool" on Claude.ai) from the skill directory (`.claude/skills/text-adventure/`):
 
 ```bash
 source setup.sh && tag state reset
 ```
 
-This installs Bun (if needed), links the `tag` command, sets `PATH` so `tag` is available for all subsequent commands in this session, and initialises a blank game state. You MUST use `source` (not `bash`) so the PATH export persists in the current shell.
+This installs Bun (if needed), links the `tag` command, sets `PATH` so `tag` is available for all subsequent commands in this session, and initialises a blank game state. You MUST use `source` (not `bash`) so the PATH export persists in the current shell. Run from the skill directory — `setup.sh` is located at `.claude/skills/text-adventure/setup.sh`.
 
 To resume from a save file, ALWAYS use the file path — never pass the raw save string as a CLI argument:
 ```bash

@@ -6,6 +6,7 @@ import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState, createDefaultState } from '../lib/state-store';
 import { validateState } from '../lib/validator';
 import { attachChecksum, validateAndDecode } from '../lib/fnv32';
+import { VALID_TOP_KEYS } from '../lib/constants';
 
 const RE_SAVE_IN_FENCE = /```[\s\S]*?([\da-fA-F]{8}\.SF[12]:[\S]+)[\s\S]*?```/;
 const RE_SAVE_BARE = /([\da-fA-F]{8}\.SF[12]:[\S]+)/;
@@ -20,11 +21,13 @@ async function resolveSaveString(input: string): Promise<string> {
     let resolved: string;
     try {
       resolved = realpathSync(resolve(input));
-    } catch {
+    } catch (err: unknown) {
+      const code = (err as NodeJS.ErrnoException).code;
+      if (code !== 'ENOENT' && code !== 'ENOTDIR') throw err;
       // Path doesn't exist as a file — treat as raw save string.
-      // If input looks like a file path (contains / or \), warn that the file wasn't found.
+      // If input looks like a file path (contains / or \), note that the file wasn't found.
       if (input.includes('/') || input.includes('\\')) {
-        console.error(`Note: "${input}" looks like a file path but does not exist. Treating as raw save string.`);
+        return input;  // Warning added to result by caller if needed
       }
       return input;
     }
@@ -38,13 +41,18 @@ async function resolveSaveString(input: string): Promise<string> {
 
     try {
       const file = Bun.file(resolved);
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error('Save file exceeds 10 MB size limit.');
+      }
       const content = await file.text();
       const match = content.match(RE_SAVE_IN_FENCE);
-      if (match) return match[1];
+      if (match) return match[1]!;
       const lineMatch = content.match(RE_SAVE_BARE);
-      if (lineMatch) return lineMatch[1];
+      if (lineMatch) return lineMatch[1]!;
       return content.trim();
-    } catch {
+    } catch (err: unknown) {
+      // Re-throw deliberate validation errors (e.g. size limit); only swallow I/O failures.
+      if (err instanceof Error && err.message.includes('size limit')) throw err;
       // File path detected but unreadable — fall through to treat as raw save string
       return input;
     }
@@ -56,37 +64,10 @@ async function generate(): Promise<CommandResult> {
   const state = await tryLoadState();
   if (!state) return noState();
 
-  // Build payload — full state, SF2: uncompressed base64 (no LZ)
-  const payload = {
-    v: 1,
-    mode: 'full',
-    _version: state._version,
-    scene: state.scene,
-    currentRoom: state.currentRoom,
-    visitedRooms: state.visitedRooms,
-    character: state.character,
-    worldFlags: state.worldFlags,
-    seed: state.seed,
-    theme: state.theme,
-    visualStyle: state.visualStyle,
-    modulesActive: state.modulesActive,
-    rosterMutations: state.rosterMutations,
-    codexMutations: state.codexMutations,
-    time: state.time,
-    factions: state.factions,
-    quests: state.quests,
-    storyArchitect: state.storyArchitect ?? null,
-    shipState: state.shipState ?? null,
-    crewMutations: state.crewMutations ?? null,
-    mapState: state.mapState ?? null,
-    systemResources: state.systemResources ?? null,
-    navPlottedCourse: state.navPlottedCourse ?? null,
-    arc: state.arc ?? 1,
-    arcType: state.arcType ?? 'standard',
-    carryForward: state.carryForward ?? null,
-    arcHistory: state.arcHistory ?? [],
-    rollHistory: state.rollHistory,
-  };
+  // Build payload — full state minus session-only fields, SF2: uncompressed base64 (no LZ)
+  // Destructuring exclusion ensures new GmState fields are included by default.
+  const { _stateHistory, _lastComputation, ...gameFields } = state;
+  const payload = { v: 1, mode: 'full', ...gameFields };
 
   const json = JSON.stringify(payload);
   const code = 'SF2:' + btoa(json);
@@ -113,7 +94,7 @@ async function load(args: string[]): Promise<CommandResult> {
 
   let saveString: string;
   try {
-    saveString = await resolveSaveString(args[0]);
+    saveString = await resolveSaveString(args[0]!);
   } catch (err) {
     return fail(
       err instanceof Error ? err.message : 'Failed to resolve save file path.',
@@ -134,14 +115,24 @@ async function load(args: string[]): Promise<CommandResult> {
 
   const payload = decoded.payload;
 
-  // Rebuild GmState from payload — spread merge ensures new fields inherit defaults and
-  // saved fields always win. Session-only fields (_stateHistory, _lastComputation) are
+  // Filter payload to only recognised top-level keys, stripping prototype-pollution vectors.
+  // This prevents a crafted save from injecting arbitrary keys into GmState.
+  const filtered: Record<string, unknown> = {};
+  for (const key of Object.keys(payload)) {
+    if (VALID_TOP_KEYS.has(key) && !['__proto__', 'constructor', 'prototype'].includes(key)) {
+      filtered[key] = (payload as Record<string, unknown>)[key];
+    }
+  }
+
+  // Rebuild GmState from filtered payload — spread merge ensures new fields inherit defaults
+  // and saved fields always win. Session-only fields (_stateHistory, _lastComputation) are
   // explicitly reset so they never leak from a previous save format.
+  const defaults = createDefaultState();
+  defaults._stateHistory = [];
+  defaults._lastComputation = undefined;
   const state: GmState = {
-    ...createDefaultState(),
-    ...(payload as Partial<GmState>),
-    _stateHistory: [],
-    _lastComputation: undefined,
+    ...defaults,
+    ...filtered as Partial<GmState>,
   };
 
   // Validate reconstructed state — warn but still save (user may want partially valid data)
@@ -165,7 +156,7 @@ async function validate(args: string[]): Promise<CommandResult> {
 
   let saveString: string;
   try {
-    saveString = await resolveSaveString(args[0]);
+    saveString = await resolveSaveString(args[0]!);
   } catch (err) {
     return fail(
       err instanceof Error ? err.message : 'Failed to resolve save file path.',

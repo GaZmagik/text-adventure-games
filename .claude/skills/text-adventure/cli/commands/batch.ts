@@ -2,7 +2,7 @@ import type { CommandResult, GmState } from '../types';
 import { ok, fail } from '../lib/errors';
 import { tryLoadState } from '../lib/state-store';
 import { parseArgs } from '../lib/args';
-import { FORBIDDEN_KEYS } from '../lib/constants';
+import { FORBIDDEN_KEYS, MUTATING_COMMANDS } from '../lib/constants';
 import { handleState } from './state';
 import { handleCompute } from './compute';
 import { handleSave } from './save';
@@ -10,7 +10,7 @@ import { handleRender } from './render';
 
 type ParsedLine = {
   raw: string;
-  label?: string;
+  label?: string | undefined;
   command: string;
   args: string[];
 }
@@ -30,7 +30,7 @@ function parseLine(line: string): ParsedLine | null {
   }
 
   const tokens = working.split(/\s+/);
-  const command = tokens[0];
+  const command = tokens[0]!;
   const args = tokens.slice(1);
 
   return { raw: trimmed, label, command, args };
@@ -45,17 +45,17 @@ function resolveReferences(
 
     const ref = arg.slice(1); // Remove $
     const parts = ref.split('.');
-    const labelName = parts[0];
+    const labelName = parts[0]!;
 
     let value: unknown = labelled[labelName];
     if (value === undefined) return arg; // Unresolved — leave as-is
 
     // Navigate dot path
     for (let i = 1; i < parts.length; i++) {
-      if (FORBIDDEN_KEYS.has(parts[i])) return arg;
+      if (FORBIDDEN_KEYS.has(parts[i]!)) return arg;
       if (value === null || value === undefined) return arg;
       if (typeof value === 'object') {
-        value = (value as Record<string, unknown>)[parts[i]];
+        value = (value as Record<string, unknown>)[parts[i]!];
       } else {
         return arg;
       }
@@ -89,16 +89,22 @@ export async function handleBatch(args: string[]): Promise<CommandResult> {
     );
   }
 
-  // NOTE: Naive split — JSON values containing semicolons will break.
-  // Use newline-separated batch files for complex values.
+  // WARNING: Naive semicolon split — will break JSON values containing semicolons.
+  // A proper fix would support quoting/escaping, but for v1.3.0 this is an accepted limitation.
+  // Batch commands should avoid semicolons in string values.
   const lines = commands.split(';').map(s => s.trim()).filter(Boolean);
+
+  const MAX_BATCH_COMMANDS = 100;
+  if (lines.length > MAX_BATCH_COMMANDS) {
+    return fail(`Batch too large: ${lines.length} commands (max ${MAX_BATCH_COMMANDS}).`, 'batch', 'Split into smaller batches.');
+  }
   const results: CommandResult[] = [];
   const labelled: Record<string, unknown> = {};
   const errors: { line: number; raw: string; error: string }[] = [];
   let didMutate = false;
 
   for (let i = 0; i < lines.length; i++) {
-    const parsedLine = parseLine(lines[i]);
+    const parsedLine = parseLine(lines[i]!);
     if (!parsedLine) continue;
 
     const resolvedArgs = resolveReferences(parsedLine.args, labelled);
@@ -127,7 +133,7 @@ export async function handleBatch(args: string[]): Promise<CommandResult> {
 
     const result = await dispatch(parsedLine.command, resolvedArgs);
     results.push(result);
-    if (['state', 'save', 'compute'].includes(parsedLine.command)) didMutate = true;
+    if (MUTATING_COMMANDS.has(parsedLine.command)) didMutate = true;
 
     if (parsedLine.label && !FORBIDDEN_KEYS.has(parsedLine.label)) {
       labelled[parsedLine.label] = result.data;

@@ -20,7 +20,7 @@ ${css ? '<style>' + css + '</style>' : ''}
 
   const hpPercent = char.maxHp > 0 ? Math.round((char.hp / char.maxHp) * 100) : 0;
   const nextThreshold = XP_THRESHOLDS.find(t => t.level === char.level + 1);
-  const xpForLevel = nextThreshold?.xp ?? XP_THRESHOLDS[XP_THRESHOLDS.length - 1].xp;
+  const xpForLevel = nextThreshold?.xp ?? XP_THRESHOLDS[XP_THRESHOLDS.length - 1]!.xp;
   const xpPercent = xpForLevel > 0 ? Math.min(100, Math.round((char.xp / xpForLevel) * 100)) : 0;
 
   const profSet = new Set(char.proficiencies);

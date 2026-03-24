@@ -50,6 +50,8 @@ const TEMPLATES: Record<string, TemplateFn> = {
   'character-creation': renderCharacterCreation,
 };
 
+export const WIDGET_TYPE_NAMES = Object.keys(TEMPLATES);
+
 /** Pre-game widgets that accept --data instead of reading state */
 const PRE_GAME_WIDGETS = new Set(['settings', 'scenario-select', 'character-creation']);
 

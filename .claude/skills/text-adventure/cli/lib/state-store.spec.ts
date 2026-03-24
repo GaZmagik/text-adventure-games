@@ -112,9 +112,9 @@ describe('saveState rollHistory capping', () => {
     const loaded = await loadState();
     expect(loaded.rollHistory.length).toBe(50);
     // The oldest entry (scene=0) should have been dropped; first entry is scene=1
-    expect(loaded.rollHistory[0].scene).toBe(1);
+    expect(loaded.rollHistory[0]!.scene).toBe(1);
     // The last entry should still be scene=50
-    expect(loaded.rollHistory[49].scene).toBe(50);
+    expect(loaded.rollHistory[49]!.scene).toBe(50);
   });
 });
 

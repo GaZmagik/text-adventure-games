@@ -16,11 +16,11 @@ export function noState(): CommandResult {
   );
 }
 
-export function npcNotFound(npcId: string): CommandResult {
+export function npcNotFound(npcId: string, command = 'compute'): CommandResult {
   return fail(
-    `NPC ${npcId} not found in state.`,
-    `tag state create-npc ${npcId} --tier <tier> --name "<name>" --pronouns <pronouns> --role <role>`,
-    'compute',
+    `NPC "${npcId}" not found in roster.`,
+    'Check NPC ID with: tag state get rosterMutations',
+    command,
   );
 }
 

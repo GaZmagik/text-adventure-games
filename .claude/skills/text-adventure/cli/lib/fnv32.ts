@@ -36,10 +36,10 @@ function parseSaveString(saveString: string): { checksum: string; format: string
 
   // Legacy format: FORMAT:CHECKSUM:PAYLOAD
   const parts = saveString.split(':');
-  if (parts.length >= 3 && /^(SF[12]|SC1)$/i.test(parts[0]) && /^[0-9a-f]{8}$/i.test(parts[1])) {
+  if (parts.length >= 3 && /^(SF[12]|SC1)$/i.test(parts[0]!) && /^[0-9a-f]{8}$/i.test(parts[1]!)) {
     return {
-      checksum: parts[1],
-      format: parts[0].toUpperCase(),
+      checksum: parts[1]!,
+      format: parts[0]!.toUpperCase(),
       encoded: parts.slice(2).join(':'), // rejoin in case payload contains colons
     };
   }

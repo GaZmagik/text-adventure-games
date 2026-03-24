@@ -1,5 +1,6 @@
 import type { CommandResult } from './types';
 import { ok } from './lib/errors';
+import { WIDGET_TYPE_NAMES } from './commands/render';
 
 interface SubcommandHelp {
   name: string;
@@ -72,13 +73,6 @@ const COMMANDS: Record<string, CommandHelp> = {
   },
 };
 
-// SYNC: must match TEMPLATES keys in commands/render.ts
-// TEMPLATES is not exported from render.ts; update this list whenever a template is added or removed.
-const WIDGET_TYPES = [
-  'scene', 'ticker', 'character', 'dice', 'ship', 'crew', 'codex',
-  'map', 'starchart', 'footer', 'save-div', 'levelup', 'recap',
-  'combat-turn', 'dialogue', 'settings', 'scenario-select', 'character-creation',
-];
 
 export function getTopLevelHelp(): CommandResult {
   return ok({
@@ -86,7 +80,7 @@ export function getTopLevelHelp(): CommandResult {
       command: c.command,
       description: c.description,
     })),
-    widgetTypes: WIDGET_TYPES,
+    widgetTypes: WIDGET_TYPE_NAMES,
     usage: 'tag <command> [subcommand] [options]',
     examples: [
       'tag state reset',

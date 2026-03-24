@@ -3,14 +3,14 @@
 
 // ── Primitive Types ────────────────────────────────────────────────
 
-export interface StatBlock {
+export type StatBlock = {
   STR: number;
   DEX: number;
   CON: number;
   INT: number;
   WIS: number;
   CHA: number;
-}
+};
 
 export type StatName = keyof StatBlock;
 
@@ -21,7 +21,7 @@ export type NpcStatus = 'active' | 'injured' | 'incapacitated' | 'missing' | 'de
 
 // ── Character ──────────────────────────────────────────────────────
 
-export interface Character {
+export type Character = {
   name: string;
   class: string;
   hp: number;
@@ -39,18 +39,18 @@ export interface Character {
   inventory: InventoryItem[];
   conditions: string[];
   equipment: { weapon: string; armour: string };
-}
+};
 
-export interface InventoryItem {
+export type InventoryItem = {
   name: string;
   type: string;
   slots: number;
   description?: string;
-}
+};
 
 // ── NPCs ───────────────────────────────────────────────────────────
 
-export interface NpcMutation {
+export type NpcMutation = {
   id: string;
   name: string;
   pronouns: Pronouns;
@@ -72,11 +72,11 @@ export interface NpcMutation {
   currentRoom?: string;
   killedInScene?: number;
   specialAbilities?: string[];
-}
+};
 
 // ── Time ───────────────────────────────────────────────────────────
 
-export interface TimeState {
+export type TimeState = {
   period: string;
   date: string;
   elapsed: number;
@@ -85,18 +85,18 @@ export interface TimeState {
   playerKnowsTime: boolean;
   calendarSystem: string;
   deadline: { label: string; remainingScenes: number } | null;
-}
+};
 
 // ── Quests ──────────────────────────────────────────────────────────
 
-export interface Quest {
+export type Quest = {
   id: string;
   title: string;
   status: 'active' | 'completed' | 'failed';
   objectives: QuestObjective[];
 }
 
-export interface QuestObjective {
+export type QuestObjective = {
   id: string;
   description: string;
   completed: boolean;
@@ -104,7 +104,7 @@ export interface QuestObjective {
 
 // ── Codex ──────────────────────────────────────────────────────────
 
-export interface CodexMutation {
+export type CodexMutation = {
   id: string;
   state: 'locked' | 'partial' | 'discovered' | 'redacted';
   discoveredAt?: number;
@@ -114,7 +114,7 @@ export interface CodexMutation {
 
 // ── Rolls ──────────────────────────────────────────────────────────
 
-export interface RollRecord {
+export type RollRecord = {
   scene: number;
   type: string;
   stat: string;
@@ -131,7 +131,7 @@ export type DieType = 'd2' | 'd4' | 'd6' | 'd8' | 'd10' | 'd12' | 'd20' | 'd100'
 
 // ── Computation ────────────────────────────────────────────────────
 
-export interface ContestedRollResult {
+export type ContestedRollResult = {
   type: 'contested_roll';
   stat: string;
   roll: number;
@@ -146,7 +146,7 @@ export interface ContestedRollResult {
   context?: Record<string, unknown>;
 }
 
-export interface HazardSaveResult {
+export type HazardSaveResult = {
   type: 'hazard_save';
   stat: string;
   roll: number;
@@ -161,7 +161,7 @@ export interface HazardSaveResult {
   context?: Record<string, unknown>;
 }
 
-export interface EncounterRollResult {
+export type EncounterRollResult = {
   type: 'encounter_roll';
   roll: number;
   stat?: string;
@@ -180,7 +180,7 @@ export type ComputationResult = ContestedRollResult | HazardSaveResult | Encount
 
 // ── State History ──────────────────────────────────────────────────
 
-export interface StateHistoryEntry {
+export type StateHistoryEntry = {
   timestamp: string;
   command: string;
   path: string;
@@ -190,7 +190,7 @@ export interface StateHistoryEntry {
 
 // ── Module States ──────────────────────────────────────────────────
 
-export interface ShipState {
+export type ShipState = {
   name: string;
   systems: Record<string, { integrity: number; status: string; conditions: string[] }>;
   powerAllocations: Record<string, number>;
@@ -198,7 +198,7 @@ export interface ShipState {
   scenesSinceRepair: number;
 }
 
-export interface MapState {
+export type MapState = {
   currentZone: string;
   visitedZones: string[];
   revealedZones: string[];
@@ -206,7 +206,7 @@ export interface MapState {
   supplies?: { rations: number; water: number };
 }
 
-export interface CrewMutation {
+export type CrewMutation = {
   id: string;
   name: string;
   pronouns: Pronouns;
@@ -218,27 +218,28 @@ export interface CrewMutation {
   task?: string;
 }
 
-export interface StoryArchitectState {
-  /** @todo Define shape when story-architect module is implemented (e.g. { id: string; title: string; status: string }) */
-  threads: unknown[];
-  /** @todo Define shape when story-architect module is implemented (e.g. { sceneId: number; hint: string }) */
-  foreshadowing: unknown[];
-  /** @todo Define shape when story-architect module is implemented (e.g. { trigger: string; effect: string }) */
-  consequences: unknown[];
+/** Placeholder — shape to be defined when story-architect module is implemented. */
+type StoryThread = { id: string; [key: string]: unknown };
+
+/** Placeholder — shape to be defined when arc-transition is implemented. */
+type CharacterProgression = { [key: string]: unknown };
+
+export type StoryArchitectState = {
+  threads: StoryThread[];
+  foreshadowing: StoryThread[];
+  consequences: StoryThread[];
   pacing: { act: number; actProgress: number; recentBeats: string[] };
 }
 
-export interface CarryForward {
-  /** @todo Define shape when arc-transition is implemented (e.g. { xp: number; level: number }) */
-  characterProgression: unknown;
+export type CarryForward = {
+  characterProgression: CharacterProgression;
   factionStandings: Record<string, number>;
-  /** @todo Define shape when arc-transition is implemented (e.g. { npcId: string; disposition: DispositionState }) */
-  npcDispositions: unknown[];
+  npcDispositions: StoryThread[];
   codexDiscoveries: string[];
   worldConsequences: string[];
 }
 
-export interface ArcSummary {
+export type ArcSummary = {
   arc: number;
   theme: string;
   conclusion: string;
@@ -246,7 +247,7 @@ export interface ArcSummary {
 
 // ── Master Game State ──────────────────────────────────────────────
 
-export interface GmState {
+export type GmState = {
   _version: number;
   scene: number;
   currentRoom: string;
@@ -273,13 +274,13 @@ export interface GmState {
   arcType?: 'standard' | 'epic' | 'branching';
   carryForward?: CarryForward | null;
   arcHistory?: ArcSummary[];
-  _lastComputation?: ComputationResult;
+  _lastComputation?: ComputationResult | undefined;
   _stateHistory: StateHistoryEntry[];
 }
 
 // ── Command Types ──────────────────────────────────────────────────
 
-export interface CommandResult {
+export type CommandResult = {
   ok: boolean;
   command: string;
   data?: unknown;

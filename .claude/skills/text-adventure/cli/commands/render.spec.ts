@@ -538,7 +538,7 @@ describe('render template output', () => {
     // Extract data-payload attribute and verify it contains valid JSON with _version
     const payloadMatch = html.match(/data-payload='([^']*)'/);
     expect(payloadMatch).not.toBeNull();
-    const payload = JSON.parse(payloadMatch![1].replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'"));
+    const payload = JSON.parse(payloadMatch![1]!.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'"));
     expect(payload._version).toBe(1);
     expect(payload.scene).toBe(0);
     expect(payload.character.name).toBe('Aldric');

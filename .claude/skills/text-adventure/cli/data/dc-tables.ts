@@ -46,7 +46,7 @@ export function getDcForLevel(
 ): number {
   const clamped = Math.max(1, Math.min(level, 10));
   const row = DC_BY_LEVEL.find(r => clamped >= r.minLevel && clamped <= r.maxLevel)
-    ?? DC_BY_LEVEL[DC_BY_LEVEL.length - 1];
+    ?? DC_BY_LEVEL[DC_BY_LEVEL.length - 1]!;
   const baseDc = row[difficulty];
   const mod = gameDifficulty ? (DIFFICULTY_MODIFIERS[gameDifficulty] ?? 0) : 0;
   return baseDc + mod;

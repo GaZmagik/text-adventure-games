@@ -12,6 +12,12 @@ export function proficiencyBonus(level: number): number {
   return Math.floor((level - 1) / 4) + 2;
 }
 
+/**
+ * Computes ability score modifiers from stats using the standard formula.
+ * NOTE: Modifiers are computed once at NPC creation. If stats are later
+ * mutated via `tag state set`, modifiers become stale. Recalculate by
+ * re-creating the NPC.
+ */
 export function computeModifiers(stats: StatBlock): StatBlock {
   const mods: StatBlock = {
     STR: abilityModifier(stats.STR),

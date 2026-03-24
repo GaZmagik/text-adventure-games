@@ -59,7 +59,7 @@ renderer reads the NPC's current disposition from state.
 | Command | Subcommands | Key Flags | Example |
 |---------|-------------|-----------|---------|
 | `tag state` | `get`, `set`, `reset`, `create-npc`, `validate`, `history` | `--tier`, `--name`, `--pronouns`, `--role` | `tag state create-npc nyx_01 --tier nemesis --name "Nyx" --pronouns they/them --role antagonist` |
-| `tag compute` | `contest`, `hazard`, `encounter` | None | `tag compute contest WIS spy_03` |
+| `tag compute` | `contest`, `hazard`, `encounter` | `--dc` (required for hazard) | `tag compute contest WIS spy_03` / `tag compute hazard CON --dc 14` |
 | `tag render` | `scene`, `combat-turn`, `dialogue`, `dice`, `character-creation`, `settings`, `character`, `ticker`, `ship`, `crew`, `codex`, `map`, `starchart`, `footer`, `save-div`, `levelup`, `recap`, `scenario-select` | `--style`, `--data` | `tag render scene --style parchment` |
 | `tag save` | `generate`, `load`, `validate`, `migrate` | None | `tag save generate` |
 | `tag batch` | — | `--commands`, `--dry-run` | `tag batch --commands "state get scene; save validate"` |
@@ -97,6 +97,9 @@ tag state set worldFlags.tension_level 3
 | `NPC not found: merchant_01` | NPC not yet created in state | `tag state create-npc merchant_01 --tier rival --name "Merchant" --pronouns she/her --role trader` |
 | `No game state found` | State not initialised | `tag state reset` |
 | `No visual style set` | Style missing from state | `tag state set visualStyle station` |
+| `Invalid attribute: FOO. Must be one of: STR, DEX, CON, INT, WIS, CHA` | Attribute name is not a valid stat | Use a valid stat name: `tag compute contest STR merchant_01` |
+| `Missing required flag: --dc <number>` | `--dc` flag omitted from hazard command | Add the DC: `tag compute hazard CON --dc 14` |
+| `NPC not found: nonexistent_npc` | NPC id does not exist in the current roster | Create the NPC first with `tag state create-npc`, or check the id with `tag state get rosterMutations` |
 
 ---
 
@@ -115,11 +118,11 @@ referenced in subsequent commands via `$label.field`.
 | Source Command | Field | Description |
 |----------------|-------|-------------|
 | `compute contest` | `$label.margin` | Absolute difference between totals |
-| | `$label.outcome` | `"win"`, `"lose"`, or `"tie"` |
+| | `$label.outcome` | `"decisive_success"`, `"narrow_success"`, `"narrow_failure"`, `"failure"`, or `"decisive_failure"` |
 | | `$label.roll` | Raw d20 result |
 | | `$label.total` | Roll + modifier |
 | | `$label.modifier` | Stat modifier used |
-| `compute hazard` | `$label.outcome` | `"pass"` or `"fail"` |
+| `compute hazard` | `$label.outcome` | `"critical_success"`, `"success"`, `"partial_success"`, `"failure"`, or `"critical_failure"` |
 | | `$label.roll` | Raw d20 result |
 | | `$label.total` | Roll + modifier |
 | | `$label.dc` | Difficulty class |

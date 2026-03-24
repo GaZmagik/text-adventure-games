@@ -389,6 +389,18 @@ archetypes, and module selection adapt accordingly.
 
 ---
 
+## CLI Tool
+
+v1.3.0 introduces the `tag` CLI for deterministic game engine operations. Setup:
+
+```bash
+source setup.sh && tag state reset
+```
+
+See `cli/manual.md` for the full command reference.
+
+---
+
 ## Adding Custom Mechanics
 
 To use a custom rulebook:

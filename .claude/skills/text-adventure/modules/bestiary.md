@@ -5,6 +5,17 @@ Loaded by the text-adventure orchestrator (SKILL.md). Depends on: core-systems.
 
 ---
 
+## § CLI Commands
+
+| Action | Command | Tool |
+|--------|---------|------|
+| Create adversary NPC | `tag state create-npc <id> --tier <minion\|rival\|nemesis> --name "<name>" --pronouns <p> --role <role>` | Run via Bash tool |
+| Hidden contested roll | `tag compute contest <STAT> <npc_id>` | Run via Bash tool |
+| Encounter roll | `tag compute encounter [--escalation <n>]` | Run via Bash tool |
+| Render combat turn | `tag render combat-turn --style <style>` | Run via Bash tool |
+
+---
+
 ## CRITICAL — Hidden Adversary Rolls
 
 For non-combat interactions with adversaries (sneak past, persuade, distract, etc.),

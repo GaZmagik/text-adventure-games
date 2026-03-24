@@ -333,4 +333,106 @@ describe('validateState', () => {
     expect(result.valid).toBe(false);
     expect(result.errors.some(e => e.includes('rosterMutations[0].stats must be an object'))).toBe(true);
   });
+
+  // ── Range validation warnings ─────────────────────────────────────
+
+  test('character.hp < 0 produces a warning', () => {
+    const state = createDefaultState();
+    state.character = {
+      name: 'Hero',
+      class: 'Soldier',
+      hp: -1,
+      maxHp: 10,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'gold',
+      stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+      modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'knife', armour: 'none' },
+    };
+    const result = validateState(state);
+    expect(result.warnings.some(w => w.includes('character.hp') && w.includes('>= 0'))).toBe(true);
+  });
+
+  test('character.maxHp <= 0 produces a warning', () => {
+    const state = createDefaultState();
+    state.character = {
+      name: 'Hero',
+      class: 'Soldier',
+      hp: 0,
+      maxHp: 0,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'gold',
+      stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+      modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'knife', armour: 'none' },
+    };
+    const result = validateState(state);
+    expect(result.warnings.some(w => w.includes('character.maxHp') && w.includes('> 0'))).toBe(true);
+  });
+
+  test('character.level outside 1-10 produces a warning', () => {
+    const state = createDefaultState();
+    state.character = {
+      name: 'Hero',
+      class: 'Soldier',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 11,
+      xp: 0,
+      currency: 0,
+      currencyName: 'gold',
+      stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+      modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'knife', armour: 'none' },
+    };
+    const result = validateState(state);
+    expect(result.warnings.some(w => w.includes('character.level') && w.includes('1 and 10'))).toBe(true);
+  });
+
+  test('character.ac < 0 produces a warning', () => {
+    const state = createDefaultState();
+    state.character = {
+      name: 'Hero',
+      class: 'Soldier',
+      hp: 10,
+      maxHp: 10,
+      ac: -1,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'gold',
+      stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+      modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'knife', armour: 'none' },
+    };
+    const result = validateState(state);
+    expect(result.warnings.some(w => w.includes('character.ac') && w.includes('>= 0'))).toBe(true);
+  });
 });

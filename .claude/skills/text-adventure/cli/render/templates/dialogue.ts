@@ -22,7 +22,7 @@ export function renderDialogue(state: GmState | null, css: string, options?: Rec
 
   const npcName = npc?.name ?? (options?.npcName as string) ?? 'Unknown NPC';
   const disposition = npc?.disposition ?? 'neutral';
-  const dispStyle = DISPOSITION_STYLES[disposition] ?? DISPOSITION_STYLES.neutral;
+  const dispStyle = DISPOSITION_STYLES[disposition] ?? DISPOSITION_STYLES['neutral']!;
 
   // Dialogue text and options can be passed via options.data
   const data = options?.data as { text?: string; choices?: { label: string; prompt: string }[] } | undefined;

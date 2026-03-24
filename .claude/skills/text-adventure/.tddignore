@@ -13,5 +13,10 @@ cli/render/templates/*.ts
 # Version constant — single-line export, no logic
 cli/lib/version.ts
 
+# Render lib string constants — client-side JS embedded as template strings, no server-side logic
+cli/render/lib/soundscape.ts
+cli/render/lib/webgl-dice.ts
+cli/render/lib/scene-script.ts
+
 # CLI manual — markdown documentation, not testable code
 cli/manual.md

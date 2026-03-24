@@ -1,5 +1,6 @@
 import { describe, test, expect } from 'bun:test';
 import { handleRules } from './rules';
+import { RULES } from '../data/rules';
 
 describe('handleRules', () => {
   test('returns all rules with no arguments', async () => {
@@ -32,12 +33,17 @@ describe('handleRules', () => {
   });
 
   test('filters by keyword when not a category', async () => {
-    const result = await handleRules(['widget']);
+    // Derive a keyword from actual rules data that is NOT a category name
+    const categories = new Set(['output', 'agency', 'cli', 'prose', 'technical']);
+    const keyword = RULES.flatMap(r => r.rule.split(' '))
+      .map(w => w.toLowerCase().replace(/[^a-z]/g, ''))
+      .find(w => w.length > 4 && !categories.has(w))!;
+    const result = await handleRules([keyword]);
     expect(result.ok).toBe(true);
     const data = result.data as { rules: { rule: string }[] };
     expect(data.rules.length).toBeGreaterThan(0);
     for (const rule of data.rules) {
-      expect(rule.rule.toLowerCase()).toContain('widget');
+      expect(rule.rule.toLowerCase()).toContain(keyword);
     }
   });
 

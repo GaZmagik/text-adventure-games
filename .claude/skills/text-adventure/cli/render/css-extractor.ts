@@ -20,7 +20,7 @@ export async function extractAllCss(filePath: string): Promise<string> {
     const regex = /```css\s*\n([\s\S]*?)```/g;
     let match: RegExpExecArray | null;
     while ((match = regex.exec(content)) !== null) {
-      const block = match[1].trim();
+      const block = match[1]!.trim();
       allBlocks.push(block);
       if (block.startsWith('/* @extract */')) {
         markedBlocks.push(block);
@@ -35,7 +35,9 @@ export async function extractAllCss(filePath: string): Promise<string> {
       .replace(/@import\s+(?:url\s*\([^)]*\)|"[^"]*"|'[^']*')\s*;?/gi, '/* @import stripped */')
       .replace(/url\s*\(\s*(['"]?)https?:\/\//gi, 'url($1data:,/*blocked*/')
       .replace(/url\s*\(\s*(['"]?)\/\//gi, 'url($1data:,/*blocked*/')
-      .replace(/url\s*\(\s*(['"]?)javascript:/gi, 'url($1data:,/*blocked*/');
+      .replace(/url\s*\(\s*(['"]?)javascript:/gi, 'url($1data:,/*blocked*/')
+      .replace(/expression\s*\(/gi, '/* expression blocked */(')
+      .replace(/-moz-binding\s*:/gi, '/* binding blocked */:');
     // Only cache non-empty results — avoids masking files that gain CSS later
     if (sanitised) cssCache.set(filePath, sanitised);
     return sanitised;
@@ -51,8 +53,8 @@ export async function extractCssVars(filePath: string): Promise<Record<string, s
   const regex = /(--[\w-]+)\s*:\s*([^;]+);/g;
   let match: RegExpExecArray | null;
   while ((match = regex.exec(css)) !== null) {
-    const key = match[1].trim();
-    const value = match[2].replace(/\/\*.*?\*\//g, '').trim();
+    const key = match[1]!.trim();
+    const value = match[2]!.replace(/\/\*.*?\*\//g, '').trim();
     vars[key] = value;
   }
 

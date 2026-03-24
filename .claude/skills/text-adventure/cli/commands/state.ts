@@ -15,12 +15,17 @@ const VALID_SUBCOMMANDS = ['get', 'set', 'create-npc', 'validate', 'reset', 'his
  * Navigate a state object by dot-separated path.
  * Returns { found: true, value } or { found: false }.
  */
+const MAX_PATH_DEPTH = 10;
+
 function getByPath(obj: unknown, path: string): { found: boolean; value: unknown } {
   if (!path || path.length === 0) {
     return { found: true, value: obj };
   }
 
   const parts = path.split('.');
+  if (parts.length > MAX_PATH_DEPTH) {
+    return { found: false, value: undefined };
+  }
   let current: unknown = obj;
 
   for (const part of parts) {
@@ -49,7 +54,7 @@ function setByPath(obj: Record<string, unknown>, path: string, value: unknown): 
   const parts = path.split('.');
 
   // Reject writes to unknown top-level keys — prevents arbitrary state expansion.
-  const topKey = parts[0];
+  const topKey = parts[0]!;
   if (!VALID_TOP_KEYS.has(topKey)) {
     throw new Error(`Unknown top-level key: "${topKey}". Valid keys: ${[...VALID_TOP_KEYS].join(', ')}`);
   }
@@ -57,7 +62,7 @@ function setByPath(obj: Record<string, unknown>, path: string, value: unknown): 
   let current: Record<string, unknown> = obj;
 
   for (let i = 0; i < parts.length - 1; i++) {
-    const part = parts[i];
+    const part = parts[i]!;
     if (FORBIDDEN_KEYS.has(part)) {
       throw new Error(`Forbidden path segment: "${part}"`);
     }
@@ -67,7 +72,7 @@ function setByPath(obj: Record<string, unknown>, path: string, value: unknown): 
     current = current[part] as Record<string, unknown>;
   }
 
-  const lastKey = parts[parts.length - 1];
+  const lastKey = parts[parts.length - 1]!;
   if (FORBIDDEN_KEYS.has(lastKey)) {
     throw new Error(`Forbidden path segment: "${lastKey}"`);
   }
@@ -151,7 +156,7 @@ async function handleGet(args: string[]): Promise<CommandResult> {
   if (!result.found) {
     return fail(
       `Path "${path}" not found in state.`,
-      suggestKeys(state, path.split('.')[0]),
+      suggestKeys(state, path.split('.')[0]!),
       'state get',
     );
   }
@@ -174,7 +179,7 @@ async function handleSet(args: string[]): Promise<CommandResult> {
   let rawValue: string;
 
   if (operator === '+=' || operator === '-=') {
-    rawValue = args[2];
+    rawValue = args[2]!;
     if (!rawValue) {
       return fail(`No value provided for ${operator} operation.`, `Usage: tag state set ${path} ${operator} <number>`, 'state set');
     }
@@ -188,7 +193,7 @@ async function handleSet(args: string[]): Promise<CommandResult> {
     }
     newValue = operator === '+=' ? current.value + delta : current.value - delta;
   } else {
-    rawValue = args[1];
+    rawValue = args[1]!;
     if (rawValue === undefined) {
       return fail('No value provided.', `Usage: tag state set ${path} <value>`, 'state set');
     }

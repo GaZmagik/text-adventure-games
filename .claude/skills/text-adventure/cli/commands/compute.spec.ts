@@ -69,7 +69,7 @@ describe('compute contest', () => {
     const result = await handleCompute(['contest', 'CHA', 'nonexistent']);
     expect(result.ok).toBe(false);
     expect(result.error!.message).toContain('nonexistent');
-    expect(result.error!.corrective).toContain('tag state create-npc');
+    expect(result.error!.corrective).toContain('tag state get rosterMutations');
   });
 
   test('fails without state file', async () => {

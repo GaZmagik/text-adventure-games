@@ -1,7 +1,7 @@
 import { join, resolve } from 'node:path';
 import { homedir, tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
-import { mkdirSync, existsSync, renameSync, writeFileSync, unlinkSync } from 'node:fs';
+import { mkdirSync, renameSync, writeFileSync, unlinkSync } from 'node:fs';
 import type { GmState } from '../types';
 import { MAX_ROLL_HISTORY } from './constants';
 
@@ -30,6 +30,7 @@ export async function loadState(): Promise<GmState> {
   if (!(await file.exists())) {
     throw new Error('State file not found. Run "tag state init" to create one.');
   }
+  if (file.size > 10 * 1024 * 1024) throw new Error('State file exceeds 10 MB — possible corruption.');
   return file.json() as Promise<GmState>;
 }
 
@@ -38,9 +39,7 @@ export async function loadState(): Promise<GmState> {
 // async with no fsync guarantee, so sync I/O is the deliberate choice here).
 export async function saveState(state: GmState): Promise<void> {
   const dir = getStateDir();
-  if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true });
-  }
+  mkdirSync(dir, { recursive: true, mode: 0o700 });
   // Deep copy — don't mutate the caller's object or share nested references
   const toSave = structuredClone(state);
   if (toSave.rollHistory && toSave.rollHistory.length > MAX_ROLL_HISTORY) {
@@ -50,7 +49,7 @@ export async function saveState(state: GmState): Promise<void> {
   const path = join(dir, 'state.json');
   const tmpPath = path + '.tmp';
   try {
-    writeFileSync(tmpPath, JSON.stringify(toSave), 'utf-8');
+    writeFileSync(tmpPath, JSON.stringify(toSave), { encoding: 'utf-8', mode: 0o600 });
     renameSync(tmpPath, path);
   } catch (err) {
     try { unlinkSync(tmpPath); } catch { /* best-effort cleanup */ }
@@ -62,6 +61,7 @@ export async function tryLoadState(): Promise<GmState | null> {
   try {
     const file = Bun.file(getStatePath());
     if (!(await file.exists())) return null;
+    if (file.size > 10 * 1024 * 1024) throw new Error('State file exceeds 10 MB — possible corruption.');
     return await file.json() as GmState;
   } catch (err: unknown) {
     if (err instanceof SyntaxError) {

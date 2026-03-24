@@ -79,7 +79,7 @@ function randInt(min: number, max: number): number {
 /** Picks a random element from an array. Throws if the array is empty. */
 function pick<T>(arr: readonly T[]): T {
   if (arr.length === 0) throw new Error('pick() called with empty array');
-  return arr[Math.floor(Math.random() * arr.length)];
+  return arr[Math.floor(Math.random() * arr.length)]!;
 }
 
 /** Generates a random stat block within the tier's stat range. */

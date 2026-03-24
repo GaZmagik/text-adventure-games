@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'bun:test';
-import { esc } from './html';
+import { esc, formatModifier } from './html';
 
 describe('esc', () => {
   test('escapes &, <, >, "', () => {
@@ -15,5 +15,20 @@ describe('esc', () => {
   });
   test('passes through safe strings', () => {
     expect(esc('hello world')).toBe('hello world');
+  });
+});
+
+describe('formatModifier', () => {
+  test('prefixes positive numbers with +', () => {
+    expect(formatModifier(3)).toBe('+3');
+  });
+  test('prefixes zero with +', () => {
+    expect(formatModifier(0)).toBe('+0');
+  });
+  test('negative numbers retain their minus sign', () => {
+    expect(formatModifier(-1)).toBe('-1');
+  });
+  test('large positive modifier', () => {
+    expect(formatModifier(10)).toBe('+10');
   });
 });

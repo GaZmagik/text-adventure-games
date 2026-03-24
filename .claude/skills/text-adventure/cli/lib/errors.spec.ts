@@ -32,13 +32,16 @@ describe('noState', () => {
 });
 
 describe('npcNotFound', () => {
-  test('returns error with NPC id and corrective create-npc command', () => {
+  test('returns error with NPC id and corrective hint', () => {
     const result = npcNotFound('guard_01');
     expect(result.ok).toBe(false);
     expect(result.error!.message).toContain('guard_01');
-    expect(result.error!.corrective).toContain('tag state create-npc guard_01');
-    expect(result.error!.corrective).toContain('--tier');
-    expect(result.error!.corrective).toContain('--pronouns');
+    expect(result.error!.corrective).toContain('tag state get rosterMutations');
+  });
+
+  test('accepts optional command parameter', () => {
+    const result = npcNotFound('guard_01', 'state');
+    expect(result.command).toBe('state');
   });
 });
 

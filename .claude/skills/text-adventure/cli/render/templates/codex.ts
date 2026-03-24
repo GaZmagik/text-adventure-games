@@ -23,7 +23,7 @@ ${css ? '<style>' + css + '</style>' : ''}
   }
 
   const rows = entries.map(entry => {
-    const style = STATE_STYLES[entry.state] ?? STATE_STYLES.locked;
+    const style = STATE_STYLES[entry.state] ?? STATE_STYLES['locked']!;
     const discoveredAt = entry.discoveredAt !== undefined ? `Scene ${entry.discoveredAt}` : '';
     const via = entry.via ? esc(entry.via) : '';
     const secrets = entry.secrets && entry.secrets.length > 0

@@ -38,7 +38,7 @@ export function validateState(state: unknown): ValidationResult {
 
   // character
   if (s.character !== null && s.character !== undefined) {
-    validateCharacter(s.character, errors);
+    validateCharacter(s.character, errors, warnings);
   }
 
   // rosterMutations
@@ -47,7 +47,7 @@ export function validateState(state: unknown): ValidationResult {
       errors.push('rosterMutations must be an array.');
     } else {
       for (let i = 0; i < s.rosterMutations.length; i++) {
-        validateNpc(s.rosterMutations[i], i, errors);
+        validateNpc(s.rosterMutations[i], i, errors, warnings);
       }
     }
   }
@@ -103,7 +103,7 @@ export function validateState(state: unknown): ValidationResult {
   return { valid: errors.length === 0, errors, warnings };
 }
 
-function validateCharacter(char: unknown, errors: string[]): void {
+function validateCharacter(char: unknown, errors: string[], warnings: string[]): void {
   if (typeof char !== 'object' || char === null) {
     errors.push('character must be an object.');
     return;
@@ -117,14 +117,30 @@ function validateCharacter(char: unknown, errors: string[]): void {
 
   if (typeof c.hp !== 'number') {
     errors.push('character.hp must be a number.');
+  } else if (c.hp < 0) {
+    warnings.push('character.hp should be >= 0.');
   }
 
   if (typeof c.maxHp !== 'number') {
     errors.push('character.maxHp must be a number.');
+  } else if (c.maxHp <= 0) {
+    warnings.push('character.maxHp should be > 0.');
+  }
+
+  if (typeof c.hp === 'number' && typeof c.maxHp === 'number' && c.hp > c.maxHp) {
+    warnings.push('character.hp should not exceed character.maxHp.');
   }
 
   if (typeof c.level !== 'number') {
     errors.push('character.level must be a number.');
+  } else if (c.level < 1 || c.level > 10) {
+    warnings.push('character.level should be between 1 and 10.');
+  }
+
+  if (typeof c.ac !== 'number') {
+    warnings.push('character.ac should be a number.');
+  } else if (c.ac < 0) {
+    warnings.push('character.ac should be >= 0.');
   }
 
   // stats
@@ -140,7 +156,7 @@ function validateCharacter(char: unknown, errors: string[]): void {
   }
 }
 
-function validateNpc(npc: unknown, index: number, errors: string[]): void {
+function validateNpc(npc: unknown, index: number, errors: string[], warnings: string[]): void {
   if (typeof npc !== 'object' || npc === null) {
     errors.push(`rosterMutations[${index}] must be an object.`);
     return;
@@ -173,6 +189,42 @@ function validateNpc(npc: unknown, index: number, errors: string[]): void {
     for (const stat of STAT_NAMES) {
       if (typeof stats[stat] !== 'number') {
         errors.push(`${prefix}.stats.${stat} must be a number.`);
+      }
+    }
+  }
+
+  // hp / maxHp
+  if (typeof n.hp !== 'number') {
+    warnings.push(`${prefix}.hp should be a number.`);
+  } else if (n.hp < 0) {
+    warnings.push(`${prefix}.hp should be >= 0.`);
+  }
+
+  if (typeof n.maxHp !== 'number') {
+    warnings.push(`${prefix}.maxHp should be a number.`);
+  } else if (n.maxHp <= 0) {
+    warnings.push(`${prefix}.maxHp should be > 0.`);
+  }
+
+  if (typeof n.hp === 'number' && typeof n.maxHp === 'number' && n.hp > n.maxHp) {
+    warnings.push(`${prefix}.hp should not exceed ${prefix}.maxHp.`);
+  }
+
+  // status — optional string
+  if (n.status !== undefined && typeof n.status !== 'string') {
+    warnings.push(`${prefix}.status should be a string if present.`);
+  }
+
+  // modifiers — optional object with numeric values
+  if (n.modifiers !== undefined) {
+    if (typeof n.modifiers !== 'object' || n.modifiers === null) {
+      warnings.push(`${prefix}.modifiers should be an object if present.`);
+    } else {
+      const mods = n.modifiers as Record<string, unknown>;
+      for (const [key, val] of Object.entries(mods)) {
+        if (typeof val !== 'number') {
+          warnings.push(`${prefix}.modifiers.${key} should be a number.`);
+        }
       }
     }
   }

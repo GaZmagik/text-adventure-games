@@ -46,7 +46,7 @@ async function main(): Promise<void> {
   const command = args[0];
 
   if (args[1] === '--help') {
-    output(getCommandHelp(command));
+    output(getCommandHelp(command!));
     return;
   }
 
@@ -84,7 +84,7 @@ async function main(): Promise<void> {
       break;
     }
     default:
-      result = unknownCommand(command);
+      result = unknownCommand(command!);
   }
 
   output(result);
@@ -100,3 +100,7 @@ main().catch((err: unknown) => {
   });
   process.exit(1);
 });
+
+// Signal handling (SIGTERM/SIGINT) intentionally omitted.
+// All file writes use atomic tmp+rename (see state-store.ts saveState),
+// so interruption during a write leaves state.json intact.

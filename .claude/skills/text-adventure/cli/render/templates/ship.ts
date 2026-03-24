@@ -24,7 +24,7 @@ ${css ? '<style>' + css + '</style>' : ''}
 
   const systemCards = Object.entries(ship.systems).map(([name, sys]) => {
     const pct = Math.max(0, Math.min(100, sys.integrity));
-    const colours = STATUS_COLOURS[sys.status] ?? STATUS_COLOURS.operational;
+    const colours = STATUS_COLOURS[sys.status] ?? STATUS_COLOURS['operational']!;
     const conditions = sys.conditions.length > 0
       ? sys.conditions.map(c => `<span class="ship-condition">${esc(c)}</span>`).join(' ')
       : '';

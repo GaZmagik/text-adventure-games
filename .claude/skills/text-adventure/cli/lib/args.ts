@@ -19,7 +19,7 @@ export function parseArgs(args: string[], booleanFlags?: string[]): ParsedArgs {
 
   let i = 0;
   while (i < args.length) {
-    const arg = args[i];
+    const arg = args[i]!;
     if (arg.startsWith('--')) {
       // Support --key=value syntax
       const eqIdx = arg.indexOf('=');
@@ -32,7 +32,7 @@ export function parseArgs(args: string[], booleanFlags?: string[]): ParsedArgs {
           booleans.add(key);
           i++;
         } else if (i + 1 < args.length) {
-          flags[key] = args[i + 1];
+          flags[key] = args[i + 1]!;
           i += 2;
         } else {
           // Trailing flag without value is treated as boolean true (e.g. --verbose)

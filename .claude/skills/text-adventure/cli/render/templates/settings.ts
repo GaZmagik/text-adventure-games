@@ -6,12 +6,12 @@ import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
 
 interface SettingsData {
-  rulebooks?: string[];
-  difficulties?: string[];
-  pacingOptions?: string[];
-  visualStyles?: string[];
-  modules?: string[];
-  defaults?: Record<string, string>;
+  rulebooks?: string[] | undefined;
+  difficulties?: string[] | undefined;
+  pacingOptions?: string[] | undefined;
+  visualStyles?: string[] | undefined;
+  modules?: string[] | undefined;
+  defaults?: Record<string, string> | undefined;
 }
 
 export function renderSettings(state: GmState | null, css: string, options?: Record<string, unknown>): string {

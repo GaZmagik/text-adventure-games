@@ -128,7 +128,7 @@ describe('state set', () => {
 
     const state = await loadState();
     expect(state._stateHistory.length).toBeGreaterThanOrEqual(1);
-    const last = state._stateHistory[state._stateHistory.length - 1];
+    const last = state._stateHistory[state._stateHistory.length - 1]!;
     expect(last.path).toBe('scene');
     expect(last.newValue).toBe(5);
     expect(last.command).toBe('state set');
@@ -174,7 +174,7 @@ describe('state set', () => {
     const state = await loadState();
     expect(Array.isArray(state.quests)).toBe(true);
     expect(state.quests.length).toBe(1);
-    expect(state.quests[0].id).toBe('quest_1');
+    expect(state.quests[0]!.id).toBe('quest_1');
   });
 
   test('set plain string that looks numeric-ish stays string when not a number', async () => {

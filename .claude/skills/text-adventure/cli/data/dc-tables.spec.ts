@@ -19,16 +19,16 @@ describe('DC_BY_LEVEL', () => {
 
   test('moderate DCs increase with level', () => {
     for (let i = 1; i < DC_BY_LEVEL.length; i++) {
-      expect(DC_BY_LEVEL[i].moderate).toBeGreaterThanOrEqual(DC_BY_LEVEL[i - 1].moderate);
+      expect(DC_BY_LEVEL[i]!.moderate).toBeGreaterThanOrEqual(DC_BY_LEVEL[i - 1]!.moderate);
     }
   });
 
   test('level 1-2 moderate DC is 10', () => {
-    expect(DC_BY_LEVEL[0].moderate).toBe(10);
+    expect(DC_BY_LEVEL[0]!.moderate).toBe(10);
   });
 
   test('level 7-8 hard DC is 17', () => {
-    expect(DC_BY_LEVEL[3].hard).toBe(17);
+    expect(DC_BY_LEVEL[3]!.hard).toBe(17);
   });
 });
 

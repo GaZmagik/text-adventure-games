@@ -65,5 +65,5 @@ export function getFactionStanding(score: number): FactionStanding {
   const clamped = Math.max(-100, Math.min(100, score));
   const standing = FACTION_STANDINGS.find(s => clamped >= s.min && clamped <= s.max);
   // Should never happen with contiguous ranges, but fall back to Neutral defensively.
-  return standing ?? FACTION_STANDINGS[2];
+  return standing ?? FACTION_STANDINGS[2]!;
 }
