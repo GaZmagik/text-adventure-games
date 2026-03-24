@@ -1,8 +1,4 @@
-export interface DiceNotation {
-  count: number;
-  sides: number;
-  modifier: number;
-}
+import { MAX_DICE_COUNT } from './constants';
 
 export function rollDie(sides: number): number {
   return Math.floor(Math.random() * sides) + 1;
@@ -17,19 +13,10 @@ export function rollD20(): number { return rollDie(20); }
 export function rollD100(): number { return (rollDie(10) - 1) * 10 + rollDie(10); }
 
 export function rollDice(count: number, sides: number, modifier: number): number {
+  const safeCt = Math.min(Math.max(0, count), MAX_DICE_COUNT);
   let total = 0;
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < safeCt; i++) {
     total += rollDie(sides);
   }
   return total + modifier;
-}
-
-export function parseDice(notation: string): DiceNotation | null {
-  const match = notation.match(/^(\d*)d(\d+)([+-]\d+)?$/i);
-  if (!match) return null;
-  return {
-    count: match[1] ? parseInt(match[1], 10) : 1,
-    sides: parseInt(match[2], 10),
-    modifier: match[3] ? parseInt(match[3], 10) : 0,
-  };
 }

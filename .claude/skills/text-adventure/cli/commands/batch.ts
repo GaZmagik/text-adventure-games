@@ -1,13 +1,15 @@
-import type { CommandResult } from '../types';
+import type { CommandResult, GmState } from '../types';
 import { ok, fail } from '../lib/errors';
-import { loadState, stateExists } from '../lib/state-store';
+import { tryLoadState } from '../lib/state-store';
 import { parseArgs } from '../lib/args';
 import { handleState } from './state';
 import { handleCompute } from './compute';
 import { handleSave } from './save';
 import { handleRender } from './render';
 
-interface ParsedLine {
+const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
+type ParsedLine = {
   raw: string;
   label?: string;
   command: string;
@@ -51,6 +53,7 @@ function resolveReferences(
 
     // Navigate dot path
     for (let i = 1; i < parts.length; i++) {
+      if (FORBIDDEN_KEYS.has(parts[i])) return arg;
       if (value === null || value === undefined) return arg;
       if (typeof value === 'object') {
         value = (value as Record<string, unknown>)[parts[i]];
@@ -91,6 +94,7 @@ export async function handleBatch(args: string[]): Promise<CommandResult> {
   const results: CommandResult[] = [];
   const labelled: Record<string, unknown> = {};
   const errors: { line: number; raw: string; error: string }[] = [];
+  let didMutate = false;
 
   for (let i = 0; i < lines.length; i++) {
     const parsedLine = parseLine(lines[i]);
@@ -119,6 +123,7 @@ export async function handleBatch(args: string[]): Promise<CommandResult> {
 
     const result = await dispatch(parsedLine.command, resolvedArgs);
     results.push(result);
+    if (['state', 'save'].includes(parsedLine.command)) didMutate = true;
 
     if (parsedLine.label) {
       labelled[parsedLine.label] = result.data;
@@ -129,10 +134,10 @@ export async function handleBatch(args: string[]): Promise<CommandResult> {
     }
   }
 
-  // Get final state snapshot
-  let stateSnapshot: Record<string, unknown> | null = null;
-  if (!dryRun && await stateExists()) {
-    stateSnapshot = await loadState() as unknown as Record<string, unknown>; // GmState lacks index sig
+  // Get final state snapshot — only if commands actually mutated state
+  let stateSnapshot: GmState | null = null;
+  if (!dryRun && didMutate) {
+    stateSnapshot = await tryLoadState();
   }
 
   return ok({

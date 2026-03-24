@@ -55,8 +55,9 @@ describe('save generate', () => {
     const result = await handleSave(['generate']);
     const data = result.data as Record<string, unknown>;
     const decoded = validateAndDecode(data.saveString as string);
-    expect(decoded.payload!.scene).toBe(7);
-    expect(decoded.payload!.factions).toEqual({ rebels: 42 });
+    if (!decoded.valid) throw new Error('Expected valid decode');
+    expect(decoded.payload.scene).toBe(7);
+    expect(decoded.payload.factions).toEqual({ rebels: 42 });
   });
 
   test('fails without state file', async () => {
@@ -174,6 +175,20 @@ describe('save validate — detailed checks', () => {
     expect(data.error).toBeDefined();
     expect(data.scene).toBeNull();
     expect(data.characterName).toBeNull();
+  });
+
+  test('validates a .save.md file path', async () => {
+    const genResult = await handleSave(['generate']);
+    expect(genResult.ok).toBe(true);
+    const saveString = (genResult.data as Record<string, unknown>).saveString as string;
+
+    const saveFilePath = join(tempDir, 'validate-test.save.md');
+    writeFileSync(saveFilePath, `# Save\n\n\`\`\`\n${saveString}\n\`\`\`\n`);
+
+    const result = await handleSave(['validate', saveFilePath]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.valid).toBe(true);
   });
 
   test('fails without save string argument', async () => {

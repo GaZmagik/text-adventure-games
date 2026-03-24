@@ -128,11 +128,11 @@ function validateNpc(npc: unknown, index: number, errors: string[]): void {
     errors.push(`${prefix}.name must be a non-empty string.`);
   }
 
-  if (typeof n.pronouns !== 'string' || !VALID_PRONOUNS.includes(n.pronouns)) {
+  if (typeof n.pronouns !== 'string' || !(VALID_PRONOUNS as readonly string[]).includes(n.pronouns)) {
     errors.push(`${prefix}.pronouns must be one of: ${VALID_PRONOUNS.join(', ')}.`);
   }
 
-  if (typeof n.tier !== 'string' || !VALID_TIERS.includes(n.tier)) {
+  if (typeof n.tier !== 'string' || !(VALID_TIERS as readonly string[]).includes(n.tier)) {
     errors.push(`${prefix}.tier must be one of: ${VALID_TIERS.join(', ')}.`);
   }
 

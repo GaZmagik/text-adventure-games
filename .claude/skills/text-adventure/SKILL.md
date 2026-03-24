@@ -2,7 +2,7 @@
 name: text-adventure
 description: Interactive text adventure game engine. Triggers on "text adventure", "play a game", "tabletop RPG", "interactive fiction", "dungeon crawl", or any narrative game request. Also for resuming prior sessions. CARDINAL RULE — Do NOT write ANY text in the conversation. No prose, narration, analysis, status updates, check descriptions, DC values, or stat breakdowns. ALL game output goes inside visualize:show_widget. ALL deliberation goes in the thinking tool. The player sees ONLY widgets. Exception — brief responses to out-of-character questions. Do NOT use for creative writing without player agency. Loads modules from modules/ directory as needed.
 metadata:
-  version: "1.3.0.c"
+  version: "1.3.0.e"
 ---
 
 # Text Adventure Game — Core Engine
@@ -58,7 +58,7 @@ Uploaded files land in `/mnt/user-data/uploads/`. The load command reads the fil
 | Command | Purpose | Example |
 |---------|---------|---------|
 | `tag state` | Game state CRUD + NPC creation | `tag state create-npc guard_01 --tier rival --name "Guard" --pronouns he/him --role guard` |
-| `tag compute` | Hidden rolls, hazard saves | `tag compute contest CHA merchant_01` |
+| `tag compute` | Hidden rolls: `contest`, `hazard`, `encounter` | `tag compute contest CHA merchant_01` |
 | `tag render` | Deterministic HTML widgets | `tag render scene --style terminal` |
 | `tag save` | Generate/load/validate saves | `tag save generate` |
 | `tag batch` | Multiple commands in one call | See worked example below |

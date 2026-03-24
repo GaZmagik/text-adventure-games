@@ -2,7 +2,7 @@
 // new proficiency bonus if applicable, ability options.
 
 import type { GmState } from '../../types';
-import { esc, escapeAttr } from '../../lib/html';
+import { esc } from '../../lib/html';
 import { proficiencyBonus } from '../../lib/modifier';
 
 export function renderLevelup(state: GmState | null, css: string, options?: Record<string, unknown>): string {
@@ -70,7 +70,7 @@ export function renderLevelup(state: GmState | null, css: string, options?: Reco
   ${abilityOptions.length > 0 ? `
   <div class="ability-options">
     <div style="font-size:11px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Choose an ability</div>
-    ${abilityOptions.map(a => `<button class="ability-card" data-prompt="I choose the ${escapeAttr(a)} ability" aria-pressed="false">${esc(a)}</button>`).join('\n    ')}
+    ${abilityOptions.map(a => `<button class="ability-card" data-prompt="I choose the ${esc(a)} ability" aria-pressed="false">${esc(a)}</button>`).join('\n    ')}
   </div>
   <script>
   document.querySelectorAll('.ability-card[data-prompt]').forEach(function(btn) {

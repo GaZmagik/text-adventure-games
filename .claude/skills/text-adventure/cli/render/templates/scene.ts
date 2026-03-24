@@ -2,7 +2,7 @@
 // scene-meta hidden div, and composed footer. This is the main game widget.
 
 import type { GmState } from '../../types';
-import { esc, escapeAttr } from '../../lib/html';
+import { esc } from '../../lib/html';
 import { VERSION } from '../../lib/version';
 import { renderFooter } from './footer';
 import { SOUNDSCAPE_ENGINE_CODE } from '../lib/soundscape';
@@ -98,7 +98,7 @@ export function renderScene(state: GmState | null, css: string, options?: Record
     </div>
   </div>
   <!-- Scene metadata (hidden, machine-readable) -->
-  <div id="scene-meta" style="display:none" data-meta='${escapeAttr(sceneMeta)}'></div>
+  <div id="scene-meta" style="display:none" data-meta='${esc(sceneMeta)}'></div>
   <!-- Footer -->
   ${footerHtml}
 </div>

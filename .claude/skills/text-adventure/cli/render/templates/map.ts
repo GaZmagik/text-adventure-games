@@ -16,11 +16,12 @@ ${css ? '<style>' + css + '</style>' : ''}
   }
 
   const visited = mapState.visitedZones;
+  const visitedSet = new Set(visited);
   const revealed = mapState.revealedZones;
-  const fogCount = revealed.filter(z => !visited.includes(z)).length;
+  const fogCount = revealed.filter(z => !visitedSet.has(z)).length;
 
   const zoneList = revealed.map(zone => {
-    const isVisited = visited.includes(zone);
+    const isVisited = visitedSet.has(zone);
     const isCurrent = zone === mapState.currentZone;
     const cls = isCurrent ? 'zone-current' : isVisited ? 'zone-visited' : 'zone-fog';
     const label = isCurrent ? ' (current)' : isVisited ? '' : ' (unexplored)';

@@ -65,6 +65,12 @@ function d10Faces(): number[][] {
   return tris;
 }
 
+// ── Lazy-init caches for d10/d100 geometry (shared) ──────────────────
+let _d10Verts: number[][] | null = null;
+let _d10Faces: number[][] | null = null;
+function getD10Verts(): number[][] { return _d10Verts ??= d10Vertices(); }
+function getD10Faces(): number[][] { return _d10Faces ??= d10Faces(); }
+
 // ── Configs ──────────────────────────────────────────────────────────
 
 export const DIE_CONFIGS = {
@@ -100,8 +106,8 @@ export const DIE_CONFIGS = {
     faceCount: 10,
     numberRange: [0, 9] as [number, number],
     geometryType: 'BufferGeometry',
-    customVertices: d10Vertices(),
-    customFaces: d10Faces(),
+    get customVertices() { return getD10Verts(); },
+    get customFaces() { return getD10Faces(); },
     trianglesPerFace: 2,
   },
   d12: {
@@ -122,8 +128,8 @@ export const DIE_CONFIGS = {
     faceCount: 10,
     numberRange: [0, 9] as [number, number],
     geometryType: 'BufferGeometry',
-    customVertices: d10Vertices(),
-    customFaces: d10Faces(),
+    get customVertices() { return getD10Verts(); },
+    get customFaces() { return getD10Faces(); },
     trianglesPerFace: 2,
     paired: true,
   },

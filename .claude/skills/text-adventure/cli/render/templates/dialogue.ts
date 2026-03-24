@@ -2,7 +2,7 @@
 // dialogue option buttons with data-prompt.
 
 import type { GmState } from '../../types';
-import { esc, escapeAttr } from '../../lib/html';
+import { esc } from '../../lib/html';
 
 const DISPOSITION_STYLES: Record<string, { bg: string; text: string }> = {
   hostile:    { bg: 'var(--ta-badge-failure-bg)', text: 'var(--ta-badge-failure-text)' },
@@ -77,7 +77,7 @@ export function renderDialogue(state: GmState | null, css: string, options?: Rec
   ${choices.length > 0 ? `
   <div class="dialogue-choices">
     ${choices.map(c =>
-      `<button class="dialogue-choice" data-prompt="${escapeAttr(c.prompt)}">${esc(c.label)}</button>`,
+      `<button class="dialogue-choice" data-prompt="${esc(c.prompt)}">${esc(c.label)}</button>`,
     ).join('\n    ')}
   </div>
   <script>

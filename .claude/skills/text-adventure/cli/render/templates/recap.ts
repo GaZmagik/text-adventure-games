@@ -18,8 +18,12 @@ export function renderRecap(state: GmState | null, css: string, _options?: Recor
   const recentRolls = rolls.slice(-5).reverse();
 
   // Active quests
-  const activeQuests = quests.filter(q => q.status === 'active');
-  const completedQuests = quests.filter(q => q.status === 'completed');
+  const activeQuests: typeof quests = [];
+  const completedQuests: typeof quests = [];
+  for (const q of quests) {
+    if (q.status === 'active') activeQuests.push(q);
+    else if (q.status === 'completed') completedQuests.push(q);
+  }
 
   return `
 <style>${css}
@@ -88,7 +92,7 @@ export function renderRecap(state: GmState | null, css: string, _options?: Recor
     ${recentRolls.map(r => {
       const outcomeClass = SUCCESS_OUTCOMES.has(r.outcome) ? 'roll-outcome-success' : 'roll-outcome-failure';
       return `<div class="roll-item">
-        <span><span class="roll-stat">${esc(r.stat)}</span> ${r.type}</span>
+        <span><span class="roll-stat">${esc(r.stat)}</span> ${esc(r.type)}</span>
         <span>${r.roll}+${r.modifier}=${r.total} vs DC ${r.dc} <span class="${outcomeClass}">${esc(r.outcome)}</span></span>
       </div>`;
     }).join('\n')}

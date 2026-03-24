@@ -3,7 +3,7 @@
 // Confirm button fires sendPrompt.
 
 import type { GmState } from '../../types';
-import { esc, escapeAttr } from '../../lib/html';
+import { esc } from '../../lib/html';
 
 interface SettingsData {
   rulebooks?: string[];
@@ -71,35 +71,35 @@ export function renderSettings(state: GmState | null, css: string, options?: Rec
   <div class="settings-section">
     <div class="settings-label">Rulebook</div>
     <div class="option-grid" data-group="rulebook" role="radiogroup">
-      ${rulebooks.map(r => `<button class="option-card${defaults.rulebook === r ? ' selected' : ''}" data-group="rulebook" data-value="${escapeAttr(r)}" role="radio" aria-checked="${defaults.rulebook === r ? 'true' : 'false'}">${esc(r.replace(/_/g, ' '))}</button>`).join('\n      ')}
+      ${rulebooks.map(r => `<button class="option-card${defaults.rulebook === r ? ' selected' : ''}" data-group="rulebook" data-value="${esc(r)}" role="radio" aria-checked="${defaults.rulebook === r ? 'true' : 'false'}">${esc(r.replace(/_/g, ' '))}</button>`).join('\n      ')}
     </div>
   </div>
 
   <div class="settings-section">
     <div class="settings-label">Difficulty</div>
     <div class="option-grid" data-group="difficulty" role="radiogroup">
-      ${difficulties.map(d => `<button class="option-card${defaults.difficulty === d ? ' selected' : ''}" data-group="difficulty" data-value="${escapeAttr(d)}" role="radio" aria-checked="${defaults.difficulty === d ? 'true' : 'false'}">${esc(d)}</button>`).join('\n      ')}
+      ${difficulties.map(d => `<button class="option-card${defaults.difficulty === d ? ' selected' : ''}" data-group="difficulty" data-value="${esc(d)}" role="radio" aria-checked="${defaults.difficulty === d ? 'true' : 'false'}">${esc(d)}</button>`).join('\n      ')}
     </div>
   </div>
 
   <div class="settings-section">
     <div class="settings-label">Pacing</div>
     <div class="option-grid" data-group="pacing" role="radiogroup">
-      ${pacingOptions.map(p => `<button class="option-card${defaults.pacing === p ? ' selected' : ''}" data-group="pacing" data-value="${escapeAttr(p)}" role="radio" aria-checked="${defaults.pacing === p ? 'true' : 'false'}">${esc(p)}</button>`).join('\n      ')}
+      ${pacingOptions.map(p => `<button class="option-card${defaults.pacing === p ? ' selected' : ''}" data-group="pacing" data-value="${esc(p)}" role="radio" aria-checked="${defaults.pacing === p ? 'true' : 'false'}">${esc(p)}</button>`).join('\n      ')}
     </div>
   </div>
 
   <div class="settings-section">
     <div class="settings-label">Visual Style</div>
     <div class="option-grid" data-group="visualStyle" role="radiogroup">
-      ${visualStyles.map(v => `<button class="option-card${defaults.visualStyle === v ? ' selected' : ''}" data-group="visualStyle" data-value="${escapeAttr(v)}" role="radio" aria-checked="${defaults.visualStyle === v ? 'true' : 'false'}">${esc(v)}</button>`).join('\n      ')}
+      ${visualStyles.map(v => `<button class="option-card${defaults.visualStyle === v ? ' selected' : ''}" data-group="visualStyle" data-value="${esc(v)}" role="radio" aria-checked="${defaults.visualStyle === v ? 'true' : 'false'}">${esc(v)}</button>`).join('\n      ')}
     </div>
   </div>
 
   <div class="settings-section">
     <div class="settings-label">Optional Modules</div>
     <div class="option-grid" data-group="modules">
-      ${modules.map(m => `<button class="option-card module-card" data-group="modules" data-value="${escapeAttr(m)}" aria-pressed="false"><span class="module-check"></span>${esc(m)}</button>`).join('\n      ')}
+      ${modules.map(m => `<button class="option-card module-card" data-group="modules" data-value="${esc(m)}" aria-pressed="false"><span class="module-check"></span>${esc(m)}</button>`).join('\n      ')}
     </div>
   </div>
 
@@ -107,7 +107,7 @@ export function renderSettings(state: GmState | null, css: string, options?: Rec
 </div>
 <script>
 (function() {
-  var selections = ${JSON.stringify(defaults).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029')};
+  var selections = ${JSON.stringify(defaults).replace(/[<>&'\u2028\u2029]/g, c => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'))};
   var selectedModules = [];
 
   // Single-select groups

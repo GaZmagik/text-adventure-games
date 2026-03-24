@@ -3,7 +3,7 @@
 // Confirm fires sendPrompt.
 
 import type { GmState } from '../../types';
-import { esc, escapeAttr } from '../../lib/html';
+import { esc } from '../../lib/html';
 
 interface Archetype {
   name: string;
@@ -45,7 +45,7 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
   }).join('\n');
 
   const profOptions = proficiencies.map(p =>
-    `<button class="prof-option" data-prof="${escapeAttr(p)}" aria-pressed="false">${esc(p)}</button>`,
+    `<button class="prof-option" data-prof="${esc(p)}" aria-pressed="false">${esc(p)}</button>`,
   ).join('\n        ');
 
   return `
@@ -104,7 +104,7 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
 
   <div class="creation-section">
     <div class="creation-label">Name</div>
-    <input class="name-input" id="char-name-input" type="text" placeholder="Enter character name..." value="${escapeAttr(defaultName)}">
+    <input class="name-input" id="char-name-input" type="text" placeholder="Enter character name..." value="${esc(defaultName)}">
     <span id="name-error" class="name-error" role="alert" style="display:none"></span>
   </div>
 

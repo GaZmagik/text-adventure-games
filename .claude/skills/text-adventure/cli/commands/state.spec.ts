@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { handleState } from './state';
-import { loadState, saveState, createDefaultState } from '../lib/state-store';
+import { loadState, saveState } from '../lib/state-store';
 import type { GmState } from '../types';
 
 let tempDir: string;
@@ -161,8 +161,8 @@ describe('state set', () => {
     const state = await loadState();
     expect(typeof state.character).toBe('object');
     expect(state.character).not.toBeNull();
-    expect((state.character as Record<string, unknown>).name).toBe('Rhian');
-    expect((state.character as Record<string, unknown>).hp).toBe(9);
+    expect(state.character!.name).toBe('Rhian');
+    expect(state.character!.hp).toBe(9);
   });
 
   test('set JSON array values — parses rather than storing as string', async () => {
@@ -174,7 +174,7 @@ describe('state set', () => {
     const state = await loadState();
     expect(Array.isArray(state.quests)).toBe(true);
     expect(state.quests.length).toBe(1);
-    expect((state.quests[0] as Record<string, unknown>).id).toBe('quest_1');
+    expect(state.quests[0].id).toBe('quest_1');
   });
 
   test('set plain string that looks numeric-ish stays string when not a number', async () => {
@@ -396,6 +396,20 @@ describe('state set — negative paths', () => {
     expect(result.ok).toBe(false);
     expect(result.error!.message).toContain('No value');
   });
+
+  test('silently creates intermediate objects for unknown deep keys', async () => {
+    await handleState(['reset']);
+    const result = await handleState(['set', 'nonexistent.deep.key', 'somevalue']);
+    expect(result.ok).toBe(true);
+
+    const state = await loadState();
+    const root = state as unknown as Record<string, unknown>;
+    const nested = root.nonexistent as Record<string, unknown>;
+    expect(nested).toBeDefined();
+    const deep = nested.deep as Record<string, unknown>;
+    expect(deep).toBeDefined();
+    expect(deep.key).toBe('somevalue');
+  });
 });
 
 // ── create-npc — negative paths ──────────────────────────────────
@@ -434,6 +448,24 @@ describe('state create-npc — negative paths', () => {
     expect(result.ok).toBe(false);
     expect(result.error!.message).toContain('Invalid pronouns');
     expect(result.error!.message).toContain('it/its');
+  });
+});
+
+// ── containsForbiddenKeys recursion ──────────────────────────────
+
+describe('state set — containsForbiddenKeys rejects nested __proto__', () => {
+  test('stores raw string when JSON value contains __proto__ at depth', async () => {
+    await handleState(['reset']);
+    const result = await handleState([
+      'set', 'worldFlags.test',
+      '{"nested": {"__proto__": {"polluted": true}}}',
+    ]);
+    expect(result.ok).toBe(true);
+
+    const state = await loadState();
+    const root = state as unknown as Record<string, unknown>;
+    const worldFlags = root.worldFlags as Record<string, unknown>;
+    expect(typeof worldFlags.test).toBe('string');
   });
 });
 

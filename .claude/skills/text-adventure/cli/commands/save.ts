@@ -1,23 +1,37 @@
-import { resolve } from 'path';
-import { homedir, tmpdir } from 'os';
+import { resolve } from 'node:path';
+import { homedir, tmpdir } from 'node:os';
+import { realpathSync } from 'node:fs';
 import type { CommandResult } from '../types';
 import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState, createDefaultState } from '../lib/state-store';
 import { validateState } from '../lib/validator';
 import { attachChecksum, validateAndDecode } from '../lib/fnv32';
 
+const RE_SAVE_IN_FENCE = /```[\s\S]*?([\da-fA-F]{8}\.SF[12]:[\S]+)[\s\S]*?```/;
+const RE_SAVE_BARE = /([\da-fA-F]{8}\.SF[12]:[\S]+)/;
+
 async function resolveSaveString(input: string): Promise<string> {
   if (input.startsWith('/') || input.startsWith('./') || input.endsWith('.md') || input.endsWith('.save')) {
     // Restrict file access to home directory or temp directory to prevent path traversal
-    const resolved = resolve(input);
-    if (!resolved.startsWith(homedir() + '/') && !resolved.startsWith(tmpdir() + '/')) return input;
+    // Use realpathSync to resolve symlinks before the prefix check
+    let resolved: string;
+    try {
+      resolved = realpathSync(resolve(input));
+    } catch {
+      return input; // Path doesn't exist — treat as raw save string
+    }
+    const home = homedir();
+    const tmp = tmpdir();
+    const homePrefix = home === '/' ? home : home + '/';
+    const tmpPrefix = tmp === '/' ? tmp : tmp + '/';
+    if (!resolved.startsWith(homePrefix) && !resolved.startsWith(tmpPrefix)) return input;
 
     try {
       const file = Bun.file(resolved);
       const content = await file.text();
-      const match = content.match(/```[\s\S]*?([\da-fA-F]{8}\.SF[12]:[\S]+)[\s\S]*?```/);
+      const match = content.match(RE_SAVE_IN_FENCE);
       if (match) return match[1];
-      const lineMatch = content.match(/([\da-fA-F]{8}\.SF[12]:[\S]+)/);
+      const lineMatch = content.match(RE_SAVE_BARE);
       if (lineMatch) return lineMatch[1];
       return content.trim();
     } catch {
@@ -101,7 +115,8 @@ async function load(args: string[]): Promise<CommandResult> {
 
   const payload = decoded.payload;
 
-  // Rebuild GmState from payload
+  // Rebuild GmState from payload — field-by-field to ensure defaults for missing keys.
+  // Intentionally excluded from save: _stateHistory, _lastComputation (session-only data).
   const state = createDefaultState();
   state._version = (payload._version as number) ?? 1;
   state.scene = (payload.scene as number) ?? 0;

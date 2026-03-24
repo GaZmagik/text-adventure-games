@@ -3,7 +3,7 @@ import { join } from 'path';
 import { mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { writeFileSync } from 'fs';
-import { loadState, saveState, stateExists, createDefaultState, getStatePath, tryLoadState } from './state-store';
+import { loadState, saveState, createDefaultState, getStatePath, tryLoadState } from './state-store';
 
 let tempDir: string;
 const originalEnv = process.env.TAG_STATE_DIR;
@@ -55,14 +55,14 @@ describe('createDefaultState', () => {
   });
 });
 
-describe('stateExists', () => {
-  test('returns false when no state file', async () => {
-    expect(await stateExists()).toBe(false);
+describe('tryLoadState existence check', () => {
+  test('returns null when no state file', async () => {
+    expect(await tryLoadState()).toBeNull();
   });
 
-  test('returns true after saving state', async () => {
+  test('returns state after saving', async () => {
     await saveState(createDefaultState());
-    expect(await stateExists()).toBe(true);
+    expect(await tryLoadState()).not.toBeNull();
   });
 });
 
@@ -86,7 +86,7 @@ describe('saveState and loadState', () => {
     const nested = join(tempDir, 'nested', 'deep');
     process.env.TAG_STATE_DIR = nested;
     await saveState(createDefaultState());
-    expect(await stateExists()).toBe(true);
+    expect(await tryLoadState()).not.toBeNull();
   });
 });
 

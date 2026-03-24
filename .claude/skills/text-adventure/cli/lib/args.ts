@@ -5,11 +5,11 @@
 // Flags in booleanFlags never consume a value — they set a boolean.
 // A non-boolean flag at the end of args with no value is treated as boolean.
 
-export interface ParsedArgs {
+export type ParsedArgs = {
   positional: string[];
   flags: Record<string, string>;
   booleans: Set<string>;
-}
+};
 
 export function parseArgs(args: string[], booleanFlags?: string[]): ParsedArgs {
   const boolSet = new Set(booleanFlags ?? []);
@@ -21,16 +21,23 @@ export function parseArgs(args: string[], booleanFlags?: string[]): ParsedArgs {
   while (i < args.length) {
     const arg = args[i];
     if (arg.startsWith('--')) {
-      const key = arg.slice(2);
-      if (boolSet.has(key)) {
-        booleans.add(key);
+      // Support --key=value syntax
+      const eqIdx = arg.indexOf('=');
+      if (eqIdx > 2) {
+        flags[arg.slice(2, eqIdx)] = arg.slice(eqIdx + 1);
         i++;
-      } else if (i + 1 < args.length) {
-        flags[key] = args[i + 1];
-        i += 2;
       } else {
-        booleans.add(key);
-        i++;
+        const key = arg.slice(2);
+        if (boolSet.has(key)) {
+          booleans.add(key);
+          i++;
+        } else if (i + 1 < args.length) {
+          flags[key] = args[i + 1];
+          i += 2;
+        } else {
+          booleans.add(key);
+          i++;
+        }
       }
     } else {
       positional.push(arg);

@@ -4,6 +4,7 @@
 // This prevents documentation CSS examples from being duplicated alongside
 // the Complete CSS Block that already contains everything.
 
+// Cache is process-scoped — fine for single CLI invocations. Does not invalidate on file change.
 const cssCache = new Map<string, string>();
 
 export async function extractAllCss(filePath: string): Promise<string> {
@@ -28,8 +29,12 @@ export async function extractAllCss(filePath: string): Promise<string> {
 
     // Prefer marked blocks — avoids duplicating documentation examples
     const result = (markedBlocks.length > 0 ? markedBlocks : allBlocks).join('\n\n');
-    // Strip </style sequences to prevent CSS injection when embedded in <style> tags
-    const sanitised = result.replace(/<\/style/gi, '<\\/style');
+    // Sanitise CSS: strip </style sequences, @import directives, and external url() references
+    const sanitised = result
+      .replace(/<\/style/gi, '<\\/style')
+      .replace(/@import\s+(?:url\s*\([^)]*\)|"[^"]*"|'[^']*')\s*;?/gi, '/* @import stripped */')
+      .replace(/url\s*\(\s*(['"]?)https?:\/\//gi, 'url($1data:,/*blocked*/')
+      .replace(/url\s*\(\s*(['"]?)\/\//gi, 'url($1data:,/*blocked*/');
     // Only cache non-empty results — avoids masking files that gain CSS later
     if (sanitised) cssCache.set(filePath, sanitised);
     return sanitised;

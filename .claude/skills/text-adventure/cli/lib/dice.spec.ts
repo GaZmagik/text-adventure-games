@@ -1,5 +1,5 @@
 import { describe, test, expect, afterEach, spyOn } from 'bun:test';
-import { rollD20, rollDice, parseDice, rollDie, rollD4, rollD6, rollD8, rollD10, rollD12, rollD100 } from './dice';
+import { rollD20, rollDice, rollDie, rollD4, rollD6, rollD8, rollD10, rollD12, rollD100 } from './dice';
 
 describe('rollD20', () => {
   test('returns a number between 1 and 20', () => {
@@ -13,28 +13,6 @@ describe('rollD20', () => {
   test('returns an integer', () => {
     const result = rollD20();
     expect(Number.isInteger(result)).toBe(true);
-  });
-});
-
-describe('parseDice', () => {
-  test('parses 1d20', () => {
-    expect(parseDice('1d20')).toEqual({ count: 1, sides: 20, modifier: 0 });
-  });
-
-  test('parses 2d6+3', () => {
-    expect(parseDice('2d6+3')).toEqual({ count: 2, sides: 6, modifier: 3 });
-  });
-
-  test('parses 1d8-1', () => {
-    expect(parseDice('1d8-1')).toEqual({ count: 1, sides: 8, modifier: -1 });
-  });
-
-  test('parses d20 (implied 1)', () => {
-    expect(parseDice('d20')).toEqual({ count: 1, sides: 20, modifier: 0 });
-  });
-
-  test('returns null for invalid notation', () => {
-    expect(parseDice('banana')).toBeNull();
   });
 });
 

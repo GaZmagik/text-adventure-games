@@ -1,18 +1,23 @@
-import { join } from 'path';
-import { homedir } from 'os';
-import { mkdirSync, existsSync, renameSync, writeFileSync } from 'fs';
+import { join, resolve } from 'node:path';
+import { homedir, tmpdir } from 'node:os';
+import { mkdirSync, existsSync, renameSync, writeFileSync, unlinkSync } from 'node:fs';
 import type { GmState } from '../types';
+import { MAX_ROLL_HISTORY } from './constants';
 
 function getStateDir(): string {
-  return process.env.TAG_STATE_DIR || join(homedir(), '.tag');
+  const dir = process.env.TAG_STATE_DIR || join(homedir(), '.tag');
+  const resolved = resolve(dir);
+  const home = homedir();
+  const tmp = tmpdir();
+  const homePrefix = home === '/' ? home : home + '/';
+  const tmpPrefix = tmp === '/' ? tmp : tmp + '/';
+  if (!resolved.startsWith(homePrefix) && !resolved.startsWith(tmpPrefix)) {
+    throw new Error(`TAG_STATE_DIR must be within home or temp directory, got: ${resolved}`);
+  }
+  return resolved;
 }
 export function getStatePath(): string {
   return join(getStateDir(), 'state.json');
-}
-
-export async function stateExists(): Promise<boolean> {
-  const file = Bun.file(getStatePath());
-  return file.exists();
 }
 
 export async function loadState(): Promise<GmState> {
@@ -31,14 +36,19 @@ export async function saveState(state: GmState): Promise<void> {
   }
   // Deep copy — don't mutate the caller's object or share nested references
   const toSave = structuredClone(state);
-  if (toSave.rollHistory && toSave.rollHistory.length > 50) {
-    toSave.rollHistory = toSave.rollHistory.slice(-50);
+  if (toSave.rollHistory && toSave.rollHistory.length > MAX_ROLL_HISTORY) {
+    toSave.rollHistory = toSave.rollHistory.slice(-MAX_ROLL_HISTORY);
   }
   // Sync write + rename ensures atomicity — Bun.write is async with no fsync guarantee
-  const path = getStatePath();
+  const path = join(dir, 'state.json');
   const tmpPath = path + '.tmp';
-  writeFileSync(tmpPath, JSON.stringify(toSave));
-  renameSync(tmpPath, path);
+  try {
+    writeFileSync(tmpPath, JSON.stringify(toSave), 'utf-8');
+    renameSync(tmpPath, path);
+  } catch (err) {
+    try { unlinkSync(tmpPath); } catch { /* best-effort cleanup */ }
+    throw err;
+  }
 }
 
 export async function tryLoadState(): Promise<GmState | null> {

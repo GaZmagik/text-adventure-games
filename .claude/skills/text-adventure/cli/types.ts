@@ -177,6 +177,7 @@ export interface MapState {
 export interface CrewMutation {
   id: string;
   name: string;
+  pronouns: Pronouns;
   role: string;
   morale: number;
   stress: number;

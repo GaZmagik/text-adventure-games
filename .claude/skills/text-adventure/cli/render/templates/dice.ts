@@ -6,13 +6,14 @@ import type { GmState, DieType } from '../../types';
 import { esc } from '../../lib/html';
 import { DIE_CONFIGS, type DieConfig } from '../lib/die-geometries';
 import { FONT_SCALE } from '../lib/die-textures';
-import { generateWebGLDiceCode } from '../lib/webgl-dice';
+import { WEBGL_DICE_CODE } from '../lib/webgl-dice';
+import { outcomeBadgeStyle } from '../lib/outcome-badge';
 
 const VALID_DIE_TYPES = new Set(Object.keys(DIE_CONFIGS));
 
-export function renderDice(state: GmState | null, css: string, _options?: Record<string, unknown>): string {
+export function renderDice(state: GmState | null, css: string, options?: Record<string, unknown>): string {
   const comp = state?._lastComputation;
-  const data = _options?.data as Record<string, unknown> | undefined;
+  const data = options?.data as Record<string, unknown> | undefined;
 
   // Allow --data overrides for testing — with runtime validation for script safety
   const rawDieType = (data?.dieType as string) ?? comp?.dieType ?? 'd20';
@@ -27,25 +28,10 @@ export function renderDice(state: GmState | null, css: string, _options?: Record
   const modStr = modifier >= 0 ? `+${modifier}` : `${modifier}`;
 
   // Outcome badge styling
-  let badgeBg = 'var(--ta-badge-partial-bg)';
-  let badgeText = 'var(--ta-badge-partial-text)';
-  let badgeBorder = 'transparent';
-
-  if (outcome === 'critical_success' || outcome === 'decisive_success') {
-    badgeBg = 'var(--ta-badge-success-bg)';
-    badgeText = 'var(--ta-badge-success-text)';
-    badgeBorder = 'var(--ta-badge-crit-success-border)';
-  } else if (outcome === 'success' || outcome === 'narrow_success') {
-    badgeBg = 'var(--ta-badge-success-bg)';
-    badgeText = 'var(--ta-badge-success-text)';
-  } else if (outcome === 'failure' || outcome === 'narrow_failure') {
-    badgeBg = 'var(--ta-badge-failure-bg)';
-    badgeText = 'var(--ta-badge-failure-text)';
-  } else if (outcome === 'critical_failure' || outcome === 'decisive_failure') {
-    badgeBg = 'var(--ta-badge-failure-bg)';
-    badgeText = 'var(--ta-badge-failure-text)';
-    badgeBorder = 'var(--ta-badge-crit-failure-border)';
-  }
+  const badge = outcomeBadgeStyle(outcome);
+  const badgeBg = badge.bg;
+  const badgeText = badge.text;
+  const badgeBorder = badge.border;
 
   const outcomeLabel = outcome.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
@@ -69,7 +55,7 @@ export function renderDice(state: GmState | null, css: string, _options?: Record
     paired: !!config.paired,
   });
 
-  const webglCode = generateWebGLDiceCode();
+  const webglCode = WEBGL_DICE_CODE;
 
   return `<style>${css}
 .widget-dice { font-family: var(--ta-font-body); padding: 16px; text-align: center; }

@@ -245,7 +245,7 @@ not gated behind the continue button.
 
 ```json
 {
-  "skill_version": "1.3.0.a",
+  "skill_version": "1.3.0",
   "arc": 1,
   "theme": "historical",
   "mode": "procedural",
@@ -323,7 +323,7 @@ Turn-Start Module Checklist will flag it as an error and force a reload.
 
 ```html
 <div id="scene-meta" style="display:none" data-meta='{
-  "skill_version": "1.3.0.a",
+  "skill_version": "1.3.0",
   "arc": 1,
   "theme": "historical",
   "mode": "procedural",

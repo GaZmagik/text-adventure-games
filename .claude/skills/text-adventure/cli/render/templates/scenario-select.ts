@@ -2,7 +2,7 @@
 // Each card has title, description, genre pills. Select button fires sendPrompt.
 
 import type { GmState } from '../../types';
-import { esc, escapeAttr } from '../../lib/html';
+import { esc } from '../../lib/html';
 
 interface Scenario {
   title: string;
@@ -36,7 +36,7 @@ export function renderScenarioSelect(_state: GmState | null, css: string, option
           ${scenario.difficulty ? `<span class="scenario-diff">Difficulty: ${esc(scenario.difficulty)}</span>` : ''}
           ${scenario.players ? `<span class="scenario-players">${esc(scenario.players)} players</span>` : ''}
         </div>
-        <button class="scenario-select-btn" data-prompt="I choose scenario: ${escapeAttr(scenario.title)}">Select</button>
+        <button class="scenario-select-btn" data-prompt="I choose scenario: ${esc(scenario.title)}">Select</button>
       </div>`;
   }).join('\n');
 

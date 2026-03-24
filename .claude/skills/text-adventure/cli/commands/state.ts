@@ -6,7 +6,7 @@ import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState, createDefaultState } from '../lib/state-store';
 import { generateNpcFromTier } from '../data/bestiary-tiers';
 import { validateState } from '../lib/validator';
-import { VALID_TIERS, VALID_PRONOUNS } from '../lib/constants';
+import { VALID_TIERS, VALID_PRONOUNS, MAX_STATE_HISTORY } from '../lib/constants';
 import { parseArgs } from '../lib/args';
 
 const VALID_SUBCOMMANDS = ['get', 'set', 'create-npc', 'validate', 'reset', 'history'];
@@ -72,7 +72,19 @@ function setByPath(obj: Record<string, unknown>, path: string, value: unknown): 
   return oldValue;
 }
 
-/** Coerce a string value to the appropriate JS type. */
+/** Recursively check for forbidden keys in a parsed JSON value. */
+function containsForbiddenKeys(obj: unknown): boolean {
+  if (typeof obj !== 'object' || obj === null) return false;
+  for (const key of Object.keys(obj as Record<string, unknown>)) {
+    if (FORBIDDEN_KEYS.has(key)) return true;
+    if (containsForbiddenKeys((obj as Record<string, unknown>)[key])) return true;
+  }
+  return false;
+}
+
+/** Coerce a string value to the appropriate JS type.
+ *  Note: numeric strings like "42" are coerced to numbers. To store a string
+ *  that looks like a number, wrap it in a JSON object: '{"value":"42"}'. */
 function coerceValue(raw: string): unknown {
   if (raw === 'true') return true;
   if (raw === 'false') return false;
@@ -82,7 +94,9 @@ function coerceValue(raw: string): unknown {
   // Attempt JSON parse for objects and arrays
   if (raw.startsWith('{') || raw.startsWith('[')) {
     try {
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (containsForbiddenKeys(parsed)) return raw; // Reject prototype-polluting objects
+      return parsed;
     } catch {
       // Not valid JSON — fall through to string
     }
@@ -106,8 +120,8 @@ function recordHistory(
     newValue,
   };
   state._stateHistory.push(entry);
-  if (state._stateHistory.length > 100) {
-    state._stateHistory = state._stateHistory.slice(-100);
+  if (state._stateHistory.length > MAX_STATE_HISTORY) {
+    state._stateHistory = state._stateHistory.slice(-MAX_STATE_HISTORY);
   }
 }
 
@@ -261,7 +275,7 @@ async function handleHistory(args: string[]): Promise<CommandResult> {
   const state = await tryLoadState();
   if (!state) return noState();
   const flags = parseArgs(args).flags;
-  const limit = flags.limit ? Number(flags.limit) : 10;
+  const limit = Math.max(1, Math.min(Number(flags.limit) || 10, MAX_STATE_HISTORY));
 
   const history = state._stateHistory;
   const recent = history.slice(-limit);

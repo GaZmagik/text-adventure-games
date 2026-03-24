@@ -1,7 +1,8 @@
+const ESC_MAP: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+const ESC_RE = /[&<>"']/g;
+
+/** HTML-escape a string. Single-pass for performance. */
 export function esc(s: string | undefined | null): string {
   if (!s) return '';
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  return s.replace(ESC_RE, c => ESC_MAP[c]);
 }
-
-/** @deprecated Use esc() — both functions are now identical. */
-export const escapeAttr = esc;

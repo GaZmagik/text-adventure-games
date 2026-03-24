@@ -46,7 +46,7 @@ references the margin of victory for the HP delta applied to the NPC.
 Batch for a CHA-based persuasion, trust mutation, and dialogue render:
 
 ```bash
-tag batch --commands "compute contest CHA merchant_01 as persuasion; state set merchant_01.disposition.toward_player += 15; render dialogue --npc merchant_01 --style station; save generate"
+tag batch --commands "compute contest CHA merchant_01 as persuasion; state set merchant_01.disposition.toward_player += 15; render dialogue --data '{\"npc\":\"merchant_01\"}' --style station; save generate"
 ```
 
 The `+15` syntax applies a delta rather than an absolute value. The dialogue
@@ -60,10 +60,20 @@ renderer reads the NPC's current disposition from state.
 |---------|-------------|-----------|---------|
 | `tag state` | `get`, `set`, `reset`, `create-npc`, `validate`, `history` | `--tier`, `--name`, `--pronouns`, `--role` | `tag state create-npc nyx_01 --tier nemesis --name "Nyx" --pronouns they/them --role antagonist` |
 | `tag compute` | `contest`, `hazard`, `encounter` | None | `tag compute contest WIS spy_03` |
-| `tag render` | `scene`, `combat-turn`, `dialogue`, `dice`, `character-creation`, `settings`, `character`, `ticker`, `ship`, `crew`, `codex`, `map`, `starchart`, `footer`, `save-div`, `levelup`, `recap`, `scenario-select` | `--style`, `--npc` | `tag render scene --style parchment` |
+| `tag render` | `scene`, `combat-turn`, `dialogue`, `dice`, `character-creation`, `settings`, `character`, `ticker`, `ship`, `crew`, `codex`, `map`, `starchart`, `footer`, `save-div`, `levelup`, `recap`, `scenario-select` | `--style`, `--data` | `tag render scene --style parchment` |
 | `tag save` | `generate`, `load`, `validate`, `migrate` | None | `tag save generate` |
 | `tag batch` | — | `--commands`, `--dry-run` | `tag batch --commands "state get scene; save validate"` |
 | `tag rules` | (none), `<category>`, `<keyword>` | None | `tag rules output` |
+
+### `--data` Flag (render)
+
+The `--data '<json>'` flag passes a JSON object to widget templates for
+pre-game configuration or test data overrides. Values in the object are
+merged into the template context before rendering.
+
+```bash
+tag render dice --data '{"dieType":"d6","roll":4,"outcome":"success"}'
+```
 
 ---
 
@@ -83,6 +93,27 @@ renderer reads the NPC's current disposition from state.
 - **Labels:** Append `as label` to capture output; reference with `$label.field`
 - **Dry run:** Add `--dry-run` to validate without executing
 - Semicolons separate commands. Whitespace around semicolons is ignored.
+
+### Label Reference
+
+When a command is labelled with `as <label>`, its output fields can be
+referenced in subsequent commands via `$label.field`.
+
+| Source Command | Field | Description |
+|----------------|-------|-------------|
+| `compute contest` | `$label.margin` | Absolute difference between totals |
+| | `$label.outcome` | `"win"`, `"lose"`, or `"tie"` |
+| | `$label.roll` | Raw d20 result |
+| | `$label.total` | Roll + modifier |
+| | `$label.modifier` | Stat modifier used |
+| `compute hazard` | `$label.outcome` | `"pass"` or `"fail"` |
+| | `$label.roll` | Raw d20 result |
+| | `$label.total` | Roll + modifier |
+| | `$label.dc` | Difficulty class |
+| `compute encounter` | `$label.roll` | Raw d20 result |
+| | `$label.escalation` | Escalation modifier passed via `--escalation` |
+| | `$label.encounter` | `"quiet"`, `"alert"`, or `"hostile"` |
+| `state get` | `$label` | The retrieved value itself (no sub-fields) |
 
 ---
 

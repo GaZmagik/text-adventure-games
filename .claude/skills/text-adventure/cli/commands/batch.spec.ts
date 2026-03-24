@@ -127,6 +127,30 @@ describe('batch mode', () => {
     expect(result.ok).toBe(false);
   });
 
+  test('skips comment and blank lines in command string', async () => {
+    const result = await handleBatch(['--commands', 'state get scene; # comment; ; state get character.name']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const results = data.results as Record<string, unknown>[];
+    expect(results).toHaveLength(2);
+  });
+
+  test('reports unresolved $ref as warning in errors array', async () => {
+    const result = await handleBatch(['--commands', 'state set scene $undeclared.field']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const errors = data.errors as { line: number; raw: string; error: string }[];
+    expect(errors.some(e => e.error.includes('Unresolved reference'))).toBe(true);
+  });
+
+  test('dry-run assigns null to labelled values', async () => {
+    const result = await handleBatch(['--dry-run', '--commands', 'state get scene as sc']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const labelled = data.labelled as Record<string, unknown>;
+    expect(labelled.sc).toBeNull();
+  });
+
   test('handles compute commands in batch with correct type', async () => {
     const result = await handleBatch(['--commands', 'compute contest CHA merchant_01 as roll']);
     expect(result.ok).toBe(true);

@@ -3,6 +3,7 @@
 
 import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
+import { outcomeBadgeStyle } from '../lib/outcome-badge';
 
 export function renderCombatTurn(state: GmState | null, css: string, options?: Record<string, unknown>): string {
   const comp = state?._lastComputation;
@@ -30,20 +31,10 @@ export function renderCombatTurn(state: GmState | null, css: string, options?: R
   const isHit = outcome === 'success' || outcome === 'critical_success';
   const isCrit = outcome === 'critical_success' || outcome === 'critical_failure';
 
-  // TODO: extract shared outcomeBadgeStyle utility (duplicated from dice.ts)
-  let badgeBg: string;
-  let badgeText: string;
-  let badgeBorder = 'transparent';
-
-  if (isHit) {
-    badgeBg = 'var(--ta-badge-success-bg)';
-    badgeText = 'var(--ta-badge-success-text)';
-    if (isCrit) badgeBorder = 'var(--ta-badge-crit-success-border)';
-  } else {
-    badgeBg = 'var(--ta-badge-failure-bg)';
-    badgeText = 'var(--ta-badge-failure-text)';
-    if (isCrit) badgeBorder = 'var(--ta-badge-crit-failure-border)';
-  }
+  const badge = outcomeBadgeStyle(outcome);
+  const badgeBg = badge.bg;
+  const badgeText = badge.text;
+  const badgeBorder = badge.border;
 
   const outcomeLabel = isHit ? (isCrit ? 'Critical Hit!' : 'Hit') : (isCrit ? 'Critical Miss' : 'Miss');
   const modStr = modifier >= 0 ? `+${modifier}` : `${modifier}`;
@@ -109,7 +100,7 @@ export function renderCombatTurn(state: GmState | null, css: string, options?: R
   <!-- Outcome badge -->
   <div style="text-align:center">
     <div class="combat-outcome" style="background:${badgeBg};color:${badgeText};border:1.5px solid ${badgeBorder}">
-      ${outcomeLabel}
+      ${esc(outcomeLabel)}
     </div>
   </div>
 

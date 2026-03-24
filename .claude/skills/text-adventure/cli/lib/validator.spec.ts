@@ -17,7 +17,7 @@ describe('validateState', () => {
   });
 
   test('missing _version fails', () => {
-    const state = createDefaultState() as Record<string, unknown>;
+    const state = createDefaultState() as unknown as Record<string, unknown>;
     delete state._version;
     const result = validateState(state);
     expect(result.valid).toBe(false);
@@ -25,7 +25,7 @@ describe('validateState', () => {
   });
 
   test('non-numeric _version fails', () => {
-    const state = createDefaultState() as Record<string, unknown>;
+    const state = createDefaultState() as unknown as Record<string, unknown>;
     state._version = 'abc';
     const result = validateState(state);
     expect(result.valid).toBe(false);
@@ -219,7 +219,7 @@ describe('validateState', () => {
   });
 
   test('rosterMutations as non-array object fails', () => {
-    const state = createDefaultState() as Record<string, unknown>;
+    const state = createDefaultState() as unknown as Record<string, unknown>;
     state.rosterMutations = {};
     const result = validateState(state);
     expect(result.valid).toBe(false);
@@ -227,7 +227,7 @@ describe('validateState', () => {
   });
 
   test('factions as non-object fails', () => {
-    const state = createDefaultState() as Record<string, unknown>;
+    const state = createDefaultState() as unknown as Record<string, unknown>;
     state.factions = 'not-an-object';
     const result = validateState(state);
     expect(result.valid).toBe(false);
@@ -249,7 +249,7 @@ describe('validateState', () => {
   });
 
   test('time as non-object fails', () => {
-    const state = createDefaultState() as Record<string, unknown>;
+    const state = createDefaultState() as unknown as Record<string, unknown>;
     state.time = 'not-an-object';
     const result = validateState(state);
     expect(result.valid).toBe(false);
@@ -257,7 +257,7 @@ describe('validateState', () => {
   });
 
   test('character as non-object fails', () => {
-    const state = createDefaultState() as Record<string, unknown>;
+    const state = createDefaultState() as unknown as Record<string, unknown>;
     state.character = 'not-an-object';
     const result = validateState(state);
     expect(result.valid).toBe(false);
@@ -265,7 +265,7 @@ describe('validateState', () => {
   });
 
   test('character with missing hp and level fails', () => {
-    const state = createDefaultState() as Record<string, unknown>;
+    const state = createDefaultState() as unknown as Record<string, unknown>;
     state.character = { name: 'Hero', stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 } };
     const result = validateState(state);
     expect(result.valid).toBe(false);
@@ -275,7 +275,7 @@ describe('validateState', () => {
   });
 
   test('character with null stats fails', () => {
-    const state = createDefaultState() as Record<string, unknown>;
+    const state = createDefaultState() as unknown as Record<string, unknown>;
     state.character = { name: 'Hero', hp: 10, maxHp: 10, level: 1, stats: null };
     const result = validateState(state);
     expect(result.valid).toBe(false);
