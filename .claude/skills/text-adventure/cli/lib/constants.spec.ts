@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'bun:test';
-import { STAT_NAMES, VALID_TIERS, VALID_PRONOUNS } from './constants';
-import type { StatName, BestiaryTier, Pronouns } from '../types';
+import { STAT_NAMES, VALID_TIERS, VALID_PRONOUNS, VALID_TOP_KEYS } from './constants';
+import type { StatName, BestiaryTier, Pronouns, GmState } from '../types';
 
 describe('constants', () => {
   test('STAT_NAMES contains all 6 ability scores', () => {
@@ -20,5 +20,20 @@ describe('constants', () => {
     for (const p of ['she/her', 'he/him', 'they/them'] as Pronouns[]) {
       expect(VALID_PRONOUNS).toContain(p);
     }
+  });
+  test('VALID_TOP_KEYS matches GmState interface keys', () => {
+    // satisfies enforces exhaustiveness: omitting any GmState key is a compile error
+    const ALL_GM_STATE_KEYS = {
+      _version: true, scene: true, currentRoom: true, visitedRooms: true,
+      rollHistory: true, character: true, worldFlags: true, seed: true,
+      theme: true, visualStyle: true, modulesActive: true, rosterMutations: true,
+      codexMutations: true, time: true, factions: true, quests: true,
+      storyArchitect: true, shipState: true, crewMutations: true, mapState: true,
+      systemResources: true, navPlottedCourse: true, arc: true, arcType: true,
+      carryForward: true, arcHistory: true, _lastComputation: true, _stateHistory: true,
+    } satisfies Record<keyof Required<GmState>, true>;
+    const topKeys = [...VALID_TOP_KEYS].sort();
+    const expectedKeys = Object.keys(ALL_GM_STATE_KEYS).sort();
+    expect(topKeys).toEqual(expectedKeys);
   });
 });

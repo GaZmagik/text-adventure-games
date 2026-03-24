@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { mkdtempSync, rmSync } from 'fs';
-import { join } from 'path';
-import { tmpdir } from 'os';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { handleState } from './state';
 import { loadState, saveState } from '../lib/state-store';
 import type { GmState } from '../types';
@@ -364,14 +364,16 @@ describe('state set — negative paths', () => {
     await handleState(['reset']);
     const result = await handleState(['set', '__proto__.polluted', 'true']);
     expect(result.ok).toBe(false);
-    expect(result.error!.message).toContain('Forbidden path segment');
+    // Rejected by VALID_TOP_KEYS before FORBIDDEN_KEYS check
+    expect(result.error!.message).toContain('Unknown top-level key');
   });
 
   test('blocks prototype pollution via constructor', async () => {
     await handleState(['reset']);
     const result = await handleState(['set', 'constructor.x', '1']);
     expect(result.ok).toBe(false);
-    expect(result.error!.message).toContain('Forbidden path segment');
+    // Rejected by VALID_TOP_KEYS before FORBIDDEN_KEYS check
+    expect(result.error!.message).toContain('Unknown top-level key');
   });
 
   test('+= on a non-numeric path fails', async () => {
@@ -397,18 +399,11 @@ describe('state set — negative paths', () => {
     expect(result.error!.message).toContain('No value');
   });
 
-  test('silently creates intermediate objects for unknown deep keys', async () => {
+  test('rejects unknown top-level keys', async () => {
     await handleState(['reset']);
     const result = await handleState(['set', 'nonexistent.deep.key', 'somevalue']);
-    expect(result.ok).toBe(true);
-
-    const state = await loadState();
-    const root = state as unknown as Record<string, unknown>;
-    const nested = root.nonexistent as Record<string, unknown>;
-    expect(nested).toBeDefined();
-    const deep = nested.deep as Record<string, unknown>;
-    expect(deep).toBeDefined();
-    expect(deep.key).toBe('somevalue');
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('Unknown top-level key');
   });
 });
 

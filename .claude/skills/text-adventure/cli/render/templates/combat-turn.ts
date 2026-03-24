@@ -66,7 +66,7 @@ export function renderCombatTurn(state: GmState | null, css: string, options?: R
 .damage-value { font-size: 22px; font-weight: 700; color: var(--ta-color-danger); }
 .damage-type { font-size: 11px; color: var(--color-text-tertiary); text-transform: capitalize; }
 .npc-hp-change { font-size: 12px; color: var(--color-text-secondary); margin-top: 6px; }
-.hp-bar-container { width: 100%; height: 8px; background: var(--color-border-tertiary); border-radius: 4px; overflow: hidden; margin-top: 4px; }
+.combat-bar-container { width: 100%; height: 8px; background: var(--color-border-tertiary); border-radius: 4px; overflow: hidden; margin-top: 4px; }
 .hp-bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
 .hp-bar-npc { background: var(--ta-color-danger); }
 </style>
@@ -111,7 +111,7 @@ export function renderCombatTurn(state: GmState | null, css: string, options?: R
     ${damageType ? `<div class="damage-type">${esc(damageType)}</div>` : ''}
     ${npc ? `
     <div class="npc-hp-change">${esc(npc.name)}: ${npc.hp}/${npc.maxHp} HP</div>
-    <div class="hp-bar-container">
+    <div class="combat-bar-container">
       <div class="hp-bar-fill hp-bar-npc" style="width:${npc.maxHp > 0 ? Math.max(0, Math.round((npc.hp / npc.maxHp) * 100)) : 0}%"></div>
     </div>` : ''}
   </div>` : ''}

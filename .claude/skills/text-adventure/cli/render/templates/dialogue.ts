@@ -77,7 +77,7 @@ export function renderDialogue(state: GmState | null, css: string, options?: Rec
   ${choices.length > 0 ? `
   <div class="dialogue-choices">
     ${choices.map(c =>
-      `<button class="dialogue-choice" data-prompt="${esc(c.prompt)}">${esc(c.label)}</button>`,
+      `<button class="dialogue-choice" data-prompt="${esc(c.prompt)}" title="${esc(c.prompt)}">${esc(c.label)}</button>`,
     ).join('\n    ')}
   </div>
   <script>

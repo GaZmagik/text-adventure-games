@@ -77,6 +77,19 @@ tag render dice --data '{"dieType":"d6","roll":4,"outcome":"success"}'
 
 ---
 
+## § State Schema
+
+The `tag state set` command only permits writes to known top-level keys of the game state. Arbitrary key creation is not allowed — this prevents state corruption from typos or unintended expansion.
+
+If you need to store custom metadata (flags, counters, notes), use the `worldFlags` object — it is a free-form key-value store designed for GM-defined data:
+
+```bash
+tag state set worldFlags.quest_accepted true
+tag state set worldFlags.tension_level 3
+```
+
+---
+
 ## § Error Guide
 
 | Error | Cause | Fix |
@@ -114,6 +127,12 @@ referenced in subsequent commands via `$label.field`.
 | | `$label.escalation` | Escalation modifier passed via `--escalation` |
 | | `$label.encounter` | `"quiet"`, `"alert"`, or `"hostile"` |
 | `state get` | `$label` | The retrieved value itself (no sub-fields) |
+
+---
+
+## Prerequisites
+
+The tag CLI requires **Bun** runtime (v1.0+). It uses Bun-specific APIs (`import.meta.dir`, `Bun.file()`) and is not compatible with Node.js.
 
 ---
 

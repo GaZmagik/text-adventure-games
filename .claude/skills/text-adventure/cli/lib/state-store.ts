@@ -1,5 +1,6 @@
 import { join, resolve } from 'node:path';
 import { homedir, tmpdir } from 'node:os';
+import { randomUUID } from 'node:crypto';
 import { mkdirSync, existsSync, renameSync, writeFileSync, unlinkSync } from 'node:fs';
 import type { GmState } from '../types';
 import { MAX_ROLL_HISTORY } from './constants';
@@ -9,10 +10,13 @@ function getStateDir(): string {
   const resolved = resolve(dir);
   const home = homedir();
   const tmp = tmpdir();
-  const homePrefix = home === '/' ? home : home + '/';
+  if (home === '/') {
+    throw new Error('TAG_STATE_DIR validation requires a non-root home directory.');
+  }
+  const homePrefix = home + '/';
   const tmpPrefix = tmp === '/' ? tmp : tmp + '/';
   if (!resolved.startsWith(homePrefix) && !resolved.startsWith(tmpPrefix)) {
-    throw new Error(`TAG_STATE_DIR must be within home or temp directory, got: ${resolved}`);
+    throw new Error('TAG_STATE_DIR must be within the home or temp directory.');
   }
   return resolved;
 }
@@ -24,11 +28,14 @@ export async function loadState(): Promise<GmState> {
   const path = getStatePath();
   const file = Bun.file(path);
   if (!(await file.exists())) {
-    throw new Error(`State file not found at ${path}`);
+    throw new Error('State file not found. Run "tag state init" to create one.');
   }
   return file.json() as Promise<GmState>;
 }
 
+// async signature retained for caller compatibility — the body intentionally uses
+// synchronous writeFileSync + renameSync for atomic rename semantics (Bun.write is
+// async with no fsync guarantee, so sync I/O is the deliberate choice here).
 export async function saveState(state: GmState): Promise<void> {
   const dir = getStateDir();
   if (!existsSync(dir)) {
@@ -56,8 +63,16 @@ export async function tryLoadState(): Promise<GmState | null> {
     const file = Bun.file(getStatePath());
     if (!(await file.exists())) return null;
     return await file.json() as GmState;
-  } catch {
-    return null;
+  } catch (err: unknown) {
+    if (err instanceof SyntaxError) {
+      console.error('Warning: state.json is corrupted and could not be parsed.');
+      return null;
+    }
+    if (err && typeof err === 'object' && 'code' in err
+        && (err as NodeJS.ErrnoException).code === 'ENOENT') {
+      return null;
+    }
+    throw err; // EACCES and other unexpected errors should surface
   }
 }
 
@@ -70,7 +85,7 @@ export function createDefaultState(): GmState {
     rollHistory: [],
     character: null,
     worldFlags: {},
-    seed: Math.random().toString(36).slice(2),
+    seed: randomUUID().replace(/-/g, '').slice(0, 12),
     modulesActive: [],
     rosterMutations: [],
     codexMutations: [],

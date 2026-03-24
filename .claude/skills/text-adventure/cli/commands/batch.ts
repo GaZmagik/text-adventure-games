@@ -2,12 +2,11 @@ import type { CommandResult, GmState } from '../types';
 import { ok, fail } from '../lib/errors';
 import { tryLoadState } from '../lib/state-store';
 import { parseArgs } from '../lib/args';
+import { FORBIDDEN_KEYS } from '../lib/constants';
 import { handleState } from './state';
 import { handleCompute } from './compute';
 import { handleSave } from './save';
 import { handleRender } from './render';
-
-const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 
 type ParsedLine = {
   raw: string;
@@ -90,6 +89,8 @@ export async function handleBatch(args: string[]): Promise<CommandResult> {
     );
   }
 
+  // NOTE: Naive split — JSON values containing semicolons will break.
+  // Use newline-separated batch files for complex values.
   const lines = commands.split(';').map(s => s.trim()).filter(Boolean);
   const results: CommandResult[] = [];
   const labelled: Record<string, unknown> = {};
@@ -102,12 +103,15 @@ export async function handleBatch(args: string[]): Promise<CommandResult> {
 
     const resolvedArgs = resolveReferences(parsedLine.args, labelled);
 
-    // Warn on unresolved $ref labels
+    // Warn on unresolved $ref labels — skip command entirely if any are found
+    let hasUnresolvedRef = false;
     for (const arg of resolvedArgs) {
       if (arg.startsWith('$') && arg.length > 1 && !arg.startsWith('$$')) {
         errors.push({ line: i, raw: parsedLine.raw, error: `Unresolved reference: ${arg}` });
+        hasUnresolvedRef = true;
       }
     }
+    if (hasUnresolvedRef) continue; // Skip command — unresolved reference would produce bad state
 
     if (dryRun) {
       results.push({
@@ -123,9 +127,9 @@ export async function handleBatch(args: string[]): Promise<CommandResult> {
 
     const result = await dispatch(parsedLine.command, resolvedArgs);
     results.push(result);
-    if (['state', 'save'].includes(parsedLine.command)) didMutate = true;
+    if (['state', 'save', 'compute'].includes(parsedLine.command)) didMutate = true;
 
-    if (parsedLine.label) {
+    if (parsedLine.label && !FORBIDDEN_KEYS.has(parsedLine.label)) {
       labelled[parsedLine.label] = result.data;
     }
 

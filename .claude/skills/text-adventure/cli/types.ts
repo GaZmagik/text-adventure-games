@@ -131,20 +131,52 @@ export type DieType = 'd2' | 'd4' | 'd6' | 'd8' | 'd10' | 'd12' | 'd20' | 'd100'
 
 // ── Computation ────────────────────────────────────────────────────
 
-export interface ComputationResult {
-  type: 'contested_roll' | 'hazard_save' | 'encounter_roll';
-  stat?: string;
-  roll?: number;
-  modifier?: number;
-  total?: number;
+export interface ContestedRollResult {
+  type: 'contested_roll';
+  stat: string;
+  roll: number;
+  modifier: number;
+  total: number;
+  margin: number;
+  outcome: string;
+  npcId: string;
+  npcModifier: number;
   dc?: number;
+  dieType?: DieType;
+  context?: Record<string, unknown>;
+}
+
+export interface HazardSaveResult {
+  type: 'hazard_save';
+  stat: string;
+  roll: number;
+  modifier: number;
+  total: number;
+  dc: number;
+  outcome: string;
   margin?: number;
-  outcome?: string;
   npcId?: string;
   npcModifier?: number;
   dieType?: DieType;
   context?: Record<string, unknown>;
 }
+
+export interface EncounterRollResult {
+  type: 'encounter_roll';
+  roll: number;
+  stat?: string;
+  modifier?: number;
+  total?: number;
+  dc?: number;
+  outcome?: string;
+  margin?: number;
+  npcId?: string;
+  npcModifier?: number;
+  dieType?: DieType;
+  context?: Record<string, unknown>;
+}
+
+export type ComputationResult = ContestedRollResult | HazardSaveResult | EncounterRollResult;
 
 // ── State History ──────────────────────────────────────────────────
 
@@ -187,15 +219,20 @@ export interface CrewMutation {
 }
 
 export interface StoryArchitectState {
+  /** @todo Define shape when story-architect module is implemented (e.g. { id: string; title: string; status: string }) */
   threads: unknown[];
+  /** @todo Define shape when story-architect module is implemented (e.g. { sceneId: number; hint: string }) */
   foreshadowing: unknown[];
+  /** @todo Define shape when story-architect module is implemented (e.g. { trigger: string; effect: string }) */
   consequences: unknown[];
   pacing: { act: number; actProgress: number; recentBeats: string[] };
 }
 
 export interface CarryForward {
+  /** @todo Define shape when arc-transition is implemented (e.g. { xp: number; level: number }) */
   characterProgression: unknown;
   factionStandings: Record<string, number>;
+  /** @todo Define shape when arc-transition is implemented (e.g. { npcId: string; disposition: DispositionState }) */
   npcDispositions: unknown[];
   codexDiscoveries: string[];
   worldConsequences: string[];

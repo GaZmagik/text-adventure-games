@@ -36,7 +36,7 @@ export function renderScenarioSelect(_state: GmState | null, css: string, option
           ${scenario.difficulty ? `<span class="scenario-diff">Difficulty: ${esc(scenario.difficulty)}</span>` : ''}
           ${scenario.players ? `<span class="scenario-players">${esc(scenario.players)} players</span>` : ''}
         </div>
-        <button class="scenario-select-btn" data-prompt="I choose scenario: ${esc(scenario.title)}">Select</button>
+        <button class="scenario-select-btn" data-prompt="I choose scenario: ${esc(scenario.title)}" title="I choose scenario: ${esc(scenario.title)}">Select</button>
       </div>`;
   }).join('\n');
 

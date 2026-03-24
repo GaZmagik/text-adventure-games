@@ -8,7 +8,7 @@
 const cssCache = new Map<string, string>();
 
 export async function extractAllCss(filePath: string): Promise<string> {
-  if (cssCache.has(filePath)) return cssCache.get(filePath)!;
+  if (cssCache.has(filePath)) return cssCache.get(filePath) ?? '';
   try {
     const file = Bun.file(filePath);
     if (!(await file.exists())) return '';
@@ -34,7 +34,8 @@ export async function extractAllCss(filePath: string): Promise<string> {
       .replace(/<\/style/gi, '<\\/style')
       .replace(/@import\s+(?:url\s*\([^)]*\)|"[^"]*"|'[^']*')\s*;?/gi, '/* @import stripped */')
       .replace(/url\s*\(\s*(['"]?)https?:\/\//gi, 'url($1data:,/*blocked*/')
-      .replace(/url\s*\(\s*(['"]?)\/\//gi, 'url($1data:,/*blocked*/');
+      .replace(/url\s*\(\s*(['"]?)\/\//gi, 'url($1data:,/*blocked*/')
+      .replace(/url\s*\(\s*(['"]?)javascript:/gi, 'url($1data:,/*blocked*/');
     // Only cache non-empty results — avoids masking files that gain CSS later
     if (sanitised) cssCache.set(filePath, sanitised);
     return sanitised;

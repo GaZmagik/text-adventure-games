@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach, spyOn } from 'bun:test';
-import { mkdtempSync, rmSync } from 'fs';
-import { join } from 'path';
-import { tmpdir } from 'os';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { handleCompute } from './compute';
 import { saveState, createDefaultState, loadState } from '../lib/state-store';
 import type { NpcMutation } from '../types';

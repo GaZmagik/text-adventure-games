@@ -23,10 +23,11 @@ ${css ? '<style>' + css + '</style>' : ''}
   const xpForLevel = nextThreshold?.xp ?? XP_THRESHOLDS[XP_THRESHOLDS.length - 1].xp;
   const xpPercent = xpForLevel > 0 ? Math.min(100, Math.round((char.xp / xpForLevel) * 100)) : 0;
 
+  const profSet = new Set(char.proficiencies);
   const statRows = STAT_ORDER.map(s => {
     const mod = char.modifiers[s];
     const modStr = mod >= 0 ? `+${mod}` : `${mod}`;
-    const isProficient = char.proficiencies.includes(s);
+    const isProficient = profSet.has(s);
     return `<div class="stat-cell${isProficient ? ' proficient' : ''}">
         <span class="stat-label">${s}</span>
         <span class="stat-value">${char.stats[s]}</span>
@@ -48,7 +49,7 @@ ${css ? '<style>' + css + '</style>' : ''}
 .char-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
 .char-name { font-family: var(--ta-font-heading); font-size: 20px; font-weight: 700; color: var(--color-text-primary); }
 .char-class { font-size: 12px; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.08em; }
-.bar-container { width: 100%; height: 10px; background: var(--color-border-tertiary); border-radius: 5px; overflow: hidden; margin: 4px 0; }
+.char-bar-container { width: 100%; height: 10px; background: var(--color-border-tertiary); border-radius: 5px; overflow: hidden; margin: 4px 0; }
 .bar-fill-hp { height: 100%; background: var(--ta-color-success); border-radius: 5px; transition: width 0.3s; }
 .bar-fill-xp { height: 100%; background: var(--ta-color-xp); border-radius: 5px; transition: width 0.3s; }
 .bar-label { font-size: 11px; color: var(--color-text-tertiary); display: flex; justify-content: space-between; }
@@ -77,7 +78,7 @@ ${css ? '<style>' + css + '</style>' : ''}
 
   <!-- HP bar -->
   <div class="bar-label"><span>HP</span><span>${char.hp} / ${char.maxHp}</span></div>
-  <div class="bar-container" role="meter" aria-valuenow="${hpPercent}" aria-valuemin="0" aria-valuemax="100" aria-label="HP: ${char.hp} of ${char.maxHp}"><div class="bar-fill-hp" style="width:${hpPercent}%"></div></div>
+  <div class="char-bar-container" role="meter" aria-valuenow="${hpPercent}" aria-valuemin="0" aria-valuemax="100" aria-label="HP: ${char.hp} of ${char.maxHp}"><div class="bar-fill-hp" style="width:${hpPercent}%"></div></div>
 
   <!-- AC & Proficiency -->
   <div class="bar-label" style="margin-top:8px">
@@ -108,7 +109,7 @@ ${css ? '<style>' + css + '</style>' : ''}
 
   <!-- XP bar -->
   <div class="bar-label" style="margin-top:12px"><span>XP</span><span>${char.xp} / ${xpForLevel}</span></div>
-  <div class="bar-container" role="meter" aria-valuenow="${xpPercent}" aria-valuemin="0" aria-valuemax="100" aria-label="XP: ${char.xp} of ${xpForLevel}"><div class="bar-fill-xp" style="width:${xpPercent}%"></div></div>
+  <div class="char-bar-container" role="meter" aria-valuenow="${xpPercent}" aria-valuemin="0" aria-valuemax="100" aria-label="XP: ${char.xp} of ${xpForLevel}"><div class="bar-fill-xp" style="width:${xpPercent}%"></div></div>
 
   <!-- Proficiencies -->
   <div class="section-title">Proficiencies</div>

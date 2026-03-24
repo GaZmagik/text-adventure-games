@@ -23,7 +23,7 @@ Atmosphere effects (particles, screen shake, colour flash, letterbox, dynamic li
 UI degradation, day/night cycle, toast notifications, handwritten notes, redacted text)
 are applied automatically by `tag render scene` based on scene context. The CSS lives in
 `styles/style-reference.md` § Atmosphere Effects CSS and is extracted by the CLI at render time.
-The JS helper functions (`triggerShake`, `triggerFlash`, `showToast`, redaction wiring) are
+The JS helper functions (`window.tag.triggerShake`, `window.tag.triggerFlash`, `window.tag.showToast`, redaction wiring) are
 built into `scene.ts` and included automatically in every scene widget.
 
 ---
@@ -71,14 +71,14 @@ conditions. Only one particle type per scene — never stack multiple.
 CSS transform animation triggered on damage, explosions, or impact events.
 The scene widget applies `.atmo-shake` to the root element automatically when the
 scene context includes damage or impact. The class is removed after the 0.4s animation
-completes via the `triggerShake()` helper built into `scene.ts`.
+completes via the `window.tag.triggerShake()` helper built into `scene.ts`.
 
 ---
 
 ## Colour Flash
 
 Brief full-widget colour overlay for significant events. The scene widget injects a
-`.atmo-flash` div automatically via the `triggerFlash()` helper in `scene.ts`.
+`.atmo-flash` div automatically via the `window.tag.triggerFlash()` helper in `scene.ts`.
 
 | Event | Flash Colour | Duration |
 |-------|-------------|----------|
@@ -180,7 +180,7 @@ class automatically.
 
 Brief slide-in messages for passive events that don't warrant a full scene widget
 update. Appear at the top of the widget, auto-dismiss after 3 seconds. The scene
-widget provides the `showToast()` helper function (built into `scene.ts`) which
+widget provides the `window.tag.showToast()` helper function (built into `scene.ts`) which
 handles element creation, animation, and cleanup automatically.
 
 Examples: "Your reputation with the Dock Workers has improved.",

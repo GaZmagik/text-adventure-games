@@ -7,6 +7,7 @@ import { STAT_NAMES, VALID_TIERS, VALID_PRONOUNS } from './constants';
 export interface ValidationResult {
   valid: boolean;
   errors: string[];
+  warnings: string[];
 }
 
 /**
@@ -21,10 +22,11 @@ export interface ValidationResult {
  */
 export function validateState(state: unknown): ValidationResult {
   const errors: string[] = [];
+  const warnings: string[] = [];
 
   if (state === null || state === undefined || typeof state !== 'object') {
     errors.push('State must be a non-null object.');
-    return { valid: false, errors };
+    return { valid: false, errors, warnings };
   }
 
   const s = state as Record<string, unknown>;
@@ -71,7 +73,34 @@ export function validateState(state: unknown): ValidationResult {
     validateTime(s.time, errors);
   }
 
-  return { valid: errors.length === 0, errors };
+  // scene — should be a non-negative number
+  if (s.scene !== undefined) {
+    if (typeof s.scene !== 'number' || s.scene < 0) {
+      warnings.push('scene should be a non-negative number.');
+    }
+  }
+
+  // currentRoom — should be a string
+  if (s.currentRoom !== undefined && typeof s.currentRoom !== 'string') {
+    warnings.push('currentRoom should be a string.');
+  }
+
+  // rollHistory — should be an array
+  if (s.rollHistory !== undefined && !Array.isArray(s.rollHistory)) {
+    warnings.push('rollHistory should be an array.');
+  }
+
+  // quests — should be an array
+  if (s.quests !== undefined && !Array.isArray(s.quests)) {
+    warnings.push('quests should be an array.');
+  }
+
+  // seed — should be a string
+  if (s.seed !== undefined && typeof s.seed !== 'string') {
+    warnings.push('seed should be a string.');
+  }
+
+  return { valid: errors.length === 0, errors, warnings };
 }
 
 function validateCharacter(char: unknown, errors: string[]): void {

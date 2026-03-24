@@ -115,7 +115,7 @@ export function renderScene(state: GmState | null, css: string, options?: Record
   var panelCloseBtn = document.getElementById('panel-close-btn');
   if (panelCloseBtn) {
     panelCloseBtn.addEventListener('click', function() {
-      closePanel();
+      window.tag.closePanel();
     });
   }
 
@@ -153,9 +153,10 @@ export function renderScene(state: GmState | null, css: string, options?: Record
     if (lastPanelTrigger) lastPanelTrigger.focus();
   }
 
-  // Expose for footer buttons
-  window.togglePanel = togglePanel;
-  window.closePanel = closePanel;
+  // Expose for footer buttons — namespaced under window.tag to avoid global pollution
+  window.tag = window.tag || {};
+  window.tag.togglePanel = togglePanel;
+  window.tag.closePanel = closePanel;
 
   // Atmosphere helpers — screen shake and colour flash
   function triggerShake(el) {
@@ -195,10 +196,10 @@ export function renderScene(state: GmState | null, css: string, options?: Record
     }, durationMs);
   }
 
-  // Expose atmosphere helpers for inline event handlers
-  window.triggerShake = triggerShake;
-  window.triggerFlash = triggerFlash;
-  window.showToast = showToast;
+  // Expose atmosphere helpers on window.tag (already initialised above)
+  window.tag.triggerShake = triggerShake;
+  window.tag.triggerFlash = triggerFlash;
+  window.tag.showToast = showToast;
 
   // Wire up revealable redactions
   document.querySelectorAll('.atmo-redacted.revealable').forEach(function(el) {
@@ -211,7 +212,7 @@ export function renderScene(state: GmState | null, css: string, options?: Record
   // Wire up footer panel buttons
   document.querySelectorAll('.footer-btn[data-panel]').forEach(function(btn) {
     btn.addEventListener('click', function() {
-      togglePanel(this.getAttribute('data-panel'), this);
+      window.tag.togglePanel(this.getAttribute('data-panel'), this);
     });
   });
 

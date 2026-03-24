@@ -35,6 +35,8 @@ export function parseArgs(args: string[], booleanFlags?: string[]): ParsedArgs {
           flags[key] = args[i + 1];
           i += 2;
         } else {
+          // Trailing flag without value is treated as boolean true (e.g. --verbose)
+          // This is intentional for boolean flags but may surprise users who forget a value.
           booleans.add(key);
           i++;
         }

@@ -374,7 +374,11 @@ alternative systems or damage rolls.
 
 The 3D dice widget is rendered by `tag render dice --style <style>` via the Bash tool. The template handles WebGL setup, polyhedra geometry, numbered faces, tumble animation, and graceful degradation automatically.
 
-Supported die types: d2, d4, d6, d8, d10, d12, d20, d100. For a standard ability check, the CLI renders a single d20. For damage rolls or alternative systems, specify the die type via the `--die` flag.
+Supported die types: d2, d4, d6, d8, d10, d12, d20, d100. For a standard ability check, the CLI renders a single d20. For damage rolls or alternative systems, specify the die type via the `--data` flag:
+
+```bash
+tag render dice --style terminal --data '{"dieType":"d6"}'
+```
 
 The GM must never hand-code WebGL, canvas elements, or dice HTML. Always use the CLI command.
 

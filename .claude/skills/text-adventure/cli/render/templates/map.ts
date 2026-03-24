@@ -43,7 +43,7 @@ ${css ? '<style>' + css + '</style>' : ''}
 .map-title { font-family: var(--ta-font-heading); font-size: 18px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 4px; }
 .map-current { font-size: 13px; color: var(--ta-color-accent); margin-bottom: 12px; }
 .map-summary { font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 12px; }
-.section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-tertiary); margin: 12px 0 6px; }
+.map-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-tertiary); margin: 12px 0 6px; }
 .zone-list { list-style: none; padding: 0; margin: 0; }
 .zone-item { padding: 4px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 12px; color: var(--color-text-secondary); }
 .zone-current { color: var(--ta-color-accent); font-weight: 600; }
@@ -60,19 +60,19 @@ ${css ? '<style>' + css + '</style>' : ''}
   <div class="map-current">${esc(mapState.currentZone)}</div>
   <div class="map-summary">${visited.length} visited · ${fogCount} unexplored · ${revealed.length} revealed</div>
 
-  <div class="section-label">Zones</div>
+  <div class="map-section-label">Zones</div>
   <ul class="zone-list">
     ${zoneList}
   </ul>
 
   ${doors.length > 0 ? `
-  <div class="section-label">Doors</div>
+  <div class="map-section-label">Doors</div>
   <ul class="zone-list">
     ${doorRows}
   </ul>` : ''}
 
   ${supplies ? `
-  <div class="section-label">Supplies</div>
+  <div class="map-section-label">Supplies</div>
   <div class="supplies-row"><span class="supplies-label">Rations: </span>${supplies.rations}</div>
   <div class="supplies-row"><span class="supplies-label">Water: </span>${supplies.water}</div>` : ''}
 </div>`;

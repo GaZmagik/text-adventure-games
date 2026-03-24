@@ -14,7 +14,7 @@ function version(): CommandResult {
     data: {
       tag: VERSION,
       skill: VERSION,
-      stateDir: process.env.TAG_STATE_DIR || '~/.tag',
+      stateDir: process.env.TAG_STATE_DIR ? '(custom)' : '~/.tag',
     },
   };
 }

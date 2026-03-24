@@ -123,14 +123,14 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
     </div>
   </div>
 
-  <button class="confirm-btn" id="creation-confirm">Create Character</button>
+  <button class="confirm-btn" id="creation-confirm" title="Create character with selected name, archetype, and proficiencies">Create Character</button>
 </div>
 <script>
 (function() {
   var selectedArchetype = -1;
   var selectedProfs = [];
 
-  // Archetype selection
+  // Archetype selection — re-query bounded card set (max ~12 nodes) — standard radio-card deselection pattern
   document.querySelectorAll('.archetype-card').forEach(function(card) {
     card.addEventListener('click', function() {
       document.querySelectorAll('.archetype-card').forEach(function(c) {
@@ -181,6 +181,7 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
       proficiencies: selectedProfs
     };
     var prompt = 'Create character: ' + JSON.stringify(payload);
+    document.getElementById('creation-confirm').setAttribute('title', prompt);
     if (typeof sendPrompt === 'function') sendPrompt(prompt);
   });
 })();

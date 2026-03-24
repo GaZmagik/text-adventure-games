@@ -5,6 +5,12 @@ import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
 
 export function renderStarchart(state: GmState | null, css: string, _options?: Record<string, unknown>): string {
+  if (!state?.visitedRooms?.length) {
+    return `
+${css ? '<style>' + css + '</style>' : ''}
+<div class="empty-state"><p>No star systems charted yet.</p></div>`;
+  }
+
   const currentRoom = state?.currentRoom ?? 'Unknown System';
   const visitedRooms = state?.visitedRooms ?? [];
   const plottedCourse = state?.navPlottedCourse ?? null;
@@ -27,7 +33,7 @@ export function renderStarchart(state: GmState | null, css: string, _options?: R
 .starchart-title { font-family: var(--ta-font-heading); font-size: 18px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 4px; }
 .starchart-current { font-size: 13px; color: var(--ta-color-accent); margin-bottom: 12px; }
 .starchart-summary { font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 12px; }
-.section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-tertiary); margin: 12px 0 6px; }
+.chart-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-tertiary); margin: 12px 0 6px; }
 .system-list { list-style: none; padding: 0; margin: 0; }
 .system-item { padding: 4px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 12px; color: var(--color-text-secondary); }
 .system-current { color: var(--ta-color-accent); font-weight: 600; }
@@ -41,12 +47,12 @@ export function renderStarchart(state: GmState | null, css: string, _options?: R
   <div class="starchart-current">${esc(currentRoom)}</div>
   <div class="starchart-summary">${visitedRooms.length} system${visitedRooms.length !== 1 ? 's' : ''} charted</div>
 
-  <div class="section-label">Known Systems</div>
+  <div class="chart-section-label">Known Systems</div>
   <ul class="system-list">
     ${systemList || '<li class="system-item" style="font-style:italic;color:var(--color-text-tertiary)">No systems charted</li>'}
   </ul>
 
-  <div class="section-label">Plotted Course</div>
+  <div class="chart-section-label">Plotted Course</div>
   ${courseSteps
     ? `<ol class="course-list" role="list">${courseSteps}</ol>`
     : '<p class="no-course">No course plotted</p>'}

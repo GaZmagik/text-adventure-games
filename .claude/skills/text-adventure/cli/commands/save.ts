@@ -1,7 +1,7 @@
 import { resolve } from 'node:path';
 import { homedir, tmpdir } from 'node:os';
 import { realpathSync } from 'node:fs';
-import type { CommandResult } from '../types';
+import type { CommandResult, GmState } from '../types';
 import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState, createDefaultState } from '../lib/state-store';
 import { validateState } from '../lib/validator';
@@ -12,19 +12,29 @@ const RE_SAVE_BARE = /([\da-fA-F]{8}\.SF[12]:[\S]+)/;
 
 async function resolveSaveString(input: string): Promise<string> {
   if (input.startsWith('/') || input.startsWith('./') || input.endsWith('.md') || input.endsWith('.save')) {
-    // Restrict file access to home directory or temp directory to prevent path traversal
-    // Use realpathSync to resolve symlinks before the prefix check
+    // Restrict file access to home directory or temp directory to prevent path traversal.
+    // Use realpathSync to resolve symlinks before the prefix check.
+    // NOTE: TOCTOU gap — realpathSync resolves at this point but Bun.file().text() reads
+    // later. Acceptable in the current single-user sandboxed environment; would need an
+    // open-by-fd approach (O_NOFOLLOW + fstat) for multi-user or untrusted-filesystem deployment.
     let resolved: string;
     try {
       resolved = realpathSync(resolve(input));
     } catch {
-      return input; // Path doesn't exist — treat as raw save string
+      // Path doesn't exist as a file — treat as raw save string.
+      // If input looks like a file path (contains / or \), warn that the file wasn't found.
+      if (input.includes('/') || input.includes('\\')) {
+        console.error(`Note: "${input}" looks like a file path but does not exist. Treating as raw save string.`);
+      }
+      return input;
     }
     const home = homedir();
     const tmp = tmpdir();
     const homePrefix = home === '/' ? home : home + '/';
     const tmpPrefix = tmp === '/' ? tmp : tmp + '/';
-    if (!resolved.startsWith(homePrefix) && !resolved.startsWith(tmpPrefix)) return input;
+    if (!resolved.startsWith(homePrefix) && !resolved.startsWith(tmpPrefix)) {
+      throw new Error('Save file path must be within the home or temp directory.');
+    }
 
     try {
       const file = Bun.file(resolved);
@@ -101,7 +111,16 @@ async function load(args: string[]): Promise<CommandResult> {
     );
   }
 
-  const saveString = await resolveSaveString(args[0]);
+  let saveString: string;
+  try {
+    saveString = await resolveSaveString(args[0]);
+  } catch (err) {
+    return fail(
+      err instanceof Error ? err.message : 'Failed to resolve save file path.',
+      'Provide a path within your home or temp directory.',
+      'save load',
+    );
+  }
 
   const decoded = validateAndDecode(saveString);
 
@@ -115,36 +134,15 @@ async function load(args: string[]): Promise<CommandResult> {
 
   const payload = decoded.payload;
 
-  // Rebuild GmState from payload — field-by-field to ensure defaults for missing keys.
-  // Intentionally excluded from save: _stateHistory, _lastComputation (session-only data).
-  const state = createDefaultState();
-  state._version = (payload._version as number) ?? 1;
-  state.scene = (payload.scene as number) ?? 0;
-  state.currentRoom = (payload.currentRoom as string) ?? '';
-  state.visitedRooms = (payload.visitedRooms as string[]) ?? [];
-  state.character = (payload.character as typeof state.character) ?? null;
-  state.worldFlags = (payload.worldFlags as typeof state.worldFlags) ?? {};
-  state.seed = payload.seed as string | undefined;
-  state.theme = payload.theme as string | undefined;
-  state.visualStyle = payload.visualStyle as string | undefined;
-  state.modulesActive = (payload.modulesActive as string[]) ?? [];
-  state.rosterMutations = (payload.rosterMutations as typeof state.rosterMutations) ?? [];
-  state.codexMutations = (payload.codexMutations as typeof state.codexMutations) ?? [];
-  state.time = (payload.time as typeof state.time) ?? state.time;
-  state.factions = (payload.factions as typeof state.factions) ?? {};
-  state.quests = (payload.quests as typeof state.quests) ?? [];
-  state.rollHistory = (payload.rollHistory as typeof state.rollHistory) ?? [];
-
-  if (payload.storyArchitect) state.storyArchitect = payload.storyArchitect as typeof state.storyArchitect;
-  if (payload.shipState) state.shipState = payload.shipState as typeof state.shipState;
-  if (payload.crewMutations) state.crewMutations = payload.crewMutations as typeof state.crewMutations;
-  if (payload.mapState) state.mapState = payload.mapState as typeof state.mapState;
-  if (payload.systemResources !== undefined) state.systemResources = payload.systemResources as typeof state.systemResources;
-  if (payload.navPlottedCourse !== undefined) state.navPlottedCourse = payload.navPlottedCourse as typeof state.navPlottedCourse;
-  if (payload.arc) state.arc = payload.arc as number;
-  if (payload.arcType) state.arcType = payload.arcType as typeof state.arcType;
-  if (payload.carryForward !== undefined) state.carryForward = payload.carryForward as typeof state.carryForward;
-  if (payload.arcHistory) state.arcHistory = payload.arcHistory as typeof state.arcHistory;
+  // Rebuild GmState from payload — spread merge ensures new fields inherit defaults and
+  // saved fields always win. Session-only fields (_stateHistory, _lastComputation) are
+  // explicitly reset so they never leak from a previous save format.
+  const state: GmState = {
+    ...createDefaultState(),
+    ...(payload as Partial<GmState>),
+    _stateHistory: [],
+    _lastComputation: undefined,
+  };
 
   // Validate reconstructed state — warn but still save (user may want partially valid data)
   const validation = validateState(state);
@@ -165,7 +163,17 @@ async function validate(args: string[]): Promise<CommandResult> {
     return fail('Usage: tag save validate <save-string>', 'tag save validate <checksummed-string>', 'save validate');
   }
 
-  const saveString = await resolveSaveString(args[0]);
+  let saveString: string;
+  try {
+    saveString = await resolveSaveString(args[0]);
+  } catch (err) {
+    return fail(
+      err instanceof Error ? err.message : 'Failed to resolve save file path.',
+      'Provide a path within your home or temp directory.',
+      'save validate',
+    );
+  }
+
   const decoded = validateAndDecode(saveString);
 
   if (!decoded.valid) {

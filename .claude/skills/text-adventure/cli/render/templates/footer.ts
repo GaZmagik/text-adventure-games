@@ -46,12 +46,12 @@ export function renderFooter(state: GmState | null, css: string, _options?: Reco
 
   // Right-side action buttons
   const rightButtons: string[] = [
-    `<button class="footer-btn" id="save-btn" data-prompt="${esc(SAVE_PROMPT)}">Save \u2197</button>`,
+    `<button class="footer-btn" id="save-btn" data-prompt="${esc(SAVE_PROMPT)}" title="${esc(SAVE_PROMPT)}">Save \u2197</button>`,
   ];
 
   if (hasExport) {
     rightButtons.push(
-      `<button class="footer-btn" id="export-btn" data-prompt="${esc(EXPORT_PROMPT)}">Export \u2197</button>`,
+      `<button class="footer-btn" id="export-btn" data-prompt="${esc(EXPORT_PROMPT)}" title="${esc(EXPORT_PROMPT)}">Export \u2197</button>`,
     );
   }
 

@@ -1,8 +1,8 @@
 import { describe, test, expect, afterEach } from 'bun:test';
 import { extractAllCss, extractCssVars } from './css-extractor';
-import { join } from 'path';
-import { mkdtempSync, rmSync } from 'fs';
-import { tmpdir } from 'os';
+import { join } from 'node:path';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 
 const STYLES_DIR = join(import.meta.dir, '../../styles');
 
@@ -99,9 +99,8 @@ describe('extractAllCss', () => {
 
   test('returns empty string for file with no CSS blocks', async () => {
     const css = await extractAllCss(join(STYLES_DIR, '..', 'SKILL.md'));
-    // SKILL.md has code blocks but they're not fenced as css
-    // This may or may not return content — the important thing is it doesn't throw
-    expect(typeof css).toBe('string');
+    // SKILL.md has code blocks but they're not fenced as css — must return exactly ''
+    expect(css).toBe('');
   });
 
   test('only extracts @extract-marked blocks when present', async () => {

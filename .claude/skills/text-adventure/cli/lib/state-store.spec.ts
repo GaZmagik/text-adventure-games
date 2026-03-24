@@ -1,8 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { join } from 'path';
-import { mkdtempSync, rmSync } from 'fs';
-import { tmpdir } from 'os';
-import { writeFileSync } from 'fs';
+import { join } from 'node:path';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { loadState, saveState, createDefaultState, getStatePath, tryLoadState } from './state-store';
 
 let tempDir: string;

@@ -35,7 +35,7 @@ ${css ? '<style>' + css + '</style>' : ''}
           <span class="system-name">${esc(name)}</span>
           <span class="system-badge" style="background:${colours.bg};color:${colours.text}">${esc(sys.status)}</span>
         </div>
-        <div class="bar-container"><div class="bar-fill" style="width:${pct}%;background:${colours.bg}"></div></div>
+        <div class="ship-bar-container"><div class="bar-fill" style="width:${pct}%;background:${colours.bg}"></div></div>
         <div class="system-pct">${pct}%</div>
         ${conditions ? `<div class="system-conditions">${conditions}</div>` : ''}
       </div>`;
@@ -50,7 +50,7 @@ ${css ? '<style>' + css + '</style>' : ''}
 .system-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
 .system-name { font-size: 13px; font-weight: 600; color: var(--color-text-primary); text-transform: capitalize; }
 .system-badge { display: inline-block; padding: 2px 8px; font-size: 10px; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
-.bar-container { width: 100%; height: 6px; background: var(--color-border-tertiary); border-radius: 3px; overflow: hidden; }
+.ship-bar-container { width: 100%; height: 6px; background: var(--color-border-tertiary); border-radius: 3px; overflow: hidden; }
 .bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
 .system-pct { font-size: 10px; color: var(--color-text-tertiary); margin-top: 2px; text-align: right; }
 .system-conditions { margin-top: 4px; }

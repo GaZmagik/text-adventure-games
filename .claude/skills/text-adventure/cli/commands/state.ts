@@ -6,13 +6,10 @@ import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState, createDefaultState } from '../lib/state-store';
 import { generateNpcFromTier } from '../data/bestiary-tiers';
 import { validateState } from '../lib/validator';
-import { VALID_TIERS, VALID_PRONOUNS, MAX_STATE_HISTORY } from '../lib/constants';
+import { VALID_TIERS, VALID_PRONOUNS, MAX_STATE_HISTORY, FORBIDDEN_KEYS, VALID_TOP_KEYS } from '../lib/constants';
 import { parseArgs } from '../lib/args';
 
 const VALID_SUBCOMMANDS = ['get', 'set', 'create-npc', 'validate', 'reset', 'history'];
-
-/** Keys that must never be traversed or assigned — prevents prototype pollution. */
-const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 
 /**
  * Navigate a state object by dot-separated path.
@@ -50,6 +47,13 @@ function getByPath(obj: unknown, path: string): { found: boolean; value: unknown
  */
 function setByPath(obj: Record<string, unknown>, path: string, value: unknown): unknown {
   const parts = path.split('.');
+
+  // Reject writes to unknown top-level keys — prevents arbitrary state expansion.
+  const topKey = parts[0];
+  if (!VALID_TOP_KEYS.has(topKey)) {
+    throw new Error(`Unknown top-level key: "${topKey}". Valid keys: ${[...VALID_TOP_KEYS].join(', ')}`);
+  }
+
   let current: Record<string, unknown> = obj;
 
   for (let i = 0; i < parts.length - 1; i++) {
@@ -90,7 +94,7 @@ function coerceValue(raw: string): unknown {
   if (raw === 'false') return false;
   if (raw === 'null') return null;
   const num = Number(raw);
-  if (!Number.isNaN(num) && raw.trim().length > 0) return num;
+  if (!Number.isNaN(num) && Number.isFinite(num) && raw.trim().length > 0 && !/^0x/i.test(raw.trim())) return num;
   // Attempt JSON parse for objects and arrays
   if (raw.startsWith('{') || raw.startsWith('[')) {
     try {

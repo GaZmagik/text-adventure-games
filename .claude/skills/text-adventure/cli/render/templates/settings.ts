@@ -103,7 +103,7 @@ export function renderSettings(state: GmState | null, css: string, options?: Rec
     </div>
   </div>
 
-  <button class="confirm-btn" id="settings-confirm">Begin Adventure</button>
+  <button class="confirm-btn" id="settings-confirm" title="Begin adventure with the selected settings">Begin Adventure</button>
 </div>
 <script>
 (function() {
@@ -116,7 +116,7 @@ export function renderSettings(state: GmState | null, css: string, options?: Rec
       var group = this.getAttribute('data-group');
       var value = this.getAttribute('data-value');
       selections[group] = value;
-      // Update UI
+      // Update UI — re-query bounded card set (max ~12 nodes) — standard radio-card deselection pattern
       document.querySelectorAll('.option-card[data-group="' + group + '"]').forEach(function(b) {
         b.classList.remove('selected');
         b.setAttribute('aria-checked', 'false');

@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { mkdtempSync, rmSync } from 'fs';
-import { join } from 'path';
-import { tmpdir } from 'os';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { handleBatch } from './batch';
 import { saveState, createDefaultState, loadState } from '../lib/state-store';
 import type { NpcMutation } from '../types';
@@ -149,6 +149,16 @@ describe('batch mode', () => {
     const data = result.data as Record<string, unknown>;
     const labelled = data.labelled as Record<string, unknown>;
     expect(labelled.sc).toBeNull();
+  });
+
+  test('$$ is treated as literal dollar sign, not a reference', async () => {
+    // '$$50' starts with $$ so it must NOT be treated as an unresolved $ref
+    const result = await handleBatch(['--commands', 'state set worldFlags.price $$50']);
+    // Should not produce an unresolved reference error
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const errors = data.errors as { line: number; raw: string; error: string }[];
+    expect(errors.some(e => e.error.includes('Unresolved reference'))).toBe(false);
   });
 
   test('handles compute commands in batch with correct type', async () => {

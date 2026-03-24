@@ -2,6 +2,9 @@ import { describe, test, expect } from 'bun:test';
 import { generateWebGLDiceCode } from './webgl-dice';
 
 describe('generateWebGLDiceCode', () => {
+  // WebGL dice tests use substring/token-presence checks because the output
+  // is a minified JS string that requires a browser WebGL context to execute.
+  // Structural validation beyond token presence is not feasible without a headless browser.
   const code = generateWebGLDiceCode();
 
   test('returns a non-empty string', () => {

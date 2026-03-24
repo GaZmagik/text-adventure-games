@@ -41,14 +41,15 @@ async function contest(args: string[]): Promise<CommandResult> {
     );
   }
 
-  const stat = args[0].toUpperCase() as StatName;
-  if (!STAT_NAMES.includes(stat)) {
+  const raw = args[0].toUpperCase();
+  if (!STAT_NAMES.includes(raw as StatName)) {
     return fail(
       `Invalid attribute: ${args[0]}. Must be one of: ${STAT_NAMES.join(', ')}`,
       'tag compute contest CHA merchant_01',
       'compute contest',
     );
   }
+  const stat = raw as StatName;
 
   const npcId = args[1];
   const state = await tryLoadState();
@@ -81,6 +82,8 @@ async function contest(args: string[]): Promise<CommandResult> {
     context: { npcRoll, npcTotal, opposingAttribute: opposingAttr, npcName: npc.name },
   };
 
+  // _lastComputation is persisted to state.json for cross-command continuity
+  // but intentionally excluded from portable save strings (see save.ts)
   state._lastComputation = computation;
   await saveState(state);
 
@@ -106,10 +109,11 @@ async function hazard(args: string[]): Promise<CommandResult> {
     return fail('Usage: tag compute hazard <ATTR> --dc <N>', 'tag compute hazard CON --dc 14', 'compute hazard');
   }
 
-  const stat = args[0].toUpperCase() as StatName;
-  if (!STAT_NAMES.includes(stat)) {
-    return fail(`Invalid stat: "${stat}".`, `Valid stats: ${STAT_NAMES.join(', ')}`, 'compute hazard');
+  const raw = args[0].toUpperCase();
+  if (!STAT_NAMES.includes(raw as StatName)) {
+    return fail(`Invalid stat: "${raw}".`, `Valid stats: ${STAT_NAMES.join(', ')}`, 'compute hazard');
   }
+  const stat = raw as StatName;
 
   const dcStr = parseArgs(args).flags.dc;
   if (!dcStr) {
@@ -140,6 +144,8 @@ async function hazard(args: string[]): Promise<CommandResult> {
     dieType: 'd20',
   };
 
+  // _lastComputation is persisted to state.json for cross-command continuity
+  // but intentionally excluded from portable save strings (see save.ts)
   state._lastComputation = computation;
   await saveState(state);
 
@@ -162,6 +168,8 @@ async function encounter(args: string[]): Promise<CommandResult> {
 
   const state = await tryLoadState();
   if (state) {
+    // _lastComputation is persisted to state.json for cross-command continuity
+    // but intentionally excluded from portable save strings (see save.ts)
     state._lastComputation = computation;
     await saveState(state);
   }

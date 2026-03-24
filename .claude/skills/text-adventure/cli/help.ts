@@ -72,6 +72,8 @@ const COMMANDS: Record<string, CommandHelp> = {
   },
 };
 
+// SYNC: must match TEMPLATES keys in commands/render.ts
+// TEMPLATES is not exported from render.ts; update this list whenever a template is added or removed.
 const WIDGET_TYPES = [
   'scene', 'ticker', 'character', 'dice', 'ship', 'crew', 'codex',
   'map', 'starchart', 'footer', 'save-div', 'levelup', 'recap',

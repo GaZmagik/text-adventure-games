@@ -247,7 +247,7 @@ by the chosen scenario.
 
 | Setting | Options | Default |
 |---------|---------|---------|
-| Rulebook | d20 System, GURPS Lite, Pathfinder 2e Lite, Shadowrun 5e Lite, Narrative Engine, Custom | d20 System |
+| Rulebook | d20 System, GURPS Lite, Pathfinder 2e Lite, Shadowrun 5e Lite, Narrative Engine, SWRPG (Narrative Dice), Custom | d20 System |
 | Difficulty | Easy (DCs −2), Normal, Hard (DCs +2), Brutal (DCs +4) | Normal |
 | Pacing | Fast (shorter scenes), Normal, Slow (deeper exploration) | Normal |
 | Visual Style | Any `.md` file in `styles/` (e.g., Terminal, Parchment, Neon, Stained Glass) | Auto-select based on scenario theme |
@@ -263,7 +263,8 @@ The built-in system from core-systems.md. Best for casual play.
 
 **Alternative systems:** GURPS Lite (3d6 roll-under, point-buy), Pathfinder 2e Lite (three-action
 economy, proficiency tiers, crit ranges), Shadowrun 5e Lite (d6 dice pool, hits-based, matrix/magic),
-Narrative Engine (no dice, momentum-based, fiction-first). See `modules/rpg-systems.md` for full rules.
+Narrative Engine (no dice, momentum-based, fiction-first), SWRPG Narrative Dice (custom symbol pool,
+Triumph/Despair, Advantage/Threat — cinematic Star Wars and similar settings). See `modules/rpg-systems.md` for full rules.
 
 **Custom:** Player provides PDF or markdown. Must define: attributes, resolution, success/failure, advancement.
 
@@ -296,7 +297,7 @@ During game setup, the player selects a visual style or the GM auto-selects base
 Render the settings widget via the Bash tool:
 
 ```bash
-tag render settings --data '{"rulebooks":["d20_system","gurps_lite","pathfinder_2e_lite","shadowrun_5e_lite","narrative_engine"],"difficulties":["easy","normal","hard","brutal"],"pacingOptions":["fast","normal","slow"],"visualStyles":["station","terminal","parchment","neon","brutalist","art-deco","ink-wash","blueprint","stained-glass","sveltekit","weathered","holographic"],"modules":["save-codex","bestiary","story-architect","ship-systems","crew-manifest","star-chart","geo-map","procedural-world-gen","world-history","lore-codex","rpg-systems","ai-npc","atmosphere","audio"]}'
+tag render settings --data '{"rulebooks":["d20_system","gurps_lite","pathfinder_2e_lite","shadowrun_5e_lite","narrative_engine","swrpg_narrative"],"difficulties":["easy","normal","hard","brutal"],"pacingOptions":["fast","normal","slow"],"visualStyles":["station","terminal","parchment","neon","brutalist","art-deco","ink-wash","blueprint","stained-glass","sveltekit","weathered","holographic"],"modules":["save-codex","bestiary","story-architect","ship-systems","crew-manifest","star-chart","geo-map","procedural-world-gen","world-history","lore-codex","rpg-systems","ai-npc","atmosphere","audio"]}'
 ```
 
 The settings template includes a confirm button that serialises all player selections into

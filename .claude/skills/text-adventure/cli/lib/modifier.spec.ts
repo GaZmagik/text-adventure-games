@@ -63,8 +63,8 @@ describe('proficiencyBonus', () => {
     expect(proficiencyBonus(-1)).toBe(2);
   });
 
-  test('very high level returns +3', () => {
-    expect(proficiencyBonus(100)).toBe(3);
+  test('very high level caps at +6 (D&D 5e max)', () => {
+    expect(proficiencyBonus(100)).toBe(6);
   });
 });
 

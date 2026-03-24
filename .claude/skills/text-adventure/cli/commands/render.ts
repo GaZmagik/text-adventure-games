@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import type { CommandResult, GmState } from '../types';
 import { ok, fail, styleNotSet } from '../lib/errors';
 import { tryLoadState } from '../lib/state-store';
@@ -106,6 +106,7 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   }
 
   // Extract CSS from the style file + style-reference.md
+  // import.meta.dir is a Bun-only API — this CLI requires Bun runtime
   const styleFilePath = join(import.meta.dir, '../../styles/', resolvedStyle + '.md');
   const styleRefPath = join(import.meta.dir, '../../styles/style-reference.md');
   const [styleCss, refCss] = await Promise.all([
