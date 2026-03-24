@@ -9,19 +9,22 @@ export function renderCombatTurn(state: GmState | null, css: string, options?: R
   const comp = state?._lastComputation;
   const char = state?.character;
 
-  // Narrow computation type for safe field access
-  const compHasStatFields = comp && (comp.type === 'contested_roll' || comp.type === 'hazard_save');
+  // Narrow out levelup_result — it lacks roll/modifier/total/outcome/stat/npcId fields
+  const rollComp = comp && comp.type !== 'levelup_result' ? comp : undefined;
+
+  // Further narrow for stat-specific fields (dc, margin)
+  const statComp = rollComp && (rollComp.type === 'contested_roll' || rollComp.type === 'hazard_save') ? rollComp : undefined;
 
   // Computation fields — with discriminated union narrowing and numeric coercion
-  const stat = (compHasStatFields ? comp.stat : comp?.stat) ?? 'STR';
-  const roll = Number(comp?.roll) || 0;
-  const modifier = Number(comp?.modifier) || 0;
-  const total = Number(comp?.total) || 0;
-  const rawDc = compHasStatFields ? comp.dc : undefined;
+  const stat = (statComp ? statComp.stat : rollComp?.stat) ?? 'STR';
+  const roll = Number(rollComp?.roll) || 0;
+  const modifier = Number(rollComp?.modifier) || 0;
+  const total = Number(rollComp?.total) || 0;
+  const rawDc = statComp ? statComp.dc : undefined;
   const dc = rawDc !== undefined ? (Number.isFinite(Number(rawDc)) ? Number(rawDc) : undefined) : undefined;
-  const outcome = comp?.outcome ?? 'unknown';
-  const npcId = comp?.npcId;
-  const context = comp?.context as Record<string, unknown> | undefined;
+  const outcome = rollComp?.outcome ?? 'unknown';
+  const npcId = rollComp?.npcId;
+  const context = rollComp?.context as Record<string, unknown> | undefined;
 
   // Try to find NPC from roster
   const npc = npcId

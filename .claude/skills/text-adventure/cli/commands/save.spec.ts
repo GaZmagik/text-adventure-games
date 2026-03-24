@@ -5,6 +5,8 @@ import { tmpdir } from 'node:os';
 import { handleSave } from './save';
 import { saveState, createDefaultState, loadState } from '../lib/state-store';
 import { validateAndDecode, attachChecksum } from '../lib/fnv32';
+import { MAX_STATE_HISTORY, SCHEMA_VERSION } from '../lib/constants';
+import type { StateHistoryEntry } from '../types';
 
 let tempDir: string;
 const originalEnv = process.env.TAG_STATE_DIR;
@@ -336,5 +338,164 @@ describe('save load — prototype pollution filtering', () => {
     }
     // The critical assertion: no prototype pollution on Object.prototype
     expect(({} as Record<string, unknown>)['polluted']).toBeUndefined();
+  });
+});
+
+// ── Phase 2: _stateHistory persistence ───────────────────────────────
+
+describe('save — _stateHistory persistence', () => {
+  /** Build a checksummed SF2 save string from an arbitrary payload object. */
+  function makeSave(payload: Record<string, unknown>): string {
+    const code = 'SF2:' + btoa(JSON.stringify(payload));
+    return attachChecksum(code);
+  }
+
+  test('_stateHistory round-trips through save/load', async () => {
+    const state = await loadState();
+    const entry: StateHistoryEntry = {
+      timestamp: '2026-03-24T12:00:00Z', command: 'state set',
+      path: 'scene', oldValue: 0, newValue: 7,
+    };
+    state._stateHistory = [entry];
+    await saveState(state);
+
+    const genResult = await handleSave(['generate']);
+    expect(genResult.ok).toBe(true);
+    const saveString = (genResult.data as Record<string, unknown>).saveString as string;
+    const decoded = validateAndDecode(saveString);
+    expect(decoded.valid).toBe(true);
+    if (!decoded.valid) return;
+    expect(decoded.payload._stateHistory).toBeDefined();
+    expect((decoded.payload._stateHistory as unknown[]).length).toBe(1);
+
+    // Reset and reload
+    const fresh = createDefaultState();
+    await saveState(fresh);
+    const loadResult = await handleSave(['load', saveString]);
+    expect(loadResult.ok).toBe(true);
+    const restored = await loadState();
+    expect(restored._stateHistory.length).toBe(1);
+    expect(restored._stateHistory[0]!.command).toBe('state set');
+  });
+
+  test('_stateHistory caps at MAX_STATE_HISTORY on load', async () => {
+    const entries: StateHistoryEntry[] = Array.from({ length: MAX_STATE_HISTORY + 20 }, (_, i) => ({
+      timestamp: `2026-03-24T${String(i).padStart(2, '0')}:00:00Z`,
+      command: `cmd-${i}`, path: 'scene', oldValue: i, newValue: i + 1,
+    }));
+    const state = await loadState();
+    const payload: Record<string, unknown> = { ...state, _stateHistory: entries };
+    delete (payload as Record<string, unknown>)._lastComputation;
+    const saveString = makeSave({ v: 1, mode: 'full', ...payload });
+    const loadResult = await handleSave(['load', saveString]);
+    expect(loadResult.ok).toBe(true);
+    const restored = await loadState();
+    expect(restored._stateHistory.length).toBeLessThanOrEqual(MAX_STATE_HISTORY);
+  });
+
+  test('_lastComputation is excluded from save payload', async () => {
+    const state = await loadState();
+    state._lastComputation = { type: 'hazard_save', stat: 'DEX', roll: 15, modifier: 3, total: 18, dc: 14, outcome: 'success' };
+    await saveState(state);
+    const genResult = await handleSave(['generate']);
+    expect(genResult.ok).toBe(true);
+    const saveString = (genResult.data as Record<string, unknown>).saveString as string;
+    const decoded = validateAndDecode(saveString);
+    expect(decoded.valid).toBe(true);
+    if (!decoded.valid) return;
+    expect(decoded.payload._lastComputation).toBeUndefined();
+  });
+});
+
+// ── Phase 3: HP clamping on load ─────────────────────────────────────
+
+describe('save load — HP clamping migration', () => {
+  function makeSave(payload: Record<string, unknown>): string {
+    const code = 'SF2:' + btoa(JSON.stringify(payload));
+    return attachChecksum(code);
+  }
+
+  test('clamps character.hp into [0, maxHp] range on load', async () => {
+    const base = createDefaultState();
+    const payload: Record<string, unknown> = {
+      ...base, _version: 1, scene: 1,
+      character: {
+        name: 'Wounded', class: 'Scout', hp: -5, maxHp: 20, ac: 10,
+        level: 1, xp: 0, currency: 0, currencyName: 'credits',
+        stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+        modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+        proficiencyBonus: 2, proficiencies: [], abilities: [],
+        inventory: [], conditions: [],
+        equipment: { weapon: 'Blaster', armour: 'Vest' },
+      },
+    };
+    delete payload._stateHistory;
+    delete payload._lastComputation;
+    delete payload._schemaVersion; // Simulate pre-1.3.0 save to trigger migration
+    const saveString = makeSave({ v: 1, mode: 'full', ...payload });
+    const result = await handleSave(['load', saveString]);
+    expect(result.ok).toBe(true);
+    const restored = await loadState();
+    expect(restored.character!.hp).toBe(0);
+  });
+});
+
+// ── Phase 10: Schema versioning ──────────────────────────────────────
+
+describe('save — schema versioning', () => {
+  function makeSave(payload: Record<string, unknown>): string {
+    const code = 'SF2:' + btoa(JSON.stringify(payload));
+    return attachChecksum(code);
+  }
+
+  test('missing _schemaVersion defaults to 1.2.0 on load', async () => {
+    const base = createDefaultState();
+    const payload: Record<string, unknown> = { ...base, v: 1, mode: 'full' };
+    delete payload._schemaVersion;
+    delete payload._lastComputation;
+    const saveString = makeSave(payload);
+    const result = await handleSave(['load', saveString]);
+    expect(result.ok).toBe(true);
+    const restored = await loadState();
+    expect(restored._schemaVersion).toBe(SCHEMA_VERSION);
+  });
+
+  test('migration applies HP clamp for pre-1.3.0 saves', async () => {
+    const base = createDefaultState();
+    const payload: Record<string, unknown> = {
+      ...base, v: 1, mode: 'full',
+      character: {
+        name: 'Legacy', class: 'Scout', hp: 25, maxHp: 20, ac: 10,
+        level: 1, xp: 0, currency: 0, currencyName: 'credits',
+        stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+        modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+        proficiencyBonus: 2, proficiencies: [], abilities: [],
+        inventory: [], conditions: [],
+        equipment: { weapon: 'Blaster', armour: 'Vest' },
+      },
+    };
+    delete payload._schemaVersion;
+    delete payload._lastComputation;
+    const saveString = makeSave(payload);
+    const result = await handleSave(['load', saveString]);
+    expect(result.ok).toBe(true);
+    const restored = await loadState();
+    expect(restored.character!.hp).toBe(20);
+  });
+
+  test('current version round-trips without migration', async () => {
+    const state = await loadState();
+    state._schemaVersion = SCHEMA_VERSION;
+    await saveState(state);
+    const genResult = await handleSave(['generate']);
+    expect(genResult.ok).toBe(true);
+    const saveString = (genResult.data as Record<string, unknown>).saveString as string;
+    const fresh = createDefaultState();
+    await saveState(fresh);
+    const loadResult = await handleSave(['load', saveString]);
+    expect(loadResult.ok).toBe(true);
+    const restored = await loadState();
+    expect(restored._schemaVersion).toBe(SCHEMA_VERSION);
+    expect(restored.character!.hp).toBe(18);
   });
 });

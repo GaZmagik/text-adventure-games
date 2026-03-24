@@ -1,10 +1,11 @@
-import type { CommandResult, StatName, ComputationResult } from '../types';
+import type { CommandResult, StatName, ComputationResult, RollOutcome, LevelupResult } from '../types';
 import { ok, fail, noState, npcNotFound } from '../lib/errors';
 import { tryLoadState, saveState } from '../lib/state-store';
 import { rollD20 } from '../lib/dice';
 import { getOpposingAttribute } from '../data/contested-pairings';
 import { STAT_NAMES } from '../lib/constants';
 import { parseArgs } from '../lib/args';
+import { XP_THRESHOLDS, LEVEL_REWARDS } from '../data/xp-tables';
 
 // Margin → outcome from die-rolls.md § Outcome Badge Text for Contested Checks
 function contestOutcome(margin: number): string {
@@ -85,6 +86,7 @@ async function contest(args: string[]): Promise<CommandResult> {
   // _lastComputation is persisted to state.json for cross-command continuity
   // but intentionally excluded from portable save strings (see save.ts)
   state._lastComputation = computation;
+  state.rollHistory.push({ scene: state.scene, type: 'contested_roll', stat: stat as StatName, roll: playerRoll, modifier: playerModifier, total: playerTotal, outcome: outcome as RollOutcome });
   await saveState(state);
 
   return ok({
@@ -145,6 +147,7 @@ async function hazard(args: string[]): Promise<CommandResult> {
   };
 
   state._lastComputation = computation;
+  state.rollHistory.push({ scene: state.scene, type: 'hazard_save', stat: stat as StatName, roll, modifier, total, dc, outcome: outcome as RollOutcome });
   await saveState(state);
 
   return ok({ type: 'hazard_save', stat, roll, modifier, total, dc, outcome }, 'compute hazard');
@@ -167,10 +170,54 @@ async function encounter(args: string[]): Promise<CommandResult> {
   const state = await tryLoadState();
   if (state) {
     state._lastComputation = computation;
+    state.rollHistory.push({ scene: state.scene, type: 'encounter_roll', roll, outcome: enc as RollOutcome });
     await saveState(state);
   }
 
   return ok({ type: 'encounter_roll', roll, escalation, encounter: enc }, 'compute encounter');
+}
+
+async function levelup(): Promise<CommandResult> {
+  const state = await tryLoadState();
+  if (!state) return noState();
+  if (!state.character) {
+    return fail('No character exists.', 'Create a character first.', 'compute levelup');
+  }
+
+  const { level, xp } = state.character;
+  const maxLevel = XP_THRESHOLDS[XP_THRESHOLDS.length - 1]?.level ?? 8;
+
+  if (level >= maxLevel) {
+    return ok({ type: 'levelup_result', eligible: false, reason: 'already_max', currentLevel: level, currentXp: xp }, 'compute levelup');
+  }
+
+  const nextThreshold = XP_THRESHOLDS.find(t => t.level === level + 1);
+  if (!nextThreshold || xp < nextThreshold.xp) {
+    return ok({
+      type: 'levelup_result', eligible: false, reason: 'insufficient_xp',
+      currentLevel: level, currentXp: xp,
+      nextThreshold: nextThreshold?.xp ?? null,
+      xpNeeded: nextThreshold ? nextThreshold.xp - xp : null,
+    }, 'compute levelup');
+  }
+
+  const newLevel = level + 1;
+  const reward = LEVEL_REWARDS[newLevel];
+  const hpGain = reward?.hpGain ?? 0;
+  const improvement = reward?.improvement ?? '';
+
+  state.character.level = newLevel;
+  state.character.maxHp += hpGain;
+  state.character.hp += hpGain;
+
+  const computation: LevelupResult = { type: 'levelup_result', previousLevel: level, newLevel, hpGain, improvement };
+  state._lastComputation = computation;
+  await saveState(state);
+
+  return ok({
+    type: 'levelup_result', eligible: true, previousLevel: level, newLevel,
+    hpGain, improvement, newMaxHp: state.character.maxHp, newHp: state.character.hp,
+  }, 'compute levelup');
 }
 
 export async function handleCompute(args: string[]): Promise<CommandResult> {
@@ -179,6 +226,7 @@ export async function handleCompute(args: string[]): Promise<CommandResult> {
     case 'contest': return contest(args.slice(1));
     case 'hazard': return hazard(args.slice(1));
     case 'encounter': return encounter(args.slice(1));
+    case 'levelup': return levelup();
     default:
       return fail(
         `Unknown compute subcommand: ${sub ?? '(none)'}. Available: contest, hazard, encounter`,

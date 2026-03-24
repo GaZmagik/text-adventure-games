@@ -127,17 +127,18 @@ RESUME FROM SAVE CHECKLIST
 □  8. Load all required modules — same set as a new game for this scenario type
 □  9. Reconstruct gmState from save payload (compact: regenerate + apply deltas;
      full: restore directly)
-□ 10. Verify NPC identity: apply pronouns from rosterMutations to all NPC
+□ 10. Run `tag state context` — verify all active modules are in context. Re-read any files listed in the `required` output.
+□ 11. Verify NPC identity: apply pronouns from rosterMutations to all NPC
      definitions (see modules/ai-npc.md § NPC Definition Object for schema,
      modules/save-codex.md § compressRosterMutations for saved fields).
      If compact mode, confirm seeded pronouns match saved pronouns.
      Use saved pronouns as authoritative if they conflict.
-□ 11. Reinitialise storyArchitect from worldFlags and codexMutations
-□ 12. Reinitialise worldHistory context from seed/theme (if procedural)
-□ 13. Render the resume scene as a widget using the active visual style
-□ 14. Include: footer with panel buttons + Save ↗ + Export ↗ (if module active)
-□ 15. Include: pre-computed #save-data div for save fallback
-□ 16. Verify: is ALL game content inside the widget? No prose outside?
+□ 12. Reinitialise storyArchitect from worldFlags and codexMutations
+□ 13. Reinitialise worldHistory context from seed/theme (if procedural)
+□ 14. Render the resume scene as a widget using the active visual style
+□ 15. Include: footer with panel buttons + Save ↗ + Export ↗ (if module active)
+□ 16. Include: pre-computed #save-data div for save fallback
+□ 17. Verify: is ALL game content inside the widget? No prose outside?
 ```
 
 **Critical:** Steps 5–8 are the ones most commonly skipped on resume. Without them,
@@ -220,41 +221,42 @@ before this checklist begins.
 ```
 NEW SCENE CHECKLIST
 ═══════════════════════════════════════════
+□  1. Run `tag state sync` — verify module context, quest consistency, and pending computations. If warnings appear, address them before proceeding.
 
   Narrative Threading (consult modules/story-architect.md § Pre-Scene)
-□  1. Which thread(s) does this scene advance?
-□  2. Check foreshadowing registry: any seeds to reinforce or pay off?
-□  3. Check consequence chains: any pending effects to deliver?
-□  4. Check pacing tracker: what scene type should this be? (action/discovery/dialogue/quiet)
-□  5. Has any thread been untouched for 3+ scenes? Touch it.
-□  6. Are any NPCs due for an arc beat?
+□  2. Which thread(s) does this scene advance?
+□  3. Check foreshadowing registry: any seeds to reinforce or pay off?
+□  4. Check consequence chains: any pending effects to deliver?
+□  5. Check pacing tracker: what scene type should this be? (action/discovery/dialogue/quiet)
+□  6. Has any thread been untouched for 3+ scenes? Touch it.
+□  7. Are any NPCs due for an arc beat?
 
   Prose Craft (consult prose-craft.md)
-□  7. Determine the scene's location, atmosphere, and narrative content
-□  8. Write narrative: zero meta-commentary, zero emotion labels, zero filter words
-□  9. Verify: sentence length varies, strong verbs, at least one non-visual sense
-□ 10. Verify: each NPC voice is distinct, no cliché clusters, no summarising tic
+□  8. Determine the scene's location, atmosphere, and narrative content
+□  9. Write narrative: zero meta-commentary, zero emotion labels, zero filter words
+□ 10. Verify: sentence length varies, strong verbs, at least one non-visual sense
+□ 11. Verify: each NPC voice is distinct, no cliché clusters, no summarising tic
 
   Widget Assembly — use `tag render`, do NOT hand-code HTML
-□ 11. Run `tag render scene --style <style-name>` to generate the scene skeleton
+□ 12. Run `tag render scene --style <style-name>` to generate the scene skeleton
       Then compose your narrative prose into the HTML output.
-□ 12. For die rolls, use `tag render dice` — never hand-code the roll widget
-□ 13. For contested checks, FIRST run `tag compute contest <ATTR> <npc_id>`,
+□ 13. For die rolls, use `tag render dice` — never hand-code the roll widget
+□ 14. For contested checks, FIRST run `tag compute contest <ATTR> <npc_id>`,
       THEN use the result to render the outcome
-□ 14. Include: pre-computed #save-data div for save fallback
+□ 15. Include: pre-computed #save-data div for save fallback
 
   Post-Scene State Sync — run AFTER rendering
-□ 15. Update any state that changed during this scene:
+□ 16. Update any state that changed during this scene:
       `tag state set character.hp <new_hp>` (if damage taken)
       `tag state set character.xp += <xp_earned>` (if XP awarded)
       `tag state set factions.<id> += <delta>` (if faction changed)
       `tag state set worldFlags.<flag> true` (if discovery made)
-□ 16. Include: #scene-meta hidden div (see styles/style-reference.md § Scene Metadata)
-□ 17. Every interactive button uses data-prompt + addEventListener (no inline onclick)
-□ 18. Every sendPrompt button has a copyable fallback
-□ 19. ALL narrative content is inside the widget — NOTHING outside
-□ 20. Update gmState: scene number, current room, world flags, time
-□ 21. Output ONLY the widget — no text before, no text after
+□ 17. Include: #scene-meta hidden div (see styles/style-reference.md § Scene Metadata)
+□ 18. Every interactive button uses data-prompt + addEventListener (no inline onclick)
+□ 19. Every sendPrompt button has a copyable fallback
+□ 20. ALL narrative content is inside the widget — NOTHING outside
+□ 21. Update gmState: scene number, current room, world flags, time
+□ 22. Output ONLY the widget — no text before, no text after
 ```
 
 ---
@@ -400,17 +402,18 @@ If any check fails, fix it before the widget reaches the player.
 ```
 POST-SCENE VERIFICATION
 ═══════════════════════════════════════════
-□ 1. Did I write ANY text outside the widget? If yes — ERROR. Move it inside.
-□ 2. Does the widget render the active visual style? (Check CSS custom properties)
-□ 3. Are all buttons wired with addEventListener? (No inline onclick on sendPrompt paths)
-□ 4. Do all sendPrompt buttons have fallback text?
-□ 5. Is the status bar present and accurate? (HP, XP, level)
-□ 6. Footer button audit: compare rendered footer buttons against modules_active
+□  1. Did I write ANY text outside the widget? If yes — ERROR. Move it inside.
+□  2. Does the widget render the active visual style? (Check CSS custom properties)
+□  3. Are all buttons wired with addEventListener? (No inline onclick on sendPrompt paths)
+□  4. Do all sendPrompt buttons have fallback text?
+□  5. Is the status bar present and accurate? (HP, XP, level)
+□  6. Footer button audit: compare rendered footer buttons against modules_active
      using the Module Footer Button Table in style-reference.md. Every active module
      must have its button. No inactive module should have a button.
-□ 7. Is #save-data present with pre-computed save metadata?
-□ 8. Did I advance at least one story thread?
-□ 9. Is the gmState updated? (scene number, room, flags, time)
+□  7. Is #save-data present with pre-computed save metadata?
+□  8. Did I advance at least one story thread?
+□  9. Is the gmState updated? (scene number, room, flags, time)
+□ 10. Run `tag state sync` — final integrity check. Address any warnings before the next scene.
 ```
 
 ---

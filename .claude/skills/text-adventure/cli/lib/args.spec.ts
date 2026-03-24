@@ -97,3 +97,60 @@ describe('parseArgs', () => {
     expect(result.flags).toEqual({ commands: 'a;b' });
   });
 });
+
+// ── Phase 9: multi-word flag values ──────────────────────────────
+
+describe('parseArgs — multi-word flag values', () => {
+  test('rejoins multi-word value split by shell: --name Maren Dray', () => {
+    const result = parseArgs(
+      ['--name', 'Maren', 'Dray', '--tier', 'minion'],
+      [],
+      ['name', 'pronouns', 'tier', 'role'],
+    );
+    expect(result.flags.name).toBe('Maren Dray');
+    expect(result.flags.tier).toBe('minion');
+  });
+
+  test('flag ordering is independent — flags work in any order', () => {
+    const result = parseArgs(
+      ['--tier', 'rival', '--name', 'Gate', 'Guard', '--pronouns', 'he/him'],
+      [],
+      ['name', 'pronouns', 'tier', 'role'],
+    );
+    expect(result.flags.tier).toBe('rival');
+    expect(result.flags.name).toBe('Gate Guard');
+    expect(result.flags.pronouns).toBe('he/him');
+  });
+
+  test('flag without value at end becomes boolean (no multi-word greed)', () => {
+    const result = parseArgs(
+      ['--verbose'],
+      [],
+      ['name'],
+    );
+    expect(result.booleans.has('verbose')).toBe(true);
+    expect(result.flags).toEqual({});
+  });
+
+  test('flag followed by another flag does not consume it as value', () => {
+    const result = parseArgs(
+      ['--name', '--tier', 'minion'],
+      [],
+      ['name', 'tier'],
+    );
+    // --name has no non-flag token after it, so it becomes boolean
+    expect(result.booleans.has('name')).toBe(true);
+    expect(result.flags.tier).toBe('minion');
+  });
+
+  test('mixed positional and multi-word flags', () => {
+    const result = parseArgs(
+      ['guard_01', '--name', 'Maren', 'Dray', '--tier', 'nemesis'],
+      [],
+      ['name', 'tier', 'role'],
+    );
+    expect(result.positional).toEqual(['guard_01']);
+    expect(result.flags.name).toBe('Maren Dray');
+    expect(result.flags.tier).toBe('nemesis');
+  });
+});

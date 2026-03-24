@@ -6,10 +6,12 @@ import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState, createDefaultState } from '../lib/state-store';
 import { generateNpcFromTier } from '../data/bestiary-tiers';
 import { validateState } from '../lib/validator';
-import { VALID_TIERS, VALID_PRONOUNS, MAX_STATE_HISTORY, FORBIDDEN_KEYS, VALID_TOP_KEYS } from '../lib/constants';
+import { VALID_TIERS, VALID_PRONOUNS, MAX_STATE_HISTORY, FORBIDDEN_KEYS, VALID_TOP_KEYS, TIER1_MODULES } from '../lib/constants';
 import { parseArgs } from '../lib/args';
+import { MODULE_DIGESTS } from '../data/module-digests';
+import { XP_THRESHOLDS } from '../data/xp-tables';
 
-const VALID_SUBCOMMANDS = ['get', 'set', 'create-npc', 'validate', 'reset', 'history'] as const;
+const VALID_SUBCOMMANDS = ['get', 'set', 'create-npc', 'validate', 'reset', 'history', 'context', 'sync'] as const;
 
 function isBestiaryTier(s: string): s is BestiaryTier {
   return (VALID_TIERS as readonly string[]).includes(s);
@@ -244,27 +246,47 @@ async function handleCreateNpc(args: string[]): Promise<CommandResult> {
     return fail('No NPC id provided.', 'Usage: tag state create-npc <id> --name <n> --tier <tier> --pronouns <p> --role <r>', 'state create-npc');
   }
 
-  const flags = parseArgs(args.slice(1)).flags;
+  const flags = parseArgs(args.slice(1), [], ['name', 'pronouns', 'tier', 'role']).flags;
 
   // Validate required flags
   if (!flags.name) {
-    return fail('Missing --name flag.', 'tag state create-npc requires --name <name>.', 'state create-npc');
+    return fail(
+      'Missing --name flag.',
+      "Usage: tag state create-npc <id> --name 'Maren Dray' --tier <tier> --pronouns <p>. Names with spaces must be quoted.",
+      'state create-npc',
+    );
   }
 
   if (!flags.tier) {
-    return fail('Missing --tier flag.', 'tag state create-npc requires --tier <minion|rival|nemesis>.', 'state create-npc');
+    return fail(
+      'Missing --tier flag.',
+      `Usage: tag state create-npc <id> --tier <tier>. Valid tiers: ${VALID_TIERS.join(', ')}`,
+      'state create-npc',
+    );
   }
 
   if (!isBestiaryTier(flags.tier)) {
-    return fail(`Invalid tier "${flags.tier}".`, `Valid tiers: ${VALID_TIERS.join(', ')}`, 'state create-npc');
+    return fail(
+      `Invalid tier "${flags.tier}".`,
+      `Valid tiers: ${VALID_TIERS.join(', ')}. Example: --tier rival`,
+      'state create-npc',
+    );
   }
 
   if (!flags.pronouns) {
-    return fail('Missing --pronouns flag. NPC pronouns are mandatory.', 'tag state create-npc requires --pronouns <she/her|he/him|they/them>.', 'state create-npc');
+    return fail(
+      'Missing --pronouns flag. NPC pronouns are mandatory.',
+      `Usage: tag state create-npc <id> --pronouns <p>. Valid pronouns: ${VALID_PRONOUNS.join(', ')}`,
+      'state create-npc',
+    );
   }
 
   if (!isPronouns(flags.pronouns)) {
-    return fail(`Invalid pronouns "${flags.pronouns}".`, `Valid pronouns: ${VALID_PRONOUNS.join(', ')}`, 'state create-npc');
+    return fail(
+      `Invalid pronouns "${flags.pronouns}".`,
+      `Valid pronouns: ${VALID_PRONOUNS.join(', ')}. Example: --pronouns she/her`,
+      'state create-npc',
+    );
   }
 
   const role = flags.role ?? 'unspecified';
@@ -306,6 +328,37 @@ async function handleReset(): Promise<CommandResult> {
   return ok({ message: 'State reset to defaults.' }, 'state reset');
 }
 
+async function handleContext(): Promise<CommandResult> {
+  const state = await tryLoadState();
+  if (!state) return noState();
+
+  const active: string[] = state.modulesActive ?? [];
+  const required = active.map(m => `modules/${m}.md`);
+
+  const tier1 = TIER1_MODULES.slice();
+  const activeSet = new Set(active);
+  const missingTier1 = tier1.filter(m => !activeSet.has(m));
+  const missing_hint = missingTier1.length > 0
+    ? `Missing tier 1 modules: ${missingTier1.join(', ')}. These should be loaded before first widget render.`
+    : '';
+
+  const moduleDigests: Record<string, string> = {};
+  for (const m of active) {
+    if (MODULE_DIGESTS[m]) {
+      moduleDigests[m] = MODULE_DIGESTS[m];
+    }
+  }
+
+  return ok({
+    required,
+    tier1: [...tier1],
+    missing_hint,
+    moduleDigests,
+    total_modules: active.length,
+    modulesActive: active,
+  }, 'state context');
+}
+
 async function handleHistory(args: string[]): Promise<CommandResult> {
   const state = await tryLoadState();
   if (!state) return noState();
@@ -316,6 +369,164 @@ async function handleHistory(args: string[]): Promise<CommandResult> {
   const recent = history.slice(-limit);
 
   return ok(recent, 'state history');
+}
+
+async function handleSync(args: string[]): Promise<CommandResult> {
+  const state = await tryLoadState();
+  if (!state) return noState();
+
+  const parsed = parseArgs(args, ['apply']);
+  const apply = parsed.booleans.has('apply');
+  const flags = parsed.flags;
+
+  const diff: Record<string, { from: unknown; to: unknown }> = {};
+  const warnings: string[] = [];
+  const errors: string[] = [];
+
+  // 1. Scene should increment
+  const nextScene = flags.scene ? Number(flags.scene) : state.scene + 1;
+  if (nextScene !== state.scene) {
+    diff.scene = { from: state.scene, to: nextScene };
+  }
+
+  // 2. Room might change
+  if (flags.room && flags.room !== state.currentRoom) {
+    diff.currentRoom = { from: state.currentRoom, to: flags.room };
+  }
+
+  // 3. Time might advance
+  if (flags.time) {
+    try {
+      const newTime: unknown = JSON.parse(flags.time);
+      diff.time = { from: state.time, to: newTime };
+    } catch {
+      warnings.push('--time flag contains invalid JSON.');
+    }
+  }
+
+  // 4. Pending computation not in rollHistory
+  if (state._lastComputation && state._lastComputation.type !== 'levelup_result') {
+    const lastType = state._lastComputation.type;
+    const lastRoll = state.rollHistory[state.rollHistory.length - 1];
+    if (!lastRoll || lastRoll.type !== lastType || lastRoll.scene !== state.scene) {
+      warnings.push(
+        `Pending computation (${lastType}) may not be reflected in rollHistory.`,
+      );
+    }
+  }
+
+  // 5. Module verification — missing Tier 1 modules
+  const active: string[] = state.modulesActive ?? [];
+  const missingTier1 = TIER1_MODULES.filter(m => !active.includes(m));
+  if (missingTier1.length > 0) {
+    warnings.push(
+      `Missing Tier 1 modules: ${missingTier1.join(', ')}. Re-read these files.`,
+    );
+  }
+
+  // 6. Quest/worldFlag cross-validation (canonical format)
+  for (const quest of state.quests) {
+    for (const obj of quest.objectives) {
+      const canonicalKey = `quest:${quest.id}:${obj.id}:complete`;
+      const flagSet = state.worldFlags[canonicalKey] === true;
+      if (obj.completed && !flagSet) {
+        warnings.push(
+          `Quest objective "${quest.id}/${obj.id}" is complete but worldFlag `
+          + `"${canonicalKey}" is not set. Use \`tag quest complete\` to sync.`,
+        );
+      }
+      if (flagSet && !obj.completed) {
+        warnings.push(
+          `WorldFlag "${canonicalKey}" is set but quest objective `
+          + `"${quest.id}/${obj.id}" is not marked complete.`,
+        );
+      }
+    }
+    const allComplete = quest.objectives.every(o => o.completed);
+    const questFlag = `quest:${quest.id}:complete`;
+    if (allComplete && quest.objectives.length > 0
+        && state.worldFlags[questFlag] !== true) {
+      warnings.push(
+        `All objectives of quest "${quest.id}" are complete but worldFlag `
+        + `"${questFlag}" is not set.`,
+      );
+    }
+  }
+
+  // 7. Level-up eligibility
+  if (state.character) {
+    const { level, xp } = state.character;
+    const nextThreshold = XP_THRESHOLDS.find(t => t.level === level + 1);
+    if (nextThreshold && xp >= nextThreshold.xp) {
+      warnings.push(
+        `Level-up available! XP ${xp} >= ${nextThreshold.xp} `
+        + `(level ${level + 1}). Run \`tag compute levelup\`.`,
+      );
+    }
+  }
+
+  // 8. NPC creation gaps — worldFlag NPC references without roster entries
+  const npcIds = new Set(state.rosterMutations.map(n => n.id));
+  const npcPattern = /^npc_([a-z0-9_]+)_/;
+  for (const key of Object.keys(state.worldFlags)) {
+    const match = npcPattern.exec(key);
+    if (match) {
+      const npcId = match[1]!;
+      if (!npcIds.has(npcId) && !npcIds.has(`npc_${npcId}`)) {
+        warnings.push(
+          `WorldFlag "${key}" references NPC "${npcId}" `
+          + 'not found in rosterMutations.',
+        );
+      }
+    }
+  }
+
+  // 9. Feature checklist from module digests
+  const featureChecklist: string[] = [];
+  for (const mod of active) {
+    const digest = MODULE_DIGESTS[mod];
+    if (digest) {
+      featureChecklist.push(`${mod} ON \u2192 ${digest}`);
+    }
+  }
+
+  const status = errors.length > 0
+    ? 'errors'
+    : warnings.length > 0 ? 'warnings' : 'clean';
+
+  // Apply mutations if requested and no errors
+  if (apply) {
+    if (errors.length > 0) {
+      return fail(
+        `Cannot apply sync: ${errors.join('; ')}`,
+        'Fix errors before applying sync.',
+        'state sync',
+      );
+    }
+    if (diff.scene) state.scene = nextScene;
+    if (diff.currentRoom && flags.room) state.currentRoom = flags.room;
+    if (diff.time && flags.time) {
+      try {
+        const parsed2: unknown = JSON.parse(flags.time);
+        if (typeof parsed2 === 'object' && parsed2 !== null) {
+          Object.assign(state.time, parsed2);
+        }
+      } catch { /* already warned */ }
+    }
+    recordHistory(state, 'state sync', 'sync', null, diff);
+    await saveState(state);
+  }
+
+  return ok({
+    status,
+    diff,
+    warnings,
+    errors,
+    featureChecklist,
+    applied: apply && errors.length === 0,
+    rollHistoryCount: state.rollHistory.length,
+    stateHistoryCount: state._stateHistory.length,
+  }, 'state sync');
 }
 
 // ── Main handler ─────────────────────────────────────────────────
@@ -344,6 +555,10 @@ export async function handleState(args: string[]): Promise<CommandResult> {
       return handleReset();
     case 'history':
       return handleHistory(args.slice(1));
+    case 'context':
+      return handleContext();
+    case 'sync':
+      return handleSync(args.slice(1));
     default:
       return fail(
         `Unknown subcommand: "${subcommand}".`,

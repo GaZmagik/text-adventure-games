@@ -1,7 +1,12 @@
 // tag CLI — State Validator
 // Validates gmState structure against the contract in types.ts
 
-import { STAT_NAMES, VALID_TIERS, VALID_PRONOUNS } from './constants';
+import { STAT_NAMES, VALID_TIERS, VALID_PRONOUNS, KNOWN_MODULES } from './constants';
+import type { RollType, StatName } from '../types';
+
+const VALID_ROLL_TYPES: readonly string[] = [
+  'contested_roll', 'hazard_save', 'encounter_roll', 'levelup_result',
+] satisfies readonly RollType[];
 
 /** Result of a state validation check. */
 export type ValidationResult = {
@@ -46,8 +51,16 @@ export function validateState(state: unknown): ValidationResult {
     if (!Array.isArray(s.rosterMutations)) {
       errors.push('rosterMutations must be an array.');
     } else {
+      const seenNpcIds = new Set<string>();
       for (let i = 0; i < s.rosterMutations.length; i++) {
         validateNpc(s.rosterMutations[i], i, errors, warnings);
+        const npc = s.rosterMutations[i] as Record<string, unknown> | null;
+        if (npc && typeof npc === 'object' && typeof npc.id === 'string' && npc.id.length > 0) {
+          if (seenNpcIds.has(npc.id)) {
+            errors.push(`Duplicate NPC id "${npc.id}" at rosterMutations[${i}].`);
+          }
+          seenNpcIds.add(npc.id);
+        }
       }
     }
   }
@@ -85,14 +98,35 @@ export function validateState(state: unknown): ValidationResult {
     warnings.push('currentRoom should be a string.');
   }
 
-  // rollHistory — should be an array
+  // rollHistory — should be an array with valid entries
   if (s.rollHistory !== undefined && !Array.isArray(s.rollHistory)) {
     warnings.push('rollHistory should be an array.');
+  } else if (Array.isArray(s.rollHistory)) {
+    for (let i = 0; i < s.rollHistory.length; i++) {
+      const entry = s.rollHistory[i] as Record<string, unknown> | undefined;
+      if (!entry || typeof entry !== 'object') continue;
+      if (typeof entry.type === 'string' && !VALID_ROLL_TYPES.includes(entry.type)) {
+        warnings.push(`rollHistory[${i}].type "${entry.type}" is not a recognised RollType.`);
+      }
+      if (entry.stat !== undefined && typeof entry.stat === 'string'
+          && !(STAT_NAMES as readonly string[]).includes(entry.stat)) {
+        warnings.push(`rollHistory[${i}].stat "${entry.stat}" is not a recognised StatName.`);
+      }
+    }
   }
 
   // quests — should be an array
   if (s.quests !== undefined && !Array.isArray(s.quests)) {
     warnings.push('quests should be an array.');
+  }
+
+  // modulesActive — warn on unknown module names
+  if (Array.isArray(s.modulesActive)) {
+    for (const mod of s.modulesActive as unknown[]) {
+      if (typeof mod === 'string' && !(KNOWN_MODULES as readonly string[]).includes(mod)) {
+        warnings.push(`modulesActive contains unknown module "${mod}".`);
+      }
+    }
   }
 
   // seed — should be a string
@@ -118,17 +152,17 @@ function validateCharacter(char: unknown, errors: string[], warnings: string[]):
   if (typeof c.hp !== 'number') {
     errors.push('character.hp must be a number.');
   } else if (c.hp < 0) {
-    warnings.push('character.hp should be >= 0.');
+    errors.push('character.hp must not be < 0.');
   }
 
   if (typeof c.maxHp !== 'number') {
     errors.push('character.maxHp must be a number.');
   } else if (c.maxHp <= 0) {
-    warnings.push('character.maxHp should be > 0.');
+    errors.push('character.maxHp must not be <= 0.');
   }
 
   if (typeof c.hp === 'number' && typeof c.maxHp === 'number' && c.hp > c.maxHp) {
-    warnings.push('character.hp should not exceed character.maxHp.');
+    errors.push('character.hp must not exceed character.maxHp.');
   }
 
   if (typeof c.level !== 'number') {

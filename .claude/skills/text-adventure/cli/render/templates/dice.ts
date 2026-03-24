@@ -15,20 +15,23 @@ export function renderDice(state: GmState | null, css: string, options?: Record<
   const comp = state?._lastComputation;
   const data = options?.data as Record<string, unknown> | undefined;
 
-  // Narrow computation type for safe field access
-  const compHasStatFields = comp && (comp.type === 'contested_roll' || comp.type === 'hazard_save');
+  // Narrow out levelup_result — it lacks roll/modifier/total/outcome/stat fields
+  const rollComp = comp && comp.type !== 'levelup_result' ? comp : undefined;
+
+  // Further narrow for stat-specific fields (dc, margin)
+  const statComp = rollComp && (rollComp.type === 'contested_roll' || rollComp.type === 'hazard_save') ? rollComp : undefined;
 
   // Allow --data overrides for testing — with runtime validation for script safety
-  const rawDieType = (data?.dieType as string) ?? comp?.dieType ?? 'd20';
+  const rawDieType = (data?.dieType as string) ?? rollComp?.dieType ?? 'd20';
   const dieType = VALID_DIE_TYPES.has(rawDieType) ? rawDieType : 'd20';
-  const stat = (data?.stat as string) ?? (compHasStatFields ? comp.stat : undefined) ?? '???';
-  const roll = Number.isFinite(Number(data?.roll ?? comp?.roll)) ? Number(data?.roll ?? comp?.roll) : 0;
-  const modifier = Number.isFinite(Number(data?.modifier ?? comp?.modifier)) ? Number(data?.modifier ?? comp?.modifier) : 0;
-  const total = Number.isFinite(Number(data?.total ?? comp?.total)) ? Number(data?.total ?? comp?.total) : 0;
-  const rawDc = data?.dc ?? (compHasStatFields ? comp.dc : undefined);
+  const stat = (data?.stat as string) ?? (statComp ? statComp.stat : rollComp?.stat) ?? '???';
+  const roll = Number.isFinite(Number(data?.roll ?? rollComp?.roll)) ? Number(data?.roll ?? rollComp?.roll) : 0;
+  const modifier = Number.isFinite(Number(data?.modifier ?? rollComp?.modifier)) ? Number(data?.modifier ?? rollComp?.modifier) : 0;
+  const total = Number.isFinite(Number(data?.total ?? rollComp?.total)) ? Number(data?.total ?? rollComp?.total) : 0;
+  const rawDc = data?.dc ?? (statComp ? statComp.dc : undefined);
   const dc = rawDc !== undefined ? (Number.isFinite(Number(rawDc)) ? Number(rawDc) : undefined) : undefined;
-  const outcome = (data?.outcome as string) ?? comp?.outcome ?? 'unknown';
-  const rawMargin = data?.margin ?? (compHasStatFields ? comp.margin : undefined);
+  const outcome = (data?.outcome as string) ?? rollComp?.outcome ?? 'unknown';
+  const rawMargin = data?.margin ?? (statComp ? statComp.margin : undefined);
   const margin = Number.isFinite(Number(rawMargin)) ? Number(rawMargin) : 0;
   const modStr = modifier >= 0 ? `+${modifier}` : `${modifier}`;
 

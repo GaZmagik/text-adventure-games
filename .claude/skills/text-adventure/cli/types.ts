@@ -94,6 +94,7 @@ export type Quest = {
   title: string;
   status: 'active' | 'completed' | 'failed';
   objectives: QuestObjective[];
+  clues: string[];
 };
 
 export type QuestObjective = {
@@ -114,7 +115,7 @@ export type CodexMutation = {
 
 // ── Rolls ──────────────────────────────────────────────────────────
 
-export type RollType = 'contested_roll' | 'hazard_save' | 'encounter_roll';
+export type RollType = 'contested_roll' | 'hazard_save' | 'encounter_roll' | 'levelup_result';
 
 export type RollOutcome =
   | 'critical_success'
@@ -125,16 +126,19 @@ export type RollOutcome =
   | 'narrow_failure'
   | 'failure'
   | 'decisive_failure'
-  | 'critical_failure';
+  | 'critical_failure'
+  | 'quiet'
+  | 'alert'
+  | 'hostile';
 
 export type RollRecord = {
   scene: number;
   type: RollType;
-  stat: StatName;
+  stat?: StatName;
   roll: number;
-  modifier: number;
-  total: number;
-  dc: number;
+  modifier?: number;
+  total?: number;
+  dc?: number;
   outcome: RollOutcome;
 };
 
@@ -189,7 +193,17 @@ export type EncounterRollResult = {
   context?: Record<string, unknown>;
 };
 
-export type ComputationResult = ContestedRollResult | HazardSaveResult | EncounterRollResult;
+export type LevelupResult = {
+  type: 'levelup_result';
+  previousLevel: number;
+  newLevel: number;
+  hpGain: number;
+  improvement: string;
+  dieType?: DieType;
+  context?: Record<string, unknown>;
+};
+
+export type ComputationResult = ContestedRollResult | HazardSaveResult | EncounterRollResult | LevelupResult;
 
 // ── State History ──────────────────────────────────────────────────
 
@@ -289,6 +303,7 @@ export type GmState = {
   arcHistory?: ArcSummary[];
   _lastComputation?: ComputationResult | undefined;
   _stateHistory: StateHistoryEntry[];
+  _schemaVersion?: string;
 };
 
 // ── Command Types ──────────────────────────────────────────────────

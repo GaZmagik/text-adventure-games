@@ -5,6 +5,146 @@ import { tryLoadState } from '../lib/state-store';
 import { extractAllCss } from '../render/css-extractor';
 import { parseArgs } from '../lib/args';
 
+// ── Module digest placeholder ───────────────────────────────────────
+// If data/module-digests.ts exists, import MODULE_DIGESTS from there.
+// Until that file lands, use this inline map for the most critical modules.
+
+let MODULE_DIGESTS: Record<string, string>;
+try {
+  // Dynamic import so we don't hard-fail if the file hasn't been created yet
+  const mod = await import('../data/module-digests');
+  MODULE_DIGESTS = mod.MODULE_DIGESTS;
+} catch {
+  MODULE_DIGESTS = {
+    'audio': 'Web Audio soundscape engine with procedural ambient layers and play/stop toggle',
+    'atmosphere': 'Sensory atmosphere strip with 3-5 pills describing sight, sound, smell, touch, taste',
+    'prose-craft': 'Prose quality rules — sentence variance, concrete verbs, no cliché, show-don\'t-tell',
+    'core-systems': 'HP/XP/AC tracking, quest log, inventory management, level-up triggers',
+  };
+}
+
+// ── Phase 5: Module checklist helpers ───────────────────────────────
+
+const PROSE_CRAFT_PATH = 'modules/prose-craft.md';
+
+/** Map active module names to their file paths, always including prose-craft. */
+export function buildModulesRequired(state: GmState | null): string[] {
+  const active = state?.modulesActive ?? [];
+  const paths = active.map(m => `modules/${m}.md`);
+  if (!paths.includes(PROSE_CRAFT_PATH)) {
+    paths.unshift(PROSE_CRAFT_PATH);
+  }
+  return paths;
+}
+
+/** Feature checklist items that the GM must honour per active module. */
+export function buildFeatureChecklist(state: GmState | null): string[] {
+  const active = state?.modulesActive ?? [];
+  const items: string[] = [];
+
+  // prose-craft is always checked, even if not in modulesActive
+  items.push('prose-craft ON \u2192 re-read modules/prose-craft.md this turn');
+
+  for (const mod of active) {
+    if (mod === 'prose-craft') continue; // already added above
+    const digest = MODULE_DIGESTS[mod];
+    if (mod === 'audio') {
+      items.push('audio ON \u2192 scene must include Web Audio soundscape with play/stop button');
+    } else if (mod === 'atmosphere') {
+      items.push('atmosphere ON \u2192 scene must include .atmosphere-strip div with 3-5 sensory pills');
+    } else if (digest) {
+      items.push(`${mod} ON \u2192 ${digest}`);
+    } else {
+      items.push(`${mod} ON \u2192 re-read modules/${mod}.md this turn`);
+    }
+  }
+
+  return items;
+}
+
+// ── Phase 11: Widget structural skeleton helpers ────────────────────
+
+/** Scene widgets that get a skeleton — data-driven widgets do not. */
+const SCENE_WIDGET = 'scene';
+
+/** Build the list of DOM elements that MUST be present in the rendered output. */
+export function buildRequiredElements(widgetType: string, state: GmState | null): string[] {
+  const modules = state?.modulesActive ?? [];
+  const elements: string[] = [];
+
+  // Always required
+  elements.push("<div class='footer-row'> with buttons per modulesActive");
+
+  if (widgetType === SCENE_WIDGET) {
+    elements.push("<div id='scene-meta' data-meta='...'> hidden JSON");
+    elements.push("<div class='action-cards'> with 3-4 player choices");
+  }
+
+  if (modules.includes('atmosphere')) {
+    elements.push("<div class='scene-atmosphere'> with 3-5 sensory pills");
+  }
+
+  if (modules.includes('audio')) {
+    elements.push("<button class='scene-audio-toggle'> play/stop in footer");
+  }
+
+  return elements;
+}
+
+/** Build a semantic HTML skeleton for scene renders with placeholder markers. */
+export function buildSkeleton(widgetType: string, state: GmState | null): string | null {
+  if (widgetType !== SCENE_WIDGET) return null;
+
+  const modules = state?.modulesActive ?? [];
+  const hasAtmosphere = modules.includes('atmosphere');
+  const hasAudio = modules.includes('audio');
+
+  const parts: string[] = [];
+  parts.push('<div class="scene-container">');
+
+  // Atmosphere strip (conditional)
+  if (hasAtmosphere) {
+    parts.push('  <div class="scene-atmosphere">');
+    parts.push('    <!-- [ATMOSPHERE: 3-5 sensory pills for sight, sound, smell, touch, taste] -->');
+    parts.push('  </div>');
+  }
+
+  // Main narrative
+  parts.push('  <div class="scene-narrative">');
+  parts.push('    <!-- [NARRATIVE: scene prose with progressive reveal] -->');
+  parts.push('  </div>');
+
+  // Action cards
+  parts.push('  <div class="scene-actions">');
+  parts.push('    <div class="action-cards">');
+  parts.push('      <!-- [ACTIONS: 3-4 player choice cards] -->');
+  parts.push('    </div>');
+  parts.push('  </div>');
+
+  // Scene meta
+  parts.push('  <div id="scene-meta" data-meta="..." style="display:none">');
+  parts.push('    <!-- [META: hidden JSON state] -->');
+  parts.push('  </div>');
+
+  // Footer
+  parts.push('  <div class="scene-footer">');
+  parts.push('    <div class="footer-row">');
+  parts.push('      <!-- [FOOTER: module-aware buttons] -->');
+
+  if (hasAudio) {
+    parts.push('      <button class="scene-audio-toggle">');
+    parts.push('        <!-- [AUDIO: play/stop toggle] -->');
+    parts.push('      </button>');
+  }
+
+  parts.push('    </div>');
+  parts.push('  </div>');
+
+  parts.push('</div>');
+
+  return parts.join('\n');
+}
+
 // Template imports
 import { renderScene } from '../render/templates/scene';
 import { renderTicker } from '../render/templates/ticker';
@@ -134,6 +274,14 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   // Render the template
   const html = templateFn(state, css, options);
 
+  // Phase 5: module checklist
+  const modulesRequired = buildModulesRequired(state);
+  const featureChecklist = buildFeatureChecklist(state);
+
+  // Phase 11: required elements and skeleton
+  const requiredElements = buildRequiredElements(widgetType, state);
+  const skeleton = buildSkeleton(widgetType, state);
+
   // Return raw HTML or JSON-wrapped
   if (raw) {
     return ok(html, 'render');
@@ -144,6 +292,10 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
       widget: widgetType,
       style: resolvedStyle,
       html,
+      modulesRequired,
+      featureChecklist,
+      requiredElements,
+      ...(skeleton !== null ? { skeleton } : {}),
     },
     'render',
   );

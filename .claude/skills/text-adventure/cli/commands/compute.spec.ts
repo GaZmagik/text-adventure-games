@@ -84,7 +84,7 @@ describe('compute contest', () => {
     const state = await loadState();
     expect(state._lastComputation).toBeDefined();
     expect(state._lastComputation!.type).toBe('contested_roll');
-    expect(state._lastComputation!.npcId).toBe('test_npc');
+    expect((state._lastComputation as Record<string, unknown>).npcId).toBe('test_npc');
   });
 
   test('sets dieType to d20', async () => {
@@ -331,6 +331,193 @@ describe('compute encounter — deterministic outcomes', () => {
     expect(result.ok).toBe(true);
     const data = result.data as Record<string, unknown>;
     expect(data.encounter).toBe('alert');
+  });
+});
+
+// ── Phase 1: rollHistory auto-append ──────────────────────────────────
+
+describe('rollHistory — contest', () => {
+  test('contest appends a record to rollHistory', async () => {
+    await handleCompute(['contest', 'CHA', 'test_npc']);
+    const state = await loadState();
+    expect(state.rollHistory.length).toBeGreaterThanOrEqual(1);
+    const last = state.rollHistory[state.rollHistory.length - 1]!;
+    expect(last.type).toBe('contested_roll');
+  });
+
+  test('contest record has correct scene number', async () => {
+    // Default state scene = 0; set it to 5 to verify
+    const state = await loadState();
+    state.scene = 5;
+    await saveState(state);
+
+    await handleCompute(['contest', 'CHA', 'test_npc']);
+    const updated = await loadState();
+    const last = updated.rollHistory[updated.rollHistory.length - 1]!;
+    expect(last.scene).toBe(5);
+  });
+
+  test('contest record has correct type discriminant', async () => {
+    await handleCompute(['contest', 'CHA', 'test_npc']);
+    const state = await loadState();
+    const last = state.rollHistory[state.rollHistory.length - 1]!;
+    expect(last.type).toBe('contested_roll');
+    expect(last.stat).toBe('CHA');
+    expect(typeof last.roll).toBe('number');
+    expect(typeof last.modifier).toBe('number');
+    expect(typeof last.total).toBe('number');
+  });
+
+  test('contest record has undefined dc (contests have no DC)', async () => {
+    await handleCompute(['contest', 'CHA', 'test_npc']);
+    const state = await loadState();
+    const last = state.rollHistory[state.rollHistory.length - 1]!;
+    expect(last.dc).toBeUndefined();
+  });
+});
+
+describe('rollHistory — hazard', () => {
+  test('hazard appends a record to rollHistory', async () => {
+    await handleCompute(['hazard', 'CON', '--dc', '14']);
+    const state = await loadState();
+    expect(state.rollHistory.length).toBeGreaterThanOrEqual(1);
+    const last = state.rollHistory[state.rollHistory.length - 1]!;
+    expect(last.type).toBe('hazard_save');
+    expect(last.dc).toBe(14);
+    expect(last.stat).toBe('CON');
+  });
+});
+
+describe('rollHistory — encounter', () => {
+  test('encounter appends a record to rollHistory', async () => {
+    await handleCompute(['encounter', '--escalation', '0']);
+    const state = await loadState();
+    expect(state.rollHistory.length).toBeGreaterThanOrEqual(1);
+    const last = state.rollHistory[state.rollHistory.length - 1]!;
+    expect(last.type).toBe('encounter_roll');
+  });
+
+  test('encounter record has undefined stat and dc', async () => {
+    await handleCompute(['encounter']);
+    const state = await loadState();
+    const last = state.rollHistory[state.rollHistory.length - 1]!;
+    expect(last.stat).toBeUndefined();
+    expect(last.dc).toBeUndefined();
+  });
+});
+
+describe('rollHistory — cap', () => {
+  test('rollHistory is capped at 50 entries by saveState', async () => {
+    // Pre-fill with 49 entries, then push two more via contest calls
+    const state = await loadState();
+    for (let i = 0; i < 49; i++) {
+      state.rollHistory.push({
+        scene: i, type: 'hazard_save', stat: 'CON',
+        roll: 10, modifier: 0, total: 10, dc: 12, outcome: 'failure',
+      });
+    }
+    await saveState(state);
+
+    // Two more pushes → 51 total; saveState should cap to 50
+    await handleCompute(['contest', 'CHA', 'test_npc']);
+    await handleCompute(['hazard', 'CON', '--dc', '14']);
+
+    const updated = await loadState();
+    expect(updated.rollHistory.length).toBeLessThanOrEqual(50);
+  });
+});
+
+// ── Phase 6: compute levelup ──────────────────────────────────────────
+
+describe('compute levelup', () => {
+  test('succeeds when character has enough XP', async () => {
+    // Level 3, xp=500 → needs 500 for level 4 (threshold met exactly)
+    const result = await handleCompute(['levelup']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.eligible).toBe(true);
+    expect(data.newLevel).toBe(4);
+  });
+
+  test('applies HP gain to character', async () => {
+    // Level 3→4: hpGain=4 from LEVEL_REWARDS[4]
+    const before = await loadState();
+    const hpBefore = before.character!.hp;
+    const maxHpBefore = before.character!.maxHp;
+
+    await handleCompute(['levelup']);
+
+    const after = await loadState();
+    expect(after.character!.hp).toBe(hpBefore + 4);
+    expect(after.character!.maxHp).toBe(maxHpBefore + 4);
+    expect(after.character!.level).toBe(4);
+  });
+
+  test('returns improvement text from reward table', async () => {
+    const result = await handleCompute(['levelup']);
+    const data = result.data as Record<string, unknown>;
+    expect(data.improvement).toBe('+1 attribute');
+  });
+
+  test('returns ineligible when XP is insufficient', async () => {
+    const state = await loadState();
+    state.character!.xp = 100; // Need 250 for level 4
+    state.character!.level = 3;
+    await saveState(state);
+
+    const result = await handleCompute(['levelup']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.eligible).toBe(false);
+    expect(data.reason).toBe('insufficient_xp');
+    expect(typeof data.xpNeeded).toBe('number');
+  });
+
+  test('returns ineligible at max level (8)', async () => {
+    const state = await loadState();
+    state.character!.level = 8;
+    state.character!.xp = 9999;
+    await saveState(state);
+
+    const result = await handleCompute(['levelup']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.eligible).toBe(false);
+    expect(data.reason).toBe('already_max');
+  });
+
+  test('fails when no character exists', async () => {
+    const state = await loadState();
+    state.character = null;
+    await saveState(state);
+
+    const result = await handleCompute(['levelup']);
+    expect(result.ok).toBe(false);
+  });
+
+  test('sets _lastComputation to LevelupResult', async () => {
+    await handleCompute(['levelup']);
+    const state = await loadState();
+    expect(state._lastComputation).toBeDefined();
+    expect(state._lastComputation!.type).toBe('levelup_result');
+  });
+
+  test('does NOT append to rollHistory (levelup is not a roll)', async () => {
+    const before = await loadState();
+    const historyLenBefore = before.rollHistory.length;
+
+    await handleCompute(['levelup']);
+
+    const after = await loadState();
+    expect(after.rollHistory.length).toBe(historyLenBefore);
+  });
+
+  test('persists updated state to disk', async () => {
+    await handleCompute(['levelup']);
+    const state = await loadState();
+    // Character should now be level 4 on disk
+    expect(state.character!.level).toBe(4);
+    expect(state.character!.xp).toBe(500);
   });
 });
 

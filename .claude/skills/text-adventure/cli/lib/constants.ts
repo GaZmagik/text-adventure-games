@@ -19,7 +19,7 @@ const VALID_TOP_KEYS_ARRAY = [
   'rosterMutations', 'codexMutations', 'time', 'factions', 'quests',
   'storyArchitect', 'shipState', 'crewMutations', 'mapState', 'systemResources',
   'navPlottedCourse', 'arc', 'arcType', 'carryForward', 'arcHistory',
-  '_lastComputation', '_stateHistory',
+  '_lastComputation', '_stateHistory', '_schemaVersion',
 ] as const satisfies readonly (keyof GmState)[];
 export const VALID_TOP_KEYS = new Set<string>(VALID_TOP_KEYS_ARRAY);
 
@@ -32,4 +32,21 @@ export const WIDGET_TYPE_NAMES = [
   'scene', 'ticker', 'character', 'dice', 'ship', 'crew', 'codex', 'map',
   'starchart', 'footer', 'save-div', 'levelup', 'recap', 'combat-turn',
   'dialogue', 'settings', 'scenario-select', 'character-creation',
+] as const;
+
+export const SCHEMA_VERSION = '1.3.0' as const;
+
+/** All known module filenames (without .md extension), matching modulesActive format. */
+export const KNOWN_MODULES = [
+  'adventure-authoring', 'adventure-exporting', 'ai-npc', 'atmosphere', 'audio',
+  'bestiary', 'character-creation', 'core-systems', 'crew-manifest', 'die-rolls',
+  'genre-mechanics', 'geo-map', 'gm-checklist', 'lore-codex', 'procedural-world-gen',
+  'prose-craft', 'rpg-systems', 'save-codex', 'scenarios', 'ship-systems',
+  'star-chart', 'story-architect', 'world-history',
+] as const;
+
+/** Tier 1 modules — always load before first widget render. */
+export const TIER1_MODULES = [
+  'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
+  'character-creation', 'save-codex',
 ] as const;

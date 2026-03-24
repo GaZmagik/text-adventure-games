@@ -6,7 +6,7 @@ import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState, createDefaultState } from '../lib/state-store';
 import { validateState } from '../lib/validator';
 import { attachChecksum, validateAndDecode } from '../lib/fnv32';
-import { VALID_TOP_KEYS, FORBIDDEN_KEYS } from '../lib/constants';
+import { VALID_TOP_KEYS, FORBIDDEN_KEYS, MAX_STATE_HISTORY, SCHEMA_VERSION } from '../lib/constants';
 
 /** Recursively check for forbidden keys (__proto__, constructor, prototype) in a parsed value. */
 function containsForbiddenKeys(obj: unknown): boolean {
@@ -79,9 +79,10 @@ async function generate(): Promise<CommandResult> {
   const state = await tryLoadState();
   if (!state) return noState();
 
-  // Build payload — full state minus session-only fields, SF2: uncompressed base64 (no LZ)
+  // Build payload — full state minus session-only computation, SF2: uncompressed base64 (no LZ)
   // Destructuring exclusion ensures new GmState fields are included by default.
-  const { _stateHistory, _lastComputation, ...gameFields } = state;
+  // _stateHistory is intentionally kept in the payload for determinism auditing.
+  const { _lastComputation, ...gameFields } = state;
   const payload = { v: 1, mode: 'full', ...gameFields };
 
   const json = JSON.stringify(payload);
@@ -144,15 +145,34 @@ async function load(args: string[]): Promise<CommandResult> {
   }
 
   // Rebuild GmState from filtered payload — spread merge ensures new fields inherit defaults
-  // and saved fields always win. Session-only fields (_stateHistory, _lastComputation) are
-  // explicitly reset so they never leak from a previous save format.
+  // and saved fields always win. _lastComputation is session-only and always reset.
   const defaults = createDefaultState();
-  defaults._stateHistory = [];
   defaults._lastComputation = undefined;
   const state: GmState = {
     ...defaults,
     ...filtered as Partial<GmState>,
   };
+
+  // Phase 10: Schema versioning — read version from payload, default to '1.2.0' for legacy saves
+  const loadedVersion = typeof filtered._schemaVersion === 'string'
+    ? filtered._schemaVersion
+    : '1.2.0';
+
+  // Run migrations for pre-1.3.0 saves
+  if (loadedVersion < '1.3.0') {
+    // Phase 3: HP clamping migration — normalise out-of-range HP values
+    if (state.character && typeof state.character.hp === 'number' && typeof state.character.maxHp === 'number') {
+      state.character.hp = Math.max(0, Math.min(state.character.hp, state.character.maxHp));
+    }
+  }
+
+  // Stamp current schema version after migrations
+  state._schemaVersion = SCHEMA_VERSION;
+
+  // Phase 2: Preserve loaded _stateHistory, cap at MAX_STATE_HISTORY
+  if (state._stateHistory && state._stateHistory.length > MAX_STATE_HISTORY) {
+    state._stateHistory = state._stateHistory.slice(-MAX_STATE_HISTORY);
+  }
 
   // Validate reconstructed state — reject if structurally invalid, warn on minor issues
   const validation = validateState(state);

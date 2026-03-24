@@ -425,6 +425,209 @@ describe('render pre-game widgets', () => {
   });
 });
 
+// ── Phase 5: Module checklist ────────────────────────────────────────
+
+describe('render modulesRequired and featureChecklist', () => {
+  let state: GmState;
+
+  beforeEach(async () => {
+    state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.character = {
+      name: 'Kira',
+      class: 'Pilot',
+      hp: 20,
+      maxHp: 24,
+      ac: 14,
+      level: 4,
+      xp: 3200,
+      currency: 100,
+      currencyName: 'Credits',
+      stats: { STR: 10, DEX: 16, CON: 12, INT: 14, WIS: 11, CHA: 13 },
+      modifiers: { STR: 0, DEX: 3, CON: 1, INT: 2, WIS: 0, CHA: 1 },
+      proficiencyBonus: 2,
+      proficiencies: ['Piloting'],
+      abilities: ['Evasive Manoeuvres'],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'Blaster', armour: 'Light Armour' },
+    };
+    state._lastComputation = {
+      type: 'contested_roll',
+      stat: 'DEX',
+      roll: 12,
+      modifier: 3,
+      total: 15,
+      dc: 13,
+      margin: 2,
+      outcome: 'success',
+      npcId: 'test_npc',
+      npcModifier: 1,
+    };
+  });
+
+  test('modulesRequired is present in render output', async () => {
+    state.modulesActive = ['core-systems'];
+    await saveState(state);
+    const result = await handleRender(['ticker']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.modulesRequired).toBeDefined();
+    expect(Array.isArray(data.modulesRequired)).toBe(true);
+  });
+
+  test('modulesRequired always includes prose-craft', async () => {
+    state.modulesActive = ['core-systems', 'audio'];
+    await saveState(state);
+    const result = await handleRender(['ticker']);
+    const data = result.data as Record<string, unknown>;
+    const paths = data.modulesRequired as string[];
+    expect(paths).toContain('modules/prose-craft.md');
+  });
+
+  test('modulesRequired maps active modules to correct file paths', async () => {
+    state.modulesActive = ['audio', 'atmosphere'];
+    await saveState(state);
+    const result = await handleRender(['ticker']);
+    const data = result.data as Record<string, unknown>;
+    const paths = data.modulesRequired as string[];
+    expect(paths).toContain('modules/audio.md');
+    expect(paths).toContain('modules/atmosphere.md');
+  });
+
+  test('featureChecklist is present in render output', async () => {
+    state.modulesActive = ['prose-craft'];
+    await saveState(state);
+    const result = await handleRender(['ticker']);
+    const data = result.data as Record<string, unknown>;
+    expect(data.featureChecklist).toBeDefined();
+    expect(Array.isArray(data.featureChecklist)).toBe(true);
+  });
+
+  test('featureChecklist includes audio instruction when audio is active', async () => {
+    state.modulesActive = ['audio', 'core-systems'];
+    await saveState(state);
+    const result = await handleRender(['ticker']);
+    const data = result.data as Record<string, unknown>;
+    const items = data.featureChecklist as string[];
+    expect(items.some(i => i.includes('audio') && i.includes('Web Audio'))).toBe(true);
+  });
+
+  test('non-scene widget still gets modulesRequired and featureChecklist', async () => {
+    state.modulesActive = ['prose-craft', 'atmosphere'];
+    await saveState(state);
+    const result = await handleRender(['dice']);
+    const data = result.data as Record<string, unknown>;
+    expect(data.modulesRequired).toBeDefined();
+    expect(data.featureChecklist).toBeDefined();
+    expect((data.modulesRequired as string[]).length).toBeGreaterThan(0);
+  });
+});
+
+// ── Phase 11: Required elements and skeleton ────────────────────────
+
+describe('render requiredElements and skeleton', () => {
+  let state: GmState;
+
+  beforeEach(async () => {
+    state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.character = {
+      name: 'Kira',
+      class: 'Pilot',
+      hp: 20,
+      maxHp: 24,
+      ac: 14,
+      level: 4,
+      xp: 3200,
+      currency: 100,
+      currencyName: 'Credits',
+      stats: { STR: 10, DEX: 16, CON: 12, INT: 14, WIS: 11, CHA: 13 },
+      modifiers: { STR: 0, DEX: 3, CON: 1, INT: 2, WIS: 0, CHA: 1 },
+      proficiencyBonus: 2,
+      proficiencies: ['Piloting'],
+      abilities: ['Evasive Manoeuvres'],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'Blaster', armour: 'Light Armour' },
+    };
+    state._lastComputation = {
+      type: 'contested_roll',
+      stat: 'DEX',
+      roll: 12,
+      modifier: 3,
+      total: 15,
+      dc: 13,
+      margin: 2,
+      outcome: 'success',
+      npcId: 'test_npc',
+      npcModifier: 1,
+    };
+  });
+
+  test('requiredElements is present in render output', async () => {
+    state.modulesActive = ['core-systems'];
+    await saveState(state);
+    const result = await handleRender(['ticker']);
+    const data = result.data as Record<string, unknown>;
+    expect(data.requiredElements).toBeDefined();
+    expect(Array.isArray(data.requiredElements)).toBe(true);
+    expect((data.requiredElements as string[]).length).toBeGreaterThan(0);
+  });
+
+  test('requiredElements includes atmosphere when atmosphere is active', async () => {
+    state.modulesActive = ['atmosphere'];
+    await saveState(state);
+    const result = await handleRender(['ticker']);
+    const data = result.data as Record<string, unknown>;
+    const elems = data.requiredElements as string[];
+    expect(elems.some(e => e.includes('scene-atmosphere'))).toBe(true);
+  });
+
+  test('requiredElements includes audio toggle when audio is active', async () => {
+    state.modulesActive = ['audio'];
+    await saveState(state);
+    const result = await handleRender(['ticker']);
+    const data = result.data as Record<string, unknown>;
+    const elems = data.requiredElements as string[];
+    expect(elems.some(e => e.includes('scene-audio-toggle'))).toBe(true);
+  });
+
+  test('skeleton is non-empty string for scene widget', async () => {
+    state.modulesActive = ['prose-craft', 'core-systems'];
+    await saveState(state);
+    const result = await handleRender(['scene']);
+    const data = result.data as Record<string, unknown>;
+    expect(typeof data.skeleton).toBe('string');
+    expect((data.skeleton as string).length).toBeGreaterThan(0);
+  });
+
+  test('skeleton contains placeholder markers', async () => {
+    state.modulesActive = ['prose-craft'];
+    await saveState(state);
+    const result = await handleRender(['scene']);
+    const data = result.data as Record<string, unknown>;
+    const skel = data.skeleton as string;
+    expect(skel).toContain('<!-- [NARRATIVE:');
+    expect(skel).toContain('<!-- [ACTIONS:');
+    expect(skel).toContain('<!-- [META:');
+  });
+
+  test('skeleton uses semantic class names', async () => {
+    state.modulesActive = ['atmosphere', 'audio'];
+    await saveState(state);
+    const result = await handleRender(['scene']);
+    const data = result.data as Record<string, unknown>;
+    const skel = data.skeleton as string;
+    expect(skel).toContain('scene-container');
+    expect(skel).toContain('scene-narrative');
+    expect(skel).toContain('scene-actions');
+    expect(skel).toContain('scene-footer');
+    expect(skel).toContain('scene-atmosphere');
+    expect(skel).toContain('scene-audio-toggle');
+  });
+});
+
 // ── Template rendering ───────────────────────────────────────────────
 
 describe('render template output', () => {

@@ -3,7 +3,7 @@ import { homedir, tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { mkdirSync, renameSync, writeFileSync, unlinkSync } from 'node:fs';
 import type { GmState } from '../types';
-import { MAX_ROLL_HISTORY } from './constants';
+import { MAX_ROLL_HISTORY, SCHEMA_VERSION } from './constants';
 
 /** Lightweight runtime check that a parsed JSON value has the basic shape of a GmState object. */
 function isPlausibleGmState(raw: unknown): raw is Record<string, unknown> {
@@ -113,5 +113,6 @@ export function createDefaultState(): GmState {
     factions: {},
     quests: [],
     _stateHistory: [],
+    _schemaVersion: SCHEMA_VERSION,
   };
 }

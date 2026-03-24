@@ -109,6 +109,8 @@ For narrative prose, NPC dialogue text, and creative decisions, use your own jud
 with file/line pointers. Filter by topic: `tag rules output`, `tag rules agency`,
 `tag rules cli`, `tag rules prose`, `tag rules technical`.
 
+> **MANDATORY:** At the start of every scene, run `tag state sync`. No exceptions. This checks module context, quest/worldFlag consistency, level-up eligibility, and pending computation. Run it BEFORE `tag render scene`.
+
 ### Worked Example — Typical Scene Turn
 
 Run via the **Bash tool**:
@@ -188,6 +190,8 @@ styles/
   weathered.md            Rust/olive, asymmetric, distressed, jury-rigged
   holographic.md          Translucent panels, iridescent borders, glassmorphism
 ```
+
+> **POST-COMPACTION RECOVERY:** If you cannot see the full contents of any module file listed in `modulesActive`, run `tag state context` and re-read every file in the `required` output. The `moduleDigest` field shows what each module requires — if your last widget is missing any of these features, you have lost context and MUST re-read.
 
 ---
 
@@ -389,6 +393,8 @@ The primary widget. Structure (inside `#reveal-full` > `#scene-content`):
 **Writing rules:** Atmosphere first, detail second, interactables last. No mechanical terms
 in prose. At least one detail implying history. Exits stated without suggesting which to take.
 All narrative must pass the Prose Craft Checklist in `modules/prose-craft.md`.
+
+> Every `tag render` output includes a `featureChecklist` and `requiredElements`. Before writing narrative content into the widget, verify every checklist item is present in the widget structure.
 
 ---
 
