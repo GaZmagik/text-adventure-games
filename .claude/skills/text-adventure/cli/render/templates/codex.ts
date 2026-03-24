@@ -22,9 +22,11 @@ ${css ? '<style>' + css + '</style>' : ''}
 </div>`;
   }
 
+  let discoveredCount = 0;
   const rows = entries.map(entry => {
+    if (entry.state === 'discovered') discoveredCount++;
     const style = STATE_STYLES[entry.state] ?? STATE_STYLES['locked']!;
-    const discoveredAt = entry.discoveredAt !== undefined ? `Scene ${entry.discoveredAt}` : '';
+    const discoveredAt = entry.discoveredAt !== undefined ? `Scene ${Number(entry.discoveredAt) || 0}` : '';
     const via = entry.via ? esc(entry.via) : '';
     const secrets = entry.secrets && entry.secrets.length > 0
       ? `<div class="codex-secrets">${entry.secrets.map(s => `<span class="codex-secret">${esc(s)}</span>`).join(' ')}</div>`
@@ -40,8 +42,6 @@ ${css ? '<style>' + css + '</style>' : ''}
         ${secrets}
       </div>`;
   }).join('\n');
-
-  const discoveredCount = entries.filter(e => e.state === 'discovered').length;
 
   return `
 <style>${css}

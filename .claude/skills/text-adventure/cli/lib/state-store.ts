@@ -5,6 +5,11 @@ import { mkdirSync, renameSync, writeFileSync, unlinkSync } from 'node:fs';
 import type { GmState } from '../types';
 import { MAX_ROLL_HISTORY } from './constants';
 
+/** Lightweight runtime check that a parsed JSON value has the basic shape of a GmState object. */
+function isPlausibleGmState(raw: unknown): raw is Record<string, unknown> {
+  return typeof raw === 'object' && raw !== null && !Array.isArray(raw);
+}
+
 function getStateDir(): string {
   const dir = process.env.TAG_STATE_DIR || join(homedir(), '.tag');
   const resolved = resolve(dir);
@@ -31,7 +36,11 @@ export async function loadState(): Promise<GmState> {
     throw new Error('State file not found. Run "tag state init" to create one.');
   }
   if (file.size > 10 * 1024 * 1024) throw new Error('State file exceeds 10 MB — possible corruption.');
-  return file.json() as Promise<GmState>;
+  const raw: unknown = await file.json();
+  if (!isPlausibleGmState(raw)) {
+    throw new Error('State file does not contain a valid object.');
+  }
+  return raw as GmState;
 }
 
 // async signature retained for caller compatibility — the body intentionally uses
@@ -62,7 +71,9 @@ export async function tryLoadState(): Promise<GmState | null> {
     const file = Bun.file(getStatePath());
     if (!(await file.exists())) return null;
     if (file.size > 10 * 1024 * 1024) throw new Error('State file exceeds 10 MB — possible corruption.');
-    return await file.json() as GmState;
+    const raw: unknown = await file.json();
+    if (!isPlausibleGmState(raw)) return null;
+    return raw as GmState;
   } catch (err: unknown) {
     if (err instanceof SyntaxError) {
       console.error('Warning: state.json is corrupted and could not be parsed.');

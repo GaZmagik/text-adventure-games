@@ -66,7 +66,7 @@ export function renderDialogue(state: GmState | null, css: string, options?: Rec
   <div class="dialogue-header">
     <span class="dialogue-npc-name">${esc(npcName)}</span>
     <span class="dialogue-disposition" style="background:${dispStyle.bg};color:${dispStyle.text}">${esc(disposition)}</span>
-    ${npc ? `<span class="dialogue-trust">Trust: ${npc.trust}</span>` : ''}
+    ${npc ? `<span class="dialogue-trust">Trust: ${Number(npc.trust) || 0}</span>` : ''}
   </div>
 
   ${dialogueText ? `<div class="dialogue-area">${esc(dialogueText)}</div>` : `

@@ -1,7 +1,7 @@
 // Die geometry configurations for all standard RPG die types.
 // Provides geometry metadata consumed by the inline WebGL renderer (webgl-dice.ts).
 
-export interface DieConfig {
+export type DieConfig = {
   faceCount: number;
   numberRange: [number, number]; // [min, max] inclusive
   geometryType: string;          // Geometry shape identifier used by the WebGL renderer
@@ -10,7 +10,7 @@ export interface DieConfig {
   customFaces?: number[][];      // [a, b, c] triangle indices — d10 only
   trianglesPerFace: number;      // How many triangles make one logical die face
   paired?: boolean;              // true for d100 (two d10s side-by-side)
-}
+};
 
 // ── D10 pentagonal trapezohedron vertices ────────────────────────────
 // 12 vertices: 2 poles + 2 rings of 5

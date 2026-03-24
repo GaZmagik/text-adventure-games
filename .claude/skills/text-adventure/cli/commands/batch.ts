@@ -96,7 +96,7 @@ export async function handleBatch(args: string[]): Promise<CommandResult> {
 
   const MAX_BATCH_COMMANDS = 100;
   if (lines.length > MAX_BATCH_COMMANDS) {
-    return fail(`Batch too large: ${lines.length} commands (max ${MAX_BATCH_COMMANDS}).`, 'batch', 'Split into smaller batches.');
+    return fail(`Batch too large: ${lines.length} commands (max ${MAX_BATCH_COMMANDS}).`, 'Split into smaller batches.', 'batch');
   }
   const results: CommandResult[] = [];
   const labelled: Record<string, unknown> = {};
@@ -123,10 +123,10 @@ export async function handleBatch(args: string[]): Promise<CommandResult> {
       results.push({
         ok: true,
         command: `${parsedLine.command} ${resolvedArgs.join(' ')}`,
-        data: null,
+        data: undefined,
       });
       if (parsedLine.label) {
-        labelled[parsedLine.label] = null;
+        labelled[parsedLine.label] = undefined;
       }
       continue;
     }

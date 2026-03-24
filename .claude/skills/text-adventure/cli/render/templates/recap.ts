@@ -9,7 +9,7 @@ const SUCCESS_OUTCOMES = new Set(['success', 'narrow_success', 'critical_success
 export function renderRecap(state: GmState | null, css: string, _options?: Record<string, unknown>): string {
   const char = state?.character;
   const room = state?.currentRoom ?? 'Unknown';
-  const scene = state?.scene ?? 0;
+  const scene = Number(state?.scene) || 0;
   const time = state?.time;
   const quests = state?.quests ?? [];
   const rolls = state?.rollHistory ?? [];
@@ -55,7 +55,7 @@ export function renderRecap(state: GmState | null, css: string, _options?: Recor
     ${char
       ? `<div class="recap-char">
           <span class="recap-char-name">${esc(char.name)}</span>
-          <span class="recap-char-meta">${esc(char.class)} · Lv ${char.level} · HP ${char.hp}/${char.maxHp}</span>
+          <span class="recap-char-meta">${esc(char.class)} · Lv ${Number(char.level) || 0} · HP ${Number(char.hp) || 0}/${Number(char.maxHp) || 0}</span>
         </div>`
       : '<div class="recap-char"><span class="recap-char-meta">No character data</span></div>'}
   </div>
@@ -93,7 +93,7 @@ export function renderRecap(state: GmState | null, css: string, _options?: Recor
       const outcomeClass = SUCCESS_OUTCOMES.has(r.outcome) ? 'roll-outcome-success' : 'roll-outcome-failure';
       return `<div class="roll-item">
         <span><span class="roll-stat">${esc(r.stat)}</span> ${esc(r.type)}</span>
-        <span>${r.roll}+${r.modifier}=${r.total} vs DC ${r.dc} <span class="${outcomeClass}">${esc(r.outcome)}</span></span>
+        <span>${Number(r.roll) || 0}+${Number(r.modifier) || 0}=${Number(r.total) || 0} vs DC ${Number(r.dc) || 0} <span class="${outcomeClass}">${esc(r.outcome)}</span></span>
       </div>`;
     }).join('\n')}
   </div>` : ''}

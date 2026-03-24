@@ -1,11 +1,11 @@
 // Contested check attribute pairings from modules/die-rolls.md
 import type { StatName } from '../types';
 
-export interface ContestedPairing {
+export type ContestedPairing = {
   action: string;
   playerAttribute: StatName[];
   npcAttribute: StatName[];
-}
+};
 
 // From die-rolls.md § Contested Check Attribute Pairings
 export const CONTESTED_PAIRINGS: ContestedPairing[] = [

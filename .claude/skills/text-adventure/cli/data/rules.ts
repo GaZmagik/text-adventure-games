@@ -1,12 +1,12 @@
 // Game rules quick-reference data for `tag rules` command.
 // File/line references point to the authoritative source for each rule.
 
-export interface Rule {
+export type Rule = {
   id: number;
   category: Category;
   rule: string;
   ref: string;
-}
+};
 
 export const CATEGORIES = ['output', 'agency', 'cli', 'prose', 'technical'] as const;
 export type Category = typeof CATEGORIES[number];

@@ -28,7 +28,7 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
 
   const archetypeCards = archetypes.map((arch, i) => {
     const stats = arch.stats
-      ? Object.entries(arch.stats).map(([k, v]) => `<span class="arch-stat">${esc(k)} ${v}</span>`).join(' ')
+      ? Object.entries(arch.stats).map(([k, v]) => `<span class="arch-stat">${esc(k)} ${Number(v) || 0}</span>`).join(' ')
       : '';
     const abilities = arch.abilities
       ? arch.abilities.map(a => `<span class="arch-ability">${esc(a)}</span>`).join(' ')
@@ -40,7 +40,7 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
         ${arch.description ? `<div class="arch-desc">${esc(arch.description)}</div>` : ''}
         ${stats ? `<div class="arch-stats">${stats}</div>` : ''}
         ${abilities ? `<div class="arch-abilities">${abilities}</div>` : ''}
-        ${arch.hp !== undefined ? `<div class="arch-meta">HP ${arch.hp}${arch.ac !== undefined ? ` · AC ${arch.ac}` : ''}</div>` : ''}
+        ${arch.hp !== undefined ? `<div class="arch-meta">HP ${Number(arch.hp) || 0}${arch.ac !== undefined ? ` · AC ${Number(arch.ac) || 0}` : ''}</div>` : ''}
       </button>`;
   }).join('\n');
 

@@ -16,14 +16,21 @@ interface SettingsData {
 
 export function renderSettings(state: GmState | null, css: string, options?: Record<string, unknown>): string {
   const raw = (options?.data ?? {}) as Record<string, unknown>;
+
+  // Safely extract string[] fields — guard against non-array values from untrusted JSON
+  const toStringArray = (v: unknown): string[] | undefined =>
+    Array.isArray(v) ? v as string[] : undefined;
+
   // Accept common field name aliases the GM might naturally use
   const data: SettingsData = {
-    rulebooks: (raw.rulebooks ?? raw.rules) as string[] | undefined,
-    difficulties: (raw.difficulties ?? raw.difficulty) as string[] | undefined,
-    pacingOptions: (raw.pacingOptions ?? raw.pacing) as string[] | undefined,
-    visualStyles: (raw.visualStyles ?? raw.styles) as string[] | undefined,
-    modules: (raw.modules ?? raw.activeModules) as string[] | undefined,
-    defaults: (raw.defaults ?? {}) as Record<string, string>,
+    rulebooks: toStringArray(raw.rulebooks ?? raw.rules),
+    difficulties: toStringArray(raw.difficulties ?? raw.difficulty),
+    pacingOptions: toStringArray(raw.pacingOptions ?? raw.pacing),
+    visualStyles: toStringArray(raw.visualStyles ?? raw.styles),
+    modules: toStringArray(raw.modules ?? raw.activeModules),
+    defaults: (raw.defaults !== null && typeof raw.defaults === 'object' && !Array.isArray(raw.defaults))
+      ? raw.defaults as Record<string, string>
+      : {},
   };
 
   const rulebooks = data.rulebooks ?? ['d20_system', 'gurps_lite', 'pf2e_lite', 'shadowrun_lite', 'narrative_engine', 'custom'];

@@ -8,7 +8,7 @@ export function renderTicker(state: GmState | null, css: string, _options?: Reco
   const time = state?.time;
   const period = time?.period ?? 'unknown';
   const date = time?.date ?? 'Day ?';
-  const hour = time?.hour ?? 0;
+  const hour = Number(time?.hour) || 0;
   const deadline = time?.deadline;
 
   // Determine if the player knows the time/date
@@ -38,6 +38,6 @@ export function renderTicker(state: GmState | null, css: string, _options?: Reco
 <div class="widget-ticker">
   ${showTime ? `<span class="ticker-period">${esc(period)}${hour ? ` (${String(hour).padStart(2, '0')}:00)` : ''}</span>` : '<span class="ticker-period">???</span>'}
   ${showDate ? `<span class="ticker-date">${esc(date)}</span>` : '<span class="ticker-date">Date unknown</span>'}
-  ${deadline ? `<span class="ticker-deadline" aria-live="polite">${esc(deadline.label)} — ${deadline.remainingScenes} scene${deadline.remainingScenes !== 1 ? 's' : ''} remaining</span>` : ''}
+  ${deadline ? `<span class="ticker-deadline" aria-live="polite">${esc(deadline.label)} — ${Number(deadline.remainingScenes) || 0} scene${Number(deadline.remainingScenes) !== 1 ? 's' : ''} remaining</span>` : ''}
 </div>`;
 }

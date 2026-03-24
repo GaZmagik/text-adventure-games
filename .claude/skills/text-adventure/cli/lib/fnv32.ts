@@ -69,7 +69,11 @@ export function validateAndDecode(saveString: string): DecodeResult {
   try {
     // Try plain base64 first (works for SF2, SC1, and most SF1 saves)
     const json = atob(encoded);
-    const payload = JSON.parse(json) as Record<string, unknown>;
+    const parsed: unknown = JSON.parse(json);
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+      return { valid: false, error: 'BAD_FORMAT' as const };
+    }
+    const payload = parsed as Record<string, unknown>;
     return { valid: true, payload, mode };
   } catch {
     // If base64 fails on SF1, it may genuinely be LZ-compressed

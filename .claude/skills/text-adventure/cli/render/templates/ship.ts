@@ -23,7 +23,7 @@ ${css ? '<style>' + css + '</style>' : ''}
   }
 
   const systemCards = Object.entries(ship.systems).map(([name, sys]) => {
-    const pct = Math.max(0, Math.min(100, sys.integrity));
+    const pct = Math.max(0, Math.min(100, Number(sys.integrity) || 0));
     const colours = STATUS_COLOURS[sys.status] ?? STATUS_COLOURS['operational']!;
     const conditions = sys.conditions.length > 0
       ? sys.conditions.map(c => `<span class="ship-condition">${esc(c)}</span>`).join(' ')
@@ -58,7 +58,7 @@ ${css ? '<style>' + css + '</style>' : ''}
 </style>
 <div class="widget-ship">
   <div class="ship-title">${esc(ship.name)}</div>
-  <div class="ship-meta">Repair parts: ${ship.repairParts} · Scenes since repair: ${ship.scenesSinceRepair}</div>
+  <div class="ship-meta">Repair parts: ${Number(ship.repairParts) || 0} · Scenes since repair: ${Number(ship.scenesSinceRepair) || 0}</div>
   ${systemCards}
 </div>`;
 }

@@ -8,10 +8,26 @@ import { renderFooter } from './footer';
 import { SOUNDSCAPE_ENGINE_CODE } from '../lib/soundscape';
 import { SCENE_SCRIPT_CODE } from '../lib/scene-script';
 
+/** Pre-computed scene script with soundscape engine inlined — avoids per-call .replace(). */
+const MERGED_SCENE_SCRIPT = SCENE_SCRIPT_CODE.replace(
+  /\$\{SOUNDSCAPE_ENGINE_CODE\}/g,
+  SOUNDSCAPE_ENGINE_CODE,
+);
+
+/** Module-to-panel mapping — hoisted to module scope to avoid per-call object allocation. */
+const MODULE_PANEL_MAPPING: Record<string, string> = {
+  'lore-codex': 'codex',
+  'ship-systems': 'ship',
+  'crew-manifest': 'crew',
+  'star-chart': 'nav',
+  'geo-map': 'map',
+  'core-systems': 'quests',
+};
+
 export function renderScene(state: GmState | null, css: string, options?: Record<string, unknown>): string {
   const char = state?.character;
   const room = state?.currentRoom ?? 'Unknown Location';
-  const scene = state?.scene ?? 0;
+  const scene = Number(state?.scene) || 0;
   const time = state?.time;
   const modules = state?.modulesActive ?? [];
 
@@ -84,9 +100,9 @@ export function renderScene(state: GmState | null, css: string, options?: Record
         <p><!-- Narrative content rendered by the GM --></p>
       </div>
       <div class="status-bar">
-        ${char ? `<span class="hp-display">HP ${char.hp}/${char.maxHp}</span>
-        <span class="ac-display">AC ${char.ac}</span>
-        <span class="level-display">Lv ${char.level}</span>` : ''}
+        ${char ? `<span class="hp-display">HP ${Number(char.hp) || 0}/${Number(char.maxHp) || 0}</span>
+        <span class="ac-display">AC ${Number(char.ac) || 0}</span>
+        <span class="level-display">Lv ${Number(char.level) || 0}</span>` : ''}
       </div>
     </div>
     <div id="panel-overlay" role="dialog" aria-modal="true" aria-labelledby="panel-title-text" style="display:none">
@@ -104,23 +120,14 @@ export function renderScene(state: GmState | null, css: string, options?: Record
   ${footerHtml}
 </div>
 <script>
-${SCENE_SCRIPT_CODE.replace('${SOUNDSCAPE_ENGINE_CODE}', SOUNDSCAPE_ENGINE_CODE)}
+${MERGED_SCENE_SCRIPT}
 </script>`;
 }
 
 /** Build panel-content divs for active modules */
 function buildPanelDivs(modules: string[]): string {
-  const mapping: Record<string, string> = {
-    'lore-codex': 'codex',
-    'ship-systems': 'ship',
-    'crew-manifest': 'crew',
-    'star-chart': 'nav',
-    'geo-map': 'map',
-    'core-systems': 'quests',
-  };
-
   return modules
-    .filter(m => m in mapping)
-    .map(m => `<div class="panel-content" data-panel="${mapping[m]}"></div>`)
+    .filter(m => m in MODULE_PANEL_MAPPING)
+    .map(m => `<div class="panel-content" data-panel="${MODULE_PANEL_MAPPING[m] ?? ''}"></div>`)
     .join('\n      ');
 }

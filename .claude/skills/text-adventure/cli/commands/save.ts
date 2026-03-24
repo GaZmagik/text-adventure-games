@@ -6,7 +6,17 @@ import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState, createDefaultState } from '../lib/state-store';
 import { validateState } from '../lib/validator';
 import { attachChecksum, validateAndDecode } from '../lib/fnv32';
-import { VALID_TOP_KEYS } from '../lib/constants';
+import { VALID_TOP_KEYS, FORBIDDEN_KEYS } from '../lib/constants';
+
+/** Recursively check for forbidden keys (__proto__, constructor, prototype) in a parsed value. */
+function containsForbiddenKeys(obj: unknown): boolean {
+  if (typeof obj !== 'object' || obj === null) return false;
+  for (const key of Object.keys(obj as Record<string, unknown>)) {
+    if (FORBIDDEN_KEYS.has(key)) return true;
+    if (containsForbiddenKeys((obj as Record<string, unknown>)[key])) return true;
+  }
+  return false;
+}
 
 const RE_SAVE_IN_FENCE = /```[\s\S]*?([\da-fA-F]{8}\.SF[12]:[\S]+)[\s\S]*?```/;
 const RE_SAVE_BARE = /([\da-fA-F]{8}\.SF[12]:[\S]+)/;
@@ -22,7 +32,9 @@ async function resolveSaveString(input: string): Promise<string> {
     try {
       resolved = realpathSync(resolve(input));
     } catch (err: unknown) {
-      const code = (err as NodeJS.ErrnoException).code;
+      const code = err && typeof err === 'object' && 'code' in err
+        ? (err as NodeJS.ErrnoException).code
+        : undefined;
       if (code !== 'ENOENT' && code !== 'ENOTDIR') throw err;
       // Path doesn't exist as a file — treat as raw save string.
       // If input looks like a file path (contains / or \), note that the file wasn't found.
@@ -33,7 +45,10 @@ async function resolveSaveString(input: string): Promise<string> {
     }
     const home = homedir();
     const tmp = tmpdir();
-    const homePrefix = home === '/' ? home : home + '/';
+    if (home === '/') {
+      throw new Error('Save path validation requires a non-root home directory.');
+    }
+    const homePrefix = home + '/';
     const tmpPrefix = tmp === '/' ? tmp : tmp + '/';
     if (!resolved.startsWith(homePrefix) && !resolved.startsWith(tmpPrefix)) {
       throw new Error('Save file path must be within the home or temp directory.');
@@ -117,10 +132,14 @@ async function load(args: string[]): Promise<CommandResult> {
 
   // Filter payload to only recognised top-level keys, stripping prototype-pollution vectors.
   // This prevents a crafted save from injecting arbitrary keys into GmState.
+  // Nested values are also checked recursively for forbidden keys (__proto__, constructor, prototype).
   const filtered: Record<string, unknown> = {};
   for (const key of Object.keys(payload)) {
-    if (VALID_TOP_KEYS.has(key) && !['__proto__', 'constructor', 'prototype'].includes(key)) {
-      filtered[key] = (payload as Record<string, unknown>)[key];
+    if (VALID_TOP_KEYS.has(key)) {
+      const value = (payload as Record<string, unknown>)[key];
+      if (!containsForbiddenKeys(value)) {
+        filtered[key] = value;
+      }
     }
   }
 
@@ -135,8 +154,16 @@ async function load(args: string[]): Promise<CommandResult> {
     ...filtered as Partial<GmState>,
   };
 
-  // Validate reconstructed state — warn but still save (user may want partially valid data)
+  // Validate reconstructed state — reject if structurally invalid, warn on minor issues
   const validation = validateState(state);
+
+  if (!validation.valid) {
+    return fail(
+      `Save contains invalid state: ${validation.errors.join('; ')}`,
+      'Fix the save data or use a different save file.',
+      'save load',
+    );
+  }
 
   await saveState(state);
 
@@ -182,7 +209,7 @@ async function validate(args: string[]): Promise<CommandResult> {
     mode: decoded.mode,
     error: null,
     scene: decoded.payload.scene ?? null,
-    characterName: decoded.payload.character
+    characterName: typeof decoded.payload.character === 'object' && decoded.payload.character !== null
       ? (decoded.payload.character as Record<string, unknown>).name
       : null,
   }, 'save validate');

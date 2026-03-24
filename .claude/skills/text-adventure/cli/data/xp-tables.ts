@@ -2,20 +2,20 @@
 // Extracted from modules/core-systems.md § XP and Levelling
 
 /** A single level threshold entry. */
-export interface XpThreshold {
+export type XpThreshold = {
   /** Character level (1-8). */
   level: number;
   /** Cumulative XP required to reach this level. */
   xp: number;
-}
+};
 
 /** Reward granted when reaching a given level. */
-export interface LevelReward {
+export type LevelReward = {
   /** HP gained on reaching this level. */
   hpGain: number;
   /** Description of the improvement granted. */
   improvement: string;
-}
+};
 
 /**
  * XP thresholds for levels 1 through 8.

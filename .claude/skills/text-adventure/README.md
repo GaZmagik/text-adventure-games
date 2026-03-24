@@ -71,14 +71,21 @@ or during play.
 
 | System | Description | Mechanics |
 |--------|-------------|-----------|
-| **D&D 5e** (default) | Classic d20 system with six attributes | d20 + modifier vs DC threshold |
+| **d20 System** (default) | Classic d20 system with six attributes | d20 + modifier vs DC threshold |
+| **GURPS Lite** | Generic Universal RolePlaying System, simplified | 3d6 roll-under stat target |
+| **Pathfinder 2e Lite** | Streamlined Pathfinder with three-action economy | d20 + proficiency tier, crit ranges |
+| **Shadowrun 5e Lite** | Cyberpunk/fantasy hybrid with dice pools | d6 dice pool, count hits |
+| **Narrative Engine** | Fiction-first, no dice, momentum-based resolution | Momentum spend, no randomness |
+| **SWRPG (Narrative Dice)** | Star Wars and cinematic settings with symbol dice | Custom symbol pool, Triumph/Despair/Advantage/Threat |
 | **Custom** | Player-provided rulebook | Supply a PDF or markdown file with mechanics |
 
-**D&D 5e** uses STR/DEX/INT/WIS/CON/CHA, modifiers from `floor((stat - 10) / 2)`, and the
+**d20 System** uses STR/DEX/INT/WIS/CON/CHA, modifiers from `floor((stat - 10) / 2)`, and the
 standard DC table (Trivial 5, Easy 8, Moderate 12, Hard 16, Very Hard 20, Near-impossible 25).
 
 **Custom rulebooks** must define: attributes, resolution mechanic, success/failure criteria,
 and character advancement. Provide the document at game start.
+
+> See `modules/rpg-systems.md` for detailed mechanics and rules for each system.
 
 > **Note:** This skill is system-agnostic. Specific game systems (such as Star Wars: Edge of
 > the Empire) have their own dedicated skills with tailored dice mechanics, character creation,
@@ -389,13 +396,35 @@ archetypes, and module selection adapt accordingly.
 
 ---
 
-## CLI Tool
+## CLI Tool — Technical Setup
 
-v1.3.0 introduces the `tag` CLI for deterministic game engine operations. Setup:
+v1.3.0 introduces the `tag` CLI for deterministic game engine operations. The `tag` CLI
+requires the **Bun runtime** (not Node.js) and will not work with `node` directly.
+
+### First-time setup
+
+Run the following from the skill directory (`.claude/skills/text-adventure/`) before using
+any `tag` commands. You MUST use `source` (not `bash`) so the `PATH` export persists:
 
 ```bash
 source setup.sh && tag state reset
 ```
+
+`setup.sh` installs Bun if not already present, installs package dependencies, creates the
+`tag` alias, and exports `PATH` for the current shell session. It must be re-run at the start
+of every new session.
+
+To resume from a saved game:
+
+```bash
+source setup.sh && tag save load /mnt/user-data/uploads/<filename>.save.md
+```
+
+### Runtime requirements
+
+- **Runtime:** Bun (installed automatically by `setup.sh`)
+- **Tests:** run via `bun test` — the test suite uses `bun:test` and is not compatible with Jest or Vitest
+- **Type checking:** run via `bun run typecheck` — do not use plain `tsc` as there is no `tsconfig.json`; Bun runs TypeScript directly
 
 See `cli/manual.md` for the full command reference.
 

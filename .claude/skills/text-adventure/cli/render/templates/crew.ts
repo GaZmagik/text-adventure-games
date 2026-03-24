@@ -16,8 +16,8 @@ ${css ? '<style>' + css + '</style>' : ''}
   }
 
   const rows = crew.map(member => {
-    const moralePct = Math.max(0, Math.min(100, member.morale));
-    const stressPct = Math.max(0, Math.min(100, member.stress));
+    const moralePct = Math.max(0, Math.min(100, Number(member.morale) || 0));
+    const stressPct = Math.max(0, Math.min(100, Number(member.stress) || 0));
     const statusClass = member.status === 'active' ? 'badge-ok'
       : member.status === 'injured' ? 'badge-warn'
       : 'badge-danger';

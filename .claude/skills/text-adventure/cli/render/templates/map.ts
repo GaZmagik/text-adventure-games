@@ -73,7 +73,7 @@ ${css ? '<style>' + css + '</style>' : ''}
 
   ${supplies ? `
   <div class="map-section-label">Supplies</div>
-  <div class="supplies-row"><span class="supplies-label">Rations: </span>${supplies.rations}</div>
-  <div class="supplies-row"><span class="supplies-label">Water: </span>${supplies.water}</div>` : ''}
+  <div class="supplies-row"><span class="supplies-label">Rations: </span>${Number(supplies.rations) || 0}</div>
+  <div class="supplies-row"><span class="supplies-label">Water: </span>${Number(supplies.water) || 0}</div>` : ''}
 </div>`;
 }

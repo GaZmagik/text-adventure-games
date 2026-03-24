@@ -115,7 +115,7 @@ async function hazard(args: string[]): Promise<CommandResult> {
   }
   const stat = raw as StatName;
 
-  const dcStr = parseArgs(args).flags.dc;
+  const dcStr = parseArgs(args.slice(1)).flags.dc;
   if (dcStr == null) {
     return fail('Missing required flag: --dc <number>', 'tag compute hazard CON --dc 14', 'compute hazard');
   }
@@ -144,8 +144,6 @@ async function hazard(args: string[]): Promise<CommandResult> {
     dieType: 'd20',
   };
 
-  // _lastComputation is persisted to state.json for cross-command continuity
-  // but intentionally excluded from portable save strings (see save.ts)
   state._lastComputation = computation;
   await saveState(state);
 
@@ -168,8 +166,6 @@ async function encounter(args: string[]): Promise<CommandResult> {
 
   const state = await tryLoadState();
   if (state) {
-    // _lastComputation is persisted to state.json for cross-command continuity
-    // but intentionally excluded from portable save strings (see save.ts)
     state._lastComputation = computation;
     await saveState(state);
   }

@@ -2,7 +2,7 @@
 // Extracted from modules/core-systems.md § Faction Reputation
 
 /** A single faction standing tier with its range and effects. */
-export interface FactionStanding {
+export type FactionStanding = {
   /** Human-readable label for this tier. */
   label: string;
   /** Minimum reputation score (inclusive). */
@@ -13,7 +13,7 @@ export interface FactionStanding {
   priceModifier: number;
   /** Short description of the gameplay effect. */
   effect: string;
-}
+};
 
 /**
  * Faction standing tiers extracted from core-systems.md § Faction Reputation.

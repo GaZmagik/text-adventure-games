@@ -33,9 +33,8 @@ export async function extractAllCss(filePath: string): Promise<string> {
     const sanitised = result
       .replace(/<\/style/gi, '<\\/style')
       .replace(/@import\s+(?:url\s*\([^)]*\)|"[^"]*"|'[^']*')\s*;?/gi, '/* @import stripped */')
-      .replace(/url\s*\(\s*(['"]?)https?:\/\//gi, 'url($1data:,/*blocked*/')
-      .replace(/url\s*\(\s*(['"]?)\/\//gi, 'url($1data:,/*blocked*/')
-      .replace(/url\s*\(\s*(['"]?)javascript:/gi, 'url($1data:,/*blocked*/')
+      .replace(/url\s*\(\s*(['"]?)\w+:/gi, 'url($1/*blocked*/:')
+      .replace(/url\s*\(\s*(['"]?)\/\//gi, 'url($1/*blocked*/')
       .replace(/expression\s*\(/gi, '/* expression blocked */(')
       .replace(/-moz-binding\s*:/gi, '/* binding blocked */:');
     // Only cache non-empty results — avoids masking files that gain CSS later

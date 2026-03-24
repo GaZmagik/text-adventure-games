@@ -9,7 +9,7 @@ export const BASE_DC: Record<string, number> = {
   'Near-impossible': 25,
 };
 
-export interface LevelDcRow {
+export type LevelDcRow = {
   levelRange: string;
   minLevel: number;
   maxLevel: number;
@@ -17,7 +17,7 @@ export interface LevelDcRow {
   moderate: number;
   hard: number;
   extreme: number;
-}
+};
 
 // From die-rolls.md § DC by Player Level
 export const DC_BY_LEVEL: LevelDcRow[] = [
@@ -28,16 +28,16 @@ export const DC_BY_LEVEL: LevelDcRow[] = [
   { levelRange: '9-10', minLevel: 9, maxLevel: 10, easy: 12, moderate: 15, hard: 18, extreme: 22 },
 ];
 
+type DcDifficulty = 'easy' | 'moderate' | 'hard' | 'extreme';
+type GameDifficulty = 'easy' | 'normal' | 'hard' | 'brutal';
+
 // From die-rolls.md § Difficulty Setting Modifiers
-export const DIFFICULTY_MODIFIERS: Record<string, number> = {
+export const DIFFICULTY_MODIFIERS: Record<GameDifficulty, number> = {
   easy: -2,
   normal: 0,
   hard: 2,
   brutal: 4,
 };
-
-type DcDifficulty = 'easy' | 'moderate' | 'hard' | 'extreme';
-type GameDifficulty = 'easy' | 'normal' | 'hard' | 'brutal';
 
 export function getDcForLevel(
   level: number,
@@ -48,6 +48,6 @@ export function getDcForLevel(
   const row = DC_BY_LEVEL.find(r => clamped >= r.minLevel && clamped <= r.maxLevel)
     ?? DC_BY_LEVEL[DC_BY_LEVEL.length - 1]!;
   const baseDc = row[difficulty];
-  const mod = gameDifficulty ? (DIFFICULTY_MODIFIERS[gameDifficulty] ?? 0) : 0;
+  const mod = gameDifficulty ? DIFFICULTY_MODIFIERS[gameDifficulty] : 0;
   return baseDc + mod;
 }

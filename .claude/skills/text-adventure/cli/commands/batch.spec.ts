@@ -148,7 +148,7 @@ describe('batch mode', () => {
     expect(result.ok).toBe(true);
     const data = result.data as Record<string, unknown>;
     const labelled = data.labelled as Record<string, unknown>;
-    expect(labelled.sc).toBeNull();
+    expect(labelled.sc).toBeUndefined();
   });
 
   test('$$ is treated as literal dollar sign, not a reference', async () => {
@@ -168,5 +168,22 @@ describe('batch mode', () => {
     const labelled = data.labelled as Record<string, unknown>;
     const roll = labelled.roll as Record<string, unknown>;
     expect(roll.type).toBe('contested_roll');
+  });
+
+  // T2-TEST2: MAX_BATCH_COMMANDS limit
+  test('rejects a batch exceeding MAX_BATCH_COMMANDS (100) commands', async () => {
+    // Build a semicolon-separated string of 101 identical commands
+    const commands = Array.from({ length: 101 }, () => 'state get scene').join(';');
+    const result = await handleBatch(['--commands', commands]);
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toMatch(/too large/i);
+    expect(result.error?.corrective).toMatch(/split into smaller batches/i);
+  });
+
+  test('accepts a batch of exactly MAX_BATCH_COMMANDS (100) commands', async () => {
+    // Edge: exactly 100 commands must not be rejected
+    const commands = Array.from({ length: 100 }, () => 'state get scene').join(';');
+    const result = await handleBatch(['--commands', commands]);
+    expect(result.ok).toBe(true);
   });
 });

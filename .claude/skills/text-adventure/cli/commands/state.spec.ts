@@ -154,7 +154,7 @@ describe('state set', () => {
 
   test('set JSON object values — parses rather than storing as string', async () => {
     await handleState(['reset']);
-    const charJson = JSON.stringify({ name: 'Rhian', class: 'Medic', hp: 9, maxHp: 9 });
+    const charJson = JSON.stringify({ name: 'Rhian', class: 'Medic', hp: 9, maxHp: 9, level: 1, stats: { STR: 10, DEX: 12, CON: 10, INT: 14, WIS: 11, CHA: 13 } });
     const result = await handleState(['set', 'character', charJson]);
     expect(result.ok).toBe(true);
 

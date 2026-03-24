@@ -1,6 +1,6 @@
 import type { CommandResult } from './types';
 import { ok } from './lib/errors';
-import { WIDGET_TYPE_NAMES } from './commands/render';
+import { WIDGET_TYPE_NAMES } from './lib/constants';
 
 interface SubcommandHelp {
   name: string;

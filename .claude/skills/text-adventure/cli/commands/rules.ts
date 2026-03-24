@@ -1,6 +1,11 @@
 import type { CommandResult } from '../types';
 import { ok } from '../lib/errors';
-import { RULES, CATEGORIES } from '../data/rules';
+import { RULES, CATEGORIES, type Category } from '../data/rules';
+
+/** Type guard: narrows a string to Category if it is a valid CATEGORIES member. */
+function isCategory(value: string): value is Category {
+  return (CATEGORIES as readonly string[]).includes(value);
+}
 
 export async function handleRules(args: string[]): Promise<CommandResult> {
   const query = args[0]?.toLowerCase();
@@ -16,9 +21,7 @@ export async function handleRules(args: string[]): Promise<CommandResult> {
   }
 
   // Check if query matches a category
-  const isCategory = (CATEGORIES as readonly string[]).includes(query);
-
-  if (isCategory) {
+  if (isCategory(query)) {
     const filtered = RULES.filter(r => r.category === query);
     return ok({
       category: query,

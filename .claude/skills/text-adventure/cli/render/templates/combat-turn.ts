@@ -9,12 +9,16 @@ export function renderCombatTurn(state: GmState | null, css: string, options?: R
   const comp = state?._lastComputation;
   const char = state?.character;
 
-  // Computation fields
-  const stat = comp?.stat ?? 'STR';
-  const roll = comp?.roll ?? 0;
-  const modifier = comp?.modifier ?? 0;
-  const total = comp?.total ?? 0;
-  const dc = comp?.dc; // NPC AC
+  // Narrow computation type for safe field access
+  const compHasStatFields = comp && (comp.type === 'contested_roll' || comp.type === 'hazard_save');
+
+  // Computation fields — with discriminated union narrowing and numeric coercion
+  const stat = (compHasStatFields ? comp.stat : comp?.stat) ?? 'STR';
+  const roll = Number(comp?.roll) || 0;
+  const modifier = Number(comp?.modifier) || 0;
+  const total = Number(comp?.total) || 0;
+  const rawDc = compHasStatFields ? comp.dc : undefined;
+  const dc = rawDc !== undefined ? (Number.isFinite(Number(rawDc)) ? Number(rawDc) : undefined) : undefined;
   const outcome = comp?.outcome ?? 'unknown';
   const npcId = comp?.npcId;
   const context = comp?.context as Record<string, unknown> | undefined;
@@ -24,8 +28,9 @@ export function renderCombatTurn(state: GmState | null, css: string, options?: R
     ? state?.rosterMutations.find(n => n.id === npcId)
     : null;
 
-  // Damage info from context (if available)
-  const damage = context?.damage as number | undefined;
+  // Damage info from context (if available) — coerce to safe numeric
+  const rawDamage = context?.damage;
+  const damage = rawDamage !== undefined && Number.isFinite(Number(rawDamage)) ? Number(rawDamage) : undefined;
   const damageType = context?.damageType as string | undefined;
 
   const isHit = outcome === 'success' || outcome === 'critical_success';
@@ -39,8 +44,8 @@ export function renderCombatTurn(state: GmState | null, css: string, options?: R
   const outcomeLabel = isHit ? (isCrit ? 'Critical Hit!' : 'Hit') : (isCrit ? 'Critical Miss' : 'Miss');
   const modStr = modifier >= 0 ? `+${modifier}` : `${modifier}`;
 
-  // Combatant count for multi-target display
-  const combatantCount = (options?.combatantCount as number) ?? 1;
+  // Combatant count for multi-target display — coerce to safe numeric
+  const combatantCount = Number.isFinite(Number(options?.combatantCount)) ? Number(options?.combatantCount) : 1;
 
   return `
 <style>${css}
@@ -76,12 +81,12 @@ export function renderCombatTurn(state: GmState | null, css: string, options?: R
   <div class="combat-participants">
     <div class="combatant">
       <div class="combatant-name">${char ? esc(char.name) : 'Player'}</div>
-      ${char ? `<div class="combatant-hp">HP ${char.hp}/${char.maxHp}</div>` : ''}
+      ${char ? `<div class="combatant-hp">HP ${Number(char.hp) || 0}/${Number(char.maxHp) || 0}</div>` : ''}
     </div>
     <div class="vs-divider">vs</div>
     <div class="combatant">
       <div class="combatant-name">${npc ? esc(npc.name) : 'Enemy'}</div>
-      ${npc ? `<div class="combatant-hp">HP ${npc.hp}/${npc.maxHp}</div>` : ''}
+      ${npc ? `<div class="combatant-hp">HP ${Number(npc.hp) || 0}/${Number(npc.maxHp) || 0}</div>` : ''}
     </div>
   </div>
 
@@ -110,9 +115,9 @@ export function renderCombatTurn(state: GmState | null, css: string, options?: R
     <div class="damage-value">${isCrit ? damage * 2 : damage} damage${isCrit ? ' (critical)' : ''}</div>
     ${damageType ? `<div class="damage-type">${esc(damageType)}</div>` : ''}
     ${npc ? `
-    <div class="npc-hp-change">${esc(npc.name)}: ${npc.hp}/${npc.maxHp} HP</div>
+    <div class="npc-hp-change">${esc(npc.name)}: ${Number(npc.hp) || 0}/${Number(npc.maxHp) || 0} HP</div>
     <div class="combat-bar-container">
-      <div class="hp-bar-fill hp-bar-npc" style="width:${npc.maxHp > 0 ? Math.max(0, Math.round((npc.hp / npc.maxHp) * 100)) : 0}%"></div>
+      <div class="hp-bar-fill hp-bar-npc" style="width:${Number(npc.maxHp) > 0 ? Math.max(0, Math.round((Number(npc.hp) / Number(npc.maxHp)) * 100)) : 0}%"></div>
     </div>` : ''}
   </div>` : ''}
 

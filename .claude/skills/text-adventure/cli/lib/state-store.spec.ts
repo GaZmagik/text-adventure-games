@@ -99,7 +99,7 @@ describe('saveState rollHistory capping', () => {
     for (let i = 0; i < 51; i++) {
       state.rollHistory.push({
         scene: i,
-        type: 'test',
+        type: 'contested_roll',
         stat: 'STR',
         roll: 10,
         modifier: 0,
@@ -130,6 +130,51 @@ describe('tryLoadState', () => {
   test('returns null for invalid JSON without throwing', async () => {
     const statePath = getStatePath();
     writeFileSync(statePath, '{{not valid json!!!');
+    const result = await tryLoadState();
+    expect(result).toBeNull();
+  });
+});
+
+// ── T1-1: isPlausibleGmState validation guard ───────────────────────
+
+describe('loadState rejects non-object JSON', () => {
+  test('throws when state.json contains a JSON array', async () => {
+    const statePath = getStatePath();
+    writeFileSync(statePath, JSON.stringify([1, 2, 3]));
+    expect(loadState()).rejects.toThrow('does not contain a valid object');
+  });
+
+  test('throws when state.json contains a JSON string primitive', async () => {
+    const statePath = getStatePath();
+    writeFileSync(statePath, JSON.stringify('hello'));
+    expect(loadState()).rejects.toThrow('does not contain a valid object');
+  });
+
+  test('throws when state.json contains JSON null', async () => {
+    const statePath = getStatePath();
+    writeFileSync(statePath, JSON.stringify(null));
+    expect(loadState()).rejects.toThrow('does not contain a valid object');
+  });
+});
+
+describe('tryLoadState returns null for non-object JSON', () => {
+  test('returns null when state.json contains a JSON array', async () => {
+    const statePath = getStatePath();
+    writeFileSync(statePath, JSON.stringify([1, 2, 3]));
+    const result = await tryLoadState();
+    expect(result).toBeNull();
+  });
+
+  test('returns null when state.json contains a JSON string primitive', async () => {
+    const statePath = getStatePath();
+    writeFileSync(statePath, JSON.stringify('hello'));
+    const result = await tryLoadState();
+    expect(result).toBeNull();
+  });
+
+  test('returns null when state.json contains JSON null', async () => {
+    const statePath = getStatePath();
+    writeFileSync(statePath, JSON.stringify(null));
     const result = await tryLoadState();
     expect(result).toBeNull();
   });

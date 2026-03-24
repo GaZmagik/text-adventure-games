@@ -47,14 +47,14 @@ describe('extractAllCss — CSS sanitisation', () => {
   test('blocks external url() references', async () => {
     const file = makeTempCss(".bg { background: url('https://evil.example/track.gif'); }");
     const css = await extractAllCss(file);
-    expect(css).toContain('data:,/*blocked*/');
+    expect(css).toContain('/*blocked*/');
     expect(css).not.toContain('https://');
   });
 
   test('blocks protocol-relative url() references', async () => {
     const file = makeTempCss(".bg { background: url('//evil.example/track.gif'); }");
     const css = await extractAllCss(file);
-    expect(css).toContain('data:,/*blocked*/');
+    expect(css).toContain('/*blocked*/');
     expect(css).not.toContain("url('//");
   });
 
@@ -157,5 +157,65 @@ describe('extractCssVars', () => {
     expect(val).toBeDefined();
     expect(val).not.toContain(';');
     expect(val).not.toMatch(/^\s/);
+  });
+});
+
+// ── T2-S1: Extended URI scheme blocking ─────────────────────────────
+
+describe('extractAllCss — extended URI scheme blocking', () => {
+  let tempDir: string;
+  let tempFiles: string[] = [];
+
+  afterEach(() => {
+    for (const f of tempFiles) {
+      try { rmSync(f); } catch { /* ignore */ }
+    }
+    tempFiles = [];
+    if (tempDir) {
+      try { rmSync(tempDir, { recursive: true, force: true }); } catch { /* ignore */ }
+    }
+  });
+
+  function makeTempCss(css: string): string {
+    tempDir = mkdtempSync(join(tmpdir(), 'css-uri-'));
+    const file = join(tempDir, 'uri-test.md');
+    Bun.write(file, '```css\n' + css + '\n```');
+    tempFiles.push(file);
+    return file;
+  }
+
+  test('blocks data: URI scheme in url()', async () => {
+    const file = makeTempCss(".bg { background: url(data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==); }");
+    const css = await extractAllCss(file);
+    expect(css).toContain('/*blocked*/');
+    expect(css).not.toContain('data:text/html');
+  });
+
+  test('blocks blob: URI scheme in url()', async () => {
+    const file = makeTempCss(".bg { background: url(blob:http://evil.example); }");
+    const css = await extractAllCss(file);
+    expect(css).toContain('/*blocked*/');
+    expect(css).not.toContain('blob:');
+  });
+
+  test('blocks ftp: URI scheme in url()', async () => {
+    const file = makeTempCss(".bg { background: url(ftp://evil.example/file); }");
+    const css = await extractAllCss(file);
+    expect(css).toContain('/*blocked*/');
+    expect(css).not.toContain('ftp://');
+  });
+
+  test('blocks javascript: URI scheme in url()', async () => {
+    const file = makeTempCss(".bg { background: url(javascript:alert(1)); }");
+    const css = await extractAllCss(file);
+    expect(css).toContain('/*blocked*/');
+    expect(css).not.toContain('javascript:');
+  });
+
+  test('allows safe relative url() references', async () => {
+    const file = makeTempCss(".bg { background: url(images/bg.png); }");
+    const css = await extractAllCss(file);
+    expect(css).toContain('url(images/bg.png)');
+    expect(css).not.toContain('/*blocked*/');
   });
 });

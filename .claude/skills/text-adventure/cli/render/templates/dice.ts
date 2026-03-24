@@ -15,16 +15,21 @@ export function renderDice(state: GmState | null, css: string, options?: Record<
   const comp = state?._lastComputation;
   const data = options?.data as Record<string, unknown> | undefined;
 
+  // Narrow computation type for safe field access
+  const compHasStatFields = comp && (comp.type === 'contested_roll' || comp.type === 'hazard_save');
+
   // Allow --data overrides for testing — with runtime validation for script safety
   const rawDieType = (data?.dieType as string) ?? comp?.dieType ?? 'd20';
   const dieType = VALID_DIE_TYPES.has(rawDieType) ? rawDieType : 'd20';
-  const stat = (data?.stat as string) ?? comp?.stat ?? '???';
+  const stat = (data?.stat as string) ?? (compHasStatFields ? comp.stat : undefined) ?? '???';
   const roll = Number.isFinite(Number(data?.roll ?? comp?.roll)) ? Number(data?.roll ?? comp?.roll) : 0;
   const modifier = Number.isFinite(Number(data?.modifier ?? comp?.modifier)) ? Number(data?.modifier ?? comp?.modifier) : 0;
   const total = Number.isFinite(Number(data?.total ?? comp?.total)) ? Number(data?.total ?? comp?.total) : 0;
-  const dc = (data?.dc ?? comp?.dc) !== undefined ? Number(data?.dc ?? comp?.dc) : undefined;
+  const rawDc = data?.dc ?? (compHasStatFields ? comp.dc : undefined);
+  const dc = rawDc !== undefined ? (Number.isFinite(Number(rawDc)) ? Number(rawDc) : undefined) : undefined;
   const outcome = (data?.outcome as string) ?? comp?.outcome ?? 'unknown';
-  const margin = Number.isFinite(Number(data?.margin ?? comp?.margin)) ? Number(data?.margin ?? comp?.margin) : 0;
+  const rawMargin = data?.margin ?? (compHasStatFields ? comp.margin : undefined);
+  const margin = Number.isFinite(Number(rawMargin)) ? Number(rawMargin) : 0;
   const modStr = modifier >= 0 ? `+${modifier}` : `${modifier}`;
 
   // Outcome badge styling

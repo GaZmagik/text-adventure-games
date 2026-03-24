@@ -4,7 +4,7 @@
 import type { StatBlock, StatName } from '../types';
 
 /** Configuration for a single player archetype. */
-export interface ArchetypeConfig {
+export type ArchetypeConfig = {
   /** Base ability scores before random bonuses. */
   baseStats: StatBlock;
   /** Primary stats for this archetype (highest base values). */
@@ -15,7 +15,7 @@ export interface ArchetypeConfig {
   baseAc: number;
   /** Short flavour description. */
   flavour: string;
-}
+};
 
 /**
  * The six core archetypes, extracted from character-creation.md.

@@ -47,6 +47,12 @@ source setup.sh && tag state reset
 
 This installs Bun (if needed), links the `tag` command, sets `PATH` so `tag` is available for all subsequent commands in this session, and initialises a blank game state. You MUST use `source` (not `bash`) so the PATH export persists in the current shell. Run from the skill directory — `setup.sh` is located at `.claude/skills/text-adventure/setup.sh`.
 
+> **Bun runtime requirement:** The `tag` CLI uses Bun-only APIs (`Bun.file()`,
+> `import.meta.dir`) and will not run under Node.js. `setup.sh` installs Bun
+> automatically. Tests use `bun:test` and must be run via `bun test`. Type
+> checking uses `bun run typecheck` — do not use plain `tsc` as there is no
+> `tsconfig.json`; Bun executes TypeScript directly.
+
 To resume from a save file, ALWAYS use the file path — never pass the raw save string as a CLI argument:
 ```bash
 source setup.sh && tag save load /mnt/user-data/uploads/<filename>.save.md

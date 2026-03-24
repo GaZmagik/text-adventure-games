@@ -18,25 +18,34 @@ ${css ? '<style>' + css + '</style>' : ''}
 </div>`;
   }
 
-  const hpPercent = char.maxHp > 0 ? Math.round((char.hp / char.maxHp) * 100) : 0;
-  const nextThreshold = XP_THRESHOLDS.find(t => t.level === char.level + 1);
+  // Coerce numeric state values to safe defaults
+  const hp = Number(char.hp) || 0;
+  const maxHp = Number(char.maxHp) || 0;
+  const ac = Number(char.ac) || 0;
+  const level = Number(char.level) || 0;
+  const xp = Number(char.xp) || 0;
+  const profBonus = Number(char.proficiencyBonus) || 0;
+  const currency = Number(char.currency) || 0;
+
+  const hpPercent = maxHp > 0 ? Math.round((hp / maxHp) * 100) : 0;
+  const nextThreshold = XP_THRESHOLDS.find(t => t.level === level + 1);
   const xpForLevel = nextThreshold?.xp ?? XP_THRESHOLDS[XP_THRESHOLDS.length - 1]!.xp;
-  const xpPercent = xpForLevel > 0 ? Math.min(100, Math.round((char.xp / xpForLevel) * 100)) : 0;
+  const xpPercent = xpForLevel > 0 ? Math.min(100, Math.round((xp / xpForLevel) * 100)) : 0;
 
   const profSet = new Set(char.proficiencies);
   const statRows = STAT_ORDER.map(s => {
-    const mod = char.modifiers[s];
+    const mod = Number(char.modifiers[s]) || 0;
     const modStr = mod >= 0 ? `+${mod}` : `${mod}`;
     const isProficient = profSet.has(s);
     return `<div class="stat-cell${isProficient ? ' proficient' : ''}">
         <span class="stat-label">${s}</span>
-        <span class="stat-value">${char.stats[s]}</span>
+        <span class="stat-value">${Number(char.stats[s]) || 0}</span>
         <span class="stat-mod">${modStr}</span>
       </div>`;
   }).join('\n      ');
 
   const inventoryRows = char.inventory.map(item =>
-    `<li class="inv-item"><span class="inv-name">${esc(item.name)}</span> <span class="inv-type">${esc(item.type)}</span> <span class="inv-slots">${item.slots} slot${item.slots !== 1 ? 's' : ''}</span></li>`,
+    `<li class="inv-item"><span class="inv-name">${esc(item.name)}</span> <span class="inv-type">${esc(item.type)}</span> <span class="inv-slots">${Number(item.slots) || 0} slot${Number(item.slots) !== 1 ? 's' : ''}</span></li>`,
   ).join('\n        ');
 
   const conditionBadges = char.conditions.length > 0
@@ -73,18 +82,18 @@ ${css ? '<style>' + css + '</style>' : ''}
 <div class="widget-character">
   <div class="char-header">
     <span class="char-name">${esc(char.name)}</span>
-    <span class="char-class">${esc(char.class)} · Lv ${char.level}</span>
+    <span class="char-class">${esc(char.class)} · Lv ${level}</span>
   </div>
 
   <!-- HP bar -->
-  <div class="bar-label"><span>HP</span><span>${char.hp} / ${char.maxHp}</span></div>
-  <div class="char-bar-container" role="meter" aria-valuenow="${hpPercent}" aria-valuemin="0" aria-valuemax="100" aria-label="HP: ${char.hp} of ${char.maxHp}"><div class="bar-fill-hp" style="width:${hpPercent}%"></div></div>
+  <div class="bar-label"><span>HP</span><span>${hp} / ${maxHp}</span></div>
+  <div class="char-bar-container" role="meter" aria-valuenow="${hpPercent}" aria-valuemin="0" aria-valuemax="100" aria-label="HP: ${hp} of ${maxHp}"><div class="bar-fill-hp" style="width:${hpPercent}%"></div></div>
 
   <!-- AC & Proficiency -->
   <div class="bar-label" style="margin-top:8px">
-    <span>AC ${char.ac}</span>
-    <span>Prof. +${char.proficiencyBonus}</span>
-    <span>${esc(char.currencyName)} ${char.currency}</span>
+    <span>AC ${ac}</span>
+    <span>Prof. +${profBonus}</span>
+    <span>${esc(char.currencyName)} ${currency}</span>
   </div>
 
   <!-- Stats -->
@@ -108,8 +117,8 @@ ${css ? '<style>' + css + '</style>' : ''}
   <div>${conditionBadges}</div>
 
   <!-- XP bar -->
-  <div class="bar-label" style="margin-top:12px"><span>XP</span><span>${char.xp} / ${xpForLevel}</span></div>
-  <div class="char-bar-container" role="meter" aria-valuenow="${xpPercent}" aria-valuemin="0" aria-valuemax="100" aria-label="XP: ${char.xp} of ${xpForLevel}"><div class="bar-fill-xp" style="width:${xpPercent}%"></div></div>
+  <div class="bar-label" style="margin-top:12px"><span>XP</span><span>${xp} / ${xpForLevel}</span></div>
+  <div class="char-bar-container" role="meter" aria-valuenow="${xpPercent}" aria-valuemin="0" aria-valuemax="100" aria-label="XP: ${xp} of ${xpForLevel}"><div class="bar-fill-xp" style="width:${xpPercent}%"></div></div>
 
   <!-- Proficiencies -->
   <div class="section-title">Proficiencies</div>

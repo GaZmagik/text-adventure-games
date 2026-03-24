@@ -7,7 +7,7 @@ import { proficiencyBonus } from '../../lib/modifier';
 
 export function renderLevelup(state: GmState | null, css: string, options?: Record<string, unknown>): string {
   const char = state?.character;
-  const newLevel = char?.level ?? 1;
+  const newLevel = Number(char?.level) || 1;
   const prevLevel = newLevel - 1;
 
   // Proficiency bonus thresholds (d20 system)
@@ -57,7 +57,7 @@ export function renderLevelup(state: GmState | null, css: string, options?: Reco
     </div>
     <div class="levelup-stat">
       <span class="levelup-stat-label">HP</span>
-      <span class="levelup-stat-value">${char?.hp ?? '?'} / ${char?.maxHp ?? '?'}</span>
+      <span class="levelup-stat-value">${char ? (Number(char.hp) || 0) : '?'} / ${char ? (Number(char.maxHp) || 0) : '?'}</span>
     </div>
     <div class="levelup-stat">
       <span class="levelup-stat-label">Prof. Bonus</span>

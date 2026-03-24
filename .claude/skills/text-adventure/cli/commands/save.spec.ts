@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { handleSave } from './save';
 import { saveState, createDefaultState, loadState } from '../lib/state-store';
-import { validateAndDecode } from '../lib/fnv32';
+import { validateAndDecode, attachChecksum } from '../lib/fnv32';
 
 let tempDir: string;
 const originalEnv = process.env.TAG_STATE_DIR;
@@ -216,5 +216,125 @@ describe('save with no subcommand', () => {
   test('returns error', async () => {
     const result = await handleSave([]);
     expect(result.ok).toBe(false);
+  });
+});
+
+// ── T1-2: Validation rejection — missing required fields ────────────
+
+describe('save load — validation rejection', () => {
+  /** Build a checksummed SF2 save string from an arbitrary payload object. */
+  function makeSave(payload: Record<string, unknown>): string {
+    const code = 'SF2:' + btoa(JSON.stringify(payload));
+    return attachChecksum(code);
+  }
+
+  test('rejects a save with an invalid character (missing required fields)', async () => {
+    // Character present but lacks level, stats, hp, maxHp — validator should reject
+    const saveString = makeSave({
+      _version: 1,
+      scene: 1,
+      character: { name: 'Bad Guy' },
+    });
+    const result = await handleSave(['load', saveString]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('invalid state');
+  });
+
+  // ── T2-TS6: character is a truthy non-object (number) ─────────────
+
+  test('does not crash when character is a number instead of object', async () => {
+    const saveString = makeSave({
+      _version: 1,
+      scene: 1,
+      character: 42,
+    });
+    const result = await handleSave(['load', saveString]);
+    // Should fail validation gracefully, not throw
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('invalid state');
+  });
+});
+
+// ── T1-3: Root homedir guard ────────────────────────────────────────
+
+describe('save load — root homedir guard', () => {
+  test('fails when os.homedir() returns root /', async () => {
+    // Bun's os.homedir() reads getpwuid and ignores $HOME, so we cannot mock it
+    // in-process without poisoning sibling tests. Instead, spawn a subprocess that
+    // patches os.homedir via require() before any module captures the binding.
+    const genResult = await handleSave(['generate']);
+    expect(genResult.ok).toBe(true);
+    const saveString = (genResult.data as Record<string, unknown>).saveString as string;
+    const saveFilePath = join(tempDir, 'root-test.save');
+    writeFileSync(saveFilePath, saveString);
+
+    const script = [
+      `const os = require('node:os');`,
+      `os.homedir = () => '/';`,
+      `process.env.TAG_STATE_DIR = ${JSON.stringify(tempDir)};`,
+      `const { handleSave } = require('./save');`,
+      `handleSave(['load', ${JSON.stringify(saveFilePath)}]).then(r => {`,
+      `  process.stdout.write(JSON.stringify(r));`,
+      `});`,
+    ].join('\n');
+
+    const proc = Bun.spawn(['bun', '-e', script], {
+      cwd: import.meta.dir,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+    const stdout = await new Response(proc.stdout).text();
+    await proc.exited;
+
+    const result = JSON.parse(stdout.trim());
+    expect(result.ok).toBe(false);
+    expect(result.error.message).toContain('non-root home directory');
+  });
+});
+
+// ── T1-4: Nested prototype pollution filtering ──────────────────────
+
+describe('save load — prototype pollution filtering', () => {
+  test('filters out nested __proto__ keys from character', async () => {
+    // JSON.stringify strips __proto__ from object literals (it becomes the prototype,
+    // not an own property). Build the JSON string manually so __proto__ appears literally.
+    // When JSON.parse decodes this, __proto__ becomes an own enumerable property.
+    const characterJson =
+      '{"name":"Hacker","class":"Scout","hp":10,"maxHp":10,"ac":10,' +
+      '"level":1,"xp":0,"currency":0,"currencyName":"credits",' +
+      '"stats":{"STR":10,"DEX":10,"CON":10,"INT":10,"WIS":10,"CHA":10},' +
+      '"modifiers":{"STR":0,"DEX":0,"CON":0,"INT":0,"WIS":0,"CHA":0},' +
+      '"proficiencyBonus":2,"proficiencies":[],' +
+      '"abilities":[],"inventory":[],"conditions":[],' +
+      '"equipment":{"weapon":"Blaster","armour":"Vest"},' +
+      '"__proto__":{"polluted":true}}';
+    const payloadJson =
+      '{"_version":1,"scene":1,"currentRoom":"bridge","visitedRooms":[],' +
+      '"rollHistory":[],"character":' + characterJson + ',' +
+      '"worldFlags":{},"modulesActive":[],"rosterMutations":[],' +
+      '"codexMutations":[],' +
+      '"time":{"period":"morning","date":"Day 1","elapsed":0,"hour":8,' +
+      '"playerKnowsDate":false,"playerKnowsTime":false,' +
+      '"calendarSystem":"elapsed-only","deadline":null},' +
+      '"factions":{},"quests":[],"_stateHistory":[]}';
+    const encoded = btoa(payloadJson);
+    const code = 'SF2:' + encoded;
+    const saveString = attachChecksum(code);
+
+    const result = await handleSave(['load', saveString]);
+    // The character key should be stripped because it contains a forbidden key.
+    // This means the loaded state gets character: null from defaults, and
+    // validation then rejects it (no character.level, etc.) — either outcome
+    // confirms the pollution vector was blocked.
+    if (result.ok) {
+      const loaded = await loadState();
+      // character was filtered out due to __proto__ — falls back to default null
+      expect(loaded.character).toBeNull();
+    } else {
+      // Validation rejected because character was stripped — also acceptable
+      expect(result.ok).toBe(false);
+    }
+    // The critical assertion: no prototype pollution on Object.prototype
+    expect(({} as Record<string, unknown>)['polluted']).toBeUndefined();
   });
 });

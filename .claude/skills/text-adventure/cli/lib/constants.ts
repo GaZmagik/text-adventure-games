@@ -25,3 +25,11 @@ export const VALID_TOP_KEYS = new Set<string>(VALID_TOP_KEYS_ARRAY);
 
 /** Commands that mutate state — used by batch to decide whether to capture a state snapshot. */
 export const MUTATING_COMMANDS = new Set<string>(['state', 'save', 'compute']);
+
+/** Canonical list of renderable widget types — mirrors the TEMPLATES registry in commands/render.ts.
+ *  Duplicated here so that help.ts can list widget types without importing the entire render pipeline. */
+export const WIDGET_TYPE_NAMES = [
+  'scene', 'ticker', 'character', 'dice', 'ship', 'crew', 'codex', 'map',
+  'starchart', 'footer', 'save-div', 'levelup', 'recap', 'combat-turn',
+  'dialogue', 'settings', 'scenario-select', 'character-creation',
+] as const;

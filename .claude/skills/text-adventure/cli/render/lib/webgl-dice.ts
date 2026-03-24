@@ -357,5 +357,5 @@ if(IS_D2){
 }
 })();`.trim();
 
-// Keep the function as a thin wrapper for backward compat
+/** @internal — test-only; source files import WEBGL_DICE_CODE directly. */
 export function generateWebGLDiceCode(): string { return WEBGL_DICE_CODE; }

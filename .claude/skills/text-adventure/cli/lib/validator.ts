@@ -4,11 +4,11 @@
 import { STAT_NAMES, VALID_TIERS, VALID_PRONOUNS } from './constants';
 
 /** Result of a state validation check. */
-export interface ValidationResult {
+export type ValidationResult = {
   valid: boolean;
   errors: string[];
   warnings: string[];
-}
+};
 
 /**
  * Validate a game state object against the gmState contract.

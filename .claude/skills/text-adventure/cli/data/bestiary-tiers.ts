@@ -5,7 +5,7 @@ import type { BestiaryTier, NpcMutation, Pronouns, StatBlock } from '../types';
 import { computeModifiers } from '../lib/modifier';
 
 /** Configuration for a single bestiary tier. */
-export interface TierConfig {
+export type TierConfig = {
   /** Minimum hit points for this tier. */
   hpMin: number;
   /** Maximum hit points for this tier. */
@@ -24,7 +24,7 @@ export interface TierConfig {
   statRange: [number, number];
   /** NPC level range — [min, max]. */
   levelRange: [number, number];
-}
+};
 
 /**
  * Tier definitions extracted from bestiary.md.

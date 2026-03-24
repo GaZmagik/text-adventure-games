@@ -9,7 +9,15 @@ import { validateState } from '../lib/validator';
 import { VALID_TIERS, VALID_PRONOUNS, MAX_STATE_HISTORY, FORBIDDEN_KEYS, VALID_TOP_KEYS } from '../lib/constants';
 import { parseArgs } from '../lib/args';
 
-const VALID_SUBCOMMANDS = ['get', 'set', 'create-npc', 'validate', 'reset', 'history'];
+const VALID_SUBCOMMANDS = ['get', 'set', 'create-npc', 'validate', 'reset', 'history'] as const;
+
+function isBestiaryTier(s: string): s is BestiaryTier {
+  return (VALID_TIERS as readonly string[]).includes(s);
+}
+
+function isPronouns(s: string): s is Pronouns {
+  return (VALID_PRONOUNS as readonly string[]).includes(s);
+}
 
 /**
  * Navigate a state object by dot-separated path.
@@ -95,11 +103,12 @@ function containsForbiddenKeys(obj: unknown): boolean {
  *  Note: numeric strings like "42" are coerced to numbers. To store a string
  *  that looks like a number, wrap it in a JSON object: '{"value":"42"}'. */
 function coerceValue(raw: string): unknown {
+  raw = raw.trim();
   if (raw === 'true') return true;
   if (raw === 'false') return false;
   if (raw === 'null') return null;
   const num = Number(raw);
-  if (!Number.isNaN(num) && Number.isFinite(num) && raw.trim().length > 0 && !/^0x/i.test(raw.trim())) return num;
+  if (!Number.isNaN(num) && Number.isFinite(num) && raw.length > 0 && !/^0x/i.test(raw)) return num;
   // Attempt JSON parse for objects and arrays
   if (raw.startsWith('{') || raw.startsWith('[')) {
     try {
@@ -128,10 +137,10 @@ function recordHistory(
     oldValue,
     newValue,
   };
-  state._stateHistory.push(entry);
-  if (state._stateHistory.length > MAX_STATE_HISTORY) {
-    state._stateHistory = state._stateHistory.slice(-MAX_STATE_HISTORY);
+  if (state._stateHistory.length >= MAX_STATE_HISTORY) {
+    state._stateHistory = state._stateHistory.slice(-(MAX_STATE_HISTORY - 1));
   }
+  state._stateHistory.push(entry);
 }
 
 /** Suggest similar top-level keys for corrective messages. */
@@ -206,6 +215,23 @@ async function handleSet(args: string[]): Promise<CommandResult> {
   } catch (err) {
     return fail((err as Error).message, 'Path contains a forbidden segment (__proto__, constructor, prototype).', 'state set');
   }
+
+  // Validate state integrity after mutation — reject structurally invalid changes before persisting
+  const validation = validateState(state);
+  if (!validation.valid) {
+    // Rollback the mutation before returning
+    try {
+      setByPath(state as unknown as Record<string, unknown>, path, oldValue);
+    } catch {
+      // Rollback failed — state is already invalid, do not save
+    }
+    return fail(
+      `Mutation would produce invalid state: ${validation.errors.join('; ')}`,
+      `Check the value being set at "${path}" conforms to the state contract.`,
+      'state set',
+    );
+  }
+
   recordHistory(state, 'state set', path, oldValue, newValue);
   await saveState(state);
 
@@ -229,7 +255,7 @@ async function handleCreateNpc(args: string[]): Promise<CommandResult> {
     return fail('Missing --tier flag.', 'tag state create-npc requires --tier <minion|rival|nemesis>.', 'state create-npc');
   }
 
-  if (!VALID_TIERS.includes(flags.tier as BestiaryTier)) {
+  if (!isBestiaryTier(flags.tier)) {
     return fail(`Invalid tier "${flags.tier}".`, `Valid tiers: ${VALID_TIERS.join(', ')}`, 'state create-npc');
   }
 
@@ -237,7 +263,7 @@ async function handleCreateNpc(args: string[]): Promise<CommandResult> {
     return fail('Missing --pronouns flag. NPC pronouns are mandatory.', 'tag state create-npc requires --pronouns <she/her|he/him|they/them>.', 'state create-npc');
   }
 
-  if (!VALID_PRONOUNS.includes(flags.pronouns as Pronouns)) {
+  if (!isPronouns(flags.pronouns)) {
     return fail(`Invalid pronouns "${flags.pronouns}".`, `Valid pronouns: ${VALID_PRONOUNS.join(', ')}`, 'state create-npc');
   }
 
@@ -252,10 +278,10 @@ async function handleCreateNpc(args: string[]): Promise<CommandResult> {
   }
 
   const npc = generateNpcFromTier(
-    flags.tier as BestiaryTier,
+    flags.tier,
     npcId,
     flags.name,
-    flags.pronouns as Pronouns,
+    flags.pronouns,
     role,
   );
 

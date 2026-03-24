@@ -94,13 +94,13 @@ export type Quest = {
   title: string;
   status: 'active' | 'completed' | 'failed';
   objectives: QuestObjective[];
-}
+};
 
 export type QuestObjective = {
   id: string;
   description: string;
   completed: boolean;
-}
+};
 
 // ── Codex ──────────────────────────────────────────────────────────
 
@@ -110,20 +110,33 @@ export type CodexMutation = {
   discoveredAt?: number;
   via?: string;
   secrets?: string[];
-}
+};
 
 // ── Rolls ──────────────────────────────────────────────────────────
 
+export type RollType = 'contested_roll' | 'hazard_save' | 'encounter_roll';
+
+export type RollOutcome =
+  | 'critical_success'
+  | 'decisive_success'
+  | 'narrow_success'
+  | 'success'
+  | 'partial_success'
+  | 'narrow_failure'
+  | 'failure'
+  | 'decisive_failure'
+  | 'critical_failure';
+
 export type RollRecord = {
   scene: number;
-  type: string;
-  stat: string;
+  type: RollType;
+  stat: StatName;
   roll: number;
   modifier: number;
   total: number;
   dc: number;
-  outcome: string;
-}
+  outcome: RollOutcome;
+};
 
 // ── Dice ──────────────────────────────────────────────────────────
 
@@ -144,7 +157,7 @@ export type ContestedRollResult = {
   dc?: number;
   dieType?: DieType;
   context?: Record<string, unknown>;
-}
+};
 
 export type HazardSaveResult = {
   type: 'hazard_save';
@@ -159,7 +172,7 @@ export type HazardSaveResult = {
   npcModifier?: number;
   dieType?: DieType;
   context?: Record<string, unknown>;
-}
+};
 
 export type EncounterRollResult = {
   type: 'encounter_roll';
@@ -174,7 +187,7 @@ export type EncounterRollResult = {
   npcModifier?: number;
   dieType?: DieType;
   context?: Record<string, unknown>;
-}
+};
 
 export type ComputationResult = ContestedRollResult | HazardSaveResult | EncounterRollResult;
 
@@ -186,7 +199,7 @@ export type StateHistoryEntry = {
   path: string;
   oldValue: unknown;
   newValue: unknown;
-}
+};
 
 // ── Module States ──────────────────────────────────────────────────
 
@@ -196,7 +209,7 @@ export type ShipState = {
   powerAllocations: Record<string, number>;
   repairParts: number;
   scenesSinceRepair: number;
-}
+};
 
 export type MapState = {
   currentZone: string;
@@ -204,7 +217,7 @@ export type MapState = {
   revealedZones: string[];
   doorStates: Record<string, string>;
   supplies?: { rations: number; water: number };
-}
+};
 
 export type CrewMutation = {
   id: string;
@@ -216,20 +229,20 @@ export type CrewMutation = {
   loyalty: number;
   status: NpcStatus;
   task?: string;
-}
+};
 
 /** Placeholder — shape to be defined when story-architect module is implemented. */
 type StoryThread = { id: string; [key: string]: unknown };
 
 /** Placeholder — shape to be defined when arc-transition is implemented. */
-type CharacterProgression = { [key: string]: unknown };
+type CharacterProgression = Record<string, unknown>;
 
 export type StoryArchitectState = {
   threads: StoryThread[];
   foreshadowing: StoryThread[];
   consequences: StoryThread[];
   pacing: { act: number; actProgress: number; recentBeats: string[] };
-}
+};
 
 export type CarryForward = {
   characterProgression: CharacterProgression;
@@ -237,13 +250,13 @@ export type CarryForward = {
   npcDispositions: StoryThread[];
   codexDiscoveries: string[];
   worldConsequences: string[];
-}
+};
 
 export type ArcSummary = {
   arc: number;
   theme: string;
   conclusion: string;
-}
+};
 
 // ── Master Game State ──────────────────────────────────────────────
 
@@ -276,15 +289,15 @@ export type GmState = {
   arcHistory?: ArcSummary[];
   _lastComputation?: ComputationResult | undefined;
   _stateHistory: StateHistoryEntry[];
-}
+};
 
 // ── Command Types ──────────────────────────────────────────────────
 
-export type CommandResult = {
+export type CommandResult<T = unknown> = {
   ok: boolean;
   command: string;
-  data?: unknown;
+  data?: T;
   error?: { message: string; corrective: string };
   state_snapshot?: Partial<GmState>;
-}
+};
 
