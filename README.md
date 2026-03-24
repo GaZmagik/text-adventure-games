@@ -8,7 +8,7 @@ A modular text adventure engine for Claude, built entirely as Claude skills. Wor
 
 | File | Description |
 |------|-------------|
-| `text-adventure.zip` | Core text adventure engine — orchestrator with 24 modular expansions covering character creation, combat, ship systems, crew management, navigation, procedural world generation, prose craft, atmosphere, audio, and more. Supports multiple rule systems (d20, GURPS Lite, Pathfinder 2e Lite, Shadowrun 5e Lite, Narrative Engine). Full save persistence for story threads, ship damage, crew morale, map state, and time tracking. |
+| `text-adventure.zip` | Core text adventure engine — orchestrator with 23 modular expansions covering character creation, combat, ship systems, crew management, navigation, procedural world generation, prose craft, atmosphere, audio, and more. Supports multiple rule systems (d20, GURPS Lite, Pathfinder 2e Lite, Shadowrun 5e Lite, Narrative Engine). Full save persistence for story threads, ship damage, crew morale, map state, and time tracking. |
 
 ### Output Styles
 

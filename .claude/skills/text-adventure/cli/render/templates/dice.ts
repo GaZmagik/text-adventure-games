@@ -61,9 +61,9 @@ export function renderDice(state: GmState | null, css: string, _options?: Record
 <div class="widget-dice">
   <div class="dice-stat">${esc(stat)} Check</div>
 
-  <!-- Three.js die canvas -->
+  <!-- Three.js 3D die -->
   <div class="dice-canvas-wrap">
-    <canvas id="die-canvas" width="120" height="120"></canvas>
+    <canvas id="die-canvas" width="120" height="120" role="img" aria-label="${esc(stat)} check — rolled ${roll}${modStr} = ${total}"></canvas>
   </div>
 
   <!-- Roll breakdown -->

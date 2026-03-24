@@ -254,7 +254,7 @@ where characters possess extraordinary abilities beyond normal human capability.
 
 | Tier | Usage | Cost | Examples |
 |------|-------|------|----------|
-| Minor | At-will (no limit) | None | Enhanced Reflexes (+2 to AGI checks, passive) |
+| Minor | At-will (no limit) | None | Enhanced Reflexes (+2 to DEX checks, passive) |
 | Standard | 1 per encounter | None | Force Blast (ranged attack, 3d6 damage, knockback) |
 | Major | 1 per session | None | Time Stop (take 3 consecutive actions, usable once per session) |
 
@@ -406,7 +406,7 @@ may take **one intrigue action:**
 | Gather intelligence | INT | Learn a faction's current plans, alliances, or vulnerabilities. DC based on faction secrecy. |
 | Spread rumour | CHA | Shift one faction's view of another faction by one step (positive or negative). DC 14. |
 | Form alliance | CHA | Attempt to upgrade a faction's disposition toward the character by one step. DC based on current disposition (Hostile: 18, Unfriendly: 15, Neutral: 12, Friendly: 10). |
-| Sabotage | AGI | Undermine a faction's plans without being caught. DC based on faction vigilance. |
+| Sabotage | DEX | Undermine a faction's plans without being caught. DC based on faction vigilance. |
 
 ### Discovery
 

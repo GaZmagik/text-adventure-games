@@ -55,11 +55,10 @@ const COMMANDS: Record<string, CommandHelp> = {
   },
   batch: {
     command: 'tag batch',
-    description: 'Execute multiple commands in one call. Newline-separated via stdin or semicolon-separated via --commands.',
+    description: 'Execute multiple commands in one call. Semicolon-separated via --commands flag.',
     subcommands: [
-      { name: 'stdin', usage: 'tag batch <<\'EOF\'\n...\nEOF', description: 'Pipe commands via heredoc (not yet implemented — use --commands instead)', example: 'tag batch --commands "state get character.hp; compute contest CHA merchant_01"' },
-      { name: '--commands', usage: 'tag batch --commands "cmd1; cmd2"', description: 'Semicolon-separated commands (simple sequences)', example: 'tag batch --commands "state get character.hp; compute contest CHA merchant_01"' },
-      { name: '--dry-run', usage: 'tag batch --dry-run <<\'EOF\'\n...\nEOF', description: 'Validate commands without executing', example: 'tag batch --dry-run <<\'EOF\'\nstate get character.hp\nEOF' },
+      { name: '--commands', usage: 'tag batch --commands "cmd1; cmd2"', description: 'Semicolon-separated commands', example: 'tag batch --commands "state get character.hp; compute contest CHA merchant_01"' },
+      { name: '--dry-run', usage: 'tag batch --dry-run --commands "cmd1; cmd2"', description: 'Validate commands without executing', example: 'tag batch --dry-run --commands "state get character.hp; save validate"' },
     ],
   },
   rules: {

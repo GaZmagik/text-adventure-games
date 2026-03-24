@@ -83,18 +83,7 @@ NEW GAME CHECKLIST
      Plan the arc's full cast, key locations, faction dynamics, and quest structure,
      then persist everything in one batch call:
      ```
-     tag batch <<'EOF'
-     state set scene 1
-     state set currentRoom <starting_room>
-     state set time '{"period":"morning","date":"Day 1","elapsed":0,"hour":8,...}'
-     state create-npc <npc_1_id> --name "<name>" --tier <tier> --pronouns <p> --role <role>
-     state create-npc <npc_2_id> --name "<name>" --tier <tier> --pronouns <p> --role <role>
-     state create-npc <npc_3_id> --name "<name>" --tier <tier> --pronouns <p> --role <role>
-     state create-npc <npc_4_id> --name "<name>" --tier <tier> --pronouns <p> --role <role>
-     state set factions '{"faction_1":0,"faction_2":0}'
-     state set quests '[{"id":"main","title":"...","status":"active","objectives":[...]}]'
-     state set modulesActive '["core-systems","die-rolls","bestiary",...]'
-     EOF
+     tag batch --commands "state set scene 1; state set currentRoom <starting_room>; state set time '<json>'; state create-npc <npc_1_id> --name '<name>' --tier <tier> --pronouns <p> --role <role>; state create-npc <npc_2_id> --name '<name>' --tier <tier> --pronouns <p> --role <role>; state create-npc <npc_3_id> --name '<name>' --tier <tier> --pronouns <p> --role <role>; state create-npc <npc_4_id> --name '<name>' --tier <tier> --pronouns <p> --role <role>; state set factions '<json>'; state set quests '<json>'; state set modulesActive '<json>'"
      ```
      Every NPC who will appear in this arc MUST be created here — not when
      they first enter a scene. This ensures stats, pronouns, and modifiers
@@ -232,7 +221,7 @@ before this checklist begins.
 NEW SCENE CHECKLIST
 ═══════════════════════════════════════════
 
-  Narrative Threading (consult modules/story-architect.md § Pre-Scene Checklist)
+  Narrative Threading (consult modules/story-architect.md § Pre-Scene)
 □  1. Which thread(s) does this scene advance?
 □  2. Check foreshadowing registry: any seeds to reinforce or pay off?
 □  3. Check consequence chains: any pending effects to deliver?
@@ -281,11 +270,8 @@ DIE ROLL CHECKLIST
 □  1. The player has already committed to an action (never pre-announce the check)
 □  2. The attribute was NOT revealed in the action options
 □  3. The DC is set but NOT revealed to the player
-□  4. Read die-rolls.md § "3D Dice Rendering" and use the COMPLETE code from
-     § "3D Dice Rendering (Three.js)" — texture atlas, face clustering, opposite-face
-     pairing, UV mapping, quaternion settle. Do NOT write simplified replacements.
-     The module code renders numbered faces on the polyhedron; a bare shape
-     without numbers is not a die, it is a geometry lesson.
+□  4. Run `tag render dice --style <style>` via the Bash tool — the CLI renders
+     numbered 3D polyhedra automatically. Do NOT hand-code dice.
 □  5. Stage 1 (Declare): show action, attribute, modifier — NOT the DC
 □  6. Stage 2 (Animate): 3D die button is clickable, NOT auto-rolled — tumble animation
      with numbered faces visible. Die settles with rolled value facing camera.
@@ -295,8 +281,7 @@ DIE ROLL CHECKLIST
 □  9. All four stages are in a SINGLE widget — never split across messages
 □ 10. No consequences described in the roll widget — those go in the next scene
 □ 11. The widget is the ONLY output — no prose before or after
-□ 12. Never use flat CSS circles or rectangles for dice — always 3D polyhedra
-     with numbered faces from tag render dice --style <style>. Never simplify the code.
+□ 12. Always use `tag render dice` — never hand-code dice geometry of any kind.
 ```
 
 ---

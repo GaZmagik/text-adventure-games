@@ -104,12 +104,7 @@ with file/line pointers. Filter by topic: `tag rules output`, `tag rules agency`
 Run via the **Bash tool**:
 
 ```bash
-tag batch <<'EOF'
-  compute contest DEX guard_01 as dodge_result
-  state set character.hp -= 3
-  render combat-turn --style terminal
-  save generate
-EOF
+tag batch --commands "compute contest DEX guard_01 as dodge_result; state set character.hp -= 3; render combat-turn --style terminal; save generate"
 ```
 
 The batch captures the contest result, applies HP damage, renders the combat widget
@@ -406,7 +401,7 @@ the current game state at render time — the GM does not need to construct it m
 - **Name** and **archetype** (e.g., "Kael — Soldier")
 - **Level** and **XP** progress towards next level
 - **HP:** current / max (rendered as pips)
-- **Stats:** STR, AGI, INT, CHA (or rulebook equivalents) with modifier values
+- **Stats:** STR, DEX, CON, INT, WIS, CHA (or rulebook equivalents) with modifier values
 - **Equipped weapon** and **equipped armour** (name + key stat, e.g., "Plasma Rifle — +3 ranged")
 - **Inventory summary:** compact list of carried items (name only; full detail via sendPrompt)
 - **Active conditions:** status effects currently applied (e.g., Poisoned, Inspired, Fatigued)
@@ -551,8 +546,8 @@ tight — combat should enhance the story, not bog it down.
 
 ### Turn Order
 
-Initiative is determined by AGI (or DEX, depending on rulebook). Each combatant acts in
-descending AGI order. **Ties are broken in the player's favour.** Turn order is displayed
+Initiative is determined by DEX. Each combatant acts in
+descending DEX order. **Ties are broken in the player's favour.** Turn order is displayed
 in the initiative bar at the top of the combat widget.
 
 ### Player Actions (choose one per turn)
@@ -571,7 +566,7 @@ Using an item does not require a roll unless the item description states otherwi
 Grenades deal area damage (affect all enemies) but require a DEX check (DC 12) to
 aim accurately; failure halves damage.
 
-**Retreat:** The player may attempt to flee. Roll AGI check against a DC set by the
+**Retreat:** The player may attempt to flee. Roll DEX check against a DC set by the
 fastest enemy's speed (typically DC 10 for slow, DC 14 for fast, DC 18 for very fast).
 Success ends combat; failure wastes the turn and each enemy gets a free attack.
 
@@ -803,7 +798,7 @@ Refer to `modules/save-codex.md` for the full technical specification.
 ```js
 const gmState = {
   scene: 1,
-  settings: { rulebook: 'dnd5e', difficulty: 'normal', pacing: 'normal' },
+  settings: { rulebook: 'd20_system', difficulty: 'normal', pacing: 'normal' },
   character: { name, class, hp, maxHp, stats, inventory: [], conditions: [], xp: 0, level: 1 },
   worldFlags: {},
   visitedRooms: [],

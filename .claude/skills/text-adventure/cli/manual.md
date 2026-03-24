@@ -20,22 +20,7 @@ Create ALL NPCs, factions, quests, and state for the entire arc in one batch.
 Do NOT create content mid-arc — plan the full cast and structure upfront.
 
 ```bash
-tag batch <<'EOF'
-state reset
-state set visualStyle terminal
-state set theme space
-state set scene 1
-state set currentRoom bridge
-state set time '{"period":"morning","date":"Day 1","elapsed":0,"hour":8,"playerKnowsDate":false,"playerKnowsTime":true,"calendarSystem":"stardate","deadline":null}'
-state set character '{"name":"Rhian","class":"Medic","hp":9,"maxHp":9,"ac":11,"level":1,"xp":0,"stats":{"STR":10,"DEX":12,"CON":10,"INT":14,"WIS":16,"CHA":10},"modifiers":{"STR":0,"DEX":1,"CON":0,"INT":2,"WIS":3,"CHA":0},"proficiencyBonus":2,"proficiencies":["Medicine","Insight","Survival","Perception"],"abilities":[],"inventory":[{"name":"Scalpel","type":"weapon","slots":1}],"conditions":[],"currency":50,"currencyName":"credits","equipment":{"weapon":"Scalpel","armour":"Light Vest"}}'
-state create-npc captain_maro --tier rival --name "Captain Devlin Maro" --pronouns she/her --role captain
-state create-npc fen_achara --tier rival --name "Fen Achara" --pronouns they/them --role comms
-state create-npc hoss_brandt --tier minion --name "Hoss Brandt" --pronouns he/him --role engineer
-state create-npc yuki_tanabe --tier minion --name "Yuki Tanabe" --pronouns she/her --role navigator
-state set factions '{"survey_corp":20,"frontier_guild":0}'
-state set quests '[{"id":"signal-mystery","title":"Signal Return","status":"active","objectives":[{"id":"decode","description":"Decode the signal","completed":false}]}]'
-state set modulesActive '["core-systems","die-rolls","bestiary","save-codex","prose-craft","ship-systems","crew-manifest","star-chart","lore-codex","ai-npc","story-architect","atmosphere","audio"]'
-EOF
+tag batch --commands "state reset; state set visualStyle terminal; state set theme space; state set scene 1; state set currentRoom bridge; state set time '{\"period\":\"morning\",\"date\":\"Day 1\",\"elapsed\":0,\"hour\":8,\"playerKnowsDate\":false,\"playerKnowsTime\":true,\"calendarSystem\":\"stardate\",\"deadline\":null}'; state set character '{\"name\":\"Rhian\",\"class\":\"Medic\",\"hp\":9,\"maxHp\":9,\"ac\":11,\"level\":1,\"xp\":0,\"stats\":{\"STR\":10,\"DEX\":12,\"CON\":10,\"INT\":14,\"WIS\":16,\"CHA\":10},\"modifiers\":{\"STR\":0,\"DEX\":1,\"CON\":0,\"INT\":2,\"WIS\":3,\"CHA\":0},\"proficiencyBonus\":2,\"proficiencies\":[\"Medicine\",\"Insight\",\"Survival\",\"Perception\"],\"abilities\":[],\"inventory\":[{\"name\":\"Scalpel\",\"type\":\"weapon\",\"slots\":1}],\"conditions\":[],\"currency\":50,\"currencyName\":\"credits\",\"equipment\":{\"weapon\":\"Scalpel\",\"armour\":\"Light Vest\"}}'; state create-npc captain_maro --tier rival --name 'Captain Devlin Maro' --pronouns she/her --role captain; state create-npc fen_achara --tier rival --name 'Fen Achara' --pronouns they/them --role comms; state create-npc hoss_brandt --tier minion --name 'Hoss Brandt' --pronouns he/him --role engineer; state create-npc yuki_tanabe --tier minion --name 'Yuki Tanabe' --pronouns she/her --role navigator; state set factions '{\"survey_corp\":20,\"frontier_guild\":0}'; state set quests '[{\"id\":\"signal-mystery\",\"title\":\"Signal Return\",\"status\":\"active\",\"objectives\":[{\"id\":\"decode\",\"description\":\"Decode the signal\",\"completed\":false}]}]'; state set modulesActive '[\"core-systems\",\"die-rolls\",\"bestiary\",\"save-codex\",\"prose-craft\",\"ship-systems\",\"crew-manifest\",\"star-chart\",\"lore-codex\",\"ai-npc\",\"story-architect\",\"atmosphere\",\"audio\"]'"
 ```
 
 Every NPC, faction, and quest for this arc is persisted before scene 1 renders.
@@ -45,16 +30,10 @@ The GM then calls `tag render scene --style terminal` to generate the opening.
 
 ## § Worked Example 2: Combat Turn
 
-Batch heredoc showing a contested attack, HP mutation, combat widget, and save:
+Batch showing a contested attack, HP mutation, combat widget, and save:
 
 ```bash
-tag batch <<'EOF'
-  compute contest STR guard_01 as attack_result;
-  state set player.hp -3;
-  state set guard_01.hp -$attack_result.margin;
-  render combat-turn --style terminal;
-  save generate
-EOF
+tag batch --commands "compute contest STR guard_01 as attack_result; state set character.hp -= 3; state set guard_01.hp -= $attack_result.margin; render combat-turn --style terminal; save generate"
 ```
 
 The `as attack_result` label captures the contest output. `$attack_result.margin`
@@ -64,15 +43,10 @@ references the margin of victory for the HP delta applied to the NPC.
 
 ## § Worked Example 3: Social Encounter
 
-Batch heredoc for a CHA-based persuasion, trust mutation, and dialogue render:
+Batch for a CHA-based persuasion, trust mutation, and dialogue render:
 
 ```bash
-tag batch <<'EOF'
-  compute contest CHA merchant_01 as persuasion;
-  state set merchant_01.disposition.toward_player +15;
-  render dialogue --npc merchant_01 --style station;
-  save generate
-EOF
+tag batch --commands "compute contest CHA merchant_01 as persuasion; state set merchant_01.disposition.toward_player += 15; render dialogue --npc merchant_01 --style station; save generate"
 ```
 
 The `+15` syntax applies a delta rather than an absolute value. The dialogue
@@ -106,7 +80,6 @@ renderer reads the NPC's current disposition from state.
 ## § Batch Syntax
 
 - **Inline:** `tag batch --commands "cmd1; cmd2; cmd3"`
-- **Heredoc:** `tag batch <<'EOF' ... EOF`
 - **Labels:** Append `as label` to capture output; reference with `$label.field`
 - **Dry run:** Add `--dry-run` to validate without executing
 - Semicolons separate commands. Whitespace around semicolons is ignored.

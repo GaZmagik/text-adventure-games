@@ -6,7 +6,7 @@ import { esc } from '../../lib/html';
 
 const STATUS_COLOURS: Record<string, { bg: string; text: string }> = {
   operational: { bg: 'var(--ta-color-success)', text: '#fff' },
-  degraded:    { bg: 'var(--ta-color-warning)', text: '#000' },
+  degraded:    { bg: 'var(--ta-color-warning)', text: 'var(--ta-badge-partial-text)' },
   critical:    { bg: 'var(--ta-color-danger)', text: '#fff' },
   offline:     { bg: 'var(--color-border-tertiary)', text: 'var(--color-text-tertiary)' },
 };
