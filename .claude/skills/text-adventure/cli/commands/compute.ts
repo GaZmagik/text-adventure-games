@@ -4,6 +4,7 @@ import { tryLoadState, saveState } from '../lib/state-store';
 import { rollD20 } from '../lib/dice';
 import { getOpposingAttribute } from '../data/contested-pairings';
 import { STAT_NAMES } from '../lib/constants';
+import { parseArgs } from '../lib/args';
 
 // Margin → outcome from die-rolls.md § Outcome Badge Text for Contested Checks
 function contestOutcome(margin: number): string {
@@ -30,13 +31,6 @@ function encounterType(roll: number, escalation: number): string {
   if (adjusted <= 15) return 'alert';
   return 'hostile';
 }
-
-function parseFlag(args: string[], flag: string): string | undefined {
-  const idx = args.indexOf(flag);
-  if (idx === -1 || idx + 1 >= args.length) return undefined;
-  return args[idx + 1];
-}
-
 
 async function contest(args: string[]): Promise<CommandResult> {
   if (args.length < 2) {
@@ -83,6 +77,7 @@ async function contest(args: string[]): Promise<CommandResult> {
     outcome,
     npcId,
     npcModifier,
+    dieType: 'd20',
     context: { npcRoll, npcTotal, opposingAttribute: opposingAttr, npcName: npc.name },
   };
 
@@ -116,7 +111,7 @@ async function hazard(args: string[]): Promise<CommandResult> {
     return fail(`Invalid stat: "${stat}".`, `Valid stats: ${STAT_NAMES.join(', ')}`, 'compute hazard');
   }
 
-  const dcStr = parseFlag(args, '--dc');
+  const dcStr = parseArgs(args).flags.dc;
   if (!dcStr) {
     return fail('Missing required flag: --dc <number>', 'tag compute hazard CON --dc 14', 'compute hazard');
   }
@@ -142,6 +137,7 @@ async function hazard(args: string[]): Promise<CommandResult> {
     total,
     dc,
     outcome,
+    dieType: 'd20',
   };
 
   state._lastComputation = computation;
@@ -151,7 +147,7 @@ async function hazard(args: string[]): Promise<CommandResult> {
 }
 
 async function encounter(args: string[]): Promise<CommandResult> {
-  const escalationStr = parseFlag(args, '--escalation') ?? '0';
+  const escalationStr = parseArgs(args).flags.escalation ?? '0';
   const escalation = parseInt(escalationStr, 10) || 0;
 
   const roll = rollD20();
@@ -160,6 +156,7 @@ async function encounter(args: string[]): Promise<CommandResult> {
   const computation: ComputationResult = {
     type: 'encounter_roll',
     roll,
+    dieType: 'd20',
     context: { escalation, encounter: enc },
   };
 

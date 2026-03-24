@@ -1,37 +1,47 @@
 // Dice roll widget — displays the result of the last computation.
 // Shows stat, modifier, roll value, total, DC, outcome badge.
-// Includes Three.js CDN script tag and a basic die canvas.
+// Includes inline WebGL renderer with numbered 3D die for all standard RPG die types.
 
-import type { GmState } from '../../types';
+import type { GmState, DieType } from '../../types';
 import { esc } from '../../lib/html';
+import { DIE_CONFIGS, type DieConfig } from '../lib/die-geometries';
+import { FONT_SCALE } from '../lib/die-textures';
+import { generateWebGLDiceCode } from '../lib/webgl-dice';
+
+const VALID_DIE_TYPES = new Set(Object.keys(DIE_CONFIGS));
 
 export function renderDice(state: GmState | null, css: string, _options?: Record<string, unknown>): string {
   const comp = state?._lastComputation;
-  const stat = comp?.stat ?? '???';
-  const roll = comp?.roll ?? 0;
-  const modifier = comp?.modifier ?? 0;
-  const total = comp?.total ?? 0;
-  const dc = comp?.dc;
-  const outcome = comp?.outcome ?? 'unknown';
-  const margin = comp?.margin ?? 0;
+  const data = _options?.data as Record<string, unknown> | undefined;
+
+  // Allow --data overrides for testing — with runtime validation for script safety
+  const rawDieType = (data?.dieType as string) ?? comp?.dieType ?? 'd20';
+  const dieType = VALID_DIE_TYPES.has(rawDieType) ? rawDieType : 'd20';
+  const stat = (data?.stat as string) ?? comp?.stat ?? '???';
+  const roll = Number.isFinite(Number(data?.roll ?? comp?.roll)) ? Number(data?.roll ?? comp?.roll) : 0;
+  const modifier = Number.isFinite(Number(data?.modifier ?? comp?.modifier)) ? Number(data?.modifier ?? comp?.modifier) : 0;
+  const total = Number.isFinite(Number(data?.total ?? comp?.total)) ? Number(data?.total ?? comp?.total) : 0;
+  const dc = (data?.dc ?? comp?.dc) !== undefined ? Number(data?.dc ?? comp?.dc) : undefined;
+  const outcome = (data?.outcome as string) ?? comp?.outcome ?? 'unknown';
+  const margin = Number.isFinite(Number(data?.margin ?? comp?.margin)) ? Number(data?.margin ?? comp?.margin) : 0;
   const modStr = modifier >= 0 ? `+${modifier}` : `${modifier}`;
 
-  // Determine outcome badge styling
+  // Outcome badge styling
   let badgeBg = 'var(--ta-badge-partial-bg)';
   let badgeText = 'var(--ta-badge-partial-text)';
   let badgeBorder = 'transparent';
 
-  if (outcome === 'critical_success') {
+  if (outcome === 'critical_success' || outcome === 'decisive_success') {
     badgeBg = 'var(--ta-badge-success-bg)';
     badgeText = 'var(--ta-badge-success-text)';
     badgeBorder = 'var(--ta-badge-crit-success-border)';
-  } else if (outcome === 'success') {
+  } else if (outcome === 'success' || outcome === 'narrow_success') {
     badgeBg = 'var(--ta-badge-success-bg)';
     badgeText = 'var(--ta-badge-success-text)';
-  } else if (outcome === 'failure') {
+  } else if (outcome === 'failure' || outcome === 'narrow_failure') {
     badgeBg = 'var(--ta-badge-failure-bg)';
     badgeText = 'var(--ta-badge-failure-text)';
-  } else if (outcome === 'critical_failure') {
+  } else if (outcome === 'critical_failure' || outcome === 'decisive_failure') {
     badgeBg = 'var(--ta-badge-failure-bg)';
     badgeText = 'var(--ta-badge-failure-text)';
     badgeBorder = 'var(--ta-badge-crit-failure-border)';
@@ -39,11 +49,32 @@ export function renderDice(state: GmState | null, css: string, _options?: Record
 
   const outcomeLabel = outcome.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
-  return `
-<style>${css}
+  // Die config — fall back to d20
+  const config: DieConfig = DIE_CONFIGS[dieType as keyof typeof DIE_CONFIGS] ?? DIE_CONFIGS.d20;
+  const fontScale = FONT_SCALE[dieType as DieType] ?? FONT_SCALE.d20;
+  const isD100 = dieType === 'd100';
+  const isD2 = dieType === 'd2';
+  const canvasW = isD100 ? 240 : 120;
+  const canvasH = 120;
+
+  // Serialise config for inline script
+  const configJson = JSON.stringify({
+    faceCount: config.faceCount,
+    numberRange: [...config.numberRange],
+    geometryType: config.geometryType,
+    geometryArgs: config.geometryArgs ?? [],
+    customVertices: config.customVertices ?? null,
+    customFaces: config.customFaces ?? null,
+    trianglesPerFace: config.trianglesPerFace,
+    paired: !!config.paired,
+  });
+
+  const webglCode = generateWebGLDiceCode();
+
+  return `<style>${css}
 .widget-dice { font-family: var(--ta-font-body); padding: 16px; text-align: center; }
 .dice-stat { font-family: var(--ta-font-heading); font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ta-color-accent); margin-bottom: 8px; }
-.dice-canvas-wrap { width: 120px; height: 120px; margin: 12px auto; position: relative; }
+.dice-canvas-wrap { width: ${canvasW}px; height: ${canvasH}px; margin: 12px auto; position: relative; }
 .dice-canvas-wrap canvas { width: 100%; height: 100%; }
 .dice-breakdown { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 20px; font-weight: 700; color: var(--color-text-primary); margin: 12px 0; }
 .dice-roll-val { font-size: 28px; color: var(--ta-color-accent); }
@@ -59,14 +90,13 @@ export function renderDice(state: GmState | null, css: string, _options?: Record
 .dice-margin { font-size: 11px; color: var(--color-text-tertiary); margin-top: 4px; }
 </style>
 <div class="widget-dice">
-  <div class="dice-stat">${esc(stat)} Check</div>
+  <div class="dice-stat">${esc(stat)} Check${dieType !== 'd20' ? ` (${esc(dieType)})` : ''}</div>
 
-  <!-- Three.js 3D die -->
   <div class="dice-canvas-wrap">
-    <canvas id="die-canvas" width="120" height="120" role="img" aria-label="${esc(stat)} check — rolled ${roll}${modStr} = ${total}"></canvas>
+    <canvas id="die-canvas" width="${canvasW}" height="${canvasH}" role="img"
+      aria-label="${esc(stat)} check — rolled ${roll}${modStr} = ${total}"></canvas>
   </div>
 
-  <!-- Roll breakdown -->
   <div class="dice-breakdown">
     <span class="dice-roll-val">${roll}</span>
     <span class="dice-mod">${modStr}</span>
@@ -77,70 +107,17 @@ export function renderDice(state: GmState | null, css: string, _options?: Record
   ${dc !== undefined ? `<div class="dice-dc">DC ${dc}</div>` : ''}
 
   <div class="dice-outcome" style="background:${badgeBg};color:${badgeText};border:1.5px solid ${badgeBorder}">
-    ${outcomeLabel}
+    ${esc(outcomeLabel)}
   </div>
 
   ${margin !== 0 ? `<div class="dice-margin">${margin > 0 ? 'Passed' : 'Failed'} by ${Math.abs(margin)}</div>` : ''}
 </div>
-
-<!-- Three.js CDN: CSP-blocked in Claude.ai iframes. The canvas will be blank;
-     the CSS die shapes from style-reference.md serve as the visual fallback. -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>
 <script>
-(function() {
-  var canvas = document.getElementById('die-canvas');
-  if (!canvas || typeof THREE === 'undefined') return;
-
-  var scene = new THREE.Scene();
-  var camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
-  camera.position.set(0, 0, 3.5);
-
-  var renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
-  renderer.setSize(120, 120);
-  renderer.setClearColor(0x000000, 0);
-
-  // D20 icosahedron
-  var geometry = new THREE.IcosahedronGeometry(1, 0);
-  var material = new THREE.MeshPhongMaterial({
-    color: 0x2a2a3a,
-    emissive: 0x111122,
-    shininess: 80,
-    flatShading: true,
-  });
-  var die = new THREE.Mesh(geometry, material);
-  scene.add(die);
-
-  var light = new THREE.DirectionalLight(0xffffff, 0.9);
-  light.position.set(2, 3, 4);
-  scene.add(light);
-  scene.add(new THREE.AmbientLight(0x444466, 0.5));
-
-  // Spin animation — skip if user prefers reduced motion
-  var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  if (prefersReducedMotion) {
-    // Show final position immediately, no animation
-    die.rotation.x = Math.PI * 4;
-    die.rotation.y = Math.PI * 3;
-    renderer.render(scene, camera);
-  } else {
-    var spinDuration = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ta-die-spin-duration')) || 0.6;
-    var totalFrames = Math.round(spinDuration * 60);
-    var frame = 0;
-
-    function animate() {
-      if (frame < totalFrames) {
-        var t = frame / totalFrames;
-        var ease = 1 - Math.pow(1 - t, 3);
-        die.rotation.x = ease * Math.PI * 4;
-        die.rotation.y = ease * Math.PI * 3;
-        frame++;
-        requestAnimationFrame(animate);
-      }
-      renderer.render(scene, camera);
-    }
-    animate();
-  }
-})();
+var CONFIG=${configJson};
+var ROLL=${roll};
+var FONT_SCALE=${fontScale};
+var IS_D2=${isD2};
+var IS_D100=${isD100};
+${webglCode}
 <\/script>`;
 }

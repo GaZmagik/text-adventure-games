@@ -315,22 +315,32 @@ own dedicated skills with tailored dice mechanics.
 
 ---
 
-## 3D Dice Rendering (Three.js)
+## 3D Dice Rendering (WebGL)
 
-The die roll widget renders proper 3D polyhedra using Three.js (loaded from CDN). Each die
-type uses its correct geometric shape with numbered faces, idle floating animation, and a
-tumble-and-settle roll animation. The rolled value is predetermined, then the die rotates
-to land with that face pointing at the camera.
+The die roll widget renders proper 3D polyhedra using an inline WebGL renderer (no external
+dependencies). Each die type uses its correct geometric shape with numbered faces, idle
+floating animation, and a tumble-and-settle roll animation. The rolled value is
+predetermined, then the die rotates to land with that face pointing at the camera.
+
+The renderer is a hand-rolled WebGL implementation (~16KB inline) that uses a texture atlas
+for numbered faces and quaternion-based landing animation. No CDN loads, no external scripts.
+
+### DieType Union
+
+All die types are represented by the `DieType` union: `d2 | d4 | d6 | d8 | d10 | d12 | d20 | d100`.
 
 ### Die Shapes
 
 | Die | Geometry | Faces | Opposite sum |
 |-----|----------|-------|-------------|
-| d4 | TetrahedronGeometry | 4 triangles | N/A |
-| d6 | BoxGeometry | 6 squares (12 triangles) | 7 |
-| d8 | OctahedronGeometry | 8 triangles | 9 |
-| d12 | DodecahedronGeometry | 12 pentagons (36 triangles) | 13 |
-| d20 | IcosahedronGeometry | 20 triangles | 21 |
+| d2 | Coin (flat cylinder) | 2 | 3 |
+| d4 | Tetrahedron | 4 triangles | N/A |
+| d6 | Cube | 6 squares (12 triangles) | 7 |
+| d8 | Octahedron | 8 triangles | 9 |
+| d10 | Pentagonal trapezohedron | 10 kite faces | 11 |
+| d12 | Dodecahedron | 12 pentagons (36 triangles) | 13 |
+| d20 | Icosahedron | 20 triangles | 21 |
+| d100 | Paired d10s (tens + units) | 10 + 10 | N/A |
 
 ### Style-Aware Colouring
 
@@ -347,7 +357,7 @@ CSS custom properties on the widget root:
 ### Architecture
 
 The 3D die system uses:
-- **Three.js r128** via CDN (`https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js`)
+- **Hand-rolled WebGL** (~16KB inline, no external dependencies) — all geometry, shading, and animation are self-contained
 - **Texture atlas** — a single canvas texture with all face numbers in a grid, UV-mapped to each face
 - **Face clustering** — triangles grouped by normal direction (dot product > 0.93) to identify logical faces on compound shapes (d6 squares, d12 pentagons)
 - **Opposite-face pairing** — faces with opposing normals (dot product closest to -1) are paired and assigned values that sum to the traditional total
@@ -362,11 +372,11 @@ alternative systems or damage rolls.
 
 ### Rendering Dice
 
-The 3D dice widget is rendered by `tag render dice --style <style>` via the Bash tool. The template handles Three.js loading, polyhedra geometry, numbered faces, tumble animation, and graceful degradation automatically.
+The 3D dice widget is rendered by `tag render dice --style <style>` via the Bash tool. The template handles WebGL setup, polyhedra geometry, numbered faces, tumble animation, and graceful degradation automatically.
 
-Supported die types: d4, d6, d8, d10, d12, d20. For a standard ability check, the CLI renders a single d20. For damage rolls or alternative systems, specify the die type via the `--die` flag.
+Supported die types: d2, d4, d6, d8, d10, d12, d20, d100. For a standard ability check, the CLI renders a single d20. For damage rolls or alternative systems, specify the die type via the `--die` flag.
 
-The GM must never hand-code Three.js, canvas elements, or dice HTML. Always use the CLI command.
+The GM must never hand-code WebGL, canvas elements, or dice HTML. Always use the CLI command.
 
 ---
 

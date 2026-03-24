@@ -28,11 +28,11 @@ ${css ? '<style>' + css + '</style>' : ''}
         <td class="crew-role">${esc(member.role)}</td>
         <td class="crew-task">${member.task ? esc(member.task) : '<span class="idle">Idle</span>'}</td>
         <td>
-          <div class="mini-bar"><div class="mini-fill morale-fill" style="width:${moralePct}%"></div></div>
+          <div class="mini-bar" role="meter" aria-valuenow="${moralePct}" aria-valuemin="0" aria-valuemax="100" aria-label="Morale: ${moralePct}%"><div class="mini-fill morale-fill" style="width:${moralePct}%"></div></div>
           <span class="mini-label">${moralePct}%</span>
         </td>
         <td>
-          <div class="mini-bar"><div class="mini-fill stress-fill" style="width:${stressPct}%"></div></div>
+          <div class="mini-bar" role="meter" aria-valuenow="${stressPct}" aria-valuemin="0" aria-valuemax="100" aria-label="Stress: ${stressPct}%"><div class="mini-fill stress-fill" style="width:${stressPct}%"></div></div>
           <span class="mini-label">${stressPct}%</span>
         </td>
         <td><span class="crew-badge ${statusClass}">${esc(member.status)}</span></td>
@@ -59,12 +59,14 @@ ${css ? '<style>' + css + '</style>' : ''}
 .badge-ok { background: var(--ta-badge-success-bg); color: var(--ta-badge-success-text); }
 .badge-warn { background: var(--ta-badge-partial-bg); color: var(--ta-badge-partial-text); }
 .badge-danger { background: var(--ta-badge-failure-bg); color: var(--ta-badge-failure-text); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
 </style>
 <div class="widget-crew">
   <div class="crew-title">Crew Manifest</div>
   <table class="crew-table">
+    <caption class="sr-only">Crew Manifest</caption>
     <thead>
-      <tr><th>Name</th><th>Role</th><th>Task</th><th>Morale</th><th>Stress</th><th>Status</th></tr>
+      <tr><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Task</th><th scope="col">Morale</th><th scope="col">Stress</th><th scope="col">Status</th></tr>
     </thead>
     <tbody>
       ${rows}

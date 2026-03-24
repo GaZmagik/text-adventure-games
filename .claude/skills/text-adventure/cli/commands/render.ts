@@ -3,6 +3,7 @@ import type { CommandResult, GmState } from '../types';
 import { ok, fail, styleNotSet } from '../lib/errors';
 import { tryLoadState } from '../lib/state-store';
 import { extractAllCss } from '../render/css-extractor';
+import { parseArgs } from '../lib/args';
 
 // Template imports
 import { renderScene } from '../render/templates/scene';
@@ -52,63 +53,20 @@ const TEMPLATES: Record<string, TemplateFn> = {
 /** Pre-game widgets that accept --data instead of reading state */
 const PRE_GAME_WIDGETS = new Set(['settings', 'scenario-select', 'character-creation']);
 
-// ── Argument parsing ─────────────────────────────────────────────────
-
-interface RenderArgs {
-  widgetType: string;
-  styleName: string | null;
-  raw: boolean;
-  data: Record<string, unknown> | null;
-}
-
-function parseRenderArgs(args: string[]): RenderArgs {
-  const result: RenderArgs = {
-    widgetType: '',
-    styleName: null,
-    raw: false,
-    data: null,
-  };
-
-  let i = 0;
-
-  // First positional arg is the widget type
-  if (i < args.length && !args[i].startsWith('--')) {
-    result.widgetType = args[i];
-    i++;
-  }
-
-  // Parse flags
-  while (i < args.length) {
-    const arg = args[i];
-
-    if (arg === '--style' && i + 1 < args.length) {
-      result.styleName = args[i + 1];
-      i += 2;
-    } else if (arg === '--raw') {
-      result.raw = true;
-      i++;
-    } else if (arg === '--data' && i + 1 < args.length) {
-      try {
-        result.data = JSON.parse(args[i + 1]);
-      } catch {
-        result.data = null;
-      }
-      i += 2;
-    } else {
-      i++;
-    }
-  }
-
-  return result;
-}
-
 // ── Main handler ─────────────────────────────────────────────────────
 
 export async function handleRender(args: string[]): Promise<CommandResult> {
-  const parsed = parseRenderArgs(args);
+  const parsed = parseArgs(args, ['raw']);
+  const widgetType = parsed.positional[0] || '';
+  const styleName = parsed.flags.style || null;
+  const raw = parsed.booleans.has('raw');
+  let data: Record<string, unknown> | null = null;
+  if (parsed.flags.data) {
+    try { data = JSON.parse(parsed.flags.data); } catch { data = null; }
+  }
 
   // Validate widget type
-  if (!parsed.widgetType) {
+  if (!widgetType) {
     return fail(
       'No widget type specified.',
       `tag render <${Object.keys(TEMPLATES).join('|')}>`,
@@ -116,49 +74,39 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     );
   }
 
-  const templateFn = TEMPLATES[parsed.widgetType];
+  const templateFn = TEMPLATES[widgetType];
   if (!templateFn) {
     return fail(
-      `Unknown widget type: "${parsed.widgetType}".`,
+      `Unknown widget type: "${widgetType}".`,
       `Valid types: ${Object.keys(TEMPLATES).join(', ')}`,
       'render',
     );
   }
 
-  // Determine whether we need state or --data
-  const isPreGame = PRE_GAME_WIDGETS.has(parsed.widgetType);
-  let state: GmState | null = null;
-
-  if (isPreGame) {
-    // Pre-game widgets use --data, but always try to load state for visualStyle fallback
-    state = await tryLoadState();
-  } else {
-    // Game widgets require state
-    state = await tryLoadState();
-    if (!state) {
-      return fail(
-        'No game state found. In-game widgets require an active state.',
-        'tag state reset',
-        'render',
-      );
-    }
+  // Pre-game widgets work without state; in-game widgets require it
+  const isPreGame = PRE_GAME_WIDGETS.has(widgetType);
+  const state = await tryLoadState();
+  if (!isPreGame && !state) {
+    return fail(
+      'No game state found. In-game widgets require an active state.',
+      'tag state reset',
+      'render',
+    );
   }
 
   // Resolve style name: --style flag > state.visualStyle > error
-  const styleName = parsed.styleName
-    ?? state?.visualStyle
-    ?? null;
+  const resolvedStyle = styleName ?? state?.visualStyle ?? null;
 
-  if (!styleName) {
+  if (!resolvedStyle) {
     return styleNotSet();
   }
 
-  if (styleName && !/^[a-zA-Z0-9_-]+$/.test(styleName)) {
+  if (!/^[a-zA-Z0-9_-]+$/.test(resolvedStyle)) {
     return fail('Style name contains invalid characters.', 'Use alphanumeric, hyphens, and underscores only.', 'render');
   }
 
-  // Extract CSS from the style file + style-reference.md (structural patterns, atmosphere CSS)
-  const styleFilePath = join(import.meta.dir, '../../styles/', styleName + '.md');
+  // Extract CSS from the style file + style-reference.md
+  const styleFilePath = join(import.meta.dir, '../../styles/', resolvedStyle + '.md');
   const styleRefPath = join(import.meta.dir, '../../styles/style-reference.md');
   const [styleCss, refCss] = await Promise.all([
     extractAllCss(styleFilePath),
@@ -166,8 +114,8 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   ]);
   if (!styleCss) {
     return fail(
-      `Style file not found or contains no CSS: "${styleName}".`,
-      `Check styles/${styleName}.md exists and contains css code blocks.`,
+      `Style file not found or contains no CSS: "${resolvedStyle}".`,
+      `Check styles/${resolvedStyle}.md exists and contains css code blocks.`,
       'render',
     );
   }
@@ -176,22 +124,22 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
 
   // Build options object
   const options: Record<string, unknown> = {};
-  if (parsed.data) {
-    options.data = parsed.data;
+  if (data) {
+    options.data = data;
   }
 
   // Render the template
   const html = templateFn(state, css, options);
 
   // Return raw HTML or JSON-wrapped
-  if (parsed.raw) {
+  if (raw) {
     return ok(html, 'render');
   }
 
   return ok(
     {
-      widget: parsed.widgetType,
-      style: styleName,
+      widget: widgetType,
+      style: resolvedStyle,
       html,
     },
     'render',

@@ -1,13 +1,19 @@
+import { resolve } from 'path';
+import { homedir, tmpdir } from 'os';
 import type { CommandResult } from '../types';
 import { ok, fail, noState } from '../lib/errors';
-import { loadState, saveState, stateExists, createDefaultState } from '../lib/state-store';
+import { tryLoadState, saveState, createDefaultState } from '../lib/state-store';
 import { validateState } from '../lib/validator';
 import { attachChecksum, validateAndDecode } from '../lib/fnv32';
 
 async function resolveSaveString(input: string): Promise<string> {
   if (input.startsWith('/') || input.startsWith('./') || input.endsWith('.md') || input.endsWith('.save')) {
+    // Restrict file access to home directory or temp directory to prevent path traversal
+    const resolved = resolve(input);
+    if (!resolved.startsWith(homedir() + '/') && !resolved.startsWith(tmpdir() + '/')) return input;
+
     try {
-      const file = Bun.file(input);
+      const file = Bun.file(resolved);
       const content = await file.text();
       const match = content.match(/```[\s\S]*?([\da-fA-F]{8}\.SF[12]:[\S]+)[\s\S]*?```/);
       if (match) return match[1];
@@ -23,9 +29,8 @@ async function resolveSaveString(input: string): Promise<string> {
 }
 
 async function generate(): Promise<CommandResult> {
-  if (!(await stateExists())) return noState();
-
-  const state = await loadState();
+  const state = await tryLoadState();
+  if (!state) return noState();
 
   // Build payload — full state, SF2: uncompressed base64 (no LZ)
   const payload = {

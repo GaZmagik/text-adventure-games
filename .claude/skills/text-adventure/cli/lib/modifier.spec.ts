@@ -54,6 +54,18 @@ describe('proficiencyBonus', () => {
     expect(proficiencyBonus(7)).toBe(3);
     expect(proficiencyBonus(8)).toBe(3);
   });
+
+  test('level 0 returns +2 (boundary: level <= 4)', () => {
+    expect(proficiencyBonus(0)).toBe(2);
+  });
+
+  test('negative level returns +2 (boundary: level <= 4)', () => {
+    expect(proficiencyBonus(-1)).toBe(2);
+  });
+
+  test('very high level returns +3', () => {
+    expect(proficiencyBonus(100)).toBe(3);
+  });
 });
 
 describe('computeModifiers', () => {

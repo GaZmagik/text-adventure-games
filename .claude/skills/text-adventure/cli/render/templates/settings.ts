@@ -46,8 +46,10 @@ export function renderSettings(state: GmState | null, css: string, options?: Rec
   border-radius: 6px; font-size: 12px; color: var(--color-text-primary);
   cursor: pointer; background: transparent; transition: all 0.2s;
   text-transform: capitalize;
+  min-height: 44px; box-sizing: border-box;
 }
 .option-card:hover { border-color: var(--ta-color-accent); background: var(--ta-color-accent-bg); }
+.option-card:focus-visible { outline: 2px solid var(--ta-color-focus, #4ECDC4); outline-offset: 2px; }
 .option-card.selected { border-color: var(--ta-color-accent); background: var(--ta-color-accent-bg); color: var(--ta-color-accent); font-weight: 600; }
 .module-card { display: flex; align-items: center; gap: 8px; }
 .module-check { width: 14px; height: 14px; border: 1px solid var(--color-border-tertiary); border-radius: 3px; display: inline-block; }
@@ -55,11 +57,12 @@ export function renderSettings(state: GmState | null, css: string, options?: Rec
 .confirm-btn {
   display: block; width: 100%; margin-top: 20px; padding: 12px;
   font-family: var(--ta-font-heading); font-size: 14px; font-weight: 700;
-  background: var(--ta-color-accent); color: #fff; border: none;
+  background: var(--ta-color-accent); color: var(--ta-btn-primary-text, #fff); border: none;
   border-radius: 8px; cursor: pointer; text-transform: uppercase;
   letter-spacing: 0.08em; transition: background 0.2s;
 }
 .confirm-btn:hover { background: var(--ta-color-accent-hover); }
+.confirm-btn:focus-visible { outline: 2px solid var(--ta-color-focus, #4ECDC4); outline-offset: 2px; }
 </style>
 <div class="widget-settings">
   <div class="settings-title">Game Settings</div>
@@ -67,36 +70,36 @@ export function renderSettings(state: GmState | null, css: string, options?: Rec
 
   <div class="settings-section">
     <div class="settings-label">Rulebook</div>
-    <div class="option-grid" data-group="rulebook">
-      ${rulebooks.map(r => `<button class="option-card${defaults.rulebook === r ? ' selected' : ''}" data-group="rulebook" data-value="${escapeAttr(r)}">${esc(r.replace(/_/g, ' '))}</button>`).join('\n      ')}
+    <div class="option-grid" data-group="rulebook" role="radiogroup">
+      ${rulebooks.map(r => `<button class="option-card${defaults.rulebook === r ? ' selected' : ''}" data-group="rulebook" data-value="${escapeAttr(r)}" role="radio" aria-checked="${defaults.rulebook === r ? 'true' : 'false'}">${esc(r.replace(/_/g, ' '))}</button>`).join('\n      ')}
     </div>
   </div>
 
   <div class="settings-section">
     <div class="settings-label">Difficulty</div>
-    <div class="option-grid" data-group="difficulty">
-      ${difficulties.map(d => `<button class="option-card${defaults.difficulty === d ? ' selected' : ''}" data-group="difficulty" data-value="${escapeAttr(d)}">${esc(d)}</button>`).join('\n      ')}
+    <div class="option-grid" data-group="difficulty" role="radiogroup">
+      ${difficulties.map(d => `<button class="option-card${defaults.difficulty === d ? ' selected' : ''}" data-group="difficulty" data-value="${escapeAttr(d)}" role="radio" aria-checked="${defaults.difficulty === d ? 'true' : 'false'}">${esc(d)}</button>`).join('\n      ')}
     </div>
   </div>
 
   <div class="settings-section">
     <div class="settings-label">Pacing</div>
-    <div class="option-grid" data-group="pacing">
-      ${pacingOptions.map(p => `<button class="option-card${defaults.pacing === p ? ' selected' : ''}" data-group="pacing" data-value="${escapeAttr(p)}">${esc(p)}</button>`).join('\n      ')}
+    <div class="option-grid" data-group="pacing" role="radiogroup">
+      ${pacingOptions.map(p => `<button class="option-card${defaults.pacing === p ? ' selected' : ''}" data-group="pacing" data-value="${escapeAttr(p)}" role="radio" aria-checked="${defaults.pacing === p ? 'true' : 'false'}">${esc(p)}</button>`).join('\n      ')}
     </div>
   </div>
 
   <div class="settings-section">
     <div class="settings-label">Visual Style</div>
-    <div class="option-grid" data-group="visualStyle">
-      ${visualStyles.map(v => `<button class="option-card${defaults.visualStyle === v ? ' selected' : ''}" data-group="visualStyle" data-value="${escapeAttr(v)}">${esc(v)}</button>`).join('\n      ')}
+    <div class="option-grid" data-group="visualStyle" role="radiogroup">
+      ${visualStyles.map(v => `<button class="option-card${defaults.visualStyle === v ? ' selected' : ''}" data-group="visualStyle" data-value="${escapeAttr(v)}" role="radio" aria-checked="${defaults.visualStyle === v ? 'true' : 'false'}">${esc(v)}</button>`).join('\n      ')}
     </div>
   </div>
 
   <div class="settings-section">
     <div class="settings-label">Optional Modules</div>
     <div class="option-grid" data-group="modules">
-      ${modules.map(m => `<button class="option-card module-card" data-group="modules" data-value="${escapeAttr(m)}"><span class="module-check"></span>${esc(m)}</button>`).join('\n      ')}
+      ${modules.map(m => `<button class="option-card module-card" data-group="modules" data-value="${escapeAttr(m)}" aria-pressed="false"><span class="module-check"></span>${esc(m)}</button>`).join('\n      ')}
     </div>
   </div>
 
@@ -104,7 +107,7 @@ export function renderSettings(state: GmState | null, css: string, options?: Rec
 </div>
 <script>
 (function() {
-  var selections = ${JSON.stringify(defaults).replace(/</g, '\\u003c').replace(/>/g, '\\u003e')};
+  var selections = ${JSON.stringify(defaults).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029')};
   var selectedModules = [];
 
   // Single-select groups
@@ -114,10 +117,12 @@ export function renderSettings(state: GmState | null, css: string, options?: Rec
       var value = this.getAttribute('data-value');
       selections[group] = value;
       // Update UI
-      document.querySelectorAll('[data-group="' + group + '"]').forEach(function(b) {
+      document.querySelectorAll('.option-card[data-group="' + group + '"]').forEach(function(b) {
         b.classList.remove('selected');
+        b.setAttribute('aria-checked', 'false');
       });
       this.classList.add('selected');
+      this.setAttribute('aria-checked', 'true');
     });
   });
 
@@ -130,10 +135,13 @@ export function renderSettings(state: GmState | null, css: string, options?: Rec
       if (idx >= 0) {
         selectedModules.splice(idx, 1);
         check.classList.remove('checked');
+        this.classList.remove('selected');
       } else {
         selectedModules.push(value);
         check.classList.add('checked');
+        this.classList.add('selected');
       }
+      this.setAttribute('aria-pressed', this.classList.contains('selected') ? 'true' : 'false');
     });
   });
 

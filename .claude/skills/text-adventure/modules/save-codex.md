@@ -864,10 +864,7 @@ function expandMapState(map) {
 Used when no seed is present. The complete `gmState` is serialised, compressed with LZ-String,
 and base64-encoded. Larger strings, but still paste-able.
 
-LZ-String is loaded from CDN in the save/load widget:
-```
-https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js
-```
+LZ-String compression is handled by the CLI (Bun implementation — no CDN). The save/load widget does not load external scripts.
 
 ### Build
 

@@ -357,6 +357,86 @@ describe('state history', () => {
   });
 });
 
+// ── set — negative paths ──────────────────────────────────────────
+
+describe('state set — negative paths', () => {
+  test('blocks prototype pollution via __proto__', async () => {
+    await handleState(['reset']);
+    const result = await handleState(['set', '__proto__.polluted', 'true']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('Forbidden path segment');
+  });
+
+  test('blocks prototype pollution via constructor', async () => {
+    await handleState(['reset']);
+    const result = await handleState(['set', 'constructor.x', '1']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('Forbidden path segment');
+  });
+
+  test('+= on a non-numeric path fails', async () => {
+    await handleState(['reset']);
+    await handleState(['set', 'currentRoom', 'bridge']);
+    const result = await handleState(['set', 'currentRoom', '+=', '5']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('not a number');
+    expect(result.error!.message).toContain('+=');
+  });
+
+  test('fails with no path provided', async () => {
+    await handleState(['reset']);
+    const result = await handleState(['set']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('No path');
+  });
+
+  test('fails with no value provided', async () => {
+    await handleState(['reset']);
+    const result = await handleState(['set', 'scene']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('No value');
+  });
+});
+
+// ── create-npc — negative paths ──────────────────────────────────
+
+describe('state create-npc — negative paths', () => {
+  test('fails with no id provided', async () => {
+    await handleState(['reset']);
+    const result = await handleState(['create-npc']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('No NPC id');
+  });
+
+  test('fails with invalid tier', async () => {
+    await handleState(['reset']);
+    const result = await handleState([
+      'create-npc', 'npc1',
+      '--name', 'Dragon Lord',
+      '--tier', 'dragon',
+      '--pronouns', 'he/him',
+      '--role', 'boss',
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('Invalid tier');
+    expect(result.error!.message).toContain('dragon');
+  });
+
+  test('fails with invalid pronouns', async () => {
+    await handleState(['reset']);
+    const result = await handleState([
+      'create-npc', 'npc1',
+      '--name', 'Golem',
+      '--tier', 'rival',
+      '--pronouns', 'it/its',
+      '--role', 'construct',
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('Invalid pronouns');
+    expect(result.error!.message).toContain('it/its');
+  });
+});
+
 // ── unknown subcommand ────────────────────────────────────────────
 
 describe('state unknown subcommand', () => {

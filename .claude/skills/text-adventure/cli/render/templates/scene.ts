@@ -5,6 +5,7 @@ import type { GmState } from '../../types';
 import { esc, escapeAttr } from '../../lib/html';
 import { VERSION } from '../../lib/version';
 import { renderFooter } from './footer';
+import { SOUNDSCAPE_ENGINE_CODE } from '../lib/soundscape';
 
 export function renderScene(state: GmState | null, css: string, options?: Record<string, unknown>): string {
   const char = state?.character;
@@ -128,7 +129,8 @@ export function renderScene(state: GmState | null, css: string, options?: Record
 
     panels.forEach(function(p) { p.style.display = 'none'; });
 
-    var target = overlay.querySelector('[data-panel="' + panelName + '"]');
+    var target = null;
+    panels.forEach(function(p) { if (p.dataset && p.dataset.panel === panelName) target = p; });
     if (target) {
       if (btn) lastPanelTrigger = btn;
       target.style.display = 'block';
@@ -185,7 +187,11 @@ export function renderScene(state: GmState | null, css: string, options?: Record
     toast.classList.add('visible');
     setTimeout(function() {
       toast.classList.remove('visible');
-      toast.addEventListener('transitionend', function() { toast.remove(); }, { once: true });
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        toast.remove();
+      } else {
+        toast.addEventListener('transitionend', function() { toast.remove(); }, { once: true });
+      }
     }, durationMs);
   }
 
@@ -219,73 +225,7 @@ export function renderScene(state: GmState | null, css: string, options?: Record
   // Audio engine — only active when audio module is present
   var audioBtn = document.getElementById('audio-btn');
   if (audioBtn) {
-    var SoundscapeEngine = function() {
-      this.ctx = null; this.nodes = []; this.playing = false; this.timeout = null;
-    };
-    SoundscapeEngine.prototype.init = function() {
-      if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-    };
-    SoundscapeEngine.prototype.play = function(type, duration) {
-      this.init(); this.stop();
-      duration = Math.min(duration || 25, 30);
-      var generators = {
-        'ship-engine': function(e) { e.genDrone(45, 0.15, duration); e.genNoise('lowpass', 150, 0.08, duration); },
-        'rain': function(e) { e.genNoise('bandpass', 1000, 0.15, duration); },
-        'wind': function(e) { e.genNoise('bandpass', 400, 0.12, duration); },
-        'forest': function(e) { e.genNoise('bandpass', 2000, 0.08, duration); },
-        'mechanical': function(e) { e.genDrone(80, 0.09, duration); },
-        'terminal': function(e) { e.genNoise('highpass', 3000, 0.08, duration); },
-        'alarm': function(e) { e.genAlarm(440, 880, 0.2, duration); },
-        'silence': function(e) { e.genNoise('lowpass', 100, 0.02, duration); },
-      };
-      var gen = generators[type] || generators['silence'];
-      gen(this);
-      this.playing = true;
-      var self = this;
-      this.timeout = setTimeout(function() { self.stop(); }, duration * 1000);
-    };
-    SoundscapeEngine.prototype.stop = function() {
-      this.nodes.forEach(function(n) { try { n.stop(); } catch(e) {} try { n.disconnect(); } catch(e) {} });
-      this.nodes = []; this.playing = false;
-      if (this.timeout) { clearTimeout(this.timeout); this.timeout = null; }
-      var btn = document.getElementById('audio-btn');
-      if (btn) btn.textContent = '\\u266b Play';
-    };
-    SoundscapeEngine.prototype.genDrone = function(freq, vol, dur) {
-      var osc = this.ctx.createOscillator(); var gain = this.ctx.createGain();
-      var lfo = this.ctx.createOscillator(); var lfoGain = this.ctx.createGain();
-      osc.type = 'sine'; osc.frequency.value = freq;
-      lfo.type = 'sine'; lfo.frequency.value = 0.2; lfoGain.gain.value = 3;
-      lfo.connect(lfoGain); lfoGain.connect(osc.frequency);
-      osc.connect(gain); gain.gain.value = vol; gain.connect(this.ctx.destination);
-      gain.gain.setValueAtTime(0, this.ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(vol, this.ctx.currentTime + 2);
-      gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + dur);
-      osc.start(); lfo.start(); this.nodes.push(osc, lfo);
-    };
-    SoundscapeEngine.prototype.genNoise = function(filterType, freq, vol, dur) {
-      var bufSize = this.ctx.sampleRate * dur;
-      var buffer = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
-      var data = buffer.getChannelData(0);
-      for (var i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
-      var source = this.ctx.createBufferSource(); source.buffer = buffer;
-      var filter = this.ctx.createBiquadFilter(); filter.type = filterType; filter.frequency.value = freq;
-      var gain = this.ctx.createGain(); gain.gain.value = vol;
-      gain.gain.setValueAtTime(0, this.ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(vol, this.ctx.currentTime + 1);
-      gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + dur);
-      source.connect(filter); filter.connect(gain); gain.connect(this.ctx.destination);
-      source.start(); this.nodes.push(source);
-    };
-    SoundscapeEngine.prototype.genAlarm = function(f1, f2, vol, dur) {
-      var osc = this.ctx.createOscillator(); var gain = this.ctx.createGain();
-      osc.type = 'square'; gain.gain.value = vol;
-      osc.connect(gain); gain.connect(this.ctx.destination);
-      for (var i = 0; i < Math.floor(dur); i++) osc.frequency.setValueAtTime(i % 2 === 0 ? f1 : f2, this.ctx.currentTime + i);
-      gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + dur);
-      osc.start(); this.nodes.push(osc);
-    };
+    ${SOUNDSCAPE_ENGINE_CODE}
 
     var soundscape = new SoundscapeEngine();
     var soundType = audioBtn.getAttribute('data-sound') || 'ship-engine';

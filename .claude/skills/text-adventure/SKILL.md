@@ -337,8 +337,8 @@ critical rules, attribute variety, DC escalation, and sendPrompt fallback.
 
 **3D Dice (mandatory):** All die rolls MUST use `tag render dice --style <style>` via the
 Bash tool. The template renders proper 3D polyhedra with numbered faces, tumble animation,
-and easeOutBack settle. Never hand-code dice widgets — the CLI template handles Three.js
-loading, polyhedra geometry, and graceful degradation automatically.
+and easeOutBack settle. Never hand-code dice widgets — the CLI template handles WebGL
+setup, polyhedra geometry, and graceful degradation automatically.
 
 **Key rules (always apply):**
 - Never reveal which attribute a check tests in the action options — the player chooses what

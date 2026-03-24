@@ -125,10 +125,14 @@ export interface RollRecord {
   outcome: string;
 }
 
+// ── Dice ──────────────────────────────────────────────────────────
+
+export type DieType = 'd2' | 'd4' | 'd6' | 'd8' | 'd10' | 'd12' | 'd20' | 'd100';
+
 // ── Computation ────────────────────────────────────────────────────
 
 export interface ComputationResult {
-  type: string;
+  type: 'contested_roll' | 'hazard_save' | 'encounter_roll';
   stat?: string;
   roll?: number;
   modifier?: number;
@@ -138,6 +142,7 @@ export interface ComputationResult {
   outcome?: string;
   npcId?: string;
   npcModifier?: number;
+  dieType?: DieType;
   context?: Record<string, unknown>;
 }
 
@@ -244,18 +249,3 @@ export interface CommandResult {
   state_snapshot?: Partial<GmState>;
 }
 
-// ── Batch Types ────────────────────────────────────────────────────
-
-export interface BatchLine {
-  raw: string;
-  label?: string;
-  tokens: string[];
-  references: string[];
-}
-
-export interface BatchResult {
-  ok: boolean;
-  results: Record<string, CommandResult>;
-  state_snapshot: GmState;
-  errors: { line: number; raw: string; error: string }[];
-}

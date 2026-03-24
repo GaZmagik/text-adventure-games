@@ -217,4 +217,120 @@ describe('validateState', () => {
     const result = validateState(state);
     expect(result.valid).toBe(true);
   });
+
+  test('rosterMutations as non-array object fails', () => {
+    const state = createDefaultState() as Record<string, unknown>;
+    state.rosterMutations = {};
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('rosterMutations must be an array'))).toBe(true);
+  });
+
+  test('factions as non-object fails', () => {
+    const state = createDefaultState() as Record<string, unknown>;
+    state.factions = 'not-an-object';
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('factions must be an object'))).toBe(true);
+  });
+
+  test('faction with non-numeric value fails', () => {
+    const state = createDefaultState();
+    state.factions = { rebels: 'high' as unknown as number };
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('rebels') && e.includes('number'))).toBe(true);
+  });
+
+  test('undefined input fails validation', () => {
+    const result = validateState(undefined);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('non-null object'))).toBe(true);
+  });
+
+  test('time as non-object fails', () => {
+    const state = createDefaultState() as Record<string, unknown>;
+    state.time = 'not-an-object';
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('time must be an object'))).toBe(true);
+  });
+
+  test('character as non-object fails', () => {
+    const state = createDefaultState() as Record<string, unknown>;
+    state.character = 'not-an-object';
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('character must be an object'))).toBe(true);
+  });
+
+  test('character with missing hp and level fails', () => {
+    const state = createDefaultState() as Record<string, unknown>;
+    state.character = { name: 'Hero', stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 } };
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('character.hp'))).toBe(true);
+    expect(result.errors.some(e => e.includes('character.maxHp'))).toBe(true);
+    expect(result.errors.some(e => e.includes('character.level'))).toBe(true);
+  });
+
+  test('character with null stats fails', () => {
+    const state = createDefaultState() as Record<string, unknown>;
+    state.character = { name: 'Hero', hp: 10, maxHp: 10, level: 1, stats: null };
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('character.stats must be an object'))).toBe(true);
+  });
+
+  test('NPC entry that is null fails', () => {
+    const state = createDefaultState();
+    state.rosterMutations = [null as any];
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('rosterMutations[0] must be an object'))).toBe(true);
+  });
+
+  test('NPC with empty id fails', () => {
+    const state = createDefaultState();
+    state.rosterMutations = [
+      {
+        id: '',
+        name: 'Guard',
+        pronouns: 'he/him',
+        role: 'guard',
+        tier: 'minion',
+        level: 1,
+        stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+        modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+        hp: 6, maxHp: 6, ac: 8, soak: 1, damageDice: '1d6',
+        status: 'active', alive: true, trust: 0,
+        disposition: 'neutral', dispositionSeed: 0.5,
+      },
+    ];
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('rosterMutations[0].id'))).toBe(true);
+  });
+
+  test('NPC with null stats fails', () => {
+    const state = createDefaultState();
+    state.rosterMutations = [
+      {
+        id: 'npc_01',
+        name: 'Guard',
+        pronouns: 'he/him',
+        role: 'guard',
+        tier: 'minion',
+        level: 1,
+        stats: null as any,
+        modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+        hp: 6, maxHp: 6, ac: 8, soak: 1, damageDice: '1d6',
+        status: 'active', alive: true, trust: 0,
+        disposition: 'neutral', dispositionSeed: 0.5,
+      },
+    ];
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('rosterMutations[0].stats must be an object'))).toBe(true);
+  });
 });

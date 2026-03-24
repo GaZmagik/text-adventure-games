@@ -60,8 +60,8 @@ describe('batch mode', () => {
     expect(result.ok).toBe(true);
     const data = result.data as Record<string, unknown>;
     const labelled = data.labelled as Record<string, unknown>;
-    expect(labelled.hp).toBeDefined();
-    expect(labelled.sc).toBeDefined();
+    expect(labelled.hp).toBe(20);
+    expect(labelled.sc).toBe(0);
   });
 
   test('resolves $label.field references in subsequent commands', async () => {
@@ -90,13 +90,17 @@ describe('batch mode', () => {
     expect((results[1] as Record<string, unknown>).ok).toBe(true);
   });
 
-  test('includes state_snapshot in response', async () => {
+  test('includes state_snapshot with multiple fields', async () => {
     const result = await handleBatch(['--commands', 'state set scene 5']);
     expect(result.ok).toBe(true);
     const data = result.data as Record<string, unknown>;
     expect(data.state_snapshot).toBeDefined();
     const snapshot = data.state_snapshot as Record<string, unknown>;
     expect(snapshot.scene).toBe(5);
+    const char = snapshot.character as Record<string, unknown>;
+    expect(char.name).toBe('Hero');
+    expect(char.hp).toBe(20);
+    expect(snapshot._version).toBe(1);
   });
 
   test('includes errors array', async () => {
@@ -123,11 +127,12 @@ describe('batch mode', () => {
     expect(result.ok).toBe(false);
   });
 
-  test('handles compute commands in batch', async () => {
+  test('handles compute commands in batch with correct type', async () => {
     const result = await handleBatch(['--commands', 'compute contest CHA merchant_01 as roll']);
     expect(result.ok).toBe(true);
     const data = result.data as Record<string, unknown>;
     const labelled = data.labelled as Record<string, unknown>;
-    expect(labelled.roll).toBeDefined();
+    const roll = labelled.roll as Record<string, unknown>;
+    expect(roll.type).toBe('contested_roll');
   });
 });

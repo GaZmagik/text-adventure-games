@@ -10,7 +10,7 @@ const DISPOSITION_STYLES: Record<string, { bg: string; text: string }> = {
   neutral:    { bg: 'var(--color-border-tertiary)', text: 'var(--color-text-tertiary)' },
   friendly:   { bg: 'var(--ta-badge-success-bg)', text: 'var(--ta-badge-success-text)' },
   allied:     { bg: 'var(--ta-color-accent-bg)', text: 'var(--ta-color-accent)' },
-  bonded:     { bg: 'var(--ta-color-conviction)', text: '#fff' },
+  bonded:     { bg: 'var(--ta-color-conviction)', text: 'var(--ta-badge-partial-text)' },
 };
 
 export function renderDialogue(state: GmState | null, css: string, options?: Record<string, unknown>): string {

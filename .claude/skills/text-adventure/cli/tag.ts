@@ -91,11 +91,12 @@ async function main(): Promise<void> {
   if (!result.ok) process.exit(1);
 }
 
-main().catch((err: Error) => {
+main().catch((err: unknown) => {
+  const message = err instanceof Error ? err.message : String(err);
   output({
     ok: false,
     command: 'tag',
-    error: { message: err.message, corrective: 'Run: tag --help' },
+    error: { message, corrective: 'Check command syntax: tag <command> [args]' },
   });
   process.exit(1);
 });

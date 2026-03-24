@@ -5,9 +5,9 @@ import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
 
 const STATUS_COLOURS: Record<string, { bg: string; text: string }> = {
-  operational: { bg: 'var(--ta-color-success)', text: '#fff' },
+  operational: { bg: 'var(--ta-color-success)', text: 'var(--ta-badge-success-text)' },
   degraded:    { bg: 'var(--ta-color-warning)', text: 'var(--ta-badge-partial-text)' },
-  critical:    { bg: 'var(--ta-color-danger)', text: '#fff' },
+  critical:    { bg: 'var(--ta-color-danger)', text: 'var(--ta-badge-failure-text)' },
   offline:     { bg: 'var(--color-border-tertiary)', text: 'var(--color-text-tertiary)' },
 };
 

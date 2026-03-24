@@ -7,24 +7,12 @@ import { tryLoadState, saveState, createDefaultState } from '../lib/state-store'
 import { generateNpcFromTier } from '../data/bestiary-tiers';
 import { validateState } from '../lib/validator';
 import { VALID_TIERS, VALID_PRONOUNS } from '../lib/constants';
+import { parseArgs } from '../lib/args';
 
 const VALID_SUBCOMMANDS = ['get', 'set', 'create-npc', 'validate', 'reset', 'history'];
 
-/**
- * Parse flags from an args array.
- * Flags are identified by the `--` prefix; the next argument is taken as the value.
- */
-function parseFlags(args: string[]): Record<string, string> {
-  const flags: Record<string, string> = {};
-  for (let i = 0; i < args.length; i++) {
-    if (args[i].startsWith('--') && i + 1 < args.length) {
-      const key = args[i].slice(2);
-      flags[key] = args[i + 1];
-      i++; // skip the value
-    }
-  }
-  return flags;
-}
+/** Keys that must never be traversed or assigned — prevents prototype pollution. */
+const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 
 /**
  * Navigate a state object by dot-separated path.
@@ -39,6 +27,9 @@ function getByPath(obj: unknown, path: string): { found: boolean; value: unknown
   let current: unknown = obj;
 
   for (const part of parts) {
+    if (FORBIDDEN_KEYS.has(part)) {
+      return { found: false, value: undefined };
+    }
     if (current === null || current === undefined || typeof current !== 'object') {
       return { found: false, value: undefined };
     }
@@ -63,6 +54,9 @@ function setByPath(obj: Record<string, unknown>, path: string, value: unknown): 
 
   for (let i = 0; i < parts.length - 1; i++) {
     const part = parts[i];
+    if (FORBIDDEN_KEYS.has(part)) {
+      throw new Error(`Forbidden path segment: "${part}"`);
+    }
     if (typeof current[part] !== 'object' || current[part] === null) {
       current[part] = {};
     }
@@ -70,6 +64,9 @@ function setByPath(obj: Record<string, unknown>, path: string, value: unknown): 
   }
 
   const lastKey = parts[parts.length - 1];
+  if (FORBIDDEN_KEYS.has(lastKey)) {
+    throw new Error(`Forbidden path segment: "${lastKey}"`);
+  }
   const oldValue = current[lastKey];
   current[lastKey] = value;
   return oldValue;
@@ -180,7 +177,12 @@ async function handleSet(args: string[]): Promise<CommandResult> {
     newValue = coerceValue(rawValue);
   }
 
-  const oldValue = setByPath(state as unknown as Record<string, unknown>, path, newValue);
+  let oldValue: unknown;
+  try {
+    oldValue = setByPath(state as unknown as Record<string, unknown>, path, newValue); // GmState lacks index sig
+  } catch (err) {
+    return fail((err as Error).message, 'Path contains a forbidden segment (__proto__, constructor, prototype).', 'state set');
+  }
   recordHistory(state, 'state set', path, oldValue, newValue);
   await saveState(state);
 
@@ -193,7 +195,7 @@ async function handleCreateNpc(args: string[]): Promise<CommandResult> {
     return fail('No NPC id provided.', 'Usage: tag state create-npc <id> --name <n> --tier <tier> --pronouns <p> --role <r>', 'state create-npc');
   }
 
-  const flags = parseFlags(args.slice(1));
+  const flags = parseArgs(args.slice(1)).flags;
 
   // Validate required flags
   if (!flags.name) {
@@ -258,7 +260,7 @@ async function handleReset(): Promise<CommandResult> {
 async function handleHistory(args: string[]): Promise<CommandResult> {
   const state = await tryLoadState();
   if (!state) return noState();
-  const flags = parseFlags(args);
+  const flags = parseArgs(args).flags;
   const limit = flags.limit ? Number(flags.limit) : 10;
 
   const history = state._stateHistory;

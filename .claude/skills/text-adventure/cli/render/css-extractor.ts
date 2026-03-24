@@ -28,8 +28,11 @@ export async function extractAllCss(filePath: string): Promise<string> {
 
     // Prefer marked blocks — avoids duplicating documentation examples
     const result = (markedBlocks.length > 0 ? markedBlocks : allBlocks).join('\n\n');
-    cssCache.set(filePath, result);
-    return result;
+    // Strip </style sequences to prevent CSS injection when embedded in <style> tags
+    const sanitised = result.replace(/<\/style/gi, '<\\/style');
+    // Only cache non-empty results — avoids masking files that gain CSS later
+    if (sanitised) cssCache.set(filePath, sanitised);
+    return sanitised;
   } catch {
     return '';
   }

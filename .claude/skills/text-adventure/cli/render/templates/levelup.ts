@@ -3,6 +3,7 @@
 
 import type { GmState } from '../../types';
 import { esc, escapeAttr } from '../../lib/html';
+import { proficiencyBonus } from '../../lib/modifier';
 
 export function renderLevelup(state: GmState | null, css: string, options?: Record<string, unknown>): string {
   const char = state?.character;
@@ -10,9 +11,8 @@ export function renderLevelup(state: GmState | null, css: string, options?: Reco
   const prevLevel = newLevel - 1;
 
   // Proficiency bonus thresholds (d20 system)
-  const profBonusForLevel = (lvl: number): number => Math.ceil(lvl / 4) + 1;
-  const oldProf = profBonusForLevel(prevLevel);
-  const newProf = profBonusForLevel(newLevel);
+  const oldProf = proficiencyBonus(prevLevel);
+  const newProf = proficiencyBonus(newLevel);
   const profChanged = newProf > oldProf;
 
   // Optional ability options passed via options.data
@@ -41,8 +41,10 @@ export function renderLevelup(state: GmState | null, css: string, options?: Reco
   border: 0.5px solid var(--color-border-tertiary); border-radius: 6px;
   font-size: 12px; color: var(--color-text-primary); cursor: pointer;
   background: transparent; transition: border-color 0.2s;
+  min-height: 44px; box-sizing: border-box;
 }
 .ability-card:hover { border-color: var(--ta-color-accent); }
+.ability-card:focus-visible { outline: 2px solid var(--ta-color-focus, #4ECDC4); outline-offset: 2px; }
 </style>
 <div class="widget-levelup">
   <div class="levelup-banner">Level Up!</div>
@@ -68,11 +70,13 @@ export function renderLevelup(state: GmState | null, css: string, options?: Reco
   ${abilityOptions.length > 0 ? `
   <div class="ability-options">
     <div style="font-size:11px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Choose an ability</div>
-    ${abilityOptions.map(a => `<button class="ability-card" data-prompt="I choose the ${escapeAttr(a)} ability">${esc(a)}</button>`).join('\n    ')}
+    ${abilityOptions.map(a => `<button class="ability-card" data-prompt="I choose the ${escapeAttr(a)} ability" aria-pressed="false">${esc(a)}</button>`).join('\n    ')}
   </div>
   <script>
   document.querySelectorAll('.ability-card[data-prompt]').forEach(function(btn) {
     btn.addEventListener('click', function() {
+      this.setAttribute('aria-pressed', 'true');
+      this.disabled = true;
       var prompt = this.getAttribute('data-prompt');
       if (typeof sendPrompt === 'function') sendPrompt(prompt);
     });

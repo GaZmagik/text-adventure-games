@@ -82,4 +82,18 @@ describe('getFactionStanding', () => {
   test('returns Allied for +100', () => {
     expect(getFactionStanding(100).label).toBe('Allied');
   });
+
+  test('clamps score above +100 to Allied', () => {
+    const standing = getFactionStanding(200);
+    expect(standing.label).toBe('Allied');
+    expect(standing.min).toBe(50);
+    expect(standing.max).toBe(100);
+  });
+
+  test('clamps score below -100 to Hostile', () => {
+    const standing = getFactionStanding(-200);
+    expect(standing.label).toBe('Hostile');
+    expect(standing.min).toBe(-100);
+    expect(standing.max).toBe(-50);
+  });
 });

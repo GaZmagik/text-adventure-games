@@ -68,8 +68,9 @@ export function renderScenarioSelect(_state: GmState | null, css: string, option
   background: transparent; border: 0.5px solid var(--ta-color-accent);
   border-radius: 6px; color: var(--ta-color-accent); cursor: pointer;
   text-transform: uppercase; letter-spacing: 0.08em; transition: all 0.2s;
+  min-height: 44px; box-sizing: border-box;
 }
-.scenario-select-btn:hover { background: var(--ta-color-accent); color: #fff; }
+.scenario-select-btn:hover { background: var(--ta-color-accent); color: var(--ta-btn-primary-text, #fff); }
 .empty-scenarios { font-size: 13px; color: var(--color-text-tertiary); text-align: center; padding: 40px; }
 </style>
 <div class="widget-scenario-select">

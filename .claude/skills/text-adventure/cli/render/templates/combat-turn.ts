@@ -30,7 +30,7 @@ export function renderCombatTurn(state: GmState | null, css: string, options?: R
   const isHit = outcome === 'success' || outcome === 'critical_success';
   const isCrit = outcome === 'critical_success' || outcome === 'critical_failure';
 
-  // Badge styling
+  // TODO: extract shared outcomeBadgeStyle utility (duplicated from dice.ts)
   let badgeBg: string;
   let badgeText: string;
   let badgeBorder = 'transparent';

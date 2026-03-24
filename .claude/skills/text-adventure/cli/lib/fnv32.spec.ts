@@ -21,6 +21,10 @@ describe('fnv32', () => {
     expect(hash).toHaveLength(8);
     expect(hash).toMatch(/^[0-9a-f]{8}$/);
   });
+
+  test('produces known FNV-1a hash for "hello"', () => {
+    expect(fnv32('hello')).toBe('a82fb4a1');
+  });
 });
 
 describe('attachChecksum', () => {

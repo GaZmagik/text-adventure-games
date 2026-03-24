@@ -126,22 +126,32 @@ describe('render output modes', () => {
 // ── Pre-game widgets ─────────────────────────────────────────────────
 
 describe('render pre-game widgets', () => {
-  test('settings widget works with --data and no state', async () => {
+  test('settings widget contains radiogroup and option-card', async () => {
     const data = JSON.stringify({ options: ['easy', 'hard'] });
-    const result = await handleRender(['settings', '--style', 'terminal', '--data', data]);
+    const result = await handleRender(['settings', '--style', 'terminal', '--data', data, '--raw']);
     expect(result.ok).toBe(true);
+    const html = result.data as string;
+    expect(html).toContain('role="radiogroup"');
+    expect(html).toContain('class="option-card');
   });
 
   test('scenario-select widget works with --data and no state', async () => {
     const data = JSON.stringify({ scenarios: [{ title: 'Test', description: 'A test scenario' }] });
-    const result = await handleRender(['scenario-select', '--style', 'terminal', '--data', data]);
+    const result = await handleRender(['scenario-select', '--style', 'terminal', '--data', data, '--raw']);
     expect(result.ok).toBe(true);
+    const html = result.data as string;
+    expect(html).toContain('Test');
+    expect(html).toContain('A test scenario');
+    expect(html).toContain('scenario-select-btn');
   });
 
-  test('character-creation widget works with --data and no state', async () => {
+  test('character-creation widget contains archetype-card and aria-pressed', async () => {
     const data = JSON.stringify({ archetypes: [{ name: 'Warrior', stats: {} }] });
-    const result = await handleRender(['character-creation', '--style', 'terminal', '--data', data]);
+    const result = await handleRender(['character-creation', '--style', 'terminal', '--data', data, '--raw']);
     expect(result.ok).toBe(true);
+    const html = result.data as string;
+    expect(html).toContain('class="archetype-card"');
+    expect(html).toContain('aria-pressed');
   });
 });
 
@@ -248,10 +258,17 @@ describe('render template output', () => {
     expect(html).toContain('widget-recap');
   });
 
-  test('save-div widget contains hidden save data', async () => {
+  test('save-div widget contains hidden save data with valid JSON payload', async () => {
     const result = await handleRender(['save-div', '--raw']);
     const html = result.data as string;
     expect(html).toContain('id="save-data"');
     expect(html).toContain('display:none');
+    // Extract data-payload attribute and verify it contains valid JSON with _version
+    const payloadMatch = html.match(/data-payload='([^']*)'/);
+    expect(payloadMatch).not.toBeNull();
+    const payload = JSON.parse(payloadMatch![1].replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'"));
+    expect(payload._version).toBe(1);
+    expect(payload.scene).toBe(0);
+    expect(payload.character.name).toBe('Aldric');
   });
 });

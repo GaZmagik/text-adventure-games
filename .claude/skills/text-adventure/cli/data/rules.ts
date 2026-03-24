@@ -3,7 +3,7 @@
 
 export interface Rule {
   id: number;
-  category: string;
+  category: Category;
   rule: string;
   ref: string;
 }

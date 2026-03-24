@@ -1559,6 +1559,9 @@ handle that case independently.
   --sta-badge-failure-text:        #F08090;
   --sta-badge-crit-success-border: #2BA882;
   --sta-badge-crit-failure-border: #E84855;
+
+  --ta-die-bg:         var(--sta-bg-tertiary);
+  --ta-die-text-color: var(--sta-text-primary);
 }
 
 /* --- Light Mode Override --- */
@@ -1616,6 +1619,8 @@ handle that case independently.
     --ta-badge-crit-failure-border: var(--sta-badge-crit-failure-border);
     --ta-color-credits:           var(--sta-color-currency);
     --ta-color-tab-active:        var(--sta-color-location);
+    --ta-die-bg:                  var(--sta-bg-stat-cell);
+    --ta-die-text-color:          var(--sta-text-primary);
   }
 }
 
@@ -1786,10 +1791,11 @@ button:focus-visible, [data-prompt]:focus-visible {
 
 /* --- Footer Row & Button --- */
 .footer-row {
-  display: flex; justify-content: flex-start; gap: var(--sta-space-sm); flex-wrap: wrap;
+  display: flex; justify-content: space-between; gap: var(--sta-space-sm); flex-wrap: wrap;
   margin-top: var(--sta-space-md); padding-top: var(--sta-space-sm);
   border-top: var(--sta-border-width) solid var(--sta-border-tertiary);
 }
+.footer-left, .footer-right { display: flex; gap: var(--sta-space-sm); flex-wrap: wrap; align-items: center; }
 .footer-btn {
   font-family: var(--sta-font-mono); font-size: var(--sta-text-xs); letter-spacing: 0.1em; text-transform: uppercase;
   padding: var(--sta-space-sm) var(--sta-space-md);

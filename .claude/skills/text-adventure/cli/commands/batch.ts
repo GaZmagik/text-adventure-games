@@ -1,6 +1,7 @@
 import type { CommandResult } from '../types';
 import { ok, fail } from '../lib/errors';
 import { loadState, stateExists } from '../lib/state-store';
+import { parseArgs } from '../lib/args';
 import { handleState } from './state';
 import { handleCompute } from './compute';
 import { handleSave } from './save';
@@ -74,28 +75,11 @@ async function dispatch(command: string, args: string[]): Promise<CommandResult>
   }
 }
 
-function parseInput(args: string[]): { lines: string[]; dryRun: boolean } | null {
-  let dryRun = false;
-  let commands: string | undefined;
-
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--dry-run') {
-      dryRun = true;
-    } else if (args[i] === '--commands' && i + 1 < args.length) {
-      commands = args[i + 1];
-      i++;
-    }
-  }
-
-  if (!commands) return null;
-
-  const lines = commands.split(';').map(s => s.trim()).filter(Boolean);
-  return { lines, dryRun };
-}
-
 export async function handleBatch(args: string[]): Promise<CommandResult> {
-  const input = parseInput(args);
-  if (!input) {
+  const parsed = parseArgs(args, ['dry-run']);
+  const dryRun = parsed.booleans.has('dry-run');
+  const commands = parsed.flags.commands;
+  if (!commands) {
     return fail(
       'No commands provided. Use --commands "cmd1; cmd2" or pipe via stdin.',
       'tag batch --commands "state get character.hp; compute contest CHA merchant_01"',
@@ -103,52 +87,52 @@ export async function handleBatch(args: string[]): Promise<CommandResult> {
     );
   }
 
-  const { lines, dryRun } = input;
+  const lines = commands.split(';').map(s => s.trim()).filter(Boolean);
   const results: CommandResult[] = [];
   const labelled: Record<string, unknown> = {};
   const errors: { line: number; raw: string; error: string }[] = [];
 
   for (let i = 0; i < lines.length; i++) {
-    const parsed = parseLine(lines[i]);
-    if (!parsed) continue;
+    const parsedLine = parseLine(lines[i]);
+    if (!parsedLine) continue;
 
-    const resolvedArgs = resolveReferences(parsed.args, labelled);
+    const resolvedArgs = resolveReferences(parsedLine.args, labelled);
 
     // Warn on unresolved $ref labels
     for (const arg of resolvedArgs) {
       if (arg.startsWith('$') && arg.length > 1 && !arg.startsWith('$$')) {
-        errors.push({ line: i, raw: parsed.raw, error: `Unresolved reference: ${arg}` });
+        errors.push({ line: i, raw: parsedLine.raw, error: `Unresolved reference: ${arg}` });
       }
     }
 
     if (dryRun) {
       results.push({
         ok: true,
-        command: `${parsed.command} ${resolvedArgs.join(' ')}`,
+        command: `${parsedLine.command} ${resolvedArgs.join(' ')}`,
         data: null,
       });
-      if (parsed.label) {
-        labelled[parsed.label] = null;
+      if (parsedLine.label) {
+        labelled[parsedLine.label] = null;
       }
       continue;
     }
 
-    const result = await dispatch(parsed.command, resolvedArgs);
+    const result = await dispatch(parsedLine.command, resolvedArgs);
     results.push(result);
 
-    if (parsed.label) {
-      labelled[parsed.label] = result.data;
+    if (parsedLine.label) {
+      labelled[parsedLine.label] = result.data;
     }
 
     if (!result.ok) {
-      errors.push({ line: i, raw: parsed.raw, error: result.error?.message ?? 'Unknown error' });
+      errors.push({ line: i, raw: parsedLine.raw, error: result.error?.message ?? 'Unknown error' });
     }
   }
 
   // Get final state snapshot
   let stateSnapshot: Record<string, unknown> | null = null;
   if (!dryRun && await stateExists()) {
-    stateSnapshot = await loadState() as unknown as Record<string, unknown>;
+    stateSnapshot = await loadState() as unknown as Record<string, unknown>; // GmState lacks index sig
   }
 
   return ok({

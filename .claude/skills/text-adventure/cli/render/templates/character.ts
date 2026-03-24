@@ -3,6 +3,7 @@
 
 import type { GmState, StatName } from '../../types';
 import { esc } from '../../lib/html';
+import { XP_THRESHOLDS } from '../../data/xp-tables';
 
 const STAT_ORDER: StatName[] = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
 
@@ -18,7 +19,8 @@ ${css ? '<style>' + css + '</style>' : ''}
   }
 
   const hpPercent = char.maxHp > 0 ? Math.round((char.hp / char.maxHp) * 100) : 0;
-  const xpForLevel = char.level * 1000; // Simplified XP threshold
+  const nextThreshold = XP_THRESHOLDS.find(t => t.level === char.level + 1);
+  const xpForLevel = nextThreshold?.xp ?? XP_THRESHOLDS[XP_THRESHOLDS.length - 1].xp;
   const xpPercent = xpForLevel > 0 ? Math.min(100, Math.round((char.xp / xpForLevel) * 100)) : 0;
 
   const statRows = STAT_ORDER.map(s => {
@@ -75,7 +77,7 @@ ${css ? '<style>' + css + '</style>' : ''}
 
   <!-- HP bar -->
   <div class="bar-label"><span>HP</span><span>${char.hp} / ${char.maxHp}</span></div>
-  <div class="bar-container"><div class="bar-fill-hp" style="width:${hpPercent}%"></div></div>
+  <div class="bar-container" role="meter" aria-valuenow="${hpPercent}" aria-valuemin="0" aria-valuemax="100" aria-label="HP: ${char.hp} of ${char.maxHp}"><div class="bar-fill-hp" style="width:${hpPercent}%"></div></div>
 
   <!-- AC & Proficiency -->
   <div class="bar-label" style="margin-top:8px">
@@ -106,7 +108,7 @@ ${css ? '<style>' + css + '</style>' : ''}
 
   <!-- XP bar -->
   <div class="bar-label" style="margin-top:12px"><span>XP</span><span>${char.xp} / ${xpForLevel}</span></div>
-  <div class="bar-container"><div class="bar-fill-xp" style="width:${xpPercent}%"></div></div>
+  <div class="bar-container" role="meter" aria-valuenow="${xpPercent}" aria-valuemin="0" aria-valuemax="100" aria-label="XP: ${char.xp} of ${xpForLevel}"><div class="bar-fill-xp" style="width:${xpPercent}%"></div></div>
 
   <!-- Proficiencies -->
   <div class="section-title">Proficiencies</div>

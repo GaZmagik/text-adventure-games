@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
+import { describe, test, expect, beforeEach, afterEach, spyOn } from 'bun:test';
 import { mkdtempSync, rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
@@ -87,6 +87,12 @@ describe('compute contest', () => {
     expect(state._lastComputation!.npcId).toBe('test_npc');
   });
 
+  test('sets dieType to d20', async () => {
+    await handleCompute(['contest', 'CHA', 'test_npc']);
+    const state = await loadState();
+    expect(state._lastComputation!.dieType).toBe('d20');
+  });
+
   test('outcome values are valid', async () => {
     const validOutcomes = ['decisive_success', 'narrow_success', 'narrow_failure', 'failure', 'decisive_failure'];
     for (let i = 0; i < 30; i++) {
@@ -113,6 +119,12 @@ describe('compute hazard', () => {
     const result = await handleCompute(['hazard', 'CON']);
     expect(result.ok).toBe(false);
   });
+
+  test('sets dieType to d20', async () => {
+    await handleCompute(['hazard', 'CON', '--dc', '14']);
+    const state = await loadState();
+    expect(state._lastComputation!.dieType).toBe('d20');
+  });
 });
 
 describe('compute encounter', () => {
@@ -128,11 +140,222 @@ describe('compute encounter', () => {
     const result = await handleCompute(['encounter']);
     expect(result.ok).toBe(true);
   });
+
+  test('sets dieType to d20', async () => {
+    await handleCompute(['encounter']);
+    const state = await loadState();
+    expect(state._lastComputation!.dieType).toBe('d20');
+  });
 });
 
 describe('compute with no subcommand', () => {
   test('returns error', async () => {
     const result = await handleCompute([]);
+    expect(result.ok).toBe(false);
+  });
+});
+
+// ── T3+T4: Deterministic outcome branches via Math.random mocking ────
+
+// Helper: Math.random value that produces a specific rollD20 result.
+// rollDie(20) = Math.floor(Math.random() * 20) + 1
+// To get roll R, we need Math.floor(v * 20) + 1 = R, so v = (R - 1) / 20.
+function randomForD20(roll: number): number {
+  return (roll - 1) / 20;
+}
+
+describe('compute contest — deterministic outcomes', () => {
+  // Player uses CHA (modifier=1), NPC opposes with WIS (modifier=2).
+  // margin = (playerRoll + 1) - (npcRoll + 2)
+
+  const originalRandom = Math.random;
+  afterEach(() => { Math.random = originalRandom; });
+
+  test('decisive_success when margin >= 5', async () => {
+    // playerRoll=20, npcRoll=1 → margin = (20+1) - (1+2) = 18
+    const spy = spyOn(Math, 'random')
+      .mockReturnValueOnce(randomForD20(20))  // player roll
+      .mockReturnValueOnce(randomForD20(1));   // NPC roll
+    const result = await handleCompute(['contest', 'CHA', 'test_npc']);
+    spy.mockRestore();
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.outcome).toBe('decisive_success');
+    expect(data.roll).toBe(20);
+    expect(data.npcRoll).toBe(1);
+  });
+
+  test('narrow_success when margin is 1-4', async () => {
+    // playerRoll=4, npcRoll=2 → margin = (4+1) - (2+2) = 1
+    const spy = spyOn(Math, 'random')
+      .mockReturnValueOnce(randomForD20(4))
+      .mockReturnValueOnce(randomForD20(2));
+    const result = await handleCompute(['contest', 'CHA', 'test_npc']);
+    spy.mockRestore();
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.outcome).toBe('narrow_success');
+  });
+
+  test('narrow_failure when margin is 0 (tie favours NPC)', async () => {
+    // playerRoll=3, npcRoll=2 → margin = (3+1) - (2+2) = 0
+    const spy = spyOn(Math, 'random')
+      .mockReturnValueOnce(randomForD20(3))
+      .mockReturnValueOnce(randomForD20(2));
+    const result = await handleCompute(['contest', 'CHA', 'test_npc']);
+    spy.mockRestore();
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.outcome).toBe('narrow_failure');
+  });
+
+  test('failure when margin is -4 to -1', async () => {
+    // playerRoll=2, npcRoll=2 → margin = (2+1) - (2+2) = -1
+    const spy = spyOn(Math, 'random')
+      .mockReturnValueOnce(randomForD20(2))
+      .mockReturnValueOnce(randomForD20(2));
+    const result = await handleCompute(['contest', 'CHA', 'test_npc']);
+    spy.mockRestore();
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.outcome).toBe('failure');
+  });
+
+  test('decisive_failure when margin <= -5', async () => {
+    // playerRoll=1, npcRoll=20 → margin = (1+1) - (20+2) = -20
+    const spy = spyOn(Math, 'random')
+      .mockReturnValueOnce(randomForD20(1))
+      .mockReturnValueOnce(randomForD20(20));
+    const result = await handleCompute(['contest', 'CHA', 'test_npc']);
+    spy.mockRestore();
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.outcome).toBe('decisive_failure');
+    expect(data.roll).toBe(1);
+    expect(data.npcRoll).toBe(20);
+  });
+});
+
+describe('compute hazard — deterministic outcomes', () => {
+  // Player CON modifier = 0. DC = 14.
+
+  const originalRandom = Math.random;
+  afterEach(() => { Math.random = originalRandom; });
+
+  test('critical_success when roll is 20', async () => {
+    const spy = spyOn(Math, 'random').mockReturnValue(randomForD20(20));
+    const result = await handleCompute(['hazard', 'CON', '--dc', '14']);
+    spy.mockRestore();
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.outcome).toBe('critical_success');
+    expect(data.roll).toBe(20);
+  });
+
+  test('critical_failure when roll is 1', async () => {
+    const spy = spyOn(Math, 'random').mockReturnValue(randomForD20(1));
+    const result = await handleCompute(['hazard', 'CON', '--dc', '1']);
+    spy.mockRestore();
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.outcome).toBe('critical_failure');
+    expect(data.roll).toBe(1);
+  });
+
+  test('success when total >= dc', async () => {
+    // roll=15, modifier=0, total=15 >= dc=14
+    const spy = spyOn(Math, 'random').mockReturnValue(randomForD20(15));
+    const result = await handleCompute(['hazard', 'CON', '--dc', '14']);
+    spy.mockRestore();
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.outcome).toBe('success');
+  });
+
+  test('partial_success when total is within 3 below dc', async () => {
+    // roll=12, modifier=0, total=12, dc=14 → 12 >= 14-3=11 → partial_success
+    const spy = spyOn(Math, 'random').mockReturnValue(randomForD20(12));
+    const result = await handleCompute(['hazard', 'CON', '--dc', '14']);
+    spy.mockRestore();
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.outcome).toBe('partial_success');
+  });
+
+  test('failure when total is more than 3 below dc', async () => {
+    // roll=10, modifier=0, total=10, dc=14 → 10 < 11 → failure
+    const spy = spyOn(Math, 'random').mockReturnValue(randomForD20(10));
+    const result = await handleCompute(['hazard', 'CON', '--dc', '14']);
+    spy.mockRestore();
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.outcome).toBe('failure');
+  });
+});
+
+describe('compute encounter — deterministic outcomes', () => {
+  const originalRandom = Math.random;
+  afterEach(() => { Math.random = originalRandom; });
+
+  test('quiet when roll <= 8 (escalation=0)', async () => {
+    const spy = spyOn(Math, 'random').mockReturnValue(randomForD20(5));
+    const result = await handleCompute(['encounter', '--escalation', '0']);
+    spy.mockRestore();
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.encounter).toBe('quiet');
+  });
+
+  test('alert when roll is 9-15 (escalation=0)', async () => {
+    const spy = spyOn(Math, 'random').mockReturnValue(randomForD20(12));
+    const result = await handleCompute(['encounter', '--escalation', '0']);
+    spy.mockRestore();
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.encounter).toBe('alert');
+  });
+
+  test('hostile when roll >= 16 (escalation=0)', async () => {
+    const spy = spyOn(Math, 'random').mockReturnValue(randomForD20(18));
+    const result = await handleCompute(['encounter', '--escalation', '0']);
+    spy.mockRestore();
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.encounter).toBe('hostile');
+  });
+
+  test('escalation shifts thresholds — roll=7 + escalation=2 = 9 → alert', async () => {
+    const spy = spyOn(Math, 'random').mockReturnValue(randomForD20(7));
+    const result = await handleCompute(['encounter', '--escalation', '2']);
+    spy.mockRestore();
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.encounter).toBe('alert');
+  });
+});
+
+// ── T8: Contest validation ────────────────────────────────────────────
+
+describe('compute contest — validation', () => {
+  test('rejects invalid stat name', async () => {
+    const result = await handleCompute(['contest', 'FOO', 'test_npc']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('Invalid attribute');
+    expect(result.error!.message).toContain('FOO');
+    expect(result.error!.message).toContain('STR');
+  });
+});
+
+// ── T9: Hazard validation ────────────────────────────────────────────
+
+describe('compute hazard — validation', () => {
+  test('rejects invalid stat name', async () => {
+    const result = await handleCompute(['hazard', 'FOO', '--dc', '14']);
+    expect(result.ok).toBe(false);
+  });
+
+  test('rejects non-numeric DC value', async () => {
+    const result = await handleCompute(['hazard', 'CON', '--dc', 'abc']);
     expect(result.ok).toBe(false);
   });
 });

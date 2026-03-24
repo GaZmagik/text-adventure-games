@@ -40,7 +40,7 @@ const COMMANDS: Record<string, CommandHelp> = {
     command: 'tag render',
     description: 'Deterministic HTML widget generation with real CSS from style files.',
     subcommands: [
-      { name: '<widget>', usage: 'tag render <widget> [--style <name>] [--raw]', description: 'Generate complete HTML for a widget type. Reads state and active style.', example: 'tag render scene --style terminal' },
+      { name: '<widget>', usage: "tag render <widget> [--style <name>] [--raw] [--data '<json>']", description: "Generate complete HTML for a widget type. Reads state and active style. Add --raw for plain HTML instead of JSON.", example: 'tag render scene --style terminal' },
     ],
   },
   save: {

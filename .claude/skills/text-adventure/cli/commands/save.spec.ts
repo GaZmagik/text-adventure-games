@@ -143,6 +143,46 @@ describe('save validate', () => {
   });
 });
 
+describe('save migrate', () => {
+  test('returns stub error — migration not yet required', async () => {
+    const result = await handleSave(['migrate', 'something']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('not yet required');
+    expect(result.command).toBe('save migrate');
+  });
+});
+
+describe('save validate — detailed checks', () => {
+  test('returns valid: true with scene and character name for a good save', async () => {
+    const genResult = await handleSave(['generate']);
+    const saveString = (genResult.data as Record<string, unknown>).saveString as string;
+    const result = await handleSave(['validate', saveString]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.valid).toBe(true);
+    expect(data.mode).toBe('full');
+    expect(data.scene).toBe(7);
+    expect(data.characterName).toBe('Test Hero');
+    expect(data.error).toBeNull();
+  });
+
+  test('returns valid: false with error description for corrupt save', async () => {
+    const result = await handleSave(['validate', 'deadbeef.SF2:not-base64!!!']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.valid).toBe(false);
+    expect(data.error).toBeDefined();
+    expect(data.scene).toBeNull();
+    expect(data.characterName).toBeNull();
+  });
+
+  test('fails without save string argument', async () => {
+    const result = await handleSave(['validate']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('Usage');
+  });
+});
+
 describe('save with no subcommand', () => {
   test('returns error', async () => {
     const result = await handleSave([]);

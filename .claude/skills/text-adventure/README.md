@@ -351,20 +351,26 @@ archetypes, and module selection adapt accordingly.
 
 ## Widget Types
 
-| Widget | Purpose |
-|--------|---------|
-| Settings | Game configuration before play |
-| Scenario Select | Choose starting scenario |
-| Character Creation | Name, archetype, stat block |
-| Scene / Room | Primary gameplay — narrative, POIs, actions, panels |
-| Die Roll | Progressive d20 resolution (declare → animate → resolve → continue) |
-| Dialogue | NPC conversation with response options |
-| Combat | Turn-based encounters with initiative and actions |
-| Map | SVG spatial overview (floor-plan, region, or starmap) |
-| Outcome | Narrative consequence of rolls/decisions |
-| Level Up | Stat improvements and ability selection |
-| Quests | Active objectives, clues, and quest progress |
-| Save | Session persistence (save-codex module) |
+| Widget | CLI Key | Purpose |
+|--------|---------|---------|
+| Settings | `settings` | Game configuration before play |
+| Scenario Select | `scenario-select` | Choose starting scenario |
+| Character Creation | `character-creation` | Name, archetype, stat block |
+| Scene / Room | `scene` | Primary gameplay — narrative, POIs, actions, panels |
+| Ticker | `ticker` | Time, date, and deadline display bar |
+| Dice | `dice` | 3D WebGL die roll with numbered faces (d2–d100) |
+| Character | `character` | Stat panel — name, class, level, HP, inventory, XP |
+| Dialogue | `dialogue` | NPC conversation with response options |
+| Combat Turn | `combat-turn` | Turn-based encounter outcome display |
+| Map | `map` | SVG spatial overview (floor-plan or region) |
+| Starchart | `starchart` | SVG starmap for space navigation |
+| Ship | `ship` | Ship systems status panel |
+| Crew | `crew` | Crew manifest with morale and stress |
+| Codex | `codex` | Lore entries and discovered secrets |
+| Level Up | `levelup` | Stat improvements and ability selection |
+| Recap | `recap` | Session resume summary with roll history |
+| Footer | `footer` | Module-aware action button row (internal partial) |
+| Save | `save-div` | Hidden state serialisation for persistence |
 
 ---
 

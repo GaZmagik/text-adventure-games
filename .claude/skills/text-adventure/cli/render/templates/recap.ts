@@ -4,6 +4,8 @@
 import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
 
+const SUCCESS_OUTCOMES = new Set(['success', 'narrow_success', 'critical_success', 'decisive_success']);
+
 export function renderRecap(state: GmState | null, css: string, _options?: Record<string, unknown>): string {
   const char = state?.character;
   const room = state?.currentRoom ?? 'Unknown';
@@ -84,7 +86,7 @@ export function renderRecap(state: GmState | null, css: string, _options?: Recor
   <div class="recap-section">
     <div class="recap-label">Recent Rolls</div>
     ${recentRolls.map(r => {
-      const outcomeClass = r.outcome.includes('success') ? 'roll-outcome-success' : 'roll-outcome-failure';
+      const outcomeClass = SUCCESS_OUTCOMES.has(r.outcome) ? 'roll-outcome-success' : 'roll-outcome-failure';
       return `<div class="roll-item">
         <span><span class="roll-stat">${esc(r.stat)}</span> ${r.type}</span>
         <span>${r.roll}+${r.modifier}=${r.total} vs DC ${r.dc} <span class="${outcomeClass}">${esc(r.outcome)}</span></span>
