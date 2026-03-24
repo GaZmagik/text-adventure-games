@@ -42,11 +42,16 @@ guidance — they do not contain widget code.
 Run via the **Bash tool** (called "analysis tool" on Claude.ai):
 
 ```bash
-bash setup.sh && tag state reset
+source setup.sh && tag state reset
 ```
 
-This installs Bun (if needed), links the `tag` command, and initialises a blank game state.
-If `tag` is not available after setup, prompt the player to run `bash setup.sh` manually.
+This installs Bun (if needed), links the `tag` command, sets `PATH` so `tag` is available for all subsequent commands in this session, and initialises a blank game state. You MUST use `source` (not `bash`) so the PATH export persists in the current shell.
+
+To resume from a save file, ALWAYS use the file path — never pass the raw save string as a CLI argument:
+```bash
+source setup.sh && tag save load /mnt/user-data/uploads/<filename>.save.md
+```
+Uploaded files land in `/mnt/user-data/uploads/`. The load command reads the file, extracts the save string, validates the checksum, and writes the full game state to `~/.tag/state.json`. After loading, all `tag` commands read from this file automatically.
 
 ### Commands
 
@@ -431,7 +436,7 @@ the current game state at render time — the GM does not need to construct it m
 
 - **Footer panel toggles** (Character, Codex, Ship, Nav): pure JS via `togglePanel()` — never `sendPrompt()`.
 - **Actions within panels** (repair, reroute, use item, plot course): `sendPrompt()` — these change state.
-- **Save button:** Uses `sendPrompt('Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md. Use YAML frontmatter plus an encoded SC1: or SF1: payload string. Never write game state as human-readable markdown.')`.
+- **Save button:** Uses `sendPrompt('Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md. Use YAML frontmatter plus an encoded SC1: or SF2: payload string. Never write game state as human-readable markdown.')`.
   Claude generates the file as a conversation artifact the player can download. Falls back to
   inline copyable text display if `sendPrompt()` is unavailable. The `#save-data` div is
   pre-computed in every scene widget for the fallback path.
@@ -691,7 +696,7 @@ or escaped), present a **conclusion widget** with:
     same character in the same world (sequel, no arc carry-forward)
   - `sendPrompt('Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format.')` — share the world for
     someone else to play (if adventure-exporting module is active)
-  - `sendPrompt('Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md. Use YAML frontmatter plus an encoded SC1: or SF1: payload string. Never write game state as human-readable markdown.')` — final save
+  - `sendPrompt('Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md. Use YAML frontmatter plus an encoded SC1: or SF2: payload string. Never write game state as human-readable markdown.')` — final save
   - `sendPrompt('Start a completely new game.')` — fresh start
 
 For **branching arcs**, replace the single "Continue to next arc" button with 2-3 path
@@ -754,7 +759,7 @@ but **greyed out and disabled** during combat and dialogue sequences.
 - **Primary (sendPrompt):** The Save button uses `sendPrompt()` with the full format-enforcing
   prompt (see sendPrompt Rules above) to ask Claude to generate the save file as a conversation
   artifact the player can download. The save **must** follow the `.save.md` format from
-  `modules/save-codex.md` — YAML frontmatter plus encoded `SC1:`/`SF1:` payload string, never
+  `modules/save-codex.md` — YAML frontmatter plus encoded `SC1:`/`SF2:` payload string, never
   human-readable markdown. This bypasses the iframe sandbox restrictions that silently block
   Blob downloads in Claude.ai widgets. The button label is `Save ↗` (the `↗` suffix indicates
   a `sendPrompt()` call).

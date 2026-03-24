@@ -8,7 +8,7 @@ errors for NPC stats, contested rolls, CSS styling, and save encoding.
 
 ## § Quick Start
 
-1. Run `bash setup.sh` (once per machine — installs Bun, links `tag`).
+1. Run `source setup.sh` (once per machine — installs Bun, links `tag`).
 2. Run `tag state reset` to initialise a blank game state.
 3. You are ready. Use `tag` commands as described below.
 
@@ -91,5 +91,5 @@ renderer reads the NPC's current disposition from state.
 The `tag` CLI is the rendering engine for this skill. Module files define game
 rules and narrative guidance — they do not contain widget code. If `tag` is
 unavailable (Bun not installed, PATH not set), prompt the player to run
-`bash setup.sh` via the Bash tool before proceeding. The GM cannot render
+`source setup.sh` via the Bash tool before proceeding. The GM cannot render
 widgets without the CLI.

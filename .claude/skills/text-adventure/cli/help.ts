@@ -48,7 +48,7 @@ const COMMANDS: Record<string, CommandHelp> = {
     description: 'Persistence operations — generate, load, validate, and migrate save files.',
     subcommands: [
       { name: 'generate', usage: 'tag save generate', description: 'Generate a save payload from current game state', example: 'tag save generate' },
-      { name: 'load', usage: 'tag save load <string|file>', description: 'Validate and load a save, restoring game state', example: 'tag save load game.save.md' },
+      { name: 'load', usage: 'tag save load <file.save.md>', description: 'Load a save from a .save.md file path — ALWAYS use a file path, never pass the raw save string as an argument', example: 'tag save load /mnt/user-data/uploads/game.save.md' },
       { name: 'validate', usage: 'tag save validate <string|file>', description: 'Check save integrity without loading', example: 'tag save validate game.save.md' },
       { name: 'migrate', usage: 'tag save migrate <string|file>', description: 'Forward-migrate an older save to current format', example: 'tag save migrate old-game.save.md' },
     ],

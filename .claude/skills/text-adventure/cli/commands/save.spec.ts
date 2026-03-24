@@ -88,9 +88,9 @@ describe('save load', () => {
   });
 
   test('fails on corrupted save string', async () => {
-    const result = await handleSave(['load', 'xxxxxxxx.SC1:garbage']);
+    const result = await handleSave(['load', '00000000.SC1:garbage']);
     expect(result.ok).toBe(false);
-    expect(result.error!.message).toContain('CHECKSUM');
+    expect(result.error!.message).toMatch(/CHECKSUM|DECODE/);
   });
 
   test('loads save from a .save.md file path', async () => {

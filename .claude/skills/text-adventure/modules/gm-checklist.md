@@ -58,7 +58,7 @@ step IN ORDER. Do not skip ahead. Do not combine steps.
 ```
 NEW GAME CHECKLIST
 ═══════════════════════════════════════════
-□  0. Run `bash setup.sh` if first session. Run `tag state reset` to initialise game state.
+□  0. Run `source setup.sh` if first session. Run `tag state reset` to initialise game state.
 □  1. Read all Tier 1 modules IN FULL (see SKILL.md Architecture — Tiered Loading)
 □  2. Present Scenario Selection widget: run `tag render scenario-select --data '<json>'` — do NOT hand-code HTML
 □  3. Wait for player to select a scenario — do NOT auto-select
@@ -107,10 +107,10 @@ modules, and broken narrative tracking.
 ```
 RESUME FROM SAVE CHECKLIST
 ═══════════════════════════════════════════
-□  0. Run `bash setup.sh` — resuming always starts a new conversation, so the CLI
+□  0. Run `source setup.sh` — resuming always starts a new conversation, so the CLI
      needs installing first. Then restore game state from the save file:
      ```
-     bash setup.sh
+     source setup.sh
      tag save load /mnt/user-data/uploads/<filename>.save.md
      ```
      Uploaded files land in `/mnt/user-data/uploads/`. The load command reads the

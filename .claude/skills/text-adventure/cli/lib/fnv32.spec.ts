@@ -68,8 +68,8 @@ describe('validateAndDecode', () => {
   test('detects checksum corruption', () => {
     const code = 'SC1:' + btoa(JSON.stringify({ v: 1 }));
     const save = attachChecksum(code);
-    // Corrupt one character
-    const corrupted = 'xxxxxxxx' + save.slice(8);
+    // Corrupt checksum to a different valid hex value
+    const corrupted = '00000000' + save.slice(8);
     const result = validateAndDecode(corrupted);
     expect(result.valid).toBe(false);
     if (!result.valid) {
