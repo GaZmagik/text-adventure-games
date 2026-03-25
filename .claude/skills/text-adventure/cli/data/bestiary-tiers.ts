@@ -69,13 +69,11 @@ export const TIERS: Record<BestiaryTier, TierConfig> = {
   },
 };
 
-// TODO: Extract to lib/random.ts if reused elsewhere
 /** Returns a random integer between min and max (inclusive). */
 function randInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// TODO: Extract to lib/random.ts if reused elsewhere
 /** Picks a random element from an array. Throws if the array is empty. */
 function pick<T>(arr: readonly T[]): T {
   if (arr.length === 0) throw new Error('pick() called with empty array');

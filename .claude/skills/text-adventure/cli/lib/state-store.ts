@@ -3,7 +3,7 @@ import { homedir, tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { mkdirSync, renameSync, writeFileSync, unlinkSync } from 'node:fs';
 import type { GmState } from '../types';
-import { MAX_ROLL_HISTORY, SCHEMA_VERSION } from './constants';
+import { MAX_ROLL_HISTORY, MAX_FILE_SIZE_BYTES, SCHEMA_VERSION } from './constants';
 
 /** Lightweight runtime check that a parsed JSON value has the basic shape of a GmState object. */
 function isPlausibleGmState(raw: unknown): raw is Record<string, unknown> {
@@ -29,13 +29,14 @@ export function getStatePath(): string {
   return join(getStateDir(), 'state.json');
 }
 
+/** @internal — test-only; prefer tryLoadState() in production code */
 export async function loadState(): Promise<GmState> {
   const path = getStatePath();
   const file = Bun.file(path);
   if (!(await file.exists())) {
     throw new Error('State file not found. Run "tag state init" to create one.');
   }
-  if (file.size > 10 * 1024 * 1024) throw new Error('State file exceeds 10 MB — possible corruption.');
+  if (file.size > MAX_FILE_SIZE_BYTES) throw new Error('State file exceeds 10 MB — possible corruption.');
   const raw: unknown = await file.json();
   if (!isPlausibleGmState(raw)) {
     throw new Error('State file does not contain a valid object.');
@@ -70,7 +71,7 @@ export async function tryLoadState(): Promise<GmState | null> {
   try {
     const file = Bun.file(getStatePath());
     if (!(await file.exists())) return null;
-    if (file.size > 10 * 1024 * 1024) throw new Error('State file exceeds 10 MB — possible corruption.');
+    if (file.size > MAX_FILE_SIZE_BYTES) throw new Error('State file exceeds 10 MB — possible corruption.');
     const raw: unknown = await file.json();
     if (!isPlausibleGmState(raw)) return null;
     return raw as GmState;

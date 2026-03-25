@@ -364,28 +364,29 @@ async function handleHistory(args: string[]): Promise<CommandResult> {
   return ok(recent, 'state history');
 }
 
-async function handleSync(args: string[]): Promise<CommandResult> {
-  const state = await tryLoadState();
-  if (!state) return noState();
+// ── Sync helper functions ────────────────────────────────────────
 
-  const parsed = parseArgs(args, ['apply']);
-  const apply = parsed.booleans.has('apply');
-  const flags = parsed.flags;
-
+/** Build scene/room/time diff entries from --scene, --room, --time flags. */
+function buildSyncDiff(
+  state: GmState,
+  flags: Record<string, string>,
+  warnings: string[],
+): { diff: Record<string, { from: unknown; to: unknown }>; nextScene: number; parsedTime: Record<string, unknown> | null; earlyReturn: CommandResult | null } {
   const diff: Record<string, { from: unknown; to: unknown }> = {};
-  const warnings: string[] = [];
-  const errors: string[] = [];
 
   // 1. Scene should increment (default +1 when --scene not provided)
   let nextScene: number;
   if (flags.scene) {
     nextScene = Number(flags.scene);
     if (!Number.isFinite(nextScene) || nextScene < 0) {
-      return fail(
-        `Invalid --scene value "${flags.scene}": must be a finite non-negative number.`,
-        'Provide an integer scene number, e.g. --scene 5',
-        'state sync',
-      );
+      return {
+        diff, nextScene: state.scene, parsedTime: null,
+        earlyReturn: fail(
+          `Invalid --scene value "${flags.scene}": must be a finite non-negative number.`,
+          'Provide an integer scene number, e.g. --scene 5',
+          'state sync',
+        ),
+      };
     }
   } else {
     nextScene = state.scene + 1;
@@ -409,7 +410,6 @@ async function handleSync(args: string[]): Promise<CommandResult> {
       } else if (containsForbiddenKeys(raw)) {
         warnings.push('--time flag contains forbidden keys (__proto__, constructor, prototype).');
       } else {
-        // Whitelist to known TimeState keys only
         const VALID_TIME_KEYS = new Set<string>([
           'period', 'date', 'elapsed', 'hour',
           'playerKnowsDate', 'playerKnowsTime', 'calendarSystem', 'deadline',
@@ -430,7 +430,11 @@ async function handleSync(args: string[]): Promise<CommandResult> {
     }
   }
 
-  // 4. Pending computation not in rollHistory
+  return { diff, nextScene, parsedTime, earlyReturn: null };
+}
+
+/** Check 4: pending computation not reflected in rollHistory. */
+function checkPendingComputation(state: GmState, warnings: string[]): void {
   if (state._lastComputation && state._lastComputation.type !== 'levelup_result') {
     const lastType = state._lastComputation.type;
     const lastRoll = state.rollHistory[state.rollHistory.length - 1];
@@ -440,18 +444,20 @@ async function handleSync(args: string[]): Promise<CommandResult> {
       );
     }
   }
+}
 
-  // 5. Module verification — missing Tier 1 modules
-  const active: string[] = state.modulesActive ?? [];
-  const activeSet = new Set(active);
+/** Check 5: missing Tier 1 modules. */
+function checkMissingModules(state: GmState, activeSet: Set<string>, warnings: string[]): void {
   const missingTier1 = TIER1_MODULES.filter(m => !activeSet.has(m));
   if (missingTier1.length > 0) {
     warnings.push(
       `Missing Tier 1 modules: ${missingTier1.join(', ')}. Re-read these files.`,
     );
   }
+}
 
-  // 6. Quest/worldFlag cross-validation (canonical format) — single pass per quest
+/** Check 6: quest/worldFlag cross-validation (canonical format). */
+function checkQuestWorldFlagSync(state: GmState, warnings: string[]): void {
   for (const quest of state.quests) {
     if (quest.objectives.length === 0) {
       warnings.push(`Quest "${quest.id}" has no objectives to validate.`);
@@ -483,8 +489,10 @@ async function handleSync(args: string[]): Promise<CommandResult> {
       );
     }
   }
+}
 
-  // 7. Level-up eligibility
+/** Check 7: level-up eligibility. */
+function checkLevelUpEligibility(state: GmState, warnings: string[]): void {
   if (state.character) {
     const { level, xp } = state.character;
     const nextThreshold = XP_THRESHOLDS.find(t => t.level === level + 1);
@@ -495,10 +503,10 @@ async function handleSync(args: string[]): Promise<CommandResult> {
       );
     }
   }
+}
 
-  // 8. NPC creation gaps — worldFlag NPC references without roster entries
-  const npcIds = new Set<string>();
-  for (const n of state.rosterMutations) npcIds.add(n.id);
+/** Check 8: NPC worldFlag references without roster entries. */
+function checkNpcReferenceGaps(state: GmState, npcIds: Set<string>, warnings: string[]): void {
   const npcPattern = /^npc_([a-z0-9_]+)_/;
   for (const key of Object.keys(state.worldFlags)) {
     const match = npcPattern.exec(key);
@@ -512,8 +520,45 @@ async function handleSync(args: string[]): Promise<CommandResult> {
       }
     }
   }
+}
 
-  // 9. Feature checklist — delegate to render.ts buildFeatureChecklist
+// ── Sync orchestrator ────────────────────────────────────────────
+
+async function handleSync(args: string[]): Promise<CommandResult> {
+  const state = await tryLoadState();
+  if (!state) return noState();
+
+  const parsed = parseArgs(args, ['apply']);
+  const apply = parsed.booleans.has('apply');
+  const flags = parsed.flags;
+
+  const warnings: string[] = [];
+  const errors: string[] = [];
+
+  // Checks 1–3: build scene/room/time diff
+  const { diff, nextScene, parsedTime, earlyReturn } = buildSyncDiff(state, flags, warnings);
+  if (earlyReturn) return earlyReturn;
+
+  // Check 4: pending computation not in rollHistory
+  checkPendingComputation(state, warnings);
+
+  // Check 5: missing Tier 1 modules
+  const active: string[] = state.modulesActive ?? [];
+  const activeSet = new Set(active);
+  checkMissingModules(state, activeSet, warnings);
+
+  // Check 6: quest/worldFlag cross-validation
+  checkQuestWorldFlagSync(state, warnings);
+
+  // Check 7: level-up eligibility
+  checkLevelUpEligibility(state, warnings);
+
+  // Check 8: NPC reference gaps
+  const npcIds = new Set<string>();
+  for (const n of state.rosterMutations) npcIds.add(n.id);
+  checkNpcReferenceGaps(state, npcIds, warnings);
+
+  // Check 9: feature checklist
   const featureChecklist = buildFeatureChecklist(state);
 
   const status = errors.length > 0

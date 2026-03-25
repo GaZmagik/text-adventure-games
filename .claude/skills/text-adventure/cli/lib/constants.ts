@@ -8,6 +8,9 @@ export const MAX_ROLL_HISTORY = 50;
 export const MAX_STATE_HISTORY = 100;
 export const MAX_DICE_COUNT = 1000;
 
+/** Maximum file size in bytes (10 MB) — shared guard for state and save file reads. */
+export const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+
 /** Keys that must never be traversed or assigned — prevents prototype pollution. */
 export const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 

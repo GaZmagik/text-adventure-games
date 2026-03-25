@@ -37,7 +37,7 @@ function cssReplacer(match: string): string {
 const cssCache = new Map<string, string>();
 
 export async function extractAllCss(filePath: string, scopes?: readonly string[]): Promise<string> {
-  const cacheKey = filePath + ':' + (scopes?.join(',') ?? '*');
+  const cacheKey = filePath + ':' + (scopes ? [...scopes].sort().join(',') : '*');
   if (cssCache.has(cacheKey)) return cssCache.get(cacheKey) ?? '';
   try {
     const file = Bun.file(filePath);

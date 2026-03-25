@@ -6,7 +6,7 @@ import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState, createDefaultState } from '../lib/state-store';
 import { validateState } from '../lib/validator';
 import { attachChecksum, validateAndDecode } from '../lib/fnv32';
-import { VALID_TOP_KEYS, FORBIDDEN_KEYS, MAX_STATE_HISTORY, SCHEMA_VERSION } from '../lib/constants';
+import { VALID_TOP_KEYS, FORBIDDEN_KEYS, MAX_STATE_HISTORY, MAX_FILE_SIZE_BYTES, SCHEMA_VERSION } from '../lib/constants';
 
 /** Recursively check for forbidden keys (__proto__, constructor, prototype) in a parsed value. */
 export function containsForbiddenKeys(obj: unknown): boolean {
@@ -67,7 +67,7 @@ async function resolveSaveString(input: string): Promise<string> {
 
     try {
       const file = Bun.file(resolved);
-      if (file.size > 10 * 1024 * 1024) {
+      if (file.size > MAX_FILE_SIZE_BYTES) {
         throw new Error('Save file exceeds 10 MB size limit.');
       }
       const content = await file.text();
