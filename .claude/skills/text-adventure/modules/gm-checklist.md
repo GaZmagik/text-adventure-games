@@ -286,6 +286,8 @@ DIE ROLL CHECKLIST
 □ 12. Always use `tag render dice` — never hand-code dice geometry of any kind.
 ```
 
+> **Arithmetic rule:** ALL calculations (damage totals, HP changes, currency transactions) MUST use `echo "expression" | bc` via bash. Never compute arithmetic in prose output.
+
 ---
 
 ## NPC Hidden Roll Checklist

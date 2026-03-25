@@ -175,6 +175,8 @@ gold, caps, denarii, etc.). The GM chooses the currency name at scenario creatio
 - **Loot value:** Items have a `value` field. Selling to shops yields 50–75% of value.
   Buying costs 100–150% depending on faction standing and location scarcity.
 
+> **Currency calculations:** Always use `echo "credits - cost" | bc` for transactions. Never compute mentally.
+
 ---
 
 ## Faction Reputation
@@ -364,6 +366,8 @@ Healing restores HP but is deliberately limited to maintain tension.
 
 Never auto-heal the player. Healing always requires a deliberate player action via
 `sendPrompt('I use [item].')` or choosing to rest.
+
+> **HP calculations:** Always use `echo "currentHP - damage" | bc` for HP changes. Never compute mentally.
 
 ---
 

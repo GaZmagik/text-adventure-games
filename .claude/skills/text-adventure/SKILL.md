@@ -2,7 +2,7 @@
 name: text-adventure
 description: Interactive text adventure game engine. Triggers on "text adventure", "play a game", "tabletop RPG", "interactive fiction", "dungeon crawl", or any narrative game request. Also for resuming prior sessions. CARDINAL RULE — Do NOT write ANY text in the conversation. No prose, narration, analysis, status updates, check descriptions, DC values, or stat breakdowns. ALL game output goes inside visualize:show_widget. ALL deliberation goes in the thinking tool. The player sees ONLY widgets. Exception — brief responses to out-of-character questions. Do NOT use for creative writing without player agency. Loads modules from modules/ directory as needed.
 metadata:
-  version: "1.3.0.f"
+  version: "1.3.0.g"
 ---
 
 # Text Adventure Game — Core Engine
@@ -122,6 +122,28 @@ The AI has a finite output token budget per turn (~32K tokens). This constrains 
 - Don't duplicate the same CSS across multiple widgets in one turn — render one widget per turn
 
 > **Note on CSS inclusion:** Visual style CSS (theme variables) is always included in full — theme custom properties are required by all widgets. Supplementary CSS from `styles/style-reference.md` is scoped per widget type: only the rules relevant to the current widget are emitted.
+
+#### Inline SVG for Maps, Diagrams, and Charts
+
+Scene widgets should use inline SVG for star charts, floor plans, platform cross-sections, seismograph traces, and other visual data.
+
+- SVG tokenises efficiently (~3 chars/token vs ~4 for prose) — maximum visual payoff per token spent
+- Use semantic class names with neon/station/theme CSS variables for consistent styling
+- SVG elements should be interactive where appropriate (hover states, click-to-zoom)
+- Recommended SVG uses: geo-map level layouts, star-chart navigation, ship cross-sections, combat positioning, lore diagrams
+
+#### Arithmetic with bc
+
+**NEVER compute arithmetic in prose** — LLMs are unreliable at maths. Use `echo "expression" | bc` via the bash tool for ALL calculations:
+
+- Damage: `echo "7 + 3" | bc` (roll + modifier)
+- DC checks: `echo "18 >= 15" | bc` (returns 1=pass, 0=fail)
+- HP tracking: `echo "14 - 6" | bc` (current HP - damage)
+- Shop transactions: `echo "100 - 45" | bc` (credits - cost)
+- XP calculations: `echo "250 + 50" | bc` (current + award)
+- Percentages: `echo "scale=2; 3 * 100 / 8" | bc -l` (objectives completed)
+
+The `tag compute` command handles dice rolls deterministically, but any OTHER arithmetic (damage totals, currency, HP updates) must use bc. `bc -l` provides the maths library (trig, log, sqrt) for advanced calculations.
 
 ### MUST Use `tag` For
 
