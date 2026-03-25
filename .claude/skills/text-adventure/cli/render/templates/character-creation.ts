@@ -12,6 +12,7 @@
 
 import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
+import { COMMON_WIDGET_CSS } from '../lib/common-css';
 
 type Archetype = {
   name: string;
@@ -72,11 +73,8 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
 
   return `
 <style>${css}
+${COMMON_WIDGET_CSS}
 .widget-char-creation { font-family: var(--ta-font-body); padding: 16px; }
-.creation-title { font-family: var(--ta-font-heading); font-size: 22px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 4px; }
-.creation-subtitle { font-size: 12px; color: var(--color-text-tertiary); margin-bottom: 20px; }
-.creation-section { margin-bottom: 16px; }
-.creation-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-tertiary); margin-bottom: 8px; }
 .archetype-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
 .archetype-card {
   padding: 14px; border: 0.5px solid var(--color-border-tertiary);
@@ -107,39 +105,31 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
 }
 .prof-option:hover { border-color: var(--ta-color-accent); }
 .prof-option.selected { border-color: var(--ta-color-accent); background: var(--ta-color-accent-bg); color: var(--ta-color-accent); font-weight: 600; }
-.confirm-btn {
-  display: block; width: 100%; margin-top: 20px; padding: 12px;
-  font-family: var(--ta-font-heading); font-size: 14px; font-weight: 700;
-  background: var(--ta-color-accent); color: var(--ta-btn-primary-text, #fff); border: none;
-  border-radius: 8px; cursor: pointer; text-transform: uppercase;
-  letter-spacing: 0.08em; transition: background 0.2s;
-}
-.confirm-btn:hover { background: var(--ta-color-accent-hover); }
-.archetype-card:focus-visible, .prof-option:focus-visible, .confirm-btn:focus-visible {
+.archetype-card:focus-visible, .prof-option:focus-visible {
   outline: 2px solid var(--ta-color-focus);
   outline-offset: 2px;
 }
 </style>
 <div class="widget-char-creation">
-  <div class="creation-title">Create Your Character</div>
-  <div class="creation-subtitle">Choose an archetype, name your character, and select proficiencies</div>
+  <div class="widget-title">Create Your Character</div>
+  <div class="widget-subtitle">Choose an archetype, name your character, and select proficiencies</div>
 
-  <div class="creation-section">
-    <div class="creation-label">Name</div>
+  <div class="widget-section">
+    <div class="widget-label">Name</div>
     <input class="name-input" id="char-name-input" type="text" placeholder="Enter character name..." value="${esc(defaultName)}">
     <span id="name-error" class="name-error" role="alert" style="display:none"></span>
   </div>
 
   ${archetypes.length > 0 ? `
-  <div class="creation-section">
-    <div class="creation-label">Archetype</div>
+  <div class="widget-section">
+    <div class="widget-label">Archetype</div>
     <div class="archetype-grid">
       ${archetypeCards}
     </div>
   </div>` : ''}
 
-  <div class="creation-section">
-    <div class="creation-label">Proficiencies (choose 2)</div>
+  <div class="widget-section">
+    <div class="widget-label">Proficiencies (choose 2)</div>
     <div class="prof-grid">
       ${profOptions}
     </div>

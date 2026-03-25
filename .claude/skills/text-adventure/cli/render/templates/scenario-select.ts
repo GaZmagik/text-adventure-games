@@ -3,6 +3,7 @@
 
 import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
+import { COMMON_WIDGET_CSS } from '../lib/common-css';
 
 type Scenario = {
   title: string;
@@ -42,9 +43,8 @@ export function renderScenarioSelect(_state: GmState | null, css: string, option
 
   return `
 <style>${css}
+${COMMON_WIDGET_CSS}
 .widget-scenario-select { font-family: var(--ta-font-body); padding: 16px; }
-.scenario-heading { font-family: var(--ta-font-heading); font-size: 22px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 4px; }
-.scenario-subheading { font-size: 12px; color: var(--color-text-tertiary); margin-bottom: 20px; }
 .scenario-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
 .scenario-card {
   padding: 16px; border: 0.5px solid var(--color-border-tertiary);
@@ -74,8 +74,8 @@ export function renderScenarioSelect(_state: GmState | null, css: string, option
 .empty-scenarios { font-size: 13px; color: var(--color-text-tertiary); text-align: center; padding: 40px; }
 </style>
 <div class="widget-scenario-select">
-  <div class="scenario-heading">Choose Your Scenario</div>
-  <div class="scenario-subheading">Select an adventure to begin</div>
+  <div class="widget-title">Choose Your Scenario</div>
+  <div class="widget-subtitle">Select an adventure to begin</div>
 
   ${scenarios.length > 0 ? `
   <div class="scenario-grid">
