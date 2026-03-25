@@ -141,6 +141,15 @@ describe('compute encounter', () => {
     expect(result.ok).toBe(true);
   });
 
+  test('works without state file (no-state path)', async () => {
+    rmSync(tempDir, { recursive: true, force: true });
+    const result = await handleCompute(['encounter']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.type).toBe('encounter_roll');
+    expect(['quiet', 'alert', 'hostile']).toContain(data.encounter as string);
+  });
+
   test('sets dieType to d20', async () => {
     await handleCompute(['encounter']);
     const state = await loadState();

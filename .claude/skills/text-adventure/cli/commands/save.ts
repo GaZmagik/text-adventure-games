@@ -9,7 +9,7 @@ import { attachChecksum, validateAndDecode } from '../lib/fnv32';
 import { VALID_TOP_KEYS, FORBIDDEN_KEYS, MAX_STATE_HISTORY, SCHEMA_VERSION } from '../lib/constants';
 
 /** Recursively check for forbidden keys (__proto__, constructor, prototype) in a parsed value. */
-function containsForbiddenKeys(obj: unknown): boolean {
+export function containsForbiddenKeys(obj: unknown): boolean {
   if (typeof obj !== 'object' || obj === null) return false;
   for (const key of Object.keys(obj as Record<string, unknown>)) {
     if (FORBIDDEN_KEYS.has(key)) return true;

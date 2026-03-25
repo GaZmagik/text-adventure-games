@@ -1,34 +1,13 @@
 // tag CLI — Quest Command
 // Manage quests, objectives, and clues. Subcommands: complete, add-objective, add-clue, status, list.
 
-import type { CommandResult, GmState, Quest, StateHistoryEntry } from '../types';
+import type { CommandResult, GmState, Quest } from '../types';
 import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState } from '../lib/state-store';
 import { parseArgs } from '../lib/args';
-import { MAX_STATE_HISTORY } from '../lib/constants';
+import { recordHistory } from './state';
 
 const VALID_SUBCOMMANDS = ['complete', 'add-objective', 'add-clue', 'status', 'list'] as const;
-
-/** Record a mutation in the state history. */
-function recordHistory(
-  state: GmState,
-  command: string,
-  path: string,
-  oldValue: unknown,
-  newValue: unknown,
-): void {
-  const entry: StateHistoryEntry = {
-    timestamp: new Date().toISOString(),
-    command,
-    path,
-    oldValue,
-    newValue,
-  };
-  if (state._stateHistory.length >= MAX_STATE_HISTORY) {
-    state._stateHistory = state._stateHistory.slice(-(MAX_STATE_HISTORY - 1));
-  }
-  state._stateHistory.push(entry);
-}
 
 /** Find a quest by id, returning a fail result if not found. */
 function findQuest(
@@ -84,9 +63,10 @@ async function handleComplete(args: string[]): Promise<CommandResult> {
   // Two-way worldFlags binding — objective level
   state.worldFlags[`quest:${questId}:${objectiveId}:complete`] = true;
 
-  // If ALL objectives now complete, set quest-level flag too
+  // If ALL objectives now complete, set quest-level flag and mark quest completed
   const allComplete = quest.objectives.every(o => o.completed);
   if (allComplete) {
+    quest.status = 'completed';
     state.worldFlags[`quest:${questId}:complete`] = true;
   }
 

@@ -2,18 +2,18 @@ import type { CommandResult } from './types';
 import { ok } from './lib/errors';
 import { WIDGET_TYPE_NAMES } from './lib/constants';
 
-interface SubcommandHelp {
+type SubcommandHelp = {
   name: string;
   usage: string;
   description: string;
   example: string;
-}
+};
 
-interface CommandHelp {
+type CommandHelp = {
   command: string;
   description: string;
   subcommands: SubcommandHelp[];
-}
+};
 
 const COMMANDS: Record<string, CommandHelp> = {
   state: {
@@ -26,6 +26,8 @@ const COMMANDS: Record<string, CommandHelp> = {
       { name: 'validate', usage: 'tag state validate', description: 'Check game state against schema and report issues', example: 'tag state validate' },
       { name: 'reset', usage: 'tag state reset', description: 'Initialise a fresh empty game state', example: 'tag state reset' },
       { name: 'history', usage: 'tag state history [--limit <n>]', description: 'Show recent state mutations', example: 'tag state history --limit 5' },
+      { name: 'context', usage: 'tag state context', description: 'Check module context — lists required files and module digests for recovery after compaction', example: 'tag state context' },
+      { name: 'sync', usage: 'tag state sync [--apply] [--scene N] [--room id]', description: 'Post-scene verification — checks module context, quest/worldFlag consistency, level-up eligibility. MANDATORY before every scene.', example: 'tag state sync --apply --scene 5 --room bridge' },
     ],
   },
   compute: {
@@ -59,9 +61,9 @@ const COMMANDS: Record<string, CommandHelp> = {
     command: 'tag quest',
     description: 'Quest lifecycle management — complete quests, add objectives/clues, check status.',
     subcommands: [
-      { name: 'complete', usage: 'tag quest complete <quest_id>', description: 'Mark a quest as completed', example: 'tag quest complete main_quest_01' },
-      { name: 'add-objective', usage: 'tag quest add-objective <quest_id> --text <text>', description: 'Add a new objective to an active quest', example: 'tag quest add-objective main_quest_01 --text "Find the hidden base"' },
-      { name: 'add-clue', usage: 'tag quest add-clue <quest_id> --text <text>', description: 'Add a clue or journal entry to a quest', example: 'tag quest add-clue main_quest_01 --text "The base is in sector 7"' },
+      { name: 'complete', usage: 'tag quest complete <quest_id> <objective_id>', description: 'Mark a quest objective as completed', example: 'tag quest complete main_quest_01 find_base' },
+      { name: 'add-objective', usage: 'tag quest add-objective <quest_id> --id <id> --desc "text"', description: 'Add a new objective to an active quest', example: 'tag quest add-objective main_quest_01 --id find_base --desc "Find the hidden base"' },
+      { name: 'add-clue', usage: 'tag quest add-clue <quest_id> "clue text"', description: 'Add a clue or journal entry to a quest', example: 'tag quest add-clue main_quest_01 "The base is in sector 7"' },
       { name: 'status', usage: 'tag quest status <quest_id>', description: 'Show current status and objectives for a quest', example: 'tag quest status main_quest_01' },
       { name: 'list', usage: 'tag quest list', description: 'List all quests with their current status', example: 'tag quest list' },
     ],

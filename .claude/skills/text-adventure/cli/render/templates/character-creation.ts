@@ -5,20 +5,20 @@
 import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
 
-interface Archetype {
+type Archetype = {
   name: string;
   description?: string;
   stats?: Record<string, number>;
   abilities?: string[];
   hp?: number;
   ac?: number;
-}
+};
 
-interface CreationData {
+type CreationData = {
   archetypes?: Archetype[];
   proficiencies?: string[];
   defaultName?: string;
-}
+};
 
 export function renderCharacterCreation(_state: GmState | null, css: string, options?: Record<string, unknown>): string {
   const data = (options?.data ?? {}) as CreationData;

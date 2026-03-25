@@ -71,6 +71,16 @@ describe('quest complete', () => {
     const state = await loadState();
     expect(state.worldFlags['quest:q1:complete']).toBe(true);
   });
+
+  test('completing final objective sets quest.status to completed', async () => {
+    await seedQuest();
+    await handleQuest(['complete', 'q1', 'obj_a']);
+    await handleQuest(['complete', 'q1', 'obj_b']);
+
+    const state = await loadState();
+    const quest = state.quests.find(q => q.id === 'q1')!;
+    expect(quest.status).toBe('completed');
+  });
 });
 
 // ── add-objective ──────────────────────────────────────────────────
@@ -177,6 +187,40 @@ describe('quest list', () => {
 
     const q2 = data.find(q => q.id === 'q2')!;
     expect(q2.percentage).toBe(100);
+  });
+});
+
+// ── no-state error paths ──────────────────────────────────────────
+
+describe('quest no-state errors', () => {
+  test('complete without state returns noState error', async () => {
+    const result = await handleQuest(['complete', 'q1', 'obj_a']);
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toMatch(/no game state/i);
+  });
+
+  test('add-objective without state returns noState error', async () => {
+    const result = await handleQuest(['add-objective', 'q1', '--id', 'obj_x', '--desc', 'Test']);
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toMatch(/no game state/i);
+  });
+
+  test('add-clue without state returns noState error', async () => {
+    const result = await handleQuest(['add-clue', 'q1', 'Some clue']);
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toMatch(/no game state/i);
+  });
+
+  test('status without state returns noState error', async () => {
+    const result = await handleQuest(['status', 'q1']);
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toMatch(/no game state/i);
+  });
+
+  test('list without state returns noState error', async () => {
+    const result = await handleQuest(['list']);
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toMatch(/no game state/i);
   });
 });
 

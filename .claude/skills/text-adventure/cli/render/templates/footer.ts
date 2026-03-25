@@ -19,9 +19,9 @@ const SAVE_PROMPT = 'Generate my save file as a downloadable .save.md file follo
 const EXPORT_PROMPT = 'Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format.';
 
 export function renderFooter(state: GmState | null, css: string, _options?: Record<string, unknown>): string {
-  const modules = state?.modulesActive ?? [];
-  const hasExport = modules.includes('adventure-exporting');
-  const hasAudio = modules.includes('audio');
+  const moduleSet = new Set(state?.modulesActive ?? []);
+  const hasExport = moduleSet.has('adventure-exporting');
+  const hasAudio = moduleSet.has('audio');
 
   // Character button is always present
   const leftButtons: string[] = [
@@ -30,7 +30,7 @@ export function renderFooter(state: GmState | null, css: string, _options?: Reco
 
   // Add module-specific buttons
   for (const mapping of MODULE_BUTTONS) {
-    if (modules.includes(mapping.module)) {
+    if (moduleSet.has(mapping.module)) {
       leftButtons.push(
         `<button class="footer-btn" data-panel="${mapping.panel}" aria-expanded="false">${mapping.label}</button>`,
       );

@@ -4,7 +4,7 @@
 import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
 
-interface Scenario {
+type Scenario = {
   title: string;
   description?: string;
   hook?: string;           // Alias for description (scenarios module uses 'hook')
@@ -14,7 +14,7 @@ interface Scenario {
   players?: string;
   tags?: string[];
   modules?: string;
-}
+};
 
 export function renderScenarioSelect(_state: GmState | null, css: string, options?: Record<string, unknown>): string {
   const data = (options?.data ?? {}) as { scenarios?: Scenario[] };

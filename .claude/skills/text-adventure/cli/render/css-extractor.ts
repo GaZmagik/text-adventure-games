@@ -4,6 +4,35 @@
 // This prevents documentation CSS examples from being duplicated alongside
 // the Complete CSS Block that already contains everything.
 
+// ── CSS sanitisation — single-pass combined regex + replacer ─────────
+
+const CSS_SANITISE_RE = new RegExp(
+  [
+    '<\\/style',                                                    // </style breakout
+    '@import\\s+(?:url\\s*\\([^)]*\\)|"[^"]*"|\'[^\']*\')\\s*;?', // @import directives
+    'url\\s*\\(\\s*([\'"]?)\\w+:',                                 // url(proto:…)
+    'url\\s*\\(\\s*([\'"]?)//',                                    // url(//…)
+    'expression\\s*\\(',                                            // IE expression()
+    '-moz-binding\\s*:',                                            // -moz-binding
+  ].join('|'),
+  'gi',
+);
+
+function cssReplacer(match: string): string {
+  const lower = match.toLowerCase();
+  if (lower.startsWith('</style'))       return '<\\/style';
+  if (lower.startsWith('@import'))       return '/* @import stripped */';
+  if (lower.startsWith('expression'))    return '/* expression blocked */(';
+  if (lower.startsWith('-moz-binding'))  return '/* binding blocked */:';
+  // url() variants — preserve the opening quote character from the match
+  if (lower.startsWith('url')) {
+    const quoteMatch = match.match(/url\s*\(\s*(['"]?)/i);
+    const quote = quoteMatch?.[1] ?? '';
+    return match.includes('//') ? `url(${quote}/*blocked*/` : `url(${quote}/*blocked*/:`;
+  }
+  return match;
+}
+
 // Cache is process-scoped — fine for single CLI invocations. Does not invalidate on file change.
 const cssCache = new Map<string, string>();
 
@@ -29,14 +58,8 @@ export async function extractAllCss(filePath: string): Promise<string> {
 
     // Prefer marked blocks — avoids duplicating documentation examples
     const result = (markedBlocks.length > 0 ? markedBlocks : allBlocks).join('\n\n');
-    // Sanitise CSS: strip </style sequences, @import directives, and external url() references
-    const sanitised = result
-      .replace(/<\/style/gi, '<\\/style')
-      .replace(/@import\s+(?:url\s*\([^)]*\)|"[^"]*"|'[^']*')\s*;?/gi, '/* @import stripped */')
-      .replace(/url\s*\(\s*(['"]?)\w+:/gi, 'url($1/*blocked*/:')
-      .replace(/url\s*\(\s*(['"]?)\/\//gi, 'url($1/*blocked*/')
-      .replace(/expression\s*\(/gi, '/* expression blocked */(')
-      .replace(/-moz-binding\s*:/gi, '/* binding blocked */:');
+    // Sanitise CSS: single-pass replacement for </style, @import, external url(), expression(), -moz-binding
+    const sanitised = result.replace(CSS_SANITISE_RE, cssReplacer);
     // Only cache non-empty results — avoids masking files that gain CSS later
     if (sanitised) cssCache.set(filePath, sanitised);
     return sanitised;

@@ -92,15 +92,7 @@ function setByPath(obj: Record<string, unknown>, path: string, value: unknown): 
   return oldValue;
 }
 
-/** Recursively check for forbidden keys in a parsed JSON value. */
-function containsForbiddenKeys(obj: unknown): boolean {
-  if (typeof obj !== 'object' || obj === null) return false;
-  for (const key of Object.keys(obj as Record<string, unknown>)) {
-    if (FORBIDDEN_KEYS.has(key)) return true;
-    if (containsForbiddenKeys((obj as Record<string, unknown>)[key])) return true;
-  }
-  return false;
-}
+import { containsForbiddenKeys } from './save';
 
 /** Coerce a string value to the appropriate JS type.
  *  Note: numeric strings like "42" are coerced to numbers. To store a string
@@ -126,7 +118,7 @@ function coerceValue(raw: string): unknown {
 }
 
 /** Record a mutation in the state history. */
-function recordHistory(
+export function recordHistory(
   state: GmState,
   command: string,
   path: string,

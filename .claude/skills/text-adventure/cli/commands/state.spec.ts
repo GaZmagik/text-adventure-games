@@ -762,6 +762,42 @@ describe('state sync', () => {
     expect(warnings.some(w => w.includes('npc_ghost_appeared') && w.includes('ghost'))).toBe(true);
   });
 
+  test('sync --room changes currentRoom in diff', async () => {
+    await handleState(['reset']);
+    await handleState(['set', 'scene', '3']);
+
+    const result = await handleState(['sync', '--room', 'engine-room']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const diff = data.diff as Record<string, { from: unknown; to: unknown }>;
+    expect(diff.currentRoom).toBeDefined();
+    expect(diff.currentRoom!.to).toBe('engine-room');
+  });
+
+  test('sync --time updates time in diff', async () => {
+    await handleState(['reset']);
+    const timeJson = JSON.stringify({ period: 'evening', hour: 20 });
+
+    const result = await handleState(['sync', '--time', timeJson]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const diff = data.diff as Record<string, { from: unknown; to: unknown }>;
+    expect(diff.time).toBeDefined();
+    const timeTo = diff.time!.to as Record<string, unknown>;
+    expect(timeTo.period).toBe('evening');
+    expect(timeTo.hour).toBe(20);
+  });
+
+  test('sync --time with invalid JSON produces warning', async () => {
+    await handleState(['reset']);
+
+    const result = await handleState(['sync', '--time', '{not valid json']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const warnings = data.warnings as string[];
+    expect(warnings.some(w => w.includes('invalid JSON'))).toBe(true);
+  });
+
   test('returns featureChecklist based on active modules', async () => {
     await handleState(['reset']);
     await handleState(['set', 'modulesActive', JSON.stringify(['prose-craft', 'audio'])]);

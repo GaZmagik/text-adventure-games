@@ -5,6 +5,19 @@ import { tryLoadState } from '../lib/state-store';
 import { extractAllCss } from '../render/css-extractor';
 import { parseArgs } from '../lib/args';
 import { MODULE_DIGESTS } from '../data/module-digests';
+import { FORBIDDEN_KEYS } from '../lib/constants';
+
+// ── Security helpers ─────────────────────────────────────────────────
+
+/** Recursively check for forbidden keys (__proto__, constructor, prototype) in parsed JSON. */
+function containsForbiddenKeys(obj: unknown): boolean {
+  if (typeof obj !== 'object' || obj === null) return false;
+  for (const key of Object.keys(obj as Record<string, unknown>)) {
+    if (FORBIDDEN_KEYS.has(key)) return true;
+    if (containsForbiddenKeys((obj as Record<string, unknown>)[key])) return true;
+  }
+  return false;
+}
 
 // ── Phase 5: Module checklist helpers ───────────────────────────────
 
@@ -13,11 +26,10 @@ const PROSE_CRAFT_PATH = 'modules/prose-craft.md';
 /** Map active module names to their file paths, always including prose-craft. */
 export function buildModulesRequired(state: GmState | null): string[] {
   const active = state?.modulesActive ?? [];
-  const paths = active.map(m => `modules/${m}.md`);
-  if (!paths.includes(PROSE_CRAFT_PATH)) {
-    paths.unshift(PROSE_CRAFT_PATH);
-  }
-  return paths;
+  const hasProseCraft = active.includes('prose-craft');
+  return hasProseCraft
+    ? active.map(m => `modules/${m}.md`)
+    : [PROSE_CRAFT_PATH, ...active.map(m => `modules/${m}.md`)];
 }
 
 /** Feature checklist items that the GM must honour per active module. */
@@ -52,7 +64,7 @@ const SCENE_WIDGET = 'scene';
 
 /** Build the list of DOM elements that MUST be present in the rendered output. */
 export function buildRequiredElements(widgetType: string, state: GmState | null): string[] {
-  const modules = state?.modulesActive ?? [];
+  const moduleSet = new Set(state?.modulesActive ?? []);
   const elements: string[] = [];
 
   // Always required
@@ -63,11 +75,11 @@ export function buildRequiredElements(widgetType: string, state: GmState | null)
     elements.push("<div class='action-cards'> with 3-4 player choices");
   }
 
-  if (modules.includes('atmosphere')) {
+  if (moduleSet.has('atmosphere')) {
     elements.push("<div class='scene-atmosphere'> with 3-5 sensory pills");
   }
 
-  if (modules.includes('audio')) {
+  if (moduleSet.has('audio')) {
     elements.push("<button class='scene-audio-toggle'> play/stop in footer");
   }
 
@@ -78,9 +90,9 @@ export function buildRequiredElements(widgetType: string, state: GmState | null)
 export function buildSkeleton(widgetType: string, state: GmState | null): string | null {
   if (widgetType !== SCENE_WIDGET) return null;
 
-  const modules = state?.modulesActive ?? [];
-  const hasAtmosphere = modules.includes('atmosphere');
-  const hasAudio = modules.includes('audio');
+  const moduleSet = new Set(state?.modulesActive ?? []);
+  const hasAtmosphere = moduleSet.has('atmosphere');
+  const hasAudio = moduleSet.has('audio');
 
   const parts: string[] = [];
   parts.push('<div class="scene-container">');
@@ -188,6 +200,9 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   let data: Record<string, unknown> | null = null;
   if (parsed.flags.data) {
     try { data = JSON.parse(parsed.flags.data); } catch { data = null; }
+    if (data && containsForbiddenKeys(data)) {
+      return fail('Data contains forbidden keys (__proto__, constructor, prototype).', 'Remove prohibited keys from --data JSON.', 'render');
+    }
   }
 
   // Validate widget type

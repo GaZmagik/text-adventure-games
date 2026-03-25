@@ -150,12 +150,12 @@ export type DieType = 'd2' | 'd4' | 'd6' | 'd8' | 'd10' | 'd12' | 'd20' | 'd100'
 
 export type ContestedRollResult = {
   type: 'contested_roll';
-  stat: string;
+  stat: StatName;
   roll: number;
   modifier: number;
   total: number;
   margin: number;
-  outcome: string;
+  outcome: RollOutcome;
   npcId: string;
   npcModifier: number;
   dc?: number;
@@ -165,12 +165,12 @@ export type ContestedRollResult = {
 
 export type HazardSaveResult = {
   type: 'hazard_save';
-  stat: string;
+  stat: StatName;
   roll: number;
   modifier: number;
   total: number;
   dc: number;
-  outcome: string;
+  outcome: RollOutcome;
   margin?: number;
   npcId?: string;
   npcModifier?: number;
@@ -181,11 +181,11 @@ export type HazardSaveResult = {
 export type EncounterRollResult = {
   type: 'encounter_roll';
   roll: number;
-  stat?: string;
+  stat?: StatName;
   modifier?: number;
   total?: number;
   dc?: number;
-  outcome?: string;
+  outcome?: RollOutcome;
   margin?: number;
   npcId?: string;
   npcModifier?: number;
