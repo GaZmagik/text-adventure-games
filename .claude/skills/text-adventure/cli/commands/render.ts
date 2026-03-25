@@ -234,8 +234,10 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     );
   }
 
-  // Resolve style name: --style flag > state.visualStyle > error
-  const resolvedStyle = styleName ?? state?.visualStyle ?? null;
+  // Resolve style name: --style flag > state.visualStyle > default for pre-config widgets > error
+  const PRE_CONFIG_WIDGETS = new Set(['settings', 'scenario-select']);
+  const resolvedStyle = styleName ?? state?.visualStyle
+    ?? (PRE_CONFIG_WIDGETS.has(widgetType) ? 'station' : null);
 
   if (!resolvedStyle) {
     return styleNotSet();
