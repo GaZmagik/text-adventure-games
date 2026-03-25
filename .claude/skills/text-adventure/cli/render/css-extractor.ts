@@ -53,7 +53,7 @@ export async function extractAllCss(filePath: string, scopes?: readonly string[]
       const block = match[1]!.trim();
       allBlocks.push(block);
 
-      const scopeMatch = block.match(/^\/\* @extract(?::(\w+))? \*\//);
+      const scopeMatch = block.match(/^\/\* @extract(?::([\w-]+))? \*\//);
       if (scopeMatch) {
         const scope = scopeMatch[1] ?? null; // null = unlabelled
         // When scopes filter is active: include unlabelled, 'shared', or matching scopes

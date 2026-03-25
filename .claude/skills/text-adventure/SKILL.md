@@ -64,11 +64,12 @@ Uploaded files land in `/mnt/user-data/uploads/`. The load command reads the fil
 | Command | Purpose | Example |
 |---------|---------|---------|
 | `tag state` | Game state CRUD + NPC creation | `tag state create-npc guard_01 --tier rival --name "Guard" --pronouns he/him --role guard` |
-| `tag compute` | Hidden rolls: `contest`, `hazard`, `encounter` | `tag compute contest CHA merchant_01` |
+| `tag compute` | Hidden rolls: `contest`, `hazard`, `encounter`, `levelup` | `tag compute contest CHA merchant_01` |
 | `tag render` | Deterministic HTML widgets | `tag render scene --style terminal` |
 | `tag save` | Generate/load/validate saves | `tag save generate` |
 | `tag batch` | Multiple commands in one call | See worked example below |
 | `tag rules` | Quick-reference rule cheat sheet | `tag rules output` |
+| `tag quest` | Quest lifecycle: `complete`, `add-objective`, `add-clue`, `status`, `list` | `tag quest complete main_quest_01 find_base` |
 
 ### Widget Render Inventory
 
@@ -242,6 +243,8 @@ styles/
 ```
 
 > **POST-COMPACTION RECOVERY:** If you cannot see the full contents of any module file listed in `modulesActive`, run `tag state context` and re-read every file in the `required` output. The `moduleDigest` field shows what each module requires — if your last widget is missing any of these features, you have lost context and MUST re-read.
+>
+> **Compaction detection:** Check if `/mnt/transcripts/journal.txt` exists. If it does, the conversation has been compacted. Read the journal for a summary of what was discussed pre-compaction. The transcript files contain the full pre-compaction conversation in structured JSON — use `head -200 /mnt/transcripts/<filename>.txt` to read specific sections for narrative recovery.
 
 ---
 

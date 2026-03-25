@@ -5,6 +5,9 @@
 .claude/memory/
 .claude/agent-memory/
 
+# Node modules (dev-only type definitions — Bun installs via setup.sh)
+node_modules/
+
 # Cache and temporary files
 *.cache
 .cache/

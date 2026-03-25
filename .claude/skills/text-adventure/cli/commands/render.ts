@@ -190,6 +190,9 @@ export const WIDGET_TYPE_NAMES = Object.keys(TEMPLATES);
 /** Pre-game widgets that accept --data instead of reading state */
 const PRE_GAME_WIDGETS = new Set(['settings', 'scenario-select', 'character-creation']);
 
+/** Pre-config widgets that fall back to 'station' style when no style is set */
+const PRE_CONFIG_WIDGETS = new Set(['settings', 'scenario-select', 'character-creation']);
+
 /** Per-widget CSS scope labels — controls which @extract:label blocks from style-reference.md are included. */
 const WIDGET_CSS_SCOPES: Record<string, readonly string[]> = {
   scene:                ['shared', 'scene', 'atmosphere'],
@@ -257,7 +260,6 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   }
 
   // Resolve style name: --style flag > state.visualStyle > default for pre-config widgets > error
-  const PRE_CONFIG_WIDGETS = new Set(['settings', 'scenario-select']);
   const resolvedStyle = styleName ?? state?.visualStyle
     ?? (PRE_CONFIG_WIDGETS.has(widgetType) ? 'station' : null);
 
@@ -274,6 +276,13 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   const styleFilePath = join(import.meta.dir, '../../styles/', resolvedStyle + '.md');
   const styleRefPath = join(import.meta.dir, '../../styles/style-reference.md');
   const scopes = WIDGET_CSS_SCOPES[widgetType];
+  if (!scopes) {
+    return fail(
+      `Widget type "${widgetType}" has no CSS scope mapping in WIDGET_CSS_SCOPES.`,
+      'Add a WIDGET_CSS_SCOPES entry for this widget type before rendering.',
+      'render',
+    );
+  }
   const [styleCss, refCss] = await Promise.all([
     extractAllCss(styleFilePath),          // visual style: always full
     extractAllCss(styleRefPath, scopes),   // style-reference: scoped

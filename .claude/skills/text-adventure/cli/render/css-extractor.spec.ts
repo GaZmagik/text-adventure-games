@@ -230,6 +230,21 @@ describe('extractAllCss — scoped extraction', () => {
     const css = await extractAllCss(file, ['dice']);
     expect(css).toContain('.unlabelled-class');
   });
+
+  test('cache isolates scoped and unscoped calls on same path', async () => {
+    const file = makeScopedFile();
+    // Unscoped call — should return all blocks
+    const unscoped = await extractAllCss(file);
+    // Scoped call — should only return matching + shared + unlabelled blocks
+    const scoped = await extractAllCss(file, ['dice']);
+    expect(unscoped).toContain('.atmo-class');
+    expect(scoped).not.toContain('.atmo-class');
+    // Both must contain shared and unlabelled
+    expect(unscoped).toContain('.shared-class');
+    expect(scoped).toContain('.shared-class');
+    expect(unscoped).toContain('.unlabelled-class');
+    expect(scoped).toContain('.unlabelled-class');
+  });
 });
 
 // ── T2-S1: Extended URI scheme blocking ─────────────────────────────

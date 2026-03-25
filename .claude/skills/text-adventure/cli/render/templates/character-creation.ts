@@ -3,7 +3,7 @@
 // Confirm fires sendPrompt.
 //
 // Archetype fields (canonical → alias):
-//   description | flavor   — archetype flavour text
+//   description | flavour  — archetype flavour text
 //   stats | baseStats      — Record<StatName, number> for stat display
 //   abilities | equipment  — string[] of gear/ability names
 //   fixedProficiencies     — string[] of archetype-granted proficiencies
@@ -16,7 +16,7 @@ import { esc } from '../../lib/html';
 type Archetype = {
   name: string;
   description?: string;
-  flavor?: string;          // alias for description
+  flavour?: string;         // alias for description
   stats?: Record<string, number>;
   baseStats?: Record<string, number>; // alias for stats
   abilities?: string[];
@@ -41,7 +41,7 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
   const defaultName = data.defaultName ?? '';
 
   const archetypeCards = archetypes.map((arch, i) => {
-    const desc = arch.description ?? arch.flavor ?? '';
+    const desc = arch.description ?? arch.flavour ?? '';
     const statMap = arch.stats ?? arch.baseStats;
     const stats = statMap
       ? Object.entries(statMap).map(([k, v]) => `<span class="arch-stat">${esc(k)} ${Number(v) || 0}</span>`).join(' ')
