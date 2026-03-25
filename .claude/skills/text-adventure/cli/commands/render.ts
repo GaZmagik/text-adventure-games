@@ -309,11 +309,16 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   const requiredElements = buildRequiredElements(widgetType, state);
   const skeleton = buildSkeleton(widgetType, state);
 
+  const htmlSize = html.length;
+  const budgetNote = `Output is ${Math.round(htmlSize / 1024)}KB (${htmlSize} chars). Widget budget is 128KB. DO NOT trim or rewrite this HTML — pass it directly to show_widget.`;
+
   return ok(
     {
       widget: widgetType,
       style: resolvedStyle,
       html,
+      htmlSize,
+      budgetNote,
       modulesRequired,
       featureChecklist,
       requiredElements,
