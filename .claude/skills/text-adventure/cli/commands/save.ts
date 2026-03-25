@@ -203,7 +203,7 @@ async function load(args: string[]): Promise<CommandResult> {
     mode: decoded.mode,
     scene: state.scene,
     characterName: state.character?.name ?? null,
-    ...(validation.valid ? {} : { warnings: validation.errors }),
+    ...(validation.warnings.length > 0 ? { warnings: validation.warnings } : {}),
   }, 'save load');
 }
 

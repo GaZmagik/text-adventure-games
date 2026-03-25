@@ -209,6 +209,8 @@ async function levelup(): Promise<CommandResult> {
   state.character.level = newLevel;
   state.character.maxHp += hpGain;
   state.character.hp += hpGain;
+  // Proficiency bonus increases at levels 5 and 9 (d20 system)
+  state.character.proficiencyBonus = newLevel >= 9 ? 4 : newLevel >= 5 ? 3 : 2;
 
   const computation: LevelupResult = { type: 'levelup_result', previousLevel: level, newLevel, hpGain, improvement };
   state._lastComputation = computation;
