@@ -91,9 +91,16 @@ export function renderRecap(state: GmState | null, css: string, _options?: Recor
     <div class="recap-label">Recent Rolls</div>
     ${recentRolls.map(r => {
       const outcomeClass = SUCCESS_OUTCOMES.has(r.outcome) ? 'roll-outcome-success' : 'roll-outcome-failure';
+      const isEncounter = r.type === 'encounter_roll';
+      const label = isEncounter
+        ? `<span class="roll-stat">Encounter</span>`
+        : `<span class="roll-stat">${esc(r.stat ?? '')}</span> ${esc(r.type)}`;
+      const breakdown = isEncounter
+        ? `Roll: ${Number(r.roll) || 0} \u2192 <span class="${outcomeClass}">${esc(r.outcome)}</span>`
+        : `${Number(r.roll) || 0}+${Number(r.modifier) || 0}=${Number(r.total) || 0} vs DC ${Number(r.dc) || 0} <span class="${outcomeClass}">${esc(r.outcome)}</span>`;
       return `<div class="roll-item">
-        <span><span class="roll-stat">${esc(r.stat)}</span> ${esc(r.type)}</span>
-        <span>${Number(r.roll) || 0}+${Number(r.modifier) || 0}=${Number(r.total) || 0} vs DC ${Number(r.dc) || 0} <span class="${outcomeClass}">${esc(r.outcome)}</span></span>
+        <span>${label}</span>
+        <span>${breakdown}</span>
       </div>`;
     }).join('\n')}
   </div>` : ''}

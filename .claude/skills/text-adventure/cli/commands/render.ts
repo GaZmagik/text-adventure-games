@@ -4,24 +4,7 @@ import { ok, fail, styleNotSet } from '../lib/errors';
 import { tryLoadState } from '../lib/state-store';
 import { extractAllCss } from '../render/css-extractor';
 import { parseArgs } from '../lib/args';
-
-// ── Module digest placeholder ───────────────────────────────────────
-// If data/module-digests.ts exists, import MODULE_DIGESTS from there.
-// Until that file lands, use this inline map for the most critical modules.
-
-let MODULE_DIGESTS: Record<string, string>;
-try {
-  // Dynamic import so we don't hard-fail if the file hasn't been created yet
-  const mod = await import('../data/module-digests');
-  MODULE_DIGESTS = mod.MODULE_DIGESTS;
-} catch {
-  MODULE_DIGESTS = {
-    'audio': 'Web Audio soundscape engine with procedural ambient layers and play/stop toggle',
-    'atmosphere': 'Sensory atmosphere strip with 3-5 pills describing sight, sound, smell, touch, taste',
-    'prose-craft': 'Prose quality rules — sentence variance, concrete verbs, no cliché, show-don\'t-tell',
-    'core-systems': 'HP/XP/AC tracking, quest log, inventory management, level-up triggers',
-  };
-}
+import { MODULE_DIGESTS } from '../data/module-digests';
 
 // ── Phase 5: Module checklist helpers ───────────────────────────────
 
@@ -274,6 +257,11 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   // Render the template
   const html = templateFn(state, css, options);
 
+  // Return raw HTML early — skip checklist/skeleton computation
+  if (raw) {
+    return ok(html, 'render');
+  }
+
   // Phase 5: module checklist
   const modulesRequired = buildModulesRequired(state);
   const featureChecklist = buildFeatureChecklist(state);
@@ -281,11 +269,6 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   // Phase 11: required elements and skeleton
   const requiredElements = buildRequiredElements(widgetType, state);
   const skeleton = buildSkeleton(widgetType, state);
-
-  // Return raw HTML or JSON-wrapped
-  if (raw) {
-    return ok(html, 'render');
-  }
 
   return ok(
     {

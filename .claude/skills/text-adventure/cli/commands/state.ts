@@ -10,6 +10,7 @@ import { VALID_TIERS, VALID_PRONOUNS, MAX_STATE_HISTORY, FORBIDDEN_KEYS, VALID_T
 import { parseArgs } from '../lib/args';
 import { MODULE_DIGESTS } from '../data/module-digests';
 import { XP_THRESHOLDS } from '../data/xp-tables';
+import { buildFeatureChecklist } from './render';
 
 const VALID_SUBCOMMANDS = ['get', 'set', 'create-npc', 'validate', 'reset', 'history', 'context', 'sync'] as const;
 
@@ -338,7 +339,7 @@ async function handleContext(): Promise<CommandResult> {
   const tier1 = TIER1_MODULES.slice();
   const activeSet = new Set(active);
   const missingTier1 = tier1.filter(m => !activeSet.has(m));
-  const missing_hint = missingTier1.length > 0
+  const missingHint = missingTier1.length > 0
     ? `Missing tier 1 modules: ${missingTier1.join(', ')}. These should be loaded before first widget render.`
     : '';
 
@@ -352,9 +353,9 @@ async function handleContext(): Promise<CommandResult> {
   return ok({
     required,
     tier1: [...tier1],
-    missing_hint,
+    missingHint,
     moduleDigests,
-    total_modules: active.length,
+    totalModules: active.length,
     modulesActive: active,
   }, 'state context');
 }
@@ -383,8 +384,20 @@ async function handleSync(args: string[]): Promise<CommandResult> {
   const warnings: string[] = [];
   const errors: string[] = [];
 
-  // 1. Scene should increment
-  const nextScene = flags.scene ? Number(flags.scene) : state.scene + 1;
+  // 1. Scene should increment (default +1 when --scene not provided)
+  let nextScene: number;
+  if (flags.scene) {
+    nextScene = Number(flags.scene);
+    if (!Number.isFinite(nextScene) || nextScene < 0) {
+      return fail(
+        `Invalid --scene value "${flags.scene}": must be a finite non-negative number.`,
+        'Provide an integer scene number, e.g. --scene 5',
+        'state sync',
+      );
+    }
+  } else {
+    nextScene = state.scene + 1;
+  }
   if (nextScene !== state.scene) {
     diff.scene = { from: state.scene, to: nextScene };
   }
@@ -394,11 +407,32 @@ async function handleSync(args: string[]): Promise<CommandResult> {
     diff.currentRoom = { from: state.currentRoom, to: flags.room };
   }
 
-  // 3. Time might advance
+  // 3. Time might advance — parse once and reuse in the apply block
+  let parsedTime: Record<string, unknown> | null = null;
   if (flags.time) {
     try {
-      const newTime: unknown = JSON.parse(flags.time);
-      diff.time = { from: state.time, to: newTime };
+      const raw: unknown = JSON.parse(flags.time);
+      if (typeof raw !== 'object' || raw === null) {
+        warnings.push('--time flag must be a JSON object.');
+      } else if (containsForbiddenKeys(raw)) {
+        warnings.push('--time flag contains forbidden keys (__proto__, constructor, prototype).');
+      } else {
+        // Whitelist to known TimeState keys only
+        const VALID_TIME_KEYS = new Set<string>([
+          'period', 'date', 'elapsed', 'hour',
+          'playerKnowsDate', 'playerKnowsTime', 'calendarSystem', 'deadline',
+        ]);
+        const filtered: Record<string, unknown> = {};
+        for (const key of Object.keys(raw as Record<string, unknown>)) {
+          if (VALID_TIME_KEYS.has(key)) {
+            filtered[key] = (raw as Record<string, unknown>)[key];
+          } else {
+            warnings.push(`--time key "${key}" is not a valid TimeState field; ignored.`);
+          }
+        }
+        parsedTime = filtered;
+        diff.time = { from: state.time, to: filtered };
+      }
     } catch {
       warnings.push('--time flag contains invalid JSON.');
     }
@@ -417,15 +451,17 @@ async function handleSync(args: string[]): Promise<CommandResult> {
 
   // 5. Module verification — missing Tier 1 modules
   const active: string[] = state.modulesActive ?? [];
-  const missingTier1 = TIER1_MODULES.filter(m => !active.includes(m));
+  const activeSet = new Set(active);
+  const missingTier1 = TIER1_MODULES.filter(m => !activeSet.has(m));
   if (missingTier1.length > 0) {
     warnings.push(
       `Missing Tier 1 modules: ${missingTier1.join(', ')}. Re-read these files.`,
     );
   }
 
-  // 6. Quest/worldFlag cross-validation (canonical format)
+  // 6. Quest/worldFlag cross-validation (canonical format) — single pass per quest
   for (const quest of state.quests) {
+    let allComplete = quest.objectives.length > 0;
     for (const obj of quest.objectives) {
       const canonicalKey = `quest:${quest.id}:${obj.id}:complete`;
       const flagSet = state.worldFlags[canonicalKey] === true;
@@ -441,11 +477,10 @@ async function handleSync(args: string[]): Promise<CommandResult> {
           + `"${quest.id}/${obj.id}" is not marked complete.`,
         );
       }
+      if (!obj.completed) allComplete = false;
     }
-    const allComplete = quest.objectives.every(o => o.completed);
     const questFlag = `quest:${quest.id}:complete`;
-    if (allComplete && quest.objectives.length > 0
-        && state.worldFlags[questFlag] !== true) {
+    if (allComplete && state.worldFlags[questFlag] !== true) {
       warnings.push(
         `All objectives of quest "${quest.id}" are complete but worldFlag `
         + `"${questFlag}" is not set.`,
@@ -466,7 +501,8 @@ async function handleSync(args: string[]): Promise<CommandResult> {
   }
 
   // 8. NPC creation gaps — worldFlag NPC references without roster entries
-  const npcIds = new Set(state.rosterMutations.map(n => n.id));
+  const npcIds = new Set<string>();
+  for (const n of state.rosterMutations) npcIds.add(n.id);
   const npcPattern = /^npc_([a-z0-9_]+)_/;
   for (const key of Object.keys(state.worldFlags)) {
     const match = npcPattern.exec(key);
@@ -481,14 +517,8 @@ async function handleSync(args: string[]): Promise<CommandResult> {
     }
   }
 
-  // 9. Feature checklist from module digests
-  const featureChecklist: string[] = [];
-  for (const mod of active) {
-    const digest = MODULE_DIGESTS[mod];
-    if (digest) {
-      featureChecklist.push(`${mod} ON \u2192 ${digest}`);
-    }
-  }
+  // 9. Feature checklist — delegate to render.ts buildFeatureChecklist
+  const featureChecklist = buildFeatureChecklist(state);
 
   const status = errors.length > 0
     ? 'errors'
@@ -505,14 +535,20 @@ async function handleSync(args: string[]): Promise<CommandResult> {
     }
     if (diff.scene) state.scene = nextScene;
     if (diff.currentRoom && flags.room) state.currentRoom = flags.room;
-    if (diff.time && flags.time) {
-      try {
-        const parsed2: unknown = JSON.parse(flags.time);
-        if (typeof parsed2 === 'object' && parsed2 !== null) {
-          Object.assign(state.time, parsed2);
-        }
-      } catch { /* already warned */ }
+    if (parsedTime) {
+      Object.assign(state.time, parsedTime);
     }
+
+    // Validate state integrity before persisting — mirror state set behaviour
+    const validation = validateState(state);
+    if (!validation.valid) {
+      return fail(
+        `Sync would produce invalid state: ${validation.errors.join('; ')}`,
+        'Fix the sync flags so the resulting state is structurally valid.',
+        'state sync',
+      );
+    }
+
     recordHistory(state, 'state sync', 'sync', null, diff);
     await saveState(state);
   }

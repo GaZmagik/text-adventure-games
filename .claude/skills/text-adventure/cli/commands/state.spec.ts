@@ -487,9 +487,9 @@ describe('state context', () => {
     const result = await handleState(['context']);
     expect(result.ok).toBe(true);
     const data = result.data as Record<string, unknown>;
-    expect(data.missing_hint).toBeDefined();
-    expect(typeof data.missing_hint).toBe('string');
-    expect((data.missing_hint as string).length).toBeGreaterThan(0);
+    expect(data.missingHint).toBeDefined();
+    expect(typeof data.missingHint).toBe('string');
+    expect((data.missingHint as string).length).toBeGreaterThan(0);
   });
 
   test('includes module digests', async () => {
@@ -515,19 +515,19 @@ describe('state context', () => {
     const result = await handleState(['context']);
     expect(result.ok).toBe(true);
     const data = result.data as Record<string, unknown>;
-    expect(data.total_modules).toBe(0);
+    expect(data.totalModules).toBe(0);
     expect((data.required as string[]).length).toBe(0);
     // All tier1 should be flagged missing
-    expect((data.missing_hint as string).length).toBeGreaterThan(0);
+    expect((data.missingHint as string).length).toBeGreaterThan(0);
   });
 
-  test('reports total_modules matching modulesActive length', async () => {
+  test('reports totalModules matching modulesActive length', async () => {
     await handleState(['reset']);
     await handleState(['set', 'modulesActive', '["audio","atmosphere","bestiary"]']);
     const result = await handleState(['context']);
     expect(result.ok).toBe(true);
     const data = result.data as Record<string, unknown>;
-    expect(data.total_modules).toBe(3);
+    expect(data.totalModules).toBe(3);
     expect(data.modulesActive).toEqual(['audio', 'atmosphere', 'bestiary']);
   });
 });

@@ -35,6 +35,7 @@ const COMMANDS: Record<string, CommandHelp> = {
       { name: 'contest', usage: 'tag compute contest <ATTR> <npc_id>', description: 'Hidden contested roll — reads NPC modifier from state, rolls d20, computes margin', example: 'tag compute contest CHA merchant_01' },
       { name: 'hazard', usage: 'tag compute hazard <type> --dc <N>', description: 'Environmental hazard save roll', example: 'tag compute hazard radiation --dc 14' },
       { name: 'encounter', usage: 'tag compute encounter --escalation <N>', description: 'Random encounter roll against encounter table', example: 'tag compute encounter --escalation 2' },
+      { name: 'levelup', usage: 'tag compute levelup', description: 'Check XP threshold and level up character if eligible', example: 'tag compute levelup' },
     ],
   },
   render: {
@@ -52,6 +53,17 @@ const COMMANDS: Record<string, CommandHelp> = {
       { name: 'load', usage: 'tag save load <file.save.md>', description: 'Load a save from a .save.md file path — ALWAYS use a file path, never pass the raw save string as an argument', example: 'tag save load /mnt/user-data/uploads/game.save.md' },
       { name: 'validate', usage: 'tag save validate <string|file>', description: 'Check save integrity without loading', example: 'tag save validate game.save.md' },
       { name: 'migrate', usage: 'tag save migrate <string|file>', description: 'Forward-migrate an older save to current format', example: 'tag save migrate old-game.save.md' },
+    ],
+  },
+  quest: {
+    command: 'tag quest',
+    description: 'Quest lifecycle management — complete quests, add objectives/clues, check status.',
+    subcommands: [
+      { name: 'complete', usage: 'tag quest complete <quest_id>', description: 'Mark a quest as completed', example: 'tag quest complete main_quest_01' },
+      { name: 'add-objective', usage: 'tag quest add-objective <quest_id> --text <text>', description: 'Add a new objective to an active quest', example: 'tag quest add-objective main_quest_01 --text "Find the hidden base"' },
+      { name: 'add-clue', usage: 'tag quest add-clue <quest_id> --text <text>', description: 'Add a clue or journal entry to a quest', example: 'tag quest add-clue main_quest_01 --text "The base is in sector 7"' },
+      { name: 'status', usage: 'tag quest status <quest_id>', description: 'Show current status and objectives for a quest', example: 'tag quest status main_quest_01' },
+      { name: 'list', usage: 'tag quest list', description: 'List all quests with their current status', example: 'tag quest list' },
     ],
   },
   batch: {

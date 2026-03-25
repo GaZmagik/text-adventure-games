@@ -107,18 +107,27 @@ async function handleComplete(args: string[]): Promise<CommandResult> {
   }, 'quest complete');
 }
 
+const ID_RE = /^[a-zA-Z0-9_-]+$/;
+
 async function handleAddObjective(args: string[]): Promise<CommandResult> {
   const questId = args[0];
   if (!questId) {
     return fail('No quest-id provided.', 'Usage: tag quest add-objective <quest-id> --id <obj-id> --desc "text"', 'quest add-objective');
   }
 
-  const { flags } = parseArgs(args.slice(1));
+  const { flags } = parseArgs(args.slice(1), [], ['desc', 'id']);
   const objId = flags.id;
   const desc = flags.desc;
 
   if (!objId) {
     return fail('Missing --id flag.', 'Usage: tag quest add-objective <quest-id> --id <obj-id> --desc "text"', 'quest add-objective');
+  }
+  if (!ID_RE.test(objId)) {
+    return fail(
+      `Invalid objective id: "${objId}". Must contain only letters, numbers, hyphens, and underscores.`,
+      'Example: --id find_beacon',
+      'quest add-objective',
+    );
   }
   if (!desc) {
     return fail('Missing --desc flag.', 'Usage: tag quest add-objective <quest-id> --id <obj-id> --desc "text"', 'quest add-objective');

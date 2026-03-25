@@ -14,13 +14,13 @@ describe('getTopLevelHelp', () => {
     expect(result.command).toBe('help');
   });
 
-  test('data contains 6 commands', () => {
+  test('data contains 7 commands', () => {
     const result = getTopLevelHelp();
     const data = result.data as { commands: { command: string; description: string }[]; widgetTypes: string[] };
-    expect(data.commands.length).toBe(6);
+    expect(data.commands.length).toBe(7);
   });
 
-  test('commands include state, compute, render, save, batch, rules', () => {
+  test('commands include state, compute, render, save, quest, batch, rules', () => {
     const result = getTopLevelHelp();
     const data = result.data as { commands: { command: string; description: string }[]; widgetTypes: string[] };
     const commandNames = data.commands.map(c => c.command);
@@ -28,6 +28,7 @@ describe('getTopLevelHelp', () => {
     expect(commandNames).toContain('tag compute');
     expect(commandNames).toContain('tag render');
     expect(commandNames).toContain('tag save');
+    expect(commandNames).toContain('tag quest');
     expect(commandNames).toContain('tag batch');
     expect(commandNames).toContain('tag rules');
   });
@@ -121,20 +122,32 @@ describe('getCommandHelp', () => {
     }
   });
 
-  test('returns ok: true for all 6 top-level commands', () => {
-    for (const cmd of ['state', 'compute', 'render', 'save', 'batch', 'rules']) {
+  test('returns ok: true for all 7 top-level commands', () => {
+    for (const cmd of ['state', 'compute', 'render', 'save', 'quest', 'batch', 'rules']) {
       const result = getCommandHelp(cmd);
       expect(result.ok).toBe(true);
     }
   });
 
-  test('compute help includes contest, hazard, encounter subcommands', () => {
+  test('compute help includes contest, hazard, encounter, levelup subcommands', () => {
     const result = getCommandHelp('compute');
     const data = result.data as { subcommands: { name: string }[] };
     const names = data.subcommands.map(s => s.name);
     expect(names).toContain('contest');
     expect(names).toContain('hazard');
     expect(names).toContain('encounter');
+    expect(names).toContain('levelup');
+  });
+
+  test('quest help includes complete, add-objective, add-clue, status, list subcommands', () => {
+    const result = getCommandHelp('quest');
+    const data = result.data as { subcommands: { name: string }[] };
+    const names = data.subcommands.map(s => s.name);
+    expect(names).toContain('complete');
+    expect(names).toContain('add-objective');
+    expect(names).toContain('add-clue');
+    expect(names).toContain('status');
+    expect(names).toContain('list');
   });
 
   test('save help includes generate, load, validate, migrate subcommands', () => {

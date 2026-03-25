@@ -8,7 +8,7 @@ import { parseArgs } from '../lib/args';
 import { XP_THRESHOLDS, LEVEL_REWARDS } from '../data/xp-tables';
 
 // Margin → outcome from die-rolls.md § Outcome Badge Text for Contested Checks
-function contestOutcome(margin: number): string {
+function contestOutcome(margin: number): RollOutcome {
   if (margin >= 5) return 'decisive_success';
   if (margin >= 1) return 'narrow_success';
   if (margin === 0) return 'narrow_failure'; // Tie: NPC favoured
@@ -17,7 +17,7 @@ function contestOutcome(margin: number): string {
 }
 
 // Standard check outcome from die-rolls.md § Stage 3
-function checkOutcome(roll: number, total: number, dc: number): string {
+function checkOutcome(roll: number, total: number, dc: number): RollOutcome {
   if (roll === 20) return 'critical_success';
   if (roll === 1) return 'critical_failure';
   if (total >= dc) return 'success';
@@ -26,7 +26,7 @@ function checkOutcome(roll: number, total: number, dc: number): string {
 }
 
 // Encounter table from modules/geo-map.md
-function encounterType(roll: number, escalation: number): string {
+function encounterType(roll: number, escalation: number): RollOutcome {
   const adjusted = roll + escalation;
   if (adjusted <= 8) return 'quiet';
   if (adjusted <= 15) return 'alert';
@@ -86,7 +86,7 @@ async function contest(args: string[]): Promise<CommandResult> {
   // _lastComputation is persisted to state.json for cross-command continuity
   // but intentionally excluded from portable save strings (see save.ts)
   state._lastComputation = computation;
-  state.rollHistory.push({ scene: state.scene, type: 'contested_roll', stat: stat as StatName, roll: playerRoll, modifier: playerModifier, total: playerTotal, outcome: outcome as RollOutcome });
+  state.rollHistory.push({ scene: state.scene, type: 'contested_roll', stat, roll: playerRoll, modifier: playerModifier, total: playerTotal, outcome });
   await saveState(state);
 
   return ok({
@@ -147,7 +147,7 @@ async function hazard(args: string[]): Promise<CommandResult> {
   };
 
   state._lastComputation = computation;
-  state.rollHistory.push({ scene: state.scene, type: 'hazard_save', stat: stat as StatName, roll, modifier, total, dc, outcome: outcome as RollOutcome });
+  state.rollHistory.push({ scene: state.scene, type: 'hazard_save', stat, roll, modifier, total, dc, outcome });
   await saveState(state);
 
   return ok({ type: 'hazard_save', stat, roll, modifier, total, dc, outcome }, 'compute hazard');
@@ -170,7 +170,7 @@ async function encounter(args: string[]): Promise<CommandResult> {
   const state = await tryLoadState();
   if (state) {
     state._lastComputation = computation;
-    state.rollHistory.push({ scene: state.scene, type: 'encounter_roll', roll, outcome: enc as RollOutcome });
+    state.rollHistory.push({ scene: state.scene, type: 'encounter_roll', roll, outcome: enc });
     await saveState(state);
   }
 
@@ -229,7 +229,7 @@ export async function handleCompute(args: string[]): Promise<CommandResult> {
     case 'levelup': return levelup();
     default:
       return fail(
-        `Unknown compute subcommand: ${sub ?? '(none)'}. Available: contest, hazard, encounter`,
+        `Unknown compute subcommand: ${sub ?? '(none)'}. Available: contest, hazard, encounter, levelup`,
         'tag compute contest CHA merchant_01',
         'compute',
       );

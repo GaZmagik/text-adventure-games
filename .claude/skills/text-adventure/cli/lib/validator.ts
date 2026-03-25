@@ -4,9 +4,15 @@
 import { STAT_NAMES, VALID_TIERS, VALID_PRONOUNS, KNOWN_MODULES } from './constants';
 import type { RollType, StatName } from '../types';
 
-const VALID_ROLL_TYPES: readonly string[] = [
+const VALID_ROLL_TYPES_ARRAY: readonly string[] = [
   'contested_roll', 'hazard_save', 'encounter_roll', 'levelup_result',
 ] satisfies readonly RollType[];
+
+const VALID_ROLL_TYPES = new Set(VALID_ROLL_TYPES_ARRAY);
+const STAT_NAME_SET = new Set<string>(STAT_NAMES);
+const VALID_PRONOUN_SET = new Set<string>(VALID_PRONOUNS);
+const VALID_TIER_SET = new Set<string>(VALID_TIERS);
+const KNOWN_MODULE_SET = new Set<string>(KNOWN_MODULES);
 
 /** Result of a state validation check. */
 export type ValidationResult = {
@@ -105,11 +111,11 @@ export function validateState(state: unknown): ValidationResult {
     for (let i = 0; i < s.rollHistory.length; i++) {
       const entry = s.rollHistory[i] as Record<string, unknown> | undefined;
       if (!entry || typeof entry !== 'object') continue;
-      if (typeof entry.type === 'string' && !VALID_ROLL_TYPES.includes(entry.type)) {
+      if (typeof entry.type === 'string' && !VALID_ROLL_TYPES.has(entry.type)) {
         warnings.push(`rollHistory[${i}].type "${entry.type}" is not a recognised RollType.`);
       }
       if (entry.stat !== undefined && typeof entry.stat === 'string'
-          && !(STAT_NAMES as readonly string[]).includes(entry.stat)) {
+          && !STAT_NAME_SET.has(entry.stat)) {
         warnings.push(`rollHistory[${i}].stat "${entry.stat}" is not a recognised StatName.`);
       }
     }
@@ -123,7 +129,7 @@ export function validateState(state: unknown): ValidationResult {
   // modulesActive — warn on unknown module names
   if (Array.isArray(s.modulesActive)) {
     for (const mod of s.modulesActive as unknown[]) {
-      if (typeof mod === 'string' && !(KNOWN_MODULES as readonly string[]).includes(mod)) {
+      if (typeof mod === 'string' && !KNOWN_MODULE_SET.has(mod)) {
         warnings.push(`modulesActive contains unknown module "${mod}".`);
       }
     }
@@ -207,11 +213,11 @@ function validateNpc(npc: unknown, index: number, errors: string[], warnings: st
     errors.push(`${prefix}.name must be a non-empty string.`);
   }
 
-  if (typeof n.pronouns !== 'string' || !(VALID_PRONOUNS as readonly string[]).includes(n.pronouns)) {
+  if (typeof n.pronouns !== 'string' || !VALID_PRONOUN_SET.has(n.pronouns)) {
     errors.push(`${prefix}.pronouns must be one of: ${VALID_PRONOUNS.join(', ')}.`);
   }
 
-  if (typeof n.tier !== 'string' || !(VALID_TIERS as readonly string[]).includes(n.tier)) {
+  if (typeof n.tier !== 'string' || !VALID_TIER_SET.has(n.tier)) {
     errors.push(`${prefix}.tier must be one of: ${VALID_TIERS.join(', ')}.`);
   }
 

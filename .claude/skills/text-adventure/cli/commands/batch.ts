@@ -72,6 +72,10 @@ async function dispatch(command: string, args: string[]): Promise<CommandResult>
     case 'save': return handleSave(args);
     case 'render':
       return handleRender(args);
+    case 'quest': {
+      const { handleQuest } = await import('./quest');
+      return handleQuest(args);
+    }
     default:
       return fail(`Unknown command in batch: ${command}`, 'tag --help', 'batch');
   }

@@ -18,6 +18,17 @@ function containsForbiddenKeys(obj: unknown): boolean {
   return false;
 }
 
+/** Numeric semver comparison — avoids lexicographic string comparison pitfalls (e.g. '2.0.0' < '10.0.0'). */
+function semverLessThan(a: string, b: string): boolean {
+  const pa = a.split('.').map(Number);
+  const pb = b.split('.').map(Number);
+  for (let i = 0; i < 3; i++) {
+    if ((pa[i] ?? 0) < (pb[i] ?? 0)) return true;
+    if ((pa[i] ?? 0) > (pb[i] ?? 0)) return false;
+  }
+  return false;
+}
+
 const RE_SAVE_IN_FENCE = /```[\s\S]*?([\da-fA-F]{8}\.SF[12]:[\S]+)[\s\S]*?```/;
 const RE_SAVE_BARE = /([\da-fA-F]{8}\.SF[12]:[\S]+)/;
 
@@ -159,7 +170,7 @@ async function load(args: string[]): Promise<CommandResult> {
     : '1.2.0';
 
   // Run migrations for pre-1.3.0 saves
-  if (loadedVersion < '1.3.0') {
+  if (semverLessThan(loadedVersion, '1.3.0')) {
     // Phase 3: HP clamping migration — normalise out-of-range HP values
     if (state.character && typeof state.character.hp === 'number' && typeof state.character.maxHp === 'number') {
       state.character.hp = Math.max(0, Math.min(state.character.hp, state.character.maxHp));
