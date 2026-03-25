@@ -3,7 +3,7 @@
 
 import type { CommandResult, GmState, BestiaryTier, Pronouns, StateHistoryEntry } from '../types';
 import { ok, fail, noState } from '../lib/errors';
-import { tryLoadState, saveState, createDefaultState } from '../lib/state-store';
+import { tryLoadState, saveState, createDefaultState, getSyncMarkerPath } from '../lib/state-store';
 import { generateNpcFromTier } from '../data/bestiary-tiers';
 import { validateState } from '../lib/validator';
 import { VALID_TIERS, VALID_PRONOUNS, MAX_STATE_HISTORY, FORBIDDEN_KEYS, VALID_TOP_KEYS, TIER1_MODULES } from '../lib/constants';
@@ -11,8 +11,16 @@ import { parseArgs } from '../lib/args';
 import { MODULE_DIGESTS } from '../data/module-digests';
 import { XP_THRESHOLDS } from '../data/xp-tables';
 import { buildFeatureChecklist } from './render';
+import { containsForbiddenKeys } from '../lib/security';
 
 const VALID_SUBCOMMANDS = ['get', 'set', 'create-npc', 'validate', 'reset', 'history', 'context', 'sync'] as const;
+
+/** Module-level constants — hoisted from inline function bodies for consistency. */
+const VALID_TIME_KEYS = new Set<string>([
+  'period', 'date', 'elapsed', 'hour',
+  'playerKnowsDate', 'playerKnowsTime', 'calendarSystem', 'deadline',
+]);
+const NPC_WORLDFLAG_PATTERN = /^npc_([a-z0-9_-]+)_/;
 
 function isBestiaryTier(s: string): s is BestiaryTier {
   return (VALID_TIERS as readonly string[]).includes(s);
@@ -91,8 +99,6 @@ function setByPath(obj: Record<string, unknown>, path: string, value: unknown): 
   current[lastKey] = value;
   return oldValue;
 }
-
-import { containsForbiddenKeys } from './save';
 
 /** Coerce a string value to the appropriate JS type.
  *  Note: numeric strings like "42" are coerced to numbers. To store a string
@@ -206,7 +212,7 @@ async function handleSet(args: string[]): Promise<CommandResult> {
 
   let oldValue: unknown;
   try {
-    oldValue = setByPath(state as unknown as Record<string, unknown>, path, newValue); // GmState lacks index sig
+    oldValue = setByPath(state as Record<string, unknown>, path, newValue); // GmState lacks index sig
   } catch (err) {
     return fail((err as Error).message, 'Path contains a forbidden segment (__proto__, constructor, prototype).', 'state set');
   }
@@ -216,7 +222,7 @@ async function handleSet(args: string[]): Promise<CommandResult> {
   if (!validation.valid) {
     // Rollback the mutation before returning
     try {
-      setByPath(state as unknown as Record<string, unknown>, path, oldValue);
+      setByPath(state as Record<string, unknown>, path, oldValue);
     } catch {
       // Rollback failed — state is already invalid, do not save
     }
@@ -410,10 +416,6 @@ function buildSyncDiff(
       } else if (containsForbiddenKeys(raw)) {
         warnings.push('--time flag contains forbidden keys (__proto__, constructor, prototype).');
       } else {
-        const VALID_TIME_KEYS = new Set<string>([
-          'period', 'date', 'elapsed', 'hour',
-          'playerKnowsDate', 'playerKnowsTime', 'calendarSystem', 'deadline',
-        ]);
         const filtered: Record<string, unknown> = {};
         for (const key of Object.keys(raw as Record<string, unknown>)) {
           if (VALID_TIME_KEYS.has(key)) {
@@ -507,9 +509,8 @@ function checkLevelUpEligibility(state: GmState, warnings: string[]): void {
 
 /** Check 8: NPC worldFlag references without roster entries. */
 function checkNpcReferenceGaps(state: GmState, npcIds: Set<string>, warnings: string[]): void {
-  const npcPattern = /^npc_([a-z0-9_]+)_/;
   for (const key of Object.keys(state.worldFlags)) {
-    const match = npcPattern.exec(key);
+    const match = NPC_WORLDFLAG_PATTERN.exec(key);
     if (match) {
       const npcId = match[1]!;
       if (!npcIds.has(npcId) && !npcIds.has(`npc_${npcId}`)) {
@@ -593,6 +594,9 @@ async function handleSync(args: string[]): Promise<CommandResult> {
     recordHistory(state, 'state sync', 'sync', null, diff);
     await saveState(state);
   }
+
+  // Write sync marker — render command gates on this to ensure sync was run
+  await Bun.write(getSyncMarkerPath(), String(state.scene));
 
   return ok({
     status,

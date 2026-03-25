@@ -1,4 +1,5 @@
 // Shared outcome badge styling — used by dice.ts and combat-turn.ts templates.
+import type { RollOutcome } from '../../types';
 
 export type BadgeStyle = {
   bg: string;
@@ -6,7 +7,7 @@ export type BadgeStyle = {
   border: string;
 };
 
-export function outcomeBadgeStyle(outcome: string): BadgeStyle {
+export function outcomeBadgeStyle(outcome: RollOutcome | 'unknown'): BadgeStyle {
   let bg = 'var(--ta-badge-partial-bg)';
   let text = 'var(--ta-badge-partial-text)';
   let border = 'transparent';

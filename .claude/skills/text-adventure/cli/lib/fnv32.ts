@@ -14,7 +14,7 @@ export function attachChecksum(code: string): string {
 }
 
 export type DecodeResult =
-  | { valid: true; payload: Record<string, unknown>; mode: 'compact' | 'full' }
+  | { valid: true; payload: Record<string, unknown>; mode: 'compact' | 'full' | 'lore' }
   | { valid: false; error: string };
 
 // Parse both formats:
@@ -61,9 +61,10 @@ export function validateAndDecode(saveString: string): DecodeResult {
   }
 
   // Determine mode
-  let mode: 'compact' | 'full';
+  let mode: 'compact' | 'full' | 'lore';
   if (format === 'SC1') mode = 'compact';
   else if (format === 'SF1' || format === 'SF2') mode = 'full';
+  else if (format === 'LF1') mode = 'lore';
   else return { valid: false, error: 'UNKNOWN_VERSION' };
 
   try {

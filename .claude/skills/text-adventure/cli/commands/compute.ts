@@ -7,6 +7,10 @@ import { STAT_NAMES } from '../lib/constants';
 import { parseArgs } from '../lib/args';
 import { XP_THRESHOLDS, LEVEL_REWARDS } from '../data/xp-tables';
 
+function isStatName(s: string): s is StatName {
+  return (STAT_NAMES as readonly string[]).includes(s);
+}
+
 // Margin → outcome from die-rolls.md § Outcome Badge Text for Contested Checks
 function contestOutcome(margin: number): RollOutcome {
   if (margin >= 5) return 'decisive_success';
@@ -43,14 +47,14 @@ async function contest(args: string[]): Promise<CommandResult> {
   }
 
   const raw = args[0]!.toUpperCase();
-  if (!STAT_NAMES.includes(raw as StatName)) {
+  if (!isStatName(raw)) {
     return fail(
       `Invalid attribute: ${args[0]!}. Must be one of: ${STAT_NAMES.join(', ')}`,
       'tag compute contest CHA merchant_01',
       'compute contest',
     );
   }
-  const stat = raw as StatName;
+  const stat = raw;
 
   const npcId = args[1]!;
   const state = await tryLoadState();
@@ -112,19 +116,19 @@ async function hazard(args: string[]): Promise<CommandResult> {
   }
 
   const raw = args[0]!.toUpperCase();
-  if (!STAT_NAMES.includes(raw as StatName)) {
+  if (!isStatName(raw)) {
     return fail(`Invalid stat: "${raw}".`, `Valid stats: ${STAT_NAMES.join(', ')}`, 'compute hazard');
   }
-  const stat = raw as StatName;
+  const stat = raw;
 
   const dcStr = parseArgs(args.slice(1)).flags.dc;
   if (dcStr == null) {
     return fail('Missing required flag: --dc <number>', 'tag compute hazard CON --dc 14', 'compute hazard');
   }
 
-  const dc = parseInt(dcStr, 10);
-  if (Number.isNaN(dc)) {
-    return fail(`Invalid DC value: ${dcStr}`, 'tag compute hazard CON --dc 14', 'compute hazard');
+  const dc = Number(dcStr);
+  if (!Number.isInteger(dc) || dc <= 0) {
+    return fail(`Invalid DC value: "${dcStr}"`, 'tag compute hazard CON --dc 14', 'compute hazard');
   }
 
   const state = await tryLoadState();
@@ -185,7 +189,7 @@ async function levelup(): Promise<CommandResult> {
   }
 
   const { level, xp } = state.character;
-  const maxLevel = XP_THRESHOLDS[XP_THRESHOLDS.length - 1]?.level ?? 8;
+  const maxLevel = XP_THRESHOLDS[XP_THRESHOLDS.length - 1]!.level;
 
   if (level >= maxLevel) {
     return ok({ type: 'levelup_result', eligible: false, reason: 'already_max', currentLevel: level, currentXp: xp }, 'compute levelup');

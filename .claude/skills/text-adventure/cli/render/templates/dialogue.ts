@@ -25,9 +25,9 @@ export function renderDialogue(state: GmState | null, css: string, options?: Rec
   const dispStyle = DISPOSITION_STYLES[disposition] ?? DISPOSITION_STYLES['neutral']!;
 
   // Dialogue text and options can be passed via options.data
-  const data = options?.data as { text?: string; choices?: { label: string; prompt: string }[] } | undefined;
-  const dialogueText = data?.text ?? '';
-  const choices = data?.choices ?? [];
+  const dataRaw = (options?.data ?? {}) as Record<string, unknown>;
+  const dialogueText = typeof dataRaw.text === 'string' ? dataRaw.text : '';
+  const choices: { label: string; prompt: string }[] = Array.isArray(dataRaw.choices) ? dataRaw.choices as { label: string; prompt: string }[] : [];
 
   return `
 <style>${css}

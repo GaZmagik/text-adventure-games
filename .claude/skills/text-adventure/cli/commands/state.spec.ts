@@ -630,12 +630,10 @@ describe('state sync', () => {
     expect(state.scene).toBe(6);
   });
 
-  test('--apply blocked by errors', async () => {
+  test('--apply succeeds when no errors present', async () => {
     // Errors array is populated only by explicit error pushes;
     // the implementation does not currently produce errors from state alone,
     // so we verify that apply succeeds when there are only warnings.
-    // This test validates that the apply-blocked-by-errors code path works
-    // by confirming apply proceeds when errors.length === 0.
     await handleState(['reset']);
     const result = await handleState(['sync', '--apply']);
     expect(result.ok).toBe(true);
@@ -809,6 +807,37 @@ describe('state sync', () => {
     expect(checklist.length).toBe(2);
     expect(checklist.some(c => c.startsWith('prose-craft ON'))).toBe(true);
     expect(checklist.some(c => c.startsWith('audio ON'))).toBe(true);
+  });
+});
+
+// ── BB: sync --scene flag sub-paths ──────────────────────────────
+
+describe('state sync — --scene flag', () => {
+  test('BB-1: valid --scene override shows change in diff', async () => {
+    await handleState(['reset']);
+    await handleState(['set', 'scene', '3']);
+
+    const result = await handleState(['sync', '--scene', '5']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const diff = data.diff as Record<string, { from: unknown; to: unknown }>;
+    expect(diff.scene).toBeDefined();
+    expect(diff.scene!.from).toBe(3);
+    expect(diff.scene!.to).toBe(5);
+  });
+
+  test('BB-2: negative --scene returns fail with appropriate error', async () => {
+    await handleState(['reset']);
+    const result = await handleState(['sync', '--scene', '-1']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('-1');
+  });
+
+  test('BB-3: non-finite --scene (NaN) returns fail', async () => {
+    await handleState(['reset']);
+    const result = await handleState(['sync', '--scene', 'NaN']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('NaN');
   });
 });
 

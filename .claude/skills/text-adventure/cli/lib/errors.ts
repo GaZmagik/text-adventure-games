@@ -1,6 +1,6 @@
 import type { CommandResult } from '../types';
 
-export function ok(data: unknown, command: string): CommandResult {
+export function ok<T>(data: T, command: string): CommandResult<T> {
   return { ok: true, command, data };
 }
 

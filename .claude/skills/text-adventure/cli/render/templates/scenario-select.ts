@@ -18,8 +18,8 @@ type Scenario = {
 };
 
 export function renderScenarioSelect(_state: GmState | null, css: string, options?: Record<string, unknown>): string {
-  const data = (options?.data ?? {}) as { scenarios?: Scenario[] };
-  const scenarios = data.scenarios ?? [];
+  const raw = (options?.data ?? {}) as Record<string, unknown>;
+  const scenarios: Scenario[] = Array.isArray(raw.scenarios) ? raw.scenarios as Scenario[] : [];
 
   const cards = scenarios.map((scenario) => {
     const desc = scenario.description ?? scenario.hook ?? '';

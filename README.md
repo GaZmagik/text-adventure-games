@@ -113,7 +113,7 @@ The engine will guide you through settings, character creation, and into the adv
 The project uses an **orchestrator + modules** pattern:
 
 - **`text-adventure`** is the orchestrator skill — it handles the session lifecycle, widget rendering, core rules, and loads expansion modules on demand.
-- **`tag` CLI** (v1.3.0+) is the rendering engine — a TypeScript/Bun tool that produces deterministic HTML widgets from game state. Six commands: `state`, `compute`, `render`, `save`, `batch`, `rules`. Zero npm dependencies.
+- **`tag` CLI** (v1.3.0+) is the rendering engine — a TypeScript/Bun tool that produces deterministic HTML widgets from game state. Eight commands: `state`, `compute`, `render`, `save`, `batch`, `rules`, `quest`, `export`. Zero npm dependencies.
 - **Output styles** are independent rendering layers — they change the narrative voice, pacing, and prose craft without touching game logic or mechanics.
 
 All game output is rendered inside `visualize:show_widget` panels. No plain text output — everything is styled, interactive, and widget-based.

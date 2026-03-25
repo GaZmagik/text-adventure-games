@@ -36,10 +36,12 @@ type CreationData = {
 };
 
 export function renderCharacterCreation(_state: GmState | null, css: string, options?: Record<string, unknown>): string {
-  const data = (options?.data ?? {}) as CreationData;
-  const archetypes = data.archetypes ?? [];
-  const proficiencies = data.proficiencies ?? ['Athletics', 'Acrobatics', 'Stealth', 'Arcana', 'History', 'Investigation', 'Nature', 'Religion', 'Perception', 'Insight', 'Persuasion', 'Deception', 'Intimidation', 'Performance', 'Survival', 'Medicine', 'Animal Handling', 'Sleight of Hand'];
-  const defaultName = data.defaultName ?? '';
+  const raw = (options?.data ?? {}) as Record<string, unknown>;
+  const archetypes: Archetype[] = Array.isArray(raw.archetypes) ? raw.archetypes as Archetype[] : [];
+  const proficiencies = Array.isArray(raw.proficiencies)
+    ? (raw.proficiencies as unknown[]).map(String)
+    : ['Athletics', 'Acrobatics', 'Stealth', 'Arcana', 'History', 'Investigation', 'Nature', 'Religion', 'Perception', 'Insight', 'Persuasion', 'Deception', 'Intimidation', 'Performance', 'Survival', 'Medicine', 'Animal Handling', 'Sleight of Hand'];
+  const defaultName = typeof raw.defaultName === 'string' ? raw.defaultName : '';
 
   const archetypeCards = archetypes.map((arch, i) => {
     const desc = arch.description ?? arch.flavour ?? '';
@@ -116,7 +118,7 @@ ${COMMON_WIDGET_CSS}
 
   <div class="widget-section">
     <div class="widget-label">Name</div>
-    <input class="name-input" id="char-name-input" type="text" placeholder="Enter character name..." value="${esc(defaultName)}">
+    <input class="name-input" id="char-name-input" type="text" placeholder="Enter character name..." value="${esc(defaultName)}" maxlength="80">
     <span id="name-error" class="name-error" role="alert" style="display:none"></span>
   </div>
 

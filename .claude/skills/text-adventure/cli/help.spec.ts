@@ -17,7 +17,7 @@ describe('getTopLevelHelp', () => {
   test('data contains 7 commands', () => {
     const result = getTopLevelHelp();
     const data = result.data as { commands: { command: string; description: string }[]; widgetTypes: string[] };
-    expect(data.commands.length).toBe(7);
+    expect(data.commands.length).toBe(8);
   });
 
   test('commands include state, compute, render, save, quest, batch, rules', () => {

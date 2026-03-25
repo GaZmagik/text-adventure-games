@@ -181,7 +181,8 @@ async function handleStatus(args: string[]): Promise<CommandResult> {
   if ('error' in lookup) return lookup.error;
   const { quest } = lookup;
 
-  const completed = quest.objectives.filter(o => o.completed).length;
+  let completed = 0;
+  for (const o of quest.objectives) if (o.completed) completed++;
   const total = quest.objectives.length;
   const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
 
@@ -199,7 +200,8 @@ async function handleList(): Promise<CommandResult> {
   if (!state) return noState('quest');
 
   const list = state.quests.map(quest => {
-    const completed = quest.objectives.filter(o => o.completed).length;
+    let completed = 0;
+    for (const o of quest.objectives) if (o.completed) completed++;
     const total = quest.objectives.length;
     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
     return { id: quest.id, title: quest.title, status: quest.status, completed, total, percentage };

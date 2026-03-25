@@ -85,6 +85,15 @@ const COMMANDS: Record<string, CommandHelp> = {
       { name: '<keyword>', usage: 'tag rules <keyword>', description: 'Search rules by keyword', example: 'tag rules widget' },
     ],
   },
+  export: {
+    command: 'tag export',
+    description: 'World-sharing via .lore.md files. Generates human-readable markdown with embedded checksummed mechanical payload.',
+    subcommands: [
+      { name: 'generate', usage: 'tag export generate', description: 'Generate a .lore.md from current game state with NPC roster, factions, quests, and embedded LF1 payload', example: 'tag export generate' },
+      { name: 'load', usage: 'tag export load <file.lore.md>', description: 'Load a .lore.md file and apply its mechanical data to game state', example: 'tag export load /path/to/world.lore.md' },
+      { name: 'validate', usage: 'tag export validate <file.lore.md>', description: 'Validate a .lore.md payload without applying it', example: 'tag export validate /path/to/world.lore.md' },
+    ],
+  },
 };
 
 

@@ -301,7 +301,7 @@ export type GmState = {
   arcType?: 'standard' | 'epic' | 'branching';
   carryForward?: CarryForward | null;
   arcHistory?: ArcSummary[];
-  _lastComputation?: ComputationResult | undefined;
+  _lastComputation?: ComputationResult;
   _stateHistory: StateHistoryEntry[];
   _schemaVersion?: string;
 };
@@ -313,6 +313,6 @@ export type CommandResult<T = unknown> = {
   command: string;
   data?: T;
   error?: { message: string; corrective: string };
-  state_snapshot?: Partial<GmState>;
+  state_snapshot?: Partial<GmState> | null;
 };
 

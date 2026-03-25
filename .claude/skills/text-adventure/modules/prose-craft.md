@@ -204,6 +204,60 @@ atmosphere front-loads the scene and leaves nothing to discover.
 
 ---
 
+## Scene Density — How Much to Write
+
+Scene length is not arbitrary — it is a narrative tool. A four-paragraph opening scene
+signals "pay attention, this world matters." A two-sentence transition signals "we are
+moving, nothing has changed." Matching density to narrative weight prevents both bloat
+and starvation.
+
+### Density by Scene Type
+
+| Scene type | Paragraphs | When to use |
+|------------|-----------|-------------|
+| **Act opener** | 4–6 | First scene of a new act or arc. Establish setting, atmosphere, stakes. Layer sensory detail. Introduce or reintroduce key NPCs. The player should feel grounded before they act. |
+| **Climax / set piece** | 4–6 | Boss fights, revelations, betrayals, escapes. The narrative earns its length through escalating tension and consequence. |
+| **Standard scene** | 2–4 | Mid-arc exploration, NPC dialogue, investigation. Focused on the current objective. One sensory beat, one plot beat, one choice. |
+| **Transition** | 1–2 | Moving between locations or time-skipping. Brief and purposeful — establish the new context, nothing more. |
+| **Aftermath** | 2–3 | Immediately following a climax or major decision. Show consequences landing. Shorter than the event itself. |
+
+### Act Opener Discipline
+
+The first scene of an act is a promise. It tells the player: this is what this world
+feels like, this is the level of detail you can expect, this is how seriously the GM
+takes your time.
+
+**An act opener MUST include:**
+- A grounding paragraph: where are we, what do the senses report, what is different
+  from before?
+- An atmospheric paragraph: what is the mood, the tension, the unspoken thing hanging
+  in the air?
+- An orientation paragraph: who is here, what is immediately available, what can the
+  player interact with?
+- A hook paragraph: what pulls the player forward? A mystery, a threat, a person, a
+  door that should not be open.
+
+**An act opener MUST NOT:**
+- Rush to the first choice. Let the world breathe.
+- Summarise the arc's premise in narrator voice. Show the premise through the environment.
+- Open with dialogue. Ground the player in the physical space first.
+
+### The "Earned Length" Principle
+
+A scene earns additional paragraphs through:
+- A new location the player has never visited (describe it fully the first time)
+- A major NPC appearing for the first time (establish their physical presence)
+- A revelation that changes the player's understanding (let the implication land)
+- Sensory shifts (temperature drops, lights fail, a smell appears) that signal danger
+
+A scene does NOT earn additional paragraphs through:
+- Restating information the player already knows
+- Describing routine actions ("You walk down the corridor...")
+- Padding with atmosphere when nothing atmospheric has changed
+- Internal monologue or narrator commentary
+
+---
+
 ## LLM-Specific Anti-Patterns
 
 These patterns are unique failure modes of language model prose generation. They
@@ -255,6 +309,7 @@ PROSE CRAFT CHECKLIST
 □  8. Dialogue: each NPC voice is distinct from every other NPC in the scene
 □  9. No cliché clusters — maximum one cliché per scene, and only if subverted
 □ 10. No summarising tic — the final sentence advances, it does not recap
+□ 11. Scene density matches context — act opener 4–6¶, standard 2–4¶, transition 1–2¶
 ```
 
 ---

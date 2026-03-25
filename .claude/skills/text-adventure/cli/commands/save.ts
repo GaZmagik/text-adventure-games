@@ -6,17 +6,8 @@ import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState, createDefaultState } from '../lib/state-store';
 import { validateState } from '../lib/validator';
 import { attachChecksum, validateAndDecode } from '../lib/fnv32';
-import { VALID_TOP_KEYS, FORBIDDEN_KEYS, MAX_STATE_HISTORY, MAX_FILE_SIZE_BYTES, SCHEMA_VERSION } from '../lib/constants';
-
-/** Recursively check for forbidden keys (__proto__, constructor, prototype) in a parsed value. */
-export function containsForbiddenKeys(obj: unknown): boolean {
-  if (typeof obj !== 'object' || obj === null) return false;
-  for (const key of Object.keys(obj as Record<string, unknown>)) {
-    if (FORBIDDEN_KEYS.has(key)) return true;
-    if (containsForbiddenKeys((obj as Record<string, unknown>)[key])) return true;
-  }
-  return false;
-}
+import { VALID_TOP_KEYS, MAX_STATE_HISTORY, MAX_FILE_SIZE_BYTES, SCHEMA_VERSION } from '../lib/constants';
+import { containsForbiddenKeys } from '../lib/security';
 
 /** Numeric semver comparison — avoids lexicographic string comparison pitfalls (e.g. '2.0.0' < '10.0.0'). */
 function semverLessThan(a: string, b: string): boolean {
@@ -47,10 +38,9 @@ async function resolveSaveString(input: string): Promise<string> {
         ? (err as NodeJS.ErrnoException).code
         : undefined;
       if (code !== 'ENOENT' && code !== 'ENOTDIR') throw err;
-      // Path doesn't exist as a file — treat as raw save string.
-      // If input looks like a file path (contains / or \), note that the file wasn't found.
+      // Path looks like a file path but the file doesn't exist — surface a clear error.
       if (input.includes('/') || input.includes('\\')) {
-        return input;  // Warning added to result by caller if needed
+        throw new Error(`Save file not found: ${input}`);
       }
       return input;
     }
@@ -158,7 +148,7 @@ async function load(args: string[]): Promise<CommandResult> {
   // Rebuild GmState from filtered payload — spread merge ensures new fields inherit defaults
   // and saved fields always win. _lastComputation is session-only and always reset.
   const defaults = createDefaultState();
-  defaults._lastComputation = undefined;
+  delete defaults._lastComputation;
   const state: GmState = {
     ...defaults,
     ...filtered as Partial<GmState>,

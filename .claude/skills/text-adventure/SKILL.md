@@ -59,6 +59,55 @@ To resume from a save file, ALWAYS use the file path — never pass the raw save
 ```
 Uploaded files land in `/mnt/user-data/uploads/`. The load command reads the file, extracts the save string, validates the checksum, and writes the full game state to `~/.tag/state.json`. After loading, all `tag` commands read from this file automatically.
 
+### Step 1 — Sync (before EVERY scene)
+
+```bash
+tag state sync
+```
+
+This is **not optional**. The CLI **will refuse to render** if sync has not been run for the current scene. Sync validates module context, quest consistency, NPC references, and pending computations. Address any warnings before proceeding. To apply scene/room/time changes in the same call: `tag state sync --apply --scene <N> --room <id> --time '<json>'`.
+
+### Step 2 — Read modules (before EVERY scene)
+
+Before writing any narrative, you MUST have these files in context:
+1. `modules/prose-craft.md` — **every turn, no exceptions**. Contains the 11-item prose checklist and scene density rules. If you cannot recall its contents, re-read it now.
+2. Every module listed in `state.modulesActive` — run `tag state context` to get file paths.
+3. The active visual style file from `styles/`.
+
+**After compaction:** You will lose module content from context. The `tag render` output includes a `contextVerification` field that reminds you to re-read. If you see that field and cannot recall the module contents, **stop and re-read before composing narrative**.
+
+### Step 3 — Render (generate the widget skeleton)
+
+```bash
+tag render scene --style <style-name>
+```
+
+The output includes:
+- `html` — the styled widget skeleton with CSS, JS, and interactive elements
+- `craftGuidance.proseChecklist` — the 11-item checklist (embedded, not a file reference)
+- `craftGuidance.densityGuidance` — how many paragraphs this scene requires:
+  - **Act opener (scene 1):** 4–6 paragraphs. Grounding, atmosphere, orientation, hook. Do NOT rush to the first choice.
+  - **Standard scene:** 2–4 paragraphs. One sensory beat, one plot beat, one choice.
+  - **Transition:** 1–2 paragraphs.
+- `craftGuidance.contextVerification` — lists modules you must have in context
+- `modulesRequired`, `featureChecklist`, `requiredElements` — structural requirements
+
+### Step 4 — Compose (write narrative into the skeleton)
+
+Write your prose into the HTML output from Step 3. Follow `craftGuidance` exactly:
+- Run the 11-item prose checklist against every paragraph
+- Match the density guidance — a 2-paragraph act opener is a **critical failure**
+- Include all `requiredElements` (atmosphere strip, action cards, footer, scene-meta)
+- All content inside the widget — **nothing outside**
+
+### Step 5 — Post-scene (update state)
+
+After rendering, sync state for the next scene:
+```bash
+tag state sync --apply --scene <N+1> --room <new_room> --time '<json>'
+```
+Update any changed state: HP, XP, faction standings, world flags, quest progress.
+
 ### Commands
 
 | Command | Purpose | Example |
@@ -70,6 +119,7 @@ Uploaded files land in `/mnt/user-data/uploads/`. The load command reads the fil
 | `tag batch` | Multiple commands in one call | See worked example below |
 | `tag rules` | Quick-reference rule cheat sheet | `tag rules output` |
 | `tag quest` | Quest lifecycle: `complete`, `add-objective`, `add-clue`, `status`, `list` | `tag quest complete main_quest_01 find_base` |
+| `tag export` | World-sharing: `generate`, `load`, `validate` `.lore.md` files | `tag export generate` |
 
 ### Widget Render Inventory
 
@@ -223,6 +273,7 @@ TIER 3 — READ on demand when player triggers
 
   modules/adventure-exporting.md  When player requests world export
   modules/adventure-authoring.md  When player uploads .lore.md
+  modules/arc-patterns.md         When planning arc transitions, branching paths, or downtime
   modules/genre-mechanics.md      When genre overlay activated (magic, sanity, etc.)
 
 styles/

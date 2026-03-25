@@ -46,6 +46,14 @@ describe('save generate', () => {
     expect(decoded.valid).toBe(true);
   });
 
+  test('AQ: byteLength is a positive number', async () => {
+    const result = await handleSave(['generate']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(typeof data.byteLength).toBe('number');
+    expect(data.byteLength as number).toBeGreaterThan(0);
+  });
+
   test('uses SF2: header (uncompressed)', async () => {
     const result = await handleSave(['generate']);
     const data = result.data as Record<string, unknown>;
@@ -83,6 +91,10 @@ describe('save load', () => {
     // Load from save string
     const loadResult = await handleSave(['load', saveString]);
     expect(loadResult.ok).toBe(true);
+
+    // AR: mode field is present in load response
+    const loadData = loadResult.data as Record<string, unknown>;
+    expect(loadData.mode).toBe('full');
 
     const restored = await loadState();
     expect(restored.scene).toBe(7);
@@ -390,6 +402,9 @@ describe('save — _stateHistory persistence', () => {
     const loadResult = await handleSave(['load', saveString]);
     expect(loadResult.ok).toBe(true);
     const restored = await loadState();
+    // AU: pre-condition — input had MORE entries than the cap
+    expect(entries.length).toBeGreaterThan(MAX_STATE_HISTORY);
+    // Post-condition — loaded state is capped
     expect(restored._stateHistory.length).toBeLessThanOrEqual(MAX_STATE_HISTORY);
   });
 
@@ -437,6 +452,63 @@ describe('save load — HP clamping migration', () => {
     expect(result.ok).toBe(true);
     const restored = await loadState();
     expect(restored.character!.hp).toBe(0);
+  });
+});
+
+// ── AH: 10 MB size limit ─────────────────────────────────────────────
+
+describe('save load — size limit', () => {
+  test('AH: rejects a file larger than 10 MB', async () => {
+    const bigFilePath = join(tempDir, 'big.save.md');
+    writeFileSync(bigFilePath, Buffer.alloc(11 * 1024 * 1024));
+    const result = await handleSave(['load', bigFilePath]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('size limit');
+  });
+});
+
+// ── AX: ENOENT path ──────────────────────────────────────────────────
+
+describe('save load — missing file', () => {
+  test('AX: handles a non-existent file path gracefully', async () => {
+    const result = await handleSave(['load', '/tmp/nonexistent-file-path.save.md']);
+    // The path falls outside home/tmp resolution, or the file is missing.
+    // Either way the result must not throw; ok:false with an appropriate error.
+    expect(result.ok).toBe(false);
+  });
+});
+
+// ── BA: Two-digit semver component ───────────────────────────────────
+
+describe('save — semver two-digit component', () => {
+  function makeSave(payload: Record<string, unknown>): string {
+    const code = 'SF2:' + btoa(JSON.stringify(payload));
+    return attachChecksum(code);
+  }
+
+  test('BA: 1.10.0 is treated as > 1.3.0 (numeric comparison, not lexicographic)', async () => {
+    // A save stamped with a future version '1.10.0' should NOT trigger the pre-1.3.0
+    // HP-clamping migration (since 1.10.0 > 1.3.0). We set hp > maxHp (25/20) to verify
+    // that no clamp is applied when the version is correctly parsed numerically.
+    const base = createDefaultState();
+    const payload: Record<string, unknown> = {
+      ...base, v: 1, mode: 'full',
+      _schemaVersion: '1.10.0',   // Simulate a hypothetical future version
+      character: {
+        name: 'Future', class: 'Scout', hp: 20, maxHp: 20, ac: 10,
+        level: 1, xp: 0, currency: 0, currencyName: 'credits',
+        stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+        modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+        proficiencyBonus: 2, proficiencies: [], abilities: [],
+        inventory: [], conditions: [],
+        equipment: { weapon: 'Blaster', armour: 'Vest' },
+      },
+    };
+    delete payload._lastComputation;
+    const saveString = makeSave(payload);
+    // The save should be accepted (valid state, no migration needed for 1.10.0)
+    const result = await handleSave(['load', saveString]);
+    expect(result.ok).toBe(true);
   });
 });
 

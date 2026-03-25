@@ -11,7 +11,7 @@ export type Rule = {
 export const CATEGORIES = ['output', 'agency', 'cli', 'prose', 'technical'] as const;
 export type Category = typeof CATEGORIES[number];
 
-export const RULES: Rule[] = [
+export const RULES: readonly Rule[] = [
   // ── OUTPUT ──────────────────────────────────────────────────────────
   {
     id: 1,

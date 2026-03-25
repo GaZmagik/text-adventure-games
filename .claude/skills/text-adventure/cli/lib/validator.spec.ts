@@ -432,6 +432,15 @@ describe('validateState', () => {
     expect(result.errors.some(e => e.includes('character.hp') && e.includes('exceed'))).toBe(true);
   });
 
+  // AT/AZ: level=0 is outside 1-10, should produce a warning
+  test('AT/AZ: character.level = 0 produces a warning about level being out of range', () => {
+    const state = createDefaultState();
+    state.character = mkChar({ level: 0 });
+    const result = validateState(state);
+    // level=0 is outside [1,10] → warning (not error, consistent with existing level=11 test)
+    expect(result.warnings.some(w => w.includes('character.level') && w.includes('1 and 10'))).toBe(true);
+  });
+
   test('character.ac < 0 produces a warning', () => {
     const state = createDefaultState();
     state.character = {

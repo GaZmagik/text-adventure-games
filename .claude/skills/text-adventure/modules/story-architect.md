@@ -8,7 +8,8 @@ and a pace that never stalls or overwhelms.
 
 Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: all other modules (consumes
 quest data from core-systems, world flags from the orchestrator, NPC profiles from ai-npc and
-procedural-world-gen, and session state from save-codex).
+procedural-world-gen, and session state from save-codex). For multi-arc campaign structure,
+arc type selection, reversal variety, and downtime patterns, see `modules/arc-patterns.md`.
 
 ---
 

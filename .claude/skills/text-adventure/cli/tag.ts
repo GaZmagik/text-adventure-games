@@ -25,7 +25,7 @@ function unknownCommand(cmd: string): CommandResult {
     command: cmd,
     error: {
       message: `Unknown command: ${cmd}`,
-      corrective: 'Valid commands: state, compute, render, save, batch, rules, quest. Run: tag --help',
+      corrective: 'Valid commands: state, compute, render, save, batch, rules, quest, export. Run: tag --help',
     },
   };
 }
@@ -86,6 +86,11 @@ async function main(): Promise<void> {
     case 'quest': {
       const { handleQuest } = await import('./commands/quest');
       result = await handleQuest(args.slice(1));
+      break;
+    }
+    case 'export': {
+      const { handleExport } = await import('./commands/export');
+      result = await handleExport(args.slice(1));
       break;
     }
     default:

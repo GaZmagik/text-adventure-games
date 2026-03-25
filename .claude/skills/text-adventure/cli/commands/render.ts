@@ -1,12 +1,12 @@
 import { join } from 'node:path';
+import { readFileSync } from 'node:fs';
 import type { CommandResult, GmState } from '../types';
 import { ok, fail, styleNotSet } from '../lib/errors';
-import { tryLoadState } from '../lib/state-store';
+import { tryLoadState, getSyncMarkerPath } from '../lib/state-store';
 import { extractAllCss } from '../render/css-extractor';
 import { parseArgs } from '../lib/args';
 import { MODULE_DIGESTS } from '../data/module-digests';
-import { FORBIDDEN_KEYS, WIDGET_TYPE_NAMES } from '../lib/constants';
-import { containsForbiddenKeys } from './save';
+import { containsForbiddenKeys } from '../lib/security';
 
 // ── Phase 5: Module checklist helpers ───────────────────────────────
 
@@ -174,8 +174,8 @@ const TEMPLATES: Record<string, TemplateFn> = {
   'character-creation': renderCharacterCreation,
 };
 
-/** Re-export the canonical WIDGET_TYPE_NAMES from constants for consumers that import from render. */
-export { WIDGET_TYPE_NAMES } from '../lib/constants';
+/** Template registry keys — exported for parity testing in constants.spec.ts */
+export const TEMPLATE_KEYS: readonly string[] = Object.keys(TEMPLATES);
 
 /** Pre-game widgets that accept --data instead of reading state */
 const PRE_GAME_WIDGETS = new Set(['settings', 'scenario-select', 'character-creation']);
@@ -214,7 +214,9 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   const raw = parsed.booleans.has('raw');
   let data: Record<string, unknown> | null = null;
   if (parsed.flags.data) {
-    try { data = JSON.parse(parsed.flags.data); } catch { data = null; }
+    try { data = JSON.parse(parsed.flags.data); } catch {
+      return fail('Invalid JSON in --data flag.', 'Provide valid JSON: --data \'{"key":"value"}\'', 'render');
+    }
     if (data && containsForbiddenKeys(data)) {
       return fail('Data contains forbidden keys (__proto__, constructor, prototype).', 'Remove prohibited keys from --data JSON.', 'render');
     }
@@ -247,6 +249,19 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
       'tag state reset',
       'render',
     );
+  }
+
+  // Sync gate — in-game widgets require sync to have been run for the current scene
+  if (!isPreGame && state) {
+    let lastSyncScene = -1;
+    try { const raw = Number(readFileSync(getSyncMarkerPath(), 'utf-8').trim()); lastSyncScene = Number.isNaN(raw) ? -1 : raw; } catch { /* no marker */ }
+    if (lastSyncScene < state.scene) {
+      return fail(
+        `State sync required before rendering scene ${state.scene}. Last sync: ${lastSyncScene < 0 ? 'never' : `scene ${lastSyncScene}`}.`,
+        'Run `tag state sync` (or `tag state sync --apply`) before rendering.',
+        'render',
+      );
+    }
   }
 
   // Resolve style name: --style flag > state.visualStyle > default for pre-config widgets > error
@@ -311,12 +326,40 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
 
   const budgetNote = 'Widget budget is 128K chars. DO NOT trim, rewrite, or reduce this HTML — pass it directly to show_widget as-is.';
 
+  // Craft guidance — embedded so the GM cannot miss it even after compaction
+  const sceneNum = state?.scene ?? 1;
+  const isActOpener = sceneNum <= 1;
+  const craftGuidance = {
+    proseChecklist: [
+      '1. Zero meta-commentary — prose never references itself',
+      '2. Zero emotion labels — show through physical manifestation',
+      '3. Zero filter words — no noticed/felt/realised/seemed/heard',
+      '4. Zero began-to/started-to/managed-to constructions',
+      '5. At least one non-visual sense (sound, smell, temperature, texture)',
+      '6. Sentence length varies — no 3 consecutive similar-length sentences',
+      '7. Strong verbs — no adverb+weak-verb where one strong verb serves',
+      '8. Dialogue: each NPC voice distinct from every other',
+      '9. No cliché clusters — max one per scene, only if subverted',
+      '10. No summarising tic — final sentence advances, does not recap',
+      '11. Scene density matches context — act opener 4-6¶, standard 2-4¶',
+    ],
+    densityGuidance: isActOpener
+      ? 'ACT OPENER (4-6¶): grounding paragraph (senses), atmospheric paragraph (mood), orientation paragraph (NPCs/interactables), hook paragraph (mystery/threat). Do NOT rush to the first choice.'
+      : `Standard scene ${sceneNum} (2-4¶): one sensory beat, one plot beat, one choice.`,
+    contextVerification: {
+      instruction: 'BEFORE composing narrative: if you cannot recall reading prose-craft.md and the modules below in THIS conversation, re-read them now. Context compaction may have removed them.',
+      requiredFiles: modulesRequired,
+      ...(isActOpener ? { criticalReminder: 'ACT OPENER — 4-6 paragraphs with full sensory grounding. A brief scene here is a critical failure.' } : {}),
+    },
+  };
+
   return ok(
     {
       widget: widgetType,
       style: resolvedStyle,
       html,
       budgetNote,
+      craftGuidance,
       modulesRequired,
       featureChecklist,
       requiredElements,

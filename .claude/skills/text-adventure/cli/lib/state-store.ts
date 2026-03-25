@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { mkdirSync, renameSync, writeFileSync, unlinkSync } from 'node:fs';
 import type { GmState } from '../types';
 import { MAX_ROLL_HISTORY, MAX_FILE_SIZE_BYTES, SCHEMA_VERSION } from './constants';
+import { validateState } from './validator';
 
 /** Lightweight runtime check that a parsed JSON value has the basic shape of a GmState object. */
 function isPlausibleGmState(raw: unknown): raw is Record<string, unknown> {
@@ -28,6 +29,9 @@ function getStateDir(): string {
 export function getStatePath(): string {
   return join(getStateDir(), 'state.json');
 }
+export function getSyncMarkerPath(): string {
+  return join(getStateDir(), '.last-sync');
+}
 
 /** @internal — test-only; prefer tryLoadState() in production code */
 export async function loadState(): Promise<GmState> {
@@ -40,6 +44,10 @@ export async function loadState(): Promise<GmState> {
   const raw: unknown = await file.json();
   if (!isPlausibleGmState(raw)) {
     throw new Error('State file does not contain a valid object.');
+  }
+  const validation = validateState(raw);
+  if (!validation.valid) {
+    throw new Error(`State file is structurally invalid: ${validation.errors.join('; ')}`);
   }
   return raw as GmState;
 }
@@ -74,6 +82,9 @@ export async function tryLoadState(): Promise<GmState | null> {
     if (file.size > MAX_FILE_SIZE_BYTES) throw new Error('State file exceeds 10 MB — possible corruption.');
     const raw: unknown = await file.json();
     if (!isPlausibleGmState(raw)) return null;
+    // Note: tryLoadState deliberately does NOT run validateState — commands like
+    // `state validate` need to load and inspect invalid state. Commands that mutate
+    // state run validateState at their own level before persisting.
     return raw as GmState;
   } catch (err: unknown) {
     if (err instanceof SyntaxError) {

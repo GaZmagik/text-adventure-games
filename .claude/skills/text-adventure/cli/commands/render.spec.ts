@@ -12,6 +12,7 @@ const originalEnv = process.env.TAG_STATE_DIR;
 beforeEach(() => {
   tempDir = mkdtempSync(join(tmpdir(), 'tag-render-test-'));
   process.env.TAG_STATE_DIR = tempDir;
+  writeFileSync(join(tempDir, '.last-sync'), '999', 'utf-8'); // sync gate pass
 });
 
 afterEach(() => {

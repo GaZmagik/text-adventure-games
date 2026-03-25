@@ -2,7 +2,7 @@
 // Shows stat, modifier, roll value, total, DC, outcome badge.
 // Includes inline WebGL renderer with numbered 3D die for all standard RPG die types.
 
-import type { GmState, DieType } from '../../types';
+import type { GmState, DieType, RollOutcome } from '../../types';
 import { esc } from '../../lib/html';
 import { DIE_CONFIGS, type DieConfig } from '../lib/die-geometries';
 import { FONT_SCALE } from '../lib/die-textures';
@@ -30,7 +30,7 @@ export function renderDice(state: GmState | null, css: string, options?: Record<
   const total = Number.isFinite(Number(data?.total ?? rollComp?.total)) ? Number(data?.total ?? rollComp?.total) : 0;
   const rawDc = data?.dc ?? (statComp ? statComp.dc : undefined);
   const dc = rawDc !== undefined ? (Number.isFinite(Number(rawDc)) ? Number(rawDc) : undefined) : undefined;
-  const outcome = (data?.outcome as string) ?? rollComp?.outcome ?? 'unknown';
+  const outcome: RollOutcome | 'unknown' = (data?.outcome as RollOutcome | undefined) ?? rollComp?.outcome ?? 'unknown';
   const rawMargin = data?.margin ?? (statComp ? statComp.margin : undefined);
   const margin = Number.isFinite(Number(rawMargin)) ? Number(rawMargin) : 0;
   const modStr = modifier >= 0 ? `+${modifier}` : `${modifier}`;

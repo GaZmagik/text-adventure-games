@@ -3,7 +3,7 @@ import {
   STAT_NAMES, VALID_TIERS, VALID_PRONOUNS, VALID_TOP_KEYS,
   KNOWN_MODULES, TIER1_MODULES, SCHEMA_VERSION, WIDGET_TYPE_NAMES,
 } from './constants';
-import { WIDGET_TYPE_NAMES as RENDER_WIDGET_TYPE_NAMES } from '../commands/render';
+import { TEMPLATE_KEYS } from '../commands/render';
 import type { StatName, BestiaryTier, Pronouns, GmState } from '../types';
 
 describe('constants', () => {
@@ -43,7 +43,7 @@ describe('constants', () => {
   });
 
   test('KNOWN_MODULES has correct count', () => {
-    expect(KNOWN_MODULES).toHaveLength(23);
+    expect(KNOWN_MODULES).toHaveLength(24);
   });
 
   test('TIER1_MODULES is a subset of KNOWN_MODULES', () => {
@@ -58,7 +58,7 @@ describe('constants', () => {
 
   test('WIDGET_TYPE_NAMES matches TEMPLATES keys from render.ts', () => {
     const constantsKeys = ([...WIDGET_TYPE_NAMES] as string[]).sort();
-    const renderKeys = ([...RENDER_WIDGET_TYPE_NAMES] as string[]).sort();
+    const renderKeys = ([...TEMPLATE_KEYS]).sort();
     expect(constantsKeys).toEqual(renderKeys);
   });
 });

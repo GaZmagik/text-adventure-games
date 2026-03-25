@@ -1,6 +1,8 @@
 // DC tables from modules/die-rolls.md
 
-export const BASE_DC: Record<string, number> = {
+export type BaseDcDifficulty = 'Trivial' | 'Easy' | 'Moderate' | 'Hard' | 'Very Hard' | 'Near-impossible';
+
+export const BASE_DC: Record<BaseDcDifficulty, number> = {
   'Trivial': 5,
   'Easy': 8,
   'Moderate': 12,

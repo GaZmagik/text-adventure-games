@@ -155,6 +155,28 @@ describe('validateAndDecode', () => {
     }
   });
 
+  test('LF1 lore format is recognised and returns mode lore', () => {
+    const code = 'LF1:' + btoa(JSON.stringify({ _loreVersion: 1, rosterMutations: [] }));
+    const save = attachChecksum(code);
+    const result = validateAndDecode(save);
+    expect(result.valid).toBe(true);
+    if (result.valid) {
+      expect(result.mode).toBe('lore');
+      expect(result.payload._loreVersion).toBe(1);
+    }
+  });
+
+  test('LF1 checksum corruption is detected', () => {
+    const code = 'LF1:' + btoa(JSON.stringify({ _loreVersion: 1 }));
+    const save = attachChecksum(code);
+    const corrupted = '00000000' + save.slice(8);
+    const result = validateAndDecode(corrupted);
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.error).toContain('CHECKSUM');
+    }
+  });
+
   test('payload that is JSON null returns BAD_FORMAT', () => {
     const payload = btoa(JSON.stringify(null));
     const code = 'SC1:' + payload;

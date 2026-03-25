@@ -528,6 +528,40 @@ describe('compute levelup', () => {
     expect(state.character!.level).toBe(4);
     expect(state.character!.xp).toBe(500);
   });
+
+  // AK: proficiencyBonus at level 4→5 transition
+  test('AK: proficiencyBonus becomes 3 when levelling to 5', async () => {
+    const state = await loadState();
+    state.character!.level = 4;
+    state.character!.xp = 800; // threshold for level 5
+    state.character!.proficiencyBonus = 2;
+    await saveState(state);
+
+    const result = await handleCompute(['levelup']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.eligible).toBe(true);
+    expect(data.newLevel).toBe(5);
+
+    const after = await loadState();
+    expect(after.character!.proficiencyBonus).toBe(3);
+  });
+
+  test('AK: proficiencyBonus stays 2 when levelling 1→2', async () => {
+    const state = await loadState();
+    state.character!.level = 1;
+    state.character!.xp = 100; // threshold for level 2
+    state.character!.proficiencyBonus = 2;
+    await saveState(state);
+
+    const result = await handleCompute(['levelup']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.newLevel).toBe(2);
+
+    const after = await loadState();
+    expect(after.character!.proficiencyBonus).toBe(2);
+  });
 });
 
 // ── T8: Contest validation ────────────────────────────────────────────

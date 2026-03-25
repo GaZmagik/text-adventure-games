@@ -59,12 +59,13 @@ renderer reads the NPC's current disposition from state.
 | Command | Subcommands | Key Flags | Example |
 |---------|-------------|-----------|---------|
 | `tag state` | `get`, `set`, `reset`, `create-npc`, `validate`, `history`, `context`, `sync` | `--tier`, `--name`, `--pronouns`, `--role`, `--apply`, `--scene`, `--room` | `tag state create-npc nyx_01 --tier nemesis --name "Nyx" --pronouns they/them --role antagonist` |
-| `tag compute` | `contest`, `hazard`, `encounter` | `--dc` (required for hazard) | `tag compute contest WIS spy_03` / `tag compute hazard CON --dc 14` |
+| `tag compute` | `contest`, `hazard`, `encounter`, `levelup` | `--dc` (required for hazard) | `tag compute contest WIS spy_03` / `tag compute hazard CON --dc 14` |
 | `tag render` | `scene`, `combat-turn`, `dialogue`, `dice`, `character-creation`, `settings`, `character`, `ticker`, `ship`, `crew`, `codex`, `map`, `starchart`, `footer`, `save-div`, `levelup`, `recap`, `scenario-select` | `--style`, `--data` | `tag render scene --style parchment` |
 | `tag save` | `generate`, `load`, `validate`, `migrate` | None | `tag save generate` |
 | `tag quest` | `complete`, `add-objective`, `add-clue`, `status`, `list` | `--id`, `--desc` | `tag quest complete main_quest_01 find_base` |
 | `tag batch` | — | `--commands`, `--dry-run` | `tag batch --commands "state get scene; save validate"` |
 | `tag rules` | (none), `<category>`, `<keyword>` | None | `tag rules output` |
+| `tag export` | `generate`, `load`, `validate` | None | `tag export generate` / `tag export load /path/to/world.lore.md` |
 
 ### `--data` Flag (render)
 

@@ -8,6 +8,8 @@ export const MODULE_DIGESTS: Record<string, string> = {
     'Export live game world to .lore.md format: serialise state into shareable adventure template.',
   'ai-npc':
     'Live AI-powered NPC dialogue via Anthropic API: personality, memory, disposition tracking.',
+  'arc-patterns':
+    'Multi-arc campaign structure: arc types (standard/branching/epic/downtime), location transitions, reversal variety, convergence rules.',
   'atmosphere':
     'Visual immersion effects: particles, screen shake, colour flash, letterboxing, day/night cycling.',
   'audio':

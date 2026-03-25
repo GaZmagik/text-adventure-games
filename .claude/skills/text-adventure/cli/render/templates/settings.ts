@@ -19,8 +19,10 @@ export function renderSettings(state: GmState | null, css: string, options?: Rec
   const raw = (options?.data ?? {}) as Record<string, unknown>;
 
   // Safely extract string[] fields — guard against non-array values from untrusted JSON
-  const toStringArray = (v: unknown): string[] | undefined =>
-    Array.isArray(v) ? v as string[] : undefined;
+  const toStringArray = (v: unknown): string[] | undefined => {
+    if (!Array.isArray(v)) return undefined;
+    return v.every((el: unknown) => typeof el === 'string') ? v as string[] : v.map(String);
+  };
 
   // Accept common field name aliases the GM might naturally use
   const data: SettingsData = {

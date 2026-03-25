@@ -7,6 +7,9 @@ import { handleState } from './state';
 import { handleCompute } from './compute';
 import { handleSave } from './save';
 import { handleRender } from './render';
+import { handleQuest } from './quest';
+import { handleRules } from './rules';
+import { handleExport } from './export';
 
 type ParsedLine = {
   raw: string;
@@ -72,14 +75,9 @@ async function dispatch(command: string, args: string[]): Promise<CommandResult>
     case 'save': return handleSave(args);
     case 'render':
       return handleRender(args);
-    case 'quest': {
-      const { handleQuest } = await import('./quest');
-      return handleQuest(args);
-    }
-    case 'rules': {
-      const { handleRules } = await import('./rules');
-      return handleRules(args);
-    }
+    case 'quest': return handleQuest(args);
+    case 'rules': return handleRules(args);
+    case 'export': return handleExport(args);
     default:
       return fail(`Unknown command in batch: ${command}`, 'tag --help', 'batch');
   }
@@ -131,7 +129,6 @@ export async function handleBatch(args: string[]): Promise<CommandResult> {
       results.push({
         ok: true,
         command: `${parsedLine.command} ${resolvedArgs.join(' ')}`,
-        data: undefined,
       });
       if (parsedLine.label) {
         labelled[parsedLine.label] = undefined;

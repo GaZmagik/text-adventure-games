@@ -128,6 +128,6 @@ ${MERGED_SCENE_SCRIPT}
 function buildPanelDivs(modules: string[]): string {
   return modules
     .filter(m => m in MODULE_PANEL_MAPPING)
-    .map(m => `<div class="panel-content" data-panel="${MODULE_PANEL_MAPPING[m] ?? ''}"></div>`)
+    .map(m => `<div class="panel-content" data-panel="${MODULE_PANEL_MAPPING[m]!}"></div>`)
     .join('\n      ');
 }
