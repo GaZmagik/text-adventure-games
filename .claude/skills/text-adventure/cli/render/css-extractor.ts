@@ -75,6 +75,7 @@ export async function extractAllCss(filePath: string, scopes?: readonly string[]
   }
 }
 
+/** @internal — test-only */
 export async function extractCssVars(filePath: string): Promise<Record<string, string>> {
   const css = await extractAllCss(filePath);
   const vars: Record<string, string> = {};

@@ -42,7 +42,7 @@ async function handleComplete(args: string[]): Promise<CommandResult> {
   }
 
   const state = await tryLoadState();
-  if (!state) return noState();
+  if (!state) return noState('quest');
 
   const lookup = findQuest(state, questId, 'quest complete');
   if ('error' in lookup) return lookup.error;
@@ -114,7 +114,7 @@ async function handleAddObjective(args: string[]): Promise<CommandResult> {
   }
 
   const state = await tryLoadState();
-  if (!state) return noState();
+  if (!state) return noState('quest');
 
   const lookup = findQuest(state, questId, 'quest add-objective');
   if ('error' in lookup) return lookup.error;
@@ -147,7 +147,7 @@ async function handleAddClue(args: string[]): Promise<CommandResult> {
   }
 
   const state = await tryLoadState();
-  if (!state) return noState();
+  if (!state) return noState('quest');
 
   const lookup = findQuest(state, questId, 'quest add-clue');
   if ('error' in lookup) return lookup.error;
@@ -175,7 +175,7 @@ async function handleStatus(args: string[]): Promise<CommandResult> {
   }
 
   const state = await tryLoadState();
-  if (!state) return noState();
+  if (!state) return noState('quest');
 
   const lookup = findQuest(state, questId, 'quest status');
   if ('error' in lookup) return lookup.error;
@@ -196,7 +196,7 @@ async function handleStatus(args: string[]): Promise<CommandResult> {
 
 async function handleList(): Promise<CommandResult> {
   const state = await tryLoadState();
-  if (!state) return noState();
+  if (!state) return noState('quest');
 
   const list = state.quests.map(quest => {
     const completed = quest.objectives.filter(o => o.completed).length;

@@ -8,11 +8,11 @@ export function fail(message: string, corrective: string, command: string): Comm
   return { ok: false, command, error: { message, corrective } };
 }
 
-export function noState(): CommandResult {
+export function noState(command = 'state'): CommandResult {
   return fail(
     'No game state found.',
     'tag state reset',
-    'state',
+    command,
   );
 }
 

@@ -88,7 +88,7 @@ async function resolveSaveString(input: string): Promise<string> {
 
 async function generate(): Promise<CommandResult> {
   const state = await tryLoadState();
-  if (!state) return noState();
+  if (!state) return noState('save');
 
   // Build payload — full state minus session-only computation, SF2: uncompressed base64 (no LZ)
   // Destructuring exclusion ensures new GmState fields are included by default.

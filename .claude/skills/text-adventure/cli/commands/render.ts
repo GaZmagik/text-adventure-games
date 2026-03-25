@@ -5,19 +5,8 @@ import { tryLoadState } from '../lib/state-store';
 import { extractAllCss } from '../render/css-extractor';
 import { parseArgs } from '../lib/args';
 import { MODULE_DIGESTS } from '../data/module-digests';
-import { FORBIDDEN_KEYS } from '../lib/constants';
-
-// ── Security helpers ─────────────────────────────────────────────────
-
-/** Recursively check for forbidden keys (__proto__, constructor, prototype) in parsed JSON. */
-function containsForbiddenKeys(obj: unknown): boolean {
-  if (typeof obj !== 'object' || obj === null) return false;
-  for (const key of Object.keys(obj as Record<string, unknown>)) {
-    if (FORBIDDEN_KEYS.has(key)) return true;
-    if (containsForbiddenKeys((obj as Record<string, unknown>)[key])) return true;
-  }
-  return false;
-}
+import { FORBIDDEN_KEYS, WIDGET_TYPE_NAMES } from '../lib/constants';
+import { containsForbiddenKeys } from './save';
 
 // ── Phase 5: Module checklist helpers ───────────────────────────────
 
@@ -185,7 +174,8 @@ const TEMPLATES: Record<string, TemplateFn> = {
   'character-creation': renderCharacterCreation,
 };
 
-export const WIDGET_TYPE_NAMES = Object.keys(TEMPLATES);
+/** Re-export the canonical WIDGET_TYPE_NAMES from constants for consumers that import from render. */
+export { WIDGET_TYPE_NAMES } from '../lib/constants';
 
 /** Pre-game widgets that accept --data instead of reading state */
 const PRE_GAME_WIDGETS = new Set(['settings', 'scenario-select', 'character-creation']);

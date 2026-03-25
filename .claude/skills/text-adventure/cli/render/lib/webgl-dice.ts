@@ -2,7 +2,7 @@
 // a 3D numbered die using raw WebGL. No external dependencies.
 
 /** Variables that must be defined before WEBGL_DICE_CODE executes. */
-export type WebGLDiceContext = {
+type WebGLDiceContext = {
   diceCount: number;
   diceSides: number;
   diceResults: number[];

@@ -54,7 +54,7 @@ async function contest(args: string[]): Promise<CommandResult> {
 
   const npcId = args[1]!;
   const state = await tryLoadState();
-  if (!state) return noState();
+  if (!state) return noState('compute');
   const npc = state.rosterMutations.find(n => n.id === npcId);
   if (!npc) return npcNotFound(npcId);
 
@@ -128,7 +128,7 @@ async function hazard(args: string[]): Promise<CommandResult> {
   }
 
   const state = await tryLoadState();
-  if (!state) return noState();
+  if (!state) return noState('compute');
 
   const modifier = state.character?.modifiers[stat] ?? 0;
   const roll = rollD20();
@@ -179,7 +179,7 @@ async function encounter(args: string[]): Promise<CommandResult> {
 
 async function levelup(): Promise<CommandResult> {
   const state = await tryLoadState();
-  if (!state) return noState();
+  if (!state) return noState('compute');
   if (!state.character) {
     return fail('No character exists.', 'Create a character first.', 'compute levelup');
   }

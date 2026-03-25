@@ -25,6 +25,15 @@ export function outcomeBadgeStyle(outcome: string): BadgeStyle {
     bg = 'var(--ta-badge-failure-bg)';
     text = 'var(--ta-badge-failure-text)';
     border = 'var(--ta-badge-crit-failure-border)';
+  } else if (outcome === 'quiet') {
+    bg = 'var(--ta-badge-neutral-bg, #2a3a5c)';
+    text = 'var(--ta-badge-neutral-text, #a0c4ff)';
+  } else if (outcome === 'alert') {
+    bg = 'var(--ta-badge-warning-bg, #5c4a2a)';
+    text = 'var(--ta-badge-warning-text, #ffc080)';
+  } else if (outcome === 'hostile') {
+    bg = 'var(--ta-badge-danger-bg, #5c2a3a)';
+    text = 'var(--ta-badge-danger-text, #ffa0c0)';
   }
 
   return { bg, text, border };

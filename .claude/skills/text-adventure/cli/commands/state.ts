@@ -453,6 +453,10 @@ async function handleSync(args: string[]): Promise<CommandResult> {
 
   // 6. Quest/worldFlag cross-validation (canonical format) — single pass per quest
   for (const quest of state.quests) {
+    if (quest.objectives.length === 0) {
+      warnings.push(`Quest "${quest.id}" has no objectives to validate.`);
+      continue;
+    }
     let allComplete = quest.objectives.length > 0;
     for (const obj of quest.objectives) {
       const canonicalKey = `quest:${quest.id}:${obj.id}:complete`;
