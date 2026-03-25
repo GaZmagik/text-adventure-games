@@ -407,7 +407,7 @@ Run the following from the skill directory (`.claude/skills/text-adventure/`) be
 any `tag` commands. You MUST use `source` (not `bash`) so the `PATH` export persists:
 
 ```bash
-. setup.sh && tag state reset
+. ./setup.sh && tag state reset
 ```
 
 `setup.sh` installs Bun if not already present, installs package dependencies, creates the
@@ -417,7 +417,7 @@ of every new session.
 To resume from a saved game:
 
 ```bash
-. setup.sh && tag save load /mnt/user-data/uploads/<filename>.save.md
+. ./setup.sh && tag save load /mnt/user-data/uploads/<filename>.save.md
 ```
 
 ### Runtime requirements

@@ -42,7 +42,7 @@ guidance — they do not contain widget code.
 Run via the **Bash tool** (called "analysis tool" on Claude.ai) from the skill directory (`.claude/skills/text-adventure/`):
 
 ```bash
-. setup.sh && tag state reset
+. ./setup.sh && tag state reset
 ```
 
 This installs Bun (if needed), links the `tag` command, sets `PATH` so `tag` is available for all subsequent commands in this session, and initialises a blank game state. You MUST use `source` (not `bash`) so the PATH export persists in the current shell. Run from the skill directory — `setup.sh` is located at `.claude/skills/text-adventure/setup.sh`.
@@ -55,7 +55,7 @@ This installs Bun (if needed), links the `tag` command, sets `PATH` so `tag` is 
 
 To resume from a save file, ALWAYS use the file path — never pass the raw save string as a CLI argument:
 ```bash
-. setup.sh && tag save load /mnt/user-data/uploads/<filename>.save.md
+. ./setup.sh && tag save load /mnt/user-data/uploads/<filename>.save.md
 ```
 Uploaded files land in `/mnt/user-data/uploads/`. The load command reads the file, extracts the save string, validates the checksum, and writes the full game state to `~/.tag/state.json`. After loading, all `tag` commands read from this file automatically.
 
