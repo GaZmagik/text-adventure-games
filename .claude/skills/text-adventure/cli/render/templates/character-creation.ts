@@ -1,6 +1,14 @@
 // Character creation widget — accepts --data JSON with archetype options.
 // Shows archetype cards, name input, stat display, proficiency picker.
 // Confirm fires sendPrompt.
+//
+// Archetype fields (canonical → alias):
+//   description | flavor   — archetype flavour text
+//   stats | baseStats      — Record<StatName, number> for stat display
+//   abilities | equipment  — string[] of gear/ability names
+//   fixedProficiencies     — string[] of archetype-granted proficiencies
+//   primaryStats           — string[] of highlighted stat names (informational)
+//   hp, ac, name, id       — standard fields
 
 import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
@@ -8,10 +16,16 @@ import { esc } from '../../lib/html';
 type Archetype = {
   name: string;
   description?: string;
+  flavor?: string;          // alias for description
   stats?: Record<string, number>;
+  baseStats?: Record<string, number>; // alias for stats
   abilities?: string[];
+  equipment?: string[];     // alias for abilities (shown as gear list)
+  primaryStats?: string[];  // highlighted stat names
+  fixedProficiencies?: string[]; // archetype-granted proficiencies
   hp?: number;
   ac?: number;
+  id?: string;
 };
 
 type CreationData = {
@@ -27,19 +41,27 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
   const defaultName = data.defaultName ?? '';
 
   const archetypeCards = archetypes.map((arch, i) => {
-    const stats = arch.stats
-      ? Object.entries(arch.stats).map(([k, v]) => `<span class="arch-stat">${esc(k)} ${Number(v) || 0}</span>`).join(' ')
+    const desc = arch.description ?? arch.flavor ?? '';
+    const statMap = arch.stats ?? arch.baseStats;
+    const stats = statMap
+      ? Object.entries(statMap).map(([k, v]) => `<span class="arch-stat">${esc(k)} ${Number(v) || 0}</span>`).join(' ')
       : '';
-    const abilities = arch.abilities
-      ? arch.abilities.map(a => `<span class="arch-ability">${esc(a)}</span>`).join(' ')
+    const gear = arch.equipment ?? arch.abilities ?? [];
+    const gearHtml = gear.length > 0
+      ? gear.map(a => `<span class="arch-ability">${esc(a)}</span>`).join(' ')
+      : '';
+    const fixedProfs = arch.fixedProficiencies ?? [];
+    const profsHtml = fixedProfs.length > 0
+      ? `<div class="arch-profs" style="margin-top:4px;font-size:10px;color:var(--color-text-tertiary);">Proficiencies: ${fixedProfs.map(p => esc(p)).join(', ')}</div>`
       : '';
 
     return `
       <button class="archetype-card" data-index="${i}" aria-pressed="false">
         <div class="arch-name">${esc(arch.name)}</div>
-        ${arch.description ? `<div class="arch-desc">${esc(arch.description)}</div>` : ''}
+        ${desc ? `<div class="arch-desc">${esc(desc)}</div>` : ''}
         ${stats ? `<div class="arch-stats">${stats}</div>` : ''}
-        ${abilities ? `<div class="arch-abilities">${abilities}</div>` : ''}
+        ${gearHtml ? `<div class="arch-abilities">${gearHtml}</div>` : ''}
+        ${profsHtml}
         ${arch.hp !== undefined ? `<div class="arch-meta">HP ${Number(arch.hp) || 0}${arch.ac !== undefined ? ` · AC ${Number(arch.ac) || 0}` : ''}</div>` : ''}
       </button>`;
   }).join('\n');
