@@ -160,6 +160,78 @@ describe('extractCssVars', () => {
   });
 });
 
+// ── Scoped extraction tests ─────────────────────────────────────────
+
+describe('extractAllCss — scoped extraction', () => {
+  let tempDir: string;
+
+  afterEach(() => {
+    if (tempDir) {
+      try { rmSync(tempDir, { recursive: true, force: true }); } catch { /* ignore */ }
+    }
+  });
+
+  function makeScopedFile(): string {
+    tempDir = mkdtempSync(join(tmpdir(), 'css-scope-'));
+    const file = join(tempDir, 'scoped.md');
+    Bun.write(file, [
+      '```css',
+      '/* @extract:shared */',
+      '.shared-class { color: red; }',
+      '```',
+      '',
+      '```css',
+      '/* @extract:dice */',
+      '.dice-class { color: blue; }',
+      '```',
+      '',
+      '```css',
+      '/* @extract:atmosphere */',
+      '.atmo-class { color: green; }',
+      '```',
+      '',
+      '```css',
+      '/* @extract */',
+      '.unlabelled-class { color: yellow; }',
+      '```',
+    ].join('\n'));
+    return file;
+  }
+
+  test('scoped extraction includes matching scope', async () => {
+    const file = makeScopedFile();
+    const css = await extractAllCss(file, ['dice']);
+    expect(css).toContain('.dice-class');
+  });
+
+  test('scoped extraction always includes shared', async () => {
+    const file = makeScopedFile();
+    const css = await extractAllCss(file, ['dice']);
+    expect(css).toContain('.shared-class');
+  });
+
+  test('scoped extraction excludes non-matching scopes', async () => {
+    const file = makeScopedFile();
+    const css = await extractAllCss(file, ['dice']);
+    expect(css).not.toContain('.atmo-class');
+  });
+
+  test('unscoped extraction returns all blocks', async () => {
+    const file = makeScopedFile();
+    const css = await extractAllCss(file);
+    expect(css).toContain('.shared-class');
+    expect(css).toContain('.dice-class');
+    expect(css).toContain('.atmo-class');
+    expect(css).toContain('.unlabelled-class');
+  });
+
+  test('unlabelled blocks included when scopes provided', async () => {
+    const file = makeScopedFile();
+    const css = await extractAllCss(file, ['dice']);
+    expect(css).toContain('.unlabelled-class');
+  });
+});
+
 // ── T2-S1: Extended URI scheme blocking ─────────────────────────────
 
 describe('extractAllCss — extended URI scheme blocking', () => {

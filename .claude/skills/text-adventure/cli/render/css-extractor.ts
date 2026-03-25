@@ -36,8 +36,9 @@ function cssReplacer(match: string): string {
 // Cache is process-scoped — fine for single CLI invocations. Does not invalidate on file change.
 const cssCache = new Map<string, string>();
 
-export async function extractAllCss(filePath: string): Promise<string> {
-  if (cssCache.has(filePath)) return cssCache.get(filePath) ?? '';
+export async function extractAllCss(filePath: string, scopes?: readonly string[]): Promise<string> {
+  const cacheKey = filePath + ':' + (scopes?.join(',') ?? '*');
+  if (cssCache.has(cacheKey)) return cssCache.get(cacheKey) ?? '';
   try {
     const file = Bun.file(filePath);
     if (!(await file.exists())) return '';
@@ -51,8 +52,14 @@ export async function extractAllCss(filePath: string): Promise<string> {
     while ((match = regex.exec(content)) !== null) {
       const block = match[1]!.trim();
       allBlocks.push(block);
-      if (block.startsWith('/* @extract */')) {
-        markedBlocks.push(block);
+
+      const scopeMatch = block.match(/^\/\* @extract(?::(\w+))? \*\//);
+      if (scopeMatch) {
+        const scope = scopeMatch[1] ?? null; // null = unlabelled
+        // When scopes filter is active: include unlabelled, 'shared', or matching scopes
+        if (!scopes || scope === null || scope === 'shared' || scopes.includes(scope)) {
+          markedBlocks.push(block);
+        }
       }
     }
 
@@ -61,7 +68,7 @@ export async function extractAllCss(filePath: string): Promise<string> {
     // Sanitise CSS: single-pass replacement for </style, @import, external url(), expression(), -moz-binding
     const sanitised = result.replace(CSS_SANITISE_RE, cssReplacer);
     // Only cache non-empty results — avoids masking files that gain CSS later
-    if (sanitised) cssCache.set(filePath, sanitised);
+    if (sanitised) cssCache.set(cacheKey, sanitised);
     return sanitised;
   } catch {
     return '';

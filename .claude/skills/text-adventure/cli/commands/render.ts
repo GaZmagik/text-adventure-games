@@ -190,6 +190,28 @@ export const WIDGET_TYPE_NAMES = Object.keys(TEMPLATES);
 /** Pre-game widgets that accept --data instead of reading state */
 const PRE_GAME_WIDGETS = new Set(['settings', 'scenario-select', 'character-creation']);
 
+/** Per-widget CSS scope labels — controls which @extract:label blocks from style-reference.md are included. */
+const WIDGET_CSS_SCOPES: Record<string, readonly string[]> = {
+  scene:                ['shared', 'scene', 'atmosphere'],
+  dice:                 ['shared', 'dice'],
+  'combat-turn':        ['shared', 'dice', 'scene'],
+  character:            ['shared'],
+  'character-creation': ['shared'],
+  settings:             ['shared'],
+  'scenario-select':    ['shared'],
+  ship:                 ['shared'],
+  crew:                 ['shared'],
+  codex:                ['shared'],
+  map:                  ['shared'],
+  starchart:            ['shared'],
+  ticker:               ['shared'],
+  footer:               ['shared'],
+  'save-div':           ['shared'],
+  levelup:              ['shared'],
+  recap:                ['shared', 'dice'],
+  dialogue:             ['shared'],
+};
+
 // ── Main handler ─────────────────────────────────────────────────────
 
 export async function handleRender(args: string[]): Promise<CommandResult> {
@@ -251,9 +273,10 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   // import.meta.dir is a Bun-only API — this CLI requires Bun runtime
   const styleFilePath = join(import.meta.dir, '../../styles/', resolvedStyle + '.md');
   const styleRefPath = join(import.meta.dir, '../../styles/style-reference.md');
+  const scopes = WIDGET_CSS_SCOPES[widgetType];
   const [styleCss, refCss] = await Promise.all([
-    extractAllCss(styleFilePath),
-    extractAllCss(styleRefPath),
+    extractAllCss(styleFilePath),          // visual style: always full
+    extractAllCss(styleRefPath, scopes),   // style-reference: scoped
   ]);
   if (!styleCss) {
     return fail(

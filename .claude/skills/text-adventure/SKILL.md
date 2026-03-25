@@ -95,6 +95,34 @@ Every widget in this skill has a corresponding `tag render` template. **Use thes
 | Recap | `tag render recap --style <style>` | Session summary |
 | Save Div | `tag render save-div` | Save data container |
 
+### Widget Output Budget
+
+The AI has a finite output token budget per turn (~32K tokens). This constrains how much HTML/CSS/JS can be output in a single widget render. Empirical testing shows:
+
+- **Repetitive content** (CSS, SVG with repeated elements): up to ~125K characters — tokens compress well for repetitive patterns
+- **Unique varied content** (prose, unique HTML, JavaScript): ~35–40K characters — each unique word/line costs more tokens
+- **Mixed content** (minified CSS + prose + SVG maps): ~80–125K characters — the sweet spot
+
+**Practical budget per scene widget:**
+- Minified CSS: ~5K chars (with CSS scoping, only relevant styles are included)
+- Audio engine JS: ~2K chars
+- Panel/interaction JS: ~2K chars
+- **Remaining for narrative + panels + SVG**: ~25–30K chars of unique content
+
+**Maximising content per widget:**
+- Use CSS scoping — `tag render` only includes CSS for the current widget type (dice CSS excluded from scenes, atmosphere CSS excluded from character sheets)
+- Use inline SVG for maps, charts, and diagrams — SVG tokenises efficiently (~3 chars/token vs ~4 chars/token for prose)
+- Minify CSS variable names where possible (use shorthand custom properties)
+- Populate panel content with data from `tag state get` — don't leave panels empty
+- Use `tag render` for the structural scaffold, then inject narrative content
+
+**What NOT to do:**
+- Don't hand-code full CSS from scratch — use `tag render` output which includes the visual style
+- Don't strip CSS to save space and accidentally lose features (atmosphere, audio)
+- Don't duplicate the same CSS across multiple widgets in one turn — render one widget per turn
+
+> **Note on CSS inclusion:** Visual style CSS (theme variables) is always included in full — theme custom properties are required by all widgets. Supplementary CSS from `styles/style-reference.md` is scoped per widget type: only the rules relevant to the current widget are emitted.
+
 ### MUST Use `tag` For
 
 - **NPC creation** — `tag state create-npc` (never invent NPC stats or modifiers)
