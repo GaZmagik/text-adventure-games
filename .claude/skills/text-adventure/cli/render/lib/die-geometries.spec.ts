@@ -34,7 +34,7 @@ describe('DIE_CONFIGS', () => {
 
   const expectedRanges: Record<string, [number, number]> = {
     d2: [1, 2], d4: [1, 4], d6: [1, 6], d8: [1, 8],
-    d10: [0, 9], d12: [1, 12], d20: [1, 20], d100: [0, 9],
+    d10: [1, 10], d12: [1, 12], d20: [1, 20], d100: [0, 9],
   };
 
   for (const [dt, [min, max]] of Object.entries(expectedRanges)) {

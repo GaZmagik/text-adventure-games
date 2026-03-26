@@ -16,9 +16,12 @@ export type DieConfig = {
 // 12 vertices: 2 poles + 2 rings of 5
 function d10Vertices(): number[][] {
   const verts: number[][] = [];
-  const r = 0.9;
+  // Coplanarity of kite faces requires d/h = (1−cos36°)/(1+cos36°) ≈ 0.1056.
+  // d=0.35 violates this, making each kite's two triangles non-coplanar → visible seam.
+  // r=0.72 gives aspect ratio ≈ 1.39, matching a physical d10.
+  const r = 0.72;
   const h = 1.0;
-  const d = 0.35;
+  const d = 0.106;
 
   // 0: top pole, 1: bottom pole
   verts.push([0, h, 0]);
@@ -104,7 +107,7 @@ export const DIE_CONFIGS = {
   },
   d10: {
     faceCount: 10,
-    numberRange: [0, 9] as [number, number],
+    numberRange: [1, 10] as [number, number],
     geometryType: 'BufferGeometry',
     get customVertices() { return getD10Verts(); },
     get customFaces() { return getD10Faces(); },

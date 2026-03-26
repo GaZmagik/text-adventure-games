@@ -48,8 +48,8 @@ export function renderDice(state: GmState | null, css: string, options?: Record<
   const fontScale = FONT_SCALE[dieType as DieType] ?? FONT_SCALE.d20;
   const isD100 = dieType === 'd100';
   const isD2 = dieType === 'd2';
-  const canvasW = isD100 ? 240 : 120;
-  const canvasH = 120;
+  const canvasW = isD100 ? 880 : 440;
+  const canvasH = 440;
 
   // Serialise config for inline script
   const configJson = JSON.stringify({

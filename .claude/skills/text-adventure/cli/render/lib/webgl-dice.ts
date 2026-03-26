@@ -118,10 +118,10 @@ var GEOS={
   d12:{v:[[-1,-1,-1],[-1,-1,1],[-1,1,-1],[-1,1,1],[1,-1,-1],[1,-1,1],[1,1,-1],[1,1,1],
     [0,-R,-T],[0,-R,T],[0,R,-T],[0,R,T],[-R,-T,0],[-R,T,0],[R,-T,0],[R,T,0],
     [-T,0,-R],[-T,0,R],[T,0,-R],[T,0,R]],
-    f:[3,11,7,3,7,15,3,15,13,7,19,17,7,17,6,7,6,15,17,4,8,17,8,10,17,10,6,
-      8,0,16,8,16,2,8,2,10,0,12,1,0,1,18,0,18,16,6,10,2,6,2,13,6,13,15,
-      2,16,18,2,18,3,2,3,13,18,1,9,18,9,11,18,11,3,4,14,12,4,12,0,4,0,8,
-      11,9,5,11,5,19,11,19,7,19,5,14,19,14,4,19,4,17,1,12,14,1,14,5,1,5,9],tpf:3},
+    f:[0,8,4,0,4,14,0,14,12, 0,8,10,0,10,2,0,2,16, 0,12,1,0,1,17,0,17,16,
+      1,9,5,1,5,14,1,14,12, 1,9,11,1,11,3,1,3,17, 2,10,6,2,6,15,2,15,13,
+      2,13,3,2,3,17,2,17,16, 3,11,7,3,7,15,3,15,13, 4,8,10,4,10,6,4,6,18,
+      4,14,5,4,5,19,4,19,18, 5,9,11,5,11,7,5,7,19, 6,15,7,6,7,19,6,19,18],tpf:3},
   d20:{v:[[-1,T,0],[1,T,0],[-1,-T,0],[1,-T,0],[0,-1,T],[0,1,T],[0,-1,-T],[0,1,-T],
     [T,0,-1],[T,0,1],[-T,0,-1],[-T,0,1]],
     f:[[0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],[1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],
@@ -200,11 +200,26 @@ function createAtlas(faceCount,range,fontScale,fg,bg,labelFn){
   if(!ctx)return atlas;
   ctx.fillStyle=bg;ctx.fillRect(0,0,atlas.width,atlas.height);
   ctx.fillStyle=fg;ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.font='bold '+Math.round(cw*fontScale)+'px sans-serif';
+  var fs=Math.round(cw*fontScale);
+  ctx.font='bold '+fs+'px sans-serif';
+  // Centroid offset + mirroring varies by face geometry:
+  // d20 (triangles): mirror + 15% offset toward centroid
+  // d12 (pentagons): mirror + 6.5% offset
+  // Others (kites, quads, caps): no mirror, no offset
+  var needsMirror=(faceCount===20||faceCount===12);
+  var offY=faceCount===20?-Math.round(0.15*ch):0;
   for(var i=0;i<faceCount;i++){
-    var x=(i%cols)*cw+cw/2,y=Math.floor(i/cols)*ch+ch/2;
+    var cx=(i%cols)*cw+cw/2,cy=Math.floor(i/cols)*ch+ch/2;
     var lbl=labelFn?labelFn(i):String(range[0]+i);
-    ctx.fillText(lbl,x,y);
+    ctx.save();
+    ctx.translate(cx,cy);
+    if(needsMirror)ctx.scale(-1,-1);
+    ctx.fillText(lbl,0,offY);
+    if(lbl==='6'||lbl==='9'){
+      var tw=ctx.measureText(lbl).width;
+      ctx.fillRect(-tw/2,(needsMirror?offY:0)+Math.round(fs*0.55),tw,2);
+    }
+    ctx.restore();
   }
   return atlas;
 }
@@ -217,8 +232,9 @@ function mkBuf(data,attr,size){
   gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,0,0);
   return b;
 }
-function mkTex(img){
+function mkTex(img,flipY){
   var t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,!!flipY);
   gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,img);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
@@ -285,7 +301,7 @@ if(IS_D2){
   for(var i=0;i<N;i++)cf.push([1,2+N+(i+1)%N,2+N+i]);
   var mesh=buildMesh(cv,cf,2,N);
   mkBuf(mesh.pos,'aP',3);mkBuf(mesh.nrm,'aN',3);mkBuf(mesh.uv,'aU',2);
-  var atlas=createAtlas(2,[1,2],0.5,dieTx,dieBg);mkTex(atlas);
+  var atlas=createAtlas(2,[1,2],0.5,dieTx,dieBg);mkTex(atlas,true);
   var tq=quatFromUV(ROLL===1?[0,1,0]:[0,-1,0],[0,0,1]);
   spinSettle(tq,mesh.count,null);
 
@@ -300,9 +316,9 @@ if(IS_D2){
   var a2=createAtlas(10,[0,9],FONT_SCALE,dieTx,dieBg);
   // Create buffers and textures ONCE — not per frame
   var bp1=mkBuf(m1.pos,'aP',3),bn1=mkBuf(m1.nrm,'aN',3),bu1=mkBuf(m1.uv,'aU',2);
-  var t1=mkTex(a1);
+  var t1=mkTex(a1,true);
   var bp2=mkBuf(m2.pos,'aP',3),bn2=mkBuf(m2.nrm,'aN',3),bu2=mkBuf(m2.uv,'aU',2);
-  var t2=mkTex(a2);
+  var t2=mkTex(a2,true);
   var tq1=quatFromUV(m1.fNorms[tens],[0,0,1]);
   var tq2=quatFromUV(m2.fNorms[units],[0,0,1]);
   function bindD1(){bindBuf(bp1,'aP',3);bindBuf(bn1,'aN',3);bindBuf(bu1,'aU',2);gl.bindTexture(gl.TEXTURE_2D,t1)}
@@ -347,11 +363,20 @@ if(IS_D2){
   }else{
     verts=GEOS[dk].v;faces=GEOS[dk].f;
   }
+  // Standard face assignments — opposite faces sum to max+1
+  var D20_ASSIGN=[6,10,5,13,20,17,2,14,3,12,8,16,11,15,1,18,9,4,19,7];
+  var D12_ASSIGN=[1,2,3,4,5,9,6,12,8,7,11,10];
+  var isD20=(dk==='d20'&&fCount===20);
+  var isD12=(dk==='d12'&&fCount===12);
+  var ASSIGN=isD20?D20_ASSIGN:isD12?D12_ASSIGN:null;
   var mesh=buildMesh(verts,faces,fCount,tpf);
   mkBuf(mesh.pos,'aP',3);mkBuf(mesh.nrm,'aN',3);mkBuf(mesh.uv,'aU',2);
-  var atlas=createAtlas(fCount,CONFIG.numberRange,FONT_SCALE,dieTx,dieBg);mkTex(atlas);
-  var idx=ROLL-CONFIG.numberRange[0];
-  if(idx<0||idx>=mesh.fNorms.length)idx=0;
+  var labelFn=ASSIGN?function(i){return String(ASSIGN[i])}:null;
+  var atlas=createAtlas(fCount,CONFIG.numberRange,FONT_SCALE,dieTx,dieBg,labelFn);mkTex(atlas,true);
+  // Map rolled value to face index — for d20/d12, use assignment lookup; for others, direct index
+  var idx;
+  if(ASSIGN){idx=0;for(var i=0;i<ASSIGN.length;i++){if(ASSIGN[i]===ROLL){idx=i;break}}}
+  else{idx=ROLL-CONFIG.numberRange[0];if(idx<0||idx>=mesh.fNorms.length)idx=0}
   var tq=quatFromUV(mesh.fNorms[idx],[0,0,1]);
   spinSettle(tq,mesh.count,null);
 }

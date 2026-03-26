@@ -1560,8 +1560,8 @@ handle that case independently.
   --sta-badge-crit-success-border: #2BA882;
   --sta-badge-crit-failure-border: #E84855;
 
-  --ta-die-bg:         var(--sta-bg-tertiary);
-  --ta-die-text-color: var(--sta-text-primary);
+  --ta-die-bg:         #909AB4;   /* Steel — 5.06:1 against page bg */
+  --ta-die-text-color: #1E2030;   /* Dark text on steel — 5.72:1 */
 }
 
 /* --- Light Mode Override --- */
@@ -1619,8 +1619,8 @@ handle that case independently.
     --ta-badge-crit-failure-border: var(--sta-badge-crit-failure-border);
     --ta-color-credits:           var(--sta-color-currency);
     --ta-color-tab-active:        var(--sta-color-location);
-    --ta-die-bg:                  var(--sta-bg-stat-cell);
-    --ta-die-text-color:          var(--sta-text-primary);
+    --ta-die-bg:                  #424A60;   /* Steel — 8.44:1 against page bg */
+    --ta-die-text-color:          #F0F2FF;   /* Light text on steel — 7.92:1 */
   }
 }
 
