@@ -45,18 +45,21 @@ describe('generateWebGLDiceCode', () => {
 
   // Math library
   test('contains mat4 operations', () => {
-    expect(code).toContain('m4mul');
-    expect(code).toContain('m4persp');
+    expect(code).toContain('m4m');   // matrix multiply
+    expect(code).toContain('m4p');   // perspective
+    expect(code).toContain('m4q');   // from quaternion
   });
 
   test('contains quaternion operations', () => {
-    expect(code).toContain('quat');
-    expect(code).toContain('slerp');
+    expect(code).toContain('qnm');   // normalize
+    expect(code).toContain('qAl');   // align (from→to)
+    expect(code).toContain('qsl');   // slerp
   });
 
   test('contains vec3 operations', () => {
-    expect(code).toContain('normalize');
-    expect(code).toContain('cross');
+    expect(code).toContain('normalize');  // in GLSL shader source
+    expect(code).toContain('v3x');        // cross product
+    expect(code).toContain('v3d');        // dot product
   });
 
   // Animation
@@ -65,7 +68,7 @@ describe('generateWebGLDiceCode', () => {
   });
 
   test('has easeOutBack settle', () => {
-    expect(code).toContain('easeOutBack');
+    expect(code).toContain('eOB');   // easeOutBack
   });
 
   // Accessibility
@@ -87,14 +90,18 @@ describe('generateWebGLDiceCode', () => {
   });
 
   test('contains all expected function definitions', () => {
-    expect(code).toMatch(
-      /function\s+(v3sub|v3cross|v3dot|v3norm|qnorm|quatFromUV|qslerp|m4|m4id|m4mul|m4persp|m4fromQ|buildMesh|createAtlas|mkBuf|mkTex|bindBuf|easeOutBack|spinSettle)\s*\(/,
-    );
+    // Compact renamed functions (v3s=sub, v3x=cross, v3d=dot, v3n=norm,
+    // qnm=norm, qAl=align, qsl=slerp, m4m=mul, m4p=persp, m4q=fromQuat,
+    // m4i=identity, eOB=easeOutBack)
+    for (const fn of ['v3s','v3x','v3d','v3n','qnm','qAl','qsl','m4m','m4p','m4q','m4i',
+                      'buildMesh','createAtlas','mkBuf','mkTex','bindBuf','spinSettle','eOB']) {
+      expect(code).toContain(`function ${fn}(`);
+    }
   });
 
   test('handles all 3 die type branches (d2, d100, standard)', () => {
     expect(code).toContain('IS_D2');
     expect(code).toContain('IS_D100');
-    expect(code).toContain('GEOS');
+    expect(code).toContain('CONFIG.customVertices');  // all geometry from CONFIG, no GEOS table
   });
 });

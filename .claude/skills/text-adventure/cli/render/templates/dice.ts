@@ -59,6 +59,7 @@ export function renderDice(state: GmState | null, css: string, options?: Record<
     geometryArgs: config.geometryArgs ?? [],
     customVertices: config.customVertices ?? null,
     customFaces: config.customFaces ?? null,
+    assign: config.assign ?? null,
     trianglesPerFace: config.trianglesPerFace,
     paired: !!config.paired,
   });

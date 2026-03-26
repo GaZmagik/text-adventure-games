@@ -79,7 +79,7 @@ function d12Geometry(): { verts: number[][], faces: number[][] } {
     4, 14, 5, 4, 5, 19, 4, 19, 18, 5, 9, 11, 5, 11, 7, 5, 7, 19,  6, 15, 7, 6, 7, 19, 6, 19, 18,
   ];
   const faces: number[][] = [];
-  for (let i = 0; i < flat.length; i += 3) faces.push([flat[i], flat[i + 1], flat[i + 2]]);
+  for (let i = 0; i < flat.length; i += 3) faces.push([flat[i]!, flat[i + 1]!, flat[i + 2]!]);
   return { verts, faces };
 }
 
@@ -156,22 +156,22 @@ function d10Geometry(): { verts: number[][], faces: number[][] } {
   for (let fi = 0; fi < FC; fi++) {
     // Collect unique vertex indices for this kite
     const seen = new Set<number>();
-    for (let t = 0; t < TPF; t++) faces[fi * TPF + t].forEach(idx => seen.add(idx));
+    for (let t = 0; t < TPF; t++) faces[fi * TPF + t]!.forEach(idx => seen.add(idx));
     const keys = [...seen];
     let cx = 0, cy = 0, cz = 0;
-    for (const idx of keys) { cx += verts[idx][0]; cy += verts[idx][1]; cz += verts[idx][2]; }
+    for (const idx of keys) { cx += verts[idx]![0]!; cy += verts[idx]![1]!; cz += verts[idx]![2]!; }
     const cn = norm3([cx / keys.length, cy / keys.length, cz / keys.length]);
 
     for (let t = 0; t < TPF; t++) {
-      const tri = faces[fi * TPF + t];
-      const [a, b, c] = [verts[tri[0]], verts[tri[1]], verts[tri[2]]];
+      const tri = faces[fi * TPF + t]!;
+      const a = verts[tri[0]!]!, b = verts[tri[1]!]!, c = verts[tri[2]!]!;
       const cross = [
-        (b[1] - a[1]) * (c[2] - a[2]) - (b[2] - a[2]) * (c[1] - a[1]),
-        (b[2] - a[2]) * (c[0] - a[0]) - (b[0] - a[0]) * (c[2] - a[2]),
-        (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]),
+        (b[1]! - a[1]!) * (c[2]! - a[2]!) - (b[2]! - a[2]!) * (c[1]! - a[1]!),
+        (b[2]! - a[2]!) * (c[0]! - a[0]!) - (b[0]! - a[0]!) * (c[2]! - a[2]!),
+        (b[0]! - a[0]!) * (c[1]! - a[1]!) - (b[1]! - a[1]!) * (c[0]! - a[0]!),
       ];
-      if (cross[0] * cn[0] + cross[1] * cn[1] + cross[2] * cn[2] < 0) {
-        [tri[1], tri[2]] = [tri[2], tri[1]];
+      if (cross[0]! * cn[0]! + cross[1]! * cn[1]! + cross[2]! * cn[2]! < 0) {
+        [tri[1], tri[2]] = [tri[2]!, tri[1]!];
       }
     }
   }

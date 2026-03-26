@@ -184,6 +184,15 @@ const PRE_GAME_WIDGETS = new Set(['settings', 'scenario-select', 'character-crea
 const PRE_CONFIG_WIDGETS = new Set(['settings', 'scenario-select', 'character-creation']);
 
 /** Per-widget CSS scope labels — controls which @extract:label blocks from style-reference.md are included. */
+// Style-file scopes — controls which blocks from the theme file (e.g. station.md) are extracted.
+// undefined → no filter (returns ALL marked blocks = full theme CSS, ~36KB).
+// ['vars'] → only the @extract:vars block (CSS custom property declarations only, ~7KB).
+// Widgets that inject all their structural CSS inline only need the vars block.
+const WIDGET_STYLE_SCOPES: Record<string, readonly string[] | undefined> = {
+  dice:   ['vars'],
+  recap:  ['vars'],
+};
+
 const WIDGET_CSS_SCOPES: Record<string, readonly string[]> = {
   scene:                ['shared', 'scene', 'atmosphere'],
   dice:                 ['shared', 'dice'],
@@ -288,9 +297,10 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
       'render',
     );
   }
+  const styleScopes = WIDGET_STYLE_SCOPES[widgetType]; // undefined = full theme
   const [styleCss, refCss] = await Promise.all([
-    extractAllCss(styleFilePath),          // visual style: always full
-    extractAllCss(styleRefPath, scopes),   // style-reference: scoped
+    extractAllCss(styleFilePath, styleScopes),  // visual style: scoped or full
+    extractAllCss(styleRefPath, scopes),        // style-reference: scoped
   ]);
   if (!styleCss) {
     return fail(
