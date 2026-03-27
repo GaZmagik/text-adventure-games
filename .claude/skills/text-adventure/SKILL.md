@@ -84,7 +84,9 @@ tag render scene --style <style-name>
 ```
 
 The output includes:
-- `html` — the styled widget skeleton with CSS, JS, and interactive elements
+- `html` — the complete styled widget with CSS, JS, and interactive elements
+- `sizeCheck` — `{ chars, budgetChars, withinBudget, percentUsed }` confirming the output fits the 128K widget budget
+- `budgetNote` — human-readable confirmation, e.g. "Output is 78,256 chars (60% of 128K budget). Pass directly to show_widget as-is."
 - `craftGuidance.proseChecklist` — the 11-item checklist (embedded, not a file reference)
 - `craftGuidance.densityGuidance` — how many paragraphs this scene requires:
   - **Act opener (scene 1):** 4–6 paragraphs. Grounding, atmosphere, orientation, hook. Do NOT rush to the first choice.
@@ -93,9 +95,22 @@ The output includes:
 - `craftGuidance.contextVerification` — lists modules you must have in context
 - `modulesRequired`, `featureChecklist`, `requiredElements` — structural requirements
 
+**§ MANDATORY — Do not modify the `html` field. Read this rule every turn.**
+
+The `html` from `tag render` contains the complete visual style CSS, light/dark mode support, reduced-motion accessibility, atmosphere effects, soundscape engine, and all interactive elements. The `sizeCheck.withinBudget` field mechanically confirms it fits the 128K widget limit. You MUST pass this HTML to `show_widget` **exactly as returned** — then compose your narrative into the `#narrative` div placeholder.
+
+**NEVER:**
+- Trim, strip, or reduce the CSS ("I'll use just the classes I need")
+- Hand-write CSS from memory ("I'll recreate the station theme")
+- Claim the output is too large (`sizeCheck` proves it fits)
+- Selectively include CSS blocks ("I'll skip the atmosphere CSS")
+- "Optimise" by removing light mode or reduced-motion rules
+
+If you do any of the above, the widget will be missing: audio/soundscape, atmosphere particle effects, light mode support, reduced-motion accessibility, proper typography, and half the visual style. The player will see a broken, unstyled scene. This is a **critical failure**.
+
 ### Step 4 — Compose (write narrative into the skeleton)
 
-Write your prose into the HTML output from Step 3. Follow `craftGuidance` exactly:
+Write your prose into the `#narrative` div of the HTML from Step 3. Follow `craftGuidance` exactly:
 - Run the 11-item prose checklist against every paragraph
 - Match the density guidance — a 2-paragraph act opener is a **critical failure**
 - Include all `requiredElements` (atmosphere strip, action cards, footer, scene-meta)
