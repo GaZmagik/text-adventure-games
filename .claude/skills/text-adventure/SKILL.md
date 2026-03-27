@@ -89,10 +89,12 @@ The output includes:
 - `budgetNote` — human-readable confirmation, e.g. "Output is 78,256 chars (60% of 128K budget). Pass directly to show_widget as-is."
 - `craftGuidance.proseChecklist` — the 11-item checklist (embedded, not a file reference)
 - `craftGuidance.densityGuidance` — how many paragraphs this scene requires:
-  - **Act opener (scene 1):** 4–6 paragraphs. Grounding, atmosphere, orientation, hook. Do NOT rush to the first choice.
+  - **Act opener (scene 1):** 6–10 paragraphs, short story density. World-building, character establishment, sensory grounding, NPC introduction, tension, hook. Write it like the opening chapter of a novel — you have 65K+ chars of budget headroom.
   - **Standard scene:** 2–4 paragraphs. One sensory beat, one plot beat, one choice.
   - **Transition:** 1–2 paragraphs.
 - `craftGuidance.contextVerification` — lists modules you must have in context
+- `cssManifest` — (when CSS filtering active) shows sources, sizes, and unmatched selectors proving CSS is complete
+- `skeleton` — (scene widgets only) semantic HTML skeleton with placeholder markers
 - `modulesRequired`, `featureChecklist`, `requiredElements` — structural requirements
 
 **§ MANDATORY — Do not modify the `html` field. Read this rule every turn.**

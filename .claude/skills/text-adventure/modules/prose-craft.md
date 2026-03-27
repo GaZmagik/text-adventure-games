@@ -215,8 +215,8 @@ and starvation.
 
 | Scene type | Paragraphs | When to use |
 |------------|-----------|-------------|
-| **Act opener** | 4–6 | First scene of a new act or arc. Establish setting, atmosphere, stakes. Layer sensory detail. Introduce or reintroduce key NPCs. The player should feel grounded before they act. |
-| **Climax / set piece** | 4–6 | Boss fights, revelations, betrayals, escapes. The narrative earns its length through escalating tension and consequence. |
+| **Act opener** | 6–10 | First scene of a new act or arc. Write like the opening chapter of a novel: world-building (the place has history), sensory grounding (3+ senses, specific physical detail), character establishment (through action, not summary), NPC introduction (observed, not announced), tension (what is wrong), hook (the event forcing a choice). Short story density — you have 65K+ chars of headroom. |
+| **Climax / set piece** | 6–10 | Boss fights, revelations, betrayals, escapes. The narrative earns its length through escalating tension and consequence. Match or exceed act opener density — this is what the story has been building toward. |
 | **Standard scene** | 2–4 | Mid-arc exploration, NPC dialogue, investigation. Focused on the current objective. One sensory beat, one plot beat, one choice. |
 | **Transition** | 1–2 | Moving between locations or time-skipping. Brief and purposeful — establish the new context, nothing more. |
 | **Aftermath** | 2–3 | Immediately following a climax or major decision. Show consequences landing. Shorter than the event itself. |
@@ -309,7 +309,7 @@ PROSE CRAFT CHECKLIST
 □  8. Dialogue: each NPC voice is distinct from every other NPC in the scene
 □  9. No cliché clusters — maximum one cliché per scene, and only if subverted
 □ 10. No summarising tic — the final sentence advances, it does not recap
-□ 11. Scene density matches context — act opener 4–6¶, standard 2–4¶, transition 1–2¶
+□ 11. Scene density matches context — act opener 6–10¶ (short story), standard 2–4¶, transition 1–2¶
 ```
 
 ---

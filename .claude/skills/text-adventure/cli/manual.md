@@ -84,6 +84,11 @@ tag render dice-pool --style terminal --data '{"label":"Storm Volley","pool":[{"
 Notes:
 - `dice` renders a single-use 3D die, coin, or d100 widget. The visible result is generated client-side on click, revealed after the settle animation, and then locked.
 - `dice-pool` renders grouped numeric dice on one shared canvas. `pool` is an array of `{ "dieType": "...", "count": N }` objects; `label` and `modifier` are optional.
+- Scene widgets accept `atmosphereEffects` to scope CSS to specific effects:
+  ```bash
+  tag render scene --style station --data '{"atmosphereEffects":["dust","rain"]}'
+  ```
+  Only the named particle effects (plus core utilities like shake/flash/toast) are included. Omitting `atmosphereEffects` includes all atmosphere CSS (backward compatible).
 
 ### `tag state sync` Output Fields
 

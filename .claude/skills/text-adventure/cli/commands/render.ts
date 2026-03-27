@@ -365,15 +365,23 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
       '8. Dialogue: each NPC voice distinct from every other',
       '9. No cliché clusters — max one per scene, only if subverted',
       '10. No summarising tic — final sentence advances, does not recap',
-      '11. Scene density matches context — act opener 4-6¶, standard 2-4¶',
+      '11. Scene density matches context — act opener 6-10¶ (short story), standard 2-4¶',
     ],
     densityGuidance: isActOpener
-      ? 'ACT OPENER (4-6¶): grounding paragraph (senses), atmospheric paragraph (mood), orientation paragraph (NPCs/interactables), hook paragraph (mystery/threat). Do NOT rush to the first choice.'
+      ? 'ACT OPENER (6-10¶, SHORT STORY DENSITY): Write this like the opening chapter of a novel. '
+        + 'World-building paragraph (the place has history — architecture, scars, atmosphere). '
+        + 'Sensory grounding paragraph (at least 3 senses, anchored in specific physical detail). '
+        + 'Character establishment paragraph (the protagonist through action and environment, not summary). '
+        + 'NPC/interactable introduction (who is here, what are they doing — observed, not announced). '
+        + 'Tension paragraph (the thing that is wrong, the pressure, the question hanging in the air). '
+        + 'Hook paragraph (the event that forces a choice). '
+        + 'You have 65K+ chars of budget headroom — USE IT. A thin act opener is a critical failure. '
+        + 'This scene sets the entire tone. Write it like it matters.'
       : `Standard scene ${sceneNum} (2-4¶): one sensory beat, one plot beat, one choice.`,
     contextVerification: {
       instruction: 'BEFORE composing narrative: if you cannot recall reading prose-craft.md and the modules below in THIS conversation, re-read them now. Context compaction may have removed them.',
       requiredFiles: modulesRequired,
-      ...(isActOpener ? { criticalReminder: 'ACT OPENER — 4-6 paragraphs with full sensory grounding. A brief scene here is a critical failure.' } : {}),
+      ...(isActOpener ? { criticalReminder: 'ACT OPENER — 6-10 paragraphs, short story density. World-building, character, senses, tension, hook. You have the budget. A brief scene here is a critical failure.' } : {}),
     },
   };
 
