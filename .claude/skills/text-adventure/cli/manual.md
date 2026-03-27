@@ -30,27 +30,30 @@ The GM then calls `tag render scene --style terminal` to generate the opening.
 
 ## § Worked Example 2: Combat Turn
 
-Batch showing a contested attack, HP mutation, combat widget, and save:
+Batch showing a contested attack, HP mutation, sync, combat widget, and save.
+NPC fields use `rosterMutations.<index>.<field>` paths (guard_01 is index 0):
 
 ```bash
-tag batch --commands "compute contest STR guard_01 as attack_result; state set character.hp -= 3; state set guard_01.hp -= $attack_result.margin; render combat-turn --style terminal; save generate"
+tag batch --commands "compute contest STR guard_01 as attack_result; state set character.hp -= 3; state set rosterMutations.0.hp -= $attack_result.margin; state sync --apply; render combat-turn --style terminal; save generate"
 ```
 
 The `as attack_result` label captures the contest output. `$attack_result.margin`
-references the margin of victory for the HP delta applied to the NPC.
+references the margin of victory. The `-=` operator applies the delta to the
+current value. Sync must run before render.
 
 ---
 
 ## § Worked Example 3: Social Encounter
 
-Batch for a CHA-based persuasion, trust mutation, and dialogue render:
+Batch for a CHA-based persuasion, disposition mutation, sync, and dialogue render.
+NPC disposition is a number — use `+=` to apply a delta:
 
 ```bash
-tag batch --commands "compute contest CHA merchant_01 as persuasion; state set merchant_01.disposition.toward_player += 15; render dialogue --data '{\"npc\":\"merchant_01\"}' --style station; save generate"
+tag batch --commands "compute contest CHA merchant_01 as persuasion; state set rosterMutations.0.disposition += 15; state sync --apply; render dialogue --data '{\"npc\":\"merchant_01\"}' --style station; save generate"
 ```
 
-The `+15` syntax applies a delta rather than an absolute value. The dialogue
-renderer reads the NPC's current disposition from state.
+The `+=` operator adds to the NPC's existing disposition value. Sync must
+run before render to pass the sync gate.
 
 ---
 

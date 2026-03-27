@@ -23,7 +23,7 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: ai-npc, p
 | Action | Command | Tool |
 |--------|---------|------|
 | Render codex panel | `tag render codex --style <style>` | Run via Bash tool |
-| Set codex state | `tag state set codex.<path> <value>` | Run via Bash tool |
+| Set codex state | `tag state set codexMutations.<index>.<field> <value>` | Run via Bash tool |
 
 ---
 

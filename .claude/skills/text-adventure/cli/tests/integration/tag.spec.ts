@@ -208,7 +208,7 @@ describe('tag CLI black-box', () => {
       expect(alert).toBeDefined();
       expect(alert!.detected).toBe(true);
       expect(alert!.message).toContain('COMPACTION ALERT');
-      expect(alert!.message).toContain('1 compaction');
+      expect(alert!.message).toContain('1 new compaction');
     } finally {
       rmSync(transcriptsDir, { recursive: true, force: true });
     }

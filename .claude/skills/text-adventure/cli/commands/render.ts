@@ -148,6 +148,33 @@ const TEMPLATES: Record<string, TemplateFn> = {
 /** Template registry keys — exported for parity testing in constants.spec.ts */
 export const TEMPLATE_KEYS: readonly string[] = Object.keys(TEMPLATES);
 
+// ── Data shape validation ─────────────────────────────────────────────
+
+type DataFieldSpec = { key: string; type: 'string' | 'array' | 'number' | 'object' };
+
+const WIDGET_DATA_REQUIRED: Record<string, DataFieldSpec[]> = {
+  dice: [{ key: 'dieType', type: 'string' }],
+};
+
+function validateDataShape(
+  widgetType: string,
+  data: Record<string, unknown>,
+): string | null {
+  const required = WIDGET_DATA_REQUIRED[widgetType];
+  if (!required) return null;
+  for (const { key, type } of required) {
+    const val = data[key];
+    if (val === undefined) {
+      return `--data missing required key "${key}" for ${widgetType} widget.`;
+    }
+    const actual = Array.isArray(val) ? 'array' : typeof val;
+    if (actual !== type) {
+      return `--data key "${key}" must be ${type}, got ${actual}.`;
+    }
+  }
+  return null;
+}
+
 // ── Main handler ─────────────────────────────────────────────────────
 
 export async function handleRender(args: string[]): Promise<CommandResult> {
@@ -162,6 +189,14 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     }
     if (data && containsForbiddenKeys(data)) {
       return fail('Data contains forbidden keys (__proto__, constructor, prototype).', 'Remove prohibited keys from --data JSON.', 'render');
+    }
+  }
+
+  // Validate --data shape against widget requirements
+  if (data) {
+    const shapeError = validateDataShape(widgetType, data);
+    if (shapeError) {
+      return fail(shapeError, 'Check the --data JSON matches the expected shape for this widget type.', 'render');
     }
   }
 

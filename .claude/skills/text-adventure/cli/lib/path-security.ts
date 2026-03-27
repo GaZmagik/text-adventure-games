@@ -53,8 +53,9 @@ export function resolveSafeReadPath(
 
   const homePrefix = home + '/';
   const tmpPrefix = tmp === '/' ? tmp : tmp + '/';
-  if (!resolved.startsWith(homePrefix) && !resolved.startsWith(tmpPrefix)) {
-    throw new Error(`${options.kind} file path must be within the home or temp directory.`);
+  const mntPrefix = '/mnt/';
+  if (!resolved.startsWith(homePrefix) && !resolved.startsWith(tmpPrefix) && !resolved.startsWith(mntPrefix)) {
+    throw new Error(`${options.kind} file path must be within the home, temp, or /mnt/ directory.`);
   }
 
   return resolved;

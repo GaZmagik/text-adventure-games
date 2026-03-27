@@ -82,6 +82,28 @@ describe('render state requirement', () => {
     expect(html).toContain('\\u003c/script\\u003e\\u003cscript\\u003ealert(1)\\u003c/script\\u003e');
   });
 
+  test('rejects dice widget --data missing required dieType', async () => {
+    const result = await handleRender([
+      'dice',
+      '--raw',
+      '--data',
+      '{"stat":"STR","modifier":2}',
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('missing required key "dieType"');
+  });
+
+  test('rejects dice widget --data with wrong dieType type', async () => {
+    const result = await handleRender([
+      'dice',
+      '--raw',
+      '--data',
+      '{"dieType":42}',
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('"dieType" must be string');
+  });
+
   test('rejects render data with forbidden keys', async () => {
     const result = await handleRender([
       'settings',

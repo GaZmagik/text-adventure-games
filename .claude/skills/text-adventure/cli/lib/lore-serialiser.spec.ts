@@ -397,6 +397,24 @@ describe('buildLoreMarkdown', () => {
     expect(md).toContain('## NPC Roster');
   });
 
+  test('escapes YAML-unsafe theme values in frontmatter', () => {
+    const state = makePopulatedState();
+    state.theme = 'dark: fantasy\ninjected: true';
+    const md = buildLoreMarkdown(state);
+    // The newline should be escaped to \\n, and the value quoted
+    expect(md).toContain('theme: "dark: fantasy\\ninjected: true"');
+    // Should NOT appear as a standalone YAML line
+    expect(md).not.toMatch(/^injected: true$/m);
+  });
+
+  test('escapes YAML-unsafe seed values in frontmatter', () => {
+    const state = makePopulatedState();
+    state.seed = 'abc: "injection"';
+    const md = buildLoreMarkdown(state);
+    // yamlSafe quotes the value and escapes internal double quotes
+    expect(md).toContain('seed: "abc: \\"injection\\""');
+  });
+
   test('NPC roster includes full mechanical fields', () => {
     const md = buildLoreMarkdown(makePopulatedState());
     // Check for stat block and combat data

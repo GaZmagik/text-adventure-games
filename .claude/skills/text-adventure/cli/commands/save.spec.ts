@@ -248,13 +248,13 @@ describe('save path-traversal guards', () => {
   test('load rejects a file path outside home/tmp directory', async () => {
     const result = await handleSave(['load', '/etc/passwd']);
     expect(result.ok).toBe(false);
-    expect(result.error!.message).toContain('home or temp directory');
+    expect(result.error!.message).toContain('home, temp, or /mnt/ directory');
   });
 
   test('validate rejects a file path outside home/tmp directory', async () => {
     const result = await handleSave(['validate', '/etc/passwd']);
     expect(result.ok).toBe(false);
-    expect(result.error!.message).toContain('home or temp directory');
+    expect(result.error!.message).toContain('home, temp, or /mnt/ directory');
   });
 });
 

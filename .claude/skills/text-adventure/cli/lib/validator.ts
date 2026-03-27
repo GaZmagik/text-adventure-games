@@ -126,9 +126,9 @@ export function validateState(state: unknown): ValidationResult {
     }
   }
 
-  // quests — should be an array
+  // quests — must be an array (sync crashes on quest.objectives.length otherwise)
   if (s.quests !== undefined && !Array.isArray(s.quests)) {
-    warnings.push('quests should be an array.');
+    errors.push('quests must be an array.');
   }
 
   // modulesActive — warn on unknown module names

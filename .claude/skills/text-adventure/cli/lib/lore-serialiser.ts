@@ -37,6 +37,14 @@ export type LoreMechanicalData = {
   previousAdventurer: PreviousAdventurer;
 };
 
+// ── YAML escaping ───────────────────────────────────────────────────
+
+/** Escape a value for safe YAML frontmatter interpolation. */
+function yamlSafe(value: string): string {
+  if (/^[a-zA-Z0-9._\-]+$/.test(value)) return value;
+  return '"' + value.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n') + '"';
+}
+
 // ── Faction label thresholds ─────────────────────────────────────────
 
 function factionLabel(standing: number): string {
@@ -141,9 +149,9 @@ function buildFrontmatter(state: GmState): string {
     'format: text-adventure-lore',
     'version: 1',
     `skill-version: ${SCHEMA_VERSION}`,
-    `title: "${title}"`,
+    `title: ${yamlSafe(title)}`,
     'author: GM',
-    `theme: ${state.theme ?? 'unset'}`,
+    `theme: ${yamlSafe(state.theme ?? 'unset')}`,
     'tone: unset',
     'acts: 3',
     'estimated-scenes: 30',
@@ -153,11 +161,11 @@ function buildFrontmatter(state: GmState): string {
     'exported: true',
     `exported-from: scene ${state.scene}`,
     `exported-date: ${now}`,
-    `seed: ${state.seed ?? 'none'}`,
-    `calendar-system: ${calendarSystem}`,
-    `start-date: ${startDate}`,
-    `start-time: ${startTime}`,
-    `recommended-styles: ${state.visualStyle ?? 'default'}`,
+    `seed: ${yamlSafe(state.seed ?? 'none')}`,
+    `calendar-system: ${yamlSafe(calendarSystem)}`,
+    `start-date: ${yamlSafe(startDate)}`,
+    `start-time: ${yamlSafe(startTime)}`,
+    `recommended-styles: ${yamlSafe(state.visualStyle ?? 'default')}`,
     `required-modules: ${modules.join(', ') || 'none'}`,
     `optional-modules: none`,
     '---',

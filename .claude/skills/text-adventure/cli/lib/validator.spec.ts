@@ -559,6 +559,33 @@ describe('validateState — modulesActive', () => {
   });
 });
 
+// ── Phase: quests must be an array (error, not warning) ──────────────
+
+describe('validateState — quests type enforcement', () => {
+  test('non-array quests produces an error and fails validation', () => {
+    const state = createDefaultState() as Record<string, unknown>;
+    state.quests = 'not-an-array';
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('quests must be an array.');
+  });
+
+  test('quests as object (not array) produces an error', () => {
+    const state = createDefaultState() as Record<string, unknown>;
+    state.quests = { id: 'fake' };
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('quests must be an array.');
+  });
+
+  test('valid quests array passes without quests error', () => {
+    const state = createDefaultState();
+    state.quests = [];
+    const result = validateState(state);
+    expect(result.errors.filter(e => e.includes('quests'))).toHaveLength(0);
+  });
+});
+
 describe('validateState — warning coverage', () => {
   test('warns on loose top-level fields that are not structurally invalid', () => {
     const state = createDefaultState() as Record<string, unknown>;
@@ -572,7 +599,7 @@ describe('validateState — warning coverage', () => {
     expect(result.warnings).toContain('scene should be a non-negative number.');
     expect(result.warnings).toContain('currentRoom should be a string.');
     expect(result.warnings).toContain('rollHistory should be an array.');
-    expect(result.warnings).toContain('quests should be an array.');
+    expect(result.errors).toContain('quests must be an array.');
     expect(result.warnings).toContain('seed should be a string.');
   });
 

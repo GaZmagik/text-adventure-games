@@ -158,7 +158,7 @@ describe('export load', () => {
   test('fails for file outside home/tmp directory', async () => {
     const result = await handleExport(['load', '/etc/passwd']);
     expect(result.ok).toBe(false);
-    expect(result.error!.message).toContain('home or temp directory');
+    expect(result.error!.message).toContain('home, temp, or /mnt/ directory');
   });
 
   test('fails when file has no LORE payload', async () => {
@@ -387,12 +387,12 @@ describe('export path security', () => {
   test('load rejects path outside home/tmp', async () => {
     const result = await handleExport(['load', '/etc/shadow']);
     expect(result.ok).toBe(false);
-    expect(result.error!.message).toContain('home or temp directory');
+    expect(result.error!.message).toContain('home, temp, or /mnt/ directory');
   });
 
   test('validate rejects path outside home/tmp', async () => {
     const result = await handleExport(['validate', '/etc/shadow']);
     expect(result.ok).toBe(false);
-    expect(result.error!.message).toContain('home or temp directory');
+    expect(result.error!.message).toContain('home, temp, or /mnt/ directory');
   });
 });

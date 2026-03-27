@@ -23,7 +23,8 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: ship-syst
 | Action | Command | Tool |
 |--------|---------|------|
 | Render star chart | `tag render starchart --style <style>` | Run via Bash tool |
-| Set navigation state | `tag state set navState.<path> <value>` | Run via Bash tool |
+| Set navigation state | `tag state set navPlottedCourse <value>` | Run via Bash tool |
+| Set navigation flags | `tag state set worldFlags.<key> <value>` | Run via Bash tool |
 
 > **Do not hand-code star chart HTML/CSS/JS.** Always run the CLI command via Bash tool to render the star chart widget. The `tag render starchart` command handles the SVG map, system nodes, route lines, faction zones, inspect panel, jump buttons, and sendPrompt wiring automatically.
 

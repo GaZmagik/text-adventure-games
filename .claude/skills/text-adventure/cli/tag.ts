@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
-import { readdirSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { readdirSync, readFileSync } from 'node:fs';
+import { resolve, join } from 'node:path';
 import { homedir, tmpdir } from 'node:os';
 import { getTopLevelHelp, getCommandHelp } from './help';
 import type { CommandResult } from './types';
@@ -19,11 +19,23 @@ function checkCompactionPreflight(): { detected: boolean; message: string } | nu
   try {
     const entries = readdirSync(transcriptsDir);
     const count = entries.filter(e => e !== JOURNAL_FILENAME).length;
-    if (count > 0) {
+
+    // Load stored compaction count to avoid permanent alerts after recovery
+    let storedCount = 0;
+    let currentScene = 0;
+    try {
+      const stateDir = process.env.TAG_STATE_DIR || join(home, '.tag');
+      const raw = JSON.parse(readFileSync(join(stateDir, 'state.json'), 'utf-8'));
+      if (typeof raw?._compactionCount === 'number') storedCount = raw._compactionCount;
+      if (typeof raw?.scene === 'number') currentScene = raw.scene;
+    } catch { /* no state file — storedCount stays 0 */ }
+
+    const newCompactions = count - storedCount;
+    if (newCompactions > 0) {
       return {
         detected: true,
-        message: `COMPACTION ALERT: ${count} compaction${count > 1 ? 's' : ''} detected in /mnt/transcripts/. `
-          + 'Context may be lost. Run `tag state sync --apply` then `tag state context` and re-read all listed modules.',
+        message: `COMPACTION ALERT: ${newCompactions} new compaction${newCompactions > 1 ? 's' : ''} detected in /mnt/transcripts/. `
+          + `Context may be lost. Run \`tag state sync --apply --scene ${currentScene}\` then \`tag state context\` and re-read all listed modules.`,
       };
     }
   } catch (err: unknown) {

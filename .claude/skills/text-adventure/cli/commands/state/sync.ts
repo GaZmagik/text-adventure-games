@@ -206,7 +206,7 @@ function checkCompaction(
       `${newCompactions} new compaction${newCompactions > 1 ? 's' : ''} detected `
       + `(stored: ${storedCount}, current: ${filesystemCount}). `
       + `Context may be lost. Re-read: ${moduleList}. `
-      + `Recovery: run \`tag state context\` and re-read all listed files.`,
+      + `Recovery: run \`tag state sync --apply --scene ${state.scene}\` then \`tag state context\` and re-read all listed files.`,
     );
 
     return { compactionDetected: true, filesystemCount };

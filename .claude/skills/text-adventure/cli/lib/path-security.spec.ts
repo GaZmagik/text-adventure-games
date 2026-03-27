@@ -65,6 +65,41 @@ describe('resolveSafeReadPath', () => {
   });
 });
 
+describe('resolveSafeReadPath — /mnt/ prefix', () => {
+  test('accepts files under /mnt/ directory', () => {
+    const dir = makeTempDir();
+    const mntDir = join(dir, 'mnt-test');
+    mkdirSync(mntDir);
+    const filePath = join(mntDir, 'world.save.md');
+    writeFileSync(filePath, 'save data', 'utf-8');
+
+    // Simulate /mnt/ prefix by mocking realpathSync to return a /mnt/ path
+    const originalRealpath = PATH_SECURITY_RUNTIME.realpathSync;
+    PATH_SECURITY_RUNTIME.realpathSync = (() => '/mnt/user-data/uploads/world.save.md') as unknown as typeof PATH_SECURITY_RUNTIME.realpathSync;
+    try {
+      const result = resolveSafeReadPath(filePath, { kind: 'Save', extensions: ['.md'] });
+      expect(result).toBe('/mnt/user-data/uploads/world.save.md');
+    } finally {
+      PATH_SECURITY_RUNTIME.realpathSync = originalRealpath;
+    }
+  });
+
+  test('rejects files outside home, tmp, and /mnt/', () => {
+    const dir = makeTempDir();
+    const filePath = join(dir, 'world.save.md');
+    writeFileSync(filePath, 'save data', 'utf-8');
+
+    const originalRealpath = PATH_SECURITY_RUNTIME.realpathSync;
+    PATH_SECURITY_RUNTIME.realpathSync = (() => '/etc/shadow') as unknown as typeof PATH_SECURITY_RUNTIME.realpathSync;
+    try {
+      expect(() => resolveSafeReadPath(filePath, { kind: 'Save', extensions: ['.md'] }))
+        .toThrow('must be within the home, temp, or /mnt/ directory');
+    } finally {
+      PATH_SECURITY_RUNTIME.realpathSync = originalRealpath;
+    }
+  });
+});
+
 describe('readSafeTextFile', () => {
   test('reads normal text files', async () => {
     const dir = makeTempDir();
