@@ -260,6 +260,9 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
 
   // Return raw HTML early — skip checklist/skeleton computation
   if (raw) {
+    if (html.length > 128 * 1024) {
+      console.error(`WARNING: render output is ${html.length} chars — exceeds 128K widget budget.`);
+    }
     return ok(html, 'render');
   }
 
@@ -271,7 +274,15 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   const requiredElements = buildRequiredElements(widgetType, state);
   const skeleton = buildSkeleton(widgetType, state);
 
-  const budgetNote = 'Widget budget is 128K chars. DO NOT trim, rewrite, or reduce this HTML — pass it directly to show_widget as-is.';
+  const sizeCheck = {
+    chars: html.length,
+    budgetChars: 128 * 1024,
+    withinBudget: html.length <= 128 * 1024,
+    percentUsed: Math.round((html.length / (128 * 1024)) * 100),
+  };
+  const budgetNote = sizeCheck.withinBudget
+    ? `Output is ${sizeCheck.chars.toLocaleString()} chars (${sizeCheck.percentUsed}% of 128K budget). Pass directly to show_widget as-is.`
+    : `WARNING: Output is ${sizeCheck.chars.toLocaleString()} chars — EXCEEDS 128K budget by ${(sizeCheck.chars - sizeCheck.budgetChars).toLocaleString()} chars. Reduce content.`;
 
   // Craft guidance — embedded so the GM cannot miss it even after compaction
   const sceneNum = state?.scene ?? 1;
@@ -306,6 +317,7 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
       style: resolvedStyle,
       html,
       budgetNote,
+      sizeCheck,
       craftGuidance,
       modulesRequired,
       featureChecklist,

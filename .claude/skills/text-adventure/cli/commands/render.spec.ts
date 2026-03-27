@@ -216,6 +216,24 @@ describe('render output modes', () => {
     expect(data.html).toContain('<style>');
   });
 
+  test('non-raw response includes sizeCheck with budget info', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    await saveState(state);
+
+    const result = await handleRender(['ticker']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const sc = data.sizeCheck as { chars: number; budgetChars: number; withinBudget: boolean; percentUsed: number };
+    expect(sc).toBeDefined();
+    expect(sc.chars).toBe((data.html as string).length);
+    expect(sc.budgetChars).toBe(128 * 1024);
+    expect(sc.withinBudget).toBe(true);
+    expect(sc.percentUsed).toBeGreaterThan(0);
+    expect(sc.percentUsed).toBeLessThanOrEqual(100);
+    expect(data.budgetNote as string).toContain(sc.chars.toLocaleString());
+  });
+
   test('--raw flag returns HTML string directly', async () => {
     const state = createDefaultState();
     state.visualStyle = 'terminal';
