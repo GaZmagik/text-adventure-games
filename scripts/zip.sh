@@ -7,6 +7,7 @@
 #   - .gitignore   (git-only)
 #   - .tddignore   (TDD tooling)
 #   - bun.lock     (locks devDependencies only)
+#   - cli/tests/   (test support harness and fixtures)
 #   - node_modules (installed locally by setup.sh)
 #   - .DS_Store    (macOS junk)
 
@@ -33,7 +34,8 @@ zip -r "$OUTPUT" . \
 	-x ".gitignore" \
 	-x ".tddignore" \
 	-x "bun.lock" \
-	-x "node_modules/*"
+	-x "node_modules/*" \
+	-x "cli/tests/*"
 
 FILE_COUNT=$(unzip -l "$OUTPUT" | tail -1 | awk '{print $2}')
 SIZE=$(ls -lh "$OUTPUT" | awk '{print $5}')
