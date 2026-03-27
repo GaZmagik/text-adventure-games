@@ -1,10 +1,32 @@
 #!/usr/bin/env bun
+import { readdirSync } from 'node:fs';
 import { getTopLevelHelp, getCommandHelp } from './help';
 import type { CommandResult } from './types';
 import { VERSION } from './lib/version';
 import { TOP_LEVEL_COMMANDS } from './metadata';
+import { JOURNAL_FILENAME } from './commands/state/sync';
+
+function checkCompactionPreflight(): { detected: boolean; message: string } | null {
+  const transcriptsDir = process.env.TAG_TRANSCRIPTS_DIR || '/mnt/transcripts';
+  try {
+    const entries = readdirSync(transcriptsDir);
+    const count = entries.filter(e => e !== JOURNAL_FILENAME).length;
+    if (count > 0) {
+      return {
+        detected: true,
+        message: `COMPACTION ALERT: ${count} compaction${count > 1 ? 's' : ''} detected in /mnt/transcripts/. `
+          + 'Context may be lost. Run `tag state sync --apply` then `tag state context` and re-read all listed modules.',
+      };
+    }
+  } catch { /* directory doesn't exist — not on claude.ai */ }
+  return null;
+}
 
 function output(result: CommandResult): void {
+  const alert = checkCompactionPreflight();
+  if (alert) {
+    (result as Record<string, unknown>)._compactionAlert = alert;
+  }
   console.log(JSON.stringify(result));
 }
 

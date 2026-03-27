@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
@@ -21,12 +21,13 @@ afterEach(() => {
   rmSync(tempDir, { recursive: true, force: true });
 });
 
-async function runTag(args: string[]): Promise<TagRunResult> {
+async function runTag(args: string[], extraEnv: Record<string, string> = {}): Promise<TagRunResult> {
   const proc = Bun.spawn(['bun', './tag.ts', ...args], {
     cwd: cliDir,
     env: {
       ...process.env,
       TAG_STATE_DIR: tempDir,
+      ...extraEnv,
     },
     stdout: 'pipe',
     stderr: 'pipe',
@@ -193,5 +194,35 @@ describe('tag CLI black-box', () => {
     const result = await expectFail(['export', 'load', './missing.lore.md']);
     const error = result.error as Record<string, string>;
     expect(error.message).toContain('Lore file not found');
+  });
+
+  test('compaction preflight injects _compactionAlert on any command when transcripts exist', async () => {
+    const transcriptsDir = mkdtempSync(join(tmpdir(), 'tag-transcripts-'));
+    writeFileSync(join(transcriptsDir, 'journal.txt'), 'log');
+    writeFileSync(join(transcriptsDir, '2026-01-01-00-00-00-transcript.txt'), 'transcript');
+
+    try {
+      const result = await runTag(['version'], { TAG_TRANSCRIPTS_DIR: transcriptsDir });
+      expect(result.exitCode).toBe(0);
+      const alert = result.json._compactionAlert as { detected: boolean; message: string } | undefined;
+      expect(alert).toBeDefined();
+      expect(alert!.detected).toBe(true);
+      expect(alert!.message).toContain('COMPACTION ALERT');
+      expect(alert!.message).toContain('1 compaction');
+    } finally {
+      rmSync(transcriptsDir, { recursive: true, force: true });
+    }
+  });
+
+  test('no _compactionAlert when transcripts directory is empty', async () => {
+    const transcriptsDir = mkdtempSync(join(tmpdir(), 'tag-transcripts-'));
+
+    try {
+      const result = await runTag(['version'], { TAG_TRANSCRIPTS_DIR: transcriptsDir });
+      expect(result.exitCode).toBe(0);
+      expect(result.json._compactionAlert).toBeUndefined();
+    } finally {
+      rmSync(transcriptsDir, { recursive: true, force: true });
+    }
   });
 });
