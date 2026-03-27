@@ -56,11 +56,10 @@ function decodeAndBuildState(payloadString: string): {
   }
 
   // Merge onto defaults
-  const defaults = createDefaultState();
-  delete defaults._lastComputation;
-  let state: GmState = {
+  const { _lastComputation: _, ...defaults } = createDefaultState();
+  let state: Record<string, unknown> = {
     ...defaults,
-    ...filtered as Partial<GmState>,
+    ...filtered,
   };
 
   // Reset session fields
@@ -71,7 +70,7 @@ function decodeAndBuildState(payloadString: string): {
   state._stateHistory = [];
 
   const { sanitized, strippedPaths } = stripUnknownStateKeys(state);
-  state = sanitized as GmState;
+  state = sanitized as Record<string, unknown>;
   const strippedWarnings = strippedPaths.map(path =>
     `Stripped unexpected state key "${path}" while loading lore data.`);
 
@@ -81,7 +80,9 @@ function decodeAndBuildState(payloadString: string): {
     throw new Error(`Lore state is structurally invalid: ${validation.errors.join('; ')}`);
   }
 
-  return { state, warnings: [...strippedWarnings, ...validation.warnings] };
+  // Cast is safe here — validateState has confirmed structural validity
+  const validState = state as unknown as GmState;
+  return { state: validState, warnings: [...strippedWarnings, ...validation.warnings] };
 }
 
 // ── generate ─────────────────────────────────────────────────────────
@@ -140,7 +141,7 @@ async function load(args: string[]): Promise<CommandResult> {
   }
 
   let payloadString: string;
-  let editedFlag: string | null;
+  let editedFlag: string | null = null;
   try {
     const loreFile = await readLoreFile(filePath);
     payloadString = loreFile.payloadString;
@@ -208,7 +209,7 @@ async function validate(args: string[]): Promise<CommandResult> {
   }
 
   let payloadString: string;
-  let editedFlag: string | null;
+  let editedFlag: string | null = null;
   try {
     const loreFile = await readLoreFile(filePath);
     payloadString = loreFile.payloadString;

@@ -39,7 +39,9 @@ function checkCompactionPreflight(): { detected: boolean; message: string } | nu
       };
     }
   } catch (err: unknown) {
-    const code = (err as NodeJS.ErrnoException).code;
+    const code = err && typeof err === 'object' && 'code' in err
+      ? (err as NodeJS.ErrnoException).code
+      : undefined;
     if (code !== 'ENOENT') {
       console.error(`Compaction check failed: ${code ?? 'unknown'} reading ${transcriptsDir}`);
     }

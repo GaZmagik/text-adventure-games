@@ -312,10 +312,15 @@ export async function handleBatch(args: string[]): Promise<CommandResult> {
         }
       }
 
-      if (didMutate) {
-        stateSnapshot = await flushStateStoreContext();
-      } else {
-        stateSnapshot = await tryLoadState();
+      try {
+        if (didMutate) {
+          stateSnapshot = await flushStateStoreContext();
+        } else {
+          stateSnapshot = await tryLoadState();
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        errors.push({ line: -1, raw: '(post-batch flush)', error: message });
       }
     });
 

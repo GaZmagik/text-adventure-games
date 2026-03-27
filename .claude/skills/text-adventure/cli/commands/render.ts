@@ -18,12 +18,15 @@ import {
 
 // ── Phase 11: Widget structural skeleton helpers ────────────────────
 
+/** Maximum character count for a widget — Claude.ai iframe budget. */
+const WIDGET_BUDGET_CHARS = 128 * 1024;
+
 /** Scene widgets that get a skeleton — data-driven widgets do not. */
 const SCENE_WIDGET = 'scene';
 
 /** Build the list of DOM elements that MUST be present in the rendered output. */
-export function buildRequiredElements(widgetType: string, state: GmState | null): string[] {
-  const moduleSet = new Set(state?.modulesActive ?? []);
+export function buildRequiredElements(widgetType: string, state: GmState | null, moduleSet?: Set<string>): string[] {
+  const modules = moduleSet ?? new Set(state?.modulesActive ?? []);
   const elements: string[] = [];
 
   // Always required
@@ -34,11 +37,11 @@ export function buildRequiredElements(widgetType: string, state: GmState | null)
     elements.push("<div class='action-cards'> with 3-4 player choices");
   }
 
-  if (moduleSet.has('atmosphere')) {
+  if (modules.has('atmosphere')) {
     elements.push("<div class='scene-atmosphere'> with 3-5 sensory pills");
   }
 
-  if (moduleSet.has('audio')) {
+  if (modules.has('audio')) {
     elements.push("<button class='scene-audio-toggle'> play/stop in footer");
   }
 
@@ -46,12 +49,12 @@ export function buildRequiredElements(widgetType: string, state: GmState | null)
 }
 
 /** Build a semantic HTML skeleton for scene renders with placeholder markers. */
-export function buildSkeleton(widgetType: string, state: GmState | null): string | null {
+export function buildSkeleton(widgetType: string, state: GmState | null, moduleSet?: Set<string>): string | null {
   if (widgetType !== SCENE_WIDGET) return null;
 
-  const moduleSet = new Set(state?.modulesActive ?? []);
-  const hasAtmosphere = moduleSet.has('atmosphere');
-  const hasAudio = moduleSet.has('audio');
+  const modules = moduleSet ?? new Set(state?.modulesActive ?? []);
+  const hasAtmosphere = modules.has('atmosphere');
+  const hasAudio = modules.has('audio');
 
   const parts: string[] = [];
   parts.push('<div class="scene-container">');
@@ -326,7 +329,7 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
 
   // Return raw HTML early — skip checklist/skeleton computation
   if (raw) {
-    if (html.length > 128 * 1024) {
+    if (html.length > WIDGET_BUDGET_CHARS) {
       console.error(`WARNING: render output is ${html.length} chars — exceeds 128K widget budget.`);
     }
     return ok(html, 'render');
@@ -337,14 +340,15 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   const featureChecklist = buildFeatureChecklist(state);
 
   // Phase 11: required elements and skeleton
-  const requiredElements = buildRequiredElements(widgetType, state);
-  const skeleton = buildSkeleton(widgetType, state);
+  const activeModuleSet = new Set(state?.modulesActive ?? []);
+  const requiredElements = buildRequiredElements(widgetType, state, activeModuleSet);
+  const skeleton = buildSkeleton(widgetType, state, activeModuleSet);
 
   const sizeCheck = {
     chars: html.length,
-    budgetChars: 128 * 1024,
-    withinBudget: html.length <= 128 * 1024,
-    percentUsed: Math.round((html.length / (128 * 1024)) * 100),
+    budgetChars: WIDGET_BUDGET_CHARS,
+    withinBudget: html.length <= WIDGET_BUDGET_CHARS,
+    percentUsed: Math.round((html.length / WIDGET_BUDGET_CHARS) * 100),
   };
   const budgetNote = sizeCheck.withinBudget
     ? `Output is ${sizeCheck.chars.toLocaleString()} chars (${sizeCheck.percentUsed}% of 128K budget). Pass directly to show_widget as-is.`

@@ -61,6 +61,7 @@ export function renderDialogue(state: GmState | null, css: string, options?: Rec
   border-color: var(--ta-color-accent);
   background: var(--ta-color-accent-bg);
 }
+.dialogue-choice:focus-visible { outline: 2px solid var(--ta-color-focus); outline-offset: 2px; }
 </style>
 <div class="widget-dialogue">
   <div class="dialogue-header">

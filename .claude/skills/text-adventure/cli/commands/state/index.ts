@@ -129,7 +129,7 @@ export function recordHistory(
     newValue,
   };
   if (state._stateHistory.length >= MAX_STATE_HISTORY) {
-    state._stateHistory = state._stateHistory.slice(-(MAX_STATE_HISTORY - 1));
+    state._stateHistory.shift();
   }
   state._stateHistory.push(entry);
 }

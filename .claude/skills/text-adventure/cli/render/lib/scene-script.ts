@@ -35,6 +35,7 @@ export const SCENE_SCRIPT_CODE = `
       overlay.style.display = 'block';
       sceneContent.style.display = 'none';
       if (btn) btn.setAttribute('aria-expanded', 'true');
+      overlay.addEventListener('keydown', trapPanelFocus);
       document.getElementById('panel-title-text').focus();
     }
   }
@@ -44,10 +45,30 @@ export const SCENE_SCRIPT_CODE = `
     var sceneContent = document.getElementById('scene-content');
     overlay.style.display = 'none';
     sceneContent.style.display = 'block';
+    if (overlay.removeEventListener) overlay.removeEventListener('keydown', trapPanelFocus);
     document.querySelectorAll('.footer-btn[aria-expanded]').forEach(function(b) {
       b.setAttribute('aria-expanded', 'false');
     });
     if (lastPanelTrigger) lastPanelTrigger.focus();
+  }
+
+  function trapPanelFocus(e) {
+    if (e.key === 'Escape') { window.tag.closePanel(); return; }
+    if (e.key !== 'Tab') return;
+    var overlay = document.getElementById('panel-overlay');
+    var focusables = overlay.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    if (!focusables.length) return;
+    var first = focusables[0];
+    var last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
   }
 
   // Expose for footer buttons — namespaced under window.tag to avoid global pollution

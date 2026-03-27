@@ -196,7 +196,6 @@ function draw(q,offset){
   gl.uniformMatrix4fv(uM,false,md);
 }
 
-function eOB(t){var k=1.70158;return 1+(k+1)*Math.pow(t-1,3)+k*Math.pow(t-1,2)}
 function spinSettle(tq,count,offset,startQ,onDone,dur){
   if(reduced){
     gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
@@ -216,7 +215,6 @@ function spinSettle(tq,count,offset,startQ,onDone,dur){
     else if(onDone)onDone();
   })();
 }
-function idleQuat(a){return qnm([Math.sin(a)*0.28,Math.cos(a)*0.35,Math.sin(a*0.63)*0.22,1])}
 function coinQuat(a){var tilt=0.22,s=Math.sqrt(1-tilt*tilt);return qnm([tilt,Math.sin(a)*s,0,Math.cos(a)*s])}
 `;
 }

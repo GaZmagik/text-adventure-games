@@ -72,7 +72,7 @@ export function renderRecap(state: GmState | null, css: string, _options?: Recor
     ${activeQuests.map(q => `
       <div class="quest-item">
         <span class="quest-title">${esc(q.title)}</span>
-        <span class="quest-status quest-active">${q.objectives.filter(o => o.completed).length}/${q.objectives.length} objectives</span>
+        <span class="quest-status quest-active">${q.objectives.reduce((n, o) => n + (o.completed ? 1 : 0), 0)}/${q.objectives.length} objectives</span>
       </div>`).join('\n')}
   </div>` : ''}
 

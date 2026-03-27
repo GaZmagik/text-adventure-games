@@ -137,12 +137,8 @@ export const PRE_GAME_WIDGETS = new Set<string>([
   'dice-pool',
 ]);
 
-export const PRE_CONFIG_WIDGETS = new Set<string>([
-  'settings',
-  'scenario-select',
-  'character-creation',
-  'dice-pool',
-]);
+/** Alias — pre-config widgets are the same set as pre-game widgets. */
+export const PRE_CONFIG_WIDGETS: Set<string> = PRE_GAME_WIDGETS;
 
 export const WIDGET_STYLE_SCOPES: Record<string, readonly string[] | undefined> = {
   scene: ['vars'],

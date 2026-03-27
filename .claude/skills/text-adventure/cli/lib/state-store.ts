@@ -79,17 +79,14 @@ async function loadStateFromDisk(): Promise<GmState> {
   return raw as GmState;
 }
 
-async function tryLoadStateFromDisk(): Promise<GmState | null> {
+async function tryLoadStateFromDisk(): Promise<Record<string, unknown> | null> {
   try {
     const file = Bun.file(getStatePath());
     if (!(await file.exists())) return null;
     if (file.size > MAX_FILE_SIZE_BYTES) throw new Error('State file exceeds 10 MB — possible corruption.');
     const raw: unknown = await file.json();
     if (!isPlausibleGmState(raw)) return null;
-    // Note: tryLoadState deliberately does NOT run validateState — commands like
-    // `state validate` need to load and inspect invalid state. Commands that mutate
-    // state run validateState at their own level before persisting.
-    return raw as GmState;
+    return raw;
   } catch (err: unknown) {
     if (err instanceof SyntaxError) {
       console.error('Warning: state.json is corrupted and could not be parsed.');
@@ -191,14 +188,19 @@ export async function saveState(state: GmState): Promise<void> {
   saveStateToDisk(state);
 }
 
+// tryLoadState deliberately returns GmState | null even though tryLoadStateFromDisk returns
+// Record<string, unknown> | null. This is an intentional design choice: commands like
+// `state validate` need to load potentially-invalid state for inspection. Commands that
+// mutate state run validateState at their own level before persisting. The cast is safe
+// at the boundary because all mutation paths validate before writing back to disk.
 export async function tryLoadState(): Promise<GmState | null> {
   if (activeStateStoreContext) {
     if (activeStateStoreContext.state === undefined) {
-      activeStateStoreContext.state = await tryLoadStateFromDisk();
+      activeStateStoreContext.state = (await tryLoadStateFromDisk()) as GmState | null;
     }
     return cloneState(activeStateStoreContext.state ?? null);
   }
-  return tryLoadStateFromDisk();
+  return (await tryLoadStateFromDisk()) as GmState | null;
 }
 
 export function createDefaultState(): GmState {

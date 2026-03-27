@@ -71,6 +71,7 @@ ${COMMON_WIDGET_CSS}
   min-height: 44px; box-sizing: border-box;
 }
 .scenario-select-btn:hover { background: var(--ta-color-accent); color: var(--ta-btn-primary-text, #fff); }
+.scenario-select-btn:focus-visible { outline: 2px solid var(--ta-color-focus); outline-offset: 2px; }
 .empty-scenarios { font-size: 13px; color: var(--color-text-tertiary); text-align: center; padding: 40px; }
 </style>
 <div class="widget-scenario-select">

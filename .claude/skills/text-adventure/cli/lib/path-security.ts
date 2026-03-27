@@ -69,6 +69,9 @@ export async function readSafeTextFile(
   // Bun/Node do not give us a clean cross-platform no-follow open-by-fd path here,
   // so we keep the same documented limitation for save/export and fail closed on I/O.
   const file = Bun.file(filePath);
+  if (!(await file.exists())) {
+    throw new Error(`${kind} file could not be read.`);
+  }
   if (file.size > MAX_FILE_SIZE_BYTES) {
     throw new Error(`${kind} file exceeds 10 MB size limit.`);
   }

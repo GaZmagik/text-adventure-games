@@ -171,7 +171,9 @@ type CssBlock =
   | { type: 'rule'; selector: string; body: string; raw: string }
   | { type: 'at-rule'; name: string; body: string; raw: string };
 
-/** Split CSS into top-level blocks using brace-depth counting. */
+/** Split CSS into top-level blocks using brace-depth counting.
+ *  Skips braces inside comments and string literals to prevent
+ *  `content: '}'` or `/* } *​/` from desynchronising the depth counter. */
 function tokeniseTopLevel(css: string): CssBlock[] {
   const blocks: CssBlock[] = [];
   let depth = 0;
@@ -179,10 +181,31 @@ function tokeniseTopLevel(css: string): CssBlock[] {
   let braceStart = -1;
 
   for (let i = 0; i < css.length; i++) {
-    if (css[i] === '{') {
+    const ch = css[i];
+
+    // Skip /* ... */ comments — braces inside must not be counted
+    if (ch === '/' && css[i + 1] === '*') {
+      const end = css.indexOf('*/', i + 2);
+      i = end === -1 ? css.length - 1 : end + 1;
+      continue;
+    }
+
+    // Skip '...' and "..." string literals — braces inside must not be counted
+    if (ch === "'" || ch === '"') {
+      const quote = ch;
+      i++;
+      while (i < css.length) {
+        if (css[i] === '\\') { i++; } // skip escaped character
+        else if (css[i] === quote) { break; }
+        i++;
+      }
+      continue;
+    }
+
+    if (ch === '{') {
       if (depth === 0) braceStart = i;
       depth++;
-    } else if (css[i] === '}') {
+    } else if (ch === '}') {
       depth--;
       if (depth === 0 && braceStart >= 0) {
         const pre = css.slice(blockStart, braceStart).trim();

@@ -118,6 +118,7 @@ describe('readSafeTextFile', () => {
     const originalFile = bunApi.file;
     bunApi.file = () => ({
       size: 0,
+      exists: async () => true,
       text: async () => {
         throw new Error('simulated read failure');
       },

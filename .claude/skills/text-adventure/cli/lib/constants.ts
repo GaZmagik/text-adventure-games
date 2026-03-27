@@ -16,7 +16,8 @@ export const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 export const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 
 /** All valid top-level keys of GmState — prevents arbitrary key creation via dot-path.
- *  The `satisfies` constraint ensures compile-time parity with the GmState interface. */
+ *  The `satisfies` constraint verifies exhaustiveness: a compile error here means a
+ *  GmState key was added without updating this array. */
 const VALID_TOP_KEYS_ARRAY = [
   '_version', 'scene', 'currentRoom', 'visitedRooms', 'rollHistory',
   'character', 'worldFlags', 'seed', 'theme', 'visualStyle', 'modulesActive',
@@ -25,6 +26,10 @@ const VALID_TOP_KEYS_ARRAY = [
   'navPlottedCourse', 'arc', 'arcType', 'carryForward', 'arcHistory',
   '_lastComputation', '_stateHistory', '_schemaVersion', '_compactionCount',
 ] as const satisfies readonly (keyof GmState)[];
+// Exhaustiveness check: ensures every key of GmState is present in the array above.
+// If this line errors, add the missing key(s) to VALID_TOP_KEYS_ARRAY.
+type _AssertExhaustive = keyof GmState extends (typeof VALID_TOP_KEYS_ARRAY)[number] ? true : never;
+const _exhaustiveCheck: _AssertExhaustive = true;
 export const VALID_TOP_KEYS = new Set<string>(VALID_TOP_KEYS_ARRAY);
 
 export const SCHEMA_VERSION = '1.3.0' as const;

@@ -10,7 +10,7 @@ export const SOUNDSCAPE_ENGINE_CODE: string = `
       if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
     };
     SoundscapeEngine.prototype.play = function(type, duration) {
-      this.init(); this.stop();
+      this.stop(); this.init();
       duration = Math.min(duration || 25, 30);
       var generators = {
         'ship-engine': function(e) { e.genDrone(45, 0.15, duration); e.genNoise('lowpass', 150, 0.08, duration); },
@@ -32,6 +32,7 @@ export const SOUNDSCAPE_ENGINE_CODE: string = `
       this.nodes.forEach(function(n) { try { n.stop(); } catch(e) {} try { n.disconnect(); } catch(e) {} });
       this.nodes = []; this.playing = false;
       if (this.timeout) { clearTimeout(this.timeout); this.timeout = null; }
+      if (this.ctx) { try { this.ctx.close(); } catch(e) {} this.ctx = null; }
       var btn = document.getElementById('audio-btn');
       if (btn) btn.textContent = '\\u266b Play';
     };

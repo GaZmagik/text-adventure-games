@@ -1,7 +1,7 @@
 import { readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { homedir, tmpdir } from 'node:os';
-import type { CommandResult, GmState } from '../../types';
+import type { CommandResult, GmState, TimeState } from '../../types';
 import { ok, fail, noState } from '../../lib/errors';
 import { tryLoadState, saveState, getSyncMarkerPath } from '../../lib/state-store';
 import { validateState } from '../../lib/validator';
@@ -183,7 +183,9 @@ function checkCompaction(
     const entries = readdirSync(transcriptsDir);
     filesystemCount = entries.filter(e => e !== JOURNAL_FILENAME).length;
   } catch (err: unknown) {
-    const code = (err as NodeJS.ErrnoException).code;
+    const code = err && typeof err === 'object' && 'code' in err
+      ? (err as NodeJS.ErrnoException).code
+      : undefined;
     if (code !== 'ENOENT') {
       warnings.push(
         `Compaction check skipped: could not read "${transcriptsDir}" (${code ?? 'unknown'}). `
@@ -249,7 +251,7 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
     if (diff.scene) state.scene = nextScene;
     if (diff.currentRoom && flags.room) state.currentRoom = flags.room;
     if (parsedTime) {
-      Object.assign(state.time, parsedTime);
+      state.time = { ...state.time, ...(parsedTime as Partial<TimeState>) };
     }
     if (filesystemCount > (state._compactionCount ?? 0)) {
       state._compactionCount = filesystemCount;
@@ -266,9 +268,8 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
 
     recordHistory(state, 'state sync', 'sync', null, diff);
     await saveState(state);
+    await Bun.write(getSyncMarkerPath(), String(state.scene));
   }
-
-  await Bun.write(getSyncMarkerPath(), String(state.scene));
 
   return ok({
     status,

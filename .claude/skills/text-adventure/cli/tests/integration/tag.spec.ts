@@ -98,7 +98,7 @@ describe('tag CLI black-box', () => {
   test('render happy path works after sync for in-game widgets', async () => {
     await expectOk(['state', 'reset']);
     await expectOk(['state', 'set', 'visualStyle', 'terminal']);
-    await expectOk(['state', 'sync']);
+    await expectOk(['state', 'sync', '--apply']);
     const result = await expectOk(['render', 'footer', '--raw']);
     expect(result.data).toEqual(expect.stringContaining('footer-row'));
   });

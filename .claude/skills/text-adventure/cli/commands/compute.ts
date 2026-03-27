@@ -161,6 +161,14 @@ async function encounter(args: string[]): Promise<CommandResult> {
   const escalationStr = parseArgs(args).flags.escalation ?? '0';
   const escalation = parseInt(escalationStr, 10) || 0;
 
+  if (!Number.isInteger(escalation) || escalation < 0) {
+    return fail(
+      `Invalid escalation value: "${escalationStr}". Must be a non-negative integer.`,
+      'tag compute encounter --escalation 2',
+      'compute encounter',
+    );
+  }
+
   const roll = rollD20();
   const enc = encounterType(roll, escalation);
 

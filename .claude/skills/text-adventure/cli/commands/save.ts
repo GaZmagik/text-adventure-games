@@ -110,11 +110,10 @@ async function load(args: string[]): Promise<CommandResult> {
 
   // Rebuild GmState from filtered payload — spread merge ensures new fields inherit defaults
   // and saved fields always win. _lastComputation is session-only and always reset.
-  const defaults = createDefaultState();
-  delete defaults._lastComputation;
-  let state: GmState = {
+  const { _lastComputation: _, ...defaults } = createDefaultState();
+  let state: Record<string, unknown> = {
     ...defaults,
-    ...filtered as Partial<GmState>,
+    ...filtered,
   };
 
   // Phase 10: Schema versioning — read version from payload, default to '1.2.0' for legacy saves
@@ -125,8 +124,12 @@ async function load(args: string[]): Promise<CommandResult> {
   // Run migrations for pre-1.3.0 saves
   if (semverLessThan(loadedVersion, '1.3.0')) {
     // Phase 3: HP clamping migration — normalise out-of-range HP values
-    if (state.character && typeof state.character.hp === 'number' && typeof state.character.maxHp === 'number') {
-      state.character.hp = Math.max(0, Math.min(state.character.hp, state.character.maxHp));
+    const char = state.character;
+    if (char && typeof char === 'object' && !Array.isArray(char)) {
+      const c = char as Record<string, unknown>;
+      if (typeof c.hp === 'number' && typeof c.maxHp === 'number') {
+        c.hp = Math.max(0, Math.min(c.hp, c.maxHp));
+      }
     }
   }
 
@@ -134,12 +137,13 @@ async function load(args: string[]): Promise<CommandResult> {
   state._schemaVersion = SCHEMA_VERSION;
 
   // Phase 2: Preserve loaded _stateHistory, cap at MAX_STATE_HISTORY
-  if (state._stateHistory && state._stateHistory.length > MAX_STATE_HISTORY) {
-    state._stateHistory = state._stateHistory.slice(-MAX_STATE_HISTORY);
+  const history = state._stateHistory;
+  if (Array.isArray(history) && history.length > MAX_STATE_HISTORY) {
+    state._stateHistory = history.slice(-MAX_STATE_HISTORY);
   }
 
   const { sanitized, strippedPaths } = stripUnknownStateKeys(state);
-  state = sanitized as GmState;
+  state = sanitized as Record<string, unknown>;
   const strippedWarnings = strippedPaths.map(path =>
     `Stripped unexpected state key "${path}" while loading save data.`);
 
@@ -154,13 +158,15 @@ async function load(args: string[]): Promise<CommandResult> {
     );
   }
 
-  await saveState(state);
+  // Cast is safe here — validateState has confirmed structural validity
+  const validState = state as unknown as GmState;
+  await saveState(validState);
 
   return ok({
     message: 'Save loaded successfully.',
     mode: decoded.mode,
-    scene: state.scene,
-    characterName: state.character?.name ?? null,
+    scene: validState.scene,
+    characterName: validState.character?.name ?? null,
     ...((strippedWarnings.length > 0 || validation.warnings.length > 0)
       ? { warnings: [...strippedWarnings, ...validation.warnings] }
       : {}),
