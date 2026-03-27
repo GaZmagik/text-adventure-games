@@ -26,14 +26,19 @@ function checkCompactionPreflight(): { detected: boolean; message: string } | nu
           + 'Context may be lost. Run `tag state sync --apply` then `tag state context` and re-read all listed modules.',
       };
     }
-  } catch { /* directory doesn't exist — not on claude.ai */ }
+  } catch (err: unknown) {
+    const code = (err as NodeJS.ErrnoException).code;
+    if (code !== 'ENOENT') {
+      console.error(`Compaction check failed: ${code ?? 'unknown'} reading ${transcriptsDir}`);
+    }
+  }
   return null;
 }
 
 function output(result: CommandResult): void {
   const alert = checkCompactionPreflight();
   if (alert) {
-    (result as Record<string, unknown>)._compactionAlert = alert;
+    result._compactionAlert = alert;
   }
   console.log(JSON.stringify(result));
 }

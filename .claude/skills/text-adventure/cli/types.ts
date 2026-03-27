@@ -315,5 +315,6 @@ export type CommandResult<T = unknown> = {
   data?: T;
   error?: { message: string; corrective: string };
   state_snapshot?: Partial<GmState> | null;
+  _compactionAlert?: { detected: boolean; message: string } | null;
 };
 
