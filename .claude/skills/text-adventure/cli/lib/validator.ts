@@ -3,6 +3,7 @@
 
 import { STAT_NAMES, VALID_TIERS, VALID_PRONOUNS, KNOWN_MODULES } from './constants';
 import type { RollType, StatName } from '../types';
+import { collectUnexpectedStatePaths } from './state-schema';
 
 const VALID_ROLL_TYPES_ARRAY: readonly string[] = [
   'contested_roll', 'hazard_save', 'encounter_roll', 'levelup_result',
@@ -41,6 +42,10 @@ export function validateState(state: unknown): ValidationResult {
   }
 
   const s = state as Record<string, unknown>;
+  const unexpectedPaths = collectUnexpectedStatePaths(s);
+  for (const path of unexpectedPaths) {
+    errors.push(`Unexpected state key "${path}".`);
+  }
 
   // _version
   if (typeof s._version !== 'number') {

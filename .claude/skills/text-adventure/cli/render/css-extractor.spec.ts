@@ -97,6 +97,23 @@ describe('extractAllCss', () => {
     expect(css).toBe('');
   });
 
+  test('returns empty string when file reads throw unexpectedly', async () => {
+    const bunApi = Bun as any;
+    const originalFile = bunApi.file;
+    bunApi.file = () => ({
+      exists: async () => true,
+      text: async () => {
+        throw new Error('simulated read failure');
+      },
+    });
+
+    try {
+      expect(await extractAllCss('/tmp/read-failure.md')).toBe('');
+    } finally {
+      bunApi.file = originalFile;
+    }
+  });
+
   test('returns empty string for file with no CSS blocks', async () => {
     const css = await extractAllCss(join(STYLES_DIR, '..', 'SKILL.md'));
     // SKILL.md has code blocks but they're not fenced as css — must return exactly ''

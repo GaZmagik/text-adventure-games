@@ -91,6 +91,12 @@ describe('parseArgs', () => {
     expect(result.booleans.has('raw')).toBe(false); // consumed as value, not boolean
   });
 
+  test('supports --key=value syntax', () => {
+    const result = parseArgs(['scene', '--style=terminal', '--dc=14']);
+    expect(result.positional).toEqual(['scene']);
+    expect(result.flags).toEqual({ style: 'terminal', dc: '14' });
+  });
+
   test('boolean flag before value flag works in any order', () => {
     const result = parseArgs(['--dry-run', '--commands', 'a;b'], ['dry-run']);
     expect(result.booleans.has('dry-run')).toBe(true);

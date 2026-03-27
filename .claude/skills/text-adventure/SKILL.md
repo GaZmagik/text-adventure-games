@@ -50,14 +50,15 @@ This installs Bun (if needed), links the `tag` command, sets `PATH` so `tag` is 
 > **Bun runtime requirement:** The `tag` CLI uses Bun-only APIs (`Bun.file()`,
 > `import.meta.dir`) and will not run under Node.js. `setup.sh` installs Bun
 > automatically. Tests use `bun:test` and must be run via `bun test`. Type
-> checking uses `bun run typecheck` — do not use plain `tsc` as there is no
-> `tsconfig.json`; Bun executes TypeScript directly.
+> checking uses `bun run typecheck` which runs `bun x tsc --noEmit -p ./cli/tsconfig.json`;
+> `cli/tsconfig.json` exists and configures the type-check target.
 
 To resume from a save file, ALWAYS use the file path — never pass the raw save string as a CLI argument:
 ```bash
 . ./setup.sh && tag save load /mnt/user-data/uploads/<filename>.save.md
 ```
 Uploaded files land in `/mnt/user-data/uploads/`. The load command reads the file, extracts the save string, validates the checksum, and writes the full game state to `~/.tag/state.json`. After loading, all `tag` commands read from this file automatically.
+If loaded save or lore data contains unexpected nested keys, the CLI strips them and returns warnings instead of accepting schema drift.
 
 ### Step 1 — Sync (before EVERY scene)
 
@@ -131,7 +132,8 @@ Every widget in this skill has a corresponding `tag render` template. **Use thes
 | Scenario Select | `tag render scenario-select --data '<json>'` | Pre-game — pick scenario |
 | Character Creation | `tag render character-creation --data '<json>'` | Pre-game — build character |
 | Scene | `tag render scene --style <style>` | Every scene — main exploration view |
-| Dice | `tag render dice --style <style>` | After any die roll |
+| Dice | `tag render dice --style <style>` | Single logical die, coin flip, or d100 check |
+| Dice Pool | `tag render dice-pool --style <style> --data '<json>'` | Mixed or repeated numeric dice on one canvas |
 | Combat Turn | `tag render combat-turn --style <style>` | Combat outcome display |
 | Dialogue | `tag render dialogue --style <style>` | NPC conversation |
 | Character | `tag render character --style <style>` | Character sheet panel |
@@ -222,6 +224,7 @@ tag batch --commands "compute contest DEX guard_01 as dodge_result; state set ch
 
 The batch captures the contest result, applies HP damage, renders the combat widget
 with correct CSS from the active style, and generates a save — all in one call.
+Quoted strings and JSON payloads may contain semicolons safely. Mutating batch commands run against one in-memory state snapshot and persist once at the end.
 
 See `cli/manual.md` for the full reference with three worked examples (arc setup,
 combat turn, social encounter).
@@ -244,16 +247,16 @@ TIER 1 — MUST READ before rendering any widget
   modules/prose-craft.md          Sentence-level prose quality — read EVERY TURN
   styles/style-reference.md       Structural patterns, CSS contract, worked examples
   styles/{active-style}.md        Active visual style CSS custom properties
-  modules/die-rolls.md            Four-stage d20 resolution, 3D dice, DC tables
+  modules/die-rolls.md            Click-to-roll dice widgets, dice pools, DC tables
   modules/character-creation.md   Archetypes, stats, equipment, theme-adapted names
   modules/core-systems.md         Inventory, economy, factions, quests, time, XP
-  modules/scenarios.md            Starter scenarios, theme adaptation, arc templates
+  modules/save-codex.md           Session persistence (always load)
 
 TIER 2 — READ when scenario activates (before opening scene)
   Load based on scenario type and player settings. Read after Tier 1
   is complete, before the opening scene renders.
 
-  modules/save-codex.md           Session persistence (always load)
+  modules/scenarios.md            Starter scenarios, theme adaptation, arc templates
   modules/bestiary.md             Adversary templates, encounter building (always load)
   modules/story-architect.md      Plotline tracking (recommended for >3 scenes)
   modules/ship-systems.md         When player commands a vessel (optional)
@@ -361,7 +364,7 @@ by the chosen scenario.
 
 | Setting | Options | Default |
 |---------|---------|---------|
-| Rulebook | d20 System, GURPS Lite, Pathfinder 2e Lite, Shadowrun 5e Lite, Narrative Engine, SWRPG (Narrative Dice), Custom | d20 System |
+| Rulebook | d20 System, D&D 5e, GURPS Lite, Pathfinder 2e Lite, Shadowrun 5e Lite, Narrative Engine, SWRPG (Narrative Dice), Custom | d20 System |
 | Difficulty | Easy (DCs −2), Normal, Hard (DCs +2), Brutal (DCs +4) | Normal |
 | Pacing | Fast (shorter scenes), Normal, Slow (deeper exploration) | Normal |
 | Visual Style | Any `.md` file in `styles/` (e.g., Terminal, Parchment, Neon, Stained Glass) | Auto-select based on scenario theme |
@@ -411,7 +414,7 @@ During game setup, the player selects a visual style or the GM auto-selects base
 Render the settings widget via the Bash tool:
 
 ```bash
-tag render settings --data '{"rulebooks":["d20_system","gurps_lite","pathfinder_2e_lite","shadowrun_5e_lite","narrative_engine","swrpg_narrative"],"difficulties":["easy","normal","hard","brutal"],"pacingOptions":["fast","normal","slow"],"visualStyles":["station","terminal","parchment","neon","brutalist","art-deco","ink-wash","blueprint","stained-glass","sveltekit","weathered","holographic"],"modules":["save-codex","bestiary","story-architect","ship-systems","crew-manifest","star-chart","geo-map","procedural-world-gen","world-history","lore-codex","rpg-systems","ai-npc","atmosphere","audio"]}'
+tag render settings --data '{"rulebooks":["d20_system","dnd_5e","gurps_lite","pathfinder_2e_lite","shadowrun_5e_lite","narrative_engine","swrpg_narrative"],"difficulties":["easy","normal","hard","brutal"],"pacingOptions":["fast","normal","slow"],"visualStyles":["station","terminal","parchment","neon","brutalist","art-deco","ink-wash","blueprint","stained-glass","sveltekit","weathered","holographic"],"modules":["save-codex","bestiary","story-architect","ship-systems","crew-manifest","star-chart","geo-map","procedural-world-gen","world-history","lore-codex","rpg-systems","ai-npc","atmosphere","audio"]}'
 ```
 
 The settings template includes a confirm button that serialises all player selections into
@@ -451,21 +454,30 @@ and forget which modules are active.
 
 ## Die Roll System
 
-See `modules/die-rolls.md` for the full resolution system: four-stage widget pattern, DC table,
-critical rules, attribute variety, DC escalation, and sendPrompt fallback.
+See `modules/die-rolls.md` for the full resolution system: click-to-roll flow, DC table,
+critical rules, attribute variety, DC escalation, and mixed-pool usage.
 
-**3D Dice (mandatory):** All die rolls MUST use `tag render dice --style <style>` via the
-Bash tool. The template renders proper 3D polyhedra with numbered faces, tumble animation,
-and easeOutBack settle. Never hand-code dice widgets — the CLI template handles WebGL
-setup, polyhedra geometry, and graceful degradation automatically.
+**3D Dice (mandatory):** Single logical die rolls MUST use `tag render dice --style <style>`
+via the Bash tool. The widget starts in an idle pre-roll state, randomises on click,
+settles onto the rolled face, reveals the result, and then locks. `d100` is rendered as two independent d10 canvases (Tens and Units), each with its own
+WebGL context, arranged side by side. Never hand-code dice widgets — the CLI template
+handles WebGL setup, polyhedra geometry, and graceful degradation automatically.
+
+**Dice Pools:** Mixed or repeated numeric rolls (for example `2d6 + 2d8 + 3d10 + 1d20`)
+must use `tag render dice-pool --style <style> --data '<json>'`. The pool widget renders
+all dice on one shared canvas, rolls the whole pool on click, reveals grouped totals, and
+then locks.
 
 **Key rules (always apply):**
 - Never reveal which attribute a check tests in the action options — the player chooses what
   to *do*, not which stat to roll. "Speak to the guard" not "Persuade the guard (CHA)".
-- Four stages: Declare → Animate → Resolve → Continue. Never skip or combine.
-- DC hidden until after the roll. Natural 20 always succeeds. Natural 1 always fails.
-- Use `data-prompt` + `addEventListener` for all sendPrompt buttons, never inline `onclick`.
-- No contractions in prompt strings. Always include a copyable fallback prompt.
+- The die or pool must be clicked by the player. Never auto-roll.
+- The visible result must stay hidden until after the click. Never pre-fill or pre-determine
+  the shown outcome.
+- Single-die widgets are one-shot. After the reveal, the result is locked.
+- DC hidden until after the roll when a DC-based reveal is used. Natural max always succeeds.
+  Natural min always fails.
+- Use `tag render dice` for one logical die and `tag render dice-pool` for grouped numeric rolls.
 - Test all six attributes across the adventure — especially the player's weak stats.
 
 ---
@@ -906,7 +918,7 @@ The save payload captures the complete session state:
 - **Quest log:** All quests with objectives, status, and clues.
 - **Faction standings:** All entries in `gmState.factions`.
 - **Time state:** Period, day, date, calendar, deadline (if active).
-- **Crew and ship state:** `gmState.crewState` and `gmState.shipState` (if applicable).
+- **Crew and ship state:** `gmState.crewMutations` and `gmState.shipState` (if applicable).
 - **Destiny pool / session state:** Roll history, active modules list, difficulty setting.
 
 The save-codex module handles encoding, compression, versioning, and checksum generation.
@@ -918,45 +930,61 @@ Refer to `modules/save-codex.md` for the full technical specification.
 
 ```js
 const gmState = {
-  scene: 1,
-  settings: { rulebook: 'd20_system', difficulty: 'normal', pacing: 'normal' },
-  character: { name, class, hp, maxHp, stats, inventory: [], conditions: [], xp: 0, level: 1 },
-  worldFlags: {},
+  _version: 1,
+  _schemaVersion: '1.3.0',
+  scene: 0,
+  currentRoom: '',
   visitedRooms: [],
-  currentRoom: null,
   rollHistory: [],
-  // Core systems (see modules/core-systems.md for full details)
-  quests: [],             // quest tracker
-  factions: {},           // faction standing (-100 to +100)
-  time: { period: 'morning', day: 1, date: null, calendar: null },
-  // Arc system — campaign carry-forward (see save-codex.md)
-  arc: 1,                 // current arc number (default 1)
-  arcType: 'standard',    // 'standard' | 'epic' | 'branching'
-  arcHistory: [],         // summaries of previous arcs (max 3, FIFO)
-  carryForward: null,     // carried state from previous arc (null for arc 1)
-  // Module state — populated when modules are active
-  shipState: null,        // ship-systems module
-  crewState: null,        // crew-manifest module
-  sectorData: null,       // star-chart module
-  navState: null,         // star-chart module
-  mapState: null,         // geo-map module
-  codex: [],              // lore-codex module
-  storyArchitect: null,   // story-architect module
-  worldHistory: null,     // world-history module
-  adventureLore: null,    // adventure-authoring module (.lore.md data)
-  exportState: null,      // adventure-exporting module
-  activeModules: [],      // list of loaded module names
+  character: null,
+  worldFlags: {},
+  seed: 'abc123def456',
+  theme: 'fantasy',
+  visualStyle: 'terminal',
+  modulesActive: [],
+  rosterMutations: [],
+  codexMutations: [],
+  time: {
+    period: 'morning',
+    date: 'Day 1',
+    elapsed: 0,
+    hour: 8,
+    playerKnowsDate: false,
+    playerKnowsTime: false,
+    calendarSystem: 'elapsed-only',
+    deadline: null,
+  },
+  factions: {},
+  quests: [],
+  storyArchitect: null,
+  shipState: null,
+  crewMutations: [],
+  mapState: null,
+  systemResources: null,
+  navPlottedCourse: null,
+  arc: 1,
+  arcType: 'standard',
+  carryForward: null,
+  arcHistory: [],
+  _lastComputation: null,
+  _stateHistory: [],
+  _compactionCount: 0,
 };
 ```
 
 **Consequence consistency:** Once a world flag is set, all subsequent scenes must reflect it.
 
-### World Flag Naming Convention
+### World Flags
 
-All keys in `gmState.worldFlags` must follow the format `{module}_{entity}_{property}`.
-No abbreviations in flag names — use full words for clarity.
+`gmState.worldFlags` is the intentional free-form store for GM-defined flags, counters,
+and notes. Prefer descriptive names and namespace by module when helpful, but the CLI
+does not require a fixed naming convention.
 
-**Module prefixes:**
+Use `worldFlags` for ad hoc metadata. Other `tag state set` writes must target known
+allowlisted paths from the state schema. Unknown nested keys are rejected, and
+save/lore imports strip unexpected nested keys with warnings.
+
+Recommended prefixes when useful:
 
 | Prefix | Module |
 |--------|--------|
@@ -1054,6 +1082,10 @@ Modules in `modules/` add optional depth. Load based on scenario and settings.
 | World History | `modules/world-history.md` | Recommended for all adventures |
 | Adventure Authoring | `modules/adventure-authoring.md` | When player uploads .lore.md or GM creates an adventure |
 | Adventure Exporting | `modules/adventure-exporting.md` | On demand — player requests world export or GM offers at milestone |
+| Prose Craft | `modules/prose-craft.md` | Always — read EVERY TURN for prose quality |
+| Atmosphere | `modules/atmosphere.md` | When visual atmosphere effects are active (particles, lighting, UI degradation) |
+| Audio | `modules/audio.md` | When procedural soundscapes are active (Web Audio API) |
+| Arc Patterns | `modules/arc-patterns.md` | When planning arc transitions, branching paths, or downtime |
 | GM Checklist | `modules/gm-checklist.md` | Always — read FIRST before any other module |
 
 ### Loading Protocol
@@ -1184,7 +1216,7 @@ passed (see `modules/prose-craft.md` § Prose Checklist).
 ## Anti-Patterns
 
 For narrative and gameplay anti-patterns (writing outside widgets, auto-resolving,
-skipping die stages, forgetting sendPrompt fallbacks, etc.), see the full list with
+skipping die roll flow, forgetting sendPrompt fallbacks, etc.), see the full list with
 explanations in `modules/gm-checklist.md` § Common Mistakes to Avoid. The following
 are **technical anti-patterns** not covered there:
 

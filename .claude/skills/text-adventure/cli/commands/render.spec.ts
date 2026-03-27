@@ -5,6 +5,11 @@ import { tmpdir } from 'node:os';
 import { handleRender } from './render';
 import { saveState, createDefaultState } from '../lib/state-store';
 import type { GmState } from '../types';
+import { WIDGET_CSS_SCOPES } from '../metadata';
+import {
+  MAX_DICE_POOL_CANVAS_HEIGHT,
+  MAX_DICE_POOL_TOTAL,
+} from '../render/templates/dice-pool';
 
 let tempDir: string;
 const originalEnv = process.env.TAG_STATE_DIR;
@@ -49,12 +54,93 @@ describe('render state requirement', () => {
     expect(result.error?.message).toContain('No game state');
   });
 
+  test('data-driven dice-pool widget renders without state', async () => {
+    const result = await handleRender([
+      'dice-pool',
+      '--raw',
+      '--data',
+      '{"label":"Volley","pool":[{"dieType":"d6","count":2},{"dieType":"d8","count":1}],"modifier":2}',
+    ]);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+    expect(html).toContain('Volley');
+    expect(html).toContain('2d6 + 1d8');
+    expect(html).toContain('id="dice-pool-canvas"');
+  });
+
+  test('dice-pool safely serialises hostile inline-script payloads', async () => {
+    const result = await handleRender([
+      'dice-pool',
+      '--raw',
+      '--data',
+      '{"label":"</script><script>alert(1)</script>","pool":[{"dieType":"d6","count":2}],"modifier":0}',
+    ]);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+    expect((html.match(/<script>/g) ?? [])).toHaveLength(1);
+    expect(html).not.toContain('</script><script>alert(1)</script>');
+    expect(html).toContain('\\u003c/script\\u003e\\u003cscript\\u003ealert(1)\\u003c/script\\u003e');
+  });
+
+  test('rejects render data with forbidden keys', async () => {
+    const result = await handleRender([
+      'settings',
+      '--raw',
+      '--style',
+      'terminal',
+      '--data',
+      '{"__proto__":{"polluted":true}}',
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('forbidden keys');
+  });
+
+  test('settings safely serialises hostile defaults inside inline scripts', async () => {
+    const hostileDefaults = JSON.stringify({
+      defaults: {
+        rulebook: '</script><script>alert(1)</script>',
+      },
+    });
+    const result = await handleRender(['settings', '--raw', '--style', 'terminal', '--data', hostileDefaults]);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+    expect((html.match(/<script>/g) ?? [])).toHaveLength(1);
+    expect(html).toContain('\\u003c/script\\u003e\\u003cscript\\u003ealert(1)\\u003c/script\\u003e');
+  });
+
+  test('dice-pool caps total logical dice and canvas size deterministically', async () => {
+    const result = await handleRender([
+      'dice-pool',
+      '--raw',
+      '--data',
+      '{"label":"Crowd Control","pool":[{"dieType":"d6","count":24},{"dieType":"d8","count":24}],"modifier":1}',
+    ]);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+    const canvasHeight = Number(html.match(/height="(\d+)"/)?.[1] ?? '0');
+    expect(html).toContain(`Displaying ${MAX_DICE_POOL_TOTAL} of 48 dice`);
+    expect(canvasHeight).toBeLessThanOrEqual(MAX_DICE_POOL_CANVAS_HEIGHT);
+    expect(html).toContain(`var POOL_MAX_DICE=${MAX_DICE_POOL_TOTAL}`);
+  });
+
   test('returns style error when state has no visualStyle', async () => {
     const state = createDefaultState();
     await saveState(state);
     const result = await handleRender(['ticker']);
     expect(result.ok).toBe(false);
     expect(result.error?.message).toContain('No visual style');
+  });
+
+  test('requires state sync before rendering in-game widgets', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.scene = 4;
+    await saveState(state);
+    writeFileSync(join(tempDir, '.last-sync'), '2', 'utf-8');
+
+    const result = await handleRender(['ticker']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('State sync required');
   });
 });
 
@@ -92,6 +178,24 @@ describe('render style resolution', () => {
     const result = await handleRender(['ticker']);
     expect(result.ok).toBe(false);
     expect(result.error?.message).toContain('not found or contains no CSS');
+  });
+
+  test('rejects style names with invalid characters', async () => {
+    const result = await handleRender(['settings', '--style', '../bad-style']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('invalid characters');
+  });
+
+  test('fails when a valid widget has no CSS scope mapping', async () => {
+    const original = WIDGET_CSS_SCOPES.settings!;
+    delete (WIDGET_CSS_SCOPES as Record<string, readonly string[]>).settings;
+    try {
+      const result = await handleRender(['settings', '--style', 'terminal']);
+      expect(result.ok).toBe(false);
+      expect(result.error!.message).toContain('no CSS scope mapping');
+    } finally {
+      (WIDGET_CSS_SCOPES as Record<string, readonly string[]>).settings = original;
+    }
   });
 });
 
@@ -702,14 +806,37 @@ describe('render template output', () => {
     expect(html).toContain('STR');
   });
 
-  test('dice widget shows roll result', async () => {
+  test('dice widget starts in pre-roll state', async () => {
     const result = await handleRender(['dice', '--raw']);
     const html = result.data as string;
     expect(html).toContain('STR');
-    expect(html).toContain('14');
-    expect(html).toContain('+3');
-    expect(html).toContain('17');
-    expect(html).toContain('DC 15');
+    expect(html).toContain('id="hi"');
+    expect(html).toContain('CLICK THE DIE TO ROLL');
+    expect(html).toContain('id="ra"');
+    expect(html).toContain('class="tt"');
+    expect(html).toContain('id="cv"');
+    expect(html).toContain('var MOD=3,DC=15,rolling=false,locked=false;');
+    expect(html).not.toContain('id="dice-result"');
+    expect(html).not.toContain('aria-label=');
+    expect(html).not.toContain('<span class="rv">14</span>');
+    expect(html).not.toContain('rolled 14+3 = 17');
+  });
+
+  test('dice-pool widget renders grouped pre-roll state', async () => {
+    const result = await handleRender([
+      'dice-pool',
+      '--raw',
+      '--data',
+      '{"label":"Boss Damage","pool":[{"dieType":"d6","count":2},{"dieType":"d8","count":2},{"dieType":"d10","count":3},{"dieType":"d20","count":1}],"modifier":4}',
+    ]);
+    const html = result.data as string;
+    expect(html).toContain('Boss Damage');
+    expect(html).toContain('2d6 + 2d8 + 3d10 + 1d20');
+    expect(html).toContain('id="dice-pool-hint"');
+    expect(html).toContain('CLICK THE POOL TO ROLL');
+    expect(html).toContain('id="dice-pool-result"');
+    expect(html).toContain('var POOL_MODIFIER=4;');
+    expect(html).toContain('aria-label="Boss Damage. Click to roll the dice pool."');
   });
 
   test('ticker widget shows time data', async () => {

@@ -18,9 +18,10 @@ export type DieConfig = {
 };
 
 // ── Geometry helpers ──────────────────────────────────────────────────────────
-function norm3(v: number[]): number[] {
-  const l = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]) || 1;
-  return [v[0] / l, v[1] / l, v[2] / l];
+function norm3(v: readonly number[]): [number, number, number] {
+  const [x = 0, y = 0, z = 0] = v;
+  const l = Math.sqrt(x * x + y * y + z * z) || 1;
+  return [x / l, y / l, z / l];
 }
 
 // ── D4 tetrahedron ────────────────────────────────────────────────────────────
@@ -241,6 +242,7 @@ export const DIE_CONFIGS = {
     get customVertices() { return getD10().verts; },
     get customFaces() { return getD10().faces; },
     trianglesPerFace: 2,
+    assign: [1, 3, 5, 7, 9, 10, 8, 6, 4, 2],
   },
   d12: {
     faceCount: 12,

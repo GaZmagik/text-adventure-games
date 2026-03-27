@@ -5,46 +5,15 @@ import { ok, fail, styleNotSet } from '../lib/errors';
 import { tryLoadState, getSyncMarkerPath } from '../lib/state-store';
 import { extractAllCss } from '../render/css-extractor';
 import { parseArgs } from '../lib/args';
-import { MODULE_DIGESTS } from '../data/module-digests';
 import { containsForbiddenKeys } from '../lib/security';
-
-// ── Phase 5: Module checklist helpers ───────────────────────────────
-
-const PROSE_CRAFT_PATH = 'modules/prose-craft.md';
-
-/** Map active module names to their file paths, always including prose-craft. */
-export function buildModulesRequired(state: GmState | null): string[] {
-  const active = state?.modulesActive ?? [];
-  const hasProseCraft = active.includes('prose-craft');
-  return hasProseCraft
-    ? active.map(m => `modules/${m}.md`)
-    : [PROSE_CRAFT_PATH, ...active.map(m => `modules/${m}.md`)];
-}
-
-/** Feature checklist items that the GM must honour per active module. */
-export function buildFeatureChecklist(state: GmState | null): string[] {
-  const active = state?.modulesActive ?? [];
-  const items: string[] = [];
-
-  // prose-craft is always checked, even if not in modulesActive
-  items.push('prose-craft ON \u2192 re-read modules/prose-craft.md this turn');
-
-  for (const mod of active) {
-    if (mod === 'prose-craft') continue; // already added above
-    const digest = MODULE_DIGESTS[mod];
-    if (mod === 'audio') {
-      items.push('audio ON \u2192 scene must include Web Audio soundscape with play/stop button');
-    } else if (mod === 'atmosphere') {
-      items.push('atmosphere ON \u2192 scene must include .atmosphere-strip div with 3-5 sensory pills');
-    } else if (digest) {
-      items.push(`${mod} ON \u2192 ${digest}`);
-    } else {
-      items.push(`${mod} ON \u2192 re-read modules/${mod}.md this turn`);
-    }
-  }
-
-  return items;
-}
+import {
+  PRE_CONFIG_WIDGETS,
+  PRE_GAME_WIDGETS,
+  WIDGET_CSS_SCOPES,
+  WIDGET_STYLE_SCOPES,
+  buildFeatureChecklist,
+  buildModulesRequired,
+} from '../metadata';
 
 // ── Phase 11: Widget structural skeleton helpers ────────────────────
 
@@ -134,6 +103,7 @@ import { renderScene } from '../render/templates/scene';
 import { renderTicker } from '../render/templates/ticker';
 import { renderCharacter } from '../render/templates/character';
 import { renderDice } from '../render/templates/dice';
+import { renderDicePool } from '../render/templates/dice-pool';
 import { renderShip } from '../render/templates/ship';
 import { renderCrew } from '../render/templates/crew';
 import { renderCodex } from '../render/templates/codex';
@@ -158,6 +128,7 @@ const TEMPLATES: Record<string, TemplateFn> = {
   ticker: renderTicker,
   character: renderCharacter,
   dice: renderDice,
+  'dice-pool': renderDicePool,
   ship: renderShip,
   crew: renderCrew,
   codex: renderCodex,
@@ -176,43 +147,6 @@ const TEMPLATES: Record<string, TemplateFn> = {
 
 /** Template registry keys — exported for parity testing in constants.spec.ts */
 export const TEMPLATE_KEYS: readonly string[] = Object.keys(TEMPLATES);
-
-/** Pre-game widgets that accept --data instead of reading state */
-const PRE_GAME_WIDGETS = new Set(['settings', 'scenario-select', 'character-creation']);
-
-/** Pre-config widgets that fall back to 'station' style when no style is set */
-const PRE_CONFIG_WIDGETS = new Set(['settings', 'scenario-select', 'character-creation']);
-
-/** Per-widget CSS scope labels — controls which @extract:label blocks from style-reference.md are included. */
-// Style-file scopes — controls which blocks from the theme file (e.g. station.md) are extracted.
-// undefined → no filter (returns ALL marked blocks = full theme CSS, ~36KB).
-// ['vars'] → only the @extract:vars block (CSS custom property declarations only, ~7KB).
-// Widgets that inject all their structural CSS inline only need the vars block.
-const WIDGET_STYLE_SCOPES: Record<string, readonly string[] | undefined> = {
-  dice:   ['vars'],
-  recap:  ['vars'],
-};
-
-const WIDGET_CSS_SCOPES: Record<string, readonly string[]> = {
-  scene:                ['shared', 'scene', 'atmosphere'],
-  dice:                 ['shared', 'dice'],
-  'combat-turn':        ['shared', 'dice', 'scene'],
-  character:            ['shared'],
-  'character-creation': ['shared'],
-  settings:             ['shared'],
-  'scenario-select':    ['shared'],
-  ship:                 ['shared'],
-  crew:                 ['shared'],
-  codex:                ['shared'],
-  map:                  ['shared'],
-  starchart:            ['shared'],
-  ticker:               ['shared'],
-  footer:               ['shared'],
-  'save-div':           ['shared'],
-  levelup:              ['shared'],
-  recap:                ['shared', 'dice'],
-  dialogue:             ['shared'],
-};
 
 // ── Main handler ─────────────────────────────────────────────────────
 
@@ -316,6 +250,9 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   const options: Record<string, unknown> = {};
   if (data) {
     options.data = data;
+    for (const [key, value] of Object.entries(data)) {
+      if (!(key in options)) options[key] = value;
+    }
   }
 
   // Render the template

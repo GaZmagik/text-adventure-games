@@ -1,6 +1,3 @@
-import { resolve } from 'node:path';
-import { homedir, tmpdir } from 'node:os';
-import { realpathSync } from 'node:fs';
 import type { CommandResult, GmState } from '../types';
 import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState, createDefaultState } from '../lib/state-store';
@@ -8,6 +5,8 @@ import { validateState } from '../lib/validator';
 import { attachChecksum, validateAndDecode } from '../lib/fnv32';
 import { VALID_TOP_KEYS, MAX_STATE_HISTORY, MAX_FILE_SIZE_BYTES, SCHEMA_VERSION } from '../lib/constants';
 import { containsForbiddenKeys } from '../lib/security';
+import { readSafeTextFile, resolveSafeReadPath } from '../lib/path-security';
+import { stripUnknownStateKeys } from '../lib/state-schema';
 
 /** Numeric semver comparison — avoids lexicographic string comparison pitfalls (e.g. '2.0.0' < '10.0.0'). */
 function semverLessThan(a: string, b: string): boolean {
@@ -24,56 +23,20 @@ const RE_SAVE_IN_FENCE = /```[\s\S]*?([\da-fA-F]{8}\.SF[12]:[\S]+)[\s\S]*?```/;
 const RE_SAVE_BARE = /([\da-fA-F]{8}\.SF[12]:[\S]+)/;
 
 async function resolveSaveString(input: string): Promise<string> {
-  if (input.startsWith('/') || input.startsWith('./') || input.endsWith('.md') || input.endsWith('.save')) {
-    // Restrict file access to home directory or temp directory to prevent path traversal.
-    // Use realpathSync to resolve symlinks before the prefix check.
-    // NOTE: TOCTOU gap — realpathSync resolves at this point but Bun.file().text() reads
-    // later. Acceptable in the current single-user sandboxed environment; would need an
-    // open-by-fd approach (O_NOFOLLOW + fstat) for multi-user or untrusted-filesystem deployment.
-    let resolved: string;
-    try {
-      resolved = realpathSync(resolve(input));
-    } catch (err: unknown) {
-      const code = err && typeof err === 'object' && 'code' in err
-        ? (err as NodeJS.ErrnoException).code
-        : undefined;
-      if (code !== 'ENOENT' && code !== 'ENOTDIR') throw err;
-      // Path looks like a file path but the file doesn't exist — surface a clear error.
-      if (input.includes('/') || input.includes('\\')) {
-        throw new Error(`Save file not found: ${input}`);
-      }
-      return input;
-    }
-    const home = homedir();
-    const tmp = tmpdir();
-    if (home === '/') {
-      throw new Error('Save path validation requires a non-root home directory.');
-    }
-    const homePrefix = home + '/';
-    const tmpPrefix = tmp === '/' ? tmp : tmp + '/';
-    if (!resolved.startsWith(homePrefix) && !resolved.startsWith(tmpPrefix)) {
-      throw new Error('Save file path must be within the home or temp directory.');
-    }
-
-    try {
-      const file = Bun.file(resolved);
-      if (file.size > MAX_FILE_SIZE_BYTES) {
-        throw new Error('Save file exceeds 10 MB size limit.');
-      }
-      const content = await file.text();
-      const match = content.match(RE_SAVE_IN_FENCE);
-      if (match) return match[1]!;
-      const lineMatch = content.match(RE_SAVE_BARE);
-      if (lineMatch) return lineMatch[1]!;
-      return content.trim();
-    } catch (err: unknown) {
-      // Re-throw deliberate validation errors (e.g. size limit); only swallow I/O failures.
-      if (err instanceof Error && err.message.includes('size limit')) throw err;
-      // File path detected but unreadable — fall through to treat as raw save string
-      return input;
-    }
+  const resolved = resolveSafeReadPath(input, {
+    kind: 'Save',
+    extensions: ['.md', '.save'],
+  });
+  if (!resolved) {
+    return input;
   }
-  return input;
+
+  const content = await readSafeTextFile(resolved, 'Save');
+  const match = content.match(RE_SAVE_IN_FENCE);
+  if (match) return match[1]!;
+  const lineMatch = content.match(RE_SAVE_BARE);
+  if (lineMatch) return lineMatch[1]!;
+  return content.trim();
 }
 
 async function generate(): Promise<CommandResult> {
@@ -149,7 +112,7 @@ async function load(args: string[]): Promise<CommandResult> {
   // and saved fields always win. _lastComputation is session-only and always reset.
   const defaults = createDefaultState();
   delete defaults._lastComputation;
-  const state: GmState = {
+  let state: GmState = {
     ...defaults,
     ...filtered as Partial<GmState>,
   };
@@ -175,6 +138,11 @@ async function load(args: string[]): Promise<CommandResult> {
     state._stateHistory = state._stateHistory.slice(-MAX_STATE_HISTORY);
   }
 
+  const { sanitized, strippedPaths } = stripUnknownStateKeys(state);
+  state = sanitized as GmState;
+  const strippedWarnings = strippedPaths.map(path =>
+    `Stripped unexpected state key "${path}" while loading save data.`);
+
   // Validate reconstructed state — reject if structurally invalid, warn on minor issues
   const validation = validateState(state);
 
@@ -193,7 +161,9 @@ async function load(args: string[]): Promise<CommandResult> {
     mode: decoded.mode,
     scene: state.scene,
     characterName: state.character?.name ?? null,
-    ...(validation.warnings.length > 0 ? { warnings: validation.warnings } : {}),
+    ...((strippedWarnings.length > 0 || validation.warnings.length > 0)
+      ? { warnings: [...strippedWarnings, ...validation.warnings] }
+      : {}),
   }, 'save load');
 }
 

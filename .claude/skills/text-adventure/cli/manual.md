@@ -60,7 +60,7 @@ renderer reads the NPC's current disposition from state.
 |---------|-------------|-----------|---------|
 | `tag state` | `get`, `set`, `reset`, `create-npc`, `validate`, `history`, `context`, `sync` | `--tier`, `--name`, `--pronouns`, `--role`, `--apply`, `--scene`, `--room` | `tag state create-npc nyx_01 --tier nemesis --name "Nyx" --pronouns they/them --role antagonist` |
 | `tag compute` | `contest`, `hazard`, `encounter`, `levelup` | `--dc` (required for hazard) | `tag compute contest WIS spy_03` / `tag compute hazard CON --dc 14` |
-| `tag render` | `scene`, `combat-turn`, `dialogue`, `dice`, `character-creation`, `settings`, `character`, `ticker`, `ship`, `crew`, `codex`, `map`, `starchart`, `footer`, `save-div`, `levelup`, `recap`, `scenario-select` | `--style`, `--data` | `tag render scene --style parchment` |
+| `tag render` | `scene`, `combat-turn`, `dialogue`, `dice`, `dice-pool`, `character-creation`, `settings`, `character`, `ticker`, `ship`, `crew`, `codex`, `map`, `starchart`, `footer`, `save-div`, `levelup`, `recap`, `scenario-select` | `--style`, `--data` | `tag render scene --style parchment` |
 | `tag save` | `generate`, `load`, `validate`, `migrate` | None | `tag save generate` |
 | `tag quest` | `complete`, `add-objective`, `add-clue`, `status`, `list` | `--id`, `--desc` | `tag quest complete main_quest_01 find_base` |
 | `tag batch` | — | `--commands`, `--dry-run` | `tag batch --commands "state get scene; save validate"` |
@@ -70,25 +70,48 @@ renderer reads the NPC's current disposition from state.
 ### `--data` Flag (render)
 
 The `--data '<json>'` flag passes a JSON object to widget templates for
-pre-game configuration or test data overrides. Values in the object are
-merged into the template context before rendering.
+pre-game configuration, mixed dice pools, or test data overrides. Values in
+the object are merged into the template context before rendering.
 
 ```bash
-tag render dice --data '{"dieType":"d6","roll":4,"outcome":"success"}'
+tag render dice --style terminal --data '{"dieType":"d20","stat":"Perception","modifier":5,"dc":16}'
+tag render dice-pool --style terminal --data '{"label":"Storm Volley","pool":[{"dieType":"d6","count":2},{"dieType":"d8","count":2},{"dieType":"d10","count":3},{"dieType":"d20","count":1}],"modifier":4}'
 ```
+
+Notes:
+- `dice` renders a single-use 3D die, coin, or d100 widget. The visible result is generated client-side on click, revealed after the settle animation, and then locked.
+- `dice-pool` renders grouped numeric dice on one shared canvas. `pool` is an array of `{ "dieType": "...", "count": N }` objects; `label` and `modifier` are optional.
+
+### `tag state sync` Output Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | `"clean"` \| `"warnings"` | Overall game state health |
+| `diff` | object | Pending field changes (scene, room, time) |
+| `warnings` | string[] | Validation issues — missing modules, NPC gaps, quest/flag mismatches, compaction alerts |
+| `compactionDetected` | boolean | `true` if conversation was compacted since last sync — context may be lost |
+| `featureChecklist` | string[] | Active module reminders for the current turn |
+| `applied` | boolean | Whether `--apply` was used to persist changes |
+| `rollHistoryCount` | number | Total rolls recorded in state |
+| `errors` | string[] | Structural validation errors (empty when state is valid) |
+| `stateHistoryCount` | number | Undo history depth |
+
+When `compactionDetected` is **true**, re-read all files listed in `modulesActive` before generating the next scene. The warning message includes the specific file paths. Run `tag state context` for the full module digest.
 
 ---
 
 ## § State Schema
 
-The `tag state set` command only permits writes to known top-level keys of the game state. Arbitrary key creation is not allowed — this prevents state corruption from typos or unintended expansion.
+The `tag state set` command only permits writes to allowlisted dot-paths from the game-state schema. Known nested paths such as `time.hour`, `character.hp`, and `quests.0.status` are valid. Unknown nested keys are rejected immediately, so typos cannot create silent schema drift.
 
-If you need to store custom metadata (flags, counters, notes), use the `worldFlags` object — it is a free-form key-value store designed for GM-defined data:
+If you need to store custom metadata (flags, counters, notes), use the `worldFlags` object — it is the intentional free-form key-value store for GM-defined data:
 
 ```bash
 tag state set worldFlags.quest_accepted true
 tag state set worldFlags.tension_level 3
 ```
+
+On `tag save load` and `tag export load`, unexpected nested keys outside the allowlisted schema are stripped and returned as warnings. The CLI does not preserve polluted nested state.
 
 ---
 
@@ -110,7 +133,8 @@ tag state set worldFlags.tension_level 3
 - **Inline:** `tag batch --commands "cmd1; cmd2; cmd3"`
 - **Labels:** Append `as label` to capture output; reference with `$label.field`
 - **Dry run:** Add `--dry-run` to validate without executing
-- Semicolons separate commands. Whitespace around semicolons is ignored.
+- Semicolons separate commands. Semicolons inside quoted strings or JSON payloads are preserved.
+- Mutating commands run against one in-memory state snapshot, validate after each mutation, and flush once at the end of the batch.
 
 ### Label Reference
 
@@ -137,7 +161,7 @@ referenced in subsequent commands via `$label.field`.
 
 ## Prerequisites
 
-The tag CLI requires **Bun** runtime (v1.0+). It uses Bun-specific APIs (`import.meta.dir`, `Bun.file()`) and is not compatible with Node.js.
+The tag CLI requires **Bun** runtime (v1.1.0+). It uses Bun-specific APIs (`import.meta.dir`, `Bun.file()`) and is not compatible with Node.js.
 
 ---
 

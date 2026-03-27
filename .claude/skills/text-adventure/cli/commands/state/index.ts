@@ -1,26 +1,18 @@
 // tag CLI — State Command
 // Source of truth for all game data. Subcommands: get, set, create-npc, validate, reset, history.
 
-import type { CommandResult, GmState, BestiaryTier, Pronouns, StateHistoryEntry } from '../types';
-import { ok, fail, noState } from '../lib/errors';
-import { tryLoadState, saveState, createDefaultState, getSyncMarkerPath } from '../lib/state-store';
-import { generateNpcFromTier } from '../data/bestiary-tiers';
-import { validateState } from '../lib/validator';
-import { VALID_TIERS, VALID_PRONOUNS, MAX_STATE_HISTORY, FORBIDDEN_KEYS, VALID_TOP_KEYS, TIER1_MODULES } from '../lib/constants';
-import { parseArgs } from '../lib/args';
-import { MODULE_DIGESTS } from '../data/module-digests';
-import { XP_THRESHOLDS } from '../data/xp-tables';
-import { buildFeatureChecklist } from './render';
-import { containsForbiddenKeys } from '../lib/security';
+import type { CommandResult, GmState, BestiaryTier, Pronouns, StateHistoryEntry } from '../../types';
+import { ok, fail, noState } from '../../lib/errors';
+import { tryLoadState, saveState, createDefaultState } from '../../lib/state-store';
+import { generateNpcFromTier } from '../../data/bestiary-tiers';
+import { validateState } from '../../lib/validator';
+import { VALID_TIERS, VALID_PRONOUNS, MAX_STATE_HISTORY, FORBIDDEN_KEYS, TIER1_MODULES } from '../../lib/constants';
+import { parseArgs } from '../../lib/args';
+import { MODULE_DIGESTS } from '../../data/module-digests';
+import { containsForbiddenKeys } from '../../lib/security';
+import { validateStatePath } from '../../lib/state-schema';
 
 const VALID_SUBCOMMANDS = ['get', 'set', 'create-npc', 'validate', 'reset', 'history', 'context', 'sync'] as const;
-
-/** Module-level constants — hoisted from inline function bodies for consistency. */
-const VALID_TIME_KEYS = new Set<string>([
-  'period', 'date', 'elapsed', 'hour',
-  'playerKnowsDate', 'playerKnowsTime', 'calendarSystem', 'deadline',
-]);
-const NPC_WORLDFLAG_PATTERN = /^npc_([a-z0-9_-]+)_/;
 
 function isBestiaryTier(s: string): s is BestiaryTier {
   return (VALID_TIERS as readonly string[]).includes(s);
@@ -72,12 +64,6 @@ function getByPath(obj: unknown, path: string): { found: boolean; value: unknown
 function setByPath(obj: Record<string, unknown>, path: string, value: unknown): unknown {
   const parts = path.split('.');
 
-  // Reject writes to unknown top-level keys — prevents arbitrary state expansion.
-  const topKey = parts[0]!;
-  if (!VALID_TOP_KEYS.has(topKey)) {
-    throw new Error(`Unknown top-level key: "${topKey}". Valid keys: ${[...VALID_TOP_KEYS].join(', ')}`);
-  }
-
   let current: Record<string, unknown> = obj;
 
   for (let i = 0; i < parts.length - 1; i++) {
@@ -99,6 +85,10 @@ function setByPath(obj: Record<string, unknown>, path: string, value: unknown): 
   current[lastKey] = value;
   return oldValue;
 }
+
+export const __stateTestInternals = {
+  setByPath,
+};
 
 /** Coerce a string value to the appropriate JS type.
  *  Note: numeric strings like "42" are coerced to numbers. To store a string
@@ -183,6 +173,15 @@ async function handleSet(args: string[]): Promise<CommandResult> {
     return fail('No path provided.', 'Usage: tag state set <dot.path> <value>', 'state set');
   }
 
+  const pathValidation = validateStatePath(path);
+  if (!pathValidation.valid) {
+    return fail(
+      pathValidation.error ?? `Path "${path}" is not allowed.`,
+      'Use only allowlisted state paths from the documented schema.',
+      'state set',
+    );
+  }
+
   // Detect += and -= operators
   const operator = args[1];
   let newValue: unknown;
@@ -210,12 +209,7 @@ async function handleSet(args: string[]): Promise<CommandResult> {
     newValue = coerceValue(rawValue);
   }
 
-  let oldValue: unknown;
-  try {
-    oldValue = setByPath(state as Record<string, unknown>, path, newValue); // GmState lacks index sig
-  } catch (err) {
-    return fail((err as Error).message, 'Path contains a forbidden segment (__proto__, constructor, prototype).', 'state set');
-  }
+  const oldValue = setByPath(state as Record<string, unknown>, path, newValue); // GmState lacks index sig
 
   // Validate state integrity after mutation — reject structurally invalid changes before persisting
   const validation = validateState(state);
@@ -370,246 +364,6 @@ async function handleHistory(args: string[]): Promise<CommandResult> {
   return ok(recent, 'state history');
 }
 
-// ── Sync helper functions ────────────────────────────────────────
-
-/** Build scene/room/time diff entries from --scene, --room, --time flags. */
-function buildSyncDiff(
-  state: GmState,
-  flags: Record<string, string>,
-  warnings: string[],
-): { diff: Record<string, { from: unknown; to: unknown }>; nextScene: number; parsedTime: Record<string, unknown> | null; earlyReturn: CommandResult | null } {
-  const diff: Record<string, { from: unknown; to: unknown }> = {};
-
-  // 1. Scene should increment (default +1 when --scene not provided)
-  let nextScene: number;
-  if (flags.scene) {
-    nextScene = Number(flags.scene);
-    if (!Number.isFinite(nextScene) || nextScene < 0) {
-      return {
-        diff, nextScene: state.scene, parsedTime: null,
-        earlyReturn: fail(
-          `Invalid --scene value "${flags.scene}": must be a finite non-negative number.`,
-          'Provide an integer scene number, e.g. --scene 5',
-          'state sync',
-        ),
-      };
-    }
-  } else {
-    nextScene = state.scene + 1;
-  }
-  if (nextScene !== state.scene) {
-    diff.scene = { from: state.scene, to: nextScene };
-  }
-
-  // 2. Room might change
-  if (flags.room && flags.room !== state.currentRoom) {
-    diff.currentRoom = { from: state.currentRoom, to: flags.room };
-  }
-
-  // 3. Time might advance — parse once and reuse in the apply block
-  let parsedTime: Record<string, unknown> | null = null;
-  if (flags.time) {
-    try {
-      const raw: unknown = JSON.parse(flags.time);
-      if (typeof raw !== 'object' || raw === null) {
-        warnings.push('--time flag must be a JSON object.');
-      } else if (containsForbiddenKeys(raw)) {
-        warnings.push('--time flag contains forbidden keys (__proto__, constructor, prototype).');
-      } else {
-        const filtered: Record<string, unknown> = {};
-        for (const key of Object.keys(raw as Record<string, unknown>)) {
-          if (VALID_TIME_KEYS.has(key)) {
-            filtered[key] = (raw as Record<string, unknown>)[key];
-          } else {
-            warnings.push(`--time key "${key}" is not a valid TimeState field; ignored.`);
-          }
-        }
-        parsedTime = filtered;
-        diff.time = { from: state.time, to: filtered };
-      }
-    } catch {
-      warnings.push('--time flag contains invalid JSON.');
-    }
-  }
-
-  return { diff, nextScene, parsedTime, earlyReturn: null };
-}
-
-/** Check 4: pending computation not reflected in rollHistory. */
-function checkPendingComputation(state: GmState, warnings: string[]): void {
-  if (state._lastComputation && state._lastComputation.type !== 'levelup_result') {
-    const lastType = state._lastComputation.type;
-    const lastRoll = state.rollHistory[state.rollHistory.length - 1];
-    if (!lastRoll || lastRoll.type !== lastType || lastRoll.scene !== state.scene) {
-      warnings.push(
-        `Pending computation (${lastType}) may not be reflected in rollHistory.`,
-      );
-    }
-  }
-}
-
-/** Check 5: missing Tier 1 modules. */
-function checkMissingModules(state: GmState, activeSet: Set<string>, warnings: string[]): void {
-  const missingTier1 = TIER1_MODULES.filter(m => !activeSet.has(m));
-  if (missingTier1.length > 0) {
-    warnings.push(
-      `Missing Tier 1 modules: ${missingTier1.join(', ')}. Re-read these files.`,
-    );
-  }
-}
-
-/** Check 6: quest/worldFlag cross-validation (canonical format). */
-function checkQuestWorldFlagSync(state: GmState, warnings: string[]): void {
-  for (const quest of state.quests) {
-    if (quest.objectives.length === 0) {
-      warnings.push(`Quest "${quest.id}" has no objectives to validate.`);
-      continue;
-    }
-    let allComplete = quest.objectives.length > 0;
-    for (const obj of quest.objectives) {
-      const canonicalKey = `quest:${quest.id}:${obj.id}:complete`;
-      const flagSet = state.worldFlags[canonicalKey] === true;
-      if (obj.completed && !flagSet) {
-        warnings.push(
-          `Quest objective "${quest.id}/${obj.id}" is complete but worldFlag `
-          + `"${canonicalKey}" is not set. Use \`tag quest complete\` to sync.`,
-        );
-      }
-      if (flagSet && !obj.completed) {
-        warnings.push(
-          `WorldFlag "${canonicalKey}" is set but quest objective `
-          + `"${quest.id}/${obj.id}" is not marked complete.`,
-        );
-      }
-      if (!obj.completed) allComplete = false;
-    }
-    const questFlag = `quest:${quest.id}:complete`;
-    if (allComplete && state.worldFlags[questFlag] !== true) {
-      warnings.push(
-        `All objectives of quest "${quest.id}" are complete but worldFlag `
-        + `"${questFlag}" is not set.`,
-      );
-    }
-  }
-}
-
-/** Check 7: level-up eligibility. */
-function checkLevelUpEligibility(state: GmState, warnings: string[]): void {
-  if (state.character) {
-    const { level, xp } = state.character;
-    const nextThreshold = XP_THRESHOLDS.find(t => t.level === level + 1);
-    if (nextThreshold && xp >= nextThreshold.xp) {
-      warnings.push(
-        `Level-up available! XP ${xp} >= ${nextThreshold.xp} `
-        + `(level ${level + 1}). Run \`tag compute levelup\`.`,
-      );
-    }
-  }
-}
-
-/** Check 8: NPC worldFlag references without roster entries. */
-function checkNpcReferenceGaps(state: GmState, npcIds: Set<string>, warnings: string[]): void {
-  for (const key of Object.keys(state.worldFlags)) {
-    const match = NPC_WORLDFLAG_PATTERN.exec(key);
-    if (match) {
-      const npcId = match[1]!;
-      if (!npcIds.has(npcId) && !npcIds.has(`npc_${npcId}`)) {
-        warnings.push(
-          `WorldFlag "${key}" references NPC "${npcId}" `
-          + 'not found in rosterMutations.',
-        );
-      }
-    }
-  }
-}
-
-// ── Sync orchestrator ────────────────────────────────────────────
-
-async function handleSync(args: string[]): Promise<CommandResult> {
-  const state = await tryLoadState();
-  if (!state) return noState();
-
-  const parsed = parseArgs(args, ['apply']);
-  const apply = parsed.booleans.has('apply');
-  const flags = parsed.flags;
-
-  const warnings: string[] = [];
-  const errors: string[] = [];
-
-  // Checks 1–3: build scene/room/time diff
-  const { diff, nextScene, parsedTime, earlyReturn } = buildSyncDiff(state, flags, warnings);
-  if (earlyReturn) return earlyReturn;
-
-  // Check 4: pending computation not in rollHistory
-  checkPendingComputation(state, warnings);
-
-  // Check 5: missing Tier 1 modules
-  const active: string[] = state.modulesActive ?? [];
-  const activeSet = new Set(active);
-  checkMissingModules(state, activeSet, warnings);
-
-  // Check 6: quest/worldFlag cross-validation
-  checkQuestWorldFlagSync(state, warnings);
-
-  // Check 7: level-up eligibility
-  checkLevelUpEligibility(state, warnings);
-
-  // Check 8: NPC reference gaps
-  const npcIds = new Set<string>();
-  for (const n of state.rosterMutations) npcIds.add(n.id);
-  checkNpcReferenceGaps(state, npcIds, warnings);
-
-  // Check 9: feature checklist
-  const featureChecklist = buildFeatureChecklist(state);
-
-  const status = errors.length > 0
-    ? 'errors'
-    : warnings.length > 0 ? 'warnings' : 'clean';
-
-  // Apply mutations if requested and no errors
-  if (apply) {
-    if (errors.length > 0) {
-      return fail(
-        `Cannot apply sync: ${errors.join('; ')}`,
-        'Fix errors before applying sync.',
-        'state sync',
-      );
-    }
-    if (diff.scene) state.scene = nextScene;
-    if (diff.currentRoom && flags.room) state.currentRoom = flags.room;
-    if (parsedTime) {
-      Object.assign(state.time, parsedTime);
-    }
-
-    // Validate state integrity before persisting — mirror state set behaviour
-    const validation = validateState(state);
-    if (!validation.valid) {
-      return fail(
-        `Sync would produce invalid state: ${validation.errors.join('; ')}`,
-        'Fix the sync flags so the resulting state is structurally valid.',
-        'state sync',
-      );
-    }
-
-    recordHistory(state, 'state sync', 'sync', null, diff);
-    await saveState(state);
-  }
-
-  // Write sync marker — render command gates on this to ensure sync was run
-  await Bun.write(getSyncMarkerPath(), String(state.scene));
-
-  return ok({
-    status,
-    diff,
-    warnings,
-    errors,
-    featureChecklist,
-    applied: apply && errors.length === 0,
-    rollHistoryCount: state.rollHistory.length,
-    stateHistoryCount: state._stateHistory.length,
-  }, 'state sync');
-}
-
 // ── Main handler ─────────────────────────────────────────────────
 
 export async function handleState(args: string[]): Promise<CommandResult> {
@@ -638,8 +392,10 @@ export async function handleState(args: string[]): Promise<CommandResult> {
       return handleHistory(args.slice(1));
     case 'context':
       return handleContext();
-    case 'sync':
+    case 'sync': {
+      const { handleSync } = await import('./sync');
       return handleSync(args.slice(1));
+    }
     default:
       return fail(
         `Unknown subcommand: "${subcommand}".`,

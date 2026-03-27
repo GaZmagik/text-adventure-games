@@ -1,4 +1,5 @@
 import type { StatName, BestiaryTier, Pronouns, GmState } from '../types';
+export { MUTATING_COMMANDS, WIDGET_TYPE_NAMES } from '../metadata';
 
 export const STAT_NAMES: readonly StatName[] = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
 export const VALID_TIERS: readonly BestiaryTier[] = ['minion', 'rival', 'nemesis'];
@@ -22,20 +23,9 @@ const VALID_TOP_KEYS_ARRAY = [
   'rosterMutations', 'codexMutations', 'time', 'factions', 'quests',
   'storyArchitect', 'shipState', 'crewMutations', 'mapState', 'systemResources',
   'navPlottedCourse', 'arc', 'arcType', 'carryForward', 'arcHistory',
-  '_lastComputation', '_stateHistory', '_schemaVersion',
+  '_lastComputation', '_stateHistory', '_schemaVersion', '_compactionCount',
 ] as const satisfies readonly (keyof GmState)[];
 export const VALID_TOP_KEYS = new Set<string>(VALID_TOP_KEYS_ARRAY);
-
-/** Commands that mutate state — used by batch to decide whether to capture a state snapshot. */
-export const MUTATING_COMMANDS = new Set<string>(['state', 'save', 'compute', 'quest', 'export']);
-
-/** Canonical list of renderable widget types — mirrors the TEMPLATES registry in commands/render.ts.
- *  Duplicated here so that help.ts can list widget types without importing the entire render pipeline. */
-export const WIDGET_TYPE_NAMES = [
-  'scene', 'ticker', 'character', 'dice', 'ship', 'crew', 'codex', 'map',
-  'starchart', 'footer', 'save-div', 'levelup', 'recap', 'combat-turn',
-  'dialogue', 'settings', 'scenario-select', 'character-creation',
-] as const;
 
 export const SCHEMA_VERSION = '1.3.0' as const;
 

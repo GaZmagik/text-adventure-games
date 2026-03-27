@@ -2,7 +2,16 @@ import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
 import { join } from 'node:path';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { loadState, saveState, createDefaultState, getStatePath, tryLoadState } from './state-store';
+import {
+  loadState,
+  saveState,
+  createDefaultState,
+  flushStateStoreContext,
+  getStatePath,
+  STATE_STORE_RUNTIME,
+  tryLoadState,
+  withStateStoreContext,
+} from './state-store';
 
 let tempDir: string;
 const originalEnv = process.env.TAG_STATE_DIR;
@@ -177,5 +186,128 @@ describe('tryLoadState returns null for non-object JSON', () => {
     writeFileSync(statePath, JSON.stringify(null));
     const result = await tryLoadState();
     expect(result).toBeNull();
+  });
+});
+
+describe('state-store edge cases', () => {
+  test('rejects TAG_STATE_DIR outside the home or temp directory', () => {
+    process.env.TAG_STATE_DIR = '/etc/tag-state';
+    expect(() => getStatePath()).toThrow('within the home or temp directory');
+  });
+
+  test('loadState rejects structurally invalid objects', async () => {
+    const invalid = createDefaultState() as Record<string, unknown>;
+    invalid._version = 'broken';
+    writeFileSync(getStatePath(), JSON.stringify(invalid), 'utf-8');
+
+    await expect(loadState()).rejects.toThrow('structurally invalid');
+  });
+
+  test('returns null when the file disappears between exists and read', async () => {
+    const bunApi = Bun as any;
+    const originalFile = bunApi.file;
+    bunApi.file = () => ({
+      exists: async () => true,
+      size: 0,
+      json: async () => {
+        const err = new Error('gone') as Error & { code: string };
+        err.code = 'ENOENT';
+        throw err;
+      },
+    });
+
+    try {
+      expect(await tryLoadState()).toBeNull();
+    } finally {
+      bunApi.file = originalFile;
+    }
+  });
+
+  test('rethrows unexpected read errors from tryLoadState', async () => {
+    const bunApi = Bun as any;
+    const originalFile = bunApi.file;
+    bunApi.file = () => ({
+      exists: async () => true,
+      size: 0,
+      json: async () => {
+        const err = new Error('blocked') as Error & { code: string };
+        err.code = 'EACCES';
+        throw err;
+      },
+    });
+
+    try {
+      await expect(tryLoadState()).rejects.toThrow('blocked');
+    } finally {
+      bunApi.file = originalFile;
+    }
+  });
+
+  test('rejects nested state-store contexts', async () => {
+    await expect(withStateStoreContext(async () => withStateStoreContext(async () => 1)))
+      .rejects.toThrow('Nested state-store contexts');
+  });
+
+  test('requires an active context before flushing', async () => {
+    await expect(flushStateStoreContext()).rejects.toThrow('No active state-store context');
+  });
+
+  test('loadState throws when an active context has already cached null', async () => {
+    await withStateStoreContext(async () => {
+      expect(await tryLoadState()).toBeNull();
+      await expect(loadState()).rejects.toThrow('State file not found');
+    });
+  });
+
+  test('requires a non-root home directory during state-dir validation', () => {
+    const originalHomedir = STATE_STORE_RUNTIME.homedir;
+    STATE_STORE_RUNTIME.homedir = () => '/';
+    try {
+      expect(() => getStatePath()).toThrow('non-root home directory');
+    } finally {
+      STATE_STORE_RUNTIME.homedir = originalHomedir;
+    }
+  });
+
+  test('preserves the original write error when temp-file cleanup also fails', async () => {
+    const originalRename = STATE_STORE_RUNTIME.renameSync;
+    const originalUnlink = STATE_STORE_RUNTIME.unlinkSync;
+
+    STATE_STORE_RUNTIME.renameSync = () => {
+      throw new Error('rename failed');
+    };
+    STATE_STORE_RUNTIME.unlinkSync = () => {
+      throw new Error('unlink failed');
+    };
+
+    try {
+      await expect(import('./state-store').then(({ saveState: writeState }) => writeState(createDefaultState())))
+        .rejects.toThrow('rename failed');
+    } finally {
+      STATE_STORE_RUNTIME.renameSync = originalRename;
+      STATE_STORE_RUNTIME.unlinkSync = originalUnlink;
+    }
+  });
+
+  test('rejects invalid state writes inside an active context', async () => {
+    const invalid = createDefaultState() as Record<string, unknown>;
+    invalid._version = 'broken';
+
+    await withStateStoreContext(async () => {
+      await expect(saveState(invalid as any)).rejects.toThrow('State is structurally invalid');
+    });
+  });
+
+  test('loadState reads from disk once inside an active context and then returns clones', async () => {
+    const state = createDefaultState();
+    state.scene = 7;
+    await saveState(state);
+
+    await withStateStoreContext(async () => {
+      const first = await loadState();
+      const second = await loadState();
+      first.scene = 99;
+      expect(second.scene).toBe(7);
+    });
   });
 });

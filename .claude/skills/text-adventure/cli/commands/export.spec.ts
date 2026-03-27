@@ -149,6 +149,12 @@ describe('export load', () => {
     expect(result.error!.message).toContain('Usage');
   });
 
+  test('fails when the input does not look like a file path', async () => {
+    const result = await handleExport(['load', 'not-a-path']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('readable file path');
+  });
+
   test('fails for file outside home/tmp directory', async () => {
     const result = await handleExport(['load', '/etc/passwd']);
     expect(result.ok).toBe(false);
@@ -213,6 +219,51 @@ describe('export load', () => {
     const loadResult = await handleExport(['load', lorePath]);
     expect(loadResult.command).toBe('export load');
   });
+
+  test('strips unknown nested keys on import and reports warnings', async () => {
+    const polluted = await loadState();
+    (polluted.time as Record<string, unknown>).season = 'winter';
+    (polluted.rosterMutations[0] as Record<string, unknown>).alias = 'Ghost';
+    await saveState(polluted);
+
+    const genResult = await handleExport(['generate']);
+    const content = (genResult.data as Record<string, unknown>).loreContent as string;
+    const lorePath = join(tempDir, 'polluted.lore.md');
+    writeFileSync(lorePath, content, 'utf-8');
+
+    const fresh = createDefaultState();
+    await saveState(fresh);
+
+    const loadResult = await handleExport(['load', lorePath]);
+    expect(loadResult.ok).toBe(true);
+    const warnings = ((loadResult.data as Record<string, unknown>).warnings ?? []) as string[];
+    expect(warnings.some(w => w.includes('time.season'))).toBe(true);
+    expect(warnings.some(w => w.includes('rosterMutations.0.alias'))).toBe(true);
+
+    const restored = await loadState();
+    expect('season' in (restored.time as Record<string, unknown>)).toBe(false);
+    expect('alias' in (restored.rosterMutations[0] as Record<string, unknown>)).toBe(false);
+  });
+
+  test('fails when the embedded lore payload checksum is invalid', async () => {
+    const lorePath = join(tempDir, 'invalid-payload.lore.md');
+    const badPayload = `00000000.LF1:${btoa(JSON.stringify({ _version: 1 }))}`;
+    writeFileSync(lorePath, `---\nedited: false\n---\n\n<!-- LORE:${badPayload} -->\n`, 'utf-8');
+
+    const result = await handleExport(['load', lorePath]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('Lore payload validation failed');
+  });
+
+  test('fails when decoded lore state is structurally invalid', async () => {
+    const lorePath = join(tempDir, 'invalid-state.lore.md');
+    const payload = attachChecksum(`LF1:${btoa(JSON.stringify({ _version: 'broken' }))}`);
+    writeFileSync(lorePath, `---\nedited: false\n---\n\n<!-- LORE:${payload} -->\n`, 'utf-8');
+
+    const result = await handleExport(['load', lorePath]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('Lore state is structurally invalid');
+  });
 });
 
 // ── validate ─────────────────────────────────────────────────────────
@@ -264,6 +315,12 @@ describe('export validate', () => {
     expect(result.ok).toBe(false);
   });
 
+  test('fails when validate input does not look like a file path', async () => {
+    const result = await handleExport(['validate', 'not-a-path']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('readable file path');
+  });
+
   test('includes edited flag', async () => {
     const genResult = await handleExport(['generate']);
     const content = (genResult.data as Record<string, unknown>).loreContent as string;
@@ -283,6 +340,29 @@ describe('export validate', () => {
     writeFileSync(lorePath, content, 'utf-8');
     const result = await handleExport(['validate', lorePath]);
     expect(result.command).toBe('export validate');
+  });
+
+  test('reports invalid when lore payload decode fails', async () => {
+    const lorePath = join(tempDir, 'validate-invalid-payload.lore.md');
+    writeFileSync(lorePath, `<!-- LORE:00000000.LF1:${btoa(JSON.stringify({ _version: 1 }))} -->`, 'utf-8');
+
+    const result = await handleExport(['validate', lorePath]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.valid).toBe(false);
+    expect((data.errors as string[])[0]).toContain('Lore payload validation failed');
+  });
+
+  test('reports invalid when lore state is structurally invalid', async () => {
+    const lorePath = join(tempDir, 'validate-invalid-state.lore.md');
+    const payload = attachChecksum(`LF1:${btoa(JSON.stringify({ _version: 'broken' }))}`);
+    writeFileSync(lorePath, `<!-- LORE:${payload} -->`, 'utf-8');
+
+    const result = await handleExport(['validate', lorePath]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.valid).toBe(false);
+    expect((data.errors as string[])[0]).toContain('Lore state is structurally invalid');
   });
 });
 

@@ -25,11 +25,7 @@ function cssReplacer(match: string): string {
   if (lower.startsWith('expression'))    return '/* expression blocked */(';
   if (lower.startsWith('-moz-binding'))  return '/* binding blocked */:';
   // url() variants — preserve the opening quote character from the match
-  if (lower.startsWith('url')) {
-    const quoteMatch = match.match(/url\s*\(\s*(['"]?)/i);
-    const quote = quoteMatch?.[1] ?? '';
-    return match.includes('//') ? `url(${quote}/*blocked*/` : `url(${quote}/*blocked*/:`;
-  }
+  if (lower.startsWith('url')) { const quoteMatch = match.match(/url\s*\(\s*(['"]?)/i); const quote = quoteMatch?.[1] ?? ''; return match.includes('//') ? `url(${quote}/*blocked*/` : `url(${quote}/*blocked*/:`; }
   return match;
 }
 
@@ -73,6 +69,11 @@ export async function extractAllCss(filePath: string, scopes?: readonly string[]
   } catch {
     return '';
   }
+}
+
+/** @internal — test-only cache reset */
+export function clearCssCache(): void {
+  cssCache.clear();
 }
 
 /** @internal — test-only */

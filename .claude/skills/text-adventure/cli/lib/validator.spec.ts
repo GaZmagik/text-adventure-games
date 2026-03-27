@@ -153,6 +153,22 @@ describe('validateState', () => {
     expect(result.valid).toBe(true);
   });
 
+  test('unexpected top-level keys fail validation', () => {
+    const state = createDefaultState() as Record<string, unknown>;
+    state.sidecar = true;
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(error => error.includes('sidecar'))).toBe(true);
+  });
+
+  test('unexpected nested keys fail validation', () => {
+    const state = createDefaultState();
+    (state.time as Record<string, unknown>).season = 'winter';
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(error => error.includes('time.season'))).toBe(true);
+  });
+
   test('NPC without pronouns fails', () => {
     const state = createDefaultState();
     state.rosterMutations = [
@@ -283,6 +299,23 @@ describe('validateState', () => {
     const result = validateState(state);
     expect(result.valid).toBe(false);
     expect(result.errors.some(e => e.includes('time must be an object'))).toBe(true);
+  });
+
+  test('time.period must be a string', () => {
+    const state = createDefaultState() as unknown as Record<string, unknown>;
+    state.time = {
+      period: 42,
+      date: 'Day 1',
+      elapsed: 0,
+      hour: 8,
+      playerKnowsDate: false,
+      playerKnowsTime: false,
+      calendarSystem: 'elapsed-only',
+      deadline: null,
+    };
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContain('time.period must be a string.');
   });
 
   test('character as non-object fails', () => {
@@ -523,5 +556,60 @@ describe('validateState — modulesActive', () => {
     state.modulesActive = ['core-systems', 'die-rolls', 'prose-craft'];
     const result = validateState(state);
     expect(result.warnings.filter(w => w.includes('module'))).toHaveLength(0);
+  });
+});
+
+describe('validateState — warning coverage', () => {
+  test('warns on loose top-level fields that are not structurally invalid', () => {
+    const state = createDefaultState() as Record<string, unknown>;
+    state.scene = -1;
+    state.currentRoom = 42;
+    state.rollHistory = {};
+    state.quests = {};
+    state.seed = 99;
+
+    const result = validateState(state);
+    expect(result.warnings).toContain('scene should be a non-negative number.');
+    expect(result.warnings).toContain('currentRoom should be a string.');
+    expect(result.warnings).toContain('rollHistory should be an array.');
+    expect(result.warnings).toContain('quests should be an array.');
+    expect(result.warnings).toContain('seed should be a string.');
+  });
+
+  test('reports NPC structural errors and warnings across name, stats, hp, status, and modifiers', () => {
+    const state = createDefaultState();
+    state.rosterMutations = [
+      mkNpc({
+        name: '',
+        stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 'bad' as any },
+        hp: 'bad' as any,
+        maxHp: 'bad' as any,
+        status: 5 as any,
+        modifiers: 'bad' as any,
+      }),
+      mkNpc({
+        id: 'npc_02',
+        hp: -1,
+        maxHp: 0,
+        modifiers: { STR: 'bad' as any } as any,
+      }),
+      mkNpc({
+        id: 'npc_03',
+        hp: 10,
+        maxHp: 5,
+      }),
+    ];
+
+    const result = validateState(state);
+    expect(result.errors.some(e => e.includes('rosterMutations[0].name'))).toBe(true);
+    expect(result.errors.some(e => e.includes('rosterMutations[0].stats.CHA'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('rosterMutations[0].hp should be a number'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('rosterMutations[0].maxHp should be a number'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('rosterMutations[0].status should be a string'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('rosterMutations[0].modifiers should be an object'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('rosterMutations[1].hp should be >= 0'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('rosterMutations[1].maxHp should be > 0'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('rosterMutations[1].modifiers.STR should be a number'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('rosterMutations[2].hp should not exceed'))).toBe(true);
   });
 });

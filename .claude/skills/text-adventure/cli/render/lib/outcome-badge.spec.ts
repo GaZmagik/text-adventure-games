@@ -51,4 +51,22 @@ describe('outcomeBadgeStyle', () => {
     expect(badge.text).toBe('var(--ta-badge-partial-text)');
     expect(badge.border).toBe('transparent');
   });
+
+  it('returns dedicated styling for quiet, alert, and hostile encounter outcomes', () => {
+    expect(outcomeBadgeStyle('quiet')).toEqual({
+      bg: 'var(--ta-badge-neutral-bg, #2a3a5c)',
+      text: 'var(--ta-badge-neutral-text, #a0c4ff)',
+      border: 'transparent',
+    });
+    expect(outcomeBadgeStyle('alert')).toEqual({
+      bg: 'var(--ta-badge-warning-bg, #5c4a2a)',
+      text: 'var(--ta-badge-warning-text, #ffc080)',
+      border: 'transparent',
+    });
+    expect(outcomeBadgeStyle('hostile')).toEqual({
+      bg: 'var(--ta-badge-danger-bg, #5c2a3a)',
+      text: 'var(--ta-badge-danger-text, #ffa0c0)',
+      border: 'transparent',
+    });
+  });
 });

@@ -4,6 +4,7 @@
 # Memory (managed by memory CLI, not shared)
 .claude/memory/
 .claude/agent-memory/
+.claude/accord/
 
 # Node modules (dev-only type definitions — Bun installs via setup.sh)
 node_modules/

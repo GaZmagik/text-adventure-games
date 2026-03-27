@@ -201,7 +201,8 @@ Spellcasting ability depends on class: INT (Wizard), WIS (Cleric, Druid, Ranger)
 
 ### Die Roll Adaptation
 
-The die-rolls module and scene template handle D&D 5e resolution automatically via `tag compute roll`. The four-stage pattern (Declare, Animate, Resolve, Continue) adapts as follows:
+When adapting the die widget for D&D 5e, use the standard click-to-roll flow with the
+following reveal details:
 - **Declare:** Modifier breakdown (ability mod + proficiency bonus + situational bonuses), target DC/AC. Advantage/disadvantage shows 2d20.
 - **Resolve:** Total vs DC/AC. Natural 20/1 on attack rolls. Critical hits roll bonus damage dice. Badge: CRITICAL HIT / HIT / MISS / CRITICAL MISS (attacks) or SUCCESS / FAILURE (checks/saves).
 
@@ -303,7 +304,8 @@ Each round: **1 action** (attack, defend, move, or use item).
 
 ### Die Roll Adaptation
 
-The die-rolls module and scene template handle GURPS resolution automatically via `tag compute roll`. The four-stage pattern adapts as follows:
+When adapting the die widget for GURPS, use the click-to-roll flow with the following
+reveal details:
 - **Declare:** Effective skill (attribute + modifiers), difficulty modifier, target number (roll-under).
 - **Resolve:** Sum of 3d6 vs effective skill. Margin of success/failure displayed. Badge: CRITICAL SUCCESS / SUCCESS / FAILURE / CRITICAL FAILURE.
 
@@ -418,7 +420,8 @@ HP = Ancestry HP bonus + (Class HP per level × level) + (CON modifier × level)
 
 ### Die Roll Adaptation
 
-The die-rolls module and scene template handle PF2e resolution automatically via `tag compute roll`. The four-stage pattern adapts as follows:
+When adapting the die widget for PF2e, use the click-to-roll flow with the following
+reveal details:
 - **Declare:** Modifier breakdown (ability + proficiency tier + bonuses), action cost in pips.
 - **Resolve:** Total vs DC. Critical thresholds at +/-10 from DC. Natural 20/1 step adjustments. Badge: CRITICAL SUCCESS / SUCCESS / FAILURE / CRITICAL FAILURE.
 
@@ -576,7 +579,8 @@ Available if Magic/Resonance priority is C or higher.
 
 ### Die Roll Adaptation
 
-The die-rolls module and scene template handle Shadowrun dice pool resolution automatically via `tag compute roll`. The four-stage pattern adapts as follows:
+When adapting the dice UI for Shadowrun, use a click-to-roll pool presentation with the
+following reveal details:
 - **Declare:** Dice pool size (attribute + skill + modifiers), threshold. Edge option if available.
 - **Resolve:** Count hits (5-6), compare to threshold. Check glitch/critical glitch (half or more dice show 1s). Badge: CRITICAL GLITCH / GLITCH / FAILURE / SUCCESS / EXCEPTIONAL SUCCESS (hits exceed threshold by 3+).
 
@@ -868,7 +872,8 @@ Each character begins with a starting Obligation that ties them to the setting a
 
 ### Die Roll Adaptation
 
-The die-rolls module and scene template handle SWRPG narrative dice resolution automatically via `tag compute roll`. The four-stage pattern adapts as follows:
+When adapting the dice UI for SWRPG narrative dice, use a click-to-roll pool presentation
+with the following reveal details:
 - **Declare:** Assembled dice pool as coloured dice icons (green, yellow, purple, red, blue, black). Skill, characteristic, difficulty, and Boost/Setback sources displayed.
 - **Resolve:** Cancel Success vs Failure, then Advantage vs Threat. Display net results on both axes. Triumph and Despair shown separately (cannot be cancelled). Badge: TRIUMPH / SUCCESS + ADVANTAGE / SUCCESS + THREAT / FAILURE + ADVANTAGE / FAILURE + THREAT / DESPAIR. Contextual spending options for net Advantage or Threat.
 
@@ -882,13 +887,13 @@ When a non-default system is selected, the following modules adapt their behavio
 
 | Active System | Resolution Display |
 |---------------|-------------------|
-| d20 System | d20 + modifier vs DC (standard four-stage pattern) |
-| D&D 5e | d20 + ability mod + proficiency vs DC/AC (four-stage, advantage/disadvantage shows 2d20) |
-| GURPS Lite | 3d6 roll-under vs effective skill (four-stage, target shown before roll) |
-| Pathfinder 2e Lite | d20 + modifier + proficiency vs DC (four-stage, crit range ±10) |
-| Shadowrun 5e Lite | Xd6 dice pool, count hits vs threshold (four-stage, colour-coded dice) |
+| d20 System | d20 + modifier vs DC (standard click-to-roll single-die flow) |
+| D&D 5e | d20 + ability mod + proficiency vs DC/AC (click-to-roll, advantage/disadvantage shows 2d20) |
+| GURPS Lite | 3d6 roll-under vs effective skill (click-to-roll, target shown before roll) |
+| Pathfinder 2e Lite | d20 + modifier + proficiency vs DC (click-to-roll, crit range ±10) |
+| Shadowrun 5e Lite | Xd6 dice pool, count hits vs threshold (click-to-roll pool, colour-coded dice) |
 | Narrative Engine | No dice widgets — pure prose resolution via Momentum track |
-| SWRPG Narrative Dice | Narrative dice pool with colour-coded symbol dice (four-stage, dual-axis resolution) |
+| SWRPG Narrative Dice | Narrative dice pool with colour-coded symbol dice (click-to-roll pool, dual-axis resolution) |
 
 ### Combat Widget
 

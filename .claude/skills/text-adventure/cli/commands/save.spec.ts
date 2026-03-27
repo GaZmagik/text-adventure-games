@@ -134,9 +134,41 @@ describe('save load', () => {
     expect(restored.character!.name).toBe('Test Hero');
   });
 
+  test('falls back to trimmed file contents when no fenced or bare save is present', async () => {
+    const saveFilePath = join(tempDir, 'raw-content.save.md');
+    writeFileSync(saveFilePath, '  not-a-valid-save-string  \n', 'utf-8');
+
+    const loadResult = await handleSave(['load', saveFilePath]);
+    expect(loadResult.ok).toBe(false);
+    expect(loadResult.error!.message).toContain('Save validation failed');
+  });
+
   test('fails without save string argument', async () => {
     const result = await handleSave(['load']);
     expect(result.ok).toBe(false);
+  });
+
+  test('strips unknown nested keys on load and reports warnings', async () => {
+    const polluted = await loadState();
+    (polluted.character as Record<string, unknown>).alias = 'Ghost';
+    (polluted.time as Record<string, unknown>).season = 'winter';
+    await saveState(polluted);
+
+    const genResult = await handleSave(['generate']);
+    const saveString = (genResult.data as Record<string, unknown>).saveString as string;
+
+    const freshState = createDefaultState();
+    await saveState(freshState);
+
+    const loadResult = await handleSave(['load', saveString]);
+    expect(loadResult.ok).toBe(true);
+    const warnings = ((loadResult.data as Record<string, unknown>).warnings ?? []) as string[];
+    expect(warnings.some(w => w.includes('character.alias'))).toBe(true);
+    expect(warnings.some(w => w.includes('time.season'))).toBe(true);
+
+    const restored = await loadState();
+    expect('alias' in (restored.character as Record<string, unknown>)).toBe(false);
+    expect('season' in (restored.time as Record<string, unknown>)).toBe(false);
   });
 });
 

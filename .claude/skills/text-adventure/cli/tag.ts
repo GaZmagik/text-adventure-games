@@ -2,6 +2,7 @@
 import { getTopLevelHelp, getCommandHelp } from './help';
 import type { CommandResult } from './types';
 import { VERSION } from './lib/version';
+import { TOP_LEVEL_COMMANDS } from './metadata';
 
 function output(result: CommandResult): void {
   console.log(JSON.stringify(result));
@@ -25,7 +26,7 @@ function unknownCommand(cmd: string): CommandResult {
     command: cmd,
     error: {
       message: `Unknown command: ${cmd}`,
-      corrective: 'Valid commands: state, compute, render, save, batch, rules, quest, export. Run: tag --help',
+      corrective: `Valid commands: ${TOP_LEVEL_COMMANDS.join(', ')}. Run: tag --help`,
     },
   };
 }

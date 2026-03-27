@@ -3,7 +3,7 @@
 
 This module provides mandatory checklists that the GM must work through at key moments
 during gameplay. It prevents common mistakes: writing text outside widgets, skipping
-character creation steps, forgetting to load modules, or breaking the four-stage die roll
+character creation steps, forgetting to load modules, or breaking the click-to-roll die widget
 pattern. Think of it as a pilot's pre-flight checklist — every item must be confirmed
 before takeoff.
 
@@ -210,6 +210,11 @@ quality rules that degrade rapidly when not actively in context. Loading it once
 game start is not sufficient — it must be re-read before every scene to maintain
 prose quality across long sessions.
 
+**Compaction detection:** `tag state sync` automatically detects conversation compactions
+by checking `/mnt/transcripts/`. When `compactionDetected` is `true` in the sync output,
+context has been lost. Re-read ALL files listed in `modulesActive` before generating
+the next scene. The sync warning includes the specific file paths to re-read.
+
 ---
 
 ## New Scene Checklist
@@ -240,7 +245,7 @@ NEW SCENE CHECKLIST
   Widget Assembly — use `tag render`, do NOT hand-code HTML
 □ 12. Run `tag render scene --style <style-name>` to generate the scene skeleton
       Then compose your narrative prose into the HTML output.
-□ 13. For die rolls, use `tag render dice` — never hand-code the roll widget
+□ 13. For one logical die, use `tag render dice`; for grouped numeric rolls, use `tag render dice-pool` — never hand-code the roll widget
 □ 14. For contested checks, FIRST run `tag compute contest <ATTR> <npc_id>`,
       THEN use the result to render the outcome
 □ 15. Include: pre-computed #save-data div for save fallback
@@ -263,8 +268,8 @@ NEW SCENE CHECKLIST
 
 ## Die Roll Checklist
 
-Before generating a die roll widget, verify every stage is present and correctly ordered.
-All four stages (Declare → Animate → Resolve → Continue) must appear in a SINGLE widget.
+Before generating a die roll widget, verify the current click-to-roll flow is correct.
+Use `tag render dice` for one logical die and `tag render dice-pool` for grouped numeric pools.
 
 ```
 DIE ROLL CHECKLIST
@@ -272,18 +277,19 @@ DIE ROLL CHECKLIST
 □  1. The player has already committed to an action (never pre-announce the check)
 □  2. The attribute was NOT revealed in the action options
 □  3. The DC is set but NOT revealed to the player
-□  4. Run `tag render dice --style <style>` via the Bash tool — the CLI renders
-     numbered 3D polyhedra automatically. Do NOT hand-code dice.
-□  5. Stage 1 (Declare): show action, attribute, modifier — NOT the DC
-□  6. Stage 2 (Animate): 3D die button is clickable, NOT auto-rolled — tumble animation
-     with numbered faces visible. Die settles with rolled value facing camera.
-□  7. Stage 3 (Resolve): show raw roll + modifier + proficiency (if applicable) = total,
-     THEN reveal DC, THEN outcome badge
-□  8. Stage 4 (Continue): proceed button with sendPrompt + fallback
-□  9. All four stages are in a SINGLE widget — never split across messages
+□  4. Choose the correct renderer:
+     `tag render dice --style <style>` for one logical die
+     `tag render dice-pool --style <style> --data '<json>'` for grouped numeric rolls
+□  5. Pre-roll state is visible: idle 3D die or pool, click hint shown, result hidden
+□  6. The player must click to roll. Never auto-roll. Never show a pre-baked visible result.
+□  7. After the settle animation, reveal the result:
+     single die → roll breakdown and optional DC/outcome
+     dice pool → grouped rolls, subtotal, optional modifier
+□  8. The widget locks after reveal. No rerolls from the widget itself.
+□  9. The entire roll interaction lives in a SINGLE widget — never split across messages
 □ 10. No consequences described in the roll widget — those go in the next scene
 □ 11. The widget is the ONLY output — no prose before or after
-□ 12. Always use `tag render dice` — never hand-code dice geometry of any kind.
+□ 12. Always use `tag render dice` or `tag render dice-pool` — never hand-code dice geometry of any kind.
 ```
 
 > **Arithmetic rule:** ALL calculations (damage totals, HP changes, currency transactions) MUST use `echo "expression" | bc` via bash. Never compute arithmetic in prose output.
@@ -303,7 +309,7 @@ NPC HIDDEN ROLL CHECKLIST
 □  3. Determine NPC's opposing attribute from the same table
 □  4. Look up NPC stats from definition object (see modules/ai-npc.md § NPC Definition Object)
      or threat tier (see modules/bestiary.md § Threat Tiers)
-□  5. Player rolls normally — visible 4-stage die roll widget with 3D dice
+□  5. Player rolls normally — visible click-to-roll single-die widget with 3D dice
 □  6. GM secretly resolves NPC roll: d20 + NPC attribute modifier
 □  7. Compare totals — player result vs NPC result
 □  8. Determine margin of success/failure (decisive/narrow/tie)
@@ -442,19 +448,18 @@ mistake and the correct approach.
   Present "Talk to the guard" and determine the DC internally.
 
 - **Revealing the attribute before commitment** — "Persuade (CHA)" is WRONG. Present
-  "Persuade" and reveal the attribute only in Stage 1 of the die roll widget, after the
+  "Persuade" and reveal the attribute only in the die roll widget, after the
   player has already committed to the action.
 
-- **Skipping die roll stages** — all four stages (Declare → Animate → Resolve → Continue)
-  must appear in sequence in a single widget. Never omit the animation. Never jump straight
-  to the result.
+- **Skipping the click-to-roll flow** — the widget must show an idle pre-roll state, wait
+  for the player click, animate, reveal, and then lock. Never omit the animation. Never
+  jump straight to the result.
 
-- **Splitting a die roll across two messages** — the declare, animate, resolve, and
-  continue stages are ONE widget. Never send "You rolled a 14" in one message and the
-  outcome in another.
+- **Splitting a die roll across two messages** — the pre-roll, animation, and reveal are
+  ONE widget. Never send "You rolled a 14" in one message and the outcome in another.
 
 - **Describing roll consequences in the roll widget** — consequences go in the NEXT scene
-  widget. The roll widget shows the mechanical result and a continue button. Nothing more.
+  widget. The roll widget shows the mechanical result only. Nothing more.
 
 - **Forgetting the sendPrompt fallback** — every button that calls sendPrompt must have a
   copyable text alternative. The `sendPrompt()` function is not always available in the

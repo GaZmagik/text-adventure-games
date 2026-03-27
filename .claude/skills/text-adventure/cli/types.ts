@@ -304,6 +304,7 @@ export type GmState = {
   _lastComputation?: ComputationResult;
   _stateHistory: StateHistoryEntry[];
   _schemaVersion?: string;
+  _compactionCount?: number;
 };
 
 // ── Command Types ──────────────────────────────────────────────────

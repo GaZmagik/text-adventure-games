@@ -13,12 +13,13 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: core-syst
 
 | Action | Command | Tool |
 |--------|---------|------|
-| Render die roll widget | `tag render dice --style <style>` | Run via Bash tool |
+| Render single-die widget | `tag render dice --style <style>` | Run via Bash tool |
+| Render mixed dice pool | `tag render dice-pool --style <style> --data '<json>'` | Run via Bash tool |
 | Hidden contested roll | `tag compute contest <STAT> <npc_id>` | Run via Bash tool |
-| Hazard save | `tag compute hazard <type> --dc <N>` | Run via Bash tool |
+| Hazard save | `tag compute hazard <ATTR> --dc <N>` | Run via Bash tool |
 | Random encounter | `tag compute encounter --escalation <N>` | Run via Bash tool |
 
-> **All die roll widgets are rendered via the `tag` CLI.** The GM must never hand-code HTML, CSS, or JS for dice. Use the commands above via the Bash tool.
+> **All die roll widgets are rendered via the `tag` CLI.** The GM must never hand-code HTML, CSS, or JS for dice. Use `tag render dice` for one logical die and `tag render dice-pool` for grouped numeric rolls on one shared canvas.
 
 ---
 
@@ -63,20 +64,19 @@ intimidate, pickpocket, sneak past, outwit, read intentions, arm wrestle, etc.
 
 ### How It Works
 
-The player's die roll widget works identically to a standard check — four stages, 3D
-dice, visible result. The difference is in **Stage 3 (Resolve)**:
+The player's single-die widget works like a standard click-to-roll check — idle pre-roll
+state, 3D die, hidden result, click-to-roll reveal, then locked final state. The
+difference is in the reveal:
 
-| Check Type | Stage 3 Display |
+| Check Type | Reveal |
 |------------|----------------|
-| Standard (vs DC) | Player total + "vs DC 15" + outcome badge |
-| Contested (vs NPC) | Player total + outcome badge + **narrative line only** |
+| Standard (vs DC) | Player total + DC line + outcome badge |
+| Contested (vs NPC) | Player total only; the NPC contest resolution remains GM-side |
 
 The player sees:
-- Stage 1: Their action, their attribute, their modifier
-- Stage 2: Their 3D die roll (animated as normal)
-- Stage 3: Their total — but instead of "vs DC 15", show ONLY the outcome badge
-  with a narrative description
-- Stage 4: Continue button as normal
+- The attribute/modifier context already established for the check
+- Their 3D die roll, triggered by their click
+- Their own roll breakdown after the die settles
 
 The player **NEVER** sees:
 - The NPC's roll value
@@ -105,8 +105,8 @@ The GM resolves the NPC's check silently:
 2. Internally compute: `d20 + NPC modifier` (use a mental random number, do NOT show dice)
 3. Compare: `player_total` vs `npc_total`
 4. Determine margin and select outcome badge + narrative from the table above
-5. Render the outcome in the die roll widget as if it were a standard check — the player
-   cannot tell whether this was a contested or fixed-DC check
+5. Render the player-facing die widget normally, then apply the contested outcome in the
+   following narrative/widget flow without exposing the NPC math
 
 ### Contested Check Attribute Pairings
 
@@ -125,55 +125,41 @@ The GM resolves the NPC's check silently:
 
 ---
 
-## D&D 5e — Four Progressive Stages
+## Single-Die Widget Flow
 
-Never skip or combine stages. Each stage is revealed sequentially within a single widget.
+The current CLI single-die widget is a one-shot click-to-roll interaction. It starts in an
+idle pre-roll state, hides the result until the player clicks, then reveals the result and
+locks permanently.
 
-### Stage 1 — Declare
+### Pre-Roll
 
 Show:
-- The action the player chose (in narrative terms, not mechanical)
-- The relevant attribute (revealed now, after commitment)
-- The modifier value
-- A large `[ ROLL 1d20 ]` button
+- The check context (for example `Perception Check` or `Coin Flip`)
+- An idle 3D die, coin, or paired percentile dice
+- A click hint such as `CLICK THE DIE TO ROLL`
+- No visible result text
 
-Do **not** reveal the DC. The player knows what they are attempting and how good they are
-at it. They do not know how hard the task is.
+Do **not** reveal the visible outcome before the click. The widget must not show a
+pre-baked rolled face, total, or outcome badge.
 
-### Stage 2 — Animate
+### Roll
 
-On button press:
-- CSS keyframe spin animation (0.6s duration)
-- Land on a random number 1–20
-- Display the raw roll prominently (36px, bold)
-- Brief pause (0.3s) before proceeding to resolve
+On player click:
+- Generate the result client-side at click time
+- Animate the die or dice to the rolled face
+- Keep the result hidden until the settle animation completes
 
 The roll must be triggered by explicit player click — never auto-roll.
 
-### Stage 3 — Resolve
+### Reveal and Lock
 
-Reveal in sequence:
-1. Modified total: `raw roll + modifier = total`. When the check involves a skill the
-   character is proficient in, display the proficiency bonus as a separate line item in
-   the breakdown — e.g., "Roll: 14 + AGI +2 + Proficiency +2 = 18 vs DC 15". When
-   unproficient, omit the proficiency line entirely.
-2. The DC (revealed now for the first time)
-3. Outcome badge:
+After the settle animation:
+1. Show the roll breakdown
+2. If a DC was supplied, reveal the DC and outcome badge now
+3. Lock the widget so the result cannot be rerolled
 
-| Result | Condition |
-|--------|-----------|
-| CRITICAL SUCCESS | Natural 20 |
-| SUCCESS | Total meets or exceeds DC |
-| PARTIAL SUCCESS | Missed DC by 1–3, or beat DC by exactly 1 |
-| FAILURE | Total below DC by 4+ |
-| CRITICAL FAILURE | Natural 1 |
-
-### Stage 4 — Continue
-
-A single continue prompt. No consequences described in the roll widget itself — the outcome
-widget handles narrative consequences separately.
-
-The continue button and fallback prompt are rendered automatically by the `tag render dice` command. The GM does not need to hand-code button HTML.
+No consequences are described in the die widget itself. Continue the narrative in the next
+scene or follow-up widget.
 
 ---
 
@@ -280,38 +266,28 @@ Beyond the table, maintain tension through:
 
 ---
 
-## sendPrompt Reliability
+## Follow-Up Interaction
 
-The `sendPrompt()` function in Claude.ai widget iframes is not always available due to timing
-and sandboxing. For die roll widgets:
+The current dice widgets do **not** include a built-in continue button or `sendPrompt`
+handoff. They end on a locked result state.
 
-- Display the roll result and a copyable prompt string alongside the sendPrompt button
-  (e.g., "I rolled 14 + 3 = 17. Continue.")
-- Show a clear "Copy and paste this to continue" instruction
-- Never rely solely on sendPrompt for progression — the player must always have a manual path
-- Use the `data-prompt` + `addEventListener` pattern, never inline `onclick`
-- Avoid contractions in prompt strings — "Let us" not "Let's"
+- Render the die widget first
+- Let the player click and see the result
+- Then continue play in the next scene/widget as needed
 
-### Fallback Pattern
-
-The `tag render dice` command automatically includes:
-- A `sendPrompt`-wired continue button using the `data-prompt` + `addEventListener` pattern
-- A copyable fallback prompt displayed when `sendPrompt` is unavailable
-- Correct escaping (no contractions or apostrophes in prompt strings)
-
-The GM does not need to hand-code the fallback pattern. The CLI template handles all of this.
+Do not hand-code a second roll interaction into the dice widget itself.
 
 ---
 
 ## Alternative Rulebook Systems
 
-This module defines the D&D 5e d20 resolution system. The text-adventure skill is
+This module defines the default d20 resolution system. The text-adventure skill is
 system-agnostic — specific game systems (such as Star Wars: Edge of the Empire) have their
 own dedicated skills with tailored dice mechanics.
 
 - **Custom rulebooks** — the player provides a PDF or markdown document. The GM reads and
-  applies the custom resolution mechanic. The four-stage widget pattern (Declare → Animate →
-  Resolve → Continue) adapts to any system.
+  applies the custom resolution mechanic. The click-to-roll widget flow adapts to any
+  system-specific breakdown the GM needs to present.
 
 ---
 
@@ -319,8 +295,9 @@ own dedicated skills with tailored dice mechanics.
 
 The die roll widget renders proper 3D polyhedra using an inline WebGL renderer (no external
 dependencies). Each die type uses its correct geometric shape with numbered faces, idle
-floating animation, and a tumble-and-settle roll animation. The rolled value is
-predetermined, then the die rotates to land with that face pointing at the camera.
+floating animation, and a tumble-and-settle roll animation. The visible result is chosen
+client-side on click, then the die rotates to land with that face pointing at the camera.
+The widget begins in a pre-roll state and locks after the reveal.
 
 The renderer is a hand-rolled WebGL implementation (~16KB inline) that uses a texture atlas
 for numbered faces and quaternion-based landing animation. No CDN loads, no external scripts.
@@ -340,7 +317,7 @@ All die types are represented by the `DieType` union: `d2 | d4 | d6 | d8 | d10 |
 | d10 | Pentagonal trapezohedron | 10 kite faces | 11 |
 | d12 | Dodecahedron | 12 pentagons (36 triangles) | 13 |
 | d20 | Icosahedron | 20 triangles | 21 |
-| d100 | Paired d10s (tens + units) | 10 + 10 | N/A |
+| d100 | Two independent d10 canvases (Tens + Units) | 10 + 10 | N/A |
 
 ### Style-Aware Colouring
 
@@ -366,18 +343,26 @@ The 3D die system uses:
 ### Rendering a Single Die
 
 When the GM needs a die roll, render a single die of the appropriate type. The widget
-includes the narrative context, check breakdown, the 3D die, and the continue button.
-The die type is determined by the game system — d20 for D&D 5e, other types for
-alternative systems or damage rolls.
+includes the check context, the 3D die, and the post-roll breakdown. The die type is
+determined by the game system — d20 for D&D 5e, other types for alternative systems or
+damage rolls.
 
 ### Rendering Dice
 
-The 3D dice widget is rendered by `tag render dice --style <style>` via the Bash tool. The template handles WebGL setup, polyhedra geometry, numbered faces, tumble animation, and graceful degradation automatically.
+The single-die widget is rendered by `tag render dice --style <style>` via the Bash tool.
+The template handles WebGL setup, polyhedra geometry, numbered faces, tumble animation, and
+graceful degradation automatically.
 
 Supported die types: d2, d4, d6, d8, d10, d12, d20, d100. For a standard ability check, the CLI renders a single d20. For damage rolls or alternative systems, specify the die type via the `--data` flag:
 
 ```bash
 tag render dice --style terminal --data '{"dieType":"d6"}'
+```
+
+For mixed or repeated numeric rolls on one shared canvas, use `tag render dice-pool`:
+
+```bash
+tag render dice-pool --style terminal --data '{"label":"Storm Volley","pool":[{"dieType":"d6","count":2},{"dieType":"d8","count":2},{"dieType":"d10","count":3},{"dieType":"d20","count":1}],"modifier":4}'
 ```
 
 The GM must never hand-code WebGL, canvas elements, or dice HTML. Always use the CLI command.
@@ -388,11 +373,12 @@ The GM must never hand-code WebGL, canvas elements, or dice HTML. Always use the
 
 - Never reveal which attribute a check will test before the player commits to an action.
 - Never auto-roll — the player must click the roll button.
+- Never pre-fill the visible result or pre-determine the shown face before the click.
 - Never describe consequences in the roll widget — use the outcome widget.
 - Never reveal the DC before the roll — only after, during the resolve stage.
 - Never skip the animation stage — the moment of uncertainty is part of the experience.
+- Never offer rerolls from the widget itself — the current dice widgets are one-shot and lock after reveal.
 - Never let the same attribute dominate the checks across an entire act.
-- Never hand-code HTML, CSS, or JS for dice widgets — use `tag render dice` via the Bash tool.
-- Never hand-code sendPrompt buttons or fallback prompts — the CLI template handles these.
+- Never hand-code HTML, CSS, or JS for dice widgets — use `tag render dice` or `tag render dice-pool` via the Bash tool.
 - Never label action options with the attribute they test (e.g., "Persuade (CHA)").
 - Never let modified totals routinely exceed 20 without escalating DCs.

@@ -1,5 +1,6 @@
 import { describe, test, expect } from 'bun:test';
 import { getTopLevelHelp, getCommandHelp } from './help';
+import { COMMAND_HELP, TOP_LEVEL_COMMANDS, WIDGET_TYPE_NAMES } from './metadata';
 
 // ── getTopLevelHelp ──────────────────────────────────────────────────
 
@@ -14,23 +15,19 @@ describe('getTopLevelHelp', () => {
     expect(result.command).toBe('help');
   });
 
-  test('data contains 7 commands', () => {
+  test('data contains all top-level commands', () => {
     const result = getTopLevelHelp();
     const data = result.data as { commands: { command: string; description: string }[]; widgetTypes: string[] };
-    expect(data.commands.length).toBe(8);
+    expect(data.commands.length).toBe(TOP_LEVEL_COMMANDS.length);
   });
 
-  test('commands include state, compute, render, save, quest, batch, rules', () => {
+  test('commands include every canonical command from metadata', () => {
     const result = getTopLevelHelp();
     const data = result.data as { commands: { command: string; description: string }[]; widgetTypes: string[] };
     const commandNames = data.commands.map(c => c.command);
-    expect(commandNames).toContain('tag state');
-    expect(commandNames).toContain('tag compute');
-    expect(commandNames).toContain('tag render');
-    expect(commandNames).toContain('tag save');
-    expect(commandNames).toContain('tag quest');
-    expect(commandNames).toContain('tag batch');
-    expect(commandNames).toContain('tag rules');
+    for (const command of TOP_LEVEL_COMMANDS) {
+      expect(commandNames).toContain(`tag ${command}`);
+    }
   });
 
   test('each command entry has a non-empty description', () => {
@@ -42,10 +39,11 @@ describe('getTopLevelHelp', () => {
     }
   });
 
-  test('data contains 18 widget types', () => {
+  test('data contains every canonical widget type from metadata', () => {
     const result = getTopLevelHelp();
     const data = result.data as { commands: unknown[]; widgetTypes: string[] };
-    expect(data.widgetTypes.length).toBe(18);
+    expect(data.widgetTypes).toHaveLength(WIDGET_TYPE_NAMES.length);
+    expect(data.widgetTypes).toEqual([...WIDGET_TYPE_NAMES]);
   });
 
   test('widgetTypes includes expected in-game widgets', () => {
@@ -55,6 +53,7 @@ describe('getTopLevelHelp', () => {
     expect(data.widgetTypes).toContain('character');
     expect(data.widgetTypes).toContain('ticker');
     expect(data.widgetTypes).toContain('dice');
+    expect(data.widgetTypes).toContain('dice-pool');
     expect(data.widgetTypes).toContain('ship');
     expect(data.widgetTypes).toContain('crew');
     expect(data.widgetTypes).toContain('map');
@@ -122,8 +121,8 @@ describe('getCommandHelp', () => {
     }
   });
 
-  test('returns ok: true for all 7 top-level commands', () => {
-    for (const cmd of ['state', 'compute', 'render', 'save', 'quest', 'batch', 'rules']) {
+  test('returns ok: true for all top-level commands', () => {
+    for (const cmd of Object.keys(COMMAND_HELP)) {
       const result = getCommandHelp(cmd);
       expect(result.ok).toBe(true);
     }

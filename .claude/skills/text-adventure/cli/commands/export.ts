@@ -1,11 +1,8 @@
-import { resolve } from 'node:path';
-import { homedir, tmpdir } from 'node:os';
-import { realpathSync } from 'node:fs';
 import type { CommandResult, GmState } from '../types';
 import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState, createDefaultState } from '../lib/state-store';
 import { attachChecksum, validateAndDecode } from '../lib/fnv32';
-import { VALID_TOP_KEYS, MAX_FILE_SIZE_BYTES } from '../lib/constants';
+import { VALID_TOP_KEYS } from '../lib/constants';
 import { containsForbiddenKeys } from '../lib/security';
 import { validateState } from '../lib/validator';
 import {
@@ -15,34 +12,8 @@ import {
   extractLorePayload,
   extractFrontmatterField,
 } from '../lib/lore-serialiser';
-
-// ── Path security ────────────────────────────────────────────────────
-
-function resolveAndValidatePath(input: string): string {
-  let resolved: string;
-  try {
-    resolved = realpathSync(resolve(input));
-  } catch (err: unknown) {
-    const code = err && typeof err === 'object' && 'code' in err
-      ? (err as NodeJS.ErrnoException).code
-      : undefined;
-    if (code === 'ENOENT' || code === 'ENOTDIR') {
-      throw new Error(`Lore file not found: ${input}`);
-    }
-    throw err;
-  }
-  const home = homedir();
-  const tmp = tmpdir();
-  if (home === '/') {
-    throw new Error('Lore path validation requires a non-root home directory.');
-  }
-  const homePrefix = home + '/';
-  const tmpPrefix = tmp === '/' ? tmp : tmp + '/';
-  if (!resolved.startsWith(homePrefix) && !resolved.startsWith(tmpPrefix)) {
-    throw new Error('Lore file path must be within the home or temp directory.');
-  }
-  return resolved;
-}
+import { readSafeTextFile, resolveSafeReadPath } from '../lib/path-security';
+import { stripUnknownStateKeys } from '../lib/state-schema';
 
 // ── Read and extract payload from .lore.md file ──────────────────────
 
@@ -51,11 +22,7 @@ async function readLoreFile(filePath: string): Promise<{
   payloadString: string;
   editedFlag: string | null;
 }> {
-  const file = Bun.file(filePath);
-  if (file.size > MAX_FILE_SIZE_BYTES) {
-    throw new Error('Lore file exceeds 10 MB size limit.');
-  }
-  const content = await file.text();
+  const content = await readSafeTextFile(filePath, 'Lore');
   const payloadString = extractLorePayload(content);
   if (!payloadString) {
     throw new Error('No LORE payload found in file.');
@@ -91,7 +58,7 @@ function decodeAndBuildState(payloadString: string): {
   // Merge onto defaults
   const defaults = createDefaultState();
   delete defaults._lastComputation;
-  const state: GmState = {
+  let state: GmState = {
     ...defaults,
     ...filtered as Partial<GmState>,
   };
@@ -103,13 +70,18 @@ function decodeAndBuildState(payloadString: string): {
   state.character = null;
   state._stateHistory = [];
 
+  const { sanitized, strippedPaths } = stripUnknownStateKeys(state);
+  state = sanitized as GmState;
+  const strippedWarnings = strippedPaths.map(path =>
+    `Stripped unexpected state key "${path}" while loading lore data.`);
+
   // Validate
   const validation = validateState(state);
   if (!validation.valid) {
     throw new Error(`Lore state is structurally invalid: ${validation.errors.join('; ')}`);
   }
 
-  return { state, warnings: validation.warnings };
+  return { state, warnings: [...strippedWarnings, ...validation.warnings] };
 }
 
 // ── generate ─────────────────────────────────────────────────────────
@@ -151,7 +123,14 @@ async function load(args: string[]): Promise<CommandResult> {
 
   let filePath: string;
   try {
-    filePath = resolveAndValidatePath(args[0]!);
+    const resolved = resolveSafeReadPath(args[0]!, {
+      kind: 'Lore',
+      extensions: ['.md'],
+    });
+    if (!resolved) {
+      throw new Error('Lore file path must look like a readable file path.');
+    }
+    filePath = resolved;
   } catch (err) {
     return fail(
       err instanceof Error ? err.message : 'Failed to resolve lore file path.',
@@ -212,7 +191,14 @@ async function validate(args: string[]): Promise<CommandResult> {
 
   let filePath: string;
   try {
-    filePath = resolveAndValidatePath(args[0]!);
+    const resolved = resolveSafeReadPath(args[0]!, {
+      kind: 'Lore',
+      extensions: ['.md'],
+    });
+    if (!resolved) {
+      throw new Error('Lore file path must look like a readable file path.');
+    }
+    filePath = resolved;
   } catch (err) {
     return fail(
       err instanceof Error ? err.message : 'Failed to resolve lore file path.',

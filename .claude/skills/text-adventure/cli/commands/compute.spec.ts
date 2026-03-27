@@ -46,6 +46,12 @@ afterEach(() => {
 });
 
 describe('compute contest', () => {
+  test('fails when contest is missing the npc id', async () => {
+    const result = await handleCompute(['contest', 'CHA']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('Usage');
+  });
+
   test('returns result with margin and outcome', async () => {
     const result = await handleCompute(['contest', 'CHA', 'test_npc']);
     expect(result.ok).toBe(true);
@@ -113,6 +119,12 @@ describe('compute hazard', () => {
     expect(typeof data.roll).toBe('number');
     expect(typeof data.total).toBe('number');
     expect(typeof data.outcome).toBe('string');
+  });
+
+  test('fails without a stat argument', async () => {
+    const result = await handleCompute(['hazard']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('Usage: tag compute hazard <ATTR> --dc <N>');
   });
 
   test('fails without --dc flag', async () => {

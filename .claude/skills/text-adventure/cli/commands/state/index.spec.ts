@@ -2,9 +2,10 @@ import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { handleState } from './state';
-import { loadState, saveState } from '../lib/state-store';
-import type { GmState } from '../types';
+import { __stateTestInternals, handleState } from './index';
+import { loadState, saveState } from '../../lib/state-store';
+import { MAX_STATE_HISTORY } from '../../lib/constants';
+import type { GmState } from '../../types';
 
 let tempDir: string;
 const originalEnv = process.env.TAG_STATE_DIR;
@@ -304,6 +305,19 @@ describe('state validate', () => {
     expect((result.data as { valid: boolean }).valid).toBe(false);
     expect((result.data as { errors: string[] }).errors.length).toBeGreaterThan(0);
   });
+
+  test('reports unexpected nested keys in polluted state', async () => {
+    await handleState(['reset']);
+    const state = await loadState();
+    (state.time as Record<string, unknown>).season = 'winter';
+    await saveState(state);
+
+    const result = await handleState(['validate']);
+    expect(result.ok).toBe(true);
+    const data = result.data as { valid: boolean; errors: string[] };
+    expect(data.valid).toBe(false);
+    expect(data.errors.some(error => error.includes('time.season'))).toBe(true);
+  });
 });
 
 // ── history ───────────────────────────────────────────────────────
@@ -364,16 +378,14 @@ describe('state set — negative paths', () => {
     await handleState(['reset']);
     const result = await handleState(['set', '__proto__.polluted', 'true']);
     expect(result.ok).toBe(false);
-    // Rejected by VALID_TOP_KEYS before FORBIDDEN_KEYS check
-    expect(result.error!.message).toContain('Unknown top-level key');
+    expect(result.error!.message).toContain('Forbidden path segment');
   });
 
   test('blocks prototype pollution via constructor', async () => {
     await handleState(['reset']);
     const result = await handleState(['set', 'constructor.x', '1']);
     expect(result.ok).toBe(false);
-    // Rejected by VALID_TOP_KEYS before FORBIDDEN_KEYS check
-    expect(result.error!.message).toContain('Unknown top-level key');
+    expect(result.error!.message).toContain('Forbidden path segment');
   });
 
   test('+= on a non-numeric path fails', async () => {
@@ -403,7 +415,14 @@ describe('state set — negative paths', () => {
     await handleState(['reset']);
     const result = await handleState(['set', 'nonexistent.deep.key', 'somevalue']);
     expect(result.ok).toBe(false);
-    expect(result.error!.message).toContain('Unknown top-level key');
+    expect(result.error!.message).toContain('Unknown path segment');
+  });
+
+  test('rejects unknown nested keys under allowlisted objects', async () => {
+    await handleState(['reset']);
+    const result = await handleState(['set', 'time.season', 'winter']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('Unknown path segment "season"');
   });
 });
 
@@ -579,268 +598,6 @@ describe('state create-npc — Phase 9 improved error messages', () => {
   });
 });
 
-// ── sync ──────────────────────────────────────────────────────────
-
-describe('state sync', () => {
-  test('returns clean status when no issues', async () => {
-    await handleState(['reset']);
-    await handleState(['set', 'scene', '3']);
-    await handleState(['set', 'currentRoom', 'bridge']);
-    await handleState(['set', 'modulesActive', JSON.stringify([
-      'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-      'character-creation', 'save-codex',
-    ])]);
-
-    const result = await handleState(['sync']);
-    expect(result.ok).toBe(true);
-    const data = result.data as Record<string, unknown>;
-    expect(data.status).toBe('clean');
-    expect((data.warnings as string[]).length).toBe(0);
-    expect((data.errors as string[]).length).toBe(0);
-    expect(data.applied).toBe(false);
-  });
-
-  test('diff shows scene increment', async () => {
-    await handleState(['reset']);
-    await handleState(['set', 'scene', '5']);
-
-    const result = await handleState(['sync']);
-    expect(result.ok).toBe(true);
-    const data = result.data as Record<string, unknown>;
-    const diff = data.diff as Record<string, { from: unknown; to: unknown }>;
-    expect(diff.scene).toBeDefined();
-    expect(diff.scene!.from).toBe(5);
-    expect(diff.scene!.to).toBe(6);
-  });
-
-  test('--apply applies mutations atomically', async () => {
-    await handleState(['reset']);
-    await handleState(['set', 'scene', '5']);
-    await handleState(['set', 'modulesActive', JSON.stringify([
-      'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-      'character-creation', 'save-codex',
-    ])]);
-
-    const result = await handleState(['sync', '--apply']);
-    expect(result.ok).toBe(true);
-    const data = result.data as Record<string, unknown>;
-    expect(data.applied).toBe(true);
-
-    const state = await loadState();
-    expect(state.scene).toBe(6);
-  });
-
-  test('--apply succeeds when no errors present', async () => {
-    // Errors array is populated only by explicit error pushes;
-    // the implementation does not currently produce errors from state alone,
-    // so we verify that apply succeeds when there are only warnings.
-    await handleState(['reset']);
-    const result = await handleState(['sync', '--apply']);
-    expect(result.ok).toBe(true);
-    const data = result.data as Record<string, unknown>;
-    expect(data.applied).toBe(true);
-    expect((data.errors as string[]).length).toBe(0);
-  });
-
-  test('dry run does not modify state', async () => {
-    await handleState(['reset']);
-    await handleState(['set', 'scene', '5']);
-
-    const stateBefore = await loadState();
-    expect(stateBefore.scene).toBe(5);
-
-    // Sync without --apply — dry run
-    const result = await handleState(['sync']);
-    expect(result.ok).toBe(true);
-    const data = result.data as Record<string, unknown>;
-    expect(data.applied).toBe(false);
-
-    const stateAfter = await loadState();
-    expect(stateAfter.scene).toBe(5); // unchanged
-  });
-
-  test('detects pending computation not in rollHistory', async () => {
-    await handleState(['reset']);
-    await handleState(['set', 'scene', '3']);
-    // Set a pending computation directly
-    const comp = JSON.stringify({ type: 'contested_roll', stat: 'STR', roll: 14, modifier: 2, total: 16, margin: 3, outcome: 'success', npcId: 'guard_01', npcModifier: 1 });
-    await handleState(['set', '_lastComputation', comp]);
-
-    const result = await handleState(['sync']);
-    expect(result.ok).toBe(true);
-    const data = result.data as Record<string, unknown>;
-    const warnings = data.warnings as string[];
-    expect(warnings.some(w => w.includes('Pending computation') && w.includes('contested_roll'))).toBe(true);
-  });
-
-  test('flags missing Tier 1 modules', async () => {
-    await handleState(['reset']);
-    // Only set a subset — omit prose-craft
-    await handleState(['set', 'modulesActive', JSON.stringify([
-      'gm-checklist', 'core-systems', 'die-rolls',
-      'character-creation', 'save-codex',
-    ])]);
-
-    const result = await handleState(['sync']);
-    expect(result.ok).toBe(true);
-    const data = result.data as Record<string, unknown>;
-    const warnings = data.warnings as string[];
-    expect(warnings.some(w => w.includes('Missing Tier 1') && w.includes('prose-craft'))).toBe(true);
-  });
-
-  test('detects quest/worldFlag canonical mismatch', async () => {
-    await handleState(['reset']);
-    // Set a quest with a completed objective but no matching worldFlag
-    const quests = JSON.stringify([{
-      id: 'find_signal', title: 'Find the Signal', status: 'active',
-      objectives: [{ id: 'locate_tower', description: 'Locate the tower', completed: true }],
-      clues: [],
-    }]);
-    await handleState(['set', 'quests', quests]);
-
-    const result = await handleState(['sync']);
-    expect(result.ok).toBe(true);
-    const data = result.data as Record<string, unknown>;
-    const warnings = data.warnings as string[];
-    expect(warnings.some(w =>
-      w.includes('find_signal') && w.includes('locate_tower') && w.includes('worldFlag'),
-    )).toBe(true);
-  });
-
-  test('detects reverse mismatch — flag set but objective not complete', async () => {
-    await handleState(['reset']);
-    // Set a quest with an incomplete objective
-    const quests = JSON.stringify([{
-      id: 'find_signal', title: 'Find the Signal', status: 'active',
-      objectives: [{ id: 'locate_tower', description: 'Locate the tower', completed: false }],
-      clues: [],
-    }]);
-    await handleState(['set', 'quests', quests]);
-    // But set the canonical flag manually
-    await handleState(['set', 'worldFlags.quest:find_signal:locate_tower:complete', 'true']);
-
-    const result = await handleState(['sync']);
-    expect(result.ok).toBe(true);
-    const data = result.data as Record<string, unknown>;
-    const warnings = data.warnings as string[];
-    expect(warnings.some(w =>
-      w.includes('quest:find_signal:locate_tower:complete') && w.includes('not marked complete'),
-    )).toBe(true);
-  });
-
-  test('warns about level-up eligibility', async () => {
-    await handleState(['reset']);
-    const char = JSON.stringify({
-      name: 'Kael', class: 'Scout', hp: 12, maxHp: 12, ac: 12,
-      level: 2, xp: 250, currency: 0, currencyName: 'credits',
-      stats: { STR: 10, DEX: 14, CON: 12, INT: 10, WIS: 11, CHA: 8 },
-      modifiers: { STR: 0, DEX: 2, CON: 1, INT: 0, WIS: 0, CHA: -1 },
-      proficiencyBonus: 2, proficiencies: [], abilities: [],
-      inventory: [], conditions: [], equipment: { weapon: 'blaster', armour: 'light' },
-    });
-    await handleState(['set', 'character', char]);
-
-    const result = await handleState(['sync']);
-    expect(result.ok).toBe(true);
-    const data = result.data as Record<string, unknown>;
-    const warnings = data.warnings as string[];
-    // XP 250 >= 250 threshold for level 3
-    expect(warnings.some(w => w.includes('Level-up') && w.includes('level 3'))).toBe(true);
-  });
-
-  test('detects NPC reference gap', async () => {
-    await handleState(['reset']);
-    // Set a worldFlag referencing an NPC not in rosterMutations
-    await handleState(['set', 'worldFlags.npc_ghost_appeared', 'true']);
-
-    const result = await handleState(['sync']);
-    expect(result.ok).toBe(true);
-    const data = result.data as Record<string, unknown>;
-    const warnings = data.warnings as string[];
-    expect(warnings.some(w => w.includes('npc_ghost_appeared') && w.includes('ghost'))).toBe(true);
-  });
-
-  test('sync --room changes currentRoom in diff', async () => {
-    await handleState(['reset']);
-    await handleState(['set', 'scene', '3']);
-
-    const result = await handleState(['sync', '--room', 'engine-room']);
-    expect(result.ok).toBe(true);
-    const data = result.data as Record<string, unknown>;
-    const diff = data.diff as Record<string, { from: unknown; to: unknown }>;
-    expect(diff.currentRoom).toBeDefined();
-    expect(diff.currentRoom!.to).toBe('engine-room');
-  });
-
-  test('sync --time updates time in diff', async () => {
-    await handleState(['reset']);
-    const timeJson = JSON.stringify({ period: 'evening', hour: 20 });
-
-    const result = await handleState(['sync', '--time', timeJson]);
-    expect(result.ok).toBe(true);
-    const data = result.data as Record<string, unknown>;
-    const diff = data.diff as Record<string, { from: unknown; to: unknown }>;
-    expect(diff.time).toBeDefined();
-    const timeTo = diff.time!.to as Record<string, unknown>;
-    expect(timeTo.period).toBe('evening');
-    expect(timeTo.hour).toBe(20);
-  });
-
-  test('sync --time with invalid JSON produces warning', async () => {
-    await handleState(['reset']);
-
-    const result = await handleState(['sync', '--time', '{not valid json']);
-    expect(result.ok).toBe(true);
-    const data = result.data as Record<string, unknown>;
-    const warnings = data.warnings as string[];
-    expect(warnings.some(w => w.includes('invalid JSON'))).toBe(true);
-  });
-
-  test('returns featureChecklist based on active modules', async () => {
-    await handleState(['reset']);
-    await handleState(['set', 'modulesActive', JSON.stringify(['prose-craft', 'audio'])]);
-
-    const result = await handleState(['sync']);
-    expect(result.ok).toBe(true);
-    const data = result.data as Record<string, unknown>;
-    const checklist = data.featureChecklist as string[];
-    expect(checklist.length).toBe(2);
-    expect(checklist.some(c => c.startsWith('prose-craft ON'))).toBe(true);
-    expect(checklist.some(c => c.startsWith('audio ON'))).toBe(true);
-  });
-});
-
-// ── BB: sync --scene flag sub-paths ──────────────────────────────
-
-describe('state sync — --scene flag', () => {
-  test('BB-1: valid --scene override shows change in diff', async () => {
-    await handleState(['reset']);
-    await handleState(['set', 'scene', '3']);
-
-    const result = await handleState(['sync', '--scene', '5']);
-    expect(result.ok).toBe(true);
-    const data = result.data as Record<string, unknown>;
-    const diff = data.diff as Record<string, { from: unknown; to: unknown }>;
-    expect(diff.scene).toBeDefined();
-    expect(diff.scene!.from).toBe(3);
-    expect(diff.scene!.to).toBe(5);
-  });
-
-  test('BB-2: negative --scene returns fail with appropriate error', async () => {
-    await handleState(['reset']);
-    const result = await handleState(['sync', '--scene', '-1']);
-    expect(result.ok).toBe(false);
-    expect(result.error!.message).toContain('-1');
-  });
-
-  test('BB-3: non-finite --scene (NaN) returns fail', async () => {
-    await handleState(['reset']);
-    const result = await handleState(['sync', '--scene', 'NaN']);
-    expect(result.ok).toBe(false);
-    expect(result.error!.message).toContain('NaN');
-  });
-});
-
 // ── unknown subcommand ────────────────────────────────────────────
 
 describe('state unknown subcommand', () => {
@@ -848,5 +605,136 @@ describe('state unknown subcommand', () => {
     const result = await handleState(['banana']);
     expect(result.ok).toBe(false);
     expect(result.error?.corrective).toBeDefined();
+  });
+});
+
+describe('state get edge cases', () => {
+  test('rejects overly deep paths', async () => {
+    await handleState(['reset']);
+    const result = await handleState(['get', 'a.b.c.d.e.f.g.h.i.j.k']);
+    expect(result.ok).toBe(false);
+  });
+
+  test('rejects forbidden path segments', async () => {
+    await handleState(['reset']);
+    const result = await handleState(['get', 'time.__proto__']);
+    expect(result.ok).toBe(false);
+  });
+
+  test('fails when traversing through a primitive value', async () => {
+    await handleState(['reset']);
+    const result = await handleState(['get', 'scene.value']);
+    expect(result.ok).toBe(false);
+  });
+
+  test('suggests similar top-level keys for typos', async () => {
+    await handleState(['reset']);
+    const result = await handleState(['get', 'sce']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.corrective).toContain('Did you mean: scene');
+  });
+});
+
+describe('state set edge cases', () => {
+  test('setByPath rejects forbidden intermediate and terminal segments', () => {
+    expect(() => __stateTestInternals.setByPath({}, 'time.__proto__.hour', 12))
+      .toThrow('Forbidden path segment: "__proto__"');
+    expect(() => __stateTestInternals.setByPath({ time: {} }, 'time.prototype', 12))
+      .toThrow('Forbidden path segment: "prototype"');
+  });
+
+  test('stores invalid JSON-like input as a raw string', async () => {
+    await handleState(['reset']);
+    const result = await handleState(['set', 'currentRoom', '{not-json']);
+    expect(result.ok).toBe(true);
+
+    const state = await loadState();
+    expect(state.currentRoom).toBe('{not-json');
+  });
+
+  test('creates nested nullable objects when setting deadline fields', async () => {
+    await handleState(['reset']);
+    const result = await handleState(['set', 'time.deadline.label', 'Evac Window']);
+    expect(result.ok).toBe(true);
+
+    const state = await loadState();
+    expect(state.time.deadline).toMatchObject({ label: 'Evac Window' });
+  });
+
+  test('caps history length when recording a new mutation', async () => {
+    await handleState(['reset']);
+    const state = await loadState();
+    state._stateHistory = Array.from({ length: MAX_STATE_HISTORY }, (_, i) => ({
+      timestamp: `2026-03-26T00:${String(i).padStart(2, '0')}:00Z`,
+      command: 'seed',
+      path: `scene.${i}`,
+      oldValue: i,
+      newValue: i + 1,
+    }));
+    await saveState(state);
+
+    const result = await handleState(['set', 'scene', '5']);
+    expect(result.ok).toBe(true);
+
+    const updated = await loadState();
+    expect(updated._stateHistory).toHaveLength(MAX_STATE_HISTORY);
+    expect(updated._stateHistory[0]!.path).not.toBe('scene.0');
+  });
+
+  test('requires a numeric delta for += and -= operations', async () => {
+    await handleState(['reset']);
+    const noValue = await handleState(['set', 'scene', '+=']);
+    expect(noValue.ok).toBe(false);
+    expect(noValue.error!.message).toContain('No value provided');
+
+    const badValue = await handleState(['set', 'scene', '+=', 'nope']);
+    expect(badValue.ok).toBe(false);
+    expect(badValue.error!.message).toContain('non-numeric');
+  });
+
+  test('rolls back invalid mutations instead of persisting them', async () => {
+    await handleState(['reset']);
+    await handleState(['set', 'character', JSON.stringify({
+      name: 'Rhian',
+      class: 'Medic',
+      hp: 9,
+      maxHp: 9,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
+      stats: { STR: 10, DEX: 12, CON: 10, INT: 14, WIS: 11, CHA: 13 },
+      modifiers: { STR: 0, DEX: 1, CON: 0, INT: 2, WIS: 0, CHA: 1 },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'Scalpel', armour: 'Coat' },
+    })]);
+
+    const result = await handleState(['set', 'character.hp', '99']);
+    expect(result.ok).toBe(false);
+
+    const state = await loadState();
+    expect(state.character!.hp).toBe(9);
+  });
+});
+
+describe('state sync dispatch', () => {
+  test('dispatches the sync subcommand through the split sync module', async () => {
+    await handleState(['reset']);
+    const result = await handleState(['sync']);
+    expect(result.ok).toBe(true);
+    expect(result.command).toBe('state sync');
+  });
+});
+
+describe('state dispatch edge cases', () => {
+  test('returns an error when no subcommand is provided', async () => {
+    const result = await handleState([]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('No subcommand provided');
   });
 });

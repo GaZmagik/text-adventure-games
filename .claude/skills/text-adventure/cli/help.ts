@@ -1,105 +1,11 @@
 import type { CommandResult } from './types';
 import { ok } from './lib/errors';
-import { WIDGET_TYPE_NAMES } from './lib/constants';
-
-type SubcommandHelp = {
-  name: string;
-  usage: string;
-  description: string;
-  example: string;
-};
-
-type CommandHelp = {
-  command: string;
-  description: string;
-  subcommands: SubcommandHelp[];
-};
-
-const COMMANDS: Record<string, CommandHelp> = {
-  state: {
-    command: 'tag state',
-    description: 'Game state CRUD and NPC creation. Source of truth for all game data.',
-    subcommands: [
-      { name: 'get', usage: 'tag state get <dot.path>', description: 'Read a value from game state by dot-notation path', example: 'tag state get character.stats.STR' },
-      { name: 'set', usage: 'tag state set <dot.path> <value>', description: 'Set, increment (+=), or decrement (-=) a state value', example: 'tag state set character.hp -= 5' },
-      { name: 'create-npc', usage: 'tag state create-npc <id> --name <n> --tier <tier> --pronouns <p> --role <r>', description: 'Generate and persist a complete NPC stat block from bestiary tier rules', example: 'tag state create-npc guard_01 --name "Guard Captain" --tier rival --pronouns he/him --role guard' },
-      { name: 'validate', usage: 'tag state validate', description: 'Check game state against schema and report issues', example: 'tag state validate' },
-      { name: 'reset', usage: 'tag state reset', description: 'Initialise a fresh empty game state', example: 'tag state reset' },
-      { name: 'history', usage: 'tag state history [--limit <n>]', description: 'Show recent state mutations', example: 'tag state history --limit 5' },
-      { name: 'context', usage: 'tag state context', description: 'Check module context — lists required files and module digests for recovery after compaction', example: 'tag state context' },
-      { name: 'sync', usage: 'tag state sync [--apply] [--scene N] [--room id]', description: 'Post-scene verification — checks module context, quest/worldFlag consistency, level-up eligibility. MANDATORY before every scene.', example: 'tag state sync --apply --scene 5 --room bridge' },
-    ],
-  },
-  compute: {
-    command: 'tag compute',
-    description: 'Probabilistic operations reading from state. Writes results to _lastComputation only.',
-    subcommands: [
-      { name: 'contest', usage: 'tag compute contest <ATTR> <npc_id>', description: 'Hidden contested roll — reads NPC modifier from state, rolls d20, computes margin', example: 'tag compute contest CHA merchant_01' },
-      { name: 'hazard', usage: 'tag compute hazard <type> --dc <N>', description: 'Environmental hazard save roll', example: 'tag compute hazard radiation --dc 14' },
-      { name: 'encounter', usage: 'tag compute encounter --escalation <N>', description: 'Random encounter roll against encounter table', example: 'tag compute encounter --escalation 2' },
-      { name: 'levelup', usage: 'tag compute levelup', description: 'Check XP threshold and level up character if eligible', example: 'tag compute levelup' },
-    ],
-  },
-  render: {
-    command: 'tag render',
-    description: 'Deterministic HTML widget generation with real CSS from style files.',
-    subcommands: [
-      { name: '<widget>', usage: "tag render <widget> [--style <name>] [--raw] [--data '<json>']", description: "Generate complete HTML for a widget type. Reads state and active style. Add --raw for plain HTML instead of JSON.", example: 'tag render scene --style terminal' },
-    ],
-  },
-  save: {
-    command: 'tag save',
-    description: 'Persistence operations — generate, load, validate, and migrate save files.',
-    subcommands: [
-      { name: 'generate', usage: 'tag save generate', description: 'Generate a save payload from current game state', example: 'tag save generate' },
-      { name: 'load', usage: 'tag save load <file.save.md>', description: 'Load a save from a .save.md file path — ALWAYS use a file path, never pass the raw save string as an argument', example: 'tag save load /mnt/user-data/uploads/game.save.md' },
-      { name: 'validate', usage: 'tag save validate <string|file>', description: 'Check save integrity without loading', example: 'tag save validate game.save.md' },
-      { name: 'migrate', usage: 'tag save migrate <string|file>', description: 'Forward-migrate an older save to current format', example: 'tag save migrate old-game.save.md' },
-    ],
-  },
-  quest: {
-    command: 'tag quest',
-    description: 'Quest lifecycle management — complete quests, add objectives/clues, check status.',
-    subcommands: [
-      { name: 'complete', usage: 'tag quest complete <quest_id> <objective_id>', description: 'Mark a quest objective as completed', example: 'tag quest complete main_quest_01 find_base' },
-      { name: 'add-objective', usage: 'tag quest add-objective <quest_id> --id <id> --desc "text"', description: 'Add a new objective to an active quest', example: 'tag quest add-objective main_quest_01 --id find_base --desc "Find the hidden base"' },
-      { name: 'add-clue', usage: 'tag quest add-clue <quest_id> "clue text"', description: 'Add a clue or journal entry to a quest', example: 'tag quest add-clue main_quest_01 "The base is in sector 7"' },
-      { name: 'status', usage: 'tag quest status <quest_id>', description: 'Show current status and objectives for a quest', example: 'tag quest status main_quest_01' },
-      { name: 'list', usage: 'tag quest list', description: 'List all quests with their current status', example: 'tag quest list' },
-    ],
-  },
-  batch: {
-    command: 'tag batch',
-    description: 'Execute multiple commands in one call. Semicolon-separated via --commands flag.',
-    subcommands: [
-      { name: '--commands', usage: 'tag batch --commands "cmd1; cmd2"', description: 'Semicolon-separated commands', example: 'tag batch --commands "state get character.hp; compute contest CHA merchant_01"' },
-      { name: '--dry-run', usage: 'tag batch --dry-run --commands "cmd1; cmd2"', description: 'Validate commands without executing', example: 'tag batch --dry-run --commands "state get character.hp; save validate"' },
-    ],
-  },
-  rules: {
-    command: 'tag rules',
-    description: 'Quick-reference cheat sheet of game rules with file/line references. Run when unsure about any rule.',
-    subcommands: [
-      { name: '(none)', usage: 'tag rules', description: 'Show all 20 rules across all categories', example: 'tag rules' },
-      { name: '<category>', usage: 'tag rules <category>', description: 'Filter by category: output, agency, cli, prose, technical', example: 'tag rules output' },
-      { name: '<keyword>', usage: 'tag rules <keyword>', description: 'Search rules by keyword', example: 'tag rules widget' },
-    ],
-  },
-  export: {
-    command: 'tag export',
-    description: 'World-sharing via .lore.md files. Generates human-readable markdown with embedded checksummed mechanical payload.',
-    subcommands: [
-      { name: 'generate', usage: 'tag export generate', description: 'Generate a .lore.md from current game state with NPC roster, factions, quests, and embedded LF1 payload', example: 'tag export generate' },
-      { name: 'load', usage: 'tag export load <file.lore.md>', description: 'Load a .lore.md file and apply its mechanical data to game state', example: 'tag export load /path/to/world.lore.md' },
-      { name: 'validate', usage: 'tag export validate <file.lore.md>', description: 'Validate a .lore.md payload without applying it', example: 'tag export validate /path/to/world.lore.md' },
-    ],
-  },
-};
+import { COMMAND_HELP, WIDGET_TYPE_NAMES } from './metadata';
 
 
 export function getTopLevelHelp(): CommandResult {
   return ok({
-    commands: Object.values(COMMANDS).map(c => ({
+    commands: Object.values(COMMAND_HELP).map(c => ({
       command: c.command,
       description: c.description,
     })),
@@ -115,14 +21,14 @@ export function getTopLevelHelp(): CommandResult {
 }
 
 export function getCommandHelp(command: string): CommandResult {
-  const help = COMMANDS[command];
+  const help = COMMAND_HELP[command as keyof typeof COMMAND_HELP];
   if (!help) {
     return {
       ok: false,
       command: 'help',
       error: {
         message: `Unknown command: ${command}`,
-        corrective: `Valid commands: ${Object.keys(COMMANDS).join(', ')}`,
+        corrective: `Valid commands: ${Object.keys(COMMAND_HELP).join(', ')}`,
       },
     };
   }

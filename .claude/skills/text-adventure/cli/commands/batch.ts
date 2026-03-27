@@ -1,6 +1,10 @@
 import type { CommandResult, GmState } from '../types';
 import { ok, fail } from '../lib/errors';
-import { tryLoadState } from '../lib/state-store';
+import {
+  flushStateStoreContext,
+  tryLoadState,
+  withStateStoreContext,
+} from '../lib/state-store';
 import { parseArgs } from '../lib/args';
 import { FORBIDDEN_KEYS, MUTATING_COMMANDS } from '../lib/constants';
 import { handleState } from './state';
@@ -22,21 +26,156 @@ function parseLine(line: string): ParsedLine | null {
   const trimmed = line.trim();
   if (!trimmed || trimmed.startsWith('#')) return null;
 
-  let label: string | undefined;
-  let working = trimmed;
+  const tokens = tokenizeCommand(trimmed);
+  if (tokens.length === 0) return null;
 
-  // Extract trailing "as <label>"
-  const asMatch = working.match(/\s+as\s+(\S+)\s*$/);
-  if (asMatch) {
-    label = asMatch[1];
-    working = working.slice(0, -asMatch[0].length);
+  let label: string | undefined;
+  if (tokens.length >= 3 && tokens[tokens.length - 2] === 'as') {
+    const candidate = tokens[tokens.length - 1]!;
+    if (!FORBIDDEN_KEYS.has(candidate)) {
+      label = candidate;
+      tokens.splice(tokens.length - 2, 2);
+    }
   }
 
-  const tokens = working.split(/\s+/);
   const command = tokens[0]!;
   const args = tokens.slice(1);
 
   return { raw: trimmed, label, command, args };
+}
+
+function splitBatchCommands(input: string): string[] {
+  const commands: string[] = [];
+  let current = '';
+  let quote: '"' | "'" | null = null;
+  let escape = false;
+  let braceDepth = 0;
+  let bracketDepth = 0;
+
+  for (const ch of input) {
+    if (escape) {
+      current += ch;
+      escape = false;
+      continue;
+    }
+
+    if (quote) {
+      current += ch;
+      if (ch === '\\') {
+        escape = true;
+      } else if (ch === quote) {
+        quote = null;
+      }
+      continue;
+    }
+
+    if (ch === '"' || ch === "'") {
+      quote = ch;
+      current += ch;
+      continue;
+    }
+    if (ch === '{') {
+      braceDepth += 1;
+      current += ch;
+      continue;
+    }
+    if (ch === '}') {
+      braceDepth = Math.max(0, braceDepth - 1);
+      current += ch;
+      continue;
+    }
+    if (ch === '[') {
+      bracketDepth += 1;
+      current += ch;
+      continue;
+    }
+    if (ch === ']') {
+      bracketDepth = Math.max(0, bracketDepth - 1);
+      current += ch;
+      continue;
+    }
+    if (ch === ';' && braceDepth === 0 && bracketDepth === 0) {
+      const trimmed = current.trim();
+      if (trimmed) commands.push(trimmed);
+      current = '';
+      continue;
+    }
+    current += ch;
+  }
+
+  const tail = current.trim();
+  if (tail) commands.push(tail);
+  return commands;
+}
+
+function tokenizeCommand(input: string): string[] {
+  const tokens: string[] = [];
+  let current = '';
+  let quote: '"' | "'" | null = null;
+  let escape = false;
+  let braceDepth = 0;
+  let bracketDepth = 0;
+
+  const pushCurrent = () => {
+    if (!current) return;
+    const quoted = current.length >= 2
+      && ((current.startsWith('"') && current.endsWith('"'))
+        || (current.startsWith("'") && current.endsWith("'")));
+    tokens.push(quoted ? current.slice(1, -1) : current);
+    current = '';
+  };
+
+  for (const ch of input) {
+    if (escape) {
+      current += ch;
+      escape = false;
+      continue;
+    }
+
+    if (quote) {
+      current += ch;
+      if (ch === '\\') {
+        escape = true;
+      } else if (ch === quote) {
+        quote = null;
+      }
+      continue;
+    }
+
+    if (ch === '"' || ch === "'") {
+      quote = ch;
+      current += ch;
+      continue;
+    }
+    if (ch === '{') {
+      braceDepth += 1;
+      current += ch;
+      continue;
+    }
+    if (ch === '}') {
+      braceDepth = Math.max(0, braceDepth - 1);
+      current += ch;
+      continue;
+    }
+    if (ch === '[') {
+      bracketDepth += 1;
+      current += ch;
+      continue;
+    }
+    if (ch === ']') {
+      bracketDepth = Math.max(0, bracketDepth - 1);
+      current += ch;
+      continue;
+    }
+    if (/\s/.test(ch) && braceDepth === 0 && bracketDepth === 0) {
+      pushCurrent();
+      continue;
+    }
+    current += ch;
+  }
+
+  pushCurrent();
+  return tokens;
 }
 
 function resolveReferences(
@@ -69,19 +208,22 @@ function resolveReferences(
 }
 
 async function dispatch(command: string, args: string[]): Promise<CommandResult> {
-  switch (command) {
-    case 'state': return handleState(args);
-    case 'compute': return handleCompute(args);
-    case 'save': return handleSave(args);
-    case 'render':
-      return handleRender(args);
-    case 'quest': return handleQuest(args);
-    case 'rules': return handleRules(args);
-    case 'export': return handleExport(args);
-    default:
-      return fail(`Unknown command in batch: ${command}`, 'tag --help', 'batch');
+  const handler = BATCH_COMMAND_HANDLERS[command];
+  if (!handler) {
+    return fail(`Unknown command in batch: ${command}`, 'tag --help', 'batch');
   }
+  return handler(args);
 }
+
+export const BATCH_COMMAND_HANDLERS: Record<string, (args: string[]) => Promise<CommandResult>> = {
+  state: handleState,
+  compute: handleCompute,
+  save: handleSave,
+  render: handleRender,
+  quest: handleQuest,
+  rules: handleRules,
+  export: handleExport,
+};
 
 export async function handleBatch(args: string[]): Promise<CommandResult> {
   const parsed = parseArgs(args, ['dry-run']);
@@ -95,10 +237,7 @@ export async function handleBatch(args: string[]): Promise<CommandResult> {
     );
   }
 
-  // WARNING: Naive semicolon split — will break JSON values containing semicolons.
-  // A proper fix would support quoting/escaping, but for v1.3.0 this is an accepted limitation.
-  // Batch commands should avoid semicolons in string values.
-  const lines = commands.split(';').map(s => s.trim()).filter(Boolean);
+  const lines = splitBatchCommands(commands);
 
   const MAX_BATCH_COMMANDS = 100;
   if (lines.length > MAX_BATCH_COMMANDS) {
@@ -109,50 +248,79 @@ export async function handleBatch(args: string[]): Promise<CommandResult> {
   const errors: { line: number; raw: string; error: string }[] = [];
   let didMutate = false;
 
-  for (let i = 0; i < lines.length; i++) {
-    const parsedLine = parseLine(lines[i]!);
-    if (!parsedLine) continue;
+  let stateSnapshot: GmState | null = null;
+  let persistedWrites = 0;
+  let bufferedWrites = 0;
 
-    const resolvedArgs = resolveReferences(parsedLine.args, labelled);
+  if (dryRun) {
+    for (let i = 0; i < lines.length; i++) {
+      const parsedLine = parseLine(lines[i]!);
+      if (!parsedLine) continue;
 
-    // Warn on unresolved $ref labels — skip command entirely if any are found
-    let hasUnresolvedRef = false;
-    for (const arg of resolvedArgs) {
-      if (arg.startsWith('$') && arg.length > 1 && !arg.startsWith('$$')) {
-        errors.push({ line: i, raw: parsedLine.raw, error: `Unresolved reference: ${arg}` });
-        hasUnresolvedRef = true;
+      const resolvedArgs = resolveReferences(parsedLine.args, labelled);
+      let hasUnresolvedRef = false;
+      for (const arg of resolvedArgs) {
+        if (arg.startsWith('$') && arg.length > 1 && !arg.startsWith('$$')) {
+          errors.push({ line: i, raw: parsedLine.raw, error: `Unresolved reference: ${arg}` });
+          hasUnresolvedRef = true;
+        }
       }
-    }
-    if (hasUnresolvedRef) continue; // Skip command — unresolved reference would produce bad state
+      if (hasUnresolvedRef) continue;
 
-    if (dryRun) {
       results.push({
         ok: true,
-        command: `${parsedLine.command} ${resolvedArgs.join(' ')}`,
+        command: `${parsedLine.command} ${resolvedArgs.join(' ')}`.trim(),
       });
       if (parsedLine.label) {
         labelled[parsedLine.label] = undefined;
       }
-      continue;
     }
+  } else {
+    const contextResult = await withStateStoreContext(async () => {
+      for (let i = 0; i < lines.length; i++) {
+        const parsedLine = parseLine(lines[i]!);
+        if (!parsedLine) continue;
 
-    const result = await dispatch(parsedLine.command, resolvedArgs);
-    results.push(result);
-    if (MUTATING_COMMANDS.has(parsedLine.command)) didMutate = true;
+        const resolvedArgs = resolveReferences(parsedLine.args, labelled);
 
-    if (parsedLine.label && !FORBIDDEN_KEYS.has(parsedLine.label)) {
-      labelled[parsedLine.label] = result.data;
-    }
+        let hasUnresolvedRef = false;
+        for (const arg of resolvedArgs) {
+          if (arg.startsWith('$') && arg.length > 1 && !arg.startsWith('$$')) {
+            errors.push({ line: i, raw: parsedLine.raw, error: `Unresolved reference: ${arg}` });
+            hasUnresolvedRef = true;
+          }
+        }
+        if (hasUnresolvedRef) continue;
 
-    if (!result.ok) {
-      errors.push({ line: i, raw: parsedLine.raw, error: result.error?.message ?? 'Unknown error' });
-    }
-  }
+        let result: CommandResult;
+        try {
+          result = await dispatch(parsedLine.command, resolvedArgs);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          result = fail(message, `Check batch command ${i + 1}: ${parsedLine.raw}`, 'batch');
+        }
 
-  // Get final state snapshot — only if commands actually mutated state
-  let stateSnapshot: GmState | null = null;
-  if (!dryRun && didMutate) {
-    stateSnapshot = await tryLoadState();
+        results.push(result);
+        if (MUTATING_COMMANDS.has(parsedLine.command)) didMutate = true;
+
+        if (parsedLine.label && !FORBIDDEN_KEYS.has(parsedLine.label)) {
+          labelled[parsedLine.label] = result.data;
+        }
+
+        if (!result.ok) {
+          errors.push({ line: i, raw: parsedLine.raw, error: result.error?.message ?? 'Unknown error' });
+        }
+      }
+
+      if (didMutate) {
+        stateSnapshot = await flushStateStoreContext();
+      } else {
+        stateSnapshot = await tryLoadState();
+      }
+    });
+
+    persistedWrites = contextResult.stats.diskWrites;
+    bufferedWrites = contextResult.stats.virtualWrites;
   }
 
   return ok({
@@ -162,5 +330,6 @@ export async function handleBatch(args: string[]): Promise<CommandResult> {
     dryRun,
     state_snapshot: stateSnapshot,
     commandCount: results.length,
+    ...(dryRun ? {} : { bufferedWrites, persistedWrites }),
   }, 'batch');
 }

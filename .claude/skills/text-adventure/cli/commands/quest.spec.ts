@@ -44,6 +44,18 @@ async function seedQuest(): Promise<void> {
 // ── complete ───────────────────────────────────────────────────────
 
 describe('quest complete', () => {
+  test('requires a quest id', async () => {
+    const result = await handleQuest(['complete']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('No quest-id');
+  });
+
+  test('requires an objective id', async () => {
+    const result = await handleQuest(['complete', 'q1']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('No objective-id');
+  });
+
   test('marks objective as completed', async () => {
     await seedQuest();
     const result = await handleQuest(['complete', 'q1', 'obj_a']);
@@ -86,6 +98,12 @@ describe('quest complete', () => {
 // ── add-objective ──────────────────────────────────────────────────
 
 describe('quest add-objective', () => {
+  test('requires a quest id', async () => {
+    const result = await handleQuest(['add-objective']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('No quest-id');
+  });
+
   test('appends to quest objectives', async () => {
     await seedQuest();
     const result = await handleQuest([
@@ -102,11 +120,44 @@ describe('quest add-objective', () => {
     expect(added.description).toBe('Repair the antenna');
     expect(added.completed).toBe(false);
   });
+
+  test('requires an --id flag', async () => {
+    await seedQuest();
+    const result = await handleQuest(['add-objective', 'q1', '--desc', 'Repair the antenna']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('Missing --id');
+  });
+
+  test('rejects invalid objective ids', async () => {
+    await seedQuest();
+    const result = await handleQuest(['add-objective', 'q1', '--id', 'bad id', '--desc', 'Repair the antenna']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('Invalid objective id');
+  });
+
+  test('requires a --desc flag', async () => {
+    await seedQuest();
+    const result = await handleQuest(['add-objective', 'q1', '--id', 'obj_c']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('Missing --desc');
+  });
 });
 
 // ── add-clue ───────────────────────────────────────────────────────
 
 describe('quest add-clue', () => {
+  test('requires a quest id', async () => {
+    const result = await handleQuest(['add-clue']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('No quest-id');
+  });
+
+  test('requires clue text', async () => {
+    const result = await handleQuest(['add-clue', 'q1']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('No clue text');
+  });
+
   test('appends to quest clues', async () => {
     await seedQuest();
     const result = await handleQuest(['add-clue', 'q1', 'A faint signal from the north']);
@@ -132,6 +183,13 @@ describe('quest add-clue', () => {
 // ── status ─────────────────────────────────────────────────────────
 
 describe('quest status', () => {
+  test('requires a quest id', async () => {
+    await seedQuest();
+    const result = await handleQuest(['status']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('No quest-id');
+  });
+
   test('returns correct progress for a quest', async () => {
     await seedQuest();
     await handleQuest(['complete', 'q1', 'obj_a']);
@@ -239,6 +297,20 @@ describe('quest validation', () => {
     const result = await handleQuest(['complete', 'q1', 'nonexistent']);
     expect(result.ok).toBe(false);
     expect(result.error!.message).toContain('nonexistent');
+  });
+});
+
+describe('quest dispatch', () => {
+  test('missing subcommand returns error', async () => {
+    const result = await handleQuest([]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('No subcommand');
+  });
+
+  test('unknown subcommand returns error', async () => {
+    const result = await handleQuest(['mystery']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('Unknown subcommand');
   });
 });
 

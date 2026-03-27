@@ -6,16 +6,40 @@ import type { GmState } from '../types';
 import { MAX_ROLL_HISTORY, MAX_FILE_SIZE_BYTES, SCHEMA_VERSION } from './constants';
 import { validateState } from './validator';
 
+type StateStoreContext = {
+  state: GmState | null | undefined;
+  dirty: boolean;
+  virtualWrites: number;
+  diskWrites: number;
+};
+
+type StateStoreContextStats = {
+  dirty: boolean;
+  virtualWrites: number;
+  diskWrites: number;
+};
+
+let activeStateStoreContext: StateStoreContext | null = null;
+
+export const STATE_STORE_RUNTIME = {
+  homedir,
+  tmpdir,
+  mkdirSync,
+  renameSync,
+  writeFileSync,
+  unlinkSync,
+};
+
 /** Lightweight runtime check that a parsed JSON value has the basic shape of a GmState object. */
 function isPlausibleGmState(raw: unknown): raw is Record<string, unknown> {
   return typeof raw === 'object' && raw !== null && !Array.isArray(raw);
 }
 
 function getStateDir(): string {
-  const dir = process.env.TAG_STATE_DIR || join(homedir(), '.tag');
+  const dir = process.env.TAG_STATE_DIR || join(STATE_STORE_RUNTIME.homedir(), '.tag');
   const resolved = resolve(dir);
-  const home = homedir();
-  const tmp = tmpdir();
+  const home = STATE_STORE_RUNTIME.homedir();
+  const tmp = STATE_STORE_RUNTIME.tmpdir();
   if (home === '/') {
     throw new Error('TAG_STATE_DIR validation requires a non-root home directory.');
   }
@@ -33,12 +57,15 @@ export function getSyncMarkerPath(): string {
   return join(getStateDir(), '.last-sync');
 }
 
-/** @internal — test-only; prefer tryLoadState() in production code */
-export async function loadState(): Promise<GmState> {
+function cloneState(state: GmState | null): GmState | null {
+  return state ? structuredClone(state) : null;
+}
+
+async function loadStateFromDisk(): Promise<GmState> {
   const path = getStatePath();
   const file = Bun.file(path);
   if (!(await file.exists())) {
-    throw new Error('State file not found. Run "tag state init" to create one.');
+    throw new Error('State file not found. Run "tag state reset" to create one.');
   }
   if (file.size > MAX_FILE_SIZE_BYTES) throw new Error('State file exceeds 10 MB — possible corruption.');
   const raw: unknown = await file.json();
@@ -52,30 +79,7 @@ export async function loadState(): Promise<GmState> {
   return raw as GmState;
 }
 
-// async signature retained for caller compatibility — the body intentionally uses
-// synchronous writeFileSync + renameSync for atomic rename semantics (Bun.write is
-// async with no fsync guarantee, so sync I/O is the deliberate choice here).
-export async function saveState(state: GmState): Promise<void> {
-  const dir = getStateDir();
-  mkdirSync(dir, { recursive: true, mode: 0o700 });
-  // Deep copy — don't mutate the caller's object or share nested references
-  const toSave = structuredClone(state);
-  if (toSave.rollHistory && toSave.rollHistory.length > MAX_ROLL_HISTORY) {
-    toSave.rollHistory = toSave.rollHistory.slice(-MAX_ROLL_HISTORY);
-  }
-  // Sync write + rename ensures atomicity — Bun.write is async with no fsync guarantee
-  const path = join(dir, 'state.json');
-  const tmpPath = path + '.tmp';
-  try {
-    writeFileSync(tmpPath, JSON.stringify(toSave), { encoding: 'utf-8', mode: 0o600 });
-    renameSync(tmpPath, path);
-  } catch (err) {
-    try { unlinkSync(tmpPath); } catch { /* best-effort cleanup */ }
-    throw err;
-  }
-}
-
-export async function tryLoadState(): Promise<GmState | null> {
+async function tryLoadStateFromDisk(): Promise<GmState | null> {
   try {
     const file = Bun.file(getStatePath());
     if (!(await file.exists())) return null;
@@ -97,6 +101,104 @@ export async function tryLoadState(): Promise<GmState | null> {
     }
     throw err; // EACCES and other unexpected errors should surface
   }
+}
+
+function saveStateToDisk(state: GmState): void {
+  const dir = getStateDir();
+  STATE_STORE_RUNTIME.mkdirSync(dir, { recursive: true, mode: 0o700 });
+  const toSave = structuredClone(state);
+  if (toSave.rollHistory && toSave.rollHistory.length > MAX_ROLL_HISTORY) {
+    toSave.rollHistory = toSave.rollHistory.slice(-MAX_ROLL_HISTORY);
+  }
+  const path = join(dir, 'state.json');
+  const tmpPath = path + '.tmp';
+  try {
+    STATE_STORE_RUNTIME.writeFileSync(tmpPath, JSON.stringify(toSave), { encoding: 'utf-8', mode: 0o600 });
+    STATE_STORE_RUNTIME.renameSync(tmpPath, path);
+  } catch (err) {
+    try { STATE_STORE_RUNTIME.unlinkSync(tmpPath); } catch { /* best-effort cleanup */ }
+    throw err;
+  }
+}
+
+export async function withStateStoreContext<T>(
+  fn: () => Promise<T>,
+): Promise<{ result: T; stats: StateStoreContextStats }> {
+  if (activeStateStoreContext) {
+    throw new Error('Nested state-store contexts are not supported.');
+  }
+
+  activeStateStoreContext = {
+    state: undefined,
+    dirty: false,
+    virtualWrites: 0,
+    diskWrites: 0,
+  };
+
+  try {
+    const result = await fn();
+    return {
+      result,
+      stats: {
+        dirty: activeStateStoreContext.dirty,
+        virtualWrites: activeStateStoreContext.virtualWrites,
+        diskWrites: activeStateStoreContext.diskWrites,
+      },
+    };
+  } finally {
+    activeStateStoreContext = null;
+  }
+}
+
+export async function flushStateStoreContext(): Promise<GmState | null> {
+  if (!activeStateStoreContext) {
+    throw new Error('No active state-store context to flush.');
+  }
+  if (activeStateStoreContext.dirty && activeStateStoreContext.state) {
+    saveStateToDisk(activeStateStoreContext.state);
+    activeStateStoreContext.diskWrites += 1;
+    activeStateStoreContext.dirty = false;
+  }
+  return cloneState(activeStateStoreContext.state ?? null);
+}
+
+/** @internal — test-only; prefer tryLoadState() in production code */
+export async function loadState(): Promise<GmState> {
+  if (activeStateStoreContext) {
+    if (activeStateStoreContext.state === undefined) {
+      activeStateStoreContext.state = await loadStateFromDisk();
+    }
+    if (!activeStateStoreContext.state) throw new Error('State file not found. Run "tag state reset" to create one.');
+    return cloneState(activeStateStoreContext.state)!;
+  }
+  return loadStateFromDisk();
+}
+
+// async signature retained for caller compatibility — the body intentionally uses
+// synchronous writeFileSync + renameSync for atomic rename semantics (Bun.write is
+// async with no fsync guarantee, so sync I/O is the deliberate choice here).
+export async function saveState(state: GmState): Promise<void> {
+  if (activeStateStoreContext) {
+    const validation = validateState(state);
+    if (!validation.valid) {
+      throw new Error(`State is structurally invalid: ${validation.errors.join('; ')}`);
+    }
+    activeStateStoreContext.state = structuredClone(state);
+    activeStateStoreContext.dirty = true;
+    activeStateStoreContext.virtualWrites += 1;
+    return;
+  }
+  saveStateToDisk(state);
+}
+
+export async function tryLoadState(): Promise<GmState | null> {
+  if (activeStateStoreContext) {
+    if (activeStateStoreContext.state === undefined) {
+      activeStateStoreContext.state = await tryLoadStateFromDisk();
+    }
+    return cloneState(activeStateStoreContext.state ?? null);
+  }
+  return tryLoadStateFromDisk();
 }
 
 export function createDefaultState(): GmState {

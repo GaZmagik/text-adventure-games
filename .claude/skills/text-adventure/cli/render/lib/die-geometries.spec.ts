@@ -137,8 +137,11 @@ describe('assign arrays', () => {
     expect(vals).toEqual(Array.from({ length: 20 }, (_, i) => i + 1));
   });
 
-  test('d10 and d100 have no assign (label lookup is modular)', () => {
-    expect((DIE_CONFIGS.d10 as { assign?: number[] }).assign).toBeUndefined();
+  test('d10 assign matches the corrected trapezohedron face mapping', () => {
+    expect(DIE_CONFIGS.d10.assign).toEqual([1, 3, 5, 7, 9, 10, 8, 6, 4, 2]);
+  });
+
+  test('d100 has no assign (percentile labels are handled separately)', () => {
     expect((DIE_CONFIGS.d100 as { assign?: number[] }).assign).toBeUndefined();
   });
 });

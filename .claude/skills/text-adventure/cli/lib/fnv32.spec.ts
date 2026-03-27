@@ -187,4 +187,14 @@ describe('validateAndDecode', () => {
       expect(result.error).toBe('BAD_FORMAT');
     }
   });
+
+  test('invalid non-SF1 base64 returns DECODE_FAIL', () => {
+    const code = 'SF2:not-base64!!!';
+    const save = attachChecksum(code);
+    const result = validateAndDecode(save);
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.error).toBe('DECODE_FAIL');
+    }
+  });
 });

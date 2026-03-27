@@ -1,0 +1,6 @@
+telemetry = false
+
+[test]
+coverageSkipTestFiles = true
+coveragePathIgnorePatterns = ["cli/tests/**", "tests/**"]
+coverageThreshold = { line = 1.0, function = 1.0 }

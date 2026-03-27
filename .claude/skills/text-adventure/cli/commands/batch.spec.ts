@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { handleBatch } from './batch';
+import { BATCH_COMMAND_HANDLERS, handleBatch } from './batch';
 import { saveState, createDefaultState, loadState } from '../lib/state-store';
 import type { NpcMutation } from '../types';
 
@@ -185,5 +185,141 @@ describe('batch mode', () => {
     const commands = Array.from({ length: 100 }, () => 'state get scene').join(';');
     const result = await handleBatch(['--commands', commands]);
     expect(result.ok).toBe(true);
+  });
+
+  test('parses semicolons inside quoted strings', async () => {
+    const result = await handleBatch([
+      '--commands',
+      'state set currentRoom "alpha;beta"; state get currentRoom as room',
+    ]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const labelled = data.labelled as Record<string, unknown>;
+    expect(labelled.room).toBe('alpha;beta');
+  });
+
+  test('parses semicolons inside JSON payloads', async () => {
+    const characterJson = JSON.stringify({
+      name: 'Semi;Colon',
+      class: 'Scout',
+      hp: 12,
+      maxHp: 12,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
+      stats: { STR: 10, DEX: 14, CON: 10, INT: 10, WIS: 12, CHA: 11 },
+      modifiers: { STR: 0, DEX: 2, CON: 0, INT: 0, WIS: 1, CHA: 0 },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'Knife', armour: 'Vest' },
+    });
+    const result = await handleBatch([
+      '--commands',
+      `state set character ${characterJson}; state get character.name as name`,
+    ]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const labelled = data.labelled as Record<string, unknown>;
+    expect(labelled.name).toBe('Semi;Colon');
+  });
+
+  test('preserves escaped separators inside quoted strings', async () => {
+    const result = await handleBatch([
+      '--commands',
+      'state set currentRoom "alpha\\;beta"; state get currentRoom as room',
+    ]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const labelled = data.labelled as Record<string, unknown>;
+    expect(labelled.room).toBe('alpha\\;beta');
+  });
+
+  test('treats nested references into primitive labels as unresolved', async () => {
+    const result = await handleBatch([
+      '--commands',
+      'state get scene as sc; state set currentRoom $sc.value',
+    ]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const errors = data.errors as { error: string }[];
+    expect(errors.some(e => e.error.includes('Unresolved reference: $sc.value'))).toBe(true);
+  });
+
+  test('dry-run reports unresolved label references', async () => {
+    const result = await handleBatch([
+      '--dry-run',
+      '--commands',
+      'state set scene $missing.value',
+    ]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const errors = data.errors as { error: string }[];
+    expect(errors.some(e => e.error.includes('Unresolved reference: $missing.value'))).toBe(true);
+  });
+
+  test('dispatches save, render, quest, rules, and export commands', async () => {
+    const result = await handleBatch([
+      '--commands',
+      [
+        'save validate deadbeef.SF2:not-base64!!!',
+        'render settings --style terminal --raw',
+        'quest list',
+        'rules output',
+        'export validate not-a-path',
+      ].join('; '),
+    ]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const results = data.results as { command: string }[];
+    expect(results).toHaveLength(5);
+    expect(results[0]!.command).toBe('save validate');
+    expect(results[1]!.command).toBe('render');
+    expect(results[2]!.command).toBe('quest list');
+    expect(results[3]!.command).toBe('rules');
+    expect(results[4]!.command).toBe('export validate');
+  });
+
+  test('reports unknown commands through the dispatch failure path', async () => {
+    const result = await handleBatch(['--commands', 'banana split']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const results = data.results as { ok: boolean; error?: { message?: string } }[];
+    expect(results[0]!.ok).toBe(false);
+    expect(results[0]!.error?.message).toContain('Unknown command in batch: banana');
+  });
+
+  test('wraps unexpected handler throws as batch errors', async () => {
+    const originalSave = BATCH_COMMAND_HANDLERS.save!;
+    BATCH_COMMAND_HANDLERS.save = async () => {
+      throw new Error('boom from mocked save');
+    };
+    try {
+      const result = await handleBatch(['--commands', 'save validate anything']);
+      expect(result.ok).toBe(true);
+      const data = result.data as Record<string, unknown>;
+      const results = data.results as { ok: boolean; error?: { message?: string } }[];
+      expect(results[0]!.ok).toBe(false);
+      expect(results[0]!.error?.message).toContain('boom from mocked save');
+    } finally {
+      BATCH_COMMAND_HANDLERS.save = originalSave;
+    }
+  });
+
+  test('persists successful mutations once even when a later command fails', async () => {
+    const result = await handleBatch([
+      '--commands',
+      'state set scene 5; state set time.season winter; state get scene',
+    ]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.bufferedWrites).toBe(1);
+    expect(data.persistedWrites).toBe(1);
+    const state = await loadState();
+    expect(state.scene).toBe(5);
   });
 });

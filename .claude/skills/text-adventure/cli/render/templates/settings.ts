@@ -3,7 +3,7 @@
 // Confirm button fires sendPrompt.
 
 import type { GmState } from '../../types';
-import { esc } from '../../lib/html';
+import { esc, serialiseInlineScriptData } from '../../lib/html';
 import { COMMON_WIDGET_CSS } from '../lib/common-css';
 
 type SettingsData = {
@@ -105,7 +105,7 @@ ${COMMON_WIDGET_CSS}
 </div>
 <script>
 (function() {
-  var selections = ${JSON.stringify(defaults).replace(/[<>&'\u2028\u2029]/g, c => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'))};
+  var selections = ${serialiseInlineScriptData(defaults)};
   var selectedModules = [];
 
   // Single-select groups
