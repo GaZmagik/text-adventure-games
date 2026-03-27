@@ -1,5 +1,7 @@
 #!/usr/bin/env bun
 import { readdirSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { homedir, tmpdir } from 'node:os';
 import { getTopLevelHelp, getCommandHelp } from './help';
 import type { CommandResult } from './types';
 import { VERSION } from './lib/version';
@@ -8,6 +10,12 @@ import { JOURNAL_FILENAME } from './commands/state/sync';
 
 function checkCompactionPreflight(): { detected: boolean; message: string } | null {
   const transcriptsDir = process.env.TAG_TRANSCRIPTS_DIR || '/mnt/transcripts';
+  const resolved = resolve(transcriptsDir);
+  const home = homedir();
+  const tmp = tmpdir();
+  const homePrefix = home === '/' ? home : home + '/';
+  const tmpPrefix = tmp === '/' ? tmp : tmp + '/';
+  if (![homePrefix, tmpPrefix, '/mnt/'].some(p => resolved.startsWith(p))) return null;
   try {
     const entries = readdirSync(transcriptsDir);
     const count = entries.filter(e => e !== JOURNAL_FILENAME).length;

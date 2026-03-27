@@ -45,7 +45,7 @@ Run via the **Bash tool** (called "analysis tool" on Claude.ai) from the skill d
 . ./setup.sh && tag state reset
 ```
 
-This installs Bun (if needed), links the `tag` command, sets `PATH` so `tag` is available for all subsequent commands in this session, and initialises a blank game state. You MUST use `source` (not `bash`) so the PATH export persists in the current shell. Run from the skill directory — `setup.sh` is located at `.claude/skills/text-adventure/setup.sh`.
+This installs Bun (if needed), links the `tag` command, sets `PATH` so `tag` is available for all subsequent commands in this session, and initialises a blank game state. You MUST use `. ./setup.sh` (dot-source, not `bash setup.sh`) so the PATH export persists in the current shell. The script is POSIX-compatible and works in bash, zsh, dash, and /bin/sh. Run from the skill directory — `setup.sh` is located at `.claude/skills/text-adventure/setup.sh`.
 
 > **Bun runtime requirement:** The `tag` CLI uses Bun-only APIs (`Bun.file()`,
 > `import.meta.dir`) and will not run under Node.js. `setup.sh` installs Bun
