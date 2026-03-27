@@ -145,9 +145,49 @@ export const PRE_CONFIG_WIDGETS = new Set<string>([
 ]);
 
 export const WIDGET_STYLE_SCOPES: Record<string, readonly string[] | undefined> = {
+  scene: ['vars'],
   dice: ['vars'],
   'dice-pool': ['vars'],
   recap: ['vars'],
+};
+
+/** CSS selectors each widget type needs from the full theme block.
+ *  Used by filterCssBySelectors to tree-shake unused rules. */
+export const WIDGET_CSS_SELECTORS: Record<string, readonly string[]> = {
+  scene: [
+    // Widget root + progressive reveal
+    '.root', '#reveal-full',
+    // Location bar
+    '.loc-bar', '.loc-name', '.scene-num',
+    // Atmosphere pills
+    '.atmo-strip', '.atmo-pill',
+    // Narrative (serif override)
+    '.narrative', '.brief-text',
+    // Narrative inline highlights
+    '.nar-npc', '.nar-item', '.nar-sfx', '.nar-name', '.nar-aside',
+    // Section label
+    '.section-label',
+    // Button rows + buttons
+    '.btn-row', '.btn-action', '.action-btn', '.btn-poi', '.poi-btn',
+    '.continue-btn', '.btn-neutral',
+    // Action cards
+    '.action-card', '.action-card-num', '.action-card-body',
+    '.action-card-title', '.action-card-desc', '.action-card-mech',
+    // Status bar + pips
+    '.status-bar', '.hp-pips', '.pip', '.xp-track', '.xp-fill',
+    // Footer
+    '.footer-row', '.footer-left', '.footer-right', '.footer-btn',
+    // Panel overlay
+    '#panel-overlay', '.panel-header', '.panel-title', '.panel-close-btn', '.panel-content',
+    // Animations
+    '@keyframes sta-fade-in', '@keyframes sta-die-spin', '@keyframes sta-init-pulse',
+    // Shared transitions + focus
+    'button:focus-visible', '[data-prompt]:focus-visible',
+    // Misc
+    '.chapter-heading', '.fallback-text',
+    // Reduced motion
+    '@media (prefers-reduced-motion',
+  ],
 };
 
 export const WIDGET_CSS_SCOPES: Record<string, readonly string[]> = {

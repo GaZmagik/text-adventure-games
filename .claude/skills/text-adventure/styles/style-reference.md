@@ -2827,7 +2827,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Dust Motes
 
 ```css
-/* @extract:atmosphere */
+/* @extract:atmosphere:dust */
 .atmo-dust {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -2861,7 +2861,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Rain
 
 ```css
-/* @extract:atmosphere */
+/* @extract:atmosphere:rain */
 .atmo-rain {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -2896,7 +2896,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Snow
 
 ```css
-/* @extract:atmosphere */
+/* @extract:atmosphere:snow */
 .atmo-snow {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -2931,7 +2931,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Sparks
 
 ```css
-/* @extract:atmosphere */
+/* @extract:atmosphere:sparks */
 .atmo-sparks {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -2965,7 +2965,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Smoke
 
 ```css
-/* @extract:atmosphere */
+/* @extract:atmosphere:smoke */
 .atmo-smoke {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -2998,7 +2998,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Stars
 
 ```css
-/* @extract:atmosphere */
+/* @extract:atmosphere:stars */
 .atmo-stars {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -3034,7 +3034,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Embers
 
 ```css
-/* @extract:atmosphere */
+/* @extract:atmosphere:embers */
 .atmo-embers {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -3069,7 +3069,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Screen Shake
 
 ```css
-/* @extract:atmosphere */
+/* @extract:atmosphere:core */
 @keyframes atmo-shake {
   0%, 100% { transform: translate(0); }
   10% { transform: translate(-4px, 2px); }
@@ -3095,7 +3095,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Colour Flash
 
 ```css
-/* @extract:atmosphere */
+/* @extract:atmosphere:core */
 .atmo-flash {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -3117,7 +3117,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Cinematic Letterboxing
 
 ```css
-/* @extract:atmosphere */
+/* @extract:atmosphere:core */
 .atmo-letterbox::before,
 .atmo-letterbox::after {
   content: '';
@@ -3144,7 +3144,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Dynamic Lighting
 
 ```css
-/* @extract:atmosphere */
+/* @extract:atmosphere:core */
 .atmo-light-safe    { filter: brightness(1.05) saturate(1.1); }
 .atmo-light-tense   { filter: brightness(0.95) saturate(0.9); }
 .atmo-light-danger  { filter: brightness(0.9) saturate(1.2) contrast(1.05); }
@@ -3192,7 +3192,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### UI Degradation
 
 ```css
-/* @extract:atmosphere */
+/* @extract:atmosphere:core */
 .atmo-degrade-1 {
   filter: saturate(0.9);
 }
@@ -3229,7 +3229,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Day/Night Cycle
 
 ```css
-/* @extract:atmosphere */
+/* @extract:atmosphere:core */
 /* Time classes use ::before, lighting classes use ::after — no conflict */
 .atmo-time-dawn::before {
   content: '';
@@ -3270,7 +3270,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Contextual Status Bar
 
 ```css
-/* @extract:atmosphere */
+/* @extract:atmosphere:core */
 .atmo-status-safe    .status-bar { border-color: color-mix(in srgb, var(--ta-color-success) 30%, transparent); }
 .atmo-status-caution .status-bar { border-color: color-mix(in srgb, var(--ta-color-warning) 40%, transparent); }
 .atmo-status-danger  .status-bar { border-color: color-mix(in srgb, var(--ta-color-danger)  50%, transparent); }
@@ -3291,7 +3291,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ### Toast Notifications
 
 ```css
-/* @extract:atmosphere */
+/* @extract:atmosphere:core */
 .atmo-toast {
   position: absolute;
   top: -40px; left: 50%;
@@ -3370,5 +3370,92 @@ All approach buttons use `data-prompt` + `addEventListener`.
 
 @media (prefers-reduced-motion: reduce) {
   .atmo-redacted { transition: none; }
+}
+```
+
+### Dialogue Blocks
+
+```css
+/* @extract:scene */
+.dialogue-block {
+  margin: var(--sta-space-md, 14px) 0;
+  padding: var(--sta-space-sm, 8px) var(--sta-space-md, 14px);
+  border-left: 2px solid var(--color-border-tertiary, rgba(84,88,128,0.4));
+  border-radius: 0 var(--border-radius-md, 6px) var(--border-radius-md, 6px) 0;
+}
+.dialogue-speaker {
+  font-family: var(--ta-font-body);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  margin-bottom: 4px;
+}
+.dialogue-speaker.npc { color: var(--ta-color-accent); }
+.dialogue-speaker.player { color: var(--ta-color-success, #2BA882); }
+.dialogue-text {
+  font-family: var(--ta-font-serif, Georgia, 'Times New Roman', serif);
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+```
+
+### Data Readout
+
+```css
+/* @extract:scene */
+.data-readout {
+  font-family: var(--ta-font-body);
+  font-size: 11px;
+  padding: var(--sta-space-sm, 8px) var(--sta-space-md, 14px);
+  border: 0.5px solid var(--color-border-tertiary, rgba(84,88,128,0.4));
+  border-radius: var(--border-radius-md, 6px);
+  background: var(--color-background-secondary, rgba(34,38,58,0.5));
+  margin: var(--sta-space-sm, 8px) 0;
+}
+.data-line {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  border-bottom: 0.5px solid var(--color-border-tertiary, rgba(84,88,128,0.2));
+}
+.data-line:last-child { border-bottom: none; }
+.data-label {
+  color: var(--color-text-tertiary);
+  letter-spacing: 0.06em;
+}
+.data-value {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+.data-divider {
+  border-top: 0.5px solid var(--color-border-tertiary, rgba(84,88,128,0.3));
+  margin: var(--sta-space-sm, 8px) 0;
+}
+.data-ok { color: var(--ta-color-success, #2BA882); }
+.data-danger { color: var(--ta-color-danger, #E84855); }
+.data-flag { color: var(--ta-color-warning, #F0A500); }
+.data-quote {
+  font-family: var(--ta-font-serif, Georgia, serif);
+  font-style: italic;
+  color: var(--color-text-secondary);
+  padding: var(--sta-space-sm, 8px);
+  border-left: 2px solid var(--ta-color-accent);
+}
+```
+
+### Observation Card Extensions
+
+```css
+/* @extract:scene */
+.obs-card.obs-accent::before { background: var(--ta-color-accent); }
+.obs-card.obs-xp::before { background: var(--ta-color-xp, #8B7CF8); }
+.obs-status.xp { border-color: var(--ta-color-xp-border, rgba(139,124,248,0.5)); color: var(--ta-color-xp, #8B7CF8); }
+.loc-time {
+  font-family: var(--ta-font-body);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--color-text-tertiary);
 }
 ```

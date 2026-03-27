@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import type { CommandResult, GmState } from '../types';
 import { ok, fail, styleNotSet } from '../lib/errors';
 import { tryLoadState, getSyncMarkerPath } from '../lib/state-store';
-import { extractAllCss } from '../render/css-extractor';
+import { extractAllCss, filterCssBySelectors } from '../render/css-extractor';
 import { parseArgs } from '../lib/args';
 import { containsForbiddenKeys } from '../lib/security';
 import {
@@ -11,6 +11,7 @@ import {
   PRE_GAME_WIDGETS,
   WIDGET_CSS_SCOPES,
   WIDGET_STYLE_SCOPES,
+  WIDGET_CSS_SELECTORS,
   buildFeatureChecklist,
   buildModulesRequired,
 } from '../metadata';
@@ -266,10 +267,21 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
       'render',
     );
   }
+  // Build dynamic style-reference scopes (atmosphere effect scoping via --data)
+  const atmoEffects = (data?.atmosphereEffects ?? null) as string[] | null;
+  let refScopes = scopes;
+  if (Array.isArray(atmoEffects) && atmoEffects.length > 0) {
+    refScopes = scopes.filter(s => s !== 'atmosphere')
+      .concat(['atmosphere:core']) // always include core utils (shake, flash, toast, lighting, etc.)
+      .concat(atmoEffects.map(e => `atmosphere:${e}`));
+  }
+
   const styleScopes = WIDGET_STYLE_SCOPES[widgetType]; // undefined = full theme
+  const selectorFilter = WIDGET_CSS_SELECTORS[widgetType];
+
   const [styleCss, refCss] = await Promise.all([
-    extractAllCss(styleFilePath, styleScopes),  // visual style: scoped or full
-    extractAllCss(styleRefPath, scopes),        // style-reference: scoped
+    extractAllCss(styleFilePath, styleScopes),  // visual style: vars-only for scene
+    extractAllCss(styleRefPath, refScopes),      // style-reference: scoped
   ]);
   if (!styleCss) {
     return fail(
@@ -279,7 +291,26 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     );
   }
 
-  const css = [refCss, styleCss].filter(Boolean).join('\n\n');
+  // Apply selector-based filtering to the full theme block when a registry exists
+  let themeCss = styleCss;
+  let cssManifest: Record<string, unknown> | null = null;
+  if (selectorFilter) {
+    const fullThemeCss = await extractAllCss(styleFilePath); // unscoped = full theme
+    const filtered = filterCssBySelectors(fullThemeCss, selectorFilter);
+    themeCss = [styleCss, filtered.css].filter(Boolean).join('\n\n');
+    cssManifest = {
+      sources: [
+        { file: resolvedStyle + '.md', scope: 'vars', chars: styleCss.length },
+        { file: resolvedStyle + '.md', scope: 'full (filtered)', chars: filtered.css.length,
+          selectorsMatched: filtered.included.length, selectorsTotal: selectorFilter.length },
+        { file: 'style-reference.md', scope: refScopes.join('+'), chars: refCss.length },
+      ],
+      totalChars: refCss.length + themeCss.length,
+      unmatchedSelectors: filtered.excluded,
+    };
+  }
+
+  const css = [refCss, themeCss].filter(Boolean).join('\n\n');
 
   // Build options object
   const options: Record<string, unknown> = {};
@@ -358,6 +389,7 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
       featureChecklist,
       requiredElements,
       ...(skeleton !== null ? { skeleton } : {}),
+      ...(cssManifest !== null ? { cssManifest } : {}),
     },
     'render',
   );

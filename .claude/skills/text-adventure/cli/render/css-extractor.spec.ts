@@ -1,5 +1,5 @@
 import { describe, test, expect, afterEach } from 'bun:test';
-import { extractAllCss, extractCssVars } from './css-extractor';
+import { extractAllCss, extractCssVars, clearCssCache, filterCssBySelectors } from './css-extractor';
 import { join } from 'node:path';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -261,6 +261,147 @@ describe('extractAllCss — scoped extraction', () => {
     expect(scoped).toContain('.shared-class');
     expect(unscoped).toContain('.unlabelled-class');
     expect(scoped).toContain('.unlabelled-class');
+  });
+});
+
+// ── filterCssBySelectors — selector-based CSS tree-shaking ──────────
+
+describe('filterCssBySelectors', () => {
+  test('includes matching class selector', () => {
+    const css = '.action-card { padding: 10px; }\n.enemy-card { color: red; }';
+    const result = filterCssBySelectors(css, ['.action-card']);
+    expect(result.css).toContain('.action-card');
+    expect(result.css).not.toContain('.enemy-card');
+  });
+
+  test('includes pseudo-class variants of registered selector', () => {
+    const css = '.btn-poi { color: white; }\n.btn-poi:hover { color: cyan; }';
+    const result = filterCssBySelectors(css, ['.btn-poi']);
+    expect(result.css).toContain('.btn-poi:hover');
+  });
+
+  test('includes compound selectors sharing registered prefix', () => {
+    const css = '.action-card-num { width: 28px; }\n.merchant-header { font-size: 18px; }';
+    const result = filterCssBySelectors(css, ['.action-card']);
+    expect(result.css).toContain('.action-card-num');
+    expect(result.css).not.toContain('.merchant-header');
+  });
+
+  test('excludes non-matching selectors entirely', () => {
+    const css = '.enemy-card { color: red; }\n.init-bar { display: flex; }';
+    const result = filterCssBySelectors(css, ['.action-card']);
+    expect(result.css).toBe('');
+  });
+
+  test('always includes :root blocks', () => {
+    const css = ':root { --bg: #000; }\n.enemy-card { color: red; }';
+    const result = filterCssBySelectors(css, ['.action-card']);
+    expect(result.css).toContain(':root');
+    expect(result.css).toContain('--bg');
+    expect(result.css).not.toContain('.enemy-card');
+  });
+
+  test('includes @keyframes when name is registered', () => {
+    const css = '@keyframes sta-fade-in { from { opacity: 0; } to { opacity: 1; } }\n@keyframes enemy-pulse { 0% { scale: 1; } }';
+    const result = filterCssBySelectors(css, ['@keyframes sta-fade-in']);
+    expect(result.css).toContain('sta-fade-in');
+    expect(result.css).not.toContain('enemy-pulse');
+  });
+
+  test('includes @media blocks containing matching selectors', () => {
+    const css = '@media (prefers-reduced-motion: reduce) { .action-card { transition: none; } .enemy-card { animation: none; } }';
+    const result = filterCssBySelectors(css, ['.action-card']);
+    expect(result.css).toContain('@media');
+    expect(result.css).toContain('.action-card');
+  });
+
+  test('always includes @media (prefers-color-scheme: light) with :root', () => {
+    const css = '@media (prefers-color-scheme: light) { :root { --bg: #fff; } }';
+    const result = filterCssBySelectors(css, ['.action-card']);
+    expect(result.css).toContain('prefers-color-scheme');
+    expect(result.css).toContain('--bg');
+  });
+
+  test('returns correct included/excluded arrays', () => {
+    const css = '.action-card { padding: 10px; }';
+    const result = filterCssBySelectors(css, ['.action-card', '.nonexistent']);
+    expect(result.included).toContain('.action-card');
+    expect(result.excluded).toContain('.nonexistent');
+  });
+
+  test('handles empty CSS input', () => {
+    const result = filterCssBySelectors('', ['.action-card']);
+    expect(result.css).toBe('');
+    expect(result.excluded).toContain('.action-card');
+  });
+
+  test('handles multi-selector rules (comma-separated)', () => {
+    const css = '.btn-action, .action-btn { cursor: pointer; }';
+    const result = filterCssBySelectors(css, ['.btn-action']);
+    expect(result.css).toContain('.btn-action');
+  });
+
+  test('handles nested @media with mixed matching/non-matching rules', () => {
+    const css = '@media (max-width: 600px) { .footer-row { flex-wrap: wrap; } .shop-footer { display: none; } }';
+    const result = filterCssBySelectors(css, ['.footer-row']);
+    expect(result.css).toContain('.footer-row');
+    expect(result.css).not.toContain('.shop-footer');
+  });
+});
+
+// ── Hierarchical atmosphere scopes ──────────────────────────────────
+
+describe('extractAllCss — hierarchical atmosphere scopes', () => {
+  let tempDir: string;
+
+  afterEach(() => {
+    clearCssCache();
+    if (tempDir) try { rmSync(tempDir, { recursive: true, force: true }); } catch { /* */ }
+  });
+
+  function makeHierarchicalFile(): string {
+    tempDir = mkdtempSync(join(tmpdir(), 'css-hier-'));
+    const file = join(tempDir, 'hier.md');
+    const content = [
+      '```css', '/* @extract:atmosphere */ .atmo-toast { position: absolute; }', '```',
+      '```css', '/* @extract:atmosphere:dust */ .atmo-dust { opacity: 0.5; }', '```',
+      '```css', '/* @extract:atmosphere:rain */ .atmo-rain { animation: fall; }', '```',
+      '```css', '/* @extract:shared */ .panel { display: block; }', '```',
+    ].join('\n');
+    Bun.write(file, content);
+    return file;
+  }
+
+  test('parent scope "atmosphere" matches all atmosphere:* sub-scopes', async () => {
+    const file = makeHierarchicalFile();
+    const css = await extractAllCss(file, ['atmosphere']);
+    expect(css).toContain('.atmo-toast');
+    expect(css).toContain('.atmo-dust');
+    expect(css).toContain('.atmo-rain');
+    expect(css).toContain('.panel'); // shared always included
+  });
+
+  test('specific sub-scope "atmosphere:dust" matches only that block', async () => {
+    const file = makeHierarchicalFile();
+    const css = await extractAllCss(file, ['atmosphere:dust']);
+    expect(css).toContain('.atmo-dust');
+    expect(css).not.toContain('.atmo-rain');
+    expect(css).not.toContain('.atmo-toast'); // parent atmosphere block excluded
+    expect(css).toContain('.panel'); // shared always included
+  });
+
+  test('multiple sub-scopes include each specified block', async () => {
+    const file = makeHierarchicalFile();
+    const css = await extractAllCss(file, ['atmosphere:dust', 'atmosphere:rain']);
+    expect(css).toContain('.atmo-dust');
+    expect(css).toContain('.atmo-rain');
+    expect(css).not.toContain('.atmo-toast');
+  });
+
+  test('shared and unlabelled blocks still always included', async () => {
+    const file = makeHierarchicalFile();
+    const css = await extractAllCss(file, ['atmosphere:dust']);
+    expect(css).toContain('.panel');
   });
 });
 
