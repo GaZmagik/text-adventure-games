@@ -30,6 +30,15 @@ fi
 cd "$_TAG_SETUP_DIR"
 bun link 2>&1 | grep -v "^$\|To use\|Or add\|bun link" || true
 
+# Symlink bun and tag into /usr/local/bin so they survive fresh shell processes
+# (each bash tool call on Claude.ai is a separate process — env vars don't persist)
+_TAG_BUN_BIN="$HOME/.bun/bin"
+if [ -d /usr/local/bin ] && [ -w /usr/local/bin ]; then
+	ln -sf "$_TAG_BUN_BIN/bun" /usr/local/bin/bun 2>/dev/null || true
+	ln -sf "$_TAG_BUN_BIN/tag" /usr/local/bin/tag 2>/dev/null || true
+fi
+unset _TAG_BUN_BIN
+
 if command -v tag >/dev/null 2>&1; then
 	echo "tag CLI ready. Run 'tag state reset' to start a new game."
 else
