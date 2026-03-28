@@ -8,7 +8,7 @@ A modular text adventure engine for Claude, built entirely as Claude skills. Wor
 
 | File | Description |
 |------|-------------|
-| `text-adventure.zip` | Core text adventure engine — orchestrator with 23 modular expansions covering character creation, combat, ship systems, crew management, navigation, procedural world generation, prose craft, atmosphere, audio, and more. Supports multiple rule systems (d20, D&D 5e, GURPS Lite, Pathfinder 2e Lite, Shadowrun 5e Lite, SWRPG Narrative Dice, Narrative Engine). Full save persistence for story threads, ship damage, crew morale, map state, and time tracking. |
+| `text-adventure.zip` | Core text adventure engine — orchestrator with 24 modular expansions and 20 widget types covering character creation, combat, ship systems, crew management, navigation, procedural world generation, prose craft, atmosphere, audio, and more. Supports multiple rule systems (d20, GURPS Lite, Pathfinder 2e Lite, Shadowrun Lite, Narrative Engine, Custom). Full save persistence for story threads, ship damage, crew morale, map state, and time tracking. |
 
 ### Output Styles
 
@@ -113,7 +113,7 @@ The engine will guide you through settings, character creation, and into the adv
 The project uses an **orchestrator + modules** pattern:
 
 - **`text-adventure`** is the orchestrator skill — it handles the session lifecycle, widget rendering, core rules, and loads expansion modules on demand.
-- **`tag` CLI** (v1.3.0+) is the rendering engine — a TypeScript/Bun tool that produces deterministic HTML widgets from game state. Eight commands: `state`, `compute`, `render`, `save`, `batch`, `rules`, `quest`, `export`. Zero npm dependencies.
+- **`tag` CLI** (v1.3.0+) is the rendering engine — a TypeScript/Bun tool that produces deterministic HTML widgets from game state. Eight commands: `state`, `compute`, `render`, `save`, `batch`, `rules`, `quest`, `export`. 20 widget types. Zero npm dependencies.
 - **Output styles** are independent rendering layers — they change the narrative voice, pacing, and prose craft without touching game logic or mechanics.
 
 All game output is rendered inside `visualize:show_widget` panels. No plain text output — everything is styled, interactive, and widget-based.
