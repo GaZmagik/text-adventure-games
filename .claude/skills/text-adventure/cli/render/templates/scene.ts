@@ -13,22 +13,13 @@ import { renderStarchart } from './starchart';
 import { renderMap } from './map';
 import { SOUNDSCAPE_ENGINE_CODE } from '../lib/soundscape';
 import { SCENE_SCRIPT_CODE } from '../lib/scene-script';
+import { MODULE_PANEL_MAP } from '../../lib/module-panel-map';
 
 /** Pre-computed scene script with soundscape engine inlined — avoids per-call .replace(). */
 const MERGED_SCENE_SCRIPT = SCENE_SCRIPT_CODE.replace(
   /\$\{SOUNDSCAPE_ENGINE_CODE\}/g,
   SOUNDSCAPE_ENGINE_CODE,
 );
-
-/** Module-to-panel mapping — hoisted to module scope to avoid per-call object allocation. */
-const MODULE_PANEL_MAPPING: Record<string, string> = {
-  'lore-codex': 'codex',
-  'ship-systems': 'ship',
-  'crew-manifest': 'crew',
-  'star-chart': 'nav',
-  'geo-map': 'map',
-  'core-systems': 'quests',
-};
 
 export function renderScene(state: GmState | null, css: string, options?: Record<string, unknown>): string {
   const char = state?.character;
@@ -113,15 +104,15 @@ export function renderScene(state: GmState | null, css: string, options?: Record
     </div>
     <div id="panel-overlay" role="dialog" aria-modal="true" aria-labelledby="panel-title-text" style="display:none">
       <div class="panel-header">
-        <span class="panel-title" id="panel-title-text" tabindex="-1"></span>
-        <button class="panel-close-btn" id="panel-close-btn">Close</button>
+        <h2 class="panel-title" id="panel-title-text" tabindex="-1"></h2>
+        <button class="panel-close-btn" id="panel-close-btn" aria-label="Close panel">Close</button>
       </div>
       <div class="panel-content" data-panel="character">${renderCharacter(state, '')}</div>
       ${panelDivs}
     </div>
   </div>
   <!-- Scene metadata (hidden, machine-readable) -->
-  <div id="scene-meta" style="display:none" data-meta='${esc(sceneMeta)}'></div>
+  <div id="scene-meta" style="display:none" data-meta="${esc(sceneMeta)}"></div>
   <!-- Footer -->
   ${footerHtml}
 </div>
@@ -143,9 +134,9 @@ const PANEL_RENDERERS: Record<string, PanelRenderer> = {
 /** Build panel-content divs for active modules — pre-populated from state. */
 function buildPanelDivs(modules: string[], state: GmState | null): string {
   return modules
-    .filter(m => m in MODULE_PANEL_MAPPING)
+    .filter(m => m in MODULE_PANEL_MAP)
     .map(m => {
-      const panel = MODULE_PANEL_MAPPING[m]!;
+      const panel = MODULE_PANEL_MAP[m]!;
       const renderer = PANEL_RENDERERS[panel];
       if (renderer) {
         return `<div class="panel-content" data-panel="${panel}">${renderer(state, '')}</div>`;

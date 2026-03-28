@@ -55,6 +55,9 @@ ${css ? '<style>' + css + '</style>' : ''}
 .system-pct { font-size: 10px; color: var(--color-text-tertiary); margin-top: 2px; text-align: right; }
 .system-conditions { margin-top: 4px; }
 .ship-condition { display: inline-block; padding: 1px 6px; font-size: 9px; border-radius: 6px; background: var(--ta-color-danger-bg); color: var(--ta-color-danger); margin-right: 4px; }
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0s !important; animation-duration: 0s !important; }
+}
 </style>
 <div class="widget-ship">
   <div class="ship-title">${esc(ship.name)}</div>

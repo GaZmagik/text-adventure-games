@@ -116,8 +116,11 @@ export function renderDice(state: GmState | null, css: string, options?: Record<
   margin-top: 6px; border: 1.5px solid transparent;
 }
 .widget-dice .mg { font-size: 10px; color: var(--t3); margin-top: 4px; display: none; }
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0s !important; animation-duration: 0s !important; }
+}
 </style>
-<div class="widget-dice widget-dice-${esc(dieType)}">
+<div class="widget-dice widget-dice-${esc(dieType) /* dieType validated by VALID_DIE_TYPES whitelist */}">
   <div class="w">
     <div class="tt">${esc(title)}</div>
     ${isD100 ? `<div class="dr" id="rollArea">

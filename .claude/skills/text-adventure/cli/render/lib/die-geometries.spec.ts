@@ -138,7 +138,7 @@ describe('assign arrays', () => {
   });
 
   test('d10 assign matches the corrected trapezohedron face mapping', () => {
-    expect(DIE_CONFIGS.d10.assign).toEqual([1, 3, 5, 7, 9, 10, 8, 6, 4, 2]);
+    expect((DIE_CONFIGS.d10 as DieConfig).assign).toEqual([1, 3, 5, 7, 9, 10, 8, 6, 4, 2]);
   });
 
   test('d100 has no assign (percentile labels are handled separately)', () => {

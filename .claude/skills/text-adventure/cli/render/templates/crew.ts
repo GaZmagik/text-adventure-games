@@ -28,11 +28,11 @@ ${css ? '<style>' + css + '</style>' : ''}
         <td class="crew-role">${esc(member.role)}</td>
         <td class="crew-task">${member.task ? esc(member.task) : '<span class="idle">Idle</span>'}</td>
         <td>
-          <div class="mini-bar" role="meter" aria-valuenow="${moralePct}" aria-valuemin="0" aria-valuemax="100" aria-label="Morale: ${moralePct}%"><div class="mini-fill morale-fill" style="width:${moralePct}%"></div></div>
+          <div class="mini-bar" role="meter" aria-valuenow="${moralePct}" aria-valuemin="0" aria-valuemax="100" aria-label="Morale: ${moralePct}%" aria-valuetext="${moralePct} of 100 morale"><div class="mini-fill morale-fill" style="width:${moralePct}%"></div></div>
           <span class="mini-label">${moralePct}%</span>
         </td>
         <td>
-          <div class="mini-bar" role="meter" aria-valuenow="${stressPct}" aria-valuemin="0" aria-valuemax="100" aria-label="Stress: ${stressPct}%"><div class="mini-fill stress-fill" style="width:${stressPct}%"></div></div>
+          <div class="mini-bar" role="meter" aria-valuenow="${stressPct}" aria-valuemin="0" aria-valuemax="100" aria-label="Stress: ${stressPct}%" aria-valuetext="${stressPct} of 100 stress"><div class="mini-fill stress-fill" style="width:${stressPct}%"></div></div>
           <span class="mini-label">${stressPct}%</span>
         </td>
         <td><span class="crew-badge ${statusClass}">${esc(member.status)}</span></td>

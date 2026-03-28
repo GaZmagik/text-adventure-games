@@ -167,6 +167,27 @@ describe('compute encounter', () => {
     const state = await loadState();
     expect(state._lastComputation!.dieType).toBe('d20');
   });
+
+  test('rejects non-numeric escalation value', async () => {
+    const result = await handleCompute(['encounter', '--escalation', 'banana']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('Invalid escalation');
+    expect(result.error!.message).toContain('banana');
+    expect(result.error!.message).toContain('non-negative integer');
+  });
+
+  test('rejects negative escalation value', async () => {
+    const result = await handleCompute(['encounter', '--escalation', '-3']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('Invalid escalation');
+    expect(result.error!.message).toContain('-3');
+  });
+
+  test('rejects fractional escalation value', async () => {
+    const result = await handleCompute(['encounter', '--escalation', '2.5']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('Invalid escalation');
+  });
 });
 
 describe('compute with no subcommand', () => {

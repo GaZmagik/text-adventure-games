@@ -334,7 +334,7 @@ describe('save load — root homedir guard', () => {
 
     const result = JSON.parse(stdout.trim());
     expect(result.ok).toBe(false);
-    expect(result.error.message).toContain('non-root home directory');
+    expect(result.error.message).toContain('must be within the home, temp, or /mnt/ directory');
   });
 });
 

@@ -113,6 +113,20 @@ describe('describeStateShape', () => {
     const desc = describeStateShape('nonexistent');
     expect(desc).toContain('Unknown');
   });
+
+  test('navigates through record kind (worldFlags.anyKey)', () => {
+    // worldFlags is a record<string, unknown> — navigating into it with any key
+    // should succeed and describe the leaf value type
+    const desc = describeStateShape('worldFlags.quest_started');
+    expect(desc).toBe('value');
+  });
+
+  test('returns leaf error when navigating past a leaf in describeStateShape', () => {
+    // scene is a leaf — trying to go deeper triggers "no nested structure" error
+    const desc = describeStateShape('scene.deeper');
+    expect(desc).toContain('Error');
+    expect(desc).toContain('leaf');
+  });
 });
 
 describe('stripUnknownStateKeys', () => {

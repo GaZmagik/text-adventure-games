@@ -122,9 +122,12 @@ export function renderDicePool(_state: GmState | null, css: string, options?: Re
 .dice-pool-total { font-size: 42px; line-height: 1; font-weight: 700; color: var(--ta-color-accent); margin-bottom: 6px; }
 .dice-pool-modifier { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 14px; }
 .dice-pool-groups { display: grid; gap: 8px; }
-.dice-pool-group { display: grid; grid-template-columns: minmax(72px, auto) 1fr; gap: 10px; align-items: baseline; justify-content: center; padding: 8px 12px; border: 1px solid color-mix(in srgb, var(--ta-color-accent) 20%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--ta-die-bg, #2a2a3a) 18%, transparent); }
+.dice-pool-group { display: grid; grid-template-columns: minmax(72px, auto) 1fr; gap: 10px; align-items: baseline; justify-content: center; padding: 8px 12px; border: 1px solid rgba(128, 128, 128, 0.2); border: 1px solid color-mix(in srgb, var(--ta-color-accent) 20%, transparent); border-radius: 12px; background: rgba(42, 42, 58, 0.18); background: color-mix(in srgb, var(--ta-die-bg, #2a2a3a) 18%, transparent); }
 .dice-pool-group-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-tertiary); text-align: right; }
 .dice-pool-group-values { font-size: 16px; font-weight: 700; color: var(--color-text-primary); text-align: left; }
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0s !important; animation-duration: 0s !important; }
+}
 </style>
 <div class="widget-dice-pool">
   <div class="dice-pool-label">${esc(label)}</div>

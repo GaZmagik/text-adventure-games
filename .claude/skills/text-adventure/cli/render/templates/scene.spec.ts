@@ -1,6 +1,7 @@
 import { describe, test, expect } from 'bun:test';
 import { renderScene } from './scene';
 import { createDefaultState } from '../../lib/state-store';
+import { MODULE_PANEL_MAP } from '../../lib/module-panel-map';
 
 describe('renderScene panel pre-population', () => {
   test('character panel contains character data when character exists', () => {
@@ -66,5 +67,21 @@ describe('renderScene panel pre-population', () => {
     const html = renderScene(state, '');
     expect(html).toContain('data-panel="character"');
     expect(html).toMatch(/data-panel="character"[^>]*>[\s\S]*?No character data/);
+  });
+
+  test('module with no renderer and not quests produces empty panel div', () => {
+    // Temporarily add a fake module→panel mapping with no renderer
+    MODULE_PANEL_MAP['test-module'] = 'test-panel';
+    try {
+      const state = createDefaultState();
+      state.modulesActive = ['test-module'];
+      const html = renderScene(state, '');
+      // The fallback branch produces an empty panel-content div
+      expect(html).toContain('data-panel="test-panel"');
+      // It should be an empty div — no content inside
+      expect(html).toMatch(/data-panel="test-panel"><\/div>/);
+    } finally {
+      delete MODULE_PANEL_MAP['test-module'];
+    }
   });
 });

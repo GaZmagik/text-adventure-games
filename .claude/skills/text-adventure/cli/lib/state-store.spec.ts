@@ -310,4 +310,30 @@ describe('state-store edge cases', () => {
       expect(second.scene).toBe(7);
     });
   });
+
+  test('logs warning when context drops with dirty unsaved state', async () => {
+    const state = createDefaultState();
+    await saveState(state);
+
+    const errors: string[] = [];
+    const originalError = console.error;
+    console.error = (...args: unknown[]) => { errors.push(String(args[0])); };
+
+    try {
+      await withStateStoreContext(async () => {
+        // Load state, mutate it (makes context dirty), then throw
+        const loaded = await loadState();
+        loaded.scene = 42;
+        await saveState(loaded);
+        throw new Error('deliberate test exception');
+      }).catch(() => { /* swallow the rethrown error */ });
+
+      // The finally block should have logged a dirty-state warning
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors[0]).toContain('unsaved changes');
+      expect(errors[0]).toContain('virtual write');
+    } finally {
+      console.error = originalError;
+    }
+  });
 });

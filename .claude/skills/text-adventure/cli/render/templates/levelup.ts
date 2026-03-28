@@ -45,6 +45,9 @@ export function renderLevelup(state: GmState | null, css: string, options?: Reco
 }
 .ability-card:hover { border-color: var(--ta-color-accent); }
 .ability-card:focus-visible { outline: 2px solid var(--ta-color-focus, #4ECDC4); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0s !important; animation-duration: 0s !important; }
+}
 </style>
 <div class="widget-levelup">
   <div class="levelup-banner">Level Up!</div>
@@ -71,16 +74,16 @@ export function renderLevelup(state: GmState | null, css: string, options?: Reco
   <div class="ability-options">
     <div style="font-size:11px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Choose an ability</div>
     ${abilityOptions.map(a => `<button class="ability-card" data-prompt="I choose the ${esc(a)} ability" title="I choose the ${esc(a)} ability" aria-pressed="false">${esc(a)}</button>`).join('\n    ')}
-  </div>
-  <script>
-  document.querySelectorAll('.ability-card[data-prompt]').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      this.setAttribute('aria-pressed', 'true');
-      this.disabled = true;
-      var prompt = this.getAttribute('data-prompt');
-      if (typeof sendPrompt === 'function') sendPrompt(prompt);
-    });
+  </div>` : ''}
+</div>
+<script>
+document.querySelectorAll('.ability-card[data-prompt]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    this.setAttribute('aria-pressed', 'true');
+    this.disabled = true;
+    var prompt = this.getAttribute('data-prompt');
+    if (typeof sendPrompt === 'function') sendPrompt(prompt);
   });
-  <\/script>` : ''}
-</div>`;
+});
+<\/script>`;
 }

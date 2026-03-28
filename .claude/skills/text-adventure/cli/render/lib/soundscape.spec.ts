@@ -1,13 +1,28 @@
 import { describe, test, expect } from 'bun:test';
 import { SOUNDSCAPE_ENGINE_CODE } from './soundscape';
 
+/** Minimal mock shapes — Web Audio API types are unavailable in Bun's type system.
+ *  Index signatures use `any` because createNode() spreads arbitrary extras (frequency,
+ *  gain, type, buffer, etc.) whose nested shapes vary per node kind. */
+interface MockAudioNode {
+  started: boolean;
+  stopped: boolean;
+  disconnected: boolean;
+  /* eslint-disable @typescript-eslint/no-explicit-any -- dynamic mock properties */
+  [key: string]: any;
+}
+interface MockAudioParam {
+  value: number;
+  [key: string]: any;
+}
+
 function createHarness() {
   const button = { textContent: '' };
   const timers: { id: number; delay: number; cleared: boolean; callback: () => void }[] = [];
-  const oscillators: any[] = [];
-  const gains: any[] = [];
-  const filters: any[] = [];
-  const sources: any[] = [];
+  const oscillators: MockAudioNode[] = [];
+  const gains: MockAudioNode[] = [];
+  const filters: MockAudioNode[] = [];
+  const sources: MockAudioNode[] = [];
   let nextTimerId = 1;
 
   function createNode(extra: Record<string, unknown> = {}) {
@@ -29,7 +44,7 @@ function createHarness() {
     destination = {};
 
     createOscillator() {
-      const frequency: any = {
+      const frequency: MockAudioParam & { calls: Array<{ value: number; time: number }> } = {
         value: 0,
         calls: [] as Array<{ value: number; time: number }>,
         setValueAtTime(value: number, time: number) {
@@ -46,7 +61,7 @@ function createHarness() {
     }
 
     createGain() {
-      const gainValue: any = {
+      const gainValue: MockAudioParam & { setCalls: Array<{ value: number; time: number }>; rampCalls: Array<{ value: number; time: number }> } = {
         value: 0,
         setCalls: [] as Array<{ value: number; time: number }>,
         rampCalls: [] as Array<{ value: number; time: number }>,

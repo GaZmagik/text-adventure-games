@@ -52,7 +52,7 @@ async function checkCompactionPreflight(): Promise<CompactionAlert | null> {
         if (ctxResult.ok && ctxResult.data) {
           const ctxData = ctxResult.data as Record<string, unknown>;
           if (Array.isArray(ctxData.required)) {
-            modulesRequired = ctxData.required as string[];
+            modulesRequired = (ctxData.required as unknown[]).filter((x): x is string => typeof x === 'string');
           }
         }
       } catch { /* recovery failed — fall back to warning */ }
@@ -78,10 +78,12 @@ async function checkCompactionPreflight(): Promise<CompactionAlert | null> {
   return null;
 }
 
-async function output(result: CommandResult): Promise<void> {
-  const alert = await checkCompactionPreflight();
-  if (alert) {
-    result._compactionAlert = alert;
+async function output(result: CommandResult, skipCompaction = false): Promise<void> {
+  if (!skipCompaction) {
+    const alert = await checkCompactionPreflight();
+    if (alert) {
+      result._compactionAlert = alert;
+    }
   }
   console.log(JSON.stringify(result));
 }
@@ -113,7 +115,7 @@ async function main(): Promise<void> {
   const args = process.argv.slice(2);
 
   if (args.length === 0 || args[0] === '--help' || args[0] === 'help') {
-    await output(getTopLevelHelp());
+    await output(getTopLevelHelp(), true);
     return;
   }
 
@@ -125,7 +127,7 @@ async function main(): Promise<void> {
   const command = args[0];
 
   if (args[1] === '--help') {
-    await output(getCommandHelp(command!));
+    await output(getCommandHelp(command!), true);
     return;
   }
 

@@ -272,7 +272,7 @@ function unwrap(shape: StateShape): UnwrappedStateShape {
   return current as UnwrappedStateShape;
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 

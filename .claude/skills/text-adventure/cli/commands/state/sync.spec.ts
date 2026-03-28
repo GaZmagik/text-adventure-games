@@ -627,4 +627,125 @@ describe('state/sync edge cases', () => {
       expect(data.warnings.some(w => w.includes('rollless'))).toBe(false);
     });
   });
+
+  // ── Compaction check — outside-allowed-paths warning (lines 174-179) ──
+
+  describe('compaction path security', () => {
+    const originalTranscriptsEnv = process.env.TAG_TRANSCRIPTS_DIR;
+
+    afterEach(() => {
+      if (originalTranscriptsEnv !== undefined) {
+        process.env.TAG_TRANSCRIPTS_DIR = originalTranscriptsEnv;
+      } else {
+        delete process.env.TAG_TRANSCRIPTS_DIR;
+      }
+    });
+
+    test('warns when TAG_TRANSCRIPTS_DIR is outside allowed paths', async () => {
+      // /etc is outside home, tmp, and /mnt — triggers the security guard
+      process.env.TAG_TRANSCRIPTS_DIR = '/etc';
+      await handleState(['reset']);
+      await handleState(['set', 'scene', '2']);
+
+      const result = await handleSync([]);
+      expect(result.ok).toBe(true);
+      const data = result.data as { warnings: string[] };
+      expect(data.warnings.some(w =>
+        w.includes('Compaction check skipped') && w.includes('outside allowed paths'),
+      )).toBe(true);
+      expect(data.compactionDetected).toBe(false);
+    });
+
+    test('readdir non-ENOENT error produces a warning', async () => {
+      // Point at a file rather than a directory — readdirSync on a file gives ENOTDIR
+      const filePath = join(tempDir, 'not-a-dir.txt');
+      writeFileSync(filePath, 'I am a file', 'utf-8');
+      process.env.TAG_TRANSCRIPTS_DIR = filePath;
+      await handleState(['reset']);
+      await handleState(['set', 'scene', '2']);
+
+      const result = await handleSync([]);
+      expect(result.ok).toBe(true);
+      const data = result.data as { warnings: string[] };
+      expect(data.warnings.some(w =>
+        w.includes('Compaction check skipped') && w.includes('could not read'),
+      )).toBe(true);
+      expect(data.compactionDetected).toBe(false);
+    });
+  });
+
+  // ── Verify gate during --apply (lines 326-335) ────────────────────────
+
+  describe('apply verify gate', () => {
+    test('--apply blocks when last verify scene is behind current scene', async () => {
+      await handleState(['reset']);
+      await handleState(['set', 'scene', '5']);
+      await handleState(['set', 'modulesActive', JSON.stringify([
+        'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
+        'character-creation', 'save-codex',
+      ])]);
+      await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
+
+      // Write a verify marker for scene 3, but state is at scene 5
+      const { signMarker } = require('../verify');
+      writeFileSync(join(tempDir, '.last-verify'), signMarker(3), 'utf-8');
+
+      const result = await handleSync(['--apply']);
+      expect(result.ok).toBe(false);
+      expect(result.error!.message).toContain('has not been verified');
+      expect(result.error!.message).toContain('Scene 5');
+    });
+  });
+
+  // ── Deadline coercion in --apply --time (lines 369-377) ────────────────
+
+  describe('apply time deadline coercion', () => {
+    test('--apply with deadline object coerces label and remainingScenes', async () => {
+      await handleState(['reset']);
+      await handleState(['set', 'modulesActive', JSON.stringify([
+        'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
+        'character-creation', 'save-codex',
+      ])]);
+      await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
+
+      const timeJson = JSON.stringify({
+        period: 'night',
+        deadline: { label: 'Reactor meltdown', remainingScenes: 3 },
+      });
+      const result = await handleSync(['--apply', '--time', timeJson]);
+      expect(result.ok).toBe(true);
+
+      const state = await loadState();
+      expect(state.time.period).toBe('night');
+      expect(state.time.deadline).toEqual({ label: 'Reactor meltdown', remainingScenes: 3 });
+    });
+
+    test('--apply with deadline null clears deadline', async () => {
+      await handleState(['reset']);
+      await handleState(['set', 'modulesActive', JSON.stringify([
+        'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
+        'character-creation', 'save-codex',
+      ])]);
+      await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
+
+      // First set a deadline
+      const timeWith = JSON.stringify({
+        deadline: { label: 'Bomb', remainingScenes: 2 },
+      });
+      await handleSync(['--apply', '--time', timeWith]);
+      let state = await loadState();
+      expect(state.time.deadline).toEqual({ label: 'Bomb', remainingScenes: 2 });
+
+      // Now clear it with null
+      const timeClear = JSON.stringify({ deadline: null });
+      // Reset verify marker for next apply
+      const { signMarker } = require('../verify');
+      writeFileSync(join(tempDir, '.last-verify'), signMarker(999), 'utf-8');
+      const result = await handleSync(['--apply', '--time', timeClear]);
+      expect(result.ok).toBe(true);
+
+      state = await loadState();
+      expect(state.time.deadline).toBeNull();
+    });
+  });
 });

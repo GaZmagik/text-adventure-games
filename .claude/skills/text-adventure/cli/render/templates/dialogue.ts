@@ -62,6 +62,9 @@ export function renderDialogue(state: GmState | null, css: string, options?: Rec
   background: var(--ta-color-accent-bg);
 }
 .dialogue-choice:focus-visible { outline: 2px solid var(--ta-color-focus); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0s !important; animation-duration: 0s !important; }
+}
 </style>
 <div class="widget-dialogue">
   <div class="dialogue-header">
@@ -80,14 +83,14 @@ export function renderDialogue(state: GmState | null, css: string, options?: Rec
     ${choices.map(c =>
       `<button class="dialogue-choice" data-prompt="${esc(c.prompt)}" title="${esc(c.prompt)}">${esc(c.label)}</button>`,
     ).join('\n    ')}
-  </div>
-  <script>
-  document.querySelectorAll('.dialogue-choice[data-prompt]').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var prompt = this.getAttribute('data-prompt');
-      if (typeof sendPrompt === 'function') sendPrompt(prompt);
-    });
+  </div>` : ''}
+</div>
+<script>
+document.querySelectorAll('.dialogue-choice[data-prompt]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var prompt = this.getAttribute('data-prompt');
+    if (typeof sendPrompt === 'function') sendPrompt(prompt);
   });
-  <\/script>` : ''}
-</div>`;
+});
+<\/script>`;
 }

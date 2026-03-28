@@ -11,7 +11,7 @@
 //   hp, ac, name, id       — standard fields
 
 import type { GmState } from '../../types';
-import { esc } from '../../lib/html';
+import { esc, serialiseInlineScriptData } from '../../lib/html';
 import { COMMON_WIDGET_CSS } from '../lib/common-css';
 
 type Archetype = {
@@ -27,12 +27,6 @@ type Archetype = {
   hp?: number;
   ac?: number;
   id?: string;
-};
-
-type CreationData = {
-  archetypes?: Archetype[];
-  proficiencies?: string[];
-  defaultName?: string;
 };
 
 export function renderCharacterCreation(_state: GmState | null, css: string, options?: Record<string, unknown>): string {
@@ -117,6 +111,7 @@ ${COMMON_WIDGET_CSS}
   outline: 2px solid var(--ta-color-focus);
   outline-offset: 2px;
 }
+.is-hidden { display: none !important; }
 </style>
 <div class="widget-char-creation">
   <div class="widget-title">Create Your Character</div>
@@ -128,7 +123,7 @@ ${COMMON_WIDGET_CSS}
       <input class="name-input" id="char-name-input" type="text" placeholder="Enter character name..." value="${esc(defaultName)}" maxlength="80" style="flex:1">
       <button class="option-card" id="randomise-name" type="button" style="white-space:nowrap;flex-shrink:0" title="Generate a random name">Randomise</button>
     </div>
-    <span id="name-error" class="name-error" role="alert" style="display:none"></span>
+    <span id="name-error" class="name-error is-hidden" role="alert"></span>
   </div>
 
   <div class="widget-section">
@@ -139,7 +134,7 @@ ${COMMON_WIDGET_CSS}
       <button class="option-card" data-pronouns="they/them" aria-pressed="false">they/them</button>
       <button class="option-card" data-pronouns="custom" aria-pressed="false">Custom</button>
     </div>
-    <div id="custom-pronouns" style="display:none;margin-top:8px;gap:8px;align-items:center">
+    <div id="custom-pronouns" class="is-hidden" style="margin-top:8px;gap:8px;align-items:center">
       <select id="pronoun-subject" class="name-input" style="width:auto;padding:8px 12px;font-size:12px">
         <option value="he">he</option>
         <option value="she">she</option>
@@ -176,8 +171,8 @@ ${COMMON_WIDGET_CSS}
   var selectedArchetype = -1;
   var selectedProfs = [];
   var selectedPronouns = '';
-  var givenPool = ${JSON.stringify(givenNames)};
-  var surnamePool = ${JSON.stringify(surnames)};
+  var givenPool = ${serialiseInlineScriptData(givenNames)};
+  var surnamePool = ${serialiseInlineScriptData(surnames)};
 
   // Archetype selection — re-query bounded card set (max ~12 nodes) — standard radio-card deselection pattern
   document.querySelectorAll('.archetype-card').forEach(function(card) {
@@ -221,12 +216,12 @@ ${COMMON_WIDGET_CSS}
       var value = this.getAttribute('data-pronouns');
       var customDiv = document.getElementById('custom-pronouns');
       if (value === 'custom') {
-        customDiv.style.display = 'flex';
+        customDiv.classList.remove('is-hidden');
         var subj = document.getElementById('pronoun-subject').value;
         var obj = document.getElementById('pronoun-object').value;
         selectedPronouns = subj + '/' + obj;
       } else {
-        customDiv.style.display = 'none';
+        customDiv.classList.add('is-hidden');
         selectedPronouns = value;
       }
     });
@@ -247,13 +242,13 @@ ${COMMON_WIDGET_CSS}
       var s = surnamePool[Math.floor(Math.random() * surnamePool.length)];
       document.getElementById('char-name-input').value = g + ' ' + s;
     }
-    document.getElementById('name-error').style.display = 'none';
+    document.getElementById('name-error').classList.add('is-hidden');
   });
 
   // Clear name error on input
   document.getElementById('char-name-input').addEventListener('input', function() {
     document.getElementById('name-error').textContent = '';
-    document.getElementById('name-error').style.display = 'none';
+    document.getElementById('name-error').classList.add('is-hidden');
   });
 
   // Confirm
@@ -261,7 +256,7 @@ ${COMMON_WIDGET_CSS}
     var name = document.getElementById('char-name-input').value.trim();
     if (!name) {
       document.getElementById('name-error').textContent = 'Please enter a character name.';
-      document.getElementById('name-error').style.display = 'block';
+      document.getElementById('name-error').classList.remove('is-hidden');
       return;
     }
 

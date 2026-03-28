@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { homedir, tmpdir } from 'node:os';
 import type { CommandResult, GmState, TimeState, RollType } from '../../types';
@@ -9,6 +9,7 @@ import { TIER1_MODULES } from '../../lib/constants';
 import { parseArgs } from '../../lib/args';
 import { XP_THRESHOLDS } from '../../data/xp-tables';
 import { containsForbiddenKeys } from '../../lib/security';
+import { isRecord } from '../../lib/state-schema';
 import { buildFeatureChecklist } from '../../metadata';
 import { recordHistory } from './index';
 import { getVerifyMarkerPath, readSignedMarker } from '../verify';
@@ -56,15 +57,15 @@ function buildSyncDiff(
   if (flags.time) {
     try {
       const raw: unknown = JSON.parse(flags.time);
-      if (typeof raw !== 'object' || raw === null) {
+      if (!isRecord(raw)) {
         warnings.push('--time flag must be a JSON object.');
       } else if (containsForbiddenKeys(raw)) {
         warnings.push('--time flag contains forbidden keys (__proto__, constructor, prototype).');
       } else {
         const filtered: Record<string, unknown> = {};
-        for (const key of Object.keys(raw as Record<string, unknown>)) {
+        for (const key of Object.keys(raw)) {
           if (VALID_TIME_KEYS.has(key)) {
-            filtered[key] = (raw as Record<string, unknown>)[key];
+            filtered[key] = raw[key];
           } else {
             warnings.push(`--time key "${key}" is not a valid TimeState field; ignored.`);
           }
@@ -357,7 +358,25 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
     if (diff.scene) state.scene = nextScene;
     if (diff.currentRoom && flags.room) state.currentRoom = flags.room;
     if (parsedTime) {
-      state.time = { ...state.time, ...(parsedTime as Partial<TimeState>) };
+      const coerced: Partial<TimeState> = {};
+      if ('period' in parsedTime && typeof parsedTime.period === 'string') coerced.period = parsedTime.period;
+      if ('date' in parsedTime && typeof parsedTime.date === 'string') coerced.date = parsedTime.date;
+      if ('elapsed' in parsedTime && typeof parsedTime.elapsed === 'number') coerced.elapsed = parsedTime.elapsed;
+      if ('hour' in parsedTime && typeof parsedTime.hour === 'number') coerced.hour = parsedTime.hour;
+      if ('playerKnowsDate' in parsedTime && typeof parsedTime.playerKnowsDate === 'boolean') coerced.playerKnowsDate = parsedTime.playerKnowsDate;
+      if ('playerKnowsTime' in parsedTime && typeof parsedTime.playerKnowsTime === 'boolean') coerced.playerKnowsTime = parsedTime.playerKnowsTime;
+      if ('calendarSystem' in parsedTime && typeof parsedTime.calendarSystem === 'string') coerced.calendarSystem = parsedTime.calendarSystem;
+      if ('deadline' in parsedTime) {
+        const dl = parsedTime.deadline;
+        if (dl === null) {
+          coerced.deadline = null;
+        } else if (typeof dl === 'object' && dl !== null && 'label' in dl && 'remainingScenes' in dl
+          && typeof (dl as Record<string, unknown>).label === 'string'
+          && typeof (dl as Record<string, unknown>).remainingScenes === 'number') {
+          coerced.deadline = { label: (dl as Record<string, unknown>).label as string, remainingScenes: (dl as Record<string, unknown>).remainingScenes as number };
+        }
+      }
+      state.time = { ...state.time, ...coerced };
     }
     if (filesystemCount > (state._compactionCount ?? 0)) {
       state._compactionCount = filesystemCount;
@@ -378,7 +397,7 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
     recordHistory(state, 'state sync', 'sync', null, diff);
     await saveState(state);
     const { signMarker } = await import('../verify');
-    await Bun.write(getSyncMarkerPath(), signMarker(state.scene));
+    writeFileSync(getSyncMarkerPath(), signMarker(state.scene), 'utf-8');
   }
 
   return ok({

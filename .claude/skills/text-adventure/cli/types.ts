@@ -230,7 +230,7 @@ export type MapState = {
   visitedZones: string[];
   revealedZones: string[];
   doorStates: Record<string, string>;
-  supplies?: { rations: number; water: number };
+  supplies?: { rations: number; water: number } | null;
 };
 
 export type CrewMutation = {
@@ -328,6 +328,6 @@ export type CommandResult<T = unknown> = {
   data?: T;
   error?: { message: string; corrective: string };
   state_snapshot?: Partial<GmState> | null;
-  _compactionAlert?: { detected: boolean; message: string } | null;
+  _compactionAlert?: { detected: boolean; recovered: boolean; message: string; modulesRequired?: string[] } | null;
 };
 

@@ -4,7 +4,8 @@ import { existsSync, writeFileSync } from 'node:fs';
 import type { CommandResult, GmState, PendingRoll, StatName } from '../types';
 import { ok, fail, styleNotSet } from '../lib/errors';
 import { tryLoadState, saveState, getSyncMarkerPath } from '../lib/state-store';
-import { extractAllCss, filterCssBySelectors } from '../render/css-extractor';
+import { STAT_NAMES } from '../lib/constants';
+import { extractAllCss, extractCssFromContent, filterCssBySelectors } from '../render/css-extractor';
 import { parseArgs } from '../lib/args';
 import { containsForbiddenKeys } from '../lib/security';
 import {
@@ -297,10 +298,34 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   const styleScopes = WIDGET_STYLE_SCOPES[widgetType]; // undefined = full theme
   const selectorFilter = WIDGET_CSS_SELECTORS[widgetType];
 
-  const [styleCss, refCss] = await Promise.all([
-    extractAllCss(styleFilePath, styleScopes),  // visual style: vars-only for scene
-    extractAllCss(styleRefPath, refScopes),      // style-reference: scoped
-  ]);
+  // Read each file once, then extract CSS for each scope set from loaded content
+  let styleFileContent: string;
+  try {
+    const styleFile = Bun.file(styleFilePath);
+    if (!(await styleFile.exists())) {
+      return fail(
+        `Style file not found or contains no CSS: "${resolvedStyle}".`,
+        `Check styles/${resolvedStyle}.md exists and contains css code blocks.`,
+        'render',
+      );
+    }
+    styleFileContent = await styleFile.text();
+  } catch (err) {
+    return fail(`CSS extraction failed: ${err instanceof Error ? err.message : String(err)}`,
+      `Check styles/${resolvedStyle}.md is readable.`, 'render');
+  }
+
+  let styleCss: string, refCss: string;
+  try {
+    [styleCss, refCss] = await Promise.all([
+      Promise.resolve(extractCssFromContent(styleFileContent, styleScopes)),
+      extractAllCss(styleRefPath, refScopes),      // style-reference: separate file, scoped
+    ]);
+  } catch (err) {
+    return fail(`CSS extraction failed: ${err instanceof Error ? err.message : String(err)}`,
+      `Check style files are readable and contain valid css code blocks.`, 'render');
+  }
+
   if (!styleCss) {
     return fail(
       `Style file not found or contains no CSS: "${resolvedStyle}".`,
@@ -313,7 +338,7 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   let themeCss = styleCss;
   let cssManifest: Record<string, unknown> | null = null;
   if (selectorFilter) {
-    const fullThemeCss = await extractAllCss(styleFilePath); // unscoped = full theme
+    const fullThemeCss = extractCssFromContent(styleFileContent); // unscoped = full theme from same content
     const filtered = filterCssBySelectors(fullThemeCss, selectorFilter);
     themeCss = [styleCss, filtered.css].filter(Boolean).join('\n\n');
     cssManifest = {
@@ -370,10 +395,14 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
       const action = data.actions[i] as Record<string, unknown> | undefined;
       if (action?.roll && typeof action.roll === 'object') {
         const roll = action.roll as Record<string, unknown>;
+        const rollType = roll.type;
+        const rollStat = roll.stat;
+        if (typeof rollType !== 'string' || (rollType !== 'contest' && rollType !== 'hazard')) continue;
+        if (typeof rollStat !== 'string' || !STAT_NAMES.includes(rollStat as StatName)) continue;
         pendingRolls.push({
           action: i + 1,
-          type: roll.type as 'contest' | 'hazard',
-          stat: roll.stat as StatName,
+          type: rollType,
+          stat: rollStat as StatName,
           ...(roll.npc ? { npc: String(roll.npc) } : {}),
           ...(roll.dc ? { dc: Number(roll.dc) } : {}),
           ...(roll.skill ? { skill: String(roll.skill) } : {}),

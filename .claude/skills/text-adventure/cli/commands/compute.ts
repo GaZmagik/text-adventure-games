@@ -159,7 +159,7 @@ async function hazard(args: string[]): Promise<CommandResult> {
 
 async function encounter(args: string[]): Promise<CommandResult> {
   const escalationStr = parseArgs(args).flags.escalation ?? '0';
-  const escalation = parseInt(escalationStr, 10) || 0;
+  const escalation = Number(escalationStr);
 
   if (!Number.isInteger(escalation) || escalation < 0) {
     return fail(

@@ -32,6 +32,36 @@ function cssReplacer(match: string): string {
 // Cache is process-scoped — fine for single CLI invocations. Does not invalidate on file change.
 const cssCache = new Map<string, string>();
 
+/** Extract and sanitise CSS from already-loaded markdown content, optionally filtered by scope. */
+export function extractCssFromContent(content: string, scopes?: readonly string[]): string {
+  const markedBlocks: string[] = [];
+  const allBlocks: string[] = [];
+
+  const regex = /```css\s*\n([\s\S]*?)```/g;
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(content)) !== null) {
+    const block = match[1]!.trim();
+    allBlocks.push(block);
+
+    const scopeMatch = block.match(/^\/\* @extract(?::([\w-]+(?::[\w-]+)*))? \*\//);
+    if (scopeMatch) {
+      const scope = scopeMatch[1] ?? null; // null = unlabelled
+      // When scopes filter is active: include unlabelled, 'shared', or matching scopes
+      // Hierarchical matching: requesting 'atmosphere' matches 'atmosphere:dust' etc.
+      if (!scopes || scope === null || scope === 'shared'
+          || scopes.includes(scope)
+          || (scope !== null && scopes.some(s => scope.startsWith(s + ':')))) {
+        markedBlocks.push(block);
+      }
+    }
+  }
+
+  // Prefer marked blocks — avoids duplicating documentation examples
+  const result = (markedBlocks.length > 0 ? markedBlocks : allBlocks).join('\n\n');
+  // Sanitise CSS: single-pass replacement for </style, @import, external url(), expression(), -moz-binding
+  return result.replace(CSS_SANITISE_RE, cssReplacer);
+}
+
 export async function extractAllCss(filePath: string, scopes?: readonly string[]): Promise<string> {
   const cacheKey = filePath + ':' + (scopes ? [...scopes].sort().join(',') : '*');
   if (cssCache.has(cacheKey)) return cssCache.get(cacheKey) ?? '';
@@ -40,32 +70,7 @@ export async function extractAllCss(filePath: string, scopes?: readonly string[]
     if (!(await file.exists())) return '';
 
     const content = await file.text();
-    const markedBlocks: string[] = [];
-    const allBlocks: string[] = [];
-
-    const regex = /```css\s*\n([\s\S]*?)```/g;
-    let match: RegExpExecArray | null;
-    while ((match = regex.exec(content)) !== null) {
-      const block = match[1]!.trim();
-      allBlocks.push(block);
-
-      const scopeMatch = block.match(/^\/\* @extract(?::([\w-]+(?::[\w-]+)*))? \*\//);
-      if (scopeMatch) {
-        const scope = scopeMatch[1] ?? null; // null = unlabelled
-        // When scopes filter is active: include unlabelled, 'shared', or matching scopes
-        // Hierarchical matching: requesting 'atmosphere' matches 'atmosphere:dust' etc.
-        if (!scopes || scope === null || scope === 'shared'
-            || scopes.includes(scope)
-            || (scope !== null && scopes.some(s => scope.startsWith(s + ':')))) {
-          markedBlocks.push(block);
-        }
-      }
-    }
-
-    // Prefer marked blocks — avoids duplicating documentation examples
-    const result = (markedBlocks.length > 0 ? markedBlocks : allBlocks).join('\n\n');
-    // Sanitise CSS: single-pass replacement for </style, @import, external url(), expression(), -moz-binding
-    const sanitised = result.replace(CSS_SANITISE_RE, cssReplacer);
+    const sanitised = extractCssFromContent(content, scopes);
     // Only cache non-empty results — avoids masking files that gain CSS later
     if (sanitised) cssCache.set(cacheKey, sanitised);
     return sanitised;

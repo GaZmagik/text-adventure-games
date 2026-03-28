@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { handleRender } from './render';
@@ -550,7 +550,7 @@ describe('render pre-game widgets', () => {
     const result = await handleRender(['settings', '--style', 'terminal', '--data', data, '--raw']);
     expect(result.ok).toBe(true);
     const html = result.data as string;
-    expect(html).toContain('role="radiogroup"');
+    expect(html).toContain('aria-pressed=');
     expect(html).toContain('class="option-card');
   });
 
@@ -911,7 +911,7 @@ describe('render template output', () => {
     expect(html).toContain('id="save-data"');
     expect(html).toContain('display:none');
     // Extract data-payload attribute and verify it contains valid JSON with _version
-    const payloadMatch = html.match(/data-payload='([^']*)'/);
+    const payloadMatch = html.match(/data-payload="([^"]*)"/);
     expect(payloadMatch).not.toBeNull();
     const payload = JSON.parse(payloadMatch![1]!.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'"));
     expect(payload._version).toBe(1);

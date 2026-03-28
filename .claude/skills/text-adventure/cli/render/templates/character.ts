@@ -78,6 +78,9 @@ ${css ? '<style>' + css + '</style>' : ''}
 .no-conditions { font-size: 11px; color: var(--color-text-tertiary); }
 .equipment-row { font-size: 12px; color: var(--color-text-secondary); margin: 2px 0; }
 .equipment-label { color: var(--color-text-tertiary); text-transform: uppercase; font-size: 10px; letter-spacing: 0.06em; }
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0s !important; animation-duration: 0s !important; }
+}
 </style>
 <div class="widget-character">
   <div class="char-header">
@@ -87,7 +90,7 @@ ${css ? '<style>' + css + '</style>' : ''}
 
   <!-- HP bar -->
   <div class="bar-label"><span>HP</span><span>${hp} / ${maxHp}</span></div>
-  <div class="char-bar-container" role="meter" aria-valuenow="${hpPercent}" aria-valuemin="0" aria-valuemax="100" aria-label="HP: ${hp} of ${maxHp}"><div class="bar-fill-hp" style="width:${hpPercent}%"></div></div>
+  <div class="char-bar-container" role="meter" aria-valuenow="${hpPercent}" aria-valuemin="0" aria-valuemax="100" aria-label="HP: ${hp} of ${maxHp}" aria-valuetext="${hp} of ${maxHp} HP"><div class="bar-fill-hp" style="width:${hpPercent}%"></div></div>
 
   <!-- AC & Proficiency -->
   <div class="bar-label" style="margin-top:8px">
@@ -118,7 +121,7 @@ ${css ? '<style>' + css + '</style>' : ''}
 
   <!-- XP bar -->
   <div class="bar-label" style="margin-top:12px"><span>XP</span><span>${xp} / ${xpForLevel}</span></div>
-  <div class="char-bar-container" role="meter" aria-valuenow="${xpPercent}" aria-valuemin="0" aria-valuemax="100" aria-label="XP: ${xp} of ${xpForLevel}"><div class="bar-fill-xp" style="width:${xpPercent}%"></div></div>
+  <div class="char-bar-container" role="meter" aria-valuenow="${xpPercent}" aria-valuemin="0" aria-valuemax="100" aria-label="XP: ${xp} of ${xpForLevel}" aria-valuetext="${xp} of ${xpForLevel} XP"><div class="bar-fill-xp" style="width:${xpPercent}%"></div></div>
 
   <!-- Proficiencies -->
   <div class="section-title">Proficiencies</div>

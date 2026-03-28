@@ -13,4 +13,7 @@ export const COMMON_WIDGET_CSS = `
 }
 .confirm-btn:hover { background: var(--ta-color-accent-hover); }
 .confirm-btn:focus-visible { outline: 2px solid var(--ta-color-focus); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0s !important; animation-duration: 0s !important; }
+}
 `;

@@ -14,7 +14,7 @@ export function renderSaveDiv(state: GmState | null, css: string, options?: Reco
 
   return `
 ${css ? '<style>' + css + '</style>' : ''}
-<div id="save-data" style="display:none" data-payload='${esc(payload)}'>
+<div id="save-data" style="display:none" data-payload="${esc(payload)}">
   <!-- Pre-computed save payload for consumption by the save command -->
 </div>`;
 }

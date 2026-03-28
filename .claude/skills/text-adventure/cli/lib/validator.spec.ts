@@ -1,7 +1,7 @@
 import { describe, test, expect } from 'bun:test';
 import { validateState } from './validator';
 import { createDefaultState } from './state-store';
-import type { NpcMutation, RollRecord, Character } from '../types';
+import type { NpcMutation, Character } from '../types';
 
 /** Builds a minimal valid Character with overrides. */
 function mkChar(overrides: Partial<Character> = {}): Character {

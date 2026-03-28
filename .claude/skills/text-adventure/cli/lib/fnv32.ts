@@ -3,6 +3,10 @@
 export function fnv32(str: string): string {
   let h = 0x811c9dc5;
   for (let i = 0; i < str.length; i++) {
+    // charCodeAt returns JS UTF-16 code units, not UTF-8 bytes. This means
+    // multi-byte characters are hashed as their surrogate pair values. This is
+    // a known limitation that MUST NOT be changed without a migration strategy,
+    // as doing so would invalidate all existing signed markers and save checksums.
     h ^= str.charCodeAt(i);
     h = (h * 0x01000193) >>> 0;
   }

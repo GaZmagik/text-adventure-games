@@ -34,7 +34,7 @@ export const SOUNDSCAPE_ENGINE_CODE: string = `
       if (this.timeout) { clearTimeout(this.timeout); this.timeout = null; }
       if (this.ctx) { try { this.ctx.close(); } catch(e) {} this.ctx = null; }
       var btn = document.getElementById('audio-btn');
-      if (btn) btn.textContent = '\\u266b Play';
+      if (btn) btn.textContent = '\u266b Play';
     };
     SoundscapeEngine.prototype.genDrone = function(freq, vol, dur) {
       var osc = this.ctx.createOscillator(); var gain = this.ctx.createGain();

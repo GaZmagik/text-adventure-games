@@ -13,7 +13,10 @@ export function renderArcComplete(state: GmState | null, css: string, options?: 
   const rollCount = state?.rollHistory?.length ?? 0;
   const scene = state?.scene ?? 0;
 
-  const dataSummary = (options?.data as Record<string, unknown>)?.summary;
+  const rawData = options?.data;
+  const dataSummary = (rawData !== null && typeof rawData === 'object' && !Array.isArray(rawData))
+    ? (rawData as Record<string, unknown>).summary
+    : undefined;
   const summaryText = typeof dataSummary === 'string' ? dataSummary : '';
 
   return `
@@ -36,6 +39,9 @@ export function renderArcComplete(state: GmState | null, css: string, options?: 
 .arc-action-btn:hover { border-color: var(--ta-color-accent); background: var(--ta-color-accent-bg); }
 .arc-action-btn:focus-visible { outline: 2px solid var(--ta-color-focus); outline-offset: 2px; }
 .arc-action-primary { border-color: var(--ta-color-accent); color: var(--ta-color-accent); }
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0s !important; animation-duration: 0s !important; }
+}
 </style>
 <div class="widget-arc-complete">
   <div class="arc-heading">Act ${arc} Complete</div>
@@ -50,7 +56,7 @@ export function renderArcComplete(state: GmState | null, css: string, options?: 
   <div class="arc-actions">
     <button class="arc-action-btn" data-prompt="Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md.">Save Game</button>
     <button class="arc-action-btn" data-prompt="Generate a .lore.md world export using tag export generate. Include all NPCs, factions, quests, and world state.">Export World</button>
-    <button class="arc-action-btn arc-action-primary" data-prompt="Begin Act ${arc + 1}. Carry forward character progression, faction standings, and world consequences. Run tag state set arc ${arc + 1} then render the next act opener.">Continue to Act ${arc + 1}</button>
+    <button class="arc-action-btn arc-action-primary" data-prompt="Begin Act ${esc(String(arc + 1))}. Carry forward character progression, faction standings, and world consequences. Run tag state set arc ${esc(String(arc + 1))} then render the next act opener.">Continue to Act ${esc(String(arc + 1))}</button>
   </div>
 </div>
 <script>

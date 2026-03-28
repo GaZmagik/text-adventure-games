@@ -101,7 +101,7 @@ export function extractMechanicalData(state: GmState): LoreMechanicalData {
 // ── encodeLorePayload ────────────────────────────────────────────────
 
 export function encodeLorePayload(data: LoreMechanicalData): string {
-  return 'LF1:' + btoa(JSON.stringify(data));
+  return 'LF1:' + Buffer.from(JSON.stringify(data), 'utf-8').toString('base64');
 }
 
 // ── extractLorePayload ───────────────────────────────────────────────
@@ -119,11 +119,9 @@ export function extractFrontmatterField(content: string, field: string): string 
   const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
   if (!fmMatch) return null;
   const frontmatter = fmMatch[1]!;
-  // Escape special regex characters in field name
-  const escaped = field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const lineMatch = frontmatter.match(new RegExp(`^${escaped}:\\s*(.+)$`, 'm'));
-  if (!lineMatch) return null;
-  let value = lineMatch[1]!.trim();
+  const line = frontmatter.split('\n').find(l => l.startsWith(field + ':'));
+  if (!line) return null;
+  let value = line.slice(field.length + 1).trim();
   // Strip surrounding quotes
   if ((value.startsWith('"') && value.endsWith('"')) ||
       (value.startsWith("'") && value.endsWith("'"))) {
@@ -141,7 +139,7 @@ function buildFrontmatter(state: GmState): string {
     : 'Lore Export';
   const calendarSystem = state.time?.calendarSystem ?? 'elapsed-only';
   const startDate = state.time?.date ?? 'Day 1';
-  const startTime = state.time?.hour != null ? `${state.time.hour}:00` : '08:00';
+  const startTime = state.time?.hour != null ? `${String(state.time.hour)}:00` : '08:00';
   const modules = state.modulesActive ?? [];
 
   const lines = [

@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { BATCH_COMMAND_HANDLERS, handleBatch } from './batch';
-import { saveState, createDefaultState, loadState } from '../lib/state-store';
+import { saveState, createDefaultState, loadState, STATE_STORE_RUNTIME } from '../lib/state-store';
 import type { NpcMutation } from '../types';
 
 let tempDir: string;
@@ -321,5 +321,35 @@ describe('batch mode', () => {
     expect(data.persistedWrites).toBe(1);
     const state = await loadState();
     expect(state.scene).toBe(5);
+  });
+
+  test('post-batch flush error is captured in errors array', async () => {
+    // Sabotage writeFileSync so flushStateStoreContext throws during disk write
+    const originalWrite = STATE_STORE_RUNTIME.writeFileSync;
+    STATE_STORE_RUNTIME.writeFileSync = (...args: Parameters<typeof originalWrite>) => {
+      // Only fail on .tmp files (the atomic write path used by saveStateToDisk)
+      if (String(args[0]).endsWith('.tmp')) {
+        throw new Error('simulated disk full');
+      }
+      return originalWrite(...args);
+    };
+
+    // Suppress the dirty-state console.error from withStateStoreContext's finally block
+    const origErr = console.error;
+    console.error = () => {};
+
+    try {
+      const result = await handleBatch([
+        '--commands',
+        'state set scene 99',
+      ]);
+      expect(result.ok).toBe(true);
+      const data = result.data as Record<string, unknown>;
+      const errors = data.errors as { line: number; raw: string; error: string }[];
+      expect(errors.some(e => e.raw === '(post-batch flush)' && e.error.includes('simulated disk full'))).toBe(true);
+    } finally {
+      STATE_STORE_RUNTIME.writeFileSync = originalWrite;
+      console.error = origErr;
+    }
   });
 });

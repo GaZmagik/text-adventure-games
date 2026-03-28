@@ -14,6 +14,7 @@ import { handleRender } from './render';
 import { handleQuest } from './quest';
 import { handleRules } from './rules';
 import { handleExport } from './export';
+import { handleVerify } from './verify';
 
 type ParsedLine = {
   raw: string;
@@ -223,6 +224,7 @@ export const BATCH_COMMAND_HANDLERS: Record<string, (args: string[]) => Promise<
   quest: handleQuest,
   rules: handleRules,
   export: handleExport,
+  verify: handleVerify,
 };
 
 export async function handleBatch(args: string[]): Promise<CommandResult> {

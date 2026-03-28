@@ -738,3 +738,33 @@ describe('state dispatch edge cases', () => {
     expect(result.error!.message).toContain('No subcommand provided');
   });
 });
+
+// ── state schema (lines 327-330) ────────────────────────────────────
+
+describe('state schema', () => {
+  test('returns root shape when no path specified', async () => {
+    const result = await handleState(['schema']);
+    expect(result.ok).toBe(true);
+    const data = result.data as { path: string; shape: string };
+    expect(data.path).toBe('(root)');
+    expect(data.shape).toContain('scene');
+    expect(data.shape).toContain('character');
+  });
+
+  test('returns shape for a specific dot-path', async () => {
+    const result = await handleState(['schema', 'character']);
+    expect(result.ok).toBe(true);
+    const data = result.data as { path: string; shape: string };
+    expect(data.path).toBe('character');
+    expect(data.shape).toContain('name');
+    expect(data.shape).toContain('hp');
+  });
+
+  test('returns error string for unknown key', async () => {
+    const result = await handleState(['schema', 'nonexistent']);
+    expect(result.ok).toBe(true);
+    const data = result.data as { path: string; shape: string };
+    expect(data.shape).toContain('Error');
+    expect(data.shape).toContain('Unknown key');
+  });
+});

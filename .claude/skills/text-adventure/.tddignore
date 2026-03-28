@@ -10,9 +10,6 @@ cli/help.ts
 # Render templates — tested via integration/e2e, not colocated specs
 cli/render/templates/*.ts
 
-# Version constant — single-line export, no logic
-cli/lib/version.ts
-
 # Render lib string constants — client-side JS embedded as template strings, no server-side logic
 cli/render/lib/soundscape.ts
 cli/render/lib/webgl-dice.ts

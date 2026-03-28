@@ -3,7 +3,7 @@ import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState, createDefaultState } from '../lib/state-store';
 import { validateState } from '../lib/validator';
 import { attachChecksum, validateAndDecode } from '../lib/fnv32';
-import { VALID_TOP_KEYS, MAX_STATE_HISTORY, MAX_FILE_SIZE_BYTES, SCHEMA_VERSION } from '../lib/constants';
+import { VALID_TOP_KEYS, MAX_STATE_HISTORY, SCHEMA_VERSION } from '../lib/constants';
 import { containsForbiddenKeys } from '../lib/security';
 import { readSafeTextFile, resolveSafeReadPath } from '../lib/path-security';
 import { stripUnknownStateKeys } from '../lib/state-schema';

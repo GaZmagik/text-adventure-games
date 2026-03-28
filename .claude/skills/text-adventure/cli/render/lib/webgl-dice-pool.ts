@@ -244,7 +244,7 @@ function renderResults(groups,subtotal){
   var suffix=omittedDice>0?' ('+totalDice+' of '+originalDice+' dice shown)':'';
   if(modEl)modEl.textContent=POOL_MODIFIER?subtotalLabel+subtotal+' '+(POOL_MODIFIER>=0?'+ ':'- ')+Math.abs(POOL_MODIFIER)+' = '+total+suffix:subtotalLabel+subtotal+suffix;
   if(groupsEl){
-    groupsEl.innerHTML='';
+    while(groupsEl.firstChild)groupsEl.removeChild(groupsEl.firstChild);
     for(var i=0;i<groups.length;i++){
       var group=groups[i],row=document.createElement('div'),label=document.createElement('div'),values=document.createElement('div');
       row.className='dice-pool-group';label.className='dice-pool-group-label';values.className='dice-pool-group-values';

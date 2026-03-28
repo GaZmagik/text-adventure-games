@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import {
   PATH_SECURITY_RUNTIME,
+  isAllowedPath,
   looksLikeSafeReadPath,
   readSafeTextFile,
   resolveSafeReadPath,
@@ -49,7 +50,7 @@ describe('resolveSafeReadPath', () => {
       .toThrow('Lore file not found');
   });
 
-  test('requires a non-root home directory during validation', () => {
+  test('rejects paths when home directory is root', () => {
     const dir = makeTempDir();
     const filePath = join(dir, 'world.lore.md');
     writeFileSync(filePath, 'ok', 'utf-8');
@@ -58,7 +59,7 @@ describe('resolveSafeReadPath', () => {
     PATH_SECURITY_RUNTIME.homedir = () => '/';
     try {
       expect(() => resolveSafeReadPath(filePath, { kind: 'Lore', extensions: ['.md'] }))
-        .toThrow('non-root home directory');
+        .toThrow('must be within the home, temp, or /mnt/ directory');
     } finally {
       PATH_SECURITY_RUNTIME.homedir = originalHomedir;
     }
@@ -96,6 +97,38 @@ describe('resolveSafeReadPath — /mnt/ prefix', () => {
         .toThrow('must be within the home, temp, or /mnt/ directory');
     } finally {
       PATH_SECURITY_RUNTIME.realpathSync = originalRealpath;
+    }
+  });
+});
+
+describe('isAllowedPath', () => {
+  test('accepts paths under home directory', () => {
+    const home = PATH_SECURITY_RUNTIME.homedir();
+    expect(isAllowedPath(home + '/projects/file.ts')).toBe(true);
+  });
+
+  test('accepts paths under tmp directory', () => {
+    const tmp = PATH_SECURITY_RUNTIME.tmpdir();
+    const path = tmp === '/' ? '/somefile.ts' : tmp + '/somefile.ts';
+    expect(isAllowedPath(path)).toBe(true);
+  });
+
+  test('accepts paths under /mnt/', () => {
+    expect(isAllowedPath('/mnt/transcripts/log.txt')).toBe(true);
+  });
+
+  test('rejects paths outside allowed prefixes', () => {
+    expect(isAllowedPath('/etc/shadow')).toBe(false);
+    expect(isAllowedPath('/var/log/syslog')).toBe(false);
+  });
+
+  test('returns false when homedir is root', () => {
+    const originalHomedir = PATH_SECURITY_RUNTIME.homedir;
+    PATH_SECURITY_RUNTIME.homedir = () => '/';
+    try {
+      expect(isAllowedPath('/etc/passwd')).toBe(false);
+    } finally {
+      PATH_SECURITY_RUNTIME.homedir = originalHomedir;
     }
   });
 });

@@ -36,7 +36,7 @@ export const SCENE_SCRIPT_CODE = `
       sceneContent.style.display = 'none';
       if (btn) btn.setAttribute('aria-expanded', 'true');
       overlay.addEventListener('keydown', trapPanelFocus);
-      document.getElementById('panel-title-text').focus();
+      requestAnimationFrame(function() { document.getElementById('panel-title-text').focus(); });
     }
   }
 
@@ -155,7 +155,7 @@ export const SCENE_SCRIPT_CODE = `
         soundscape.stop();
       } else {
         soundscape.play(soundType, soundDuration);
-        audioBtn.textContent = '\\u25a0 Stop';
+        audioBtn.textContent = '\u25a0 Stop';
         setTimeout(function() {
           if (!soundscape.playing) return;
           soundscape.stop();

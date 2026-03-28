@@ -2,21 +2,15 @@
 // Validates composed scene HTML against current game state before show_widget.
 // Writes a .last-verify marker on success; tag state sync requires this marker.
 
-import { readFileSync, writeFileSync, unlinkSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync, realpathSync, writeFileSync, unlinkSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+import { homedir } from 'node:os';
 import type { CommandResult, GmState } from '../types';
 import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState } from '../lib/state-store';
 import { fnv32 } from '../lib/fnv32';
-/** Module-to-panel mapping — must stay in sync with scene.ts and footer.ts. */
-const MODULE_PANEL_MAP: Record<string, string> = {
-  'lore-codex': 'codex',
-  'ship-systems': 'ship',
-  'crew-manifest': 'crew',
-  'star-chart': 'nav',
-  'geo-map': 'map',
-  'core-systems': 'quests',
-};
+import { resolveSafeReadPath } from '../lib/path-security';
+import { MODULE_PANEL_MAP } from '../lib/module-panel-map';
 
 /** Compute a signed marker that's impractical to forge via echo.
  *  Format: scene:timestamp:fnv32('tag-cli-gate:' + scene + ':' + timestamp)
@@ -52,14 +46,22 @@ const MIN_CSS_CHARS = 5000;
 /** Minimum action-card / data-prompt count for interactive scenes. */
 const MIN_ACTION_PROMPTS = 2;
 
+function resolveStateDir(): string {
+  const raw = process.env.TAG_STATE_DIR || join(homedir(), '.tag');
+  try {
+    return realpathSync(resolve(raw));
+  } catch {
+    // Directory may not exist yet (first run) — fall back to resolved path
+    return resolve(raw);
+  }
+}
+
 export function getVerifyMarkerPath(): string {
-  const stateDir = process.env.TAG_STATE_DIR || join(process.env.HOME || '~', '.tag');
-  return join(stateDir, '.last-verify');
+  return join(resolveStateDir(), '.last-verify');
 }
 
 export function getNeedsVerifyPath(): string {
-  const stateDir = process.env.TAG_STATE_DIR || join(process.env.HOME || '~', '.tag');
-  return join(stateDir, '.needs-verify');
+  return join(resolveStateDir(), '.needs-verify');
 }
 
 function checkFooter(html: string, state: GmState, failures: string[]): void {
@@ -201,32 +203,42 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
   const state = await tryLoadState();
   if (!state) return noState();
 
-  // Read the HTML file
+  // Validate and read the HTML file
   let html: string;
   try {
-    html = readFileSync(filePath, 'utf-8');
+    const safePath = resolveSafeReadPath(filePath, { kind: 'Verify', extensions: ['.html', '.htm'] });
+    if (!safePath) {
+      return fail(
+        `Invalid file path: ${filePath}`,
+        'Path must start with /, ./, ../, or ~/ and end with .html or .htm.',
+        'verify',
+      );
+    }
+    html = readFileSync(safePath, 'utf-8');
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     return fail(`Failed to read file: ${msg}`, 'Check the file path exists and is readable.', 'verify');
   }
 
-  // Run all checks
+  // Run all checks — TOTAL_CHECKS is derived from this array length.
   const failures: string[] = [];
+  const checks: Array<() => void> = [
+    () => checkFooter(html, state, failures),
+    () => checkSceneMeta(html, failures),
+    () => checkNarrative(html, failures),
+    () => checkCss(html, failures),
+    () => checkAtmosphere(html, state, failures),
+    () => checkActionCards(html, failures),
+    () => checkPanelOverlay(html, failures),
+    () => checkStatusBar(html, state, failures),
+    () => checkInlineOnclick(html, failures),
+    () => checkSendPromptFallback(html, failures),
+    () => checkVisualStyle(state, failures),
+    () => checkHandCodedDice(html, failures),
+  ];
+  for (const check of checks) check();
 
-  checkFooter(html, state, failures);
-  checkSceneMeta(html, failures);
-  checkNarrative(html, failures);
-  checkCss(html, failures);
-  checkAtmosphere(html, state, failures);
-  checkActionCards(html, failures);
-  checkPanelOverlay(html, failures);
-  checkStatusBar(html, state, failures);
-  checkInlineOnclick(html, failures);
-  checkSendPromptFallback(html, failures);
-  checkVisualStyle(state, failures);
-  checkHandCodedDice(html, failures);
-
-  const TOTAL_CHECKS = 12;
+  const TOTAL_CHECKS = checks.length;
   const passed = failures.length === 0;
 
   // On success: write signed marker, increment turn counter, clear needs-verify flag

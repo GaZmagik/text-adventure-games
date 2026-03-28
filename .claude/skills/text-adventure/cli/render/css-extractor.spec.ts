@@ -347,6 +347,26 @@ describe('filterCssBySelectors', () => {
     expect(result.css).toContain('.footer-row');
     expect(result.css).not.toContain('.shop-footer');
   });
+
+  test('passes through non-keyframes non-media at-rules like @font-face', () => {
+    const css = '@font-face { font-family: "GameFont"; src: url("game.woff2"); }\n'
+      + '.action-card { color: red; }';
+    const result = filterCssBySelectors(css, ['.action-card']);
+    // @font-face should be passed through unconditionally
+    expect(result.css).toContain('@font-face');
+    expect(result.css).toContain('GameFont');
+    // Matched selector should also be present
+    expect(result.css).toContain('.action-card');
+  });
+
+  test('passes through @supports at-rule unconditionally', () => {
+    const css = '@supports (display: grid) { .grid { display: grid; } }\n'
+      + '.btn { padding: 4px; }';
+    const result = filterCssBySelectors(css, ['.btn']);
+    expect(result.css).toContain('@supports');
+    expect(result.css).toContain('.grid');
+    expect(result.css).toContain('.btn');
+  });
 });
 
 // ── Hierarchical atmosphere scopes ──────────────────────────────────

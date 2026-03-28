@@ -15,7 +15,7 @@ type SettingsData = {
   defaults?: Record<string, string> | undefined;
 };
 
-export function renderSettings(state: GmState | null, css: string, options?: Record<string, unknown>): string {
+export function renderSettings(_state: GmState | null, css: string, options?: Record<string, unknown>): string {
   const raw = (options?.data ?? {}) as Record<string, unknown>;
 
   // Safely extract string[] fields — guard against non-array values from untrusted JSON
@@ -83,29 +83,29 @@ ${COMMON_WIDGET_CSS}
 
   <div class="widget-section">
     <div class="widget-label">Rulebook</div>
-    <div class="option-grid" data-group="rulebook" role="radiogroup">
-      ${rulebooks.map(r => `<button class="option-card${defaults.rulebook === r ? ' selected' : ''}" data-group="rulebook" data-value="${esc(r)}" role="radio" aria-checked="${defaults.rulebook === r ? 'true' : 'false'}">${esc(r.replace(/_/g, ' '))}</button>`).join('\n      ')}
+    <div class="option-grid" data-group="rulebook">
+      ${rulebooks.map(r => `<button class="option-card${defaults.rulebook === r ? ' selected' : ''}" data-group="rulebook" data-value="${esc(r)}" aria-pressed="${defaults.rulebook === r ? 'true' : 'false'}">${esc(r.replace(/_/g, ' '))}</button>`).join('\n      ')}
     </div>
   </div>
 
   <div class="widget-section">
     <div class="widget-label">Difficulty</div>
-    <div class="option-grid" data-group="difficulty" role="radiogroup">
-      ${difficulties.map(d => `<button class="option-card${defaults.difficulty === d ? ' selected' : ''}" data-group="difficulty" data-value="${esc(d)}" role="radio" aria-checked="${defaults.difficulty === d ? 'true' : 'false'}">${esc(d)}</button>`).join('\n      ')}
+    <div class="option-grid" data-group="difficulty">
+      ${difficulties.map(d => `<button class="option-card${defaults.difficulty === d ? ' selected' : ''}" data-group="difficulty" data-value="${esc(d)}" aria-pressed="${defaults.difficulty === d ? 'true' : 'false'}">${esc(d)}</button>`).join('\n      ')}
     </div>
   </div>
 
   <div class="widget-section">
     <div class="widget-label">Pacing</div>
-    <div class="option-grid" data-group="pacing" role="radiogroup">
-      ${pacingOptions.map(p => `<button class="option-card${defaults.pacing === p ? ' selected' : ''}" data-group="pacing" data-value="${esc(p)}" role="radio" aria-checked="${defaults.pacing === p ? 'true' : 'false'}">${esc(p)}</button>`).join('\n      ')}
+    <div class="option-grid" data-group="pacing">
+      ${pacingOptions.map(p => `<button class="option-card${defaults.pacing === p ? ' selected' : ''}" data-group="pacing" data-value="${esc(p)}" aria-pressed="${defaults.pacing === p ? 'true' : 'false'}">${esc(p)}</button>`).join('\n      ')}
     </div>
   </div>
 
   <div class="widget-section">
     <div class="widget-label">Visual Style</div>
-    <div class="option-grid" data-group="visualStyle" role="radiogroup">
-      ${visualStyles.map(v => `<button class="option-card${defaults.visualStyle === v ? ' selected' : ''}" data-group="visualStyle" data-value="${esc(v)}" role="radio" aria-checked="${defaults.visualStyle === v ? 'true' : 'false'}">${esc(v)}</button>`).join('\n      ')}
+    <div class="option-grid" data-group="visualStyle">
+      ${visualStyles.map(v => `<button class="option-card${defaults.visualStyle === v ? ' selected' : ''}" data-group="visualStyle" data-value="${esc(v)}" aria-pressed="${defaults.visualStyle === v ? 'true' : 'false'}">${esc(v)}</button>`).join('\n      ')}
     </div>
   </div>
 
@@ -132,10 +132,10 @@ ${COMMON_WIDGET_CSS}
       // Update UI — re-query bounded card set (max ~12 nodes) — standard radio-card deselection pattern
       document.querySelectorAll('.option-card[data-group="' + group + '"]').forEach(function(b) {
         b.classList.remove('selected');
-        b.setAttribute('aria-checked', 'false');
+        b.setAttribute('aria-pressed', 'false');
       });
       this.classList.add('selected');
-      this.setAttribute('aria-checked', 'true');
+      this.setAttribute('aria-pressed', 'true');
     });
   });
 

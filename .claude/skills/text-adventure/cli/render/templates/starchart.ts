@@ -54,7 +54,7 @@ ${css ? '<style>' + css + '</style>' : ''}
 
   <div class="chart-section-label">Plotted Course</div>
   ${courseSteps
-    ? `<ol class="course-list" role="list">${courseSteps}</ol>`
+    ? `<ol class="course-list">${courseSteps}</ol>`
     : '<p class="no-course">No course plotted</p>'}
 </div>`;
 }

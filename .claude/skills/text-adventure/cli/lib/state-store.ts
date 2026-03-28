@@ -143,6 +143,14 @@ export async function withStateStoreContext<T>(
       },
     };
   } finally {
+    if (activeStateStoreContext?.dirty) {
+      console.error(
+        'Warning: state-store context dropped with unsaved changes '
+        + `(${activeStateStoreContext.virtualWrites} virtual write(s), `
+        + `${activeStateStoreContext.diskWrites} disk write(s)). `
+        + 'State may have been lost due to an unexpected exception.',
+      );
+    }
     activeStateStoreContext = null;
   }
 }
@@ -188,19 +196,34 @@ export async function saveState(state: GmState): Promise<void> {
   saveStateToDisk(state);
 }
 
-// tryLoadState deliberately returns GmState | null even though tryLoadStateFromDisk returns
-// Record<string, unknown> | null. This is an intentional design choice: commands like
-// `state validate` need to load potentially-invalid state for inspection. Commands that
-// mutate state run validateState at their own level before persisting. The cast is safe
-// at the boundary because all mutation paths validate before writing back to disk.
+// tryLoadState returns GmState | null. The underlying tryLoadStateFromDisk returns
+// Record<string, unknown> | null, so we validate and warn but still return the state.
+// Commands that mutate state run validateState at their own level before persisting.
+// Returning even invalid state is intentional — commands like `state validate`,
+// `save generate`, and `export generate` need to inspect and strip/fix the state.
 export async function tryLoadState(): Promise<GmState | null> {
   if (activeStateStoreContext) {
     if (activeStateStoreContext.state === undefined) {
-      activeStateStoreContext.state = (await tryLoadStateFromDisk()) as GmState | null;
+      const raw = await tryLoadStateFromDisk();
+      if (raw !== null) {
+        const validation = validateState(raw);
+        if (!validation.valid) {
+          console.error(`Warning: state.json failed validation: ${validation.errors.join('; ')}`);
+        }
+        activeStateStoreContext.state = raw as GmState;
+      } else {
+        activeStateStoreContext.state = null;
+      }
     }
     return cloneState(activeStateStoreContext.state ?? null);
   }
-  return (await tryLoadStateFromDisk()) as GmState | null;
+  const raw = await tryLoadStateFromDisk();
+  if (raw === null) return null;
+  const validation = validateState(raw);
+  if (!validation.valid) {
+    console.error(`Warning: state.json failed validation: ${validation.errors.join('; ')}`);
+  }
+  return raw as GmState;
 }
 
 export function createDefaultState(): GmState {

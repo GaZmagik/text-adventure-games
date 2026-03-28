@@ -77,6 +77,9 @@ export function renderCombatTurn(state: GmState | null, css: string, options?: R
 .combat-bar-container { width: 100%; height: 8px; background: var(--color-border-tertiary); border-radius: 4px; overflow: hidden; margin-top: 4px; }
 .hp-bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
 .hp-bar-npc { background: var(--ta-color-danger); }
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0s !important; animation-duration: 0s !important; }
+}
 </style>
 <div class="widget-combat">
   <div class="combat-title">Combat${combatantCount > 1 ? ` (${combatantCount} combatants)` : ''}</div>

@@ -97,9 +97,12 @@ describe('extractMechanicalData', () => {
   });
 
   test('carries factions, quests, worldFlags, time', () => {
-    const data = extractMechanicalData(makePopulatedState());
+    const state = makePopulatedState();
+    state.worldFlags = { dragonAwakened: true, bridgeDestroyed: 'scene-7' };
+    const data = extractMechanicalData(state);
     expect(data.factions).toEqual({ 'The Guild': 35, 'Shadow Court': -60 });
     expect(data.quests).toHaveLength(1);
+    expect(data.worldFlags).toEqual({ dragonAwakened: true, bridgeDestroyed: 'scene-7' });
     expect(data.time.period).toBe('evening');
   });
 

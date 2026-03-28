@@ -23,8 +23,9 @@ tmp/
 *.log
 logs/
 
-# TDD ignore (dev-only, not distributed)
+# SDD & TDD ignore
 .tddignore
+.specify/
 
 # OS files
 .DS_Store

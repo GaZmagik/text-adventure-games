@@ -45,20 +45,23 @@ export function resolveSafeReadPath(
     throw err;
   }
 
-  const home = PATH_SECURITY_RUNTIME.homedir();
-  const tmp = PATH_SECURITY_RUNTIME.tmpdir();
-  if (home === '/') {
-    throw new Error(`${options.kind} path validation requires a non-root home directory.`);
-  }
-
-  const homePrefix = home + '/';
-  const tmpPrefix = tmp === '/' ? tmp : tmp + '/';
-  const mntPrefix = '/mnt/';
-  if (!resolved.startsWith(homePrefix) && !resolved.startsWith(tmpPrefix) && !resolved.startsWith(mntPrefix)) {
+  if (!isAllowedPath(resolved)) {
     throw new Error(`${options.kind} file path must be within the home, temp, or /mnt/ directory.`);
   }
 
   return resolved;
+}
+
+/** Check whether a resolved absolute path falls within allowed prefixes (home, tmp, /mnt/).
+ *  Centralises the prefix validation duplicated across path-security, state-store, tag, and sync. */
+export function isAllowedPath(filepath: string): boolean {
+  const home = PATH_SECURITY_RUNTIME.homedir();
+  const tmp = PATH_SECURITY_RUNTIME.tmpdir();
+  if (home === '/') return false;
+  const homePrefix = home + '/';
+  const tmpPrefix = tmp === '/' ? tmp : tmp + '/';
+  const mntPrefix = '/mnt/';
+  return filepath.startsWith(homePrefix) || filepath.startsWith(tmpPrefix) || filepath.startsWith(mntPrefix);
 }
 
 export async function readSafeTextFile(

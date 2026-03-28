@@ -2,9 +2,10 @@ import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
 import { mkdtempSync, rmSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { handleVerify, getVerifyMarkerPath } from './verify';
+import { handleVerify, getVerifyMarkerPath, signMarker, readSignedMarker } from './verify';
 import { handleState } from './state';
 import { handleRender } from './render';
+import { loadState } from '../lib/state-store';
 
 let tempDir: string;
 const originalEnv = process.env.TAG_STATE_DIR;
@@ -236,5 +237,186 @@ describe('tag verify', () => {
     const result = await handleVerify([filePath]);
     const failures = (result.data as Record<string, unknown>).failures as string[];
     expect(failures.some(f => f.includes('dice') || f.includes('canvas'))).toBe(true);
+  });
+
+  test('increments _turnCount on successful verify', async () => {
+    await setupState();
+    const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
+    let html = (renderResult.data as string)
+      .replace(
+        '<p><!-- Narrative content rendered by the GM --></p>',
+        '<p class="narrative">The bridge hums with tension and the sound of something distant.</p><p class="narrative">Lights flicker overhead.</p>',
+      );
+    html = html.replace(
+      '</div>\n  <!-- Scene metadata',
+      '<button class="action-card" data-prompt="Investigate."><div class="action-card-title">Investigate</div></button>'
+      + '<button class="action-card" data-prompt="Retreat."><div class="action-card-title">Retreat</div></button>'
+      + '</div>\n  <!-- Scene metadata',
+    );
+    const filePath = join(tempDir, 'turncount.html');
+    writeFileSync(filePath, html, 'utf-8');
+
+    const result = await handleVerify([filePath]);
+    expect(result.ok).toBe(true);
+    expect((result.data as Record<string, unknown>).verified).toBe(true);
+
+    const state = await loadState();
+    expect(state._turnCount).toBe(1);
+  });
+
+  test('fails when atmosphere module is active but atmo-strip is missing', async () => {
+    await handleState(['reset']);
+    await handleState(['set', 'scene', '1']);
+    await handleState(['set', 'currentRoom', 'bridge']);
+    await handleState(['set', 'visualStyle', 'station']);
+    await handleState(['set', 'modulesActive', JSON.stringify([
+      'gm-checklist', 'prose-craft', 'core-systems', 'atmosphere',
+    ])]);
+    const html = '<style>' + 'x'.repeat(10000) + '</style>'
+      + '<div id="scene-meta" data-meta="{}"></div>'
+      + '<div id="panel-overlay"></div>'
+      + '<div class="footer-row"><button class="footer-btn" data-panel="character">Char</button></div>'
+      + '<div id="narrative"><p class="narrative">The air recyclers drone in the corridor ahead of you.</p></div>'
+      + '<button class="action-card" data-prompt="Advance" title="Advance down the corridor"><div class="action-card-title">Advance</div></button>'
+      + '<button class="action-card" data-prompt="Listen" title="Listen carefully"><div class="action-card-title">Listen</div></button>';
+    const filePath = join(tempDir, 'no-atmo.html');
+    writeFileSync(filePath, html, 'utf-8');
+
+    const result = await handleVerify([filePath]);
+    const failures = (result.data as Record<string, unknown>).failures as string[];
+    expect(failures.some(f => f.includes('atmosphere'))).toBe(true);
+  });
+
+  test('fails when lore-codex module is active but codex panel button is missing', async () => {
+    await handleState(['reset']);
+    await handleState(['set', 'scene', '1']);
+    await handleState(['set', 'currentRoom', 'bridge']);
+    await handleState(['set', 'visualStyle', 'station']);
+    await handleState(['set', 'modulesActive', JSON.stringify([
+      'gm-checklist', 'prose-craft', 'core-systems', 'lore-codex',
+    ])]);
+    const html = '<style>' + 'x'.repeat(10000) + '</style>'
+      + '<div id="scene-meta" data-meta="{}"></div>'
+      + '<div id="panel-overlay"></div>'
+      + '<div class="footer-row"><button class="footer-btn" data-panel="character">Char</button></div>'
+      + '<div id="narrative"><p class="narrative">Ancient glyphs cover the walls of the abandoned station module.</p></div>'
+      + '<button class="action-card" data-prompt="Examine glyphs" title="Examine the ancient glyphs"><div class="action-card-title">Examine</div></button>'
+      + '<button class="action-card" data-prompt="Move on" title="Continue through the corridor"><div class="action-card-title">Move on</div></button>';
+    const filePath = join(tempDir, 'no-codex.html');
+    writeFileSync(filePath, html, 'utf-8');
+
+    const result = await handleVerify([filePath]);
+    const failures = (result.data as Record<string, unknown>).failures as string[];
+    expect(failures.some(f => f.includes('codex'))).toBe(true);
+  });
+});
+
+// ── signMarker / readSignedMarker ────────────────────────────────────
+
+describe('signMarker / readSignedMarker', () => {
+  test('valid round-trip: signMarker then readSignedMarker returns the scene number', () => {
+    const marker = signMarker(5);
+    const markerPath = join(tempDir, 'roundtrip-marker');
+    writeFileSync(markerPath, marker, 'utf-8');
+    expect(readSignedMarker(markerPath)).toBe(5);
+  });
+
+  test('plain "1" (no colons) returns -1', () => {
+    const markerPath = join(tempDir, 'plain-marker');
+    writeFileSync(markerPath, '1', 'utf-8');
+    expect(readSignedMarker(markerPath)).toBe(-1);
+  });
+
+  test('"1:2" (only 2 parts) returns -1', () => {
+    const markerPath = join(tempDir, 'short-marker');
+    writeFileSync(markerPath, '1:2', 'utf-8');
+    expect(readSignedMarker(markerPath)).toBe(-1);
+  });
+
+  test('tampered hash returns -1', () => {
+    const marker = signMarker(7);
+    // Replace the hash portion with a bogus value
+    const parts = marker.split(':');
+    parts[parts.length - 1] = 'deadbeef';
+    const tampered = parts.join(':');
+    const markerPath = join(tempDir, 'tampered-marker');
+    writeFileSync(markerPath, tampered, 'utf-8');
+    expect(readSignedMarker(markerPath)).toBe(-1);
+  });
+
+  test('NaN scene number returns -1', () => {
+    const markerPath = join(tempDir, 'nan-marker');
+    writeFileSync(markerPath, 'abc:1234567890:somehash', 'utf-8');
+    expect(readSignedMarker(markerPath)).toBe(-1);
+  });
+
+  test('non-existent file returns -1', () => {
+    expect(readSignedMarker(join(tempDir, 'does-not-exist'))).toBe(-1);
+  });
+});
+
+// ── resolveStateDir realpathSync fallback (line 53) ──────────────────
+
+describe('verify resolveStateDir fallback', () => {
+  test('getVerifyMarkerPath works when TAG_STATE_DIR does not yet exist on disk', () => {
+    const nonExistentDir = join(tempDir, 'not-yet-created');
+    const original = process.env.TAG_STATE_DIR;
+    process.env.TAG_STATE_DIR = nonExistentDir;
+    try {
+      const markerPath = getVerifyMarkerPath();
+      // Falls back to resolve() — should still produce a valid path string
+      expect(markerPath).toContain('not-yet-created');
+      expect(markerPath).toContain('.last-verify');
+    } finally {
+      if (original !== undefined) process.env.TAG_STATE_DIR = original;
+      else delete process.env.TAG_STATE_DIR;
+    }
+  });
+});
+
+// ── audio button check (line 82-83) ─────────────────────────────────
+
+describe('verify audio module check', () => {
+  test('fails when audio module is active but audio-btn is missing', async () => {
+    await handleState(['reset']);
+    await handleState(['set', 'scene', '1']);
+    await handleState(['set', 'currentRoom', 'bridge']);
+    await handleState(['set', 'visualStyle', 'station']);
+    await handleState(['set', 'modulesActive', JSON.stringify([
+      'gm-checklist', 'prose-craft', 'core-systems', 'audio',
+    ])]);
+    const html = '<style>' + 'x'.repeat(10000) + '</style>'
+      + '<div id="scene-meta" data-meta="{}"></div>'
+      + '<div id="panel-overlay"></div>'
+      + '<div class="footer-row"><button class="footer-btn" data-panel="character">Char</button></div>'
+      + '<div id="narrative"><p class="narrative">The hum of distant generators reverberates through the corridor walls.</p></div>'
+      + '<button class="action-card" data-prompt="Listen" title="Listen to the source"><div class="action-card-title">Listen</div></button>'
+      + '<button class="action-card" data-prompt="Move on" title="Continue past"><div class="action-card-title">Move on</div></button>';
+    const filePath = join(tempDir, 'no-audio.html');
+    writeFileSync(filePath, html, 'utf-8');
+
+    const result = await handleVerify([filePath]);
+    const failures = (result.data as Record<string, unknown>).failures as string[];
+    expect(failures.some(f => f.includes('audio') && f.includes('audio-btn'))).toBe(true);
+  });
+});
+
+// ── resolveSafeReadPath null / read-error branches (lines 210-220) ──
+
+describe('verify file path validation', () => {
+  test('rejects bare filename with no safe prefix or html extension', async () => {
+    await setupState();
+    // A bare name with no path prefix (/, ./, ../, ~/) and no .html/.htm extension
+    // triggers resolveSafeReadPath returning null → "Invalid file path"
+    const result = await handleVerify(['scene.txt']);
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toContain('Invalid file path');
+  });
+
+  test('returns read error for non-existent HTML file', async () => {
+    await setupState();
+    const result = await handleVerify([join(tempDir, 'definitely-not-here.html')]);
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toContain('Failed to read file');
   });
 });
