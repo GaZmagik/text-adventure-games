@@ -2,11 +2,11 @@
 // Validates composed scene HTML against current game state before show_widget.
 // Writes a .last-verify marker on success; tag state sync requires this marker.
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import type { CommandResult, GmState } from '../types';
 import { ok, fail, noState } from '../lib/errors';
-import { tryLoadState } from '../lib/state-store';
+import { tryLoadState, saveState } from '../lib/state-store';
 import { fnv32 } from '../lib/fnv32';
 /** Module-to-panel mapping — must stay in sync with scene.ts and footer.ts. */
 const MODULE_PANEL_MAP: Record<string, string> = {
@@ -55,6 +55,11 @@ const MIN_ACTION_PROMPTS = 2;
 export function getVerifyMarkerPath(): string {
   const stateDir = process.env.TAG_STATE_DIR || join(process.env.HOME || '~', '.tag');
   return join(stateDir, '.last-verify');
+}
+
+export function getNeedsVerifyPath(): string {
+  const stateDir = process.env.TAG_STATE_DIR || join(process.env.HOME || '~', '.tag');
+  return join(stateDir, '.needs-verify');
 }
 
 function checkFooter(html: string, state: GmState, failures: string[]): void {
@@ -224,9 +229,12 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
   const TOTAL_CHECKS = 12;
   const passed = failures.length === 0;
 
-  // Write signed marker on success — hash includes timestamp to prevent forgery via echo
+  // On success: write signed marker, increment turn counter, clear needs-verify flag
   if (passed) {
     writeFileSync(getVerifyMarkerPath(), signMarker(state.scene), 'utf-8');
+    state._turnCount = (state._turnCount ?? 0) + 1;
+    await saveState(state);
+    try { unlinkSync(getNeedsVerifyPath()); } catch { /* already cleared */ }
   }
 
   return ok({

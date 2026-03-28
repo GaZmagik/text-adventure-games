@@ -1,5 +1,6 @@
 import { join } from 'node:path';
-import { readSignedMarker } from './verify';
+import { readSignedMarker, getNeedsVerifyPath } from './verify';
+import { existsSync, writeFileSync } from 'node:fs';
 import type { CommandResult, GmState, PendingRoll, StatName } from '../types';
 import { ok, fail, styleNotSet } from '../lib/errors';
 import { tryLoadState, saveState, getSyncMarkerPath } from '../lib/state-store';
@@ -248,6 +249,18 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     }
   }
 
+  // Per-widget verify gate — blocks if previous render was not verified
+  if (!isPreGame && widgetType === 'scene') {
+    const needsVerify = getNeedsVerifyPath();
+    if (existsSync(needsVerify)) {
+      return fail(
+        'Previous scene widget was not verified. Run `tag verify /tmp/scene.html` before rendering a new scene.',
+        'Every scene widget must be verified before the next render. This prevents stripped or hand-written widgets from bypassing quality checks.',
+        'render',
+      );
+    }
+  }
+
   // Resolve style name: --style flag > state.visualStyle > default for pre-config widgets > error
   const resolvedStyle = styleName ?? state?.visualStyle
     ?? (PRE_CONFIG_WIDGETS.has(widgetType) ? 'station' : null);
@@ -371,6 +384,11 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
       state._pendingRolls = pendingRolls;
       await saveState(state);
     }
+  }
+
+  // Write needs-verify flag for scene widgets — next render blocks until verified
+  if (widgetType === 'scene' && !isPreGame) {
+    writeFileSync(getNeedsVerifyPath(), String(state?.scene ?? 0), 'utf-8');
   }
 
   // Return raw HTML early — skip checklist/skeleton computation
