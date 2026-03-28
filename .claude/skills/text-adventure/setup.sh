@@ -36,6 +36,10 @@ _TAG_BUN_BIN="$HOME/.bun/bin"
 if [ -d /usr/local/bin ] && [ -w /usr/local/bin ]; then
 	ln -sf "$_TAG_BUN_BIN/bun" /usr/local/bin/bun 2>/dev/null || true
 	ln -sf "$_TAG_BUN_BIN/tag" /usr/local/bin/tag 2>/dev/null || true
+else
+	echo "Note: /usr/local/bin is not writable. Run these to make tag available globally:"
+	echo "  sudo ln -sf $_TAG_BUN_BIN/bun /usr/local/bin/bun"
+	echo "  sudo ln -sf $_TAG_BUN_BIN/tag /usr/local/bin/tag"
 fi
 unset _TAG_BUN_BIN
 
