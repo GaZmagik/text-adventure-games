@@ -155,7 +155,14 @@ NEW GAME CHECKLIST
      Then compose the narrative prose into the scene HTML output.
      If atmosphere module is active, effects are applied automatically by tag render scene.
      If audio module is active, the scene widget includes a soundscape player automatically.
-□ 18. Verify: is ALL game content inside the widget? No prose outside?
+□ 18. Save composed HTML to /tmp/scene.html, then run `tag verify /tmp/scene.html`
+     The verify command checks 12 structural requirements: footer buttons, panels,
+     scene-meta, narrative content, CSS size, atmosphere, action cards, status bar,
+     no inline onclick, sendPrompt fallbacks, visual style set, no hand-coded dice.
+     The verify marker is cryptographically signed — writing the marker file manually
+     will not work. Without verification, `tag state sync --apply` will refuse to
+     advance and `tag render scene` will refuse to produce the next widget.
+□ 19. Pass the verified HTML to show_widget. Verify: is ALL game content inside the widget?
 ```
 
 ---
@@ -326,8 +333,13 @@ NEW SCENE CHECKLIST
       compute means the outcome is invented rather than calculated — the player's
       roll has no mechanical effect on the result.
 □ 15. Include: pre-computed #save-data div for save fallback
+□ 16. Save composed HTML to /tmp/scene.html, run `tag verify /tmp/scene.html`
+      MANDATORY for every widget — not just scene advances. POI examinations,
+      dialogue scenes, and mid-scene renders all require verification. The verify
+      marker is signed — writing the file manually will not work. Without verify,
+      the next `tag render scene` will refuse to produce output.
 
-  Post-Scene State Sync — run AFTER rendering
+  Post-Scene State Sync — run AFTER rendering AND verifying
 □ 16. Update any state that changed during this scene:
       `tag state set character.hp <new_hp>` (if damage taken)
       `tag state set character.xp += <xp_earned>` (if XP awarded)

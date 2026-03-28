@@ -220,6 +220,7 @@ The `tag compute` command handles dice rolls deterministically, but any OTHER ar
 - **NPC creation** — `tag state create-npc` (never invent NPC stats or modifiers)
 - **Hidden contested rolls** — `tag compute contest` (never improvise NPC rolls)
 - **ALL widget rendering** — `tag render <widget>` (never hand-code HTML/CSS/JS)
+- **Widget verification** — `tag verify /tmp/scene.html` after composing EVERY scene widget. The verify marker is cryptographically signed — writing the marker file manually will not work. Without verification, `tag render scene` refuses to produce the next widget and `tag state sync --apply` refuses to advance. This applies to act openers, POI examinations, dialogue scenes — every widget output.
 - **Save generation** — `tag save generate` (never hand-build save payloads)
 - **State mutations** — `tag state set` (keep state in sync with the CLI)
 
