@@ -15,7 +15,7 @@ const MODULE_BUTTONS: { module: string; panel: string; label: string }[] = [
   { module: 'core-systems', panel: 'quests', label: 'Quests' },
 ];
 
-const SAVE_PROMPT = 'Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md. Use YAML frontmatter plus an encoded SC1: or SF1: payload string. Never write game state as human-readable markdown.';
+const SAVE_PROMPT = 'Run `tag save generate` via the Bash tool to produce my save payload. The CLI generates the checksummed SF2 string — never hand-code save encoding, checksums, or base64. Present the result as a downloadable .save.md file with YAML frontmatter.';
 const EXPORT_PROMPT = 'Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format.';
 
 export function renderFooter(state: GmState | null, css: string, _options?: Record<string, unknown>): string {
