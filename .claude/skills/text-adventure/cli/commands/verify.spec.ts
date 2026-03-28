@@ -154,4 +154,84 @@ describe('tag verify', () => {
     const result = await handleVerify([]);
     expect(result.ok).toBe(false);
   });
+
+  test('fails when inline onclick handlers are present', async () => {
+    await setupState();
+    const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
+    let html = (renderResult.data as string)
+      .replace(
+        '<p><!-- Narrative content rendered by the GM --></p>',
+        '<p class="narrative">A long narrative paragraph that establishes the scene properly.</p>',
+      );
+    // Inject an inline onclick — the exact anti-pattern
+    html = html.replace(
+      '</div>\n  <!-- Scene metadata',
+      '<button onclick="sendPrompt(\'Do thing\')">Do thing</button>'
+      + '<button class="action-card" data-prompt="Other thing"><div class="action-card-title">Other</div></button>'
+      + '<button class="action-card" data-prompt="Another thing"><div class="action-card-title">Another</div></button>'
+      + '</div>\n  <!-- Scene metadata',
+    );
+    const filePath = join(tempDir, 'onclick.html');
+    writeFileSync(filePath, html, 'utf-8');
+
+    const result = await handleVerify([filePath]);
+    const failures = (result.data as Record<string, unknown>).failures as string[];
+    expect(failures.some(f => f.includes('onclick'))).toBe(true);
+  });
+
+  test('fails when data-prompt button has no copyable fallback', async () => {
+    await setupState();
+    const html = '<style>' + 'x'.repeat(10000) + '</style>'
+      + '<div id="scene-meta" data-meta="{}"></div>'
+      + '<div id="panel-overlay"></div>'
+      + '<div class="footer-row"><button class="footer-btn" data-panel="character">Char</button></div>'
+      + '<div class="status-bar"><span class="hp-display">HP 10/10</span></div>'
+      + '<div id="narrative"><p class="narrative">The bridge hums with tension and the air smells of recycled nothing.</p></div>'
+      + '<button class="action-card" data-prompt="Do the thing"><div class="action-card-title">Do thing</div></button>'
+      + '<button class="action-card" data-prompt="Other thing"><div class="action-card-title">Other</div></button>';
+    const filePath = join(tempDir, 'no-fallback.html');
+    writeFileSync(filePath, html, 'utf-8');
+
+    const result = await handleVerify([filePath]);
+    const failures = (result.data as Record<string, unknown>).failures as string[];
+    expect(failures.some(f => f.includes('fallback') || f.includes('title'))).toBe(true);
+  });
+
+  test('fails when visual style is not set in state', async () => {
+    await handleState(['reset']);
+    await handleState(['set', 'scene', '1']);
+    // Do NOT set visualStyle
+    const html = '<style>' + 'x'.repeat(10000) + '</style>'
+      + '<div id="scene-meta" data-meta="{}"></div>'
+      + '<div id="panel-overlay"></div>'
+      + '<div class="footer-row"><button class="footer-btn" data-panel="character">Char</button></div>'
+      + '<div id="narrative"><p class="narrative">A sufficiently long narrative paragraph for the check.</p></div>'
+      + '<button class="action-card" data-prompt="Act 1"><div class="action-card-title">Act</div></button>'
+      + '<button class="action-card" data-prompt="Act 2"><div class="action-card-title">Act 2</div></button>';
+    const filePath = join(tempDir, 'no-style.html');
+    writeFileSync(filePath, html, 'utf-8');
+
+    const result = await handleVerify([filePath]);
+    const failures = (result.data as Record<string, unknown>).failures as string[];
+    expect(failures.some(f => f.includes('visualStyle'))).toBe(true);
+  });
+
+  test('fails when hand-coded canvas dice detected', async () => {
+    await setupState();
+    const html = '<style>' + 'x'.repeat(10000) + '</style>'
+      + '<div id="scene-meta" data-meta="{}"></div>'
+      + '<div id="panel-overlay"></div>'
+      + '<div class="footer-row"><button class="footer-btn" data-panel="character">Char</button></div>'
+      + '<div class="status-bar"><span class="hp-display">HP 10/10</span></div>'
+      + '<div id="narrative"><p class="narrative">The guard swings and you need to dodge urgently now.</p></div>'
+      + '<canvas id="dice-canvas" width="200" height="200"></canvas>'
+      + '<button class="action-card" data-prompt="Dodge"><div class="action-card-title">Dodge</div></button>'
+      + '<button class="action-card" data-prompt="Block"><div class="action-card-title">Block</div></button>';
+    const filePath = join(tempDir, 'hand-dice.html');
+    writeFileSync(filePath, html, 'utf-8');
+
+    const result = await handleVerify([filePath]);
+    const failures = (result.data as Record<string, unknown>).failures as string[];
+    expect(failures.some(f => f.includes('dice') || f.includes('canvas'))).toBe(true);
+  });
 });

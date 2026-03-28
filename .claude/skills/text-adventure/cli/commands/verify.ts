@@ -104,6 +104,48 @@ function checkPanelOverlay(html: string, failures: string[]): void {
   }
 }
 
+function checkInlineOnclick(html: string, failures: string[]): void {
+  const onclickCount = (html.match(/onclick="/gi) ?? []).length;
+  if (onclickCount > 0) {
+    failures.push(
+      `Found ${onclickCount} inline onclick handler(s). Use data-prompt + addEventListener instead. `
+      + 'Inline onclick handlers break silently on apostrophes and special characters in prompt strings.',
+    );
+  }
+}
+
+function checkSendPromptFallback(html: string, failures: string[]): void {
+  const promptButtons = html.match(/data-prompt="[^"]+"/g) ?? [];
+  const hasTitleAttr = html.match(/title="[^"]{10,}"/g) ?? [];
+  if (promptButtons.length > 0 && hasTitleAttr.length === 0) {
+    failures.push(
+      `Found ${promptButtons.length} data-prompt button(s) but no title attributes with fallback text. `
+      + 'Every data-prompt button needs a title attribute containing the prompt text so the player can copy it if sendPrompt is unavailable.',
+    );
+  }
+}
+
+function checkVisualStyle(state: GmState, failures: string[]): void {
+  if (!state.visualStyle) {
+    failures.push(
+      'visualStyle is not set in game state. Run `tag state set visualStyle <name>` before rendering. '
+      + 'Without a visual style, widgets use incorrect colour palettes and may render invisible text in dark mode.',
+    );
+  }
+}
+
+function checkHandCodedDice(html: string, failures: string[]): void {
+  const canvasPattern = /<canvas[^>]*id="[^"]*dice[^"]*"/i;
+  const rawGlPattern = /getContext\s*\(\s*['"]webgl/i;
+  const geometryPattern = /BufferGeometry|BoxGeometry|IcosahedronGeometry/;
+  if (canvasPattern.test(html) || rawGlPattern.test(html) || geometryPattern.test(html)) {
+    failures.push(
+      'Detected hand-coded dice canvas or WebGL geometry. Use `tag render dice` or `tag render dice-pool` instead. '
+      + 'Hand-coded dice omit the WebGL renderer, quaternion animation, numbered face textures, click-to-roll mechanics, and deterministic seeding.',
+    );
+  }
+}
+
 function checkStatusBar(html: string, state: GmState, failures: string[]): void {
   if (state.character) {
     if (!html.includes('hp-display') && !html.includes('status-bar')) {
@@ -145,7 +187,12 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
   checkActionCards(html, failures);
   checkPanelOverlay(html, failures);
   checkStatusBar(html, state, failures);
+  checkInlineOnclick(html, failures);
+  checkSendPromptFallback(html, failures);
+  checkVisualStyle(state, failures);
+  checkHandCodedDice(html, failures);
 
+  const TOTAL_CHECKS = 12;
   const passed = failures.length === 0;
 
   // Write marker on success
@@ -157,10 +204,10 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
     verified: passed,
     scene: state.scene,
     failures,
-    checks: 8,
+    checks: TOTAL_CHECKS,
     htmlChars: html.length,
     ...(passed
-      ? { message: `Scene ${state.scene} verified. All ${8} checks passed. Ready for show_widget.` }
+      ? { message: `Scene ${state.scene} verified. All ${TOTAL_CHECKS} checks passed. Ready for show_widget.` }
       : { message: `Scene ${state.scene} failed verification: ${failures.length} issue(s). Fix and re-verify before show_widget.` }),
   }, 'verify');
 }
