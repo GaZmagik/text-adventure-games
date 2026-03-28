@@ -5,6 +5,12 @@ import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
 import { VERSION } from '../../lib/version';
 import { renderFooter } from './footer';
+import { renderCharacter } from './character';
+import { renderCodex } from './codex';
+import { renderShip } from './ship';
+import { renderCrew } from './crew';
+import { renderStarchart } from './starchart';
+import { renderMap } from './map';
 import { SOUNDSCAPE_ENGINE_CODE } from '../lib/soundscape';
 import { SCENE_SCRIPT_CODE } from '../lib/scene-script';
 
@@ -52,8 +58,8 @@ export function renderScene(state: GmState | null, css: string, options?: Record
     pending_rolls: [],
   });
 
-  // Build panel-content divs for active modules
-  const panelDivs = buildPanelDivs(modules);
+  // Build panel-content divs for active modules — pre-populated from state
+  const panelDivs = buildPanelDivs(modules, state);
 
   // Compose the footer (without its own <style> — we include CSS once at the top)
   const footerHtml = renderFooter(state, '', options);
@@ -110,7 +116,7 @@ export function renderScene(state: GmState | null, css: string, options?: Record
         <span class="panel-title" id="panel-title-text" tabindex="-1"></span>
         <button class="panel-close-btn" id="panel-close-btn">Close</button>
       </div>
-      <div class="panel-content" data-panel="character"></div>
+      <div class="panel-content" data-panel="character">${renderCharacter(state, '')}</div>
       ${panelDivs}
     </div>
   </div>
@@ -124,10 +130,56 @@ ${MERGED_SCENE_SCRIPT}
 </script>`;
 }
 
-/** Build panel-content divs for active modules */
-function buildPanelDivs(modules: string[]): string {
+/** Panel renderer registry — maps panel name to template function. */
+type PanelRenderer = (state: GmState | null, css: string) => string;
+const PANEL_RENDERERS: Record<string, PanelRenderer> = {
+  codex: renderCodex,
+  ship: renderShip,
+  crew: renderCrew,
+  nav: renderStarchart,
+  map: renderMap,
+};
+
+/** Build panel-content divs for active modules — pre-populated from state. */
+function buildPanelDivs(modules: string[], state: GmState | null): string {
   return modules
     .filter(m => m in MODULE_PANEL_MAPPING)
-    .map(m => `<div class="panel-content" data-panel="${MODULE_PANEL_MAPPING[m]!}"></div>`)
+    .map(m => {
+      const panel = MODULE_PANEL_MAPPING[m]!;
+      const renderer = PANEL_RENDERERS[panel];
+      if (renderer) {
+        return `<div class="panel-content" data-panel="${panel}">${renderer(state, '')}</div>`;
+      }
+      if (panel === 'quests') {
+        return `<div class="panel-content" data-panel="quests">${renderQuestsPanel(state)}</div>`;
+      }
+      return `<div class="panel-content" data-panel="${panel}"></div>`;
+    })
     .join('\n      ');
+}
+
+/** Inline quests panel — no standalone template exists for this panel type. */
+function renderQuestsPanel(state: GmState | null): string {
+  const quests = state?.quests ?? [];
+  if (quests.length === 0) {
+    return '<div class="panel-quests"><p class="empty-state">No active quests.</p></div>';
+  }
+  const rows = quests.map(q => {
+    let done = 0;
+    for (const o of q.objectives) if (o.completed) done++;
+    const total = q.objectives.length;
+    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+    const objectives = q.objectives.map(o =>
+      `<li style="font-size:11px;color:var(--color-text-secondary);padding:2px 0">`
+      + `${o.completed ? '✓' : '○'} ${esc(o.description)}</li>`,
+    ).join('');
+    return `<div style="padding:10px;margin-bottom:8px;border:0.5px solid var(--color-border-tertiary);border-radius:6px">`
+      + `<div style="display:flex;justify-content:space-between;align-items:center">`
+      + `<span style="font-size:13px;font-weight:600;color:var(--color-text-primary)">${esc(q.title)}</span>`
+      + `<span style="font-size:10px;color:var(--color-text-tertiary)">${pct}%</span></div>`
+      + `<ul style="list-style:none;padding:0;margin:4px 0 0">${objectives}</ul></div>`;
+  }).join('');
+  return `<div class="panel-quests" style="font-family:var(--ta-font-body);padding:16px">`
+    + `<div style="font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:var(--color-text-primary);margin-bottom:12px">Quests</div>`
+    + rows + '</div>';
 }

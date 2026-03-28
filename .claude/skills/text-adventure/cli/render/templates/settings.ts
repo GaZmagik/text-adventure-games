@@ -145,7 +145,11 @@ ${COMMON_WIDGET_CSS}
 
   document.getElementById('settings-confirm').addEventListener('click', function() {
     selections.modules = selectedModules;
-    var prompt = 'Begin adventure with settings: ' + JSON.stringify(selections);
+    var cmds = ['state set visualStyle ' + (selections.visualStyle || 'station')];
+    if (selections.rulebook) cmds.push('state set worldFlags.rulebook ' + selections.rulebook);
+    if (selectedModules.length) cmds.push('state set modulesActive ' + JSON.stringify(selectedModules));
+    var prompt = 'Begin adventure with settings: ' + JSON.stringify(selections)
+      + '\\nRequired: tag batch --commands "' + cmds.join('; ') + '"';
     if (typeof sendPrompt === 'function') sendPrompt(prompt);
   });
 })();

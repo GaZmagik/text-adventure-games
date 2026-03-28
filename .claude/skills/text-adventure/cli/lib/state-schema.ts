@@ -296,6 +296,13 @@ function collectUnexpectedPaths(
     return;
   }
 
+  // Flag arrays where an object or record is expected — catches type mismatch
+  // e.g. equipment sent as string[] instead of { weapon, armour }
+  if (Array.isArray(value)) {
+    unexpected.push(basePath);
+    return;
+  }
+
   if (!isRecord(value)) return;
 
   if (current.kind === 'record') {

@@ -37,6 +37,7 @@ describe('state/sync', () => {
       'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
       'character-creation', 'save-codex',
     ])]);
+    await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
 
     const result = await handleSync([]);
     expect(result.ok).toBe(true);
@@ -255,6 +256,39 @@ describe('state/sync', () => {
     expect(checklist.length).toBe(2);
     expect(checklist.some(c => c.startsWith('prose-craft ON'))).toBe(true);
     expect(checklist.some(c => c.startsWith('audio ON'))).toBe(true);
+  });
+
+  test('warns when worldFlags.rulebook is not set after scene 0', async () => {
+    await handleState(['reset']);
+    await handleState(['set', 'scene', '2']);
+
+    const result = await handleSync([]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const warnings = data.warnings as string[];
+    expect(warnings.some(w => w.includes('worldFlags.rulebook'))).toBe(true);
+  });
+
+  test('no rulebook warning when worldFlags.rulebook is set', async () => {
+    await handleState(['reset']);
+    await handleState(['set', 'scene', '2']);
+    await handleState(['set', 'worldFlags.rulebook', 'd20_system']);
+
+    const result = await handleSync([]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const warnings = data.warnings as string[];
+    expect(warnings.some(w => w.includes('worldFlags.rulebook'))).toBe(false);
+  });
+
+  test('no rulebook warning at scene 0 (pre-game)', async () => {
+    await handleState(['reset']);
+
+    const result = await handleSync([]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const warnings = data.warnings as string[];
+    expect(warnings.some(w => w.includes('worldFlags.rulebook'))).toBe(false);
   });
 });
 

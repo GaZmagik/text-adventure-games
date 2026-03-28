@@ -36,6 +36,36 @@ describe('collectUnexpectedStatePaths', () => {
     expect(paths).toContain('time.season');
     expect(paths).toContain('rosterMutations.0.alias');
   });
+
+  test('detects array where object expected (equipment type mismatch)', () => {
+    const state = createDefaultState();
+    state.character = {
+      name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
+      level: 1, xp: 0, currency: 0, currencyName: 'credits',
+      stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+      modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+      proficiencyBonus: 2, proficiencies: [], abilities: [],
+      inventory: [], conditions: [],
+      equipment: ['Sword', 'Shield'] as any,
+    };
+    const paths = collectUnexpectedStatePaths(state);
+    expect(paths).toContain('character.equipment');
+  });
+
+  test('does not flag valid object equipment', () => {
+    const state = createDefaultState();
+    state.character = {
+      name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
+      level: 1, xp: 0, currency: 0, currencyName: 'credits',
+      stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+      modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+      proficiencyBonus: 2, proficiencies: [], abilities: [],
+      inventory: [], conditions: [],
+      equipment: { weapon: 'Sword', armour: 'Chainmail' },
+    };
+    const paths = collectUnexpectedStatePaths(state);
+    expect(paths).not.toContain('character.equipment');
+  });
 });
 
 describe('stripUnknownStateKeys', () => {

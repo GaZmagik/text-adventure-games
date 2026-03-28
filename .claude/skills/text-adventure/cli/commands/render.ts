@@ -122,6 +122,7 @@ import { renderDialogue } from '../render/templates/dialogue';
 import { renderSettings } from '../render/templates/settings';
 import { renderScenarioSelect } from '../render/templates/scenario-select';
 import { renderCharacterCreation } from '../render/templates/character-creation';
+import { renderArcComplete } from '../render/templates/arc-complete';
 
 // ── Widget registry ──────────────────────────────────────────────────
 
@@ -147,6 +148,7 @@ const TEMPLATES: Record<string, TemplateFn> = {
   settings: renderSettings,
   'scenario-select': renderScenarioSelect,
   'character-creation': renderCharacterCreation,
+  'arc-complete': renderArcComplete,
 };
 
 /** Template registry keys — exported for parity testing in constants.spec.ts */

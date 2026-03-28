@@ -127,7 +127,7 @@ export const MUTATING_COMMANDS = new Set<string>([
 export const WIDGET_TYPE_NAMES = [
   'scene', 'ticker', 'character', 'dice', 'dice-pool', 'ship', 'crew', 'codex', 'map',
   'starchart', 'footer', 'save-div', 'levelup', 'recap', 'combat-turn',
-  'dialogue', 'settings', 'scenario-select', 'character-creation',
+  'dialogue', 'settings', 'scenario-select', 'character-creation', 'arc-complete',
 ] as const;
 
 export const PRE_GAME_WIDGETS = new Set<string>([
@@ -206,6 +206,7 @@ export const WIDGET_CSS_SCOPES: Record<string, readonly string[]> = {
   levelup: ['shared'],
   recap: ['shared', 'dice'],
   dialogue: ['shared'],
+  'arc-complete': ['shared'],
 };
 
 const PROSE_CRAFT_PATH = 'modules/prose-craft.md';

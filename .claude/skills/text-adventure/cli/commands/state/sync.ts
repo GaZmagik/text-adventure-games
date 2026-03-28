@@ -250,6 +250,16 @@ function checkPendingRolls(state: GmState, warnings: string[]): void {
   }
 }
 
+function checkRulebookSet(state: GmState, warnings: string[]): void {
+  if (state.scene < 1) return;
+  const rulebook = state.worldFlags.rulebook;
+  if (typeof rulebook === 'string' && rulebook.length > 0) return;
+  warnings.push(
+    'worldFlags.rulebook is not set — dice enforcement will not trigger. '
+    + 'Run `tag state set worldFlags.rulebook <system>` (e.g. d20_system, pf2e_lite, narrative_engine).',
+  );
+}
+
 function checkRollRatio(state: GmState, warnings: string[]): void {
   const rulebook = state.worldFlags.rulebook;
   if (typeof rulebook !== 'string' || NARRATIVE_RULEBOOKS.has(rulebook)) return;
@@ -303,6 +313,7 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
 
   checkPendingRolls(state, warnings);
   checkRollRatio(state, warnings);
+  checkRulebookSet(state, warnings);
 
   const featureChecklist = buildFeatureChecklist(state);
   const status = warnings.length > 0 ? 'warnings' : 'clean';
