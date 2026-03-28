@@ -19,9 +19,9 @@ describe('constants', () => {
       expect(VALID_TIERS).toContain(tier);
     }
   });
-  test('VALID_PRONOUNS contains she/her, he/him, they/them', () => {
-    expect(VALID_PRONOUNS).toHaveLength(3);
-    for (const p of ['she/her', 'he/him', 'they/them'] as Pronouns[]) {
+  test('VALID_PRONOUNS contains she/her, he/him, they/them, it/its', () => {
+    expect(VALID_PRONOUNS).toHaveLength(4);
+    for (const p of ['she/her', 'he/him', 'they/them', 'it/its'] as Pronouns[]) {
       expect(VALID_PRONOUNS).toContain(p);
     }
   });

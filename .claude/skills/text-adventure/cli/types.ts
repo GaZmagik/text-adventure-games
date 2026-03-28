@@ -14,7 +14,7 @@ export type StatBlock = {
 
 export type StatName = keyof StatBlock;
 
-export type Pronouns = 'she/her' | 'he/him' | 'they/them';
+export type Pronouns = 'she/her' | 'he/him' | 'they/them' | 'it/its';
 export type DispositionState = 'hostile' | 'suspicious' | 'neutral' | 'friendly' | 'allied' | 'bonded';
 export type BestiaryTier = 'minion' | 'rival' | 'nemesis';
 export type NpcStatus = 'active' | 'injured' | 'incapacitated' | 'missing' | 'defected' | 'dead';

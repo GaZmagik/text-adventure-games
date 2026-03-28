@@ -456,12 +456,12 @@ describe('state create-npc — negative paths', () => {
       'create-npc', 'npc1',
       '--name', 'Golem',
       '--tier', 'rival',
-      '--pronouns', 'it/its',
+      '--pronouns', 'xe/xem',
       '--role', 'construct',
     ]);
     expect(result.ok).toBe(false);
     expect(result.error!.message).toContain('Invalid pronouns');
-    expect(result.error!.message).toContain('it/its');
+    expect(result.error!.message).toContain('xe/xem');
   });
 });
 
@@ -560,7 +560,7 @@ describe('state create-npc — Phase 9 improved error messages', () => {
       'create-npc', 'npc_p9a',
       '--name', 'Golem',
       '--tier', 'rival',
-      '--pronouns', 'it/its',
+      '--pronouns', 'xe/xem',
       '--role', 'construct',
     ]);
     expect(result.ok).toBe(false);
