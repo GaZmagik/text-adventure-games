@@ -117,15 +117,36 @@ NEW GAME CHECKLIST
      both (rulebook, difficulty, pacing, style, atmosphere, audio, modules, AND
      name, class, stats, proficiencies, equipment). Apply ALL settings now.
 □ 12. Store character in state: `tag state set character '<json>'`
-□ 13. Set visual style: `tag state set visualStyle <style-name>`
+     Run `tag state schema character` to see the exact fields. Quick reference:
+     ```json
+     {"name":"...","class":"...","hp":10,"maxHp":10,"ac":12,"level":1,"xp":0,
+      "currency":0,"currencyName":"credits",
+      "stats":{"STR":10,"DEX":10,"CON":10,"INT":10,"WIS":10,"CHA":10},
+      "modifiers":{"STR":0,"DEX":0,"CON":0,"INT":0,"WIS":0,"CHA":0},
+      "proficiencyBonus":2,"proficiencies":[],"abilities":[],
+      "inventory":[{"name":"...","type":"weapon","slots":1,"description":"..."}],
+      "conditions":[],"equipment":{"weapon":"...","armour":"..."}}
+     ```
+     Common mistakes: `archetype` (not a field), `pronouns` (store in worldFlags),
+     `equipment` as array (must be `{weapon, armour}` object),
+     `inventory[].quantity` (not a field — use `slots`).
+□ 13. Set visual style AND rulebook: `tag state set visualStyle <style-name>`
+     Also run: `tag state set worldFlags.rulebook <system>` (e.g. d20_system).
+     Without this, dice enforcement never triggers.
 □ 14. Initialise storyArchitect (see modules/story-architect.md § Seeding Threads from carryForward)
 □ 15. Initialise worldHistory (see modules/world-history.md § Historical Epoch System)
 □ 16. ARC SETUP — Create ALL content for this arc BEFORE the first scene.
      This is a batch operation. Do NOT create NPCs, quests, or factions mid-arc.
      Plan the arc's full cast, key locations, faction dynamics, and quest structure,
-     then persist everything in one batch call:
+     then persist everything in one batch call.
+     Run `tag state schema quests.0` and `tag state schema factions` to check shapes. Quick reference:
+     - **Factions**: `{"faction_id": 0, "other_faction": 0}` — values are numbers (standing), NOT objects.
+     - **Quests**: `[{"id":"...","title":"...","status":"active","objectives":[{"id":"...","description":"...","completed":false}],"clues":[]}]`
+       No `type`, `text`, or `rewards` fields. Objectives use `description` not `text`.
+     - **NPC tiers**: `minion`, `rival`, `nemesis` only. No `ally` or `friendly` tier.
+     - **Time**: `{"period":"morning","date":"Day 1","elapsed":0,"hour":8,"playerKnowsDate":true,"playerKnowsTime":true,"calendarSystem":"standard","deadline":null}`
      ```
-     tag batch --commands "state set scene 1; state set currentRoom <starting_room>; state set time '<json>'; state create-npc <npc_1_id> --name '<name>' --tier <tier> --pronouns <p> --role <role>; state create-npc <npc_2_id> --name '<name>' --tier <tier> --pronouns <p> --role <role>; state create-npc <npc_3_id> --name '<name>' --tier <tier> --pronouns <p> --role <role>; state create-npc <npc_4_id> --name '<name>' --tier <tier> --pronouns <p> --role <role>; state set factions '<json>'; state set quests '<json>'; state set modulesActive '<json>'"
+     tag batch --commands "state set scene 1; state set currentRoom <room>; state set time '<json>'; state create-npc <id> --name '<name>' --tier <tier> --pronouns <p> --role <role>; state set factions '<json>'; state set quests '<json>'; state set worldFlags.rulebook <system>"
      ```
      Every NPC who will appear in this arc MUST be created here — not when
      they first enter a scene. This ensures stats, pronouns, and modifiers
