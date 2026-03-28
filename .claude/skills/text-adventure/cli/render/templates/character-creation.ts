@@ -43,6 +43,11 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
     : ['Athletics', 'Acrobatics', 'Stealth', 'Arcana', 'History', 'Investigation', 'Nature', 'Religion', 'Perception', 'Insight', 'Persuasion', 'Deception', 'Intimidation', 'Performance', 'Survival', 'Medicine', 'Animal Handling', 'Sleight of Hand'];
   const defaultName = typeof raw.defaultName === 'string' ? raw.defaultName : '';
 
+  // Name pool — injected by render.ts from names.md, or empty fallback
+  const namePoolRaw = (options?.namePool ?? {}) as Record<string, unknown>;
+  const givenNames: string[] = Array.isArray(namePoolRaw.given) ? namePoolRaw.given as string[] : [];
+  const surnames: string[] = Array.isArray(namePoolRaw.surname) ? namePoolRaw.surname as string[] : [];
+
   const archetypeCards = archetypes.map((arch, i) => {
     const desc = arch.description ?? arch.flavour ?? '';
     const statMap = arch.stats ?? arch.baseStats;
@@ -118,8 +123,34 @@ ${COMMON_WIDGET_CSS}
 
   <div class="widget-section">
     <div class="widget-label">Name</div>
-    <input class="name-input" id="char-name-input" type="text" placeholder="Enter character name..." value="${esc(defaultName)}" maxlength="80">
+    <div style="display:flex;gap:8px;align-items:center">
+      <input class="name-input" id="char-name-input" type="text" placeholder="Enter character name..." value="${esc(defaultName)}" maxlength="80" style="flex:1">
+      <button class="option-card" id="randomise-name" type="button" style="white-space:nowrap;flex-shrink:0" title="Generate a random name">Randomise</button>
+    </div>
     <span id="name-error" class="name-error" role="alert" style="display:none"></span>
+  </div>
+
+  <div class="widget-section">
+    <div class="widget-label">Pronouns</div>
+    <div class="option-grid" id="pronoun-grid">
+      <button class="option-card" data-pronouns="she/her" aria-pressed="false">she/her</button>
+      <button class="option-card" data-pronouns="he/him" aria-pressed="false">he/him</button>
+      <button class="option-card" data-pronouns="they/them" aria-pressed="false">they/them</button>
+      <button class="option-card" data-pronouns="custom" aria-pressed="false">Custom</button>
+    </div>
+    <div id="custom-pronouns" style="display:none;margin-top:8px;display:none;gap:8px;align-items:center">
+      <select id="pronoun-subject" class="name-input" style="width:auto;padding:8px 12px;font-size:12px">
+        <option value="he">he</option>
+        <option value="she">she</option>
+        <option value="they">they</option>
+      </select>
+      <span style="font-size:12px;color:var(--color-text-tertiary)">/</span>
+      <select id="pronoun-object" class="name-input" style="width:auto;padding:8px 12px;font-size:12px">
+        <option value="him">him</option>
+        <option value="her">her</option>
+        <option value="them">them</option>
+      </select>
+    </div>
   </div>
 
   ${archetypes.length > 0 ? `
@@ -143,6 +174,9 @@ ${COMMON_WIDGET_CSS}
 (function() {
   var selectedArchetype = -1;
   var selectedProfs = [];
+  var selectedPronouns = '';
+  var givenPool = ${JSON.stringify(givenNames)};
+  var surnamePool = ${JSON.stringify(surnames)};
 
   // Archetype selection — re-query bounded card set (max ~12 nodes) — standard radio-card deselection pattern
   document.querySelectorAll('.archetype-card').forEach(function(card) {
@@ -174,6 +208,47 @@ ${COMMON_WIDGET_CSS}
     });
   });
 
+  // Pronoun selection
+  document.querySelectorAll('#pronoun-grid .option-card').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('#pronoun-grid .option-card').forEach(function(b) {
+        b.classList.remove('selected');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      this.classList.add('selected');
+      this.setAttribute('aria-pressed', 'true');
+      var value = this.getAttribute('data-pronouns');
+      var customDiv = document.getElementById('custom-pronouns');
+      if (value === 'custom') {
+        customDiv.style.display = 'flex';
+        var subj = document.getElementById('pronoun-subject').value;
+        var obj = document.getElementById('pronoun-object').value;
+        selectedPronouns = subj + '/' + obj;
+      } else {
+        customDiv.style.display = 'none';
+        selectedPronouns = value;
+      }
+    });
+  });
+
+  // Custom pronoun dropdowns
+  document.getElementById('pronoun-subject').addEventListener('change', function() {
+    selectedPronouns = this.value + '/' + document.getElementById('pronoun-object').value;
+  });
+  document.getElementById('pronoun-object').addEventListener('change', function() {
+    selectedPronouns = document.getElementById('pronoun-subject').value + '/' + this.value;
+  });
+
+  // Randomise name
+  document.getElementById('randomise-name').addEventListener('click', function() {
+    if (givenPool.length > 0 && surnamePool.length > 0) {
+      var g = givenPool[Math.floor(Math.random() * givenPool.length)];
+      var s = surnamePool[Math.floor(Math.random() * surnamePool.length)];
+      document.getElementById('char-name-input').value = g + ' ' + s;
+    }
+    document.getElementById('name-error').style.display = 'none';
+  });
+
   // Clear name error on input
   document.getElementById('char-name-input').addEventListener('input', function() {
     document.getElementById('name-error').textContent = '';
@@ -192,7 +267,8 @@ ${COMMON_WIDGET_CSS}
     var payload = {
       name: name,
       archetypeIndex: selectedArchetype,
-      proficiencies: selectedProfs
+      proficiencies: selectedProfs,
+      pronouns: selectedPronouns || 'they/them'
     };
     var prompt = 'Create character: ' + JSON.stringify(payload);
     document.getElementById('creation-confirm').setAttribute('title', prompt);
