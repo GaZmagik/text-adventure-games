@@ -54,7 +54,8 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
     const stats = statMap
       ? Object.entries(statMap).map(([k, v]) => `<span class="arch-stat">${esc(k)} ${Number(v) || 0}</span>`).join(' ')
       : '';
-    const gear = arch.equipment ?? arch.abilities ?? [];
+    const rawGear = arch.equipment ?? arch.abilities ?? [];
+    const gear = rawGear.map(a => typeof a === 'string' ? a : (a && typeof a === 'object' && 'name' in a) ? String((a as Record<string, unknown>).name) : String(a));
     const gearHtml = gear.length > 0
       ? gear.map(a => `<span class="arch-ability">${esc(a)}</span>`).join(' ')
       : '';

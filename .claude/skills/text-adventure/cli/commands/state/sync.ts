@@ -321,10 +321,11 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
 
   if (apply) {
     // Block apply if scene widget was not verified — prevents advancing with stripped HTML
+    // Skip on first render (lastVerify === -1) since there's no previous scene to verify
     if (state.scene > 0) {
       let lastVerifyScene = -1;
       try { lastVerifyScene = Number(readFileSync(getVerifyMarkerPath(), 'utf-8').trim()); } catch { /* no marker */ }
-      if (lastVerifyScene < state.scene) {
+      if (lastVerifyScene >= 0 && lastVerifyScene < state.scene) {
         return fail(
           `Scene ${state.scene} has not been verified. Last verified: ${lastVerifyScene < 0 ? 'never' : `scene ${lastVerifyScene}`}.`,
           'Run `tag verify /tmp/scene.html` with your composed HTML before advancing. '
