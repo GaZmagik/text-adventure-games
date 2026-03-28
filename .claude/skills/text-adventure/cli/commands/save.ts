@@ -50,7 +50,7 @@ async function generate(): Promise<CommandResult> {
   const payload = { v: 1, mode: 'full', ...gameFields };
 
   const json = JSON.stringify(payload);
-  const code = 'SF2:' + btoa(json);
+  const code = 'SF2:' + Buffer.from(json, 'utf-8').toString('base64');
   const saveString = attachChecksum(code);
 
   return ok({

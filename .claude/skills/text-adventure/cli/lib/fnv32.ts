@@ -69,7 +69,7 @@ export function validateAndDecode(saveString: string): DecodeResult {
 
   try {
     // Try plain base64 first (works for SF2, SC1, and most SF1 saves)
-    const json = atob(encoded);
+    const json = Buffer.from(encoded, 'base64').toString('utf-8');
     const parsed: unknown = JSON.parse(json);
     if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
       return { valid: false, error: 'BAD_FORMAT' as const };
