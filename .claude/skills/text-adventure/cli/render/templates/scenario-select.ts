@@ -74,6 +74,9 @@ ${COMMON_WIDGET_CSS}
 .scenario-select-btn:hover { background: var(--ta-color-accent); color: var(--ta-btn-primary-text, #fff); }
 .scenario-select-btn:focus-visible { outline: 2px solid var(--ta-color-focus); outline-offset: 2px; }
 .empty-scenarios { font-size: 13px; color: var(--color-text-tertiary); text-align: center; padding: 40px; }
+@media (prefers-reduced-motion: reduce) {
+  .scenario-card, .scenario-select-btn { transition: none; }
+}
 </style>
 <div class="widget-scenario-select">
   <div class="widget-title">Choose Your Scenario</div>

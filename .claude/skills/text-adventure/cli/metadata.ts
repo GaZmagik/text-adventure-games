@@ -132,6 +132,7 @@ export const MUTATING_COMMANDS = new Set<string>([
   'compute',
   'quest',
   'export',
+  'verify',
 ]);
 
 export const WIDGET_TYPE_NAMES = [

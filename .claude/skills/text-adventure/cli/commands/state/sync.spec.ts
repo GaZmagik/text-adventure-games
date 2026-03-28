@@ -649,7 +649,7 @@ describe('state/sync edge cases', () => {
 
       const result = await handleSync([]);
       expect(result.ok).toBe(true);
-      const data = result.data as { warnings: string[] };
+      const data = result.data as { warnings: string[]; compactionDetected: boolean };
       expect(data.warnings.some(w =>
         w.includes('Compaction check skipped') && w.includes('outside allowed paths'),
       )).toBe(true);
@@ -666,7 +666,7 @@ describe('state/sync edge cases', () => {
 
       const result = await handleSync([]);
       expect(result.ok).toBe(true);
-      const data = result.data as { warnings: string[] };
+      const data = result.data as { warnings: string[]; compactionDetected: boolean };
       expect(data.warnings.some(w =>
         w.includes('Compaction check skipped') && w.includes('could not read'),
       )).toBe(true);
