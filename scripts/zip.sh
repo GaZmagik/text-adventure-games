@@ -9,6 +9,7 @@
 #   - bun.lock     (locks devDependencies only)
 #   - cli/tests/   (test support harness and fixtures)
 #   - node_modules (installed locally by setup.sh)
+#   - bunfig.toml  (dev-only bun test config)
 #   - .DS_Store    (macOS junk)
 
 set -euo pipefail
@@ -31,6 +32,8 @@ cd "$SKILL_DIR"
 zip -r "$OUTPUT" . \
 	-x "*.DS_Store" \
 	-x "*.spec.ts" \
+	-x "bunfig.toml" \
+	-x "cli/bunfig.toml" \
 	-x ".gitignore" \
 	-x ".tddignore" \
 	-x "bun.lock" \
