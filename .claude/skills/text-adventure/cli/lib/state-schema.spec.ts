@@ -4,6 +4,7 @@ import {
   collectUnexpectedStatePaths,
   stripUnknownStateKeys,
   validateStatePath,
+  describeStateShape,
 } from './state-schema';
 
 describe('collectUnexpectedStatePaths', () => {
@@ -65,6 +66,52 @@ describe('collectUnexpectedStatePaths', () => {
     };
     const paths = collectUnexpectedStatePaths(state);
     expect(paths).not.toContain('character.equipment');
+  });
+});
+
+describe('describeStateShape', () => {
+  test('describes top-level keys', () => {
+    const desc = describeStateShape('');
+    expect(desc).toContain('character');
+    expect(desc).toContain('quests');
+    expect(desc).toContain('worldFlags');
+    expect(desc).toContain('scene');
+  });
+
+  test('describes character shape with all fields', () => {
+    const desc = describeStateShape('character');
+    expect(desc).toContain('name');
+    expect(desc).toContain('class');
+    expect(desc).toContain('hp');
+    expect(desc).toContain('equipment');
+    expect(desc).toContain('weapon');
+    expect(desc).toContain('armour');
+    expect(desc).toContain('inventory');
+    expect(desc).toContain('proficiencies');
+  });
+
+  test('describes quest shape', () => {
+    const desc = describeStateShape('quests.0');
+    expect(desc).toContain('id');
+    expect(desc).toContain('title');
+    expect(desc).toContain('status');
+    expect(desc).toContain('objectives');
+    expect(desc).toContain('description');
+    expect(desc).toContain('completed');
+    expect(desc).toContain('clues');
+  });
+
+  test('describes inventory item shape', () => {
+    const desc = describeStateShape('character.inventory.0');
+    expect(desc).toContain('name');
+    expect(desc).toContain('type');
+    expect(desc).toContain('slots');
+    expect(desc).toContain('description');
+  });
+
+  test('returns error for invalid path', () => {
+    const desc = describeStateShape('nonexistent');
+    expect(desc).toContain('Unknown');
   });
 });
 

@@ -47,6 +47,7 @@ export const COMMAND_HELP: Record<TopLevelCommandName, CommandHelp> = {
       { name: 'reset', usage: 'tag state reset', description: 'Initialise a fresh empty game state', example: 'tag state reset' },
       { name: 'history', usage: 'tag state history [--limit <n>]', description: 'Show recent state mutations', example: 'tag state history --limit 5' },
       { name: 'context', usage: 'tag state context', description: 'Check module context — lists required files and module digests for recovery after compaction', example: 'tag state context' },
+      { name: 'schema', usage: 'tag state schema [dot.path]', description: 'Print the expected field shape at any state path — use before setting complex values to avoid trial-and-error', example: 'tag state schema character' },
       { name: 'sync', usage: 'tag state sync [--apply] [--scene N] [--room id]', description: 'Post-scene verification — checks module context, quest/worldFlag consistency, level-up eligibility. MANDATORY before every scene.', example: 'tag state sync --apply --scene 5 --room bridge' },
     ],
   },

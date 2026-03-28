@@ -10,9 +10,9 @@ import { VALID_TIERS, VALID_PRONOUNS, MAX_STATE_HISTORY, FORBIDDEN_KEYS, TIER1_M
 import { parseArgs } from '../../lib/args';
 import { MODULE_DIGESTS } from '../../data/module-digests';
 import { containsForbiddenKeys } from '../../lib/security';
-import { validateStatePath } from '../../lib/state-schema';
+import { validateStatePath, describeStateShape } from '../../lib/state-schema';
 
-const VALID_SUBCOMMANDS = ['get', 'set', 'create-npc', 'validate', 'reset', 'history', 'context', 'sync'] as const;
+const VALID_SUBCOMMANDS = ['get', 'set', 'create-npc', 'validate', 'reset', 'history', 'context', 'sync', 'schema'] as const;
 
 function isBestiaryTier(s: string): s is BestiaryTier {
   return (VALID_TIERS as readonly string[]).includes(s);
@@ -222,7 +222,7 @@ async function handleSet(args: string[]): Promise<CommandResult> {
     }
     return fail(
       `Mutation would produce invalid state: ${validation.errors.join('; ')}`,
-      `Check the value being set at "${path}" conforms to the state contract.`,
+      `Run \`tag state schema ${path}\` to see the expected fields.`,
       'state set',
     );
   }
@@ -318,7 +318,16 @@ async function handleValidate(): Promise<CommandResult> {
 async function handleReset(): Promise<CommandResult> {
   const state = createDefaultState();
   await saveState(state);
-  return ok({ message: 'State reset to defaults.' }, 'state reset');
+  return ok({
+    message: 'State reset to defaults.',
+    hint: 'Run `tag state schema <path>` to see expected field shapes (e.g. `tag state schema character`, `tag state schema quests.0`).',
+  }, 'state reset');
+}
+
+function handleSchema(args: string[]): CommandResult {
+  const path = args[0] ?? '';
+  const shape = describeStateShape(path);
+  return ok({ path: path || '(root)', shape }, 'state schema');
 }
 
 async function handleContext(): Promise<CommandResult> {
@@ -392,6 +401,8 @@ export async function handleState(args: string[]): Promise<CommandResult> {
       return handleHistory(args.slice(1));
     case 'context':
       return handleContext();
+    case 'schema':
+      return handleSchema(args.slice(1));
     case 'sync': {
       const { handleSync } = await import('./sync');
       return handleSync(args.slice(1));

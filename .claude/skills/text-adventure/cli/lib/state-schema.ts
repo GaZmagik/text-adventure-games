@@ -375,6 +375,63 @@ export function stripUnknownStateKeys(state: unknown): StripResult {
   };
 }
 
+/** Produce a human-readable description of the expected shape at a dot-path. */
+export function describeStateShape(path: string): string {
+  let current: StateShape = GM_STATE_SHAPE;
+
+  if (path) {
+    const parts = path.split('.');
+    for (const part of parts) {
+      const inner = unwrap(current);
+      if (inner.kind === 'leaf') return `Error: "${path}" is a leaf — no nested structure.`;
+      if (inner.kind === 'array') {
+        if (!/^\d+$/.test(part)) return `Error: "${part}" must be a numeric index in "${path}".`;
+        current = inner.item;
+        continue;
+      }
+      if (inner.kind === 'record') { current = inner.value; continue; }
+      if (inner.kind === 'object') {
+        const next = inner.props[part];
+        if (!next) return `Error: Unknown key "${part}" in "${path}". Valid keys: ${Object.keys(inner.props).join(', ')}`;
+        current = next;
+        continue;
+      }
+      return `Error: Cannot navigate "${path}".`;
+    }
+  }
+
+  return formatShape(unwrap(current), 0);
+}
+
+function formatShape(shape: UnwrappedStateShape, indent: number): string {
+  const pad = '  '.repeat(indent);
+  if (shape.kind === 'leaf') return 'value';
+  if (shape.kind === 'array') {
+    const inner = unwrap(shape.item);
+    if (inner.kind === 'leaf') return 'value[]';
+    return `[\n${formatShape(inner, indent + 1)}\n${pad}]`;
+  }
+  if (shape.kind === 'record') {
+    const inner = unwrap(shape.value);
+    if (inner.kind === 'leaf') return 'Record<string, value>';
+    return `Record<string, {\n${formatShape(inner, indent + 1)}\n${pad}}>`;
+  }
+  if (shape.kind === 'object') {
+    const lines = Object.entries(shape.props).map(([key, child]) => {
+      const inner = unwrap(child);
+      const isNullable = child.kind === 'nullable';
+      const desc = formatShape(inner, indent + 1);
+      const opt = isNullable ? '?' : '';
+      if (desc.includes('\n')) {
+        return `${pad}  ${key}${opt}: ${desc}`;
+      }
+      return `${pad}  ${key}${opt}: ${desc}`;
+    });
+    return `{\n${lines.join('\n')}\n${pad}}`;
+  }
+  return 'unknown';
+}
+
 export function validateStatePath(path: string): PathValidationResult {
   const trimmed = path.trim();
   if (!trimmed) {
