@@ -68,8 +68,12 @@ NEW GAME CHECKLIST
 □  6. Load required modules for the selected scenario and confirmed settings
 □  7. Read the active visual style file from styles/
 □  8. Read styles/style-reference.md for structural patterns
-□  9. Present Character Creation widget: run `tag render character-creation --data '<json>'`
-     The widget MUST embed confirmed settings as a hidden #game-settings div.
+□  9. Present Character Creation widget: run `tag render character-creation --data '<json>'` — do NOT hand-code HTML
+     The render pipeline embeds a 500+ name randomiser pool from data/names.md and
+     pronoun selection with custom subject/object dropdowns. Hand-written character
+     creation widgets will have NONE of this — names will be a tiny hardcoded list.
+     Pass the FULL tag render output to show_widget. Do NOT extract, summarise, or
+     rewrite any part of it.
 □ 10. Wait for player to confirm character — do NOT auto-generate without input
 □ 11. Parse settings AND character data from the confirm prompt — the prompt contains
      both (rulebook, difficulty, pacing, style, atmosphere, audio, modules, AND
