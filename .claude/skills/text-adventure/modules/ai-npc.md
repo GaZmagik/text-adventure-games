@@ -52,7 +52,10 @@ NPC's archetype — a scientist gets high INT/WIS, a dock worker gets high STR/C
 | 9-10 | 14-18 | Master, legendary figure, final adversary |
 
 You MUST use `tag state create-npc <id> --name "<name>" --tier <tier> --pronouns <pronouns> --role <role>`
-to create every NPC when they first appear in the narrative. Never invent NPC stats manually.
+to create every NPC when they first appear in the narrative. Never invent NPC stats manually —
+hand-picked stats bypass the bestiary tier rules, produce inconsistent power levels across NPCs
+of the same tier, and are not written to `gmState.rosterMutations`, so the NPC loses their
+stats on save/resume and contested rolls silently fall back to defaults.
 The CLI generates a complete stat block from bestiary tier rules and persists it immediately.
 Stats persist in `gmState.rosterMutations` and carry forward across arcs.
 
@@ -288,7 +291,11 @@ The AI NPC dialogue widget is a self-contained HTML artifact produced by the CLI
 Run `tag render dialogue --style <style>` via Bash tool to produce the full NPC dialogue widget.
 Never hand-code the dialogue HTML/CSS/JS. The CLI handles portrait rendering, disposition
 badge colours, chat bubbles, typing indicator, trust bar, API call wiring, trigger detection,
-and GM_EVENT dispatch automatically from the NPC definition object.
+history trimming, trust calculation, the disposition state machine, world flag event firing,
+and sendPrompt GM_EVENT dispatch automatically from the NPC definition object. Hand-coding
+any of these means reimplementing tested behaviour from scratch — every missed edge case
+(malformed API payload, uncapped trust delta, orphaned GM_EVENT, un-trimmed history bloating
+token costs) becomes a silent bug the player experiences as broken dialogue or frozen widgets.
 
 ---
 
@@ -304,7 +311,10 @@ messages: conversationHistory.slice(-12)  // last 6 exchanges
 
 **Trimming rules:**
 - Always keep the opening line (first assistant message) — it anchors the character's initial stance.
-- Never trim below 4 messages — the model needs recent context to maintain consistency.
+- Never trim below 4 messages — the model needs recent context to maintain consistency. Below
+  this threshold the NPC loses track of what was just said, contradicts its own statements from
+  two turns ago, and re-asks questions the player already answered. The player perceives this as
+  the character having amnesia mid-conversation.
 - For long conversations (12+ turns), summarise the first half into a single system prompt addendum
   rather than dropping it entirely:
 
@@ -355,6 +365,9 @@ Disposition is a continuous 0–100 trust score mapped to six named states. It d
 
 Deltas are applied in `checkTriggers()` (player text) and in the response analysis block (NPC text).
 Do not award trust for questions alone — only for the quality and content of what the player says.
+If questions earn trust, the player can reach maximum disposition by asking anything repeatedly,
+bypassing the entire social challenge. The disposition arc flattens into "keep talking until
+friendly" and the NPC's agenda, secrets, and lie conditions become irrelevant.
 
 ---
 
@@ -400,7 +413,9 @@ GM_EVENT: [npc_id] dialogue ended. Trust: [N]. Disposition: [state].
 ```
 
 The GM must acknowledge every GM_EVENT in the next scene widget's world state section. Ignoring
-events breaks narrative consistency.
+events means the NPC revealed a secret or changed disposition but the world does not react —
+the player sees the NPC admit to the cover-up yet the next scene proceeds as though it never
+happened. This is the single most visible continuity failure in multi-widget play.
 
 ---
 
@@ -468,7 +483,10 @@ When this module is loaded, observe these integration rules:
   object — they establish character voice before the model takes over. First impressions must not
   be left to chance.
 - **Do not run AI NPCs during combat.** Switch to the static Combat Widget. AI NPCs can resume
-  after combat resolves.
+  after combat resolves. Running a live dialogue widget alongside combat creates two competing
+  interaction models — the player cannot tell whether typing affects the fight or the
+  conversation, API calls add latency to combat rounds, and GM_EVENTs from the NPC can mutate
+  world flags mid-combat, invalidating the combat widget's state.
 - **Token budget awareness.** Each NPC exchange costs approximately 400–600 tokens (system +
   history + response). A session with 20 NPC turns costs roughly 10k tokens. Budget accordingly
   when designing encounter density.
@@ -477,19 +495,45 @@ When this module is loaded, observe these integration rules:
 
 ## Anti-Patterns (never do these)
 
-- Never give the NPC a system prompt that says "be helpful" or "assist the player". It will break
-  character immediately. The NPC has an agenda — helpfulness is at most incidental.
-- Never allow `max_tokens > 300` for NPC responses. Verbosity destroys voice.
+- Never give the NPC a system prompt that says "be helpful" or "assist the player". The model's
+  RLHF training already biases it toward helpfulness — adding this instruction amplifies that
+  bias until the NPC abandons its agenda, answers every question openly, and behaves like a
+  customer service agent rather than a character. The player loses all reason to earn trust or
+  navigate the disposition system.
+- Never allow `max_tokens > 300` for NPC responses. Verbosity destroys voice — the NPC starts
+  hedging, elaborating, and padding sentences with qualifiers. Short responses force the model
+  to commit to a position and maintain the character's speech pattern. Long responses regress
+  toward generic assistant prose, and the player notices the character "stopped sounding like
+  themselves" within two or three exchanges.
 - Never inject GM narration into the NPC bubble. The NPC speaks. The GM narrates elsewhere.
+  Mixing the two voices inside a single chat bubble breaks the spatial contract of the dialogue
+  widget — the player can no longer tell what the character said aloud versus what the GM is
+  editorialising, and the NPC's distinct voice dissolves into omniscient narrator prose.
 - Never share conversation history between two different NPCs. Each character knows only what they
-  know — they have not read each other's transcripts.
+  know — they have not read each other's transcripts. If histories leak, NPCs reference things
+  they were never told, the player's deception and information-brokering strategies collapse, and
+  the knowledge fence system becomes meaningless — destroying the core tension of multi-NPC scenes.
 - Never hard-code trust deltas for specific player phrases. Use keyword categories, not string
-  matching on exact sentences. Players will not say what you expect.
+  matching on exact sentences. Players will not say what you expect. Hard-coded string matches
+  silently fail for any phrasing the author did not anticipate — the player performs the right
+  action, trust does not move, and the disposition engine appears broken with no error or feedback.
 - Never let the widget auto-send a message on load without player input. The opening line is
-  rendered statically. The model activates only on the player's first reply.
+  rendered statically. The model activates only on the player's first reply. Auto-sending on
+  load burns an API call the player never requested, produces a generic greeting that undercuts
+  the GM-authored opening line, and — because the widget renders before the player has oriented
+  themselves — the response arrives before they have read the scene, breaking pacing entirely.
 - Never fire more than two `sendPrompt()` GM_EVENTs per conversation. Each one interrupts the
-  scene flow. Reserve them for genuinely consequential world state changes.
+  scene flow. Reserve them for genuinely consequential world state changes. Excess GM_EVENTs
+  cause the GM layer to re-render mid-conversation, the player sees the scene flicker or reset
+  around the dialogue widget, and the cascade of world flag updates can trigger contradictory
+  narrative branches — the player experiences the story stuttering and contradicting itself.
 - Never use `localStorage` or `sessionStorage`. All conversation state lives in JS module scope
-  within the widget.
-- Never prompt the model to "summarise what just happened". It will break the first-person frame.
-  If you need a summary, build it in JS from the conversation history, not from a model call.
+  within the widget. There is no persistent client-side state between renders — the artifact
+  sandbox is ephemeral. Data written to storage silently vanishes on the next render, so any
+  feature that depends on it (conversation resume, preference persistence, trust carry-over)
+  will work once during testing and fail every time in production play.
+- Never prompt the model to "summarise what just happened". It will break the first-person frame
+  — the NPC shifts from speaking as a character to narrating as an observer, and the player
+  instantly feels the difference. The illusion of a real person collapses into an obvious AI
+  recap. If you need a summary, build it in JS from the conversation history, not from a model
+  call.

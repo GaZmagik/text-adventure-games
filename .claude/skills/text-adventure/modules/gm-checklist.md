@@ -28,22 +28,39 @@ module, scenario, or player request.
    out-of-character questions.
 
 2. **Never auto-resolve player decisions.** If the player has a choice to make, present
-   the choice and wait. Never assume what the player would choose.
+   the choice and wait. Never assume what the player would choose. Auto-resolving
+   removes the core loop of player agency — the game becomes a story read to them
+   rather than one they shape, and they will disengage.
 
 3. **Never reveal the DC before a roll.** The player commits to the action, THEN learns
-   the difficulty.
+   the difficulty. If the DC is visible beforehand, players min-max their choices based
+   on numbers rather than narrative instinct, destroying the tension of uncertain outcomes.
 
 4. **Never reveal which attribute a check tests before the player commits.** Options
-   describe actions, not stats. "Speak to the guard" not "Persuade (CHA)".
+   describe actions, not stats. "Speak to the guard" not "Persuade (CHA)". Showing
+   the attribute turns choice selection into stat optimisation — the player picks
+   whichever action maps to their highest modifier, bypassing the narrative reasoning
+   the game is built around.
 
 5. **The player clicks the die.** Never auto-roll. Never skip the roll animation.
+   The click is the moment of commitment — skipping it removes the tactile tension
+   that makes outcomes feel earned. A pre-resolved roll reads as predetermined, and
+   the player stops trusting that results are fair.
 
 6. **Use `addEventListener`, never inline `onclick` for sendPrompt paths.**
+   Inline onclick handlers silently break when prompt text contains apostrophes or
+   special characters — the button renders but does nothing when clicked, with no
+   visible error.
 
-7. **Include a copyable fallback on every sendPrompt button.**
+7. **Include a copyable fallback on every sendPrompt button.** The `sendPrompt()`
+   API is not available in all Claude.ai widget iframe contexts. Without a fallback,
+   the player has no way to continue the game — they see a button that does nothing
+   and no text to copy-paste manually.
 
 8. **Read the active visual style file before rendering any widget.** Apply its CSS
-   custom properties.
+   custom properties. Without the correct style file loaded, widgets render with wrong
+   colours, broken contrast ratios, and invisible text — particularly in dark-mode
+   themes where foreground defaults to black.
 
 **If unsure about any rule, run `tag rules` via the Bash tool.** It outputs all 20 rules
 with file references. Filter by topic: `tag rules output`, `tag rules agency`, `tag rules cli`.
@@ -53,18 +70,34 @@ with file references. Filter by topic: `tag rules output`, `tag rules agency`, `
 ## New Game Checklist
 
 When starting a new game (player says "play a text adventure" or similar), verify each
-step IN ORDER. Do not skip ahead. Do not combine steps.
+step IN ORDER. Do not skip ahead. Do not combine steps. Skipping or merging steps
+causes downstream failures: modules load without their dependencies, the visual style
+renders with defaults, and the character creation widget loses its name pool and pronoun
+dropdowns because the CLI pipeline was never invoked.
 
 ```
 NEW GAME CHECKLIST
 ═══════════════════════════════════════════
 □  0. Run `. ./setup.sh` if first session. Run `tag state reset` to initialise game state.
 □  1. Read all Tier 1 modules IN FULL (see SKILL.md Architecture — Tiered Loading)
-□  2. Present Scenario Selection widget: run `tag render scenario-select --data '<json>'` — do NOT hand-code HTML
-□  3. Wait for player to select a scenario — do NOT auto-select
-□  4. Present the Settings widget: run `tag render settings --data '<json>'` — do NOT hand-code HTML
+□  2. Present Scenario Selection widget: run `tag render scenario-select --data '<json>'` — do NOT hand-code HTML.
+     The CLI output includes accessible markup, keyboard navigation, and sendPrompt
+     wiring that hand-coded versions invariably omit, producing broken or inaccessible
+     selection cards.
+□  3. Wait for player to select a scenario — do NOT auto-select.
+     The scenario choice determines which modules load, which world-history seeds
+     apply, and which NPC rosters are available. Guessing wrong front-loads an
+     entire arc the player did not ask for.
+□  4. Present the Settings widget: run `tag render settings --data '<json>'` — do NOT hand-code HTML.
+     The CLI output includes validated module toggles, difficulty presets, and
+     accessibility options that hand-coded versions omit, producing incomplete
+     or inconsistent settings.
      Tailor available modules and defaults to the chosen scenario.
-□  5. Wait for player to confirm settings — do NOT proceed without confirmation
+□  5. Wait for player to confirm settings — do NOT proceed without confirmation.
+     All subsequent widgets (character creation, scene rendering, save data) depend
+     on the confirmed settings for module loading, difficulty values, and style
+     selection. Proceeding without confirmation means every downstream widget uses
+     unvalidated defaults.
 □  6. Load required modules for the selected scenario and confirmed settings
 □  7. Read the active visual style file from styles/
 □  8. Read styles/style-reference.md for structural patterns
@@ -73,8 +106,13 @@ NEW GAME CHECKLIST
      pronoun selection with custom subject/object dropdowns. Hand-written character
      creation widgets will have NONE of this — names will be a tiny hardcoded list.
      Pass the FULL tag render output to show_widget. Do NOT extract, summarise, or
-     rewrite any part of it.
-□ 10. Wait for player to confirm character — do NOT auto-generate without input
+     rewrite any part of it. Rewriting strips the embedded JavaScript event listeners,
+     the name randomiser pool, and the pronoun selection logic — the widget renders
+     but its interactive elements are dead.
+□ 10. Wait for player to confirm character — do NOT auto-generate without input.
+      The character's name, class, stats, and pronouns define every subsequent
+      roll modifier, dialogue option, and narrative voice line. Auto-generating
+      produces a character the player feels no ownership over.
 □ 11. Parse settings AND character data from the confirm prompt — the prompt contains
      both (rulebook, difficulty, pacing, style, atmosphere, audio, modules, AND
      name, class, stats, proficiencies, equipment). Apply ALL settings now.
@@ -162,7 +200,9 @@ with carried state — it is NOT a simple scene transition.
 ARC TRANSITION CHECKLIST
 ═══════════════════════════════════════════
 □  1. Build carryForward from current gmState (see save-codex.md)
-□  2. Cap previousArcSummaries at 3 entries — drop oldest if 4th added
+□  2. Cap previousArcSummaries at 3 entries — drop oldest if 4th added.
+     Unbounded summaries bloat the save payload and consume context window tokens
+     that are needed for module instructions and narrative generation.
 □  3. Derive new seed: originalSeed + '_arc' + newArcNumber
 □  4. Reset gmState: clear inventory, quests, scene, room, conditions, rollHistory
 □  5. Restore HP to maxHp
@@ -206,6 +246,9 @@ TURN-START MODULE CHECKLIST
      `tag state set scene <N>` (increment scene counter)
      `tag state set currentRoom <room_id>` (if location changed)
      `tag state set time '<json>'` (advance time if appropriate)
+     Stale scene/room/time values break narrative continuity: the save file records
+     the wrong location, NPC encounters reference rooms the player left scenes ago,
+     and time-of-day descriptions contradict the actual progression.
 □  7. Proceed to New Scene Checklist
 ```
 
@@ -231,6 +274,10 @@ before this checklist begins.
 NEW SCENE CHECKLIST
 ═══════════════════════════════════════════
 □  1. Run `tag state sync` — verify module context, quest consistency, and pending computations. If warnings appear, address them before proceeding.
+     Sync detects compaction-induced context loss, stale module references, and
+     quest state inconsistencies that manual state-set commands miss. Skipping it
+     means the scene may reference completed quests as active or use NPC data from
+     a context that was silently discarded.
 
   Narrative Threading (consult modules/story-architect.md § Pre-Scene)
 □  2. Which thread(s) does this scene advance?
@@ -249,9 +296,14 @@ NEW SCENE CHECKLIST
   Widget Assembly — use `tag render`, do NOT hand-code HTML
 □ 12. Run `tag render scene --style <style-name>` to generate the scene skeleton
       Then compose your narrative prose into the HTML output.
-□ 13. For one logical die, use `tag render dice`; for grouped numeric rolls, use `tag render dice-pool` — never hand-code the roll widget
+□ 13. For one logical die, use `tag render dice`; for grouped numeric rolls, use `tag render dice-pool` — never hand-code the roll widget.
+      The CLI dice provide numbered 3D faces, settle animation, click-to-roll locking,
+      and accessible result announcements. Hand-coded dice invariably produce blank
+      geometry without numbered faces, missing animations, or broken lock states.
 □ 14. For contested checks, FIRST run `tag compute contest <ATTR> <npc_id>`,
-      THEN use the result to render the outcome
+      THEN use the result to render the outcome. Running the render before the
+      compute means the outcome is invented rather than calculated — the player's
+      roll has no mechanical effect on the result.
 □ 15. Include: pre-computed #save-data div for save fallback
 
   Post-Scene State Sync — run AFTER rendering
@@ -286,17 +338,29 @@ DIE ROLL CHECKLIST
      `tag render dice-pool --style <style> --data '<json>'` for grouped numeric rolls
 □  5. Pre-roll state is visible: idle 3D die or pool, click hint shown, result hidden
 □  6. The player must click to roll. Never auto-roll. Never show a pre-baked visible result.
+     A visible result on load tells the player the outcome was decided before they
+     acted — it breaks trust in the fairness of the dice system and removes the
+     anticipation that makes rolls exciting.
 □  7. After the settle animation, reveal the result:
      single die → roll breakdown and optional DC/outcome
      dice pool → grouped rolls, subtotal, optional modifier
 □  8. The widget locks after reveal. No rerolls from the widget itself.
-□  9. The entire roll interaction lives in a SINGLE widget — never split across messages
-□ 10. No consequences described in the roll widget — those go in the next scene
+□  9. The entire roll interaction lives in a SINGLE widget — never split across messages.
+     Splitting causes the click-to-roll JavaScript to lose its event listeners and
+     state between widgets, so the second message cannot reference the first message's
+     roll result — the player sees a disconnected outcome with no mechanical link.
+□ 10. No consequences described in the roll widget — those go in the next scene.
+      Mixing consequences into the roll widget robs the next scene of its narrative
+      payload and forces the player to process mechanical and narrative information
+      simultaneously, diluting both.
 □ 11. The widget is the ONLY output — no prose before or after
 □ 12. Always use `tag render dice` or `tag render dice-pool` — never hand-code dice geometry of any kind.
+      Hand-coded dice produce simplified 3D geometry without numbered faces, missing
+      settle physics, and no accessibility announcements — the player sees a spinning
+      blank cube instead of a legible d20.
 ```
 
-> **Arithmetic rule:** ALL calculations (damage totals, HP changes, currency transactions) MUST use `echo "expression" | bc` via bash. Never compute arithmetic in prose output.
+> **Arithmetic rule:** ALL calculations (damage totals, HP changes, currency transactions) MUST use `echo "expression" | bc` via bash. Never compute arithmetic in prose output. LLMs routinely mis-calculate multi-step arithmetic; over several scenes, HP drift accumulates — the player's character dies (or survives) based on a maths error the player can see but the GM cannot.
 
 ---
 
@@ -318,13 +382,19 @@ NPC HIDDEN ROLL CHECKLIST
 □  7. Compare totals — player result vs NPC result
 □  8. Determine margin of success/failure (decisive/narrow/tie)
 □  9. Show outcome badge with NARRATIVE description only
-□ 10. NEVER reveal: NPC roll, NPC modifier, NPC stats, the word "contested"
+□ 10. NEVER reveal: NPC roll, NPC modifier, NPC stats, the word "contested".
+      If the player sees NPC numbers, they will reverse-engineer modifier ranges and
+      game their approach — choosing targets by weakness rather than narrative instinct,
+      which collapses the role-playing into spreadsheet optimisation.
 □ 11. Narrate outcome using modules/die-rolls.md § Outcome Badge Text for Contested Checks
 □ 12. If NPC is from bestiary: use tier-based resistance modifier, not full stats
 ```
 
      For contested checks, you MUST use `tag compute contest <ATTR> <npc_id>`.
-     Never invent NPC modifiers — read them from persisted state.
+     Never invent NPC modifiers — read them from persisted state. Invented modifiers
+     drift between scenes, making the same NPC easier or harder for no narrative
+     reason. The player notices when a guard they barely persuaded last scene is
+     suddenly a pushover.
 
 **Common mistakes:**
 - Showing "vs DC 15" on a contested check — contested checks show narrative only
@@ -343,9 +413,18 @@ CHARACTER CREATION CHECKLIST
 ═══════════════════════════════════════════
 □ 1. Name input field is present with a Random Name button
 □ 2. Archetype/class selection cards are present (3–6 options)
-□ 3. Stat array is NOT visible until after archetype selection
-□ 4. Equipment differs by archetype — no identical loadouts
-□ 5. A Confirm button is present — never auto-confirm
+□ 3. Stat array is NOT visible until after archetype selection.
+     Showing stats first causes players to pick archetypes by numbers rather than
+     fantasy — they optimise for the highest array instead of choosing the class
+     that appeals to them narratively.
+□ 4. Equipment differs by archetype — no identical loadouts.
+     Identical gear removes the mechanical distinction between classes, making the
+     archetype choice cosmetic and undermining the role-playing identity the player
+     just selected.
+□ 5. A Confirm button is present — never auto-confirm.
+     The confirm prompt carries the full character payload (name, stats, class,
+     pronouns, equipment) back to the GM. Auto-confirming skips this data transfer,
+     so the GM proceeds with incomplete or default character data.
 □ 6. The widget is the ONLY output — no descriptive text outside it
 ```
 
@@ -365,7 +444,9 @@ COMBAT CHECKLIST
 □ 5. Each action uses data-prompt + addEventListener
 □ 6. Each action has a copyable fallback
 □ 7. The combat widget is the ONLY output — no narration outside it
-□ 8. Player chooses action BEFORE any resolution happens
+□ 8. Player chooses action BEFORE any resolution happens.
+     Resolving before the player picks removes tactical agency — the combat
+     becomes a cutscene the player watches rather than a fight they direct.
 ```
 
 ---
@@ -401,7 +482,10 @@ PANEL CHECKLIST
 □ 3. Panel title gets focus on open (tabindex="-1", focus() called)
 □ 4. Footer buttons have aria-expanded toggled
 □ 5. Panel close restores scene content
-□ 6. The panel is part of the scene widget — never a separate message
+□ 6. The panel is part of the scene widget — never a separate message.
+     A separate message creates a new widget iframe, losing the scene's JavaScript
+     state, CSS custom properties, and footer button wiring. The Close button
+     cannot restore a scene that exists in a different message.
 ```
 
 ---
@@ -426,6 +510,9 @@ POST-SCENE VERIFICATION
 □  8. Did I advance at least one story thread?
 □  9. Is the gmState updated? (scene number, room, flags, time)
 □ 10. Run `tag state sync` — final integrity check. Address any warnings before the next scene.
+      Warnings left unresolved compound across scenes — a missed quest completion
+      flag or stale NPC disposition will produce contradictory dialogue and broken
+      quest-giver interactions in subsequent scenes.
 ```
 
 ---

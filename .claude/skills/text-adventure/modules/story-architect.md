@@ -41,7 +41,12 @@ into the next arc. This is the narrative bridge between adventures.
 
 ### Marking Threads for Cross-Arc Carry
 
-Add `crossArc: true` to any thread that should persist across arc boundaries:
+Add `crossArc: true` to any thread that should persist across arc boundaries.
+Threads without this flag are force-resolved in the arc epilogue — the Story
+Architect will close them with a generic wrap-up beat, which means open plotlines
+the player expected to continue (a simmering conspiracy, an unresolved rivalry)
+are abruptly shut down. The player experiences this as a broken promise: narrative
+threads they invested in simply vanish at the arc boundary with no payoff.
 
 ```js
 {

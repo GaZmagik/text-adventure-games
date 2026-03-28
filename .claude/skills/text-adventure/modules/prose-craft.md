@@ -7,7 +7,11 @@ provides the craft rules that bridge conceptual guidance and actual output quali
 the difference between 80% and 95%+ effectiveness.
 
 **Read this module before every scene.** It is not background reading. It is a live
-checklist for every paragraph the GM writes inside a widget.
+checklist for every paragraph the GM writes inside a widget. Prose quality degrades
+rapidly without active context — within two or three scenes the GM drifts back to
+filter words, emotion labels, monotonous rhythm, and summarising tics. The checklist
+at the end of this module exists because these failures are invisible to the writer
+and obvious to the reader.
 
 Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: every module
 that generates narrative content (scenes, NPC dialogue, atmosphere descriptions,
@@ -19,7 +23,10 @@ prose discipline.
 ## The Cardinal Rule
 
 **Never comment on your own prose.** The narrative must never acknowledge that it is
-a narrative. The GM is invisible. The world simply *is*.
+a narrative. The GM is invisible. The world simply *is*. Meta-commentary shatters
+the fictional frame — the player stops experiencing the world and starts evaluating
+the writing. Once that shift happens it is almost impossible to recover within the
+same scene; the reader is now an editor, not an adventurer.
 
 Violations include:
 - Counting words or sentences: "He delivered his message in six words" (then writing
@@ -42,7 +49,10 @@ The reader should *experience* the world, not receive a report about it.
 
 ### Emotions
 
-Never name emotions. Show their physical manifestation.
+Never name emotions. Show their physical manifestation. A named emotion ("she was angry")
+is a closed door — the reader receives a label and moves on. A shown emotion ("her knuckles
+whitened around the cup handle") is an open one — the reader infers the feeling themselves
+and invests more deeply because the conclusion was theirs, not the narrator's.
 
 | Telling (forbidden) | Showing (required) |
 |---------------------|-------------------|
@@ -173,7 +183,10 @@ Every NPC must sound distinct. Differentiate through:
 ### "As You Know, Bob"
 
 Never have characters explain things both parties already know for the reader's
-benefit. If the reader needs context, deliver it through:
+benefit. When characters narrate shared knowledge aloud, the dialogue sounds
+artificial — the player instantly senses the characters are performing for an
+audience rather than speaking to each other, and every NPC in the scene loses
+credibility. If the reader needs context, deliver it through:
 - A character who genuinely doesn't know (the player)
 - Environmental detail (signs, documents, overheard conversation)
 - Brief narrator context woven into action
@@ -185,7 +198,11 @@ benefit. If the reader needs context, deliver it through:
 ### The Non-Visual Mandate
 
 Every scene must include at least one non-visual sense: sound, smell, temperature,
-texture, taste, proprioception. Visual-only scenes read like stage directions.
+texture, taste, proprioception. Visual-only scenes read like stage directions — a
+flat list of things the player can see but not inhabit. Non-visual detail is what
+makes a place feel real; without it the player processes the scene as a menu of
+objects rather than a space they are standing in, and tension drops because danger
+you can only see is less threatening than danger you can smell or feel.
 
 | Sense | Example |
 |-------|---------|
@@ -200,7 +217,11 @@ texture, taste, proprioception. Visual-only scenes read like stage directions.
 
 When writing scene prose from atmosphere data, pull two or three properties. Never
 all of them. One visual, one non-visual, one optional hazard hint. Over-describing
-atmosphere front-loads the scene and leaves nothing to discover.
+atmosphere front-loads the scene and leaves nothing to discover — the player has
+already been told everything about the room before they have made a single choice,
+so exploration feels redundant. Worse, when every sensory channel is saturated in
+the opening paragraph, later reveals have no unused senses to claim and land with
+diminished impact.
 
 ---
 
@@ -266,17 +287,29 @@ are never acceptable in narrative output.
 ### Forbidden Patterns
 
 - **Word/sentence counting** — Never claim a specific count of words, sentences,
-  or syllables. "Three words" followed by four words is embarrassing. The count
-  itself is meta-commentary regardless of accuracy.
+  or syllables. "Three words" followed by four words is embarrassing — LLMs cannot
+  reliably count tokens in their own output, so the number will frequently be wrong.
+  Even when the count is correct, the count itself is meta-commentary that violates
+  the Cardinal Rule and pulls the reader out of the fiction into arithmetic.
 - **Thesaurus syndrome** — Don't replace common words with obscure synonyms to
   sound literary. "Perambulated" instead of "walked", "conflagration" instead of
-  "fire." Use the word that fits the voice and setting.
-- **Cliché clustering** — Avoid stacking clichés: "time stood still", "the silence
+  "fire." Use the word that fits the voice and setting. Thesaurus syndrome breaks
+  immersion because the reader stops seeing the world and starts seeing the writer
+  reaching for impressive vocabulary — every overblown word is a small exit from
+  the fiction, and they accumulate faster than cliches.
+- **Cliche clustering** — Avoid stacking cliches: "time stood still", "the silence
   was deafening", "a chill ran down their spine", "all hell broke loose." One
-  cliché in a scene is tolerable if subverted. Two is negligence.
+  cliche in a scene is tolerable if subverted. Two is negligence. Cliches stack
+  multiplicatively, not additively — each one primes the reader to notice the next,
+  and by the third the prose reads as generic AI output rather than authored fiction.
+  The player disengages because the writing no longer feels like it was crafted for
+  their specific moment in the story.
 - **The summarising tic** — Don't end scenes or paragraphs with a line that
   summarises what just happened. "And so the journey continued." "The decision had
-  been made." Trust the reader. They were there.
+  been made." Trust the reader. They were there. A summarising line kills forward
+  momentum — the scene was building toward the next choice, and instead the narrator
+  steps in to close the chapter. The player feels the story pause unnecessarily, and
+  the emotional weight of the moment dissipates into a platitude.
 - **Symmetrical phrasing** — Avoid balanced constructions in every sentence:
   "The light faded and the darkness grew. The hope died and the fear took hold."
   Real prose has asymmetry.
@@ -284,7 +317,11 @@ are never acceptable in narrative output.
   determination should be visible in what she does, not announced before she does it.
 - **The portentous pause** — "And then — silence." "What came next would change
   everything." "But that was before they knew." These are narrative intrusions that
-  break immersion.
+  break immersion. They promise significance without delivering it — the reader
+  braces for a revelation that the prose has not yet earned, and when it arrives it
+  lands flat because the narrator already spoiled the weight of the moment. In an
+  interactive game this is doubly damaging: the player should discover significance
+  through their own choices, not have it announced in advance.
 - **Redundant perception** — "Looking up, she saw the stars." She can't see them
   without looking. "The stars" is sufficient.
 

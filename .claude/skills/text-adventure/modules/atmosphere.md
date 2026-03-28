@@ -62,7 +62,12 @@ it applies the appropriate particle class to the root widget element automatical
 When the scene context includes fire or electrical damage, `tag render scene` applies the
 `.atmo-sparks` particle effect automatically. When the location is an outdoor storm,
 `.atmo-rain` is applied. The GM selects the appropriate particle based on location and
-conditions. Only one particle type per scene — never stack multiple.
+conditions. Only one particle type per scene — never stack multiple. Stacking
+particle classes (e.g. `.atmo-rain` and `.atmo-dust` on the same element) causes
+competing `@keyframes` and pseudo-element conflicts that produce visual chaos:
+overlapping animation layers, z-index fights, and severe frame-rate drops on
+low-powered devices. The narrative text becomes unreadable behind a wall of
+tangled particles, and the player's first instinct will be to disable effects entirely.
 
 ---
 

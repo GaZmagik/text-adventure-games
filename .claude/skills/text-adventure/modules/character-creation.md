@@ -184,9 +184,9 @@ the same theme-appropriate logic.
 ## Anti-Patterns
 
 - Never auto-generate a character without player input — the player chooses their archetype and name.
-- Never reveal the full stat array before archetype selection — show it after, as a reveal.
-- Never use the same starting equipment across all archetypes — differentiation matters.
+- Never reveal the full stat array before archetype selection — show it after, as a reveal. If the player sees all six numbers up front, the moment of discovery when their chosen archetype's strengths and weaknesses materialise is lost; the stat block becomes a spreadsheet they already read rather than a character they are meeting for the first time.
+- Never use the same starting equipment across all archetypes — differentiation matters. If every archetype starts with identical gear, the archetypes feel interchangeable; the player's choice carries no mechanical weight, and the first inventory check reveals nothing unique about the character they built.
 - Never skip the confirmation button — the player must explicitly approve their character.
-- Never hard-code scenario-specific names into the archetype table — always adapt to theme.
+- Never hard-code scenario-specific names into the archetype table — always adapt to theme. If a fantasy scenario presents "Security Officer" or a cyberpunk scenario presents "Knight", the anachronism breaks theme immersion immediately; the player sees a generic template rather than a world that was built for them.
 - Never present more than 6 archetypes at once — choice paralysis diminishes the experience.
   If the theme demands more variety, present 6 and offer "Show more options" as a secondary action.

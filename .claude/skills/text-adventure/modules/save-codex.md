@@ -177,6 +177,11 @@ conversation artifact.
 
 The GM **must** run `tag save generate` via the Bash tool to produce the save payload.
 Never hand-code save encoding, checksums, or base64. The CLI handles all of this.
+Manual encoding produces incorrect FNV-1a checksums — the load command will reject the
+save as corrupt, and the player will be unable to resume their session. Even if the
+checksum happens to pass, hand-built base64 frequently drops fields or mis-compresses
+keys, causing silent data loss (missing inventory, reset faction standings, lost story
+threads) that only surfaces mid-session when the damage is irreversible.
 
 When the player clicks Save, the scene widget fires a `sendPrompt()` that instructs the
 GM to:

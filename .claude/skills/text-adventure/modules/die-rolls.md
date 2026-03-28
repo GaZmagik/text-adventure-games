@@ -19,7 +19,7 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: core-syst
 | Hazard save | `tag compute hazard <ATTR> --dc <N>` | Run via Bash tool |
 | Random encounter | `tag compute encounter --escalation <N>` | Run via Bash tool |
 
-> **All die roll widgets are rendered via the `tag` CLI.** The GM must never hand-code HTML, CSS, or JS for dice. Use `tag render dice` for one logical die and `tag render dice-pool` for grouped numeric rolls on one shared canvas.
+> **All die roll widgets are rendered via the `tag` CLI.** The GM must never hand-code HTML, CSS, or JS for dice — hand-coded dice invariably omit the WebGL renderer, quaternion-based landing animation, collision detection, and deterministic seeding that the CLI template provides; the result is a flat, non-interactive placeholder that the player cannot click to roll. Use `tag render dice` for one logical die and `tag render dice-pool` for grouped numeric rolls on one shared canvas.
 
 ---
 
@@ -140,7 +140,7 @@ Show:
 - No visible result text
 
 Do **not** reveal the visible outcome before the click. The widget must not show a
-pre-baked rolled face, total, or outcome badge.
+pre-baked rolled face, total, or outcome badge. If the result is visible before the player clicks, the moment of uncertainty — the entire reason the widget exists — is removed, and the roll becomes a formality the player has no reason to engage with.
 
 ### Roll
 
@@ -158,7 +158,7 @@ After the settle animation:
 2. If a DC was supplied, reveal the DC and outcome badge now
 3. Lock the widget so the result cannot be rerolled
 
-No consequences are described in the die widget itself. Continue the narrative in the next
+No consequences are described in the die widget itself — outcome delivery must come after the roll, in the next scene or follow-up widget. If consequences appear inside the die widget, the player reads the narrative outcome before they have finished processing the number, collapsing the dramatic beat into a single glance and robbing the result of its weight. Continue the narrative in the next
 scene or follow-up widget.
 
 ---
@@ -262,7 +262,7 @@ Beyond the table, maintain tension through:
   resolve. A persuasion check against a suspicious NPC is not DC 15; it is your CHA vs
   their WIS.
 - **Stacking pressure** — never let modified totals routinely exceed 20. If they do, the
-  difficulty curve is broken. Introduce harder challenges, not bigger bonuses.
+  difficulty curve breaks: the DC table tops out at 25, so a player rolling 20+ before the die even lands will pass nearly every check automatically, rolls become meaningless confirmation clicks, and all tension drains from the adventure. Introduce harder challenges, not bigger bonuses.
 
 ---
 
@@ -275,7 +275,7 @@ handoff. They end on a locked result state.
 - Let the player click and see the result
 - Then continue play in the next scene/widget as needed
 
-Do not hand-code a second roll interaction into the dice widget itself.
+Do not hand-code a second roll interaction into the dice widget itself. Embedding a second roll breaks the single-widget pattern the CLI enforces, doubles the inline JS payload (pushing toward the token budget ceiling), and creates an untested code path with no animation, seeding, or lock-after-reveal guarantee.
 
 ---
 
@@ -365,20 +365,20 @@ For mixed or repeated numeric rolls on one shared canvas, use `tag render dice-p
 tag render dice-pool --style terminal --data '{"label":"Storm Volley","pool":[{"dieType":"d6","count":2},{"dieType":"d8","count":2},{"dieType":"d10","count":3},{"dieType":"d20","count":1}],"modifier":4}'
 ```
 
-The GM must never hand-code WebGL, canvas elements, or dice HTML. Always use the CLI command.
+The GM must never hand-code WebGL, canvas elements, or dice HTML. Hand-coded dice consistently omit quaternion-based tumble animation, the texture atlas for numbered faces, opposite-face pairing, and the lock-after-reveal state machine — producing a bare geometric shape with no visible numbers that the player cannot meaningfully interact with. Always use the CLI command.
 
 ---
 
 ## Anti-Patterns
 
-- Never reveal which attribute a check will test before the player commits to an action.
-- Never auto-roll — the player must click the roll button.
-- Never pre-fill the visible result or pre-determine the shown face before the click.
-- Never describe consequences in the roll widget — use the outcome widget.
-- Never reveal the DC before the roll — only after, during the resolve stage.
-- Never skip the animation stage — the moment of uncertainty is part of the experience.
-- Never offer rerolls from the widget itself — the current dice widgets are one-shot and lock after reveal.
-- Never let the same attribute dominate the checks across an entire act.
-- Never hand-code HTML, CSS, or JS for dice widgets — use `tag render dice` or `tag render dice-pool` via the Bash tool.
-- Never label action options with the attribute they test (e.g., "Persuade (CHA)").
-- Never let modified totals routinely exceed 20 without escalating DCs.
+- Never reveal which attribute a check will test before the player commits to an action. If the player knows which stat is being tested, they will always pick the option that targets their highest modifier — eliminating meaningful choice and turning every decision into arithmetic.
+- Never auto-roll — the player must click the roll button. An auto-rolled result robs the player of agency; they see a number they had no part in triggering, which feels like reading someone else's story rather than playing their own.
+- Never pre-fill the visible result or pre-determine the shown face before the click. If the face is visible before the click, the tumble animation is cosmetic theatre over a known outcome — the player notices immediately and disengages.
+- Never describe consequences in the roll widget — use the outcome widget. Embedding narrative consequences alongside the number collapses two distinct dramatic beats (the result and its meaning) into one, and the player skims past both.
+- Never reveal the DC before the roll — only after, during the resolve stage. If the player sees the DC first, they can calculate their odds before clicking; a roll they know they will probably pass (or certainly fail) carries no suspense.
+- Never skip the animation stage — the moment of uncertainty is part of the experience. Without the tumble-and-settle animation, the result appears instantly and the roll feels like a static label rather than a physical event the player participated in.
+- Never offer rerolls from the widget itself — the current dice widgets are one-shot and lock after reveal. A reroll button inside the widget bypasses the lock-after-reveal state machine, creates an untested second interaction path, and teaches the player that bad rolls are disposable rather than consequential.
+- Never let the same attribute dominate the checks across an entire act. If one attribute carries every check, players who dumped that stat face a wall of failures while those who invested in it breeze through — both outcomes flatten the drama and waste the other five attributes entirely.
+- Never hand-code HTML, CSS, or JS for dice widgets — use `tag render dice` or `tag render dice-pool` via the Bash tool. Hand-coded widgets omit the ~16KB WebGL renderer, numbered-face texture atlas, quaternion animation, and lock state machine; the player receives a non-functional or visually broken placeholder.
+- Never label action options with the attribute they test (e.g., "Persuade (CHA)"). Labelling turns narrative choices into stat optimisation — the player stops reading the fiction and starts scanning for the highest modifier, defeating the purpose of the hidden attribute rule.
+- Never let modified totals routinely exceed 20 without escalating DCs. When modifiers push totals past 20, the DC table (which caps at 25) can no longer create meaningful failure chances — every roll becomes a guaranteed success and the dice are reduced to a loading animation with no stakes.

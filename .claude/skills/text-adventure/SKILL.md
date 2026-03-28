@@ -229,7 +229,7 @@ For narrative prose, NPC dialogue text, and creative decisions, use your own jud
 with file/line pointers. Filter by topic: `tag rules output`, `tag rules agency`,
 `tag rules cli`, `tag rules prose`, `tag rules technical`.
 
-> **MANDATORY:** At the start of every scene, run `tag state sync`. No exceptions. This checks module context, quest/worldFlag consistency, level-up eligibility, and pending computation. Run it BEFORE `tag render scene`.
+> **MANDATORY:** At the start of every scene, run `tag state sync`. No exceptions. Sync catches quest-state inconsistencies (completed objectives still marked active), missed level-ups (XP threshold crossed but level not incremented), pending computation from prior rolls, stale NPC room assignments, and module context drift after compaction. If you skip sync, `tag render` will refuse to produce output, and even if you bypass that guard, the rendered widget will show wrong quest progress, miss level-up celebrations, and display NPCs in rooms they have already left — all visible to the player. Run it BEFORE `tag render scene`.
 
 ### Worked Example — Typical Scene Turn
 
