@@ -23,7 +23,8 @@ export function renderScenarioSelect(_state: GmState | null, css: string, option
 
   const cards = scenarios.map((scenario) => {
     const desc = scenario.description ?? scenario.hook ?? '';
-    const genres = scenario.genre ?? scenario.genres ?? [];
+    const rawGenres = scenario.genres ?? scenario.genre ?? [];
+    const genres = Array.isArray(rawGenres) ? rawGenres : [rawGenres];
     const genrePills = genres.map(g =>
       `<span class="genre-pill">${esc(g)}</span>`,
     ).join(' ');
