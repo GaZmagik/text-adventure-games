@@ -123,6 +123,20 @@ ${COMMON_WIDGET_CSS}
   var selections = ${serialiseInlineScriptData(defaults)};
   var selectedModules = [];
 
+  // Pre-check default active modules from selections
+  if (Array.isArray(selections.activeModules)) {
+    selections.activeModules.forEach(function(mod) {
+      var btn = document.querySelector('.module-card[data-value="' + mod + '"]');
+      if (btn) {
+        selectedModules.push(mod);
+        btn.classList.add('selected');
+        btn.setAttribute('aria-pressed', 'true');
+        var check = btn.querySelector('.module-check');
+        if (check) check.classList.add('checked');
+      }
+    });
+  }
+
   // Single-select groups
   document.querySelectorAll('.option-card:not(.module-card)').forEach(function(btn) {
     btn.addEventListener('click', function() {
