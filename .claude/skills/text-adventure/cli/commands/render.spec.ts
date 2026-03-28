@@ -17,7 +17,11 @@ const originalEnv = process.env.TAG_STATE_DIR;
 beforeEach(() => {
   tempDir = mkdtempSync(join(tmpdir(), 'tag-render-test-'));
   process.env.TAG_STATE_DIR = tempDir;
-  writeFileSync(join(tempDir, '.last-sync'), '999', 'utf-8'); // sync gate pass
+  // Sync gate: write a properly signed marker so render doesn't block
+  // State doesn't exist yet at beforeEach time, so we sign with empty JSON
+  // and the render gate will pass because scene 999 >= any test scene
+  const { signMarker } = require('./verify');
+  writeFileSync(join(tempDir, '.last-sync'), signMarker(999, '{}'), 'utf-8');
 });
 
 afterEach(() => {

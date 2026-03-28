@@ -11,7 +11,7 @@ import { XP_THRESHOLDS } from '../../data/xp-tables';
 import { containsForbiddenKeys } from '../../lib/security';
 import { buildFeatureChecklist } from '../../metadata';
 import { recordHistory } from './index';
-import { getVerifyMarkerPath } from '../verify';
+import { getVerifyMarkerPath, readSignedMarker } from '../verify';
 
 const VALID_TIME_KEYS = new Set<string>([
   'period', 'date', 'elapsed', 'hour',
@@ -320,11 +320,10 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
   const status = warnings.length > 0 ? 'warnings' : 'clean';
 
   if (apply) {
-    // Block apply if scene widget was not verified — prevents advancing with stripped HTML
+    // Block apply if scene widget was not verified — signed marker prevents forgery via echo
     // Skip on first render (lastVerify === -1) since there's no previous scene to verify
     if (state.scene > 0) {
-      let lastVerifyScene = -1;
-      try { lastVerifyScene = Number(readFileSync(getVerifyMarkerPath(), 'utf-8').trim()); } catch { /* no marker */ }
+      const lastVerifyScene = readSignedMarker(getVerifyMarkerPath());
       if (lastVerifyScene >= 0 && lastVerifyScene < state.scene) {
         return fail(
           `Scene ${state.scene} has not been verified. Last verified: ${lastVerifyScene < 0 ? 'never' : `scene ${lastVerifyScene}`}.`,
@@ -378,7 +377,8 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
 
     recordHistory(state, 'state sync', 'sync', null, diff);
     await saveState(state);
-    await Bun.write(getSyncMarkerPath(), String(state.scene));
+    const { signMarker } = await import('../verify');
+    await Bun.write(getSyncMarkerPath(), signMarker(state.scene));
   }
 
   return ok({

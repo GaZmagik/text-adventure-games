@@ -12,7 +12,8 @@ const originalEnv = process.env.TAG_STATE_DIR;
 beforeEach(() => {
   tempDir = mkdtempSync(join(tmpdir(), 'tag-render-smoke-'));
   process.env.TAG_STATE_DIR = tempDir;
-  writeFileSync(join(tempDir, '.last-sync'), '999', 'utf-8');
+  const { signMarker } = require('../../commands/verify');
+  writeFileSync(join(tempDir, '.last-sync'), signMarker(999), 'utf-8');
 });
 
 afterEach(() => {

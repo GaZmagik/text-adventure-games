@@ -12,7 +12,8 @@ const originalEnv = process.env.TAG_STATE_DIR;
 beforeEach(() => {
   tempDir = mkdtempSync(join(tmpdir(), 'tag-verify-test-'));
   process.env.TAG_STATE_DIR = tempDir;
-  writeFileSync(join(tempDir, '.last-sync'), '999', 'utf-8');
+  const { signMarker } = require('./verify');
+  writeFileSync(join(tempDir, '.last-sync'), signMarker(999), 'utf-8');
 });
 
 afterEach(() => {
@@ -136,7 +137,9 @@ describe('tag verify', () => {
     await handleVerify([filePath]);
     const markerPath = getVerifyMarkerPath();
     expect(existsSync(markerPath)).toBe(true);
-    expect(readFileSync(markerPath, 'utf-8').trim()).toBe('1');
+    const marker = readFileSync(markerPath, 'utf-8').trim();
+    expect(marker.startsWith('1:')).toBe(true);
+    expect(marker.split(':').length).toBeGreaterThanOrEqual(3);
   });
 
   test('does not write marker on failure', async () => {

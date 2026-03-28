@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import type { CommandResult, GmState } from '../types';
 import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState } from '../lib/state-store';
+import { fnv32 } from '../lib/fnv32';
 /** Module-to-panel mapping — must stay in sync with scene.ts and footer.ts. */
 const MODULE_PANEL_MAP: Record<string, string> = {
   'lore-codex': 'codex',
@@ -16,6 +17,34 @@ const MODULE_PANEL_MAP: Record<string, string> = {
   'geo-map': 'map',
   'core-systems': 'quests',
 };
+
+/** Compute a signed marker that's impractical to forge via echo.
+ *  Format: scene:timestamp:fnv32('tag-cli-gate:' + scene + ':' + timestamp)
+ *  Plain `echo "1"` fails validation (wrong format). Forging requires knowing the
+ *  salt string and computing fnv32 with the exact timestamp — more effort than
+ *  just running the command. */
+export function signMarker(scene: number, _stateJSON?: string): string {
+  const ts = Date.now();
+  return `${scene}:${ts}:${fnv32('tag-cli-gate:' + scene + ':' + ts)}`;
+}
+
+/** Validate a signed marker. Returns the scene number or -1 if invalid/forged.
+ *  Checks: 3-part format, valid scene, valid timestamp, hash matches. */
+export function readSignedMarker(markerPath: string, _stateJSON?: string): number {
+  try {
+    const raw = readFileSync(markerPath, 'utf-8').trim();
+    const parts = raw.split(':');
+    if (parts.length < 3) return -1; // Plain "1" or "999" rejected
+    const scene = Number(parts[0]);
+    const ts = parts[1]!;
+    const hash = parts.slice(2).join(':');
+    if (Number.isNaN(scene) || !ts || !hash) return -1;
+    const expected = fnv32('tag-cli-gate:' + scene + ':' + ts);
+    return hash === expected ? scene : -1;
+  } catch {
+    return -1;
+  }
+}
 
 /** Minimum CSS character count — a full tag render scene produces ~40K+ of CSS. */
 const MIN_CSS_CHARS = 5000;
@@ -195,9 +224,9 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
   const TOTAL_CHECKS = 12;
   const passed = failures.length === 0;
 
-  // Write marker on success
+  // Write signed marker on success — hash includes timestamp to prevent forgery via echo
   if (passed) {
-    writeFileSync(getVerifyMarkerPath(), String(state.scene), 'utf-8');
+    writeFileSync(getVerifyMarkerPath(), signMarker(state.scene), 'utf-8');
   }
 
   return ok({

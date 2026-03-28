@@ -1,5 +1,5 @@
 import { join } from 'node:path';
-import { readFileSync } from 'node:fs';
+import { readSignedMarker } from './verify';
 import type { CommandResult, GmState, PendingRoll, StatName } from '../types';
 import { ok, fail, styleNotSet } from '../lib/errors';
 import { tryLoadState, saveState, getSyncMarkerPath } from '../lib/state-store';
@@ -236,14 +236,13 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     );
   }
 
-  // Sync gate — in-game widgets require sync to have been run for the current scene
+  // Sync gate — in-game widgets require sync to have been run for the current scene (signed marker)
   if (!isPreGame && state) {
-    let lastSyncScene = -1;
-    try { const raw = Number(readFileSync(getSyncMarkerPath(), 'utf-8').trim()); lastSyncScene = Number.isNaN(raw) ? -1 : raw; } catch { /* no marker */ }
+    const lastSyncScene = readSignedMarker(getSyncMarkerPath());
     if (lastSyncScene < state.scene) {
       return fail(
         `State sync required before rendering scene ${state.scene}. Last sync: ${lastSyncScene < 0 ? 'never' : `scene ${lastSyncScene}`}.`,
-        'Run `tag state sync` (or `tag state sync --apply`) before rendering.',
+        'Run `tag state sync --apply` before rendering.',
         'render',
       );
     }
@@ -449,6 +448,11 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
       requiredElements,
       ...(skeleton !== null ? { skeleton } : {}),
       ...(cssManifest !== null ? { cssManifest } : {}),
+      verifyRequired: {
+        instruction: 'MANDATORY: After composing narrative into this HTML, save to a file and run `tag verify /tmp/scene.html` BEFORE passing to show_widget.',
+        consequence: 'tag state sync --apply will REFUSE to advance to the next scene if verify has not been run. The verify marker is cryptographically signed — writing the marker file manually will not work.',
+        command: 'tag verify /tmp/scene_final.html',
+      },
     },
     'render',
   );
