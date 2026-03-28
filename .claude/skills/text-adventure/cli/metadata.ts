@@ -9,7 +9,8 @@ export type TopLevelCommandName =
   | 'quest'
   | 'batch'
   | 'rules'
-  | 'export';
+  | 'export'
+  | 'verify';
 
 export type SubcommandHelp = {
   name: string;
@@ -33,6 +34,7 @@ export const TOP_LEVEL_COMMANDS = [
   'batch',
   'rules',
   'export',
+  'verify',
 ] as const satisfies readonly TopLevelCommandName[];
 
 export const COMMAND_HELP: Record<TopLevelCommandName, CommandHelp> = {
@@ -113,6 +115,13 @@ export const COMMAND_HELP: Record<TopLevelCommandName, CommandHelp> = {
       { name: 'generate', usage: 'tag export generate', description: 'Generate a .lore.md from current game state with NPC roster, factions, quests, and embedded LF1 payload', example: 'tag export generate' },
       { name: 'load', usage: 'tag export load <file.lore.md>', description: 'Load a .lore.md file and apply its mechanical data to game state', example: 'tag export load /path/to/world.lore.md' },
       { name: 'validate', usage: 'tag export validate <file.lore.md>', description: 'Validate a .lore.md payload without applying it', example: 'tag export validate /path/to/world.lore.md' },
+    ],
+  },
+  verify: {
+    command: 'tag verify',
+    description: 'Validate composed scene HTML before show_widget. Checks footer buttons, panels, scene-meta, narrative, CSS, action cards. Blocks tag state sync until verification passes.',
+    subcommands: [
+      { name: '<file>', usage: 'tag verify /tmp/scene_final.html', description: 'Verify composed HTML file against current game state. Writes .last-verify marker on success.', example: 'tag verify /tmp/scene1.html' },
     ],
   },
 };

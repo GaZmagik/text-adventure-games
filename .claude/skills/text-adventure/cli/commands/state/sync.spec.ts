@@ -12,6 +12,8 @@ const originalEnv = process.env.TAG_STATE_DIR;
 beforeEach(() => {
   tempDir = mkdtempSync(join(tmpdir(), 'tag-test-'));
   process.env.TAG_STATE_DIR = tempDir;
+  // Satisfy verify gate for tests that use --apply
+  writeFileSync(join(tempDir, '.last-verify'), '999', 'utf-8');
 });
 
 afterEach(() => {

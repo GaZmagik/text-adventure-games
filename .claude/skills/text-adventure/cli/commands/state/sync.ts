@@ -1,4 +1,4 @@
-import { readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { homedir, tmpdir } from 'node:os';
 import type { CommandResult, GmState, TimeState, RollType } from '../../types';
@@ -11,6 +11,7 @@ import { XP_THRESHOLDS } from '../../data/xp-tables';
 import { containsForbiddenKeys } from '../../lib/security';
 import { buildFeatureChecklist } from '../../metadata';
 import { recordHistory } from './index';
+import { getVerifyMarkerPath } from '../verify';
 
 const VALID_TIME_KEYS = new Set<string>([
   'period', 'date', 'elapsed', 'hour',
@@ -319,6 +320,20 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
   const status = warnings.length > 0 ? 'warnings' : 'clean';
 
   if (apply) {
+    // Block apply if scene widget was not verified — prevents advancing with stripped HTML
+    if (state.scene > 0) {
+      let lastVerifyScene = -1;
+      try { lastVerifyScene = Number(readFileSync(getVerifyMarkerPath(), 'utf-8').trim()); } catch { /* no marker */ }
+      if (lastVerifyScene < state.scene) {
+        return fail(
+          `Scene ${state.scene} has not been verified. Last verified: ${lastVerifyScene < 0 ? 'never' : `scene ${lastVerifyScene}`}.`,
+          'Run `tag verify /tmp/scene.html` with your composed HTML before advancing. '
+          + 'This ensures the widget has all required elements (footer, panels, CSS, narrative, action cards).',
+          'state sync',
+        );
+      }
+    }
+
     // Block apply if unresolved pending rolls exist
     const pending = state._pendingRolls ?? [];
     const unresolvedRolls = pending.filter(pr => {

@@ -172,6 +172,11 @@ async function main(): Promise<void> {
       result = await handleExport(args.slice(1));
       break;
     }
+    case 'verify': {
+      const { handleVerify } = await import('./commands/verify');
+      result = await handleVerify(args.slice(1));
+      break;
+    }
     default:
       result = unknownCommand(command!);
   }
