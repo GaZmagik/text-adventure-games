@@ -272,6 +272,17 @@ export type ArcSummary = {
   conclusion: string;
 };
 
+// ── Pending Rolls (dice enforcement) ─────────────────────────────
+
+export type PendingRoll = {
+  action: number;
+  type: 'contest' | 'hazard';
+  stat: StatName;
+  npc?: string;
+  dc?: number;
+  skill?: string;
+};
+
 // ── Master Game State ──────────────────────────────────────────────
 
 export type GmState = {
@@ -305,6 +316,7 @@ export type GmState = {
   _stateHistory: StateHistoryEntry[];
   _schemaVersion?: string;
   _compactionCount?: number;
+  _pendingRolls?: PendingRoll[];
 };
 
 // ── Command Types ──────────────────────────────────────────────────

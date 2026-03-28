@@ -8,7 +8,14 @@ import { VERSION } from './lib/version';
 import { TOP_LEVEL_COMMANDS } from './metadata';
 import { JOURNAL_FILENAME } from './commands/state/sync';
 
-function checkCompactionPreflight(): { detected: boolean; message: string } | null {
+type CompactionAlert = {
+  detected: boolean;
+  recovered: boolean;
+  message: string;
+  modulesRequired?: string[];
+};
+
+async function checkCompactionPreflight(): Promise<CompactionAlert | null> {
   const transcriptsDir = process.env.TAG_TRANSCRIPTS_DIR || '/mnt/transcripts';
   const resolved = resolve(transcriptsDir);
   const home = homedir();
@@ -20,7 +27,6 @@ function checkCompactionPreflight(): { detected: boolean; message: string } | nu
     const entries = readdirSync(transcriptsDir);
     const count = entries.filter(e => e !== JOURNAL_FILENAME).length;
 
-    // Load stored compaction count to avoid permanent alerts after recovery
     let storedCount = 0;
     let currentScene = 0;
     try {
@@ -32,10 +38,33 @@ function checkCompactionPreflight(): { detected: boolean; message: string } | nu
 
     const newCompactions = count - storedCount;
     if (newCompactions > 0) {
+      // Auto-recover: run sync --apply --scene <current> to update _compactionCount
+      let recovered = false;
+      let modulesRequired: string[] | undefined;
+      try {
+        const { handleSync } = await import('./commands/state/sync');
+        const syncResult = await handleSync(['--apply', '--scene', String(currentScene)]);
+        recovered = syncResult.ok;
+
+        // Get module list from context
+        const { handleState } = await import('./commands/state');
+        const ctxResult = await handleState(['context']);
+        if (ctxResult.ok && ctxResult.data) {
+          const ctxData = ctxResult.data as Record<string, unknown>;
+          if (Array.isArray(ctxData.required)) {
+            modulesRequired = ctxData.required as string[];
+          }
+        }
+      } catch { /* recovery failed — fall back to warning */ }
+
+      const moduleList = modulesRequired?.join(', ') ?? '(run `tag state context` for list)';
       return {
         detected: true,
-        message: `COMPACTION ALERT: ${newCompactions} new compaction${newCompactions > 1 ? 's' : ''} detected in /mnt/transcripts/. `
-          + `Context may be lost. Run \`tag state sync --apply --scene ${currentScene}\` then \`tag state context\` and re-read all listed modules.`,
+        recovered,
+        message: recovered
+          ? `COMPACTION RECOVERED: ${newCompactions} new compaction${newCompactions > 1 ? 's' : ''} auto-synced. Re-read these modules: ${moduleList}`
+          : `COMPACTION ALERT: ${newCompactions} new compaction${newCompactions > 1 ? 's' : ''} detected. Auto-recovery failed. Run \`tag state sync --apply --scene ${currentScene}\` manually.`,
+        ...(modulesRequired ? { modulesRequired } : {}),
       };
     }
   } catch (err: unknown) {
@@ -49,8 +78,8 @@ function checkCompactionPreflight(): { detected: boolean; message: string } | nu
   return null;
 }
 
-function output(result: CommandResult): void {
-  const alert = checkCompactionPreflight();
+async function output(result: CommandResult): Promise<void> {
+  const alert = await checkCompactionPreflight();
   if (alert) {
     result._compactionAlert = alert;
   }
@@ -84,19 +113,19 @@ async function main(): Promise<void> {
   const args = process.argv.slice(2);
 
   if (args.length === 0 || args[0] === '--help' || args[0] === 'help') {
-    output(getTopLevelHelp());
+    await output(getTopLevelHelp());
     return;
   }
 
   if (args[0] === 'version' || args[0] === '--version') {
-    output(version());
+    await output(version());
     return;
   }
 
   const command = args[0];
 
   if (args[1] === '--help') {
-    output(getCommandHelp(command!));
+    await output(getCommandHelp(command!));
     return;
   }
 
@@ -147,13 +176,13 @@ async function main(): Promise<void> {
       result = unknownCommand(command!);
   }
 
-  output(result);
+  await output(result);
   if (!result.ok) process.exit(1);
 }
 
-main().catch((err: unknown) => {
+main().catch(async (err: unknown) => {
   const message = err instanceof Error ? err.message : String(err);
-  output({
+  await output({
     ok: false,
     command: 'tag',
     error: { message, corrective: 'Check command syntax: tag <command> [args]' },

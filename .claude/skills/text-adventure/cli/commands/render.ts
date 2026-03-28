@@ -1,8 +1,8 @@
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import type { CommandResult, GmState } from '../types';
+import type { CommandResult, GmState, PendingRoll, StatName } from '../types';
 import { ok, fail, styleNotSet } from '../lib/errors';
-import { tryLoadState, getSyncMarkerPath } from '../lib/state-store';
+import { tryLoadState, saveState, getSyncMarkerPath } from '../lib/state-store';
 import { extractAllCss, filterCssBySelectors } from '../render/css-extractor';
 import { parseArgs } from '../lib/args';
 import { containsForbiddenKeys } from '../lib/security';
@@ -324,8 +324,40 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     }
   }
 
+  // Validate actions array shape when present
+  if (data?.actions !== undefined && !Array.isArray(data.actions)) {
+    return fail(
+      '--data "actions" must be an array.',
+      'Provide actions as a JSON array: --data \'{"actions":[...]}\'',
+      'render',
+    );
+  }
+
   // Render the template
   const html = templateFn(state, css, options);
+
+  // Persist pending rolls from scene action cards
+  if (widgetType === 'scene' && data?.actions && Array.isArray(data.actions) && state) {
+    const pendingRolls: PendingRoll[] = [];
+    for (let i = 0; i < data.actions.length; i++) {
+      const action = data.actions[i] as Record<string, unknown> | undefined;
+      if (action?.roll && typeof action.roll === 'object') {
+        const roll = action.roll as Record<string, unknown>;
+        pendingRolls.push({
+          action: i + 1,
+          type: roll.type as 'contest' | 'hazard',
+          stat: roll.stat as StatName,
+          ...(roll.npc ? { npc: String(roll.npc) } : {}),
+          ...(roll.dc ? { dc: Number(roll.dc) } : {}),
+          ...(roll.skill ? { skill: String(roll.skill) } : {}),
+        });
+      }
+    }
+    if (pendingRolls.length > 0) {
+      state._pendingRolls = pendingRolls;
+      await saveState(state);
+    }
+  }
 
   // Return raw HTML early — skip checklist/skeleton computation
   if (raw) {

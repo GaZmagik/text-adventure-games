@@ -492,4 +492,102 @@ describe('state/sync edge cases', () => {
       expect(updated._compactionCount).toBe(5);
     });
   });
+
+  describe('pending roll enforcement', () => {
+    async function initStateWithModules(): Promise<void> {
+      await handleState(['reset']);
+      await handleState(['set', 'scene', '3']);
+      await handleState(['set', 'currentRoom', 'bridge']);
+      await handleState(['set', 'modulesActive', JSON.stringify([
+        'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
+        'character-creation', 'save-codex',
+      ])]);
+    }
+
+    test('unresolved _pendingRolls produces a warning', async () => {
+      await initStateWithModules();
+      const state = await loadState();
+      state._pendingRolls = [
+        { action: 1, type: 'contest', stat: 'CHA', npc: 'faal_01' },
+      ];
+      await saveState(state);
+
+      const result = await handleSync([]);
+      expect(result.ok).toBe(true);
+      const data = result.data as { warnings: string[] };
+      expect(data.warnings.some(w => w.includes('pending') && w.includes('CHA'))).toBe(true);
+      expect(data.warnings.some(w => w.includes('tag compute'))).toBe(true);
+    });
+
+    test('--apply with unresolved _pendingRolls returns fail', async () => {
+      await initStateWithModules();
+      const state = await loadState();
+      state._pendingRolls = [
+        { action: 1, type: 'hazard', stat: 'DEX', dc: 15 },
+      ];
+      await saveState(state);
+
+      const result = await handleSync(['--apply']);
+      expect(result.ok).toBe(false);
+      expect(result.error!.message).toContain('pending');
+    });
+
+    test('--apply with resolved rolls succeeds and clears _pendingRolls', async () => {
+      await initStateWithModules();
+      const state = await loadState();
+      state._pendingRolls = [
+        { action: 1, type: 'contest', stat: 'CHA', npc: 'faal_01' },
+      ];
+      state.rollHistory = [
+        { scene: 3, type: 'contested_roll', stat: 'CHA', roll: 14, outcome: 'success' },
+      ];
+      await saveState(state);
+
+      const result = await handleSync(['--apply']);
+      expect(result.ok).toBe(true);
+
+      const updated = await loadState();
+      expect(updated._pendingRolls).toEqual([]);
+    });
+  });
+
+  describe('roll ratio backstop', () => {
+    async function initWithRulebook(rulebook: string, scene: number): Promise<void> {
+      await handleState(['reset']);
+      await handleState(['set', 'scene', String(scene)]);
+      await handleState(['set', 'currentRoom', 'bridge']);
+      await handleState(['set', 'modulesActive', JSON.stringify([
+        'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
+        'character-creation', 'save-codex',
+      ])]);
+      await handleState(['set', `worldFlags.rulebook`, rulebook]);
+    }
+
+    test('warns at 3 rollless scenes with d20_system', async () => {
+      await initWithRulebook('d20_system', 4);
+
+      const result = await handleSync([]);
+      expect(result.ok).toBe(true);
+      const data = result.data as { warnings: string[] };
+      expect(data.warnings.some(w => w.includes('rollless') && w.includes('4'))).toBe(true);
+    });
+
+    test('blocks at 5 rollless scenes with d20_system', async () => {
+      await initWithRulebook('d20_system', 6);
+
+      const result = await handleSync([]);
+      expect(result.ok).toBe(true);
+      const data = result.data as { warnings: string[] };
+      expect(data.warnings.some(w => w.includes('BLOCK') || w.includes('block'))).toBe(true);
+    });
+
+    test('does NOT warn for narrative_engine rulebook', async () => {
+      await initWithRulebook('narrative_engine', 6);
+
+      const result = await handleSync([]);
+      expect(result.ok).toBe(true);
+      const data = result.data as { warnings: string[] };
+      expect(data.warnings.some(w => w.includes('rollless'))).toBe(false);
+    });
+  });
 });

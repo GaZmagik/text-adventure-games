@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { handleRender } from './render';
-import { saveState, createDefaultState } from '../lib/state-store';
+import { saveState, loadState, createDefaultState } from '../lib/state-store';
 import type { GmState } from '../types';
 import { WIDGET_CSS_SCOPES } from '../metadata';
 import {
@@ -913,5 +913,41 @@ describe('render template output', () => {
     expect(payload._version).toBe(1);
     expect(payload.scene).toBe(0);
     expect(payload.character.name).toBe('Aldric');
+  });
+});
+
+// ── Pending roll persistence ──────────────────────────────────────────
+
+describe('render pending roll persistence', () => {
+  let state: GmState;
+  beforeEach(async () => {
+    state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.character = {
+      name: 'Kael', class: 'Scout', hp: 12, maxHp: 12, ac: 12, level: 1, xp: 0,
+      currency: 0, currencyName: 'credits',
+      stats: { STR: 10, DEX: 14, CON: 12, INT: 10, WIS: 11, CHA: 8 },
+      modifiers: { STR: 0, DEX: 2, CON: 1, INT: 0, WIS: 0, CHA: -1 },
+      proficiencyBonus: 2, proficiencies: [], abilities: [],
+      inventory: [], conditions: [], equipment: { weapon: 'blaster', armour: 'light' },
+    };
+    state.modulesActive = ['core-systems'];
+    await saveState(state);
+  });
+
+  test('scene with roll actions persists _pendingRolls', async () => {
+    const data = JSON.stringify({ actions: [{ text: 'Deceive', roll: { type: 'contest', stat: 'CHA', npc: 'faal_01' } }] });
+    await handleRender(['scene', '--raw', '--data', data]);
+    const updated = await loadState();
+    expect(updated._pendingRolls).toBeDefined();
+    expect(updated._pendingRolls!.length).toBe(1);
+    expect(updated._pendingRolls![0]!.stat).toBe('CHA');
+  });
+
+  test('scene without roll actions does NOT write _pendingRolls', async () => {
+    const data = JSON.stringify({ actions: [{ text: 'Walk away' }] });
+    await handleRender(['scene', '--raw', '--data', data]);
+    const updated = await loadState();
+    expect(updated._pendingRolls).toBeUndefined();
   });
 });

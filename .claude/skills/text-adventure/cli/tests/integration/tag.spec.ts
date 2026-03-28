@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
@@ -196,19 +196,91 @@ describe('tag CLI black-box', () => {
     expect(error.message).toContain('Lore file not found');
   });
 
-  test('compaction preflight injects _compactionAlert on any command when transcripts exist', async () => {
+  test('compaction preflight auto-syncs and returns recovered alert when transcripts exist', async () => {
     const transcriptsDir = mkdtempSync(join(tmpdir(), 'tag-transcripts-'));
+
+    // Initialise state BEFORE creating transcripts (auto-recovery fires on every command)
+    await runTag(['state', 'reset']);
+
+    // Create transcripts after state setup
     writeFileSync(join(transcriptsDir, 'journal.txt'), 'log');
     writeFileSync(join(transcriptsDir, '2026-01-01-00-00-00-transcript.txt'), 'transcript');
 
     try {
       const result = await runTag(['version'], { TAG_TRANSCRIPTS_DIR: transcriptsDir });
       expect(result.exitCode).toBe(0);
-      const alert = result.json._compactionAlert as { detected: boolean; message: string } | undefined;
+      const alert = result.json._compactionAlert as {
+        detected: boolean;
+        recovered: boolean;
+        message: string;
+        modulesRequired?: string[];
+      } | undefined;
       expect(alert).toBeDefined();
       expect(alert!.detected).toBe(true);
-      expect(alert!.message).toContain('COMPACTION ALERT');
+      expect(alert!.recovered).toBe(true);
+      expect(alert!.message).toContain('COMPACTION RECOVERED');
       expect(alert!.message).toContain('1 new compaction');
+      expect(Array.isArray(alert!.modulesRequired)).toBe(true);
+    } finally {
+      rmSync(transcriptsDir, { recursive: true, force: true });
+    }
+  });
+
+  test('compaction auto-recovery updates _compactionCount in state', async () => {
+    const transcriptsDir = mkdtempSync(join(tmpdir(), 'tag-transcripts-'));
+
+    // Initialise state BEFORE creating transcripts (auto-recovery fires on every command)
+    await runTag(['state', 'reset']);
+
+    // Create transcripts after state setup
+    writeFileSync(join(transcriptsDir, 'journal.txt'), 'log');
+    writeFileSync(join(transcriptsDir, '2026-01-01-00-00-00-transcript.txt'), 'transcript');
+    writeFileSync(join(transcriptsDir, '2026-01-02-00-00-00-transcript.txt'), 'transcript2');
+
+    try {
+      // First call with TAG_TRANSCRIPTS_DIR triggers auto-sync for 2 new compactions
+      const result = await runTag(['version'], { TAG_TRANSCRIPTS_DIR: transcriptsDir });
+      expect(result.exitCode).toBe(0);
+      const alert = result.json._compactionAlert as {
+        detected: boolean;
+        recovered: boolean;
+        message: string;
+      };
+      expect(alert.recovered).toBe(true);
+      expect(alert.message).toContain('2 new compaction');
+
+      // Read the state file directly to verify _compactionCount was persisted
+      const stateRaw = JSON.parse(readFileSync(join(tempDir, 'state.json'), 'utf-8'));
+      expect(stateRaw._compactionCount).toBe(2);
+    } finally {
+      rmSync(transcriptsDir, { recursive: true, force: true });
+    }
+  });
+
+  test('compaction auto-recovery populates modulesRequired from context', async () => {
+    const transcriptsDir = mkdtempSync(join(tmpdir(), 'tag-transcripts-'));
+
+    // Initialise state and set modulesActive BEFORE creating transcripts
+    // (auto-recovery fires on every command, so transcripts must appear after setup)
+    await runTag(['state', 'reset']);
+    await runTag(['state', 'set', 'modulesActive', '["save-codex","die-rolls"]']);
+
+    // Now create transcript files — the next command will detect compaction
+    writeFileSync(join(transcriptsDir, 'journal.txt'), 'log');
+    writeFileSync(join(transcriptsDir, '2026-01-01-00-00-00-transcript.txt'), 'transcript');
+
+    try {
+      const result = await runTag(['version'], { TAG_TRANSCRIPTS_DIR: transcriptsDir });
+      expect(result.exitCode).toBe(0);
+      const alert = result.json._compactionAlert as {
+        detected: boolean;
+        recovered: boolean;
+        message: string;
+        modulesRequired?: string[];
+      };
+      expect(alert.recovered).toBe(true);
+      expect(alert.modulesRequired).toContain('modules/save-codex.md');
+      expect(alert.modulesRequired).toContain('modules/die-rolls.md');
     } finally {
       rmSync(transcriptsDir, { recursive: true, force: true });
     }
@@ -216,6 +288,27 @@ describe('tag CLI black-box', () => {
 
   test('no _compactionAlert when transcripts directory is empty', async () => {
     const transcriptsDir = mkdtempSync(join(tmpdir(), 'tag-transcripts-'));
+
+    try {
+      const result = await runTag(['version'], { TAG_TRANSCRIPTS_DIR: transcriptsDir });
+      expect(result.exitCode).toBe(0);
+      expect(result.json._compactionAlert).toBeUndefined();
+    } finally {
+      rmSync(transcriptsDir, { recursive: true, force: true });
+    }
+  });
+
+  test('no _compactionAlert when _compactionCount matches transcript count', async () => {
+    const transcriptsDir = mkdtempSync(join(tmpdir(), 'tag-transcripts-'));
+    writeFileSync(join(transcriptsDir, 'journal.txt'), 'log');
+    writeFileSync(join(transcriptsDir, '2026-01-01-00-00-00-transcript.txt'), 'transcript');
+
+    // Initialise state and set _compactionCount to 1 (matches the 1 transcript)
+    await runTag(['state', 'reset'], { TAG_TRANSCRIPTS_DIR: transcriptsDir });
+    await runTag(
+      ['state', 'set', '_compactionCount', '1'],
+      { TAG_TRANSCRIPTS_DIR: transcriptsDir },
+    );
 
     try {
       const result = await runTag(['version'], { TAG_TRANSCRIPTS_DIR: transcriptsDir });

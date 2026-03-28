@@ -1,7 +1,7 @@
 import { readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { homedir, tmpdir } from 'node:os';
-import type { CommandResult, GmState, TimeState } from '../../types';
+import type { CommandResult, GmState, TimeState, RollType } from '../../types';
 import { ok, fail, noState } from '../../lib/errors';
 import { tryLoadState, saveState, getSyncMarkerPath } from '../../lib/state-store';
 import { validateState } from '../../lib/validator';
@@ -217,6 +217,63 @@ function checkCompaction(
   return { compactionDetected: false, filesystemCount };
 }
 
+/** Map pending roll type to the RollRecord.type value used in rollHistory. */
+const PENDING_TO_ROLL_TYPE: Record<string, RollType> = {
+  contest: 'contested_roll',
+  hazard: 'hazard_save',
+};
+
+/** Warn threshold — number of rollless scenes before advisory warning. */
+const ROLLLESS_WARN_THRESHOLD = 3;
+/** Block threshold — number of rollless scenes before hard block. */
+const ROLLLESS_BLOCK_THRESHOLD = 5;
+/** Rulebooks exempt from roll ratio enforcement. */
+const NARRATIVE_RULEBOOKS = new Set(['narrative_engine']);
+
+function checkPendingRolls(state: GmState, warnings: string[]): void {
+  const pending = state._pendingRolls;
+  if (!pending || pending.length === 0) return;
+
+  for (const pr of pending) {
+    const expectedType = PENDING_TO_ROLL_TYPE[pr.type];
+    if (!expectedType) continue;
+    const resolved = state.rollHistory.some(
+      r => r.type === expectedType && r.stat === pr.stat && r.scene === state.scene,
+    );
+    if (!resolved) {
+      warnings.push(
+        `Unresolved pending roll: action ${pr.action} requires ${pr.type} (${pr.stat}) `
+        + `— run \`tag compute ${pr.type === 'contest' ? 'contested' : 'hazard'} --stat ${pr.stat}`
+        + `${pr.npc ? ` --npc ${pr.npc}` : ''}${pr.dc ? ` --dc ${pr.dc}` : ''}\`.`,
+      );
+    }
+  }
+}
+
+function checkRollRatio(state: GmState, warnings: string[]): void {
+  const rulebook = state.worldFlags.rulebook;
+  if (typeof rulebook !== 'string' || NARRATIVE_RULEBOOKS.has(rulebook)) return;
+
+  const currentScene = state.scene;
+  let lastRollScene = 0;
+  for (const r of state.rollHistory) {
+    if (r.scene > lastRollScene) lastRollScene = r.scene;
+  }
+
+  const rolllessScenes = currentScene - lastRollScene;
+  if (rolllessScenes >= ROLLLESS_BLOCK_THRESHOLD) {
+    warnings.push(
+      `BLOCK: ${rolllessScenes} consecutive rollless scenes with ${rulebook}. `
+      + 'A dice roll is required before advancing. Run `tag compute contested` or `tag compute hazard`.',
+    );
+  } else if (rolllessScenes >= ROLLLESS_WARN_THRESHOLD) {
+    warnings.push(
+      `${rolllessScenes} rollless scenes with ${rulebook}. `
+      + 'Consider adding a dice roll soon to maintain mechanical engagement.',
+    );
+  }
+}
+
 export async function handleSync(args: string[]): Promise<CommandResult> {
   const state = await tryLoadState();
   if (!state) return noState();
@@ -244,10 +301,33 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
 
   const { compactionDetected, filesystemCount } = checkCompaction(state, warnings);
 
+  checkPendingRolls(state, warnings);
+  checkRollRatio(state, warnings);
+
   const featureChecklist = buildFeatureChecklist(state);
   const status = warnings.length > 0 ? 'warnings' : 'clean';
 
   if (apply) {
+    // Block apply if unresolved pending rolls exist
+    const pending = state._pendingRolls ?? [];
+    const unresolvedRolls = pending.filter(pr => {
+      const expectedType = PENDING_TO_ROLL_TYPE[pr.type];
+      if (!expectedType) return true;
+      return !state.rollHistory.some(
+        r => r.type === expectedType && r.stat === pr.stat && r.scene === state.scene,
+      );
+    });
+    if (unresolvedRolls.length > 0) {
+      const first = unresolvedRolls[0]!;
+      return fail(
+        `Cannot apply: ${unresolvedRolls.length} unresolved pending roll(s). `
+        + `First: action ${first.action} (${first.type} ${first.stat}).`,
+        `Run \`tag compute ${first.type === 'contest' ? 'contested' : 'hazard'} --stat ${first.stat}`
+        + `${first.npc ? ` --npc ${first.npc}` : ''}${first.dc ? ` --dc ${first.dc}` : ''}\` first.`,
+        'state sync',
+      );
+    }
+
     if (diff.scene) state.scene = nextScene;
     if (diff.currentRoom && flags.room) state.currentRoom = flags.room;
     if (parsedTime) {
@@ -256,6 +336,9 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
     if (filesystemCount > (state._compactionCount ?? 0)) {
       state._compactionCount = filesystemCount;
     }
+
+    // Clear pending rolls on successful apply
+    state._pendingRolls = [];
 
     const validation = validateState(state);
     if (!validation.valid) {

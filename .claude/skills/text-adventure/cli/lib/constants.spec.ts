@@ -35,7 +35,7 @@ describe('constants', () => {
       quests: true, storyArchitect: true, shipState: true, crewMutations: true,
       mapState: true, systemResources: true, navPlottedCourse: true, arc: true,
       arcType: true, carryForward: true, arcHistory: true, _lastComputation: true,
-      _stateHistory: true, _compactionCount: true,
+      _stateHistory: true, _compactionCount: true, _pendingRolls: true,
     } satisfies Record<keyof Required<GmState>, true>;
     const topKeys = [...VALID_TOP_KEYS].sort();
     const expectedKeys = Object.keys(ALL_GM_STATE_KEYS).sort();

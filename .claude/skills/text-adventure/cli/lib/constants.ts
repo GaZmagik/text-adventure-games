@@ -24,7 +24,7 @@ const VALID_TOP_KEYS_ARRAY = [
   'rosterMutations', 'codexMutations', 'time', 'factions', 'quests',
   'storyArchitect', 'shipState', 'crewMutations', 'mapState', 'systemResources',
   'navPlottedCourse', 'arc', 'arcType', 'carryForward', 'arcHistory',
-  '_lastComputation', '_stateHistory', '_schemaVersion', '_compactionCount',
+  '_lastComputation', '_stateHistory', '_schemaVersion', '_compactionCount', '_pendingRolls',
 ] as const satisfies readonly (keyof GmState)[];
 // Exhaustiveness check: ensures every key of GmState is present in the array above.
 // If this line errors, add the missing key(s) to VALID_TOP_KEYS_ARRAY.

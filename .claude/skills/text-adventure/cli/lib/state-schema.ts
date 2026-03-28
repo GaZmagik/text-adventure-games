@@ -243,6 +243,14 @@ export const GM_STATE_SHAPE: StateShape = object({
   _stateHistory: array(stateHistoryEntry),
   _schemaVersion: leaf(),
   _compactionCount: leaf(),
+  _pendingRolls: array(object({
+    action: leaf(),
+    type: leaf(),
+    stat: leaf(),
+    npc: leaf(),
+    dc: leaf(),
+    skill: leaf(),
+  })),
 });
 
 type StripResult = {
