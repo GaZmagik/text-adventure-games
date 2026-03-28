@@ -138,7 +138,7 @@ ${COMMON_WIDGET_CSS}
       <button class="option-card" data-pronouns="they/them" aria-pressed="false">they/them</button>
       <button class="option-card" data-pronouns="custom" aria-pressed="false">Custom</button>
     </div>
-    <div id="custom-pronouns" style="display:none;margin-top:8px;display:none;gap:8px;align-items:center">
+    <div id="custom-pronouns" style="display:none;margin-top:8px;gap:8px;align-items:center">
       <select id="pronoun-subject" class="name-input" style="width:auto;padding:8px 12px;font-size:12px">
         <option value="he">he</option>
         <option value="she">she</option>
