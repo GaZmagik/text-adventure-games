@@ -36,11 +36,26 @@ export function renderSettings(state: GmState | null, css: string, options?: Rec
       : {},
   };
 
-  const rulebooks = data.rulebooks ?? ['d20_system', 'gurps_lite', 'pf2e_lite', 'shadowrun_lite', 'narrative_engine', 'custom'];
-  const difficulties = data.difficulties ?? ['easy', 'normal', 'hard', 'brutal'];
-  const pacingOptions = data.pacingOptions ?? ['fast', 'normal', 'slow'];
-  const visualStyles = data.visualStyles ?? ['station', 'terminal', 'parchment', 'neon', 'brutalist', 'art-deco', 'ink-wash', 'blueprint', 'stained-glass', 'sveltekit', 'weathered', 'holographic'];
-  const modules = data.modules ?? ['save-codex', 'bestiary', 'story-architect', 'ship-systems', 'crew-manifest', 'star-chart', 'geo-map', 'procedural-world-gen', 'world-history', 'lore-codex', 'rpg-systems', 'ai-npc', 'atmosphere', 'audio', 'adventure-exporting'];
+  // Full default option sets — GM-provided subsets are backfilled from these
+  // so the player always sees the complete menu regardless of what the GM remembered
+  const DEFAULT_RULEBOOKS = ['d20_system', 'gurps_lite', 'pf2e_lite', 'shadowrun_lite', 'narrative_engine', 'custom'];
+  const DEFAULT_DIFFICULTIES = ['easy', 'normal', 'hard', 'brutal'];
+  const DEFAULT_PACING = ['fast', 'normal', 'slow'];
+  const DEFAULT_STYLES = ['station', 'terminal', 'parchment', 'neon', 'brutalist', 'art-deco', 'ink-wash', 'blueprint', 'stained-glass', 'sveltekit', 'weathered', 'holographic'];
+  const DEFAULT_MODULES = ['save-codex', 'bestiary', 'story-architect', 'ship-systems', 'crew-manifest', 'star-chart', 'geo-map', 'procedural-world-gen', 'world-history', 'lore-codex', 'rpg-systems', 'ai-npc', 'atmosphere', 'audio', 'adventure-exporting'];
+
+  /** Merge GM-provided options with defaults — GM's picks first, then any missing defaults appended. */
+  const merge = (provided: string[] | undefined, defaults: string[]): string[] => {
+    if (!provided) return defaults;
+    const seen = new Set(provided);
+    return [...provided, ...defaults.filter(d => !seen.has(d))];
+  };
+
+  const rulebooks = merge(data.rulebooks, DEFAULT_RULEBOOKS);
+  const difficulties = merge(data.difficulties, DEFAULT_DIFFICULTIES);
+  const pacingOptions = merge(data.pacingOptions, DEFAULT_PACING);
+  const visualStyles = merge(data.visualStyles, DEFAULT_STYLES);
+  const modules = merge(data.modules, DEFAULT_MODULES);
   const defaults = data.defaults ?? {};
 
   return `
