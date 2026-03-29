@@ -205,8 +205,12 @@ export const WIDGET_CSS_SELECTORS: Record<string, readonly string[]> = {
     '.status-bar', '.hp-pips', '.pip', '.xp-track', '.xp-fill',
     // Footer
     '.footer-row', '.footer-left', '.footer-right', '.footer-btn',
-    // Panel overlay
+    // Panel overlay + panel content
     '#panel-overlay', '.panel-header', '.panel-title', '.panel-close-btn', '.panel-content',
+    '.stat-grid', '.stat-cell', '.stat-label', '.stat-value', '.stat-mod',
+    '.char-bar-container', '.bar-fill-hp', '.condition-badge',
+    '.inv-list', '.inv-item', '.equipment-row',
+    '.widget-character', '.widget-codex', '.widget-ship', '.widget-crew',
     // Animations
     '@keyframes sta-fade-in', '@keyframes sta-die-spin', '@keyframes sta-init-pulse',
     // Shared transitions + focus
