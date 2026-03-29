@@ -55,22 +55,23 @@ export function renderScene(state: GmState | null, styleName: string, options?: 
 .panel-header {
   display: flex; align-items: baseline; justify-content: space-between;
   padding-bottom: 10px; margin-bottom: 12px;
-  border-bottom: 0.5px solid var(--color-border-tertiary);
+  border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
 }
 .panel-title {
-  font-family: var(--ta-font-heading);
-  font-size: 18px; font-weight: 600; color: var(--color-text-primary);
+  font-family: var(--sta-font-display, system-ui, sans-serif);
+  font-size: 18px; font-weight: 600; color: var(--sta-text-primary, #EEF0FF);
 }
 .panel-close-btn {
-  font-family: var(--ta-font-body);
+  font-family: var(--sta-font-mono, monospace);
   font-size: 11px; letter-spacing: 0.08em;
-  background: transparent; border: 0.5px solid var(--color-border-tertiary);
-  border-radius: var(--border-radius-md); padding: 8px 14px;
+  background: transparent; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  border-radius: var(--sta-radius-md, 6px); padding: 8px 14px;
   min-height: 44px; min-width: 44px; box-sizing: border-box;
-  color: var(--color-text-tertiary); cursor: pointer;
+  color: var(--sta-text-tertiary, #545880); cursor: pointer;
 }
-.panel-close-btn:hover { border-color: var(--color-border-secondary); color: var(--color-text-secondary); }
-.panel-content { display: none; }`,
+.panel-close-btn:hover { border-color: var(--sta-border-secondary, rgba(154,160,192,0.35)); color: var(--sta-text-secondary, #9AA0C0); }
+.panel-content { display: none; }
+.narrative, .brief-text { font-family: var(--sta-font-serif, Georgia, serif); font-size: var(--sta-text-base, 15px); line-height: 1.7; }`,
     html: `<div class="root">
   <!-- Progressive reveal -->
   <div id="reveal-brief">
@@ -86,7 +87,7 @@ export function renderScene(state: GmState | null, styleName: string, options?: 
       <div class="atmo-strip">
         <span class="atmo-visual">The scene unfolds before you...</span>
       </div>
-      <div id="narrative">
+      <div id="narrative" class="narrative">
         <p><!-- Narrative content rendered by the GM --></p>
       </div>
       <div class="status-bar">
