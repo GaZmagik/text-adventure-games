@@ -18,14 +18,14 @@
 ## CSS Custom Property Contract
 
 Every visual style file **must** define all of the following CSS custom properties inside
-a `:root` block. Widgets reference these properties for all visual presentation. The
+a `:host` block. Widgets reference these properties for all visual presentation. The
 structural patterns in this file use only these variables — never hardcoded colour or
 font values.
 
 ### Required Custom Properties
 
 ```css
-:root {
+:host {
   /* ── Typography ──────────────────────────────────────────────── */
   --ta-font-heading:        /* Heading / display font stack */;
   --ta-font-body:           /* Body / UI mono font stack */;
@@ -413,7 +413,7 @@ a consistent box model so animations and states work identically across die type
 /* @extract:dice */
 /* These properties must be set by the visual style, or fall back to the host
    theme. Die shapes reference only these variables — never hardcoded colours. */
-:root {
+:host {
   --die-border-color:       /* Default die border */;
   --die-bg:                 /* Default die background */;
   --die-text-color:         /* Die label / face value colour */;
@@ -994,7 +994,7 @@ These classes are taken directly from the proven pattern.
 ```html
 <style>
   /* Die custom properties — set by visual style */
-  :root {
+  :host {
     --die-border-color: var(--color-border-secondary);
     --die-bg:           transparent;
     --die-text-color:   var(--color-text-primary);

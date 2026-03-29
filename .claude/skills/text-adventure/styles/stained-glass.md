@@ -70,14 +70,14 @@ Mono/Stats: 'Courier New', 'Courier', 'Lucida Console', monospace
 
 ## Colour Palette
 
-All colours are defined as CSS custom properties on `:root` and overridden
+All colours are defined as CSS custom properties on `:host` and overridden
 for dark mode via `@media (prefers-color-scheme: dark)`. A `[data-theme]`
 attribute override is also provided for runtime switching.
 
 ### Light Mode (warm parchment ground, 80% saturation jewel tones)
 
 ```css
-:root {
+:host {
   /* Ground colours */
   --sg-bg-page:          #FFF8F0;   /* warm cream parchment */
   --sg-bg-panel:         #FDF3E7;   /* slightly darker parchment for panels */
@@ -165,7 +165,7 @@ attribute override is also provided for runtime switching.
 
 ```css
 @media (prefers-color-scheme: dark) {
-  :root {
+  :host {
     /* Ground colours */
     --sg-bg-page:          #0F0F0F;
     --sg-bg-panel:         #181210;
@@ -265,7 +265,7 @@ All body-text pairings have been selected to meet WCAG AA (4.5:1 minimum):
 ## Spacing and Layout
 
 ```css
-:root {
+:host {
   /* Spacing scale */
   --sg-space-xs:   4px;
   --sg-space-sm:   8px;
@@ -931,7 +931,7 @@ beyond the font stack fallbacks are required.
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap');
 
 /* ── Custom properties — light mode ─────────────────────────────────── */
-:root {
+:host {
   --sg-bg-page:          #FFF8F0;
   --sg-bg-panel:         #FDF3E7;
   --sg-bg-inset:         #F5EAD8;
@@ -974,7 +974,7 @@ beyond the font stack fallbacks are required.
 
 /* ── Custom properties — dark mode ──────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :host {
     --sg-bg-page:          #0F0F0F;
     --sg-bg-panel:         #181210;
     --sg-bg-inset:         #0A0806;

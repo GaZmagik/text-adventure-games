@@ -81,7 +81,7 @@ Monospace (stats, dice values, XP counters, code):
 
 ## Colour Palette
 
-All values are defined as CSS custom properties on `:root` and overridden per
+All values are defined as CSS custom properties on `:host` and overridden per
 colour scheme. Properties prefixed `--holo-` are theme-specific. Properties
 named `--color-*` shadow the Claude.ai host variables, providing holographic
 overrides for the base engine's structural selectors.
@@ -849,7 +849,7 @@ acceptable result if CSP blocks the request.
 
 /* ── Custom Properties ─────────────────────────────────────── */
 
-:root {
+:host {
   /* Iridescent accents (scheme-independent) */
   --holo-cyan:         #00E5FF;
   --holo-teal:         #00BFA5;
@@ -954,7 +954,7 @@ acceptable result if CSP blocks the request.
 }
 
 @media (prefers-color-scheme: light) {
-  :root {
+  :host {
     --holo-bg-base:         #F0F0F5;
     --holo-bg-panel:        rgba(0, 0, 0, 0.03);
     --holo-bg-panel-hover:  rgba(0, 0, 0, 0.06);

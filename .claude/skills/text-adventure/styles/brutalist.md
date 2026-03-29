@@ -114,7 +114,7 @@ Invert everything. White borders on black, red stays red (it always stands out).
 
 ```css
 @media (prefers-color-scheme: dark) {
-  :root {
+  :host {
     --color-bg:                    #000000;
     --color-surface:               #000000;
     --color-surface-raised:        #111111;
@@ -547,7 +547,7 @@ How each game engine widget type looks in the brutalist theme.
 
 This block is the full injectable CSS. Include it inside a `<style>` tag at the top
 of any widget to apply the brutalist theme. All custom properties are defined on
-`:root` so they cascade to every descendant.
+`:host` so they cascade to every descendant.
 
 ```css
 /* @extract */
@@ -556,7 +556,7 @@ of any widget to apply the brutalist theme. All custom properties are defined on
    Raw, stark, zero decoration. System fonts. Black + white + red.
    ============================================================ */
 
-:root {
+:host {
   /* --- Colour tokens: light mode --- */
   --color-bg:                     #FFFFFF;
   --color-surface:                #FFFFFF;
@@ -618,7 +618,7 @@ of any widget to apply the brutalist theme. All custom properties are defined on
 
 /* --- Dark mode token overrides --- */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :host {
     --color-bg:                     #000000;
     --color-surface:                #000000;
     --color-surface-raised:         #111111;

@@ -89,8 +89,7 @@ inverts the surface/text relationship.
 ### Dark Mode (default)
 
 ```css
-:root,
-[data-theme="neon"] {
+:host {
   /* --- Surfaces --- */
   --neon-bg-primary:    #0B0C1E;   /* deep navy — main background */
   --neon-bg-secondary:  #12142B;   /* slightly lighter navy — cards, panels */
@@ -211,8 +210,7 @@ inverts the surface/text relationship.
 
 ```css
 @media (prefers-color-scheme: light) {
-  :root,
-  [data-theme="neon"] {
+  :host {
     --neon-bg-primary:    #FAFAFA;
     --neon-bg-secondary:  #F0F1F8;
     --neon-bg-tertiary:   #E4E6F4;
@@ -1053,7 +1051,7 @@ handle that case.
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500&display=swap');
 
 /* --- Custom Properties --- */
-:root {
+:host {
   --font-display: 'Space Grotesk', 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
   --font-sans:    'Inter', 'Space Grotesk', 'Segoe UI', system-ui, -apple-system, sans-serif;
   --font-mono:    'Space Mono', 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
@@ -1118,7 +1116,7 @@ handle that case.
 
 /* --- Light Mode Override --- */
 @media (prefers-color-scheme: light) {
-  :root {
+  :host {
     --neon-bg-primary:    #FAFAFA;
     --neon-bg-secondary:  #F0F1F8;
     --neon-bg-tertiary:   #E4E6F4;

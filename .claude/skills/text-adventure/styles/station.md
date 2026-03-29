@@ -177,8 +177,7 @@ All WCAG AA contrast ratios are calculated against `--sta-bg-primary` (`#1A1D2E`
 ### Dark Mode (default)
 
 ```css
-:root,
-[data-theme="station"] {
+:host {
 
   /* ── Surfaces ──────────────────────────────────────────────────── */
   --sta-bg-primary:      #1A1D2E;   /* deep navy — main background */
@@ -309,8 +308,7 @@ All WCAG AA contrast ratios are calculated against `--sta-bg-primary` (`#1A1D2E`
 
 ```css
 @media (prefers-color-scheme: light) {
-  :root,
-  [data-theme="station"] {
+  :host {
     --sta-bg-primary:      #F8F9FC;
     --sta-bg-secondary:    #EDEEF5;
     --sta-bg-tertiary:     #E0E2EF;
@@ -1460,7 +1458,7 @@ handle that case independently.
 
 ```css
 /* @extract:vars */
-:root {
+:host {
   --sta-font-serif:   'Lora', 'Georgia', 'Times New Roman', 'Book Antiqua', serif;
   --sta-font-mono:    'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
   --sta-font-display: 'Syne', 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -1559,7 +1557,7 @@ handle that case independently.
 
 /* --- Light Mode Override --- */
 @media (prefers-color-scheme: light) {
-  :root {
+  :host {
     --sta-bg-primary:      #F8F9FC;
     --sta-bg-secondary:    #EDEEF5;
     --sta-bg-tertiary:     #E0E2EF;
@@ -1632,7 +1630,7 @@ handle that case independently.
 @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@600;700&display=swap');
 
 /* --- Custom Properties --- */
-:root {
+:host {
   --sta-font-serif:   'Lora', 'Georgia', 'Times New Roman', 'Book Antiqua', serif;
   --sta-font-mono:    'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
   --sta-font-display: 'Syne', 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -1727,7 +1725,7 @@ handle that case independently.
 
 /* --- Light Mode Override --- */
 @media (prefers-color-scheme: light) {
-  :root {
+  :host {
     --sta-bg-primary:      #F8F9FC;
     --sta-bg-secondary:    #EDEEF5;
     --sta-bg-tertiary:     #E0E2EF;

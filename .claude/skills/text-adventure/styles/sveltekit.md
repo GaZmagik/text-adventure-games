@@ -159,8 +159,7 @@ Dark mode contrast ratios are calculated against `#1A1B26`.
 ### Light Mode (primary)
 
 ```css
-:root,
-[data-theme="sveltekit"] {
+:host {
 
   /* ── Surfaces ──────────────────────────────────────────────────────── */
   --svk-bg-primary:      #FFFFFF;   /* pure white — main background */
@@ -300,8 +299,7 @@ be slightly brighter for legibility on dark surfaces.
 
 ```css
 @media (prefers-color-scheme: dark) {
-  :root,
-  [data-theme="sveltekit"] {
+  :host {
 
     /* ── Surfaces ────────────────────────────────────────────────────── */
     --svk-bg-primary:      #1A1B26;   /* deep charcoal — main background */
@@ -1416,8 +1414,7 @@ properties are defined inline alongside all other tokens; no external resources 
    ───────────────────────────────────────────────────────────────────────── */
 
 /* ── Font stacks ──────────────────────────────────────────────────────── */
-:root,
-[data-theme="sveltekit"] {
+:host {
   --svk-font-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
                       Oxygen, Ubuntu, Cantarell, sans-serif;
   --svk-font-mono:    'Fira Code', 'JetBrains Mono', 'Cascadia Code',
@@ -1529,8 +1526,7 @@ properties are defined inline alongside all other tokens; no external resources 
 
 /* ── Dark Mode ─────────────────────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
-  :root,
-  [data-theme="sveltekit"] {
+  :host {
     --svk-bg-primary:      #1A1B26;
     --svk-bg-secondary:    #24253A;
     --svk-bg-tertiary:     #2E2F47;

@@ -327,7 +327,7 @@ state changes are still communicated without motion.
 
 ```css
 /* Base transition durations — referenced by components */
-:root {
+:host {
   --ad-dur-fast:   0.15s;
   --ad-dur-normal: 0.25s;
   --ad-dur-slow:   0.45s;
@@ -335,7 +335,7 @@ state changes are still communicated without motion.
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :root {
+  :host {
     --ad-dur-fast:   0.01s;
     --ad-dur-normal: 0.01s;
     --ad-dur-slow:   0.01s;
@@ -565,7 +565,7 @@ every standard component class used by the text adventure engine.
 
 /* ── Custom Properties ───────────────────────────────────── */
 
-:root {
+:host {
   /* Colour — light mode */
   --ad-bg-primary:       #F2E9D8;
   --ad-bg-secondary:     #E8DCCA;
@@ -611,7 +611,7 @@ every standard component class used by the text adventure engine.
 
 /* Dark mode token overrides */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :host {
     --ad-bg-primary:       #0D1520;
     --ad-bg-secondary:     #152030;
     --ad-bg-panel:         #111C2A;
@@ -668,7 +668,7 @@ every standard component class used by the text adventure engine.
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  :root {
+  :host {
     --ad-dur-fast:   0.01s;
     --ad-dur-normal: 0.01s;
     --ad-dur-slow:   0.01s;

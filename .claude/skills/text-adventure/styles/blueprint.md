@@ -764,7 +764,7 @@ definitions and can be applied selectively.
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 /* --- CSS Custom Properties: Dark Mode (default) ------------ */
-:root {
+:host {
   /* Typography */
   --bp-font-mono: 'IBM Plex Mono', 'Cascadia Code', 'SF Mono', 'Consolas', 'Courier New', monospace;
   --bp-font-sans: var(--bp-font-mono); /* Blueprint uses mono throughout */
@@ -881,7 +881,7 @@ definitions and can be applied selectively.
 
 /* --- CSS Custom Properties: Light Mode --------------------- */
 @media (prefers-color-scheme: light) {
-  :root {
+  :host {
     --bp-color-bg-primary:        #FAFCFF;
     --bp-color-bg-secondary:      #F0F5FF;
     --bp-color-bg-tertiary:       #E4EDFA;

@@ -523,7 +523,7 @@ tag after the base engine styles. It uses the CSS cascade — only override what
 @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap');
 
 /* ── Custom Properties: Light (default) ─────────────────────────── */
-:root {
+:host {
   --pt-bg-page:             #F5F0E8;
   --pt-bg-surface:          #EDE6D6;
   --pt-bg-inset:            #E4DACA;
@@ -602,7 +602,7 @@ tag after the base engine styles. It uses the CSS cascade — only override what
 
 /* ── Custom Properties: Dark ─────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :host {
     --pt-bg-page:             #1C1410;
     --pt-bg-surface:          #261C16;
     --pt-bg-inset:            #150F0B;

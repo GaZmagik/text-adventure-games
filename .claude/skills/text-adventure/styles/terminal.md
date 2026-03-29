@@ -170,7 +170,7 @@ to values that maintain WCAG AA contrast on white/near-white backgrounds.
 
 ```css
 @media (prefers-color-scheme: light) {
-  :root, .root {
+  :host {
     --t-bg-base:        #FFFFFF;
     --t-bg-surface:     #F5F6F8;
     --t-bg-inset:       #ECEEF2;

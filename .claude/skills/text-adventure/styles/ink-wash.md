@@ -79,14 +79,14 @@ Section labels are always `text-transform: uppercase`. Everything else is senten
 
 ## Colour Palette
 
-All colours are defined as CSS custom properties on `:root` and overridden for dark mode
+All colours are defined as CSS custom properties on `:host` and overridden for dark mode
 via `@media (prefers-color-scheme: dark)`. Widget HTML must never hard-code hex values in
 attributes — use the custom properties only.
 
 ### Light Mode (Rice Paper)
 
 ```css
-:root {
+:host {
   /* --- Backgrounds --- */
   --iw-bg-primary:      #F5F2EB;   /* rice paper — widget root */
   --iw-bg-secondary:    #EDE9E0;   /* slightly deeper paper — inset surfaces */
@@ -177,7 +177,7 @@ attributes — use the custom properties only.
 
 ```css
 @media (prefers-color-scheme: dark) {
-  :root {
+  :host {
     /* --- Backgrounds --- */
     --iw-bg-primary:      #1A1816;   /* deep charcoal — widget root */
     --iw-bg-secondary:    #232120;   /* raised surface */
@@ -1017,7 +1017,7 @@ handles the case where it is CSP-blocked.
 /* --------------------------------------------------------------------------
    1. Custom Properties — Light Mode
    -------------------------------------------------------------------------- */
-:root {
+:host {
   --iw-bg-primary:      #F5F2EB;
   --iw-bg-secondary:    #EDE9E0;
   --iw-bg-tertiary:     #E4DFD4;
@@ -1062,7 +1062,7 @@ handles the case where it is CSP-blocked.
    2. Custom Properties — Dark Mode
    -------------------------------------------------------------------------- */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :host {
     --iw-bg-primary:      #1A1816;
     --iw-bg-secondary:    #232120;
     --iw-bg-tertiary:     #2C2A28;
