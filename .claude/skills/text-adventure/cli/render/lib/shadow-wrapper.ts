@@ -54,21 +54,29 @@ export function wrapInShadowDom(opts: ShadowWrapperOptions): string {
     inlineCssBlock = `var widgetStyle=document.createElement('style');widgetStyle.textContent=\`${escapeForTemplateLiteral(inlineCss)}\`;shadow.appendChild(widgetStyle);`;
   }
 
-  // Build external script loading
+  // Build external script loading — chain onload so inline script runs after all externals load
   let scriptSrcBlock = '';
-  if (scriptSrc && scriptSrc.length > 0) {
-    scriptSrcBlock = scriptSrc
-      .map(
-        (url) =>
-          `var s=document.createElement('script');s.src='${url}';document.head.appendChild(s);`,
-      )
-      .join('');
-  }
-
-  // Build inline script block
   let inlineScriptBlock = '';
   if (script !== undefined && script !== '') {
     inlineScriptBlock = script;
+  }
+
+  if (scriptSrc && scriptSrc.length > 0) {
+    // Load scripts sequentially: each waits for the previous to load.
+    // The last script's onload triggers the inline script.
+    const loads: string[] = [];
+    for (let i = 0; i < scriptSrc.length; i++) {
+      const url = scriptSrc[i]!;
+      const varName = `_s${i}`;
+      const isLast = i === scriptSrc.length - 1;
+      if (isLast && inlineScriptBlock) {
+        loads.push(`var ${varName}=document.createElement('script');${varName}.src='${url}';${varName}.onload=function(){${inlineScriptBlock}};document.head.appendChild(${varName});`);
+        inlineScriptBlock = ''; // consumed by onload
+      } else {
+        loads.push(`var ${varName}=document.createElement('script');${varName}.src='${url}';document.head.appendChild(${varName});`);
+      }
+    }
+    scriptSrcBlock = loads.join('');
   }
 
   // :host override with CSS variable fallbacks using station defaults

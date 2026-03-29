@@ -46,6 +46,11 @@ export class FakeElement {
     child.ownerDocument = this.ownerDocument;
     this.children.push(child);
     if (child.id) this.ownerDocument?.register(child);
+    // Simulate async script loading: fire onload synchronously for script elements with src
+    const c = child as unknown as Record<string, unknown>;
+    if (child.tagName === 'script' && c.src && typeof c.onload === 'function') {
+      (c.onload as () => void)();
+    }
     return child;
   }
 
