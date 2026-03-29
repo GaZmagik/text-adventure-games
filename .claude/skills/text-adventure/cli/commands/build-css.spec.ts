@@ -137,7 +137,7 @@ describe('CDN manifest', () => {
   it('manifest contains CDN_BASE export', () => {
     const manifest = readFileSync(join(tmpDir, 'cdn-manifest.ts'), 'utf-8');
     expect(manifest).toContain('export const CDN_BASE');
-    expect(manifest).toContain('https://gazmagik.github.io/text-adventure-games/');
+    expect(manifest).toContain('cdn.jsdelivr.net');
   });
 
   it('manifest contains CSS_MANIFEST export with an entry per style', () => {
