@@ -121,8 +121,8 @@ export function renderSettings(_state: GmState | null, styleName: string, option
     script: `var selections = ${serialiseInlineScriptData(defaults)};
 var selectedModules = [];
 
-if (Array.isArray(selections.activeModules)) {
-  selections.activeModules.forEach(function(mod) {
+if (Array.isArray(selections.modulesActive)) {
+  selections.modulesActive.forEach(function(mod) {
     var btn = shadow.querySelector('.module-card[data-value="' + mod + '"]');
     if (btn) {
       selectedModules.push(mod);
