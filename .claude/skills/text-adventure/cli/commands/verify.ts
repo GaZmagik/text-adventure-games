@@ -284,12 +284,40 @@ function checkStatusBar(html: string, state: GmState, failures: string[]): void 
   }
 }
 
+const PRE_GAME_WIDGET_TYPES = new Set(['scenario', 'rules', 'character']);
+
+function readHtmlFile(filePath: string): string | CommandResult {
+  try {
+    const safePath = resolveSafeReadPath(filePath, { kind: 'Verify', extensions: ['.html', '.htm'] });
+    if (!safePath) {
+      return fail(`Invalid file path: ${filePath}`, 'Path must start with /, ./, ../, or ~/ and end with .html or .htm.', 'verify');
+    }
+    return readFileSync(safePath, 'utf-8');
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return fail(`Failed to read file: ${msg}`, 'Check the file path exists and is readable.', 'verify');
+  }
+}
+
 export async function handleVerify(args: string[]): Promise<CommandResult> {
-  const filePath = args[0];
+  const first = args[0];
+  if (!first) {
+    return fail(
+      'No arguments provided.',
+      'Usage: tag verify /tmp/scene.html OR tag verify scenario|rules|character /tmp/widget.html',
+      'verify',
+    );
+  }
+
+  // Detect pre-game widget type
+  const isPreGame = PRE_GAME_WIDGET_TYPES.has(first);
+  const widgetType = isPreGame ? first : 'scene';
+  const filePath = isPreGame ? args[1] : first;
+
   if (!filePath) {
     return fail(
-      'No file path provided.',
-      'Usage: tag verify /tmp/scene_final.html — pass the path to your composed scene HTML.',
+      `No file path provided for ${widgetType} verification.`,
+      `Usage: tag verify ${widgetType} /tmp/${widgetType}.html`,
       'verify',
     );
   }
@@ -297,50 +325,91 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
   const state = await tryLoadState();
   if (!state) return noState();
 
-  // Validate and read the HTML file
-  let html: string;
-  try {
-    const safePath = resolveSafeReadPath(filePath, { kind: 'Verify', extensions: ['.html', '.htm'] });
-    if (!safePath) {
-      return fail(
-        `Invalid file path: ${filePath}`,
-        'Path must start with /, ./, ../, or ~/ and end with .html or .htm.',
-        'verify',
-      );
-    }
-    html = readFileSync(safePath, 'utf-8');
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return fail(`Failed to read file: ${msg}`, 'Check the file path exists and is readable.', 'verify');
+  const htmlOrError = readHtmlFile(filePath);
+  if (typeof htmlOrError !== 'string') return htmlOrError;
+  const html = htmlOrError;
+
+  let failures: string[];
+  let checks: Array<() => void>;
+
+  if (widgetType === 'scenario') {
+    failures = [];
+    checks = [
+      () => checkBrokenSerialisation(html, failures),
+      () => checkCssVariables(html, failures),
+      () => {
+        const cards = (html.match(/scenario-card/g) ?? []).length;
+        if (cards < 2) failures.push(`Found ${cards} scenario card(s) — expected at least 2.`);
+      },
+      () => {
+        const btns = (html.match(/scenario-select-btn/g) ?? []).length;
+        if (btns < 2) failures.push(`Found ${btns} select button(s) — each scenario card needs a select button with data-prompt.`);
+      },
+    ];
+  } else if (widgetType === 'rules') {
+    failures = [];
+    checks = [
+      () => checkBrokenSerialisation(html, failures),
+      () => checkCssVariables(html, failures),
+      () => {
+        if (!html.includes('settings-confirm') && !html.includes('confirm-btn')) {
+          failures.push('Settings widget missing confirm button (id="settings-confirm" or class="confirm-btn").');
+        }
+      },
+      () => {
+        const groups = html.match(/data-group="([^"]+)"/g) ?? [];
+        const unique = new Set(groups.map(g => g.replace(/data-group="|"/g, '')));
+        if (unique.size < 2) failures.push(`Found ${unique.size} option group(s) — settings needs at least 2 (e.g. rulebook, difficulty).`);
+      },
+      () => {
+        const objectValues = (html.match(/data-value="\[object Object\]"/g) ?? []).length;
+        if (objectValues > 0) failures.push(`Found ${objectValues} option(s) with data-value="[object Object]" — arrays must contain strings, not objects.`);
+      },
+    ];
+  } else if (widgetType === 'character') {
+    failures = [];
+    checks = [
+      () => checkBrokenSerialisation(html, failures),
+      () => checkCssVariables(html, failures),
+      () => {
+        if (!html.includes('data-prompt') && !html.includes('sendPrompt')) {
+          failures.push('Character creation widget missing confirm mechanism (data-prompt or sendPrompt handler).');
+        }
+      },
+      () => {
+        const hasNameInput = html.includes('type="text"') || html.includes('contenteditable');
+        if (!hasNameInput) failures.push('Character creation widget missing name input field.');
+      },
+    ];
+  } else {
+    // Default: scene checks
+    failures = [];
+    checks = [
+      () => checkFooter(html, state, failures),
+      () => checkSceneMeta(html, failures),
+      () => checkNarrative(html, failures),
+      () => checkCss(html, failures),
+      () => checkAtmosphere(html, state, failures),
+      () => checkActionCards(html, failures),
+      () => checkPanelOverlay(html, failures),
+      () => checkStatusBar(html, state, failures),
+      () => checkInlineOnclick(html, failures),
+      () => checkSendPromptFallback(html, failures),
+      () => checkVisualStyle(state, failures),
+      () => checkHandCodedDice(html, failures),
+      () => checkTier1Modules(state, failures),
+      () => checkCssVariables(html, failures),
+      () => checkBrokenSerialisation(html, failures),
+      () => checkPreGameWidget(html, failures),
+    ];
   }
 
-  // Run all checks — TOTAL_CHECKS is derived from this array length.
-  const failures: string[] = [];
-  const checks: Array<() => void> = [
-    () => checkFooter(html, state, failures),
-    () => checkSceneMeta(html, failures),
-    () => checkNarrative(html, failures),
-    () => checkCss(html, failures),
-    () => checkAtmosphere(html, state, failures),
-    () => checkActionCards(html, failures),
-    () => checkPanelOverlay(html, failures),
-    () => checkStatusBar(html, state, failures),
-    () => checkInlineOnclick(html, failures),
-    () => checkSendPromptFallback(html, failures),
-    () => checkVisualStyle(state, failures),
-    () => checkHandCodedDice(html, failures),
-    () => checkTier1Modules(state, failures),
-    () => checkCssVariables(html, failures),
-    () => checkBrokenSerialisation(html, failures),
-    () => checkPreGameWidget(html, failures),
-  ];
   for (const check of checks) check();
-
   const TOTAL_CHECKS = checks.length;
   const passed = failures.length === 0;
 
-  // On success: write signed marker, increment turn counter, clear needs-verify flag
-  if (passed) {
+  // On success for scene widgets: write signed marker
+  if (passed && widgetType === 'scene') {
     writeFileSync(getVerifyMarkerPath(), signMarker(state.scene), 'utf-8');
     state._turnCount = (state._turnCount ?? 0) + 1;
     await saveState(state);
@@ -349,12 +418,13 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
 
   return ok({
     verified: passed,
+    widgetType,
     scene: state.scene,
     failures,
     checks: TOTAL_CHECKS,
     htmlChars: html.length,
     ...(passed
-      ? { message: `Scene ${state.scene} verified. All ${TOTAL_CHECKS} checks passed. Ready for show_widget.` }
-      : { message: `Scene ${state.scene} failed verification: ${failures.length} issue(s). Fix and re-verify before show_widget.` }),
+      ? { message: `${widgetType} widget verified. All ${TOTAL_CHECKS} checks passed. Ready for show_widget.` }
+      : { message: `${widgetType} widget failed verification: ${failures.length} issue(s). Fix and re-verify before show_widget.` }),
   }, 'verify');
 }
