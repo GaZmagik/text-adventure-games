@@ -201,6 +201,47 @@ function checkHandCodedDice(html: string, failures: string[]): void {
   }
 }
 
+function checkBrokenSerialisation(html: string, failures: string[]): void {
+  const count = (html.match(/\[object Object\]/g) ?? []).length;
+  if (count > 0) {
+    failures.push(
+      `Found ${count} occurrence(s) of "[object Object]" in HTML — data was not serialised correctly. `
+      + 'This typically means --data passed objects where strings were expected. '
+      + 'Check that arrays contain plain strings, not nested objects.',
+    );
+  }
+}
+
+function checkPreGameWidget(html: string, failures: string[]): void {
+  const isSettings = html.includes('widget-settings') || html.includes('settings-confirm');
+  const isScenario = html.includes('scenario-card') || html.includes('scenario-select');
+  const isCharCreate = html.includes('character-creation') || html.includes('archetype');
+
+  if (isSettings) {
+    if (!html.includes('settings-confirm') && !html.includes('confirm-btn')) {
+      failures.push('Settings widget missing confirm button (id="settings-confirm" or class="confirm-btn").');
+    }
+    const groups = html.match(/data-group="([^"]+)"/g) ?? [];
+    const uniqueGroups = new Set(groups.map(g => g.replace(/data-group="|"/g, '')));
+    if (uniqueGroups.size < 2) {
+      failures.push(`Settings widget has ${uniqueGroups.size} option group(s) — expected at least 2 (rulebook, difficulty, etc.).`);
+    }
+  }
+
+  if (isScenario) {
+    const cards = (html.match(/data-prompt="/g) ?? []).length;
+    if (cards < 2) {
+      failures.push(`Scenario select has ${cards} selectable option(s) — expected at least 2 scenario cards.`);
+    }
+  }
+
+  if (isCharCreate) {
+    if (!html.includes('data-prompt') && !html.includes('sendPrompt')) {
+      failures.push('Character creation widget missing confirm mechanism (data-prompt or sendPrompt handler).');
+    }
+  }
+}
+
 function checkTier1Modules(state: GmState, failures: string[]): void {
   const active = new Set(state.modulesActive ?? []);
   const missing = TIER1_MODULES.filter(m => !active.has(m));
@@ -290,6 +331,8 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
     () => checkHandCodedDice(html, failures),
     () => checkTier1Modules(state, failures),
     () => checkCssVariables(html, failures),
+    () => checkBrokenSerialisation(html, failures),
+    () => checkPreGameWidget(html, failures),
   ];
   for (const check of checks) check();
 

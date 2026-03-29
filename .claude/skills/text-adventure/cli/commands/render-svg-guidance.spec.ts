@@ -107,3 +107,38 @@ describe('svgGuidance in scene render', () => {
     expect((svg.cssVariables as string).includes('--sta-')).toBe(true);
   });
 });
+
+describe('[object Object] detection in render output', () => {
+  test('settings widget fails when --data contains unserialisable objects', async () => {
+    await setupState();
+    // Pass objects where strings are expected — this is the exact bug from playtesting
+    const badData = JSON.stringify({
+      difficulties: [
+        { id: 'forgiving', label: 'Forgiving', description: 'Lower DCs' },
+        { id: 'standard', label: 'Standard', description: 'Balanced' },
+      ],
+    });
+    const result = await handleRender(['settings', '--data', badData]);
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toContain('[object Object]');
+  });
+
+  test('settings widget passes with valid string arrays', async () => {
+    await setupState();
+    const result = await handleRender(['settings']);
+    expect(result.ok).toBe(true);
+    // Verify no [object Object] in the HTML
+    const data = result.data as Record<string, unknown>;
+    const html = typeof data === 'string' ? data : (data.html as string) ?? '';
+    expect(html).not.toContain('[object Object]');
+  });
+
+  test('scene widget HTML never contains [object Object]', async () => {
+    await setupState();
+    const result = await handleRender(['scene', '--style', 'station']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const html = data.html as string;
+    expect(html).not.toContain('[object Object]');
+  });
+});

@@ -318,6 +318,17 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   // Render the template
   const html = templateFn(state, resolvedStyle, options);
 
+  // Catch broken serialisation — [object Object] means --data contained objects where strings were expected
+  if (html.includes('[object Object]')) {
+    return fail(
+      'Rendered HTML contains "[object Object]" — the --data payload has unserialisable values. '
+      + 'Arrays passed to settings/scenario-select must contain plain strings, not objects. '
+      + 'Example: "difficulties":["easy","normal","hard"] not "difficulties":[{"id":"easy","label":"Easy"}].',
+      'Fix the --data JSON so all array values are strings, then re-render.',
+      'render',
+    );
+  }
+
   // Persist pending rolls from scene action cards
   if (widgetType === 'scene' && data?.actions && Array.isArray(data.actions) && state) {
     const pendingRolls: PendingRoll[] = [];
