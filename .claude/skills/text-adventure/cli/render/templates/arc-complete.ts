@@ -23,18 +23,18 @@ export function renderArcComplete(state: GmState | null, styleName: string, opti
   return wrapInShadowDom({
     styleName,
     inlineCss: `.widget-arc-complete { font-family: var(--ta-font-body); padding: 24px; text-align: center; }
-.arc-heading { font-family: var(--ta-font-heading); font-size: 24px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 8px; }
-.arc-subtitle { font-size: 13px; color: var(--color-text-tertiary); margin-bottom: 20px; }
-.arc-summary { font-size: 14px; color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 24px; font-style: italic; max-width: 480px; margin-left: auto; margin-right: auto; }
+.arc-heading { font-family: var(--ta-font-heading); font-size: 24px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); margin-bottom: 8px; }
+.arc-subtitle { font-size: 13px; color: var(--sta-text-tertiary, #545880); margin-bottom: 20px; }
+.arc-summary { font-size: 14px; color: var(--sta-text-secondary, #9AA0C0); line-height: 1.6; margin-bottom: 24px; font-style: italic; max-width: 480px; margin-left: auto; margin-right: auto; }
 .arc-stats { display: flex; justify-content: center; gap: 24px; margin-bottom: 28px; flex-wrap: wrap; }
-.arc-stat-card { padding: 12px 16px; border: 0.5px solid var(--color-border-tertiary); border-radius: 8px; min-width: 80px; }
+.arc-stat-card { padding: 12px 16px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); border-radius: 8px; min-width: 80px; }
 .arc-stat-value { font-size: 22px; font-weight: 700; color: var(--ta-color-accent); display: block; }
-.arc-stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-tertiary); }
+.arc-stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--sta-text-tertiary, #545880); }
 .arc-actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
 .arc-action-btn {
   padding: 12px 24px; font-size: 13px; font-weight: 600;
-  border: 0.5px solid var(--color-border-tertiary); border-radius: 8px;
-  background: transparent; color: var(--color-text-primary);
+  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); border-radius: 8px;
+  background: transparent; color: var(--sta-text-primary, #EEF0FF);
   cursor: pointer; transition: all 0.2s; min-height: 44px;
 }
 .arc-action-btn:hover { border-color: var(--ta-color-accent); background: var(--ta-color-accent-bg); }

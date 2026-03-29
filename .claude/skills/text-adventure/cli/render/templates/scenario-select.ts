@@ -49,19 +49,19 @@ export function renderScenarioSelect(_state: GmState | null, styleName: string, 
 .widget-scenario-select { font-family: var(--ta-font-body); padding: 16px; }
 .scenario-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
 .scenario-card {
-  padding: 16px; border: 0.5px solid var(--color-border-tertiary);
+  padding: 16px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
   border-radius: 8px; transition: border-color 0.2s;
 }
 .scenario-card:hover { border-color: var(--ta-color-accent); }
-.scenario-title { font-family: var(--ta-font-heading); font-size: 16px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 6px; }
-.scenario-desc { font-size: 12px; line-height: 1.5; color: var(--color-text-secondary); margin-bottom: 10px; }
+.scenario-title { font-family: var(--ta-font-heading); font-size: 16px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); margin-bottom: 6px; }
+.scenario-desc { font-size: 12px; line-height: 1.5; color: var(--sta-text-secondary, #9AA0C0); margin-bottom: 10px; }
 .scenario-genres { margin-bottom: 8px; }
 .genre-pill {
   display: inline-block; padding: 2px 8px; font-size: 10px;
   border-radius: 10px; background: var(--ta-color-accent-bg);
   color: var(--ta-color-accent); margin-right: 4px; text-transform: capitalize;
 }
-.scenario-meta { font-size: 10px; color: var(--color-text-tertiary); margin-bottom: 10px; }
+.scenario-meta { font-size: 10px; color: var(--sta-text-tertiary, #545880); margin-bottom: 10px; }
 .scenario-meta span { margin-right: 12px; }
 .scenario-diff { text-transform: capitalize; }
 .scenario-select-btn {
@@ -74,7 +74,7 @@ export function renderScenarioSelect(_state: GmState | null, styleName: string, 
 }
 .scenario-select-btn:hover { background: var(--ta-color-accent); color: var(--ta-btn-primary-text, #fff); }
 .scenario-select-btn:focus-visible { outline: 2px solid var(--ta-color-focus); outline-offset: 2px; }
-.empty-scenarios { font-size: 13px; color: var(--color-text-tertiary); text-align: center; padding: 40px; }
+.empty-scenarios { font-size: 13px; color: var(--sta-text-tertiary, #545880); text-align: center; padding: 40px; }
 @media (prefers-reduced-motion: reduce) {
   .scenario-card, .scenario-select-btn { transition: none; }
 }`,
@@ -87,7 +87,7 @@ export function renderScenarioSelect(_state: GmState | null, styleName: string, 
     ${cards}
   </div>` : `<div class="empty-scenarios">
   <p>No scenarios provided. Use the --data flag:</p>
-  <pre style="text-align:left;font-size:11px;color:var(--color-text-secondary,#9AA0C0);margin-top:12px;white-space:pre-wrap;word-break:break-word;">tag render scenario-select --style station --data '${esc(JSON.stringify({scenarios:[{title:"Cold Freight",hook:"Your section of the generation ship has been sealed off.",genres:["survival","mystery"],difficulty:"normal"},{title:"The Grit Anvil",hook:"The drill hit something that is not rock.",genres:["horror","blue-collar"],difficulty:"normal"}]}, null, 2))}'</pre>
+  <pre style="text-align:left;font-size:11px;color:var(--sta-text-secondary, #9AA0C0);margin-top:12px;white-space:pre-wrap;word-break:break-word;">tag render scenario-select --style station --data '${esc(JSON.stringify({scenarios:[{title:"Cold Freight",hook:"Your section of the generation ship has been sealed off.",genres:["survival","mystery"],difficulty:"normal"},{title:"The Grit Anvil",hook:"The drill hit something that is not rock.",genres:["horror","blue-collar"],difficulty:"normal"}]}, null, 2))}'</pre>
   <p style="margin-top:8px;font-size:11px;">Fields: title (required), hook or description, genres or genre, difficulty, tags, modules</p>
 </div>`}
 </div>`,

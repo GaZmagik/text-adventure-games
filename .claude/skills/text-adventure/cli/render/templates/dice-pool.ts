@@ -121,21 +121,21 @@ export function renderDicePool(_state: GmState | null, styleName: string, option
     styleName,
     inlineCss: `.widget-dice-pool { font-family: var(--ta-font-body); padding: 20px 16px; text-align: center; max-width: 920px; margin: 0 auto; }
 .dice-pool-label { font-family: var(--ta-font-heading); font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ta-color-accent); margin-bottom: 6px; }
-.dice-pool-expression { font-size: 11px; color: var(--color-text-tertiary); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 14px; }
+.dice-pool-expression { font-size: 11px; color: var(--sta-text-tertiary, #545880); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 14px; }
 .dice-pool-clickzone { width: min(100%, ${displayW}px); margin: 0 auto; cursor: pointer; }
 .dice-pool-canvas-wrap { width: 100%; margin: 0 auto 10px; }
 .dice-pool-canvas-wrap canvas { width: 100%; height: auto; display: block; }
-.dice-pool-hint { font-size: 10px; color: var(--color-text-tertiary); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px; min-height: 1.4em; transition: opacity 0.3s; }
+.dice-pool-hint { font-size: 10px; color: var(--sta-text-tertiary, #545880); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px; min-height: 1.4em; transition: opacity 0.3s; }
 .dice-pool-hint.is-hidden { opacity: 0; }
-.dice-pool-note { font-size: 10px; color: var(--color-text-secondary); margin-bottom: 10px; }
+.dice-pool-note { font-size: 10px; color: var(--sta-text-secondary, #9AA0C0); margin-bottom: 10px; }
 .dice-pool-result { opacity: 0; transition: opacity 0.4s; max-width: 760px; margin: 0 auto; }
 .dice-pool-result.is-visible { opacity: 1; }
 .dice-pool-total { font-size: 42px; line-height: 1; font-weight: 700; color: var(--ta-color-accent); margin-bottom: 6px; }
-.dice-pool-modifier { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 14px; }
+.dice-pool-modifier { font-size: 13px; color: var(--sta-text-secondary, #9AA0C0); margin-bottom: 14px; }
 .dice-pool-groups { display: grid; gap: 8px; }
 .dice-pool-group { display: grid; grid-template-columns: minmax(72px, auto) 1fr; gap: 10px; align-items: baseline; justify-content: center; padding: 8px 12px; border: 1px solid rgba(128, 128, 128, 0.2); border: 1px solid color-mix(in srgb, var(--ta-color-accent) 20%, transparent); border-radius: 12px; background: rgba(42, 42, 58, 0.18); background: color-mix(in srgb, var(--ta-die-bg, #2a2a3a) 18%, transparent); }
-.dice-pool-group-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-tertiary); text-align: right; }
-.dice-pool-group-values { font-size: 16px; font-weight: 700; color: var(--color-text-primary); text-align: left; }
+.dice-pool-group-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sta-text-tertiary, #545880); text-align: right; }
+.dice-pool-group-values { font-size: 16px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); text-align: left; }
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0s !important; animation-duration: 0s !important; }
 }`,

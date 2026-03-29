@@ -6,20 +6,20 @@ import { esc } from '../../lib/html';
 import { wrapInShadowDom } from '../lib/shadow-wrapper';
 
 const STATE_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-  locked:     { bg: 'var(--color-border-tertiary)', text: 'var(--color-text-tertiary)', label: 'Locked' },
+  locked:     { bg: 'var(--sta-border-tertiary, rgba(84,88,128,0.4))', text: 'var(--sta-text-tertiary, #545880)', label: 'Locked' },
   partial:    { bg: 'var(--ta-badge-partial-bg)', text: 'var(--ta-badge-partial-text)', label: 'Partial' },
   discovered: { bg: 'var(--ta-badge-success-bg)', text: 'var(--ta-badge-success-text)', label: 'Discovered' },
   redacted:   { bg: 'var(--ta-badge-failure-bg)', text: 'var(--ta-badge-failure-text)', label: 'Redacted' },
 };
 
 const CODEX_CSS = `.widget-codex { font-family: var(--ta-font-body); padding: 16px; }
-.codex-title { font-family: var(--ta-font-heading); font-size: 18px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 4px; }
-.codex-summary { font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 12px; }
-.codex-entry { padding: 10px; margin-bottom: 8px; border: 0.5px solid var(--color-border-tertiary); border-radius: 6px; }
+.codex-title { font-family: var(--ta-font-heading); font-size: 18px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); margin-bottom: 4px; }
+.codex-summary { font-size: 11px; color: var(--sta-text-tertiary, #545880); margin-bottom: 12px; }
+.codex-entry { padding: 10px; margin-bottom: 8px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); border-radius: 6px; }
 .codex-header { display: flex; justify-content: space-between; align-items: center; }
-.codex-id { font-size: 13px; font-weight: 600; color: var(--color-text-primary); }
+.codex-id { font-size: 13px; font-weight: 600; color: var(--sta-text-primary, #EEF0FF); }
 .codex-badge { display: inline-block; padding: 2px 8px; font-size: 10px; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
-.codex-meta { font-size: 10px; color: var(--color-text-tertiary); margin-top: 4px; }
+.codex-meta { font-size: 10px; color: var(--sta-text-tertiary, #545880); margin-top: 4px; }
 .codex-secrets { margin-top: 6px; }
 .codex-secret { display: inline-block; padding: 2px 6px; font-size: 10px; border-radius: 4px; background: var(--ta-color-accent-bg); color: var(--ta-color-accent); margin-right: 4px; margin-bottom: 2px; }`;
 

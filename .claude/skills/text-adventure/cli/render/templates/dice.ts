@@ -86,9 +86,9 @@ export function renderDice(state: GmState | null, styleName: string, options?: R
   --dbg: var(--ta-die-bg, #2a2a3a);
   --dfg: var(--ta-die-text-color, #e8e8f0);
   --acc: var(--ta-color-accent);
-  --t1: var(--color-text-primary);
-  --t2: var(--color-text-secondary);
-  --t3: var(--color-text-tertiary);
+  --t1: var(--sta-text-primary, #EEF0FF);
+  --t2: var(--sta-text-secondary, #9AA0C0);
+  --t3: var(--sta-text-tertiary, #545880);
   --sbg: var(--ta-badge-success-bg);
   --sfg: var(--ta-badge-success-text);
   --sbd: var(--ta-badge-crit-success-border);

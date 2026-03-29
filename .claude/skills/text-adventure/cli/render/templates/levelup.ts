@@ -26,11 +26,11 @@ export function renderLevelup(state: GmState | null, styleName: string, options?
   font-family: var(--ta-font-heading); font-size: 24px; font-weight: 700;
   color: var(--ta-color-accent); margin-bottom: 8px;
 }
-.levelup-subtitle { font-size: 14px; color: var(--color-text-secondary); margin-bottom: 16px; }
+.levelup-subtitle { font-size: 14px; color: var(--sta-text-secondary, #9AA0C0); margin-bottom: 16px; }
 .levelup-stats { display: flex; justify-content: center; gap: 24px; margin: 16px 0; }
 .levelup-stat { text-align: center; }
-.levelup-stat-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-tertiary); }
-.levelup-stat-value { display: block; font-size: 22px; font-weight: 700; color: var(--color-text-primary); }
+.levelup-stat-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--sta-text-tertiary, #545880); }
+.levelup-stat-value { display: block; font-size: 22px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); }
 .levelup-prof-change {
   display: inline-block; padding: 6px 14px; margin: 8px 0;
   background: var(--ta-color-accent-bg); color: var(--ta-color-accent);
@@ -39,8 +39,8 @@ export function renderLevelup(state: GmState | null, styleName: string, options?
 .ability-options { margin-top: 16px; }
 .ability-card {
   display: inline-block; padding: 8px 16px; margin: 4px;
-  border: 0.5px solid var(--color-border-tertiary); border-radius: 6px;
-  font-size: 12px; color: var(--color-text-primary); cursor: pointer;
+  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); border-radius: 6px;
+  font-size: 12px; color: var(--sta-text-primary, #EEF0FF); cursor: pointer;
   background: transparent; transition: border-color 0.2s;
   min-height: 44px; box-sizing: border-box;
 }
@@ -72,7 +72,7 @@ export function renderLevelup(state: GmState | null, styleName: string, options?
 
   ${abilityOptions.length > 0 ? `
   <div class="ability-options">
-    <div style="font-size:11px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Choose an ability</div>
+    <div style="font-size:11px;color:var(--sta-text-tertiary, #545880);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Choose an ability</div>
     ${abilityOptions.map(a => `<button class="ability-card" data-prompt="I choose the ${esc(a)} ability" title="I choose the ${esc(a)} ability" aria-pressed="false">${esc(a)}</button>`).join('\n    ')}
   </div>` : ''}
 </div>`,

@@ -6,20 +6,20 @@ import { esc } from '../../lib/html';
 import { wrapInShadowDom } from '../lib/shadow-wrapper';
 
 const MAP_CSS = `.widget-map { font-family: var(--ta-font-body); padding: 16px; }
-.map-title { font-family: var(--ta-font-heading); font-size: 18px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 4px; }
+.map-title { font-family: var(--ta-font-heading); font-size: 18px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); margin-bottom: 4px; }
 .map-current { font-size: 13px; color: var(--ta-color-accent); margin-bottom: 12px; }
-.map-summary { font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 12px; }
-.map-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-tertiary); margin: 12px 0 6px; }
+.map-summary { font-size: 11px; color: var(--sta-text-tertiary, #545880); margin-bottom: 12px; }
+.map-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--sta-text-tertiary, #545880); margin: 12px 0 6px; }
 .zone-list { list-style: none; padding: 0; margin: 0; }
-.zone-item { padding: 4px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 12px; color: var(--color-text-secondary); }
+.zone-item { padding: 4px 0; border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); font-size: 12px; color: var(--sta-text-secondary, #9AA0C0); }
 .zone-current { color: var(--ta-color-accent); font-weight: 600; }
-.zone-visited { color: var(--color-text-primary); }
-.zone-fog { color: var(--color-text-tertiary); font-style: italic; }
-.door-item { padding: 2px 0; font-size: 11px; color: var(--color-text-secondary); }
+.zone-visited { color: var(--sta-text-primary, #EEF0FF); }
+.zone-fog { color: var(--sta-text-tertiary, #545880); font-style: italic; }
+.door-item { padding: 2px 0; font-size: 11px; color: var(--sta-text-secondary, #9AA0C0); }
 .door-name { font-weight: 600; }
-.door-state { color: var(--color-text-tertiary); text-transform: capitalize; }
-.supplies-row { font-size: 12px; color: var(--color-text-secondary); margin: 2px 0; }
-.supplies-label { color: var(--color-text-tertiary); text-transform: uppercase; font-size: 10px; }`;
+.door-state { color: var(--sta-text-tertiary, #545880); text-transform: capitalize; }
+.supplies-row { font-size: 12px; color: var(--sta-text-secondary, #9AA0C0); margin: 2px 0; }
+.supplies-label { color: var(--sta-text-tertiary, #545880); text-transform: uppercase; font-size: 10px; }`;
 
 export function renderMap(state: GmState | null, styleName: string, _options?: Record<string, unknown>): string {
   const mapState = state?.mapState;

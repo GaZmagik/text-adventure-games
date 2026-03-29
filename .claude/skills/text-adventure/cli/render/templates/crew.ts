@@ -6,19 +6,19 @@ import { esc } from '../../lib/html';
 import { wrapInShadowDom } from '../lib/shadow-wrapper';
 
 const CREW_CSS = `.widget-crew { font-family: var(--ta-font-body); padding: 16px; }
-.crew-title { font-family: var(--ta-font-heading); font-size: 18px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 12px; }
+.crew-title { font-family: var(--ta-font-heading); font-size: 18px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); margin-bottom: 12px; }
 .crew-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.crew-table th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-tertiary); padding: 4px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); }
-.crew-row td { padding: 8px; border-bottom: 0.5px solid var(--color-border-tertiary); vertical-align: middle; }
-.crew-name { font-weight: 600; color: var(--color-text-primary); }
-.crew-role { color: var(--color-text-secondary); text-transform: capitalize; }
-.crew-task { color: var(--color-text-secondary); }
-.idle { color: var(--color-text-tertiary); font-style: italic; }
-.mini-bar { width: 60px; height: 5px; background: var(--color-border-tertiary); border-radius: 3px; overflow: hidden; display: inline-block; vertical-align: middle; }
+.crew-table th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sta-text-tertiary, #545880); padding: 4px 8px; border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); }
+.crew-row td { padding: 8px; border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); vertical-align: middle; }
+.crew-name { font-weight: 600; color: var(--sta-text-primary, #EEF0FF); }
+.crew-role { color: var(--sta-text-secondary, #9AA0C0); text-transform: capitalize; }
+.crew-task { color: var(--sta-text-secondary, #9AA0C0); }
+.idle { color: var(--sta-text-tertiary, #545880); font-style: italic; }
+.mini-bar { width: 60px; height: 5px; background: var(--sta-border-tertiary, rgba(84,88,128,0.4)); border-radius: 3px; overflow: hidden; display: inline-block; vertical-align: middle; }
 .mini-fill { height: 100%; border-radius: 3px; }
 .morale-fill { background: var(--ta-color-success); }
 .stress-fill { background: var(--ta-color-danger); }
-.mini-label { font-size: 10px; color: var(--color-text-tertiary); margin-left: 4px; }
+.mini-label { font-size: 10px; color: var(--sta-text-tertiary, #545880); margin-left: 4px; }
 .crew-badge { display: inline-block; padding: 2px 8px; font-size: 10px; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
 .badge-ok { background: var(--ta-badge-success-bg); color: var(--ta-badge-success-text); }
 .badge-warn { background: var(--ta-badge-partial-bg); color: var(--ta-badge-partial-text); }

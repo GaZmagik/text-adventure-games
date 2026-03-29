@@ -8,7 +8,7 @@ import { wrapInShadowDom } from '../lib/shadow-wrapper';
 const DISPOSITION_STYLES: Record<string, { bg: string; text: string }> = {
   hostile:    { bg: 'var(--ta-badge-failure-bg)', text: 'var(--ta-badge-failure-text)' },
   suspicious: { bg: 'var(--ta-color-warning-bg)', text: 'var(--ta-color-warning)' },
-  neutral:    { bg: 'var(--color-border-tertiary)', text: 'var(--color-text-tertiary)' },
+  neutral:    { bg: 'var(--sta-border-tertiary, rgba(84,88,128,0.4))', text: 'var(--sta-text-tertiary, #545880)' },
   friendly:   { bg: 'var(--ta-badge-success-bg)', text: 'var(--ta-badge-success-text)' },
   allied:     { bg: 'var(--ta-color-accent-bg)', text: 'var(--ta-color-accent)' },
   bonded:     { bg: 'var(--ta-color-conviction)', text: 'var(--ta-badge-partial-text)' },
@@ -34,28 +34,28 @@ export function renderDialogue(state: GmState | null, styleName: string, options
     styleName,
     inlineCss: `.widget-dialogue { font-family: var(--ta-font-body); padding: 16px; }
 .dialogue-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-.dialogue-npc-name { font-family: var(--ta-font-heading); font-size: 18px; font-weight: 700; color: var(--color-text-primary); }
+.dialogue-npc-name { font-family: var(--ta-font-heading); font-size: 18px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); }
 .dialogue-disposition {
   display: inline-block; padding: 2px 10px; font-size: 10px; border-radius: 8px;
   text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;
 }
-.dialogue-trust { font-size: 10px; color: var(--color-text-tertiary); }
+.dialogue-trust { font-size: 10px; color: var(--sta-text-tertiary, #545880); }
 .dialogue-area {
   padding: 14px; margin-bottom: 14px;
   border-left: 3px solid var(--ta-color-accent);
   background: var(--ta-color-accent-bg);
   border-radius: 0 6px 6px 0;
   font-size: 13px; line-height: 1.6;
-  color: var(--color-text-primary);
+  color: var(--sta-text-primary, #EEF0FF);
   font-style: italic;
 }
 .dialogue-choices { display: flex; flex-direction: column; gap: 8px; }
 .dialogue-choice {
   display: block; width: 100%; text-align: left;
-  padding: 10px 14px; border: 0.5px solid var(--color-border-tertiary);
+  padding: 10px 14px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
   border-radius: 6px; background: transparent;
   font-family: var(--ta-font-body); font-size: 12px;
-  color: var(--color-text-primary); cursor: pointer;
+  color: var(--sta-text-primary, #EEF0FF); cursor: pointer;
   transition: border-color 0.2s, background 0.2s;
 }
 .dialogue-choice:hover {

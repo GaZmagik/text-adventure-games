@@ -6,17 +6,17 @@ import { esc } from '../../lib/html';
 import { wrapInShadowDom } from '../lib/shadow-wrapper';
 
 const STARCHART_CSS = `.widget-starchart { font-family: var(--ta-font-body); padding: 16px; }
-.starchart-title { font-family: var(--ta-font-heading); font-size: 18px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 4px; }
+.starchart-title { font-family: var(--ta-font-heading); font-size: 18px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); margin-bottom: 4px; }
 .starchart-current { font-size: 13px; color: var(--ta-color-accent); margin-bottom: 12px; }
-.starchart-summary { font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 12px; }
-.chart-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-tertiary); margin: 12px 0 6px; }
+.starchart-summary { font-size: 11px; color: var(--sta-text-tertiary, #545880); margin-bottom: 12px; }
+.chart-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--sta-text-tertiary, #545880); margin: 12px 0 6px; }
 .system-list { list-style: none; padding: 0; margin: 0; }
-.system-item { padding: 4px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 12px; color: var(--color-text-secondary); }
+.system-item { padding: 4px 0; border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); font-size: 12px; color: var(--sta-text-secondary, #9AA0C0); }
 .system-current { color: var(--ta-color-accent); font-weight: 600; }
 .course-list { list-style: none; padding: 0; margin: 0; }
-.course-step { padding: 3px 0; font-size: 12px; color: var(--color-text-secondary); }
+.course-step { padding: 3px 0; font-size: 12px; color: var(--sta-text-secondary, #9AA0C0); }
 .step-current { color: var(--ta-color-accent); font-weight: 600; }
-.no-course { font-size: 11px; color: var(--color-text-tertiary); font-style: italic; }`;
+.no-course { font-size: 11px; color: var(--sta-text-tertiary, #545880); font-style: italic; }`;
 
 export function renderStarchart(state: GmState | null, styleName: string, _options?: Record<string, unknown>): string {
   if (!state?.visitedRooms?.length) {
@@ -48,7 +48,7 @@ export function renderStarchart(state: GmState | null, styleName: string, _optio
 
   <div class="chart-section-label">Known Systems</div>
   <ul class="system-list">
-    ${systemList || '<li class="system-item" style="font-style:italic;color:var(--color-text-tertiary)">No systems charted</li>'}
+    ${systemList || '<li class="system-item" style="font-style:italic;color:var(--sta-text-tertiary, #545880)">No systems charted</li>'}
   </ul>
 
   <div class="chart-section-label">Plotted Course</div>

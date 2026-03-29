@@ -54,28 +54,28 @@ export function renderCombatTurn(state: GmState | null, styleName: string, optio
   return wrapInShadowDom({
     styleName,
     inlineCss: `.widget-combat { font-family: var(--ta-font-body); padding: 16px; }
-.combat-title { font-family: var(--ta-font-heading); font-size: 16px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 12px; text-align: center; }
+.combat-title { font-family: var(--ta-font-heading); font-size: 16px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); margin-bottom: 12px; text-align: center; }
 .combat-participants { display: flex; justify-content: space-around; align-items: center; margin-bottom: 16px; }
 .combatant { text-align: center; }
-.combatant-name { font-size: 13px; font-weight: 700; color: var(--color-text-primary); }
-.combatant-hp { font-size: 11px; color: var(--color-text-tertiary); margin-top: 2px; }
-.vs-divider { font-size: 18px; font-weight: 700; color: var(--color-text-tertiary); }
+.combatant-name { font-size: 13px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); }
+.combatant-hp { font-size: 11px; color: var(--sta-text-tertiary, #545880); margin-top: 2px; }
+.vs-divider { font-size: 18px; font-weight: 700; color: var(--sta-text-tertiary, #545880); }
 .combat-roll { text-align: center; margin: 12px 0; }
-.roll-breakdown { font-size: 20px; font-weight: 700; color: var(--color-text-primary); }
+.roll-breakdown { font-size: 20px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); }
 .roll-val { color: var(--ta-color-accent); }
-.roll-mod { font-size: 14px; color: var(--color-text-secondary); }
+.roll-mod { font-size: 14px; color: var(--sta-text-secondary, #9AA0C0); }
 .roll-total { font-size: 24px; }
-.combat-dc { font-size: 11px; color: var(--color-text-tertiary); margin-top: 4px; }
+.combat-dc { font-size: 11px; color: var(--sta-text-tertiary, #545880); margin-top: 4px; }
 .combat-outcome {
   display: inline-block; padding: 6px 18px; border-radius: 12px;
   font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
   margin: 8px 0;
 }
-.combat-damage { text-align: center; margin-top: 12px; padding: 10px; border: 0.5px solid var(--color-border-tertiary); border-radius: 6px; }
+.combat-damage { text-align: center; margin-top: 12px; padding: 10px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); border-radius: 6px; }
 .damage-value { font-size: 22px; font-weight: 700; color: var(--ta-color-danger); }
-.damage-type { font-size: 11px; color: var(--color-text-tertiary); text-transform: capitalize; }
-.npc-hp-change { font-size: 12px; color: var(--color-text-secondary); margin-top: 6px; }
-.combat-bar-container { width: 100%; height: 8px; background: var(--color-border-tertiary); border-radius: 4px; overflow: hidden; margin-top: 4px; }
+.damage-type { font-size: 11px; color: var(--sta-text-tertiary, #545880); text-transform: capitalize; }
+.npc-hp-change { font-size: 12px; color: var(--sta-text-secondary, #9AA0C0); margin-top: 6px; }
+.combat-bar-container { width: 100%; height: 8px; background: var(--sta-border-tertiary, rgba(84,88,128,0.4)); border-radius: 4px; overflow: hidden; margin-top: 4px; }
 .hp-bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
 .hp-bar-npc { background: var(--ta-color-danger); }
 @media (prefers-reduced-motion: reduce) {
@@ -98,11 +98,11 @@ export function renderCombatTurn(state: GmState | null, styleName: string, optio
 
   <!-- Attack roll -->
   <div class="combat-roll">
-    <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--color-text-tertiary);margin-bottom:4px">${esc(stat)} Attack</div>
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--sta-text-tertiary, #545880);margin-bottom:4px">${esc(stat)} Attack</div>
     <div class="roll-breakdown">
       <span class="roll-val">${roll}</span>
       <span class="roll-mod">${modStr}</span>
-      <span style="color:var(--color-text-tertiary)">=</span>
+      <span style="color:var(--sta-text-tertiary, #545880)">=</span>
       <span class="roll-total">${total}</span>
     </div>
     ${dc !== undefined ? `<div class="combat-dc">vs AC ${dc}</div>` : ''}
@@ -128,7 +128,7 @@ export function renderCombatTurn(state: GmState | null, styleName: string, optio
   </div>` : ''}
 
   ${!isHit ? `
-  <div style="text-align:center;font-size:12px;color:var(--color-text-tertiary);margin-top:8px;font-style:italic">
+  <div style="text-align:center;font-size:12px;color:var(--sta-text-tertiary, #545880);margin-top:8px;font-style:italic">
     The attack goes wide.
   </div>` : ''}
 </div>`,

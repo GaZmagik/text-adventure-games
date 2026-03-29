@@ -65,8 +65,8 @@ export function renderSettings(_state: GmState | null, styleName: string, option
 .widget-settings { font-family: var(--ta-font-body); padding: 16px; }
 .option-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .option-card {
-  padding: 8px 14px; border: 0.5px solid var(--color-border-tertiary);
-  border-radius: 6px; font-size: 12px; color: var(--color-text-primary);
+  padding: 8px 14px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  border-radius: 6px; font-size: 12px; color: var(--sta-text-primary, #EEF0FF);
   cursor: pointer; background: transparent; transition: all 0.2s;
   text-transform: capitalize;
   min-height: 44px; box-sizing: border-box;
@@ -75,7 +75,7 @@ export function renderSettings(_state: GmState | null, styleName: string, option
 .option-card:focus-visible { outline: 2px solid var(--ta-color-focus, #4ECDC4); outline-offset: 2px; }
 .option-card.selected { border-color: var(--ta-color-accent); background: var(--ta-color-accent-bg); color: var(--ta-color-accent); font-weight: 600; }
 .module-card { display: flex; align-items: center; gap: 8px; }
-.module-check { width: 16px; height: 16px; border: 1.5px solid var(--color-border-tertiary, rgba(84,88,128,0.4)); border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 10px; color: transparent; }
+.module-check { width: 16px; height: 16px; border: 1.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 10px; color: transparent; }
 .module-check.checked { background: var(--ta-color-accent, #4ECDC4); border-color: var(--ta-color-accent, #4ECDC4); color: #fff; }
 .module-check.checked::after { content: '\u2713'; }`,
     html: `<div class="widget-settings">

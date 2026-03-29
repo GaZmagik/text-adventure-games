@@ -23,14 +23,14 @@ export function renderTicker(state: GmState | null, styleName: string, _options?
   padding: 8px 16px;
   font-family: var(--ta-font-body);
   font-size: 12px; letter-spacing: 0.06em;
-  border-bottom: 0.5px solid var(--color-border-tertiary);
-  color: var(--color-text-secondary);
+  border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  color: var(--sta-text-secondary, #9AA0C0);
 }
 .ticker-period {
   text-transform: uppercase; font-weight: 600;
   color: var(--ta-color-accent);
 }
-.ticker-date { color: var(--color-text-tertiary); }
+.ticker-date { color: var(--sta-text-tertiary, #545880); }
 .ticker-deadline {
   color: var(--ta-color-warning);
   font-weight: 600;

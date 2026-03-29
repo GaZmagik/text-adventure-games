@@ -62,7 +62,7 @@ export function renderCharacterCreation(_state: GmState | null, styleName: strin
       : '';
     const fixedProfs = arch.fixedProficiencies ?? [];
     const profsHtml = fixedProfs.length > 0
-      ? `<div class="arch-profs" style="margin-top:4px;font-size:10px;color:var(--color-text-tertiary);">Proficiencies: ${fixedProfs.map(p => esc(p)).join(', ')}</div>`
+      ? `<div class="arch-profs" style="margin-top:4px;font-size:10px;color:var(--sta-text-tertiary, #545880);">Proficiencies: ${fixedProfs.map(p => esc(p)).join(', ')}</div>`
       : '';
 
     return `
@@ -86,30 +86,30 @@ export function renderCharacterCreation(_state: GmState | null, styleName: strin
 .widget-char-creation { font-family: var(--ta-font-body); padding: 16px; }
 .archetype-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
 .archetype-card {
-  padding: 14px; border: 0.5px solid var(--color-border-tertiary);
+  padding: 14px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
   border-radius: 8px; cursor: pointer; transition: all 0.2s;
 }
 .archetype-card:hover { border-color: var(--ta-color-accent); }
 .archetype-card.selected { border-color: var(--ta-color-accent); background: var(--ta-color-accent-bg); }
-.arch-name { font-family: var(--ta-font-heading); font-size: 15px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 4px; }
-.arch-desc { font-size: 11px; color: var(--color-text-secondary); line-height: 1.4; margin-bottom: 6px; }
+.arch-name { font-family: var(--ta-font-heading); font-size: 15px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); margin-bottom: 4px; }
+.arch-desc { font-size: 11px; color: var(--sta-text-secondary, #9AA0C0); line-height: 1.4; margin-bottom: 6px; }
 .arch-stats { margin-bottom: 4px; }
-.arch-stat { display: inline-block; padding: 1px 6px; font-size: 10px; border-radius: 4px; background: var(--color-border-tertiary); color: var(--color-text-primary); margin-right: 4px; font-weight: 600; }
+.arch-stat { display: inline-block; padding: 1px 6px; font-size: 10px; border-radius: 4px; background: var(--sta-border-tertiary, rgba(84,88,128,0.4)); color: var(--sta-text-primary, #EEF0FF); margin-right: 4px; font-weight: 600; }
 .arch-abilities { margin-bottom: 4px; }
 .arch-ability { display: inline-block; padding: 1px 6px; font-size: 10px; border-radius: 4px; background: var(--ta-color-accent-bg); color: var(--ta-color-accent); margin-right: 4px; }
-.arch-meta { font-size: 10px; color: var(--color-text-tertiary); }
+.arch-meta { font-size: 10px; color: var(--sta-text-tertiary, #545880); }
 .name-input {
   width: 100%; padding: 10px 14px; font-family: var(--ta-font-body);
   font-size: 14px; background: transparent;
-  border: 0.5px solid var(--color-border-tertiary); border-radius: 6px;
-  color: var(--color-text-primary); box-sizing: border-box;
+  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); border-radius: 6px;
+  color: var(--sta-text-primary, #EEF0FF); box-sizing: border-box;
 }
 .name-input:focus { border-color: var(--ta-color-accent); outline: 2px solid var(--ta-color-focus); outline-offset: 2px; }
 .name-error { color: var(--ta-color-danger); font-size: 11px; margin-top: 4px; display: block; }
 .prof-grid { display: flex; flex-wrap: wrap; gap: 6px; }
 .prof-option {
-  padding: 8px 12px; font-size: 11px; border: 0.5px solid var(--color-border-tertiary);
-  border-radius: 12px; background: transparent; color: var(--color-text-secondary);
+  padding: 8px 12px; font-size: 11px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  border-radius: 12px; background: transparent; color: var(--sta-text-secondary, #9AA0C0);
   cursor: pointer; transition: all 0.2s; min-height: 44px;
 }
 .prof-option:hover { border-color: var(--ta-color-accent); }
@@ -146,7 +146,7 @@ export function renderCharacterCreation(_state: GmState | null, styleName: strin
         <option value="she">she</option>
         <option value="they">they</option>
       </select>
-      <span style="font-size:12px;color:var(--color-text-tertiary)">/</span>
+      <span style="font-size:12px;color:var(--sta-text-tertiary, #545880)">/</span>
       <select id="pronoun-object" class="name-input" style="width:auto;padding:8px 12px;font-size:12px">
         <option value="him">him</option>
         <option value="her">her</option>
