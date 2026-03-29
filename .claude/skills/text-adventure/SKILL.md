@@ -9,13 +9,20 @@ metadata:
 
 ## Step 0 — Setup (run once per session via Bash tool)
 
+The skill directory must be copied to a writable location before setup:
+
 ```bash
-cd .claude/skills/text-adventure && . ./setup.sh && tag state reset
+cp -r /mnt/skills/user/text-adventure /home/claude/text-adventure && cd /home/claude/text-adventure && . ./setup.sh && tag state reset
 ```
 
 To resume from a save file:
 ```bash
-cd .claude/skills/text-adventure && . ./setup.sh && tag save load /mnt/user-data/uploads/<filename>.save.md
+cp -r /mnt/skills/user/text-adventure /home/claude/text-adventure && cd /home/claude/text-adventure && . ./setup.sh && tag save load /mnt/user-data/uploads/<filename>.save.md
+```
+
+To load a `.lore.md` adventure file:
+```bash
+cp -r /mnt/skills/user/text-adventure /home/claude/text-adventure && cd /home/claude/text-adventure && . ./setup.sh && tag export load /mnt/user-data/uploads/<filename>.lore.md
 ```
 
 ## Step 1 — Run `tag help` for the complete workflow
