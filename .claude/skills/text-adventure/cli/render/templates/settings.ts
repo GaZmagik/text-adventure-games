@@ -75,8 +75,9 @@ export function renderSettings(_state: GmState | null, styleName: string, option
 .option-card:focus-visible { outline: 2px solid var(--ta-color-focus, #4ECDC4); outline-offset: 2px; }
 .option-card.selected { border-color: var(--ta-color-accent); background: var(--ta-color-accent-bg); color: var(--ta-color-accent); font-weight: 600; }
 .module-card { display: flex; align-items: center; gap: 8px; }
-.module-check { width: 14px; height: 14px; border: 1px solid var(--color-border-tertiary); border-radius: 3px; display: inline-block; }
-.module-check.checked { background: var(--ta-color-accent); border-color: var(--ta-color-accent); }`,
+.module-check { width: 16px; height: 16px; border: 1.5px solid var(--color-border-tertiary, rgba(84,88,128,0.4)); border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 10px; color: transparent; }
+.module-check.checked { background: var(--ta-color-accent, #4ECDC4); border-color: var(--ta-color-accent, #4ECDC4); color: #fff; }
+.module-check.checked::after { content: '\u2713'; }`,
     html: `<div class="widget-settings">
   <div class="widget-title">Game Settings</div>
   <div class="widget-subtitle">Configure your adventure before beginning</div>
