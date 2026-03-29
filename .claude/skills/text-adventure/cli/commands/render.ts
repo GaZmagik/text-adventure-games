@@ -412,6 +412,36 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     },
   };
 
+  // SVG guidance — when budget headroom exceeds 50%, suggest inline SVG diagrams
+  function buildSvgGuidance(size: typeof sizeCheck, modules: Set<string>) {
+    const remaining = size.budgetChars - size.chars;
+    const remainingK = Math.round(remaining / 1024);
+    const suggestions: string[] = [];
+
+    if (modules.has('ship-systems')) {
+      suggestions.push('Ship cross-section SVG: show hull systems, damage indicators, power routing using --sta-color-danger/success/warning');
+    }
+    if (modules.has('star-chart')) {
+      suggestions.push('Star chart / navigation SVG: show current position, jump routes, and nearby systems using --sta-color-location and --sta-color-accent');
+    }
+    if (modules.has('geo-map')) {
+      suggestions.push('Floor plan / zone layout SVG: show rooms, doors, and player position using --sta-bg-tertiary and --sta-border-primary');
+    }
+    if (modules.has('crew-manifest')) {
+      suggestions.push('Crew status diagram SVG: show morale/stress bars per crew member using --sta-color-success/warning/danger');
+    }
+    suggestions.push('Location atmosphere SVG: architectural detail, environmental hazard visualisation, or equipment schematic using --sta-* theme variables');
+
+    return {
+      budgetRemaining: `${remainingK}K chars available for inline SVG`,
+      suggestions,
+      cssVariables: 'Use --sta-* CSS variables for colours: --sta-color-accent (#4ECDC4), --sta-color-danger (#E84855), --sta-color-success (#2BA882), --sta-color-warning (#F0A500), --sta-text-primary (#EEF0FF), --sta-bg-primary (#1A1D2E)',
+      tokenEfficiency: 'SVG tokenises at ~3 chars/token vs ~4 chars/token for prose — maximum visual payoff per token spent',
+    };
+  }
+
+  const svgGuidance = sizeCheck.percentUsed < 50 ? buildSvgGuidance(sizeCheck, activeModuleSet) : undefined;
+
   return ok(
     {
       widget: widgetType,
@@ -424,6 +454,7 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
       featureChecklist,
       requiredElements,
       ...(skeleton !== null ? { skeleton } : {}),
+      ...(svgGuidance !== undefined ? { svgGuidance } : {}),
       cdnStyle: resolvedStyle,
       verifyRequired: {
         instruction: 'MANDATORY: After composing narrative into this HTML, save to a file and run `tag verify /tmp/scene.html` BEFORE passing to show_widget.',
