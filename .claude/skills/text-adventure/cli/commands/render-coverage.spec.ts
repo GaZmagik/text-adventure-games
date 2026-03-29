@@ -141,8 +141,8 @@ describe('render data.actions non-array validation', () => {
 
 // ── Empty style CSS after extraction (lines 329-334) ─────────────────
 
-describe('render empty style CSS fallback', () => {
-  test('returns error when style file exists but contains no CSS blocks', async () => {
+describe('render unknown style name produces warning in Shadow DOM output', () => {
+  test('renders with warning comment when style is not in CDN manifest', async () => {
     const state = createDefaultState();
     state.visualStyle = 'empty-nocss';
     state.character = {
@@ -156,20 +156,11 @@ describe('render empty style CSS fallback', () => {
     state.modulesActive = ['core-systems'];
     await saveState(state);
 
-    // Create a style file with no css code blocks — just markdown
-    const stylesDir = join(import.meta.dir, '../../styles');
-    const stylePath = join(stylesDir, 'empty-nocss.md');
-    writeFileSync(stylePath, '# Empty Style\n\nNo CSS code blocks here.\n', 'utf-8');
-
-    try {
-      const result = await handleRender(['scene', '--raw']);
-      expect(result.ok).toBe(false);
-      expect(result.error?.message).toContain('contains no CSS');
-      expect(result.error?.message).toContain('empty-nocss');
-    } finally {
-      // Clean up the temp style file
-      rmSync(stylePath, { force: true });
-    }
+    // Shadow DOM renders with a warning comment when style is not in CSS_MANIFEST
+    const result = await handleRender(['scene', '--raw']);
+    expect(result.ok).toBe(true);
+    expect(result.data as string).toContain('WARNING');
+    expect(result.data as string).toContain('empty-nocss');
   });
 });
 
@@ -198,7 +189,7 @@ describe('render atmosphere effects scoping', () => {
     expect(result.ok).toBe(true);
     const html = result.data as string;
     expect(html.length).toBeGreaterThan(100);
-    expect(html).toContain('<style>');
+    expect(html).toContain('attachShadow');
     expect(html).toContain('<div');
   });
 });

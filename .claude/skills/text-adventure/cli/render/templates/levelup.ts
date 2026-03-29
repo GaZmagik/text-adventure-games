@@ -4,8 +4,9 @@
 import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
 import { proficiencyBonus } from '../../lib/modifier';
+import { wrapInShadowDom } from '../lib/shadow-wrapper';
 
-export function renderLevelup(state: GmState | null, css: string, options?: Record<string, unknown>): string {
+export function renderLevelup(state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
   const char = state?.character;
   const newLevel = Number(char?.level) || 1;
   const prevLevel = newLevel - 1;
@@ -18,9 +19,9 @@ export function renderLevelup(state: GmState | null, css: string, options?: Reco
   // Optional ability options passed via options.data
   const abilityOptions = (options?.data as { abilities?: string[] })?.abilities ?? [];
 
-  return `
-<style>${css}
-.widget-levelup { font-family: var(--ta-font-body); padding: 24px; text-align: center; }
+  return wrapInShadowDom({
+    styleName,
+    inlineCss: `.widget-levelup { font-family: var(--ta-font-body); padding: 24px; text-align: center; }
 .levelup-banner {
   font-family: var(--ta-font-heading); font-size: 24px; font-weight: 700;
   color: var(--ta-color-accent); margin-bottom: 8px;
@@ -47,9 +48,8 @@ export function renderLevelup(state: GmState | null, css: string, options?: Reco
 .ability-card:focus-visible { outline: 2px solid var(--ta-color-focus, #4ECDC4); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0s !important; animation-duration: 0s !important; }
-}
-</style>
-<div class="widget-levelup">
+}`,
+    html: `<div class="widget-levelup">
   <div class="levelup-banner">Level Up!</div>
   <div class="levelup-subtitle">${char ? esc(char.name) : 'Adventurer'} has reached level ${newLevel}</div>
 
@@ -75,15 +75,14 @@ export function renderLevelup(state: GmState | null, css: string, options?: Reco
     <div style="font-size:11px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Choose an ability</div>
     ${abilityOptions.map(a => `<button class="ability-card" data-prompt="I choose the ${esc(a)} ability" title="I choose the ${esc(a)} ability" aria-pressed="false">${esc(a)}</button>`).join('\n    ')}
   </div>` : ''}
-</div>
-<script>
-document.querySelectorAll('.ability-card[data-prompt]').forEach(function(btn) {
+</div>`,
+    script: `shadow.querySelectorAll('.ability-card[data-prompt]').forEach(function(btn) {
   btn.addEventListener('click', function() {
     this.setAttribute('aria-pressed', 'true');
     this.disabled = true;
     var prompt = this.getAttribute('data-prompt');
     if (typeof sendPrompt === 'function') sendPrompt(prompt);
   });
-});
-<\/script>`;
+});`,
+  });
 }

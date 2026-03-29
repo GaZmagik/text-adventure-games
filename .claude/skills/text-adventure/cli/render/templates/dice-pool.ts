@@ -3,6 +3,16 @@ import { esc, serialiseInlineScriptData } from '../../lib/html';
 import { DIE_CONFIGS, type DieConfig } from '../lib/die-geometries';
 import { FONT_SCALE } from '../lib/die-textures';
 import { WEBGL_DICE_POOL_CODE } from '../lib/webgl-dice-pool';
+import { wrapInShadowDom } from '../lib/shadow-wrapper';
+
+/** Adapt WebGL pool code for Shadow DOM — replace document.getElementById/querySelector
+ *  with shadow equivalents, but keep document.createElement as-is. */
+function shadowAdaptPoolCode(code: string): string {
+  return code
+    .replace(/document\.getElementById\(/g, 'shadow.getElementById(')
+    .replace(/document\.querySelector\(/g, 'shadow.querySelector(')
+    .replace(/document\.querySelectorAll\(/g, 'shadow.querySelectorAll(');
+}
 
 type PoolGroup = {
   dieType: DieType;
@@ -83,7 +93,7 @@ function serialiseConfig(config: DieConfig) {
   };
 }
 
-export function renderDicePool(_state: GmState | null, css: string, options?: Record<string, unknown>): string {
+export function renderDicePool(_state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
   const data = options?.data as Record<string, unknown> | undefined;
   const { groups: pool, omittedDice, originalTotal } = normalisePool(data?.pool);
   const label = typeof data?.label === 'string' && data.label.trim() ? data.label.trim() : 'Dice Pool';
@@ -107,8 +117,9 @@ export function renderDicePool(_state: GmState | null, css: string, options?: Re
   }));
   const fontMap = Object.fromEntries(uniqueTypes.map(dieType => [dieType, FONT_SCALE[dieType] ?? FONT_SCALE.d20]));
 
-  return `<style>${css}
-.widget-dice-pool { font-family: var(--ta-font-body); padding: 20px 16px; text-align: center; max-width: 920px; margin: 0 auto; }
+  return wrapInShadowDom({
+    styleName,
+    inlineCss: `.widget-dice-pool { font-family: var(--ta-font-body); padding: 20px 16px; text-align: center; max-width: 920px; margin: 0 auto; }
 .dice-pool-label { font-family: var(--ta-font-heading); font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ta-color-accent); margin-bottom: 6px; }
 .dice-pool-expression { font-size: 11px; color: var(--color-text-tertiary); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 14px; }
 .dice-pool-clickzone { width: min(100%, ${displayW}px); margin: 0 auto; cursor: pointer; }
@@ -127,9 +138,8 @@ export function renderDicePool(_state: GmState | null, css: string, options?: Re
 .dice-pool-group-values { font-size: 16px; font-weight: 700; color: var(--color-text-primary); text-align: left; }
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0s !important; animation-duration: 0s !important; }
-}
-</style>
-<div class="widget-dice-pool">
+}`,
+    html: `<div class="widget-dice-pool">
   <div class="dice-pool-label">${esc(label)}</div>
   <div class="dice-pool-expression">${esc(expression)}</div>
   <div class="dice-pool-clickzone" id="dice-pool-target">
@@ -144,14 +154,13 @@ export function renderDicePool(_state: GmState | null, css: string, options?: Re
     <div class="dice-pool-modifier" id="dice-pool-modifier"></div>
     <div class="dice-pool-groups" id="dice-pool-groups"></div>
   </div>
-</div>
-<script>
-var POOL_LABEL=${serialiseInlineScriptData(label)};
+</div>`,
+    script: `var POOL_LABEL=${serialiseInlineScriptData(label)};
 var POOL_GROUPS=${serialiseInlineScriptData(pool)};
 var POOL_MODIFIER=${modifier};
 var POOL_CONFIG_MAP=${serialiseInlineScriptData(configMap)};
 var POOL_FONT_MAP=${serialiseInlineScriptData(fontMap)};
 var POOL_MAX_DICE=${MAX_DICE_POOL_TOTAL};
-${WEBGL_DICE_POOL_CODE}
-<\/script>`;
+${shadowAdaptPoolCode(WEBGL_DICE_POOL_CODE)}`,
+  });
 }

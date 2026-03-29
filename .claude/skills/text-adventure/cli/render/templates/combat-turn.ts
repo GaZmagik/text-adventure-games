@@ -4,8 +4,9 @@
 import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
 import { outcomeBadgeStyle } from '../lib/outcome-badge';
+import { wrapInShadowDom } from '../lib/shadow-wrapper';
 
-export function renderCombatTurn(state: GmState | null, css: string, options?: Record<string, unknown>): string {
+export function renderCombatTurn(state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
   const comp = state?._lastComputation;
   const char = state?.character;
 
@@ -50,9 +51,9 @@ export function renderCombatTurn(state: GmState | null, css: string, options?: R
   // Combatant count for multi-target display — coerce to safe numeric
   const combatantCount = Number.isFinite(Number(options?.combatantCount)) ? Number(options?.combatantCount) : 1;
 
-  return `
-<style>${css}
-.widget-combat { font-family: var(--ta-font-body); padding: 16px; }
+  return wrapInShadowDom({
+    styleName,
+    inlineCss: `.widget-combat { font-family: var(--ta-font-body); padding: 16px; }
 .combat-title { font-family: var(--ta-font-heading); font-size: 16px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 12px; text-align: center; }
 .combat-participants { display: flex; justify-content: space-around; align-items: center; margin-bottom: 16px; }
 .combatant { text-align: center; }
@@ -79,9 +80,8 @@ export function renderCombatTurn(state: GmState | null, css: string, options?: R
 .hp-bar-npc { background: var(--ta-color-danger); }
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0s !important; animation-duration: 0s !important; }
-}
-</style>
-<div class="widget-combat">
+}`,
+    html: `<div class="widget-combat">
   <div class="combat-title">Combat${combatantCount > 1 ? ` (${combatantCount} combatants)` : ''}</div>
 
   <div class="combat-participants">
@@ -131,5 +131,6 @@ export function renderCombatTurn(state: GmState | null, css: string, options?: R
   <div style="text-align:center;font-size:12px;color:var(--color-text-tertiary);margin-top:8px;font-style:italic">
     The attack goes wide.
   </div>` : ''}
-</div>`;
+</div>`,
+  });
 }

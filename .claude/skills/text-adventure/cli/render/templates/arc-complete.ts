@@ -3,8 +3,9 @@
 
 import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
+import { wrapInShadowDom } from '../lib/shadow-wrapper';
 
-export function renderArcComplete(state: GmState | null, css: string, options?: Record<string, unknown>): string {
+export function renderArcComplete(state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
   const arc = state?.arc ?? 1;
   const char = state?.character;
   const quests = state?.quests ?? [];
@@ -19,9 +20,9 @@ export function renderArcComplete(state: GmState | null, css: string, options?: 
     : undefined;
   const summaryText = typeof dataSummary === 'string' ? dataSummary : '';
 
-  return `
-<style>${css}
-.widget-arc-complete { font-family: var(--ta-font-body); padding: 24px; text-align: center; }
+  return wrapInShadowDom({
+    styleName,
+    inlineCss: `.widget-arc-complete { font-family: var(--ta-font-body); padding: 24px; text-align: center; }
 .arc-heading { font-family: var(--ta-font-heading); font-size: 24px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 8px; }
 .arc-subtitle { font-size: 13px; color: var(--color-text-tertiary); margin-bottom: 20px; }
 .arc-summary { font-size: 14px; color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 24px; font-style: italic; max-width: 480px; margin-left: auto; margin-right: auto; }
@@ -41,9 +42,8 @@ export function renderArcComplete(state: GmState | null, css: string, options?: 
 .arc-action-primary { border-color: var(--ta-color-accent); color: var(--ta-color-accent); }
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0s !important; animation-duration: 0s !important; }
-}
-</style>
-<div class="widget-arc-complete">
+}`,
+    html: `<div class="widget-arc-complete">
   <div class="arc-heading">Act ${arc} Complete</div>
   <div class="arc-subtitle">${char ? `${esc(char.name)} · Level ${Number(char.level) || 1} ${esc(char.class)}` : `${scene} scenes`}</div>
   ${summaryText ? `<div class="arc-summary">${esc(summaryText)}</div>` : ''}
@@ -58,15 +58,12 @@ export function renderArcComplete(state: GmState | null, css: string, options?: 
     <button class="arc-action-btn" data-prompt="Generate a .lore.md world export using tag export generate. Include all NPCs, factions, quests, and world state.">Export World</button>
     <button class="arc-action-btn arc-action-primary" data-prompt="Begin Act ${esc(String(arc + 1))}. Carry forward character progression, faction standings, and world consequences. Run tag state set arc ${esc(String(arc + 1))} then render the next act opener.">Continue to Act ${esc(String(arc + 1))}</button>
   </div>
-</div>
-<script>
-(function() {
-  document.querySelectorAll('.arc-action-btn[data-prompt]').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var prompt = this.getAttribute('data-prompt');
-      if (typeof sendPrompt === 'function') sendPrompt(prompt);
-    });
+</div>`,
+    script: `shadow.querySelectorAll('.arc-action-btn[data-prompt]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var prompt = this.getAttribute('data-prompt');
+    if (typeof sendPrompt === 'function') sendPrompt(prompt);
   });
-})();
-<\/script>`;
+});`,
+  });
 }

@@ -4,6 +4,7 @@
 import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
 import { COMMON_WIDGET_CSS } from '../lib/common-css';
+import { wrapInShadowDom } from '../lib/shadow-wrapper';
 
 type Scenario = {
   title: string;
@@ -17,7 +18,7 @@ type Scenario = {
   modules?: string;
 };
 
-export function renderScenarioSelect(_state: GmState | null, css: string, options?: Record<string, unknown>): string {
+export function renderScenarioSelect(_state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
   const raw = (options?.data ?? {}) as Record<string, unknown>;
   const scenarios: Scenario[] = Array.isArray(raw.scenarios) ? raw.scenarios as Scenario[] : [];
 
@@ -42,9 +43,9 @@ export function renderScenarioSelect(_state: GmState | null, css: string, option
       </div>`;
   }).join('\n');
 
-  return `
-<style>${css}
-${COMMON_WIDGET_CSS}
+  return wrapInShadowDom({
+    styleName,
+    inlineCss: `${COMMON_WIDGET_CSS}
 .widget-scenario-select { font-family: var(--ta-font-body); padding: 16px; }
 .scenario-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
 .scenario-card {
@@ -76,9 +77,8 @@ ${COMMON_WIDGET_CSS}
 .empty-scenarios { font-size: 13px; color: var(--color-text-tertiary); text-align: center; padding: 40px; }
 @media (prefers-reduced-motion: reduce) {
   .scenario-card, .scenario-select-btn { transition: none; }
-}
-</style>
-<div class="widget-scenario-select">
+}`,
+    html: `<div class="widget-scenario-select">
   <div class="widget-title">Choose Your Scenario</div>
   <div class="widget-subtitle">Select an adventure to begin</div>
 
@@ -90,13 +90,12 @@ ${COMMON_WIDGET_CSS}
   <pre style="text-align:left;font-size:11px;color:var(--color-text-secondary,#9AA0C0);margin-top:12px;white-space:pre-wrap;word-break:break-word;">tag render scenario-select --style station --data '${esc(JSON.stringify({scenarios:[{title:"Cold Freight",hook:"Your section of the generation ship has been sealed off.",genres:["survival","mystery"],difficulty:"normal"},{title:"The Grit Anvil",hook:"The drill hit something that is not rock.",genres:["horror","blue-collar"],difficulty:"normal"}]}, null, 2))}'</pre>
   <p style="margin-top:8px;font-size:11px;">Fields: title (required), hook or description, genres or genre, difficulty, tags, modules</p>
 </div>`}
-</div>
-<script>
-document.querySelectorAll('.scenario-select-btn[data-prompt]').forEach(function(btn) {
+</div>`,
+    script: `shadow.querySelectorAll('.scenario-select-btn[data-prompt]').forEach(function(btn) {
   btn.addEventListener('click', function() {
     var prompt = this.getAttribute('data-prompt');
     if (typeof sendPrompt === 'function') sendPrompt(prompt);
   });
-});
-<\/script>`;
+});`,
+  });
 }

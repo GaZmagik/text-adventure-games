@@ -103,6 +103,24 @@ function checkNarrative(html: string, failures: string[]): void {
 }
 
 function checkCss(html: string, failures: string[]): void {
+  // Shadow DOM: CSS is loaded via CDN <link> and inline widgetStyle.textContent
+  // rather than literal <style> tags. Detect Shadow DOM and count inline CSS.
+  if (html.includes('attachShadow')) {
+    // Count inline CSS from widgetStyle.textContent=`...` patterns
+    const inlineCssMatches = html.match(/widgetStyle\.textContent=`[^`]*`/g) ?? [];
+    let totalCss = 0;
+    for (const match of inlineCssMatches) totalCss += match.length;
+    // CDN link counts as substantial CSS (loaded externally)
+    if (html.includes('.css?v=')) totalCss += MIN_CSS_CHARS;
+    if (totalCss < MIN_CSS_CHARS) {
+      failures.push(
+        `Shadow DOM CSS is ${totalCss.toLocaleString()} chars — below ${MIN_CSS_CHARS.toLocaleString()} minimum. `
+        + 'The full tag render scene output includes CDN CSS + inline widget CSS.',
+      );
+    }
+    return;
+  }
+  // Legacy: check <style> blocks
   const styleBlocks = html.match(/<style[^>]*>([\s\S]*?)<\/style>/g) ?? [];
   let totalCss = 0;
   for (const block of styleBlocks) {

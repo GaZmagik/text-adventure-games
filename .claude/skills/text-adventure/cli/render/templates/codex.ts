@@ -3,6 +3,7 @@
 
 import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
+import { wrapInShadowDom } from '../lib/shadow-wrapper';
 
 const STATE_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   locked:     { bg: 'var(--color-border-tertiary)', text: 'var(--color-text-tertiary)', label: 'Locked' },
@@ -11,15 +12,26 @@ const STATE_STYLES: Record<string, { bg: string; text: string; label: string }> 
   redacted:   { bg: 'var(--ta-badge-failure-bg)', text: 'var(--ta-badge-failure-text)', label: 'Redacted' },
 };
 
-export function renderCodex(state: GmState | null, css: string, _options?: Record<string, unknown>): string {
+const CODEX_CSS = `.widget-codex { font-family: var(--ta-font-body); padding: 16px; }
+.codex-title { font-family: var(--ta-font-heading); font-size: 18px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 4px; }
+.codex-summary { font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 12px; }
+.codex-entry { padding: 10px; margin-bottom: 8px; border: 0.5px solid var(--color-border-tertiary); border-radius: 6px; }
+.codex-header { display: flex; justify-content: space-between; align-items: center; }
+.codex-id { font-size: 13px; font-weight: 600; color: var(--color-text-primary); }
+.codex-badge { display: inline-block; padding: 2px 8px; font-size: 10px; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+.codex-meta { font-size: 10px; color: var(--color-text-tertiary); margin-top: 4px; }
+.codex-secrets { margin-top: 6px; }
+.codex-secret { display: inline-block; padding: 2px 6px; font-size: 10px; border-radius: 4px; background: var(--ta-color-accent-bg); color: var(--ta-color-accent); margin-right: 4px; margin-bottom: 2px; }`;
+
+export function renderCodex(state: GmState | null, styleName: string, _options?: Record<string, unknown>): string {
   const entries = state?.codexMutations ?? [];
 
   if (entries.length === 0) {
-    return `
-${css ? '<style>' + css + '</style>' : ''}
-<div class="widget-codex">
+    const html = `<div class="widget-codex">
   <p class="empty-state">No codex entries recorded.</p>
 </div>`;
+    if (!styleName) return html;
+    return wrapInShadowDom({ styleName, html });
   }
 
   let discoveredCount = 0;
@@ -43,22 +55,12 @@ ${css ? '<style>' + css + '</style>' : ''}
       </div>`;
   }).join('\n');
 
-  return `
-<style>${css}
-.widget-codex { font-family: var(--ta-font-body); padding: 16px; }
-.codex-title { font-family: var(--ta-font-heading); font-size: 18px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 4px; }
-.codex-summary { font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 12px; }
-.codex-entry { padding: 10px; margin-bottom: 8px; border: 0.5px solid var(--color-border-tertiary); border-radius: 6px; }
-.codex-header { display: flex; justify-content: space-between; align-items: center; }
-.codex-id { font-size: 13px; font-weight: 600; color: var(--color-text-primary); }
-.codex-badge { display: inline-block; padding: 2px 8px; font-size: 10px; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
-.codex-meta { font-size: 10px; color: var(--color-text-tertiary); margin-top: 4px; }
-.codex-secrets { margin-top: 6px; }
-.codex-secret { display: inline-block; padding: 2px 6px; font-size: 10px; border-radius: 4px; background: var(--ta-color-accent-bg); color: var(--ta-color-accent); margin-right: 4px; margin-bottom: 2px; }
-</style>
-<div class="widget-codex">
+  const html = `<div class="widget-codex">
   <div class="codex-title">Lore Codex</div>
   <div class="codex-summary">${discoveredCount} of ${entries.length} entries discovered</div>
   ${rows}
 </div>`;
+
+  if (!styleName) return html;
+  return wrapInShadowDom({ styleName, inlineCss: CODEX_CSS, html });
 }

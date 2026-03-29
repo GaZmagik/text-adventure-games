@@ -11,17 +11,11 @@ import { renderShip } from './ship';
 import { renderCrew } from './crew';
 import { renderStarchart } from './starchart';
 import { renderMap } from './map';
-import { SOUNDSCAPE_ENGINE_CODE } from '../lib/soundscape';
-import { SCENE_SCRIPT_CODE } from '../lib/scene-script';
 import { MODULE_PANEL_MAP } from '../../lib/module-panel-map';
+import { wrapInShadowDom } from '../lib/shadow-wrapper';
+import { CDN_BASE } from '../../../assets/cdn-manifest.ts';
 
-/** Pre-computed scene script with soundscape engine inlined — avoids per-call .replace(). */
-const MERGED_SCENE_SCRIPT = SCENE_SCRIPT_CODE.replace(
-  /\$\{SOUNDSCAPE_ENGINE_CODE\}/g,
-  SOUNDSCAPE_ENGINE_CODE,
-);
-
-export function renderScene(state: GmState | null, css: string, options?: Record<string, unknown>): string {
+export function renderScene(state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
   const char = state?.character;
   const room = state?.currentRoom ?? 'Unknown Location';
   const scene = Number(state?.scene) || 0;
@@ -55,9 +49,9 @@ export function renderScene(state: GmState | null, css: string, options?: Record
   // Compose the footer (without its own <style> — we include CSS once at the top)
   const footerHtml = renderFooter(state, '', options);
 
-  return `
-<style>${css}
-#panel-overlay { display: none; padding: 0; }
+  return wrapInShadowDom({
+    styleName,
+    inlineCss: `#panel-overlay { display: none; padding: 0; }
 .panel-header {
   display: flex; align-items: baseline; justify-content: space-between;
   padding-bottom: 10px; margin-bottom: 12px;
@@ -76,9 +70,8 @@ export function renderScene(state: GmState | null, css: string, options?: Record
   color: var(--color-text-tertiary); cursor: pointer;
 }
 .panel-close-btn:hover { border-color: var(--color-border-secondary); color: var(--color-text-secondary); }
-.panel-content { display: none; }
-</style>
-<div class="root">
+.panel-content { display: none; }`,
+    html: `<div class="root">
   <!-- Progressive reveal -->
   <div id="reveal-brief">
     <p class="brief-text">Scene ${scene}: You find yourself in ${esc(room)}.</p>
@@ -115,10 +108,13 @@ export function renderScene(state: GmState | null, css: string, options?: Record
   <div id="scene-meta" style="display:none" data-meta="${esc(sceneMeta)}"></div>
   <!-- Footer -->
   ${footerHtml}
-</div>
-<script>
-${MERGED_SCENE_SCRIPT}
-</script>`;
+</div>`,
+    scriptSrc: [
+      CDN_BASE + '/js/tag-soundscape.js',
+      CDN_BASE + '/js/tag-scene.js',
+    ],
+    script: 'initTagScene(shadow);',
+  });
 }
 
 /** Panel renderer registry — maps panel name to template function. */

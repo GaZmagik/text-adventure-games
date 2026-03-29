@@ -1,19 +1,14 @@
-import { join } from 'node:path';
 import { readSignedMarker, getNeedsVerifyPath } from './verify';
 import { existsSync, writeFileSync } from 'node:fs';
 import type { CommandResult, GmState, PendingRoll, StatName } from '../types';
 import { ok, fail, styleNotSet } from '../lib/errors';
 import { tryLoadState, saveState, getSyncMarkerPath } from '../lib/state-store';
 import { STAT_NAMES } from '../lib/constants';
-import { extractAllCss, extractCssFromContent, filterCssBySelectors } from '../render/css-extractor';
 import { parseArgs } from '../lib/args';
 import { containsForbiddenKeys } from '../lib/security';
 import {
   PRE_CONFIG_WIDGETS,
   PRE_GAME_WIDGETS,
-  WIDGET_CSS_SCOPES,
-  WIDGET_STYLE_SCOPES,
-  WIDGET_CSS_SELECTORS,
   buildFeatureChecklist,
   buildModulesRequired,
 } from '../metadata';
@@ -129,7 +124,7 @@ import { loadNames } from '../data/names';
 
 // ── Widget registry ──────────────────────────────────────────────────
 
-type TemplateFn = (state: GmState | null, css: string, options?: Record<string, unknown>) => string;
+type TemplateFn = (state: GmState | null, styleName: string, options?: Record<string, unknown>) => string;
 
 const TEMPLATES: Record<string, TemplateFn> = {
   scene: renderScene,
@@ -274,86 +269,10 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     return fail('Style name contains invalid characters.', 'Use alphanumeric, hyphens, and underscores only.', 'render');
   }
 
-  // Extract CSS from the style file + style-reference.md
-  // import.meta.dir is a Bun-only API — this CLI requires Bun runtime
-  const styleFilePath = join(import.meta.dir, '../../styles/', resolvedStyle + '.md');
-  const styleRefPath = join(import.meta.dir, '../../styles/style-reference.md');
-  const scopes = WIDGET_CSS_SCOPES[widgetType];
-  if (!scopes) {
-    return fail(
-      `Widget type "${widgetType}" has no CSS scope mapping in WIDGET_CSS_SCOPES.`,
-      'Add a WIDGET_CSS_SCOPES entry for this widget type before rendering.',
-      'render',
-    );
-  }
-  // Build dynamic style-reference scopes (atmosphere effect scoping via --data)
-  const atmoEffects = (data?.atmosphereEffects ?? null) as string[] | null;
-  let refScopes = scopes;
-  if (Array.isArray(atmoEffects) && atmoEffects.length > 0) {
-    refScopes = scopes.filter(s => s !== 'atmosphere')
-      .concat(['atmosphere:core']) // always include core utils (shake, flash, toast, lighting, etc.)
-      .concat(atmoEffects.map(e => `atmosphere:${e}`));
-  }
-
-  const styleScopes = WIDGET_STYLE_SCOPES[widgetType]; // undefined = full theme
-  const selectorFilter = WIDGET_CSS_SELECTORS[widgetType];
-
-  // Read each file once, then extract CSS for each scope set from loaded content
-  let styleFileContent: string;
-  try {
-    const styleFile = Bun.file(styleFilePath);
-    if (!(await styleFile.exists())) {
-      return fail(
-        `Style file not found or contains no CSS: "${resolvedStyle}".`,
-        `Check styles/${resolvedStyle}.md exists and contains css code blocks.`,
-        'render',
-      );
-    }
-    styleFileContent = await styleFile.text();
-  } catch (err) {
-    return fail(`CSS extraction failed: ${err instanceof Error ? err.message : String(err)}`,
-      `Check styles/${resolvedStyle}.md is readable.`, 'render');
-  }
-
-  let styleCss: string, refCss: string;
-  try {
-    [styleCss, refCss] = await Promise.all([
-      Promise.resolve(extractCssFromContent(styleFileContent, styleScopes)),
-      extractAllCss(styleRefPath, refScopes),      // style-reference: separate file, scoped
-    ]);
-  } catch (err) {
-    return fail(`CSS extraction failed: ${err instanceof Error ? err.message : String(err)}`,
-      `Check style files are readable and contain valid css code blocks.`, 'render');
-  }
-
-  if (!styleCss) {
-    return fail(
-      `Style file not found or contains no CSS: "${resolvedStyle}".`,
-      `Check styles/${resolvedStyle}.md exists and contains css code blocks.`,
-      'render',
-    );
-  }
-
-  // Apply selector-based filtering to the full theme block when a registry exists
-  let themeCss = styleCss;
-  let cssManifest: Record<string, unknown> | null = null;
-  if (selectorFilter) {
-    const fullThemeCss = extractCssFromContent(styleFileContent); // unscoped = full theme from same content
-    const filtered = filterCssBySelectors(fullThemeCss, selectorFilter);
-    themeCss = [styleCss, filtered.css].filter(Boolean).join('\n\n');
-    cssManifest = {
-      sources: [
-        { file: resolvedStyle + '.md', scope: 'vars', chars: styleCss.length },
-        { file: resolvedStyle + '.md', scope: 'full (filtered)', chars: filtered.css.length,
-          selectorsMatched: filtered.included.length, selectorsTotal: selectorFilter.length },
-        { file: 'style-reference.md', scope: refScopes.join('+'), chars: refCss.length },
-      ],
-      totalChars: refCss.length + themeCss.length,
-      unmatchedSelectors: filtered.excluded,
-    };
-  }
-
-  const css = [refCss, themeCss].filter(Boolean).join('\n\n');
+  // CSS is now delivered via CDN (Shadow DOM + GitHub Pages).
+  // Templates receive the style name and use wrapInShadowDom() to generate
+  // the Shadow DOM bootstrap with a <link> to the CDN CSS file.
+  // See: cli/render/lib/shadow-wrapper.ts, assets/css/, assets/cdn-manifest.ts
 
   // Build options object
   const options: Record<string, unknown> = {};
@@ -386,7 +305,7 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   }
 
   // Render the template
-  const html = templateFn(state, css, options);
+  const html = templateFn(state, resolvedStyle, options);
 
   // Persist pending rolls from scene action cards
   if (widgetType === 'scene' && data?.actions && Array.isArray(data.actions) && state) {
@@ -494,7 +413,7 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
       featureChecklist,
       requiredElements,
       ...(skeleton !== null ? { skeleton } : {}),
-      ...(cssManifest !== null ? { cssManifest } : {}),
+      cdnStyle: resolvedStyle,
       verifyRequired: {
         instruction: 'MANDATORY: After composing narrative into this HTML, save to a file and run `tag verify /tmp/scene.html` BEFORE passing to show_widget.',
         consequence: 'tag state sync --apply will REFUSE to advance to the next scene if verify has not been run. The verify marker is cryptographically signed — writing the marker file manually will not work.',

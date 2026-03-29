@@ -196,14 +196,15 @@ describe('render style resolution', () => {
     expect(data.style).toBe('terminal');
   });
 
-  test('returns error for nonexistent style file', async () => {
+  test('unknown style name produces output with warning comment', async () => {
     const state = createDefaultState();
     state.visualStyle = 'does-not-exist-xyz';
     await saveState(state);
 
-    const result = await handleRender(['ticker']);
-    expect(result.ok).toBe(false);
-    expect(result.error?.message).toContain('not found or contains no CSS');
+    const result = await handleRender(['ticker', '--raw']);
+    // Shadow DOM renders with a warning comment when style is not in CDN manifest
+    expect(result.ok).toBe(true);
+    expect(result.data as string).toContain('WARNING');
   });
 
   test('rejects style names with invalid characters', async () => {
@@ -212,13 +213,14 @@ describe('render style resolution', () => {
     expect(result.error!.message).toContain('invalid characters');
   });
 
-  test('fails when a valid widget has no CSS scope mapping', async () => {
+  test('CSS scope mapping removal does not affect Shadow DOM rendering', async () => {
     const original = WIDGET_CSS_SCOPES.settings!;
     delete (WIDGET_CSS_SCOPES as Record<string, readonly string[]>).settings;
     try {
-      const result = await handleRender(['settings', '--style', 'terminal']);
-      expect(result.ok).toBe(false);
-      expect(result.error!.message).toContain('no CSS scope mapping');
+      // Shadow DOM bypasses CSS scope mapping — templates receive styleName directly
+      const result = await handleRender(['settings', '--style', 'terminal', '--raw']);
+      expect(result.ok).toBe(true);
+      expect(result.data as string).toContain('attachShadow');
     } finally {
       (WIDGET_CSS_SCOPES as Record<string, readonly string[]>).settings = original;
     }
@@ -239,7 +241,7 @@ describe('render output modes', () => {
     expect(data.widget).toBe('ticker');
     expect(data.style).toBe('terminal');
     expect(typeof data.html).toBe('string');
-    expect(data.html).toContain('<style>');
+    expect(data.html).toContain('attachShadow');
   });
 
   test('non-raw response includes sizeCheck with budget info', async () => {
@@ -268,7 +270,7 @@ describe('render output modes', () => {
     const result = await handleRender(['ticker', '--raw']);
     expect(result.ok).toBe(true);
     expect(typeof result.data).toBe('string');
-    expect(result.data as string).toContain('<style>');
+    expect(result.data as string).toContain('attachShadow');
   });
 });
 

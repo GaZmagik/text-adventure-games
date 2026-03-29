@@ -5,6 +5,7 @@
 import type { GmState } from '../../types';
 import { esc, serialiseInlineScriptData } from '../../lib/html';
 import { COMMON_WIDGET_CSS } from '../lib/common-css';
+import { wrapInShadowDom } from '../lib/shadow-wrapper';
 
 type SettingsData = {
   rulebooks?: string[] | undefined;
@@ -15,7 +16,7 @@ type SettingsData = {
   defaults?: Record<string, string> | undefined;
 };
 
-export function renderSettings(_state: GmState | null, css: string, options?: Record<string, unknown>): string {
+export function renderSettings(_state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
   const raw = (options?.data ?? {}) as Record<string, unknown>;
 
   // Safely extract string[] fields — guard against non-array values from untrusted JSON
@@ -58,9 +59,9 @@ export function renderSettings(_state: GmState | null, css: string, options?: Re
   const modules = merge(data.modules, DEFAULT_MODULES);
   const defaults = data.defaults ?? {};
 
-  return `
-<style>${css}
-${COMMON_WIDGET_CSS}
+  return wrapInShadowDom({
+    styleName,
+    inlineCss: `${COMMON_WIDGET_CSS}
 .widget-settings { font-family: var(--ta-font-body); padding: 16px; }
 .option-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .option-card {
@@ -75,9 +76,8 @@ ${COMMON_WIDGET_CSS}
 .option-card.selected { border-color: var(--ta-color-accent); background: var(--ta-color-accent-bg); color: var(--ta-color-accent); font-weight: 600; }
 .module-card { display: flex; align-items: center; gap: 8px; }
 .module-check { width: 14px; height: 14px; border: 1px solid var(--color-border-tertiary); border-radius: 3px; display: inline-block; }
-.module-check.checked { background: var(--ta-color-accent); border-color: var(--ta-color-accent); }
-</style>
-<div class="widget-settings">
+.module-check.checked { background: var(--ta-color-accent); border-color: var(--ta-color-accent); }`,
+    html: `<div class="widget-settings">
   <div class="widget-title">Game Settings</div>
   <div class="widget-subtitle">Configure your adventure before beginning</div>
 
@@ -117,70 +117,63 @@ ${COMMON_WIDGET_CSS}
   </div>
 
   <button class="confirm-btn" id="settings-confirm" title="Begin adventure with the selected settings">Begin Adventure</button>
-</div>
-<script>
-(function() {
-  var selections = ${serialiseInlineScriptData(defaults)};
-  var selectedModules = [];
+</div>`,
+    script: `var selections = ${serialiseInlineScriptData(defaults)};
+var selectedModules = [];
 
-  // Pre-check default active modules from selections
-  if (Array.isArray(selections.activeModules)) {
-    selections.activeModules.forEach(function(mod) {
-      var btn = document.querySelector('.module-card[data-value="' + mod + '"]');
-      if (btn) {
-        selectedModules.push(mod);
-        btn.classList.add('selected');
-        btn.setAttribute('aria-pressed', 'true');
-        var check = btn.querySelector('.module-check');
-        if (check) check.classList.add('checked');
-      }
+if (Array.isArray(selections.activeModules)) {
+  selections.activeModules.forEach(function(mod) {
+    var btn = shadow.querySelector('.module-card[data-value="' + mod + '"]');
+    if (btn) {
+      selectedModules.push(mod);
+      btn.classList.add('selected');
+      btn.setAttribute('aria-pressed', 'true');
+      var check = btn.querySelector('.module-check');
+      if (check) check.classList.add('checked');
+    }
+  });
+}
+
+shadow.querySelectorAll('.option-card:not(.module-card)').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var group = this.getAttribute('data-group');
+    var value = this.getAttribute('data-value');
+    selections[group] = value;
+    shadow.querySelectorAll('.option-card[data-group="' + group + '"]').forEach(function(b) {
+      b.classList.remove('selected');
+      b.setAttribute('aria-pressed', 'false');
     });
-  }
+    this.classList.add('selected');
+    this.setAttribute('aria-pressed', 'true');
+  });
+});
 
-  // Single-select groups
-  document.querySelectorAll('.option-card:not(.module-card)').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var group = this.getAttribute('data-group');
-      var value = this.getAttribute('data-value');
-      selections[group] = value;
-      // Update UI — re-query bounded card set (max ~12 nodes) — standard radio-card deselection pattern
-      document.querySelectorAll('.option-card[data-group="' + group + '"]').forEach(function(b) {
-        b.classList.remove('selected');
-        b.setAttribute('aria-pressed', 'false');
-      });
+shadow.querySelectorAll('.module-card').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var value = this.getAttribute('data-value');
+    var check = this.querySelector('.module-check');
+    var idx = selectedModules.indexOf(value);
+    if (idx >= 0) {
+      selectedModules.splice(idx, 1);
+      check.classList.remove('checked');
+      this.classList.remove('selected');
+    } else {
+      selectedModules.push(value);
+      check.classList.add('checked');
       this.classList.add('selected');
-      this.setAttribute('aria-pressed', 'true');
-    });
+    }
+    this.setAttribute('aria-pressed', this.classList.contains('selected') ? 'true' : 'false');
   });
+});
 
-  // Multi-select modules
-  document.querySelectorAll('.module-card').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var value = this.getAttribute('data-value');
-      var check = this.querySelector('.module-check');
-      var idx = selectedModules.indexOf(value);
-      if (idx >= 0) {
-        selectedModules.splice(idx, 1);
-        check.classList.remove('checked');
-        this.classList.remove('selected');
-      } else {
-        selectedModules.push(value);
-        check.classList.add('checked');
-        this.classList.add('selected');
-      }
-      this.setAttribute('aria-pressed', this.classList.contains('selected') ? 'true' : 'false');
-    });
+shadow.getElementById('settings-confirm').addEventListener('click', function() {
+  selections.modules = selectedModules;
+  var cmds = ['state set visualStyle ' + (selections.visualStyle || 'station')];
+  if (selections.rulebook) cmds.push('state set worldFlags.rulebook ' + selections.rulebook);
+  if (selectedModules.length) cmds.push('state set modulesActive ' + JSON.stringify(selectedModules));
+  var prompt = 'Begin adventure with settings: ' + JSON.stringify(selections)
+    + '\\nRequired: tag batch --commands "' + cmds.join('; ') + '"';
+  if (typeof sendPrompt === 'function') sendPrompt(prompt);
+});`,
   });
-
-  document.getElementById('settings-confirm').addEventListener('click', function() {
-    selections.modules = selectedModules;
-    var cmds = ['state set visualStyle ' + (selections.visualStyle || 'station')];
-    if (selections.rulebook) cmds.push('state set worldFlags.rulebook ' + selections.rulebook);
-    if (selectedModules.length) cmds.push('state set modulesActive ' + JSON.stringify(selectedModules));
-    var prompt = 'Begin adventure with settings: ' + JSON.stringify(selections)
-      + '\\nRequired: tag batch --commands "' + cmds.join('; ') + '"';
-    if (typeof sendPrompt === 'function') sendPrompt(prompt);
-  });
-})();
-<\/script>`;
 }

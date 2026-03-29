@@ -129,6 +129,21 @@ export class FakeElement {
   getBoundingClientRect(): { width: number; height: number } {
     return { width: 0, height: 0 };
   }
+
+  /** Shadow DOM stub — returns a fake shadow root that delegates to the document. */
+  attachShadow(_opts: { mode: string }): FakeElement {
+    const shadowRoot = new FakeElement('shadow-root');
+    shadowRoot.ownerDocument = this.ownerDocument;
+    const doc = this.ownerDocument;
+    // Shadow root delegates query methods to the ownerDocument for test compatibility
+    (shadowRoot as Record<string, unknown>).getElementById = (id: string) =>
+      doc?.getElementById(id) ?? null;
+    (shadowRoot as Record<string, unknown>).querySelectorAll = (sel: string) =>
+      doc?.querySelectorAll(sel) ?? [];
+    (shadowRoot as Record<string, unknown>).querySelector = (sel: string) =>
+      doc?.querySelector(sel) ?? null;
+    return shadowRoot;
+  }
 }
 
 export class FakeCanvasElement extends FakeElement {
@@ -152,6 +167,7 @@ export class FakeCanvasElement extends FakeElement {
 export class FakeDocument {
   readonly documentElement: FakeElement;
   readonly body: FakeElement;
+  readonly head: FakeElement;
   private readonly byId = new Map<string, FakeElement>();
 
   constructor(
@@ -159,6 +175,9 @@ export class FakeDocument {
   ) {
     this.documentElement = new FakeElement('html');
     this.documentElement.ownerDocument = this;
+    this.head = new FakeElement('head');
+    this.head.ownerDocument = this;
+    this.documentElement.appendChild(this.head);
     this.body = new FakeElement('body');
     this.body.ownerDocument = this;
     this.documentElement.appendChild(this.body);

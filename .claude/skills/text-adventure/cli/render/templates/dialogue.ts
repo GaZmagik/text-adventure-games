@@ -3,6 +3,7 @@
 
 import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
+import { wrapInShadowDom } from '../lib/shadow-wrapper';
 
 const DISPOSITION_STYLES: Record<string, { bg: string; text: string }> = {
   hostile:    { bg: 'var(--ta-badge-failure-bg)', text: 'var(--ta-badge-failure-text)' },
@@ -13,7 +14,7 @@ const DISPOSITION_STYLES: Record<string, { bg: string; text: string }> = {
   bonded:     { bg: 'var(--ta-color-conviction)', text: 'var(--ta-badge-partial-text)' },
 };
 
-export function renderDialogue(state: GmState | null, css: string, options?: Record<string, unknown>): string {
+export function renderDialogue(state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
   // NPC can be specified via options or we pick the first present NPC
   const npcId = options?.npcId as string | undefined;
   const npc = npcId
@@ -29,9 +30,9 @@ export function renderDialogue(state: GmState | null, css: string, options?: Rec
   const dialogueText = typeof dataRaw.text === 'string' ? dataRaw.text : '';
   const choices: { label: string; prompt: string }[] = Array.isArray(dataRaw.choices) ? dataRaw.choices as { label: string; prompt: string }[] : [];
 
-  return `
-<style>${css}
-.widget-dialogue { font-family: var(--ta-font-body); padding: 16px; }
+  return wrapInShadowDom({
+    styleName,
+    inlineCss: `.widget-dialogue { font-family: var(--ta-font-body); padding: 16px; }
 .dialogue-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .dialogue-npc-name { font-family: var(--ta-font-heading); font-size: 18px; font-weight: 700; color: var(--color-text-primary); }
 .dialogue-disposition {
@@ -64,9 +65,8 @@ export function renderDialogue(state: GmState | null, css: string, options?: Rec
 .dialogue-choice:focus-visible { outline: 2px solid var(--ta-color-focus); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0s !important; animation-duration: 0s !important; }
-}
-</style>
-<div class="widget-dialogue">
+}`,
+    html: `<div class="widget-dialogue">
   <div class="dialogue-header">
     <span class="dialogue-npc-name">${esc(npcName)}</span>
     <span class="dialogue-disposition" style="background:${dispStyle.bg};color:${dispStyle.text}">${esc(disposition)}</span>
@@ -84,13 +84,12 @@ export function renderDialogue(state: GmState | null, css: string, options?: Rec
       `<button class="dialogue-choice" data-prompt="${esc(c.prompt)}" title="${esc(c.prompt)}">${esc(c.label)}</button>`,
     ).join('\n    ')}
   </div>` : ''}
-</div>
-<script>
-document.querySelectorAll('.dialogue-choice[data-prompt]').forEach(function(btn) {
+</div>`,
+    script: `shadow.querySelectorAll('.dialogue-choice[data-prompt]').forEach(function(btn) {
   btn.addEventListener('click', function() {
     var prompt = this.getAttribute('data-prompt');
     if (typeof sendPrompt === 'function') sendPrompt(prompt);
   });
-});
-<\/script>`;
+});`,
+  });
 }

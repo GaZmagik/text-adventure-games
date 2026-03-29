@@ -3,10 +3,11 @@
 
 import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
+import { wrapInShadowDom } from '../lib/shadow-wrapper';
 
 const SUCCESS_OUTCOMES = new Set(['success', 'narrow_success', 'critical_success', 'decisive_success']);
 
-export function renderRecap(state: GmState | null, css: string, _options?: Record<string, unknown>): string {
+export function renderRecap(state: GmState | null, styleName: string, _options?: Record<string, unknown>): string {
   const char = state?.character;
   const room = state?.currentRoom ?? 'Unknown';
   const scene = Number(state?.scene) || 0;
@@ -25,9 +26,9 @@ export function renderRecap(state: GmState | null, css: string, _options?: Recor
     else if (q.status === 'completed') completedQuests.push(q);
   }
 
-  return `
-<style>${css}
-.widget-recap { font-family: var(--ta-font-body); padding: 16px; }
+  return wrapInShadowDom({
+    styleName,
+    inlineCss: `.widget-recap { font-family: var(--ta-font-body); padding: 16px; }
 .recap-title { font-family: var(--ta-font-heading); font-size: 20px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 4px; }
 .recap-subtitle { font-size: 12px; color: var(--color-text-tertiary); font-style: italic; margin-bottom: 16px; }
 .recap-section { margin-bottom: 14px; }
@@ -44,9 +45,8 @@ export function renderRecap(state: GmState | null, css: string, _options?: Recor
 .roll-item { display: flex; justify-content: space-between; padding: 3px 0; font-size: 11px; color: var(--color-text-secondary); border-bottom: 0.5px solid var(--color-border-tertiary); }
 .roll-stat { font-weight: 600; color: var(--color-text-primary); }
 .roll-outcome-success { color: var(--ta-color-success); }
-.roll-outcome-failure { color: var(--ta-color-danger); }
-</style>
-<div class="widget-recap">
+.roll-outcome-failure { color: var(--ta-color-danger); }`,
+    html: `<div class="widget-recap">
   <div class="recap-title">Previously on...</div>
   <div class="recap-subtitle">Session recap — Scene ${scene}</div>
 
@@ -104,5 +104,6 @@ export function renderRecap(state: GmState | null, css: string, _options?: Recor
       </div>`;
     }).join('\n')}
   </div>` : ''}
-</div>`;
+</div>`,
+  });
 }

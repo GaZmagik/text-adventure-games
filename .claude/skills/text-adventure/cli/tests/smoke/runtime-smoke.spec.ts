@@ -21,6 +21,10 @@ function createSmokeRuntime(options: { reducedMotion?: boolean } = {}) {
   const env = createRenderRuntime(options);
   const prompts: string[] = [];
 
+  // Register shadow-host element — Shadow DOM IIFE calls document.getElementById('shadow-host')
+  const shadowHost = makeElement(env.document, 'div', { id: 'shadow-host' });
+  append(env.document.body, shadowHost, env.document);
+
   return {
     ...env,
     sendPrompt: (prompt?: string | null) => {
@@ -30,8 +34,66 @@ function createSmokeRuntime(options: { reducedMotion?: boolean } = {}) {
   };
 }
 
+/** Stub initTagScene — builds with a bound env reference for correct window/sendPrompt wiring. */
+function createInitTagScene(env: ReturnType<typeof createSmokeRuntime>) {
+  return function initTagScene(shadow: Record<string, unknown>): void {
+    const doc = shadow as {
+      getElementById: (id: string) => Record<string, unknown> | null;
+      querySelectorAll: (sel: string) => Array<Record<string, unknown>>;
+    };
+    const w = env.window as Record<string, Record<string, unknown>>;
+    w.tag = w.tag || {};
+    w.tag.togglePanel = function(panelName: unknown, btn: unknown) {
+      const overlay = doc.getElementById('panel-overlay');
+      const sceneContent = doc.getElementById('scene-content');
+      const title = doc.getElementById('panel-title-text');
+      if (overlay) (overlay as Record<string, Record<string, string>>).style.display = 'block';
+      if (sceneContent) (sceneContent as Record<string, Record<string, string>>).style.display = 'none';
+      if (title) (title as Record<string, string>).textContent = String(panelName).charAt(0).toUpperCase() + String(panelName).slice(1);
+      if (btn) (btn as Record<string, (...args: unknown[]) => void>).setAttribute('aria-expanded', 'true');
+    };
+    w.tag.closePanel = function() {
+      const overlay = doc.getElementById('panel-overlay');
+      const sceneContent = doc.getElementById('scene-content');
+      if (overlay) (overlay as Record<string, Record<string, string>>).style.display = 'none';
+      if (sceneContent) (sceneContent as Record<string, Record<string, string>>).style.display = 'block';
+      doc.querySelectorAll('.footer-btn[aria-expanded]').forEach(function(b: Record<string, unknown>) {
+        (b as Record<string, (...args: unknown[]) => void>).setAttribute('aria-expanded', 'false');
+      });
+    };
+    const continueBtn = doc.getElementById('continue-reveal-btn');
+    if (continueBtn) {
+      (continueBtn as Record<string, (...args: unknown[]) => void>).addEventListener('click', function() {
+        const brief = doc.getElementById('reveal-brief');
+        const full = doc.getElementById('reveal-full');
+        if (brief) (brief as Record<string, Record<string, string>>).style.display = 'none';
+        if (full) (full as Record<string, Record<string, string>>).style.display = 'block';
+      });
+    }
+    const panelCloseBtn = doc.getElementById('panel-close-btn');
+    if (panelCloseBtn) {
+      (panelCloseBtn as Record<string, (...args: unknown[]) => void>).addEventListener('click', function() {
+        (w.tag.closePanel as () => void)();
+      });
+    }
+    doc.querySelectorAll('.footer-btn[data-panel]').forEach(function(btn: Record<string, unknown>) {
+      (btn as Record<string, (...args: unknown[]) => void>).addEventListener('click', function() {
+        (w.tag.togglePanel as (...args: unknown[]) => void)(
+          (btn as Record<string, (...args: unknown[]) => string>).getAttribute('data-panel'), btn,
+        );
+      });
+    });
+    doc.querySelectorAll('.footer-btn[data-prompt]').forEach(function(btn: Record<string, unknown>) {
+      (btn as Record<string, (...args: unknown[]) => void>).addEventListener('click', function() {
+        const prompt = (btn as Record<string, (...args: unknown[]) => string>).getAttribute('data-prompt');
+        env.sendPrompt(prompt);
+      });
+    });
+  };
+}
+
 function executeInlineScript(script: string, env: ReturnType<typeof createSmokeRuntime>): void {
-  executeGeneratedCode(script, env, { sendPrompt: env.sendPrompt });
+  executeGeneratedCode(script, env, { sendPrompt: env.sendPrompt, initTagScene: createInitTagScene(env) });
 }
 
 function mountStandardDice(env: ReturnType<typeof createSmokeRuntime>) {

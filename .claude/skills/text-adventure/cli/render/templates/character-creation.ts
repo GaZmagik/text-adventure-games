@@ -13,6 +13,7 @@
 import type { GmState } from '../../types';
 import { esc, serialiseInlineScriptData } from '../../lib/html';
 import { COMMON_WIDGET_CSS } from '../lib/common-css';
+import { wrapInShadowDom } from '../lib/shadow-wrapper';
 
 type Archetype = {
   name: string;
@@ -29,7 +30,7 @@ type Archetype = {
   id?: string;
 };
 
-export function renderCharacterCreation(_state: GmState | null, css: string, options?: Record<string, unknown>): string {
+export function renderCharacterCreation(_state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
   const raw = (options?.data ?? {}) as Record<string, unknown>;
   const archetypes: Archetype[] = Array.isArray(raw.archetypes) ? raw.archetypes as Archetype[] : [];
   const proficiencies = Array.isArray(raw.proficiencies)
@@ -73,9 +74,9 @@ export function renderCharacterCreation(_state: GmState | null, css: string, opt
     `<button class="prof-option" data-prof="${esc(p)}" aria-pressed="false">${esc(p)}</button>`,
   ).join('\n        ');
 
-  return `
-<style>${css}
-${COMMON_WIDGET_CSS}
+  return wrapInShadowDom({
+    styleName,
+    inlineCss: `${COMMON_WIDGET_CSS}
 .widget-char-creation { font-family: var(--ta-font-body); padding: 16px; }
 .archetype-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
 .archetype-card {
@@ -111,9 +112,8 @@ ${COMMON_WIDGET_CSS}
   outline: 2px solid var(--ta-color-focus);
   outline-offset: 2px;
 }
-.is-hidden { display: none !important; }
-</style>
-<div class="widget-char-creation">
+.is-hidden { display: none !important; }`,
+    html: `<div class="widget-char-creation">
   <div class="widget-title">Create Your Character</div>
   <div class="widget-subtitle">Choose an archetype, name your character, and select proficiencies</div>
 
@@ -165,111 +165,101 @@ ${COMMON_WIDGET_CSS}
   </div>
 
   <button class="confirm-btn" id="creation-confirm" title="Create character with selected name, archetype, and proficiencies">Create Character</button>
-</div>
-<script>
-(function() {
-  var selectedArchetype = -1;
-  var selectedProfs = [];
-  var selectedPronouns = '';
-  var givenPool = ${serialiseInlineScriptData(givenNames)};
-  var surnamePool = ${serialiseInlineScriptData(surnames)};
+</div>`,
+    script: `var selectedArchetype = -1;
+var selectedProfs = [];
+var selectedPronouns = '';
+var givenPool = ${serialiseInlineScriptData(givenNames)};
+var surnamePool = ${serialiseInlineScriptData(surnames)};
 
-  // Archetype selection — re-query bounded card set (max ~12 nodes) — standard radio-card deselection pattern
-  document.querySelectorAll('.archetype-card').forEach(function(card) {
-    card.addEventListener('click', function() {
-      document.querySelectorAll('.archetype-card').forEach(function(c) {
-        c.classList.remove('selected');
-        c.setAttribute('aria-pressed', 'false');
-      });
+shadow.querySelectorAll('.archetype-card').forEach(function(card) {
+  card.addEventListener('click', function() {
+    shadow.querySelectorAll('.archetype-card').forEach(function(c) {
+      c.classList.remove('selected');
+      c.setAttribute('aria-pressed', 'false');
+    });
+    this.classList.add('selected');
+    this.setAttribute('aria-pressed', 'true');
+    selectedArchetype = parseInt(this.getAttribute('data-index'), 10);
+  });
+});
+
+shadow.querySelectorAll('.prof-option').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var prof = this.getAttribute('data-prof');
+    var idx = selectedProfs.indexOf(prof);
+    if (idx >= 0) {
+      selectedProfs.splice(idx, 1);
+      this.classList.remove('selected');
+      this.setAttribute('aria-pressed', 'false');
+    } else if (selectedProfs.length < 2) {
+      selectedProfs.push(prof);
       this.classList.add('selected');
       this.setAttribute('aria-pressed', 'true');
-      selectedArchetype = parseInt(this.getAttribute('data-index'), 10);
-    });
-  });
-
-  // Proficiency selection (max 2)
-  document.querySelectorAll('.prof-option').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var prof = this.getAttribute('data-prof');
-      var idx = selectedProfs.indexOf(prof);
-      if (idx >= 0) {
-        selectedProfs.splice(idx, 1);
-        this.classList.remove('selected');
-        this.setAttribute('aria-pressed', 'false');
-      } else if (selectedProfs.length < 2) {
-        selectedProfs.push(prof);
-        this.classList.add('selected');
-        this.setAttribute('aria-pressed', 'true');
-      }
-    });
-  });
-
-  // Pronoun selection
-  document.querySelectorAll('#pronoun-grid .option-card').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      document.querySelectorAll('#pronoun-grid .option-card').forEach(function(b) {
-        b.classList.remove('selected');
-        b.setAttribute('aria-pressed', 'false');
-      });
-      this.classList.add('selected');
-      this.setAttribute('aria-pressed', 'true');
-      var value = this.getAttribute('data-pronouns');
-      var customDiv = document.getElementById('custom-pronouns');
-      if (value === 'custom') {
-        customDiv.classList.remove('is-hidden');
-        var subj = document.getElementById('pronoun-subject').value;
-        var obj = document.getElementById('pronoun-object').value;
-        selectedPronouns = subj + '/' + obj;
-      } else {
-        customDiv.classList.add('is-hidden');
-        selectedPronouns = value;
-      }
-    });
-  });
-
-  // Custom pronoun dropdowns
-  document.getElementById('pronoun-subject').addEventListener('change', function() {
-    selectedPronouns = this.value + '/' + document.getElementById('pronoun-object').value;
-  });
-  document.getElementById('pronoun-object').addEventListener('change', function() {
-    selectedPronouns = document.getElementById('pronoun-subject').value + '/' + this.value;
-  });
-
-  // Randomise name
-  document.getElementById('randomise-name').addEventListener('click', function() {
-    if (givenPool.length > 0 && surnamePool.length > 0) {
-      var g = givenPool[Math.floor(Math.random() * givenPool.length)];
-      var s = surnamePool[Math.floor(Math.random() * surnamePool.length)];
-      document.getElementById('char-name-input').value = g + ' ' + s;
     }
-    document.getElementById('name-error').classList.add('is-hidden');
   });
+});
 
-  // Clear name error on input
-  document.getElementById('char-name-input').addEventListener('input', function() {
-    document.getElementById('name-error').textContent = '';
-    document.getElementById('name-error').classList.add('is-hidden');
-  });
-
-  // Confirm
-  document.getElementById('creation-confirm').addEventListener('click', function() {
-    var name = document.getElementById('char-name-input').value.trim();
-    if (!name) {
-      document.getElementById('name-error').textContent = 'Please enter a character name.';
-      document.getElementById('name-error').classList.remove('is-hidden');
-      return;
+shadow.querySelectorAll('#pronoun-grid .option-card').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    shadow.querySelectorAll('#pronoun-grid .option-card').forEach(function(b) {
+      b.classList.remove('selected');
+      b.setAttribute('aria-pressed', 'false');
+    });
+    this.classList.add('selected');
+    this.setAttribute('aria-pressed', 'true');
+    var value = this.getAttribute('data-pronouns');
+    var customDiv = shadow.getElementById('custom-pronouns');
+    if (value === 'custom') {
+      customDiv.classList.remove('is-hidden');
+      var subj = shadow.getElementById('pronoun-subject').value;
+      var obj = shadow.getElementById('pronoun-object').value;
+      selectedPronouns = subj + '/' + obj;
+    } else {
+      customDiv.classList.add('is-hidden');
+      selectedPronouns = value;
     }
-
-    var payload = {
-      name: name,
-      archetypeIndex: selectedArchetype,
-      proficiencies: selectedProfs,
-      pronouns: selectedPronouns || 'they/them'
-    };
-    var prompt = 'Create character: ' + JSON.stringify(payload);
-    document.getElementById('creation-confirm').setAttribute('title', prompt);
-    if (typeof sendPrompt === 'function') sendPrompt(prompt);
   });
-})();
-<\/script>`;
+});
+
+shadow.getElementById('pronoun-subject').addEventListener('change', function() {
+  selectedPronouns = this.value + '/' + shadow.getElementById('pronoun-object').value;
+});
+shadow.getElementById('pronoun-object').addEventListener('change', function() {
+  selectedPronouns = shadow.getElementById('pronoun-subject').value + '/' + this.value;
+});
+
+shadow.getElementById('randomise-name').addEventListener('click', function() {
+  if (givenPool.length > 0 && surnamePool.length > 0) {
+    var g = givenPool[Math.floor(Math.random() * givenPool.length)];
+    var s = surnamePool[Math.floor(Math.random() * surnamePool.length)];
+    shadow.getElementById('char-name-input').value = g + ' ' + s;
+  }
+  shadow.getElementById('name-error').classList.add('is-hidden');
+});
+
+shadow.getElementById('char-name-input').addEventListener('input', function() {
+  shadow.getElementById('name-error').textContent = '';
+  shadow.getElementById('name-error').classList.add('is-hidden');
+});
+
+shadow.getElementById('creation-confirm').addEventListener('click', function() {
+  var name = shadow.getElementById('char-name-input').value.trim();
+  if (!name) {
+    shadow.getElementById('name-error').textContent = 'Please enter a character name.';
+    shadow.getElementById('name-error').classList.remove('is-hidden');
+    return;
+  }
+
+  var payload = {
+    name: name,
+    archetypeIndex: selectedArchetype,
+    proficiencies: selectedProfs,
+    pronouns: selectedPronouns || 'they/them'
+  };
+  var prompt = 'Create character: ' + JSON.stringify(payload);
+  shadow.getElementById('creation-confirm').setAttribute('title', prompt);
+  if (typeof sendPrompt === 'function') sendPrompt(prompt);
+});`,
+  });
 }

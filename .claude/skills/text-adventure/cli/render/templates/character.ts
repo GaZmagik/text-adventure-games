@@ -4,18 +4,48 @@
 import type { GmState, StatName } from '../../types';
 import { esc } from '../../lib/html';
 import { XP_THRESHOLDS } from '../../data/xp-tables';
+import { wrapInShadowDom } from '../lib/shadow-wrapper';
 
 const STAT_ORDER: StatName[] = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
 
-export function renderCharacter(state: GmState | null, css: string, _options?: Record<string, unknown>): string {
+const CHARACTER_CSS = `.widget-character { font-family: var(--ta-font-body); padding: 16px; }
+.char-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+.char-name { font-family: var(--ta-font-heading); font-size: 20px; font-weight: 700; color: var(--color-text-primary); }
+.char-class { font-size: 12px; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.08em; }
+.char-bar-container { width: 100%; height: 10px; background: var(--color-border-tertiary); border-radius: 5px; overflow: hidden; margin: 4px 0; }
+.bar-fill-hp { height: 100%; background: var(--ta-color-success); border-radius: 5px; transition: width 0.3s; }
+.bar-fill-xp { height: 100%; background: var(--ta-color-xp); border-radius: 5px; transition: width 0.3s; }
+.bar-label { font-size: 11px; color: var(--color-text-tertiary); display: flex; justify-content: space-between; }
+.stat-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin: 12px 0; text-align: center; }
+.stat-cell { padding: 8px 4px; border: 0.5px solid var(--color-border-tertiary); border-radius: 6px; }
+.stat-cell.proficient { border-color: var(--ta-color-accent); }
+.stat-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-tertiary); }
+.stat-value { display: block; font-size: 18px; font-weight: 700; color: var(--color-text-primary); }
+.stat-mod { display: block; font-size: 11px; color: var(--ta-color-accent); }
+.section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-tertiary); margin: 14px 0 6px; }
+.inv-list { list-style: none; padding: 0; margin: 0; }
+.inv-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 12px; }
+.inv-name { color: var(--color-text-primary); }
+.inv-type { color: var(--color-text-tertiary); font-size: 10px; text-transform: uppercase; }
+.inv-slots { color: var(--color-text-tertiary); font-size: 10px; }
+.condition-badge { display: inline-block; padding: 2px 8px; font-size: 10px; border-radius: 10px; background: var(--ta-color-warning-bg); color: var(--ta-color-warning); margin-right: 4px; }
+.no-conditions { font-size: 11px; color: var(--color-text-tertiary); }
+.equipment-row { font-size: 12px; color: var(--color-text-secondary); margin: 2px 0; }
+.equipment-label { color: var(--color-text-tertiary); text-transform: uppercase; font-size: 10px; letter-spacing: 0.06em; }
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0s !important; animation-duration: 0s !important; }
+}`;
+
+export function renderCharacter(state: GmState | null, styleName: string, _options?: Record<string, unknown>): string {
   const char = state?.character;
 
   if (!char) {
-    return `
-${css ? '<style>' + css + '</style>' : ''}
-<div class="widget-character">
+    const html = `<div class="widget-character">
   <p class="empty-state">No character data available.</p>
 </div>`;
+    // When called from scene.ts panel with empty styleName, return raw HTML
+    if (!styleName) return html;
+    return wrapInShadowDom({ styleName, html });
   }
 
   // Coerce numeric state values to safe defaults
@@ -52,37 +82,7 @@ ${css ? '<style>' + css + '</style>' : ''}
     ? char.conditions.map(c => `<span class="condition-badge">${esc(c)}</span>`).join(' ')
     : '<span class="no-conditions">None</span>';
 
-  return `
-<style>${css}
-.widget-character { font-family: var(--ta-font-body); padding: 16px; }
-.char-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
-.char-name { font-family: var(--ta-font-heading); font-size: 20px; font-weight: 700; color: var(--color-text-primary); }
-.char-class { font-size: 12px; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.08em; }
-.char-bar-container { width: 100%; height: 10px; background: var(--color-border-tertiary); border-radius: 5px; overflow: hidden; margin: 4px 0; }
-.bar-fill-hp { height: 100%; background: var(--ta-color-success); border-radius: 5px; transition: width 0.3s; }
-.bar-fill-xp { height: 100%; background: var(--ta-color-xp); border-radius: 5px; transition: width 0.3s; }
-.bar-label { font-size: 11px; color: var(--color-text-tertiary); display: flex; justify-content: space-between; }
-.stat-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin: 12px 0; text-align: center; }
-.stat-cell { padding: 8px 4px; border: 0.5px solid var(--color-border-tertiary); border-radius: 6px; }
-.stat-cell.proficient { border-color: var(--ta-color-accent); }
-.stat-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-tertiary); }
-.stat-value { display: block; font-size: 18px; font-weight: 700; color: var(--color-text-primary); }
-.stat-mod { display: block; font-size: 11px; color: var(--ta-color-accent); }
-.section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-tertiary); margin: 14px 0 6px; }
-.inv-list { list-style: none; padding: 0; margin: 0; }
-.inv-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 12px; }
-.inv-name { color: var(--color-text-primary); }
-.inv-type { color: var(--color-text-tertiary); font-size: 10px; text-transform: uppercase; }
-.inv-slots { color: var(--color-text-tertiary); font-size: 10px; }
-.condition-badge { display: inline-block; padding: 2px 8px; font-size: 10px; border-radius: 10px; background: var(--ta-color-warning-bg); color: var(--ta-color-warning); margin-right: 4px; }
-.no-conditions { font-size: 11px; color: var(--color-text-tertiary); }
-.equipment-row { font-size: 12px; color: var(--color-text-secondary); margin: 2px 0; }
-.equipment-label { color: var(--color-text-tertiary); text-transform: uppercase; font-size: 10px; letter-spacing: 0.06em; }
-@media (prefers-reduced-motion: reduce) {
-  * { transition-duration: 0s !important; animation-duration: 0s !important; }
-}
-</style>
-<div class="widget-character">
+  const html = `<div class="widget-character">
   <div class="char-header">
     <span class="char-name">${esc(char.name)}</span>
     <span class="char-class">${esc(char.class)} · Lv ${level}</span>
@@ -131,4 +131,8 @@ ${css ? '<style>' + css + '</style>' : ''}
   <div class="section-title">Abilities</div>
   <div style="font-size:11px;color:var(--color-text-secondary)">${char.abilities.length > 0 ? char.abilities.map(a => esc(a)).join(', ') : 'None'}</div>
 </div>`;
+
+  // When called from scene.ts panel with empty styleName, return raw HTML
+  if (!styleName) return html;
+  return wrapInShadowDom({ styleName, inlineCss: CHARACTER_CSS, html });
 }

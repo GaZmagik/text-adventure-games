@@ -5,10 +5,20 @@ import { esc } from '../../lib/html';
 import { DIE_CONFIGS, type DieConfig } from '../lib/die-geometries';
 import { FONT_SCALE } from '../lib/die-textures';
 import { generateWebGLDiceCode } from '../lib/webgl-dice';
+import { wrapInShadowDom } from '../lib/shadow-wrapper';
 
 const VALID_DIE_TYPES = new Set(Object.keys(DIE_CONFIGS));
 
-export function renderDice(state: GmState | null, css: string, options?: Record<string, unknown>): string {
+/** Adapt WebGL code for Shadow DOM — replace document.getElementById/querySelector
+ *  with shadow equivalents, but keep document.createElement as-is. */
+function shadowAdaptWebGL(code: string): string {
+  return code
+    .replace(/document\.getElementById\(/g, 'shadow.getElementById(')
+    .replace(/document\.querySelector\(/g, 'shadow.querySelector(')
+    .replace(/document\.querySelectorAll\(/g, 'shadow.querySelectorAll(');
+}
+
+export function renderDice(state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
   const comp = state?._lastComputation;
   const data = options?.data as Record<string, unknown> | undefined;
 
@@ -70,8 +80,9 @@ export function renderDice(state: GmState | null, css: string, options?: Record<
     dc: dc ?? null,
   });
 
-  return `<style>${css}
-.widget-dice {
+  return wrapInShadowDom({
+    styleName,
+    inlineCss: `.widget-dice {
   --dbg: var(--ta-die-bg, #2a2a3a);
   --dfg: var(--ta-die-text-color, #e8e8f0);
   --acc: var(--ta-color-accent);
@@ -118,9 +129,8 @@ export function renderDice(state: GmState | null, css: string, options?: Record<
 .widget-dice .mg { font-size: 10px; color: var(--t3); margin-top: 4px; display: none; }
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0s !important; animation-duration: 0s !important; }
-}
-</style>
-<div class="widget-dice widget-dice-${esc(dieType) /* dieType validated by VALID_DIE_TYPES whitelist */}">
+}`,
+    html: `<div class="widget-dice widget-dice-${esc(dieType) /* dieType validated by VALID_DIE_TYPES whitelist */}">
   <div class="w">
     <div class="tt">${esc(title)}</div>
     ${isD100 ? `<div class="dr" id="rollArea">
@@ -136,8 +146,7 @@ export function renderDice(state: GmState | null, css: string, options?: Record<
     <div class="hi" id="hi">${hint}</div>
     ${resultMarkup}
   </div>
-</div>
-<script>
-${webglCode}
-<\/script>`;
+</div>`,
+    script: shadowAdaptWebGL(webglCode),
+  });
 }

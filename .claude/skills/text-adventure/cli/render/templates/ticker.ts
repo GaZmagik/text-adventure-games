@@ -3,8 +3,9 @@
 
 import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
+import { wrapInShadowDom } from '../lib/shadow-wrapper';
 
-export function renderTicker(state: GmState | null, css: string, _options?: Record<string, unknown>): string {
+export function renderTicker(state: GmState | null, styleName: string, _options?: Record<string, unknown>): string {
   const time = state?.time;
   const period = time?.period ?? 'unknown';
   const date = time?.date ?? 'Day ?';
@@ -15,9 +16,9 @@ export function renderTicker(state: GmState | null, css: string, _options?: Reco
   const showTime = time?.playerKnowsTime !== false;
   const showDate = time?.playerKnowsDate !== false;
 
-  return `
-<style>${css}
-.widget-ticker {
+  return wrapInShadowDom({
+    styleName,
+    inlineCss: `.widget-ticker {
   display: flex; align-items: center; justify-content: space-between;
   padding: 8px 16px;
   font-family: var(--ta-font-body);
@@ -33,11 +34,11 @@ export function renderTicker(state: GmState | null, css: string, _options?: Reco
 .ticker-deadline {
   color: var(--ta-color-warning);
   font-weight: 600;
-}
-</style>
-<div class="widget-ticker">
+}`,
+    html: `<div class="widget-ticker">
   ${showTime ? `<span class="ticker-period">${esc(period)}${hour ? ` (${String(hour).padStart(2, '0')}:00)` : ''}</span>` : '<span class="ticker-period">???</span>'}
   ${showDate ? `<span class="ticker-date">${esc(date)}</span>` : '<span class="ticker-date">Date unknown</span>'}
   ${deadline ? `<span class="ticker-deadline" aria-live="polite">${esc(deadline.label)} — ${Number(deadline.remainingScenes) || 0} scene${Number(deadline.remainingScenes) !== 1 ? 's' : ''} remaining</span>` : ''}
-</div>`;
+</div>`,
+  });
 }

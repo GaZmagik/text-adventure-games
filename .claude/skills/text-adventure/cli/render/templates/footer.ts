@@ -1,9 +1,13 @@
 // Footer button row — module-aware footer with panel toggles and sendPrompt wiring.
 // Reads state.modulesActive to determine which buttons to render.
 // Uses data-panel + addEventListener pattern (never onclick).
+//
+// Dual-mode: when called with empty styleName (from scene.ts), returns raw HTML
+// for embedding in the scene's shadow DOM. When called standalone, wraps itself.
 
 import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
+import { wrapInShadowDom } from '../lib/shadow-wrapper';
 
 /** Module-to-button mapping, mirroring § Module Footer Button Table in style-reference.md */
 const MODULE_BUTTONS: { module: string; panel: string; label: string }[] = [
@@ -18,7 +22,7 @@ const MODULE_BUTTONS: { module: string; panel: string; label: string }[] = [
 const SAVE_PROMPT = 'Run `tag save generate` via the Bash tool to produce my save payload. The CLI generates the checksummed SF2 string — never hand-code save encoding, checksums, or base64. Present the result as a downloadable .save.md file with YAML frontmatter.';
 const EXPORT_PROMPT = 'Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format.';
 
-export function renderFooter(state: GmState | null, css: string, _options?: Record<string, unknown>): string {
+export function renderFooter(state: GmState | null, styleName: string, _options?: Record<string, unknown>): string {
   const moduleSet = new Set(state?.modulesActive ?? []);
   const hasExport = moduleSet.has('adventure-exporting');
   const hasAudio = moduleSet.has('audio');
@@ -55,9 +59,7 @@ export function renderFooter(state: GmState | null, css: string, _options?: Reco
     );
   }
 
-  return `
-${css ? '<style>' + css + '</style>' : ''}
-<div class="footer-row">
+  const html = `<div class="footer-row">
   <div class="footer-left">
     ${leftButtons.join('\n    ')}
   </div>
@@ -65,4 +67,8 @@ ${css ? '<style>' + css + '</style>' : ''}
     ${rightButtons.join('\n    ')}
   </div>
 </div>`;
+
+  // When called from scene.ts with empty styleName, return raw HTML (no shadow wrapper)
+  if (!styleName) return html;
+  return wrapInShadowDom({ styleName, html });
 }

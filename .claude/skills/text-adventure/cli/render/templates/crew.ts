@@ -3,16 +3,37 @@
 
 import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
+import { wrapInShadowDom } from '../lib/shadow-wrapper';
 
-export function renderCrew(state: GmState | null, css: string, _options?: Record<string, unknown>): string {
+const CREW_CSS = `.widget-crew { font-family: var(--ta-font-body); padding: 16px; }
+.crew-title { font-family: var(--ta-font-heading); font-size: 18px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 12px; }
+.crew-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.crew-table th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-tertiary); padding: 4px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.crew-row td { padding: 8px; border-bottom: 0.5px solid var(--color-border-tertiary); vertical-align: middle; }
+.crew-name { font-weight: 600; color: var(--color-text-primary); }
+.crew-role { color: var(--color-text-secondary); text-transform: capitalize; }
+.crew-task { color: var(--color-text-secondary); }
+.idle { color: var(--color-text-tertiary); font-style: italic; }
+.mini-bar { width: 60px; height: 5px; background: var(--color-border-tertiary); border-radius: 3px; overflow: hidden; display: inline-block; vertical-align: middle; }
+.mini-fill { height: 100%; border-radius: 3px; }
+.morale-fill { background: var(--ta-color-success); }
+.stress-fill { background: var(--ta-color-danger); }
+.mini-label { font-size: 10px; color: var(--color-text-tertiary); margin-left: 4px; }
+.crew-badge { display: inline-block; padding: 2px 8px; font-size: 10px; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+.badge-ok { background: var(--ta-badge-success-bg); color: var(--ta-badge-success-text); }
+.badge-warn { background: var(--ta-badge-partial-bg); color: var(--ta-badge-partial-text); }
+.badge-danger { background: var(--ta-badge-failure-bg); color: var(--ta-badge-failure-text); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }`;
+
+export function renderCrew(state: GmState | null, styleName: string, _options?: Record<string, unknown>): string {
   const crew = state?.crewMutations;
 
   if (!crew || crew.length === 0) {
-    return `
-${css ? '<style>' + css + '</style>' : ''}
-<div class="widget-crew">
+    const html = `<div class="widget-crew">
   <p class="empty-state">No crew manifest available.</p>
 </div>`;
+    if (!styleName) return html;
+    return wrapInShadowDom({ styleName, html });
   }
 
   const rows = crew.map(member => {
@@ -39,29 +60,7 @@ ${css ? '<style>' + css + '</style>' : ''}
       </tr>`;
   }).join('\n');
 
-  return `
-<style>${css}
-.widget-crew { font-family: var(--ta-font-body); padding: 16px; }
-.crew-title { font-family: var(--ta-font-heading); font-size: 18px; font-weight: 700; color: var(--color-text-primary); margin-bottom: 12px; }
-.crew-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.crew-table th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-tertiary); padding: 4px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); }
-.crew-row td { padding: 8px; border-bottom: 0.5px solid var(--color-border-tertiary); vertical-align: middle; }
-.crew-name { font-weight: 600; color: var(--color-text-primary); }
-.crew-role { color: var(--color-text-secondary); text-transform: capitalize; }
-.crew-task { color: var(--color-text-secondary); }
-.idle { color: var(--color-text-tertiary); font-style: italic; }
-.mini-bar { width: 60px; height: 5px; background: var(--color-border-tertiary); border-radius: 3px; overflow: hidden; display: inline-block; vertical-align: middle; }
-.mini-fill { height: 100%; border-radius: 3px; }
-.morale-fill { background: var(--ta-color-success); }
-.stress-fill { background: var(--ta-color-danger); }
-.mini-label { font-size: 10px; color: var(--color-text-tertiary); margin-left: 4px; }
-.crew-badge { display: inline-block; padding: 2px 8px; font-size: 10px; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
-.badge-ok { background: var(--ta-badge-success-bg); color: var(--ta-badge-success-text); }
-.badge-warn { background: var(--ta-badge-partial-bg); color: var(--ta-badge-partial-text); }
-.badge-danger { background: var(--ta-badge-failure-bg); color: var(--ta-badge-failure-text); }
-.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
-</style>
-<div class="widget-crew">
+  const html = `<div class="widget-crew">
   <div class="crew-title">Crew Manifest</div>
   <table class="crew-table">
     <caption class="sr-only">Crew Manifest</caption>
@@ -73,4 +72,7 @@ ${css ? '<style>' + css + '</style>' : ''}
     </tbody>
   </table>
 </div>`;
+
+  if (!styleName) return html;
+  return wrapInShadowDom({ styleName, inlineCss: CREW_CSS, html });
 }
