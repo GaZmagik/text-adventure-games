@@ -179,6 +179,11 @@ async function main(): Promise<void> {
       result = await handleVerify(args.slice(1));
       break;
     }
+    case 'build-css': {
+      const { handleBuildCss } = await import('./commands/build-css');
+      result = await handleBuildCss(args.slice(1));
+      break;
+    }
     default:
       result = unknownCommand(command!);
   }

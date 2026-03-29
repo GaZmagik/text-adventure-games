@@ -10,7 +10,8 @@ export type TopLevelCommandName =
   | 'batch'
   | 'rules'
   | 'export'
-  | 'verify';
+  | 'verify'
+  | 'build-css';
 
 export type SubcommandHelp = {
   name: string;
@@ -35,6 +36,7 @@ export const TOP_LEVEL_COMMANDS = [
   'rules',
   'export',
   'verify',
+  'build-css',
 ] as const satisfies readonly TopLevelCommandName[];
 
 export const COMMAND_HELP: Record<TopLevelCommandName, CommandHelp> = {
@@ -122,6 +124,14 @@ export const COMMAND_HELP: Record<TopLevelCommandName, CommandHelp> = {
     description: 'Validate composed scene HTML before show_widget. Checks footer buttons, panels, scene-meta, narrative, CSS, action cards. Blocks tag state sync until verification passes.',
     subcommands: [
       { name: '<file>', usage: 'tag verify /tmp/scene_final.html', description: 'Verify composed HTML file against current game state. Writes .last-verify marker on success.', example: 'tag verify /tmp/scene1.html' },
+    ],
+  },
+  'build-css': {
+    command: 'tag build-css',
+    description: 'Extract, minify, and hash CSS from style .md files. Writes per-style .css files and a CDN manifest with FNV32 content hashes.',
+    subcommands: [
+      { name: '(default)', usage: 'tag build-css', description: 'Build all styles to assets/css/ and generate cdn-manifest.ts', example: 'tag build-css' },
+      { name: '--output-dir', usage: 'tag build-css --output-dir /tmp/out', description: 'Override output directory (writes css/ and cdn-manifest.ts inside it)', example: 'tag build-css --output-dir /tmp/out' },
     ],
   },
 };
