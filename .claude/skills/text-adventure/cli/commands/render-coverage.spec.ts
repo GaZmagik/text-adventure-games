@@ -68,7 +68,30 @@ describe('render validateDataShape type mismatch', () => {
 // ── Needs-verify gate (lines 256-262) ────────────────────────────────
 
 describe('render needs-verify gate', () => {
-  test('scene render is blocked when .needs-verify flag exists', async () => {
+  test('scene render is blocked when .needs-verify flag is from a DIFFERENT scene', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'station';
+    state.scene = 2;
+    state.character = {
+      name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
+      level: 1, xp: 0, currency: 0, currencyName: 'credits',
+      stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+      modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+      proficiencyBonus: 2, proficiencies: [], abilities: [],
+      inventory: [], conditions: [], equipment: { weapon: 'Knife', armour: 'Vest' },
+    };
+    state.modulesActive = ['core-systems'];
+    await saveState(state);
+
+    // Write .needs-verify for scene 1 — current scene is 2, so this should block
+    writeFileSync(join(tempDir, '.needs-verify'), '1', 'utf-8');
+
+    const result = await handleRender(['scene', '--raw']);
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toContain('not verified');
+  });
+
+  test('same-scene re-render is allowed when .needs-verify matches current scene', async () => {
     const state = createDefaultState();
     state.visualStyle = 'station';
     state.scene = 1;
@@ -83,13 +106,11 @@ describe('render needs-verify gate', () => {
     state.modulesActive = ['core-systems'];
     await saveState(state);
 
-    // Write the .needs-verify flag
+    // Write .needs-verify for scene 1 — same as current scene, should allow re-render
     writeFileSync(join(tempDir, '.needs-verify'), '1', 'utf-8');
 
     const result = await handleRender(['scene', '--raw']);
-    expect(result.ok).toBe(false);
-    expect(result.error?.message).toContain('not verified');
-    expect(result.error?.message).toContain('tag verify');
+    expect(result.ok).toBe(true);
   });
 });
 

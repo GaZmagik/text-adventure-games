@@ -1,5 +1,5 @@
 import { readSignedMarker, getNeedsVerifyPath } from './verify';
-import { existsSync, writeFileSync } from 'node:fs';
+import { existsSync, writeFileSync, readFileSync, unlinkSync } from 'node:fs';
 import type { CommandResult, GmState, PendingRoll, StatName } from '../types';
 import { ok, fail, styleNotSet } from '../lib/errors';
 import { tryLoadState, saveState, getSyncMarkerPath } from '../lib/state-store';
@@ -245,15 +245,26 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     }
   }
 
-  // Per-widget verify gate — blocks if previous render was not verified
+  // Per-widget verify gate — blocks rendering scene N+1 if scene N was not verified.
+  // Re-rendering the SAME scene (for composition) is always allowed.
   if (!isPreGame && widgetType === 'scene') {
     const needsVerify = getNeedsVerifyPath();
     if (existsSync(needsVerify)) {
-      return fail(
-        'Previous scene widget was not verified. Run `tag verify /tmp/scene.html` before rendering a new scene.',
-        'Every scene widget must be verified before the next render. This prevents stripped or hand-written widgets from bypassing quality checks.',
-        'render',
-      );
+      try {
+        const pendingScene = Number(readFileSync(needsVerify, 'utf-8').trim());
+        const currentScene = state?.scene ?? 0;
+        if (pendingScene !== currentScene) {
+          return fail(
+            `Scene ${pendingScene} was not verified. Run \`tag verify /tmp/scene.html\` before rendering scene ${currentScene}.`,
+            'Every scene widget must be verified before the next scene render. Re-rendering the same scene for composition is allowed.',
+            'render',
+          );
+        }
+        // Same scene — allow re-render for composition purposes
+      } catch {
+        // Malformed flag — clear it and allow render
+        try { unlinkSync(needsVerify); } catch { /* ignore */ }
+      }
     }
   }
 
