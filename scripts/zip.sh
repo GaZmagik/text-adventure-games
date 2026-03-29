@@ -27,7 +27,21 @@ fi
 # Remove old zip to ensure a clean build (zip -r updates in-place)
 rm -f "$OUTPUT"
 
+# Pre-build: regenerate CDN CSS assets + manifest
+echo "Running tag build-css..."
+cd "$SKILL_DIR/cli"
+bun run tag.ts build-css >/dev/null
 cd "$SKILL_DIR"
+
+# Sanity check: CDN assets exist
+if [ ! -d "$SKILL_DIR/assets/css" ] || [ -z "$(ls "$SKILL_DIR/assets/css"/*.css 2>/dev/null)" ]; then
+	echo "Error: assets/css/ is empty — tag build-css may have failed" >&2
+	exit 1
+fi
+if [ ! -f "$SKILL_DIR/assets/js/tag-scene.js" ] || [ ! -f "$SKILL_DIR/assets/js/tag-soundscape.js" ]; then
+	echo "Error: assets/js/ is missing CDN JS files" >&2
+	exit 1
+fi
 
 zip -r "$OUTPUT" . \
 	-x "*.DS_Store" \
@@ -38,7 +52,8 @@ zip -r "$OUTPUT" . \
 	-x ".tddignore" \
 	-x "bun.lock" \
 	-x "node_modules/*" \
-	-x "cli/tests/*"
+	-x "cli/tests/*" \
+	-x "assets/*"
 
 FILE_COUNT=$(unzip -l "$OUTPUT" | tail -1 | awk '{print $2}')
 SIZE=$(ls -lh "$OUTPUT" | awk '{print $5}')
