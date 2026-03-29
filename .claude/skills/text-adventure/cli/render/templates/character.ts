@@ -30,7 +30,7 @@ const CHARACTER_CSS = `.widget-character { font-family: var(--ta-font-body); pad
 .inv-slots { color: var(--color-text-tertiary); font-size: 10px; }
 .condition-badge { display: inline-block; padding: 2px 8px; font-size: 10px; border-radius: 10px; background: var(--ta-color-warning-bg); color: var(--ta-color-warning); margin-right: 4px; }
 .no-conditions { font-size: 11px; color: var(--color-text-tertiary); }
-.equipment-row { font-size: 12px; color: var(--color-text-secondary); margin: 2px 0; }
+.equipment-row { font-size: 12px; color: var(--sta-text-secondary, #9AA0C0); margin: 2px 0; }
 .equipment-label { color: var(--color-text-tertiary); text-transform: uppercase; font-size: 10px; letter-spacing: 0.06em; }
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0s !important; animation-duration: 0s !important; }
@@ -125,11 +125,11 @@ export function renderCharacter(state: GmState | null, styleName: string, _optio
 
   <!-- Proficiencies -->
   <div class="section-title">Proficiencies</div>
-  <div style="font-size:11px;color:var(--color-text-secondary)">${char.proficiencies.length > 0 ? char.proficiencies.map(p => esc(p)).join(', ') : 'None'}</div>
+  <div style="font-size:11px;color:var(--sta-text-secondary, #9AA0C0)">${char.proficiencies.length > 0 ? char.proficiencies.map(p => esc(p)).join(', ') : 'None'}</div>
 
   <!-- Abilities -->
   <div class="section-title">Abilities</div>
-  <div style="font-size:11px;color:var(--color-text-secondary)">${char.abilities.length > 0 ? char.abilities.map(a => esc(a)).join(', ') : 'None'}</div>
+  <div style="font-size:11px;color:var(--sta-text-secondary, #9AA0C0)">${char.abilities.length > 0 ? char.abilities.map(a => esc(a)).join(', ') : 'None'}</div>
 </div>`;
 
   // When called from scene.ts panel with empty styleName, return raw HTML

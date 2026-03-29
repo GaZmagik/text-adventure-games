@@ -465,4 +465,43 @@ describe('verify file path validation', () => {
     // Should not have any Tier 1 failures
     expect(data.failures.filter(f => f.includes('Tier 1')).length).toBe(0);
   });
+
+  test('flags invalid CSS variable prefixes (--color-* instead of --sta-*)', async () => {
+    await setupState();
+    const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
+    // Inject narrative + replace a valid var with an invalid one
+    let html = (renderResult.data as string)
+      .replace(
+        '<p><!-- Narrative content rendered by the GM --></p>',
+        '<p class="narrative">The bridge hums with tension.</p><p class="narrative">Something moves.</p>',
+      )
+      .replace(
+        /var\(--sta-text-primary/,
+        'var(--color-text-primary',
+      );
+    const htmlPath = join(tempDir, 'bad-vars.html');
+    writeFileSync(htmlPath, html, 'utf-8');
+
+    const result = await handleVerify([htmlPath]);
+    expect(result.ok).toBe(true);
+    const data = result.data as { verified: boolean; failures: string[] };
+    expect(data.failures.some(f => f.includes('CSS variable') && f.includes('--color-text-primary'))).toBe(true);
+  });
+
+  test('passes when all CSS variables use valid prefixes', async () => {
+    await setupState();
+    const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
+    let html = (renderResult.data as string)
+      .replace(
+        '<p><!-- Narrative content rendered by the GM --></p>',
+        '<p class="narrative">The bridge hums with tension.</p><p class="narrative">Something moves.</p>',
+      );
+    const htmlPath = join(tempDir, 'good-vars.html');
+    writeFileSync(htmlPath, html, 'utf-8');
+
+    const result = await handleVerify([htmlPath]);
+    expect(result.ok).toBe(true);
+    const data = result.data as { verified: boolean; failures: string[] };
+    expect(data.failures.filter(f => f.includes('CSS variable')).length).toBe(0);
+  });
 });

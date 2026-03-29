@@ -158,7 +158,7 @@ function renderQuestsPanel(state: GmState | null): string {
     const total = q.objectives.length;
     const pct = total > 0 ? Math.round((done / total) * 100) : 0;
     const objectives = q.objectives.map(o =>
-      `<li style="font-size:11px;color:var(--color-text-secondary);padding:2px 0">`
+      `<li style="font-size:11px;color:var(--sta-text-secondary, #9AA0C0);padding:2px 0">`
       + `${o.completed ? '✓' : '○'} ${esc(o.description)}</li>`,
     ).join('');
     return `<div style="padding:10px;margin-bottom:8px;border:0.5px solid var(--color-border-tertiary);border-radius:6px">`

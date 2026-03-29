@@ -213,6 +213,28 @@ function checkTier1Modules(state: GmState, failures: string[]): void {
   }
 }
 
+/** Valid CSS variable prefixes. Anything else (--color-*, --border-*, --font-*) is a bug. */
+const VALID_VAR_PREFIXES = ['--sta-', '--ta-'];
+
+function checkCssVariables(html: string, failures: string[]): void {
+  const hits = html.matchAll(/var\(\s*(--[a-zA-Z][\w-]*)/g);
+  const invalid = new Set<string>();
+  for (const m of hits) {
+    const varName = m[1]!;
+    if (!VALID_VAR_PREFIXES.some(prefix => varName.startsWith(prefix))) {
+      invalid.add(varName);
+    }
+  }
+  if (invalid.size > 0) {
+    const sorted = [...invalid].sort();
+    failures.push(
+      `Found ${sorted.length} CSS variable(s) with invalid prefix: ${sorted.join(', ')}. `
+      + 'All CSS variables must use --sta-* (station theme) or --ta-* (mapped alias) prefix. '
+      + 'Unprefixed variables like --color-* or --border-* are not defined and will resolve to nothing.',
+    );
+  }
+}
+
 function checkStatusBar(html: string, state: GmState, failures: string[]): void {
   if (state.character) {
     if (!html.includes('hp-display') && !html.includes('status-bar')) {
@@ -267,6 +289,7 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
     () => checkVisualStyle(state, failures),
     () => checkHandCodedDice(html, failures),
     () => checkTier1Modules(state, failures),
+    () => checkCssVariables(html, failures),
   ];
   for (const check of checks) check();
 
