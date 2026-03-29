@@ -4,6 +4,7 @@ export const COMMON_WIDGET_CSS = `
 .widget-subtitle { font-size: 12px; color: var(--sta-text-tertiary, #545880); margin-bottom: 20px; }
 .widget-section { margin-bottom: 16px; }
 .widget-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--sta-text-tertiary, #545880); margin-bottom: 8px; }
+.empty-state { color: var(--sta-text-tertiary, #545880); font-style: italic; font-size: 12px; padding: 8px 0; }
 .confirm-btn {
   display: block; width: 100%; margin-top: 20px; padding: 12px;
   font-family: var(--ta-font-heading); font-size: 14px; font-weight: 700;
