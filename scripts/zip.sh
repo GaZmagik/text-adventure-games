@@ -53,7 +53,8 @@ zip -r "$OUTPUT" . \
 	-x "bun.lock" \
 	-x "node_modules/*" \
 	-x "cli/tests/*" \
-	-x "assets/*"
+	-x "assets/css/*" \
+	-x "assets/js/*"
 
 FILE_COUNT=$(unzip -l "$OUTPUT" | tail -1 | awk '{print $2}')
 SIZE=$(ls -lh "$OUTPUT" | awk '{print $5}')
