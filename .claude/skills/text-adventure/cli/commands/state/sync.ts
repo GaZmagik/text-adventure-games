@@ -11,6 +11,7 @@ import { XP_THRESHOLDS } from '../../data/xp-tables';
 import { containsForbiddenKeys } from '../../lib/security';
 import { isRecord } from '../../lib/state-schema';
 import { buildFeatureChecklist } from '../../metadata';
+import { PROSE_CHECKLIST, RENDERING_RULES, SCENE_STRUCTURE, DENSITY_GUIDANCE } from '../../data/prose-guidance';
 import { recordHistory } from './index';
 import { getVerifyMarkerPath, readSignedMarker } from '../verify';
 
@@ -406,6 +407,12 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
     warnings,
     errors: [],
     featureChecklist,
+    inlineGuidance: {
+      proseChecklist: [...PROSE_CHECKLIST],
+      renderingRules: [...RENDERING_RULES],
+      sceneStructure: [...SCENE_STRUCTURE],
+      densityGuidance: { ...DENSITY_GUIDANCE },
+    },
     applied: apply,
     compactionDetected,
     rollHistoryCount: state.rollHistory.length,

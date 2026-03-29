@@ -114,7 +114,7 @@ function unknownCommand(cmd: string): CommandResult {
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
 
-  if (args.length === 0 || args[0] === '--help' || args[0] === 'help') {
+  if (args.length === 0 || args[0] === '--help') {
     await output(getTopLevelHelp(), true);
     return;
   }
@@ -134,6 +134,11 @@ async function main(): Promise<void> {
   let result: CommandResult;
 
   switch (command) {
+    case 'help': {
+      const { handleHelp } = await import('./commands/help');
+      result = await handleHelp(args.slice(1));
+      break;
+    }
     case 'state': {
       const { handleState } = await import('./commands/state');
       result = await handleState(args.slice(1));

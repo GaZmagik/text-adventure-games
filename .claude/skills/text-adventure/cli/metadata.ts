@@ -2,6 +2,7 @@ import type { GmState } from './types';
 import { MODULE_DIGESTS } from './data/module-digests';
 
 export type TopLevelCommandName =
+  | 'help'
   | 'state'
   | 'compute'
   | 'render'
@@ -27,6 +28,7 @@ export type CommandHelp = {
 };
 
 export const TOP_LEVEL_COMMANDS = [
+  'help',
   'state',
   'compute',
   'render',
@@ -40,6 +42,15 @@ export const TOP_LEVEL_COMMANDS = [
 ] as const satisfies readonly TopLevelCommandName[];
 
 export const COMMAND_HELP: Record<TopLevelCommandName, CommandHelp> = {
+  help: {
+    command: 'tag help',
+    description: 'Workflow guides and reference. Subcommands return step-by-step instructions, prose checklists, and module tier lists.',
+    subcommands: [
+      { name: '(default)', usage: 'tag help', description: 'Quick-start workflow, turn loop, command summary, cardinal rules', example: 'tag help' },
+      { name: 'new-game', usage: 'tag help new-game', description: 'Step-by-step new game setup from scenario select to opening scene', example: 'tag help new-game' },
+      { name: 'scene', usage: 'tag help scene', description: 'Scene composition workflow, prose checklist, density guidance, structure reference', example: 'tag help scene' },
+    ],
+  },
   state: {
     command: 'tag state',
     description: 'Game state CRUD and NPC creation. Source of truth for all game data.',

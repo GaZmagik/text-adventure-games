@@ -748,4 +748,70 @@ describe('state/sync edge cases', () => {
       expect(state.time.deadline).toBeNull();
     });
   });
+
+  describe('inlineGuidance', () => {
+    test('always includes proseChecklist with 11 items', async () => {
+      await handleState(['reset']);
+      await handleState(['set', 'modulesActive', JSON.stringify([
+        'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
+        'character-creation', 'save-codex',
+      ])]);
+      await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
+
+      const result = await handleSync([]);
+      expect(result.ok).toBe(true);
+      const data = result.data as Record<string, unknown>;
+      const guidance = data.inlineGuidance as Record<string, unknown>;
+      expect(guidance).toBeDefined();
+      const checklist = guidance.proseChecklist as string[];
+      expect(checklist.length).toBe(11);
+      expect(checklist[0]).toContain('Second person');
+    });
+
+    test('always includes renderingRules', async () => {
+      await handleState(['reset']);
+      await handleState(['set', 'modulesActive', JSON.stringify([
+        'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
+        'character-creation', 'save-codex',
+      ])]);
+      await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
+
+      const result = await handleSync([]);
+      const data = result.data as Record<string, unknown>;
+      const guidance = data.inlineGuidance as Record<string, unknown>;
+      const rules = guidance.renderingRules as string[];
+      expect(rules.length).toBeGreaterThanOrEqual(3);
+      expect(rules.some(r => r.includes('show_widget'))).toBe(true);
+    });
+
+    test('always includes sceneStructure', async () => {
+      await handleState(['reset']);
+      await handleState(['set', 'modulesActive', JSON.stringify([
+        'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
+        'character-creation', 'save-codex',
+      ])]);
+      await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
+
+      const result = await handleSync([]);
+      const data = result.data as Record<string, unknown>;
+      const guidance = data.inlineGuidance as Record<string, unknown>;
+      const structure = guidance.sceneStructure as string[];
+      expect(structure.length).toBeGreaterThanOrEqual(5);
+      expect(structure.some(s => s.includes('Location'))).toBe(true);
+      expect(structure.some(s => s.includes('Footer'))).toBe(true);
+    });
+
+    test('includes densityGuidance', async () => {
+      await handleState(['reset']);
+      await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
+
+      const result = await handleSync([]);
+      const data = result.data as Record<string, unknown>;
+      const guidance = data.inlineGuidance as Record<string, unknown>;
+      const density = guidance.densityGuidance as Record<string, string>;
+      expect(density.actOpener).toContain('6');
+      expect(density.standard).toContain('2');
+      expect(density.transition).toContain('1');
+    });
+  });
 });

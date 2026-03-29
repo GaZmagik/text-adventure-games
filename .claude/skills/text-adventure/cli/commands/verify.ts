@@ -11,6 +11,7 @@ import { tryLoadState, saveState } from '../lib/state-store';
 import { fnv32 } from '../lib/fnv32';
 import { resolveSafeReadPath } from '../lib/path-security';
 import { MODULE_PANEL_MAP } from '../lib/module-panel-map';
+import { TIER1_MODULES } from '../lib/constants';
 
 /** Compute a signed marker that's impractical to forge via echo.
  *  Format: scene:timestamp:fnv32('tag-cli-gate:' + scene + ':' + timestamp)
@@ -200,6 +201,18 @@ function checkHandCodedDice(html: string, failures: string[]): void {
   }
 }
 
+function checkTier1Modules(state: GmState, failures: string[]): void {
+  const active = new Set(state.modulesActive ?? []);
+  const missing = TIER1_MODULES.filter(m => !active.has(m));
+  if (missing.length > 0) {
+    failures.push(
+      `Missing Tier 1 modules in modulesActive: ${missing.join(', ')}. `
+      + 'These must be active before rendering any widget. '
+      + 'Run `tag state set modulesActive \'["gm-checklist","prose-craft","core-systems","die-rolls","character-creation","save-codex"]\'`.',
+    );
+  }
+}
+
 function checkStatusBar(html: string, state: GmState, failures: string[]): void {
   if (state.character) {
     if (!html.includes('hp-display') && !html.includes('status-bar')) {
@@ -253,6 +266,7 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
     () => checkSendPromptFallback(html, failures),
     () => checkVisualStyle(state, failures),
     () => checkHandCodedDice(html, failures),
+    () => checkTier1Modules(state, failures),
   ];
   for (const check of checks) check();
 

@@ -30,7 +30,8 @@ async function setupState(): Promise<void> {
   await handleState(['set', 'visualStyle', 'station']);
   await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
   await handleState(['set', 'modulesActive', JSON.stringify([
-    'gm-checklist', 'prose-craft', 'core-systems',
+    'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
+    'character-creation', 'save-codex',
   ])]);
   await handleState(['set', 'character', JSON.stringify({
     name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
@@ -418,5 +419,50 @@ describe('verify file path validation', () => {
     const result = await handleVerify([join(tempDir, 'definitely-not-here.html')]);
     expect(result.ok).toBe(false);
     expect(result.error?.message).toContain('Failed to read file');
+  });
+
+  test('fails when Tier 1 modules are missing from modulesActive', async () => {
+    await setupState();
+    // Remove prose-craft and die-rolls from Tier 1
+    await handleState(['set', 'modulesActive', JSON.stringify([
+      'gm-checklist', 'core-systems', 'character-creation', 'save-codex',
+    ])]);
+
+    // Write a valid HTML file
+    const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
+    let html = (renderResult.data as string)
+      .replace(
+        '<p><!-- Narrative content rendered by the GM --></p>',
+        '<p class="narrative">The bridge hums with tension.</p><p class="narrative">Something moves in the dark.</p>',
+      );
+    const htmlPath = join(tempDir, 'tier1-test.html');
+    writeFileSync(htmlPath, html, 'utf-8');
+
+    const result = await handleVerify([htmlPath]);
+    expect(result.ok).toBe(true);
+    const data = result.data as { verified: boolean; failures: string[] };
+    expect(data.verified).toBe(false);
+    expect(data.failures.some(f => f.includes('Tier 1') && f.includes('prose-craft'))).toBe(true);
+    expect(data.failures.some(f => f.includes('Tier 1') && f.includes('die-rolls'))).toBe(true);
+  });
+
+  test('passes when all Tier 1 modules are present', async () => {
+    await setupState();
+    // setupState includes all 6 Tier 1 modules
+
+    const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
+    let html = (renderResult.data as string)
+      .replace(
+        '<p><!-- Narrative content rendered by the GM --></p>',
+        '<p class="narrative">The bridge hums with tension.</p><p class="narrative">Something moves in the dark.</p>',
+      );
+    const htmlPath = join(tempDir, 'tier1-pass.html');
+    writeFileSync(htmlPath, html, 'utf-8');
+
+    const result = await handleVerify([htmlPath]);
+    expect(result.ok).toBe(true);
+    const data = result.data as { verified: boolean; failures: string[] };
+    // Should not have any Tier 1 failures
+    expect(data.failures.filter(f => f.includes('Tier 1')).length).toBe(0);
   });
 });

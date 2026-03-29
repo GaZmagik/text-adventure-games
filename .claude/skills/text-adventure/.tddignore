@@ -15,5 +15,8 @@ cli/render/lib/soundscape.ts
 cli/render/lib/webgl-dice.ts
 cli/render/lib/scene-script.ts
 
+# Data constants — string arrays, no logic
+cli/data/prose-guidance.ts
+
 # CLI manual — markdown documentation, not testable code
 cli/manual.md
