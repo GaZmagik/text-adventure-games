@@ -14,7 +14,7 @@ const SKILL_DIR = resolve(CLI_DIR, '..');
 const STYLES_DIR = join(SKILL_DIR, 'styles');
 const DEFAULT_OUTPUT_DIR = join(SKILL_DIR, 'assets');
 
-const CDN_BASE = 'https://cdn.jsdelivr.net/gh/GaZmagik/text-adventure-games@main/.claude/skills/text-adventure/assets';
+const CDN_BASE = 'https://cdn.jsdelivr.net/gh/GaZmagik/text-adventure-games@feature/tag-cli-v1.3.0/.claude/skills/text-adventure/assets';
 
 // ── Minification ─────────────────────────────────────────────────────
 
