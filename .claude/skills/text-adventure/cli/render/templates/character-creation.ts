@@ -34,7 +34,13 @@ export function renderCharacterCreation(_state: GmState | null, styleName: strin
   const raw = (options?.data ?? {}) as Record<string, unknown>;
   const archetypes: Archetype[] = Array.isArray(raw.archetypes) ? raw.archetypes as Archetype[] : [];
   const proficiencies = Array.isArray(raw.proficiencies)
-    ? (raw.proficiencies as unknown[]).map(String)
+    ? (raw.proficiencies as unknown[]).map(p => {
+        if (typeof p === 'string') return p;
+        const obj = p as Record<string, unknown>;
+        const name = String(obj.name ?? '');
+        const attr = obj.attr ? ` (${obj.attr})` : '';
+        return name + attr;
+      })
     : ['Athletics', 'Acrobatics', 'Stealth', 'Arcana', 'History', 'Investigation', 'Nature', 'Religion', 'Perception', 'Insight', 'Persuasion', 'Deception', 'Intimidation', 'Performance', 'Survival', 'Medicine', 'Animal Handling', 'Sleight of Hand'];
   const defaultName = typeof raw.defaultName === 'string' ? raw.defaultName : '';
 
