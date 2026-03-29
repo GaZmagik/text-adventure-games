@@ -137,7 +137,8 @@ function initTagScene(root) {
     });
   });
 
-  root.querySelectorAll('.footer-btn[data-prompt]').forEach(function(btn) {
+  // Wire ALL data-prompt buttons (action cards, POI, footer, etc.)
+  root.querySelectorAll('[data-prompt]').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var prompt = this.getAttribute('data-prompt');
       if (typeof sendPrompt === 'function') sendPrompt(prompt);
