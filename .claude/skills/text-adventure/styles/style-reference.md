@@ -3447,6 +3447,107 @@ All approach buttons use `data-prompt` + `addEventListener`.
 }
 ```
 
+---
+
+## Inline SVG Diagrams
+
+Scene widgets should use inline SVG for star charts, floor plans, ship cross-sections, and other visual data. SVG tokenises efficiently (~3 chars/token vs ~4 for prose) — maximum visual payoff per token.
+
+**All SVG must use `--sta-*` CSS variables for consistent theming across light/dark modes.**
+
+### Ship Cross-Section
+
+```html
+<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:400px;margin:12px auto;display:block">
+  <!-- Hull outline -->
+  <path d="M40,80 Q40,30 120,25 L320,25 Q380,30 380,80 Q380,130 320,135 L120,135 Q40,130 40,80Z"
+        fill="none" stroke="var(--sta-border-primary, rgba(78,205,196,0.6))" stroke-width="1.5"/>
+  <!-- Bridge -->
+  <rect x="300" y="55" width="60" height="50" rx="4"
+        fill="var(--sta-color-accent-bg, rgba(78,205,196,0.10))"
+        stroke="var(--sta-color-accent, #4ECDC4)" stroke-width="0.5"/>
+  <text x="330" y="83" text-anchor="middle" fill="var(--sta-text-tertiary, #545880)"
+        font-family="var(--sta-font-mono, monospace)" font-size="8">BRIDGE</text>
+  <!-- Engine block -->
+  <rect x="60" y="50" width="80" height="60" rx="4"
+        fill="var(--sta-color-success-bg, rgba(43,168,130,0.10))"
+        stroke="var(--sta-color-success, #2BA882)" stroke-width="0.5"/>
+  <text x="100" y="83" text-anchor="middle" fill="var(--sta-text-tertiary, #545880)"
+        font-family="var(--sta-font-mono, monospace)" font-size="8">ENGINES</text>
+  <!-- Damaged system (red) -->
+  <rect x="180" y="35" width="70" height="30" rx="4"
+        fill="var(--sta-color-danger-bg, rgba(232,72,85,0.10))"
+        stroke="var(--sta-color-danger, #E84855)" stroke-width="0.5"/>
+  <text x="215" y="53" text-anchor="middle" fill="var(--sta-color-danger, #E84855)"
+        font-family="var(--sta-font-mono, monospace)" font-size="7">SHIELDS [DMG]</text>
+</svg>
+```
+
+### Star Chart / Navigation
+
+```html
+<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:300px;margin:12px auto;display:block">
+  <!-- Grid -->
+  <defs>
+    <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="var(--sta-border-tertiary, rgba(84,88,128,0.4))" stroke-width="0.3"/>
+    </pattern>
+  </defs>
+  <rect width="300" height="200" fill="url(#grid)"/>
+  <!-- Jump route -->
+  <line x1="80" y1="120" x2="200" y2="60" stroke="var(--sta-color-accent, #4ECDC4)" stroke-width="1" stroke-dasharray="4,3"/>
+  <!-- Current position -->
+  <circle cx="80" cy="120" r="6" fill="var(--sta-color-accent, #4ECDC4)"/>
+  <text x="80" y="140" text-anchor="middle" fill="var(--sta-text-secondary, #9AA0C0)"
+        font-family="var(--sta-font-mono, monospace)" font-size="8">YOU</text>
+  <!-- Destination -->
+  <circle cx="200" cy="60" r="5" fill="none" stroke="var(--sta-color-warning, #F0A500)" stroke-width="1"/>
+  <text x="200" y="50" text-anchor="middle" fill="var(--sta-color-warning, #F0A500)"
+        font-family="var(--sta-font-mono, monospace)" font-size="7">CERES</text>
+  <!-- Hazard zone -->
+  <circle cx="150" cy="100" r="20" fill="var(--sta-color-danger-bg, rgba(232,72,85,0.10))"
+          stroke="var(--sta-color-danger, #E84855)" stroke-width="0.5" stroke-dasharray="2,2"/>
+  <text x="150" y="103" text-anchor="middle" fill="var(--sta-color-danger, #E84855)"
+        font-family="var(--sta-font-mono, monospace)" font-size="6">EZ-4471</text>
+</svg>
+```
+
+### Floor Plan / Zone Layout
+
+```html
+<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:300px;margin:12px auto;display:block">
+  <!-- Room outlines -->
+  <rect x="10" y="10" width="120" height="80" rx="2" fill="var(--sta-bg-tertiary, #2A2F47)"
+        stroke="var(--sta-border-secondary, rgba(154,160,192,0.35))" stroke-width="0.5"/>
+  <rect x="140" y="10" width="150" height="80" rx="2" fill="var(--sta-bg-tertiary, #2A2F47)"
+        stroke="var(--sta-border-secondary, rgba(154,160,192,0.35))" stroke-width="0.5"/>
+  <rect x="10" y="100" width="280" height="70" rx="2" fill="var(--sta-bg-tertiary, #2A2F47)"
+        stroke="var(--sta-border-secondary, rgba(154,160,192,0.35))" stroke-width="0.5"/>
+  <!-- Door (open) -->
+  <rect x="126" y="35" width="18" height="6" rx="1" fill="var(--sta-color-success, #2BA882)"/>
+  <!-- Door (locked) -->
+  <rect x="80" y="87" width="18" height="6" rx="1" fill="var(--sta-color-danger, #E84855)"/>
+  <!-- Player position -->
+  <circle cx="70" cy="50" r="5" fill="var(--sta-color-accent, #4ECDC4)"/>
+  <!-- Room labels -->
+  <text x="70" y="75" text-anchor="middle" fill="var(--sta-text-tertiary, #545880)"
+        font-family="var(--sta-font-mono, monospace)" font-size="7">CARGO BAY</text>
+  <text x="215" y="55" text-anchor="middle" fill="var(--sta-text-tertiary, #545880)"
+        font-family="var(--sta-font-mono, monospace)" font-size="7">BRIDGE</text>
+  <text x="150" y="140" text-anchor="middle" fill="var(--sta-text-tertiary, #545880)"
+        font-family="var(--sta-font-mono, monospace)" font-size="7">CORRIDOR</text>
+</svg>
+```
+
+### SVG Guidelines
+
+- Use `viewBox` for responsive scaling, `style="width:100%;max-width:Npx"` for containment
+- All colours via `--sta-*` variables with fallback values for CDN-failure resilience
+- All text via `font-family="var(--sta-font-mono, monospace)"` — never bare font names
+- Green (`--sta-color-success`) for operational/open, red (`--sta-color-danger`) for damaged/locked, amber (`--sta-color-warning`) for destinations/caution
+- Keep SVG under 3K chars per diagram — multiple small diagrams beat one complex one
+- Place SVG inside the `#narrative` div alongside prose, not in a separate container
+
 ### Observation Card Extensions
 
 ```css
