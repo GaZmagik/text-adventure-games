@@ -69,6 +69,7 @@ run before render to pass the sync gate.
 | `tag batch` | — | `--commands`, `--dry-run` | `tag batch --commands "state get scene; save validate"` |
 | `tag rules` | (none), `<category>`, `<keyword>` | None | `tag rules output` |
 | `tag export` | `generate`, `load`, `validate` | None | `tag export generate` / `tag export load /path/to/world.lore.md` |
+| `tag build-css` | — | `--output-dir` | `tag build-css` |
 
 ### `--data` Flag (render)
 
@@ -164,6 +165,28 @@ referenced in subsequent commands via `$label.field`.
 | | `$label.escalation` | Escalation modifier passed via `--escalation` |
 | | `$label.encounter` | `"quiet"`, `"alert"`, or `"hostile"` |
 | `state get` | `$label` | The retrieved value itself (no sub-fields) |
+
+---
+
+## § tag build-css
+
+Extract, minify, and hash CSS from all style `.md` files.
+
+**Usage:** `tag build-css [--output-dir <path>]`
+
+Reads all `styles/*.md` files plus `styles/style-reference.md`, extracts CSS code blocks,
+combines theme + structural CSS, minifies, and writes per-style `.css` files to `assets/css/`.
+Generates `assets/cdn-manifest.ts` with FNV32 content hashes for cache-busting.
+
+Widget templates call `wrapInShadowDom()` which bootstraps a Shadow DOM root with a `<link>`
+to the CDN-hosted CSS file for the active style. This eliminates inline CSS from widget output,
+reducing token cost by ~95%.
+
+The CDN base URL is `https://gazmagik.github.io/text-adventure-games/.claude/skills/text-adventure/assets/css/`.
+The `assets/` directory is excluded from the skill zip — CDN assets are served from GitHub Pages,
+not bundled.
+
+Run automatically by `scripts/zip.sh` before building the skill zip.
 
 ---
 

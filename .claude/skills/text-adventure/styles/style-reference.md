@@ -12,8 +12,10 @@
 
 ---
 
-> **CLI:** The `tag render <widget>` command reads CSS custom properties from the active
-> style file and produces self-contained HTML. This eliminates CSS hallucination.
+> **CLI:** The `tag render <widget>` command produces widget HTML wrapped in Shadow DOM.
+> CSS is loaded from GitHub Pages CDN via a `<link>` in the shadow root — not embedded
+> inline. The `tag build-css` command extracts and minifies CSS from style sources into
+> `assets/css/`. This eliminates CSS hallucination and reduces widget token cost by ~95%.
 
 ## CSS Custom Property Contract
 

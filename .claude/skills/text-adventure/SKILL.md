@@ -84,7 +84,7 @@ tag render scene --style <style-name>
 ```
 
 The output includes:
-- `html` — the complete styled widget with CSS, JS, and interactive elements
+- `html` — the complete widget with Shadow DOM wrapper, CDN CSS link, JS, and interactive elements
 - `sizeCheck` — `{ chars, budgetChars, withinBudget, percentUsed }` confirming the output fits the 128K widget budget
 - `budgetNote` — human-readable confirmation, e.g. "Output is 78,256 chars (60% of 128K budget). Pass directly to show_widget as-is."
 - `craftGuidance.proseChecklist` — the 11-item checklist (embedded, not a file reference)
@@ -99,7 +99,7 @@ The output includes:
 
 **§ MANDATORY — Do not modify the `html` field. Read this rule every turn.**
 
-The `html` from `tag render` contains the complete visual style CSS, light/dark mode support, reduced-motion accessibility, atmosphere effects, soundscape engine, and all interactive elements. The `sizeCheck.withinBudget` field mechanically confirms it fits the 128K widget limit. You MUST pass this HTML to `show_widget` **exactly as returned** — then compose your narrative into the `#narrative` div placeholder.
+The `html` from `tag render` contains a Shadow DOM wrapper that loads visual style CSS from CDN, plus light/dark mode support, reduced-motion accessibility, atmosphere effects, soundscape engine, and all interactive elements. The `sizeCheck.withinBudget` field mechanically confirms it fits the 128K widget limit. You MUST pass this HTML to `show_widget` **exactly as returned** — then compose your narrative into the `#narrative` div placeholder.
 
 **NEVER:**
 - Trim, strip, or reduce the CSS ("I'll use just the classes I need")
@@ -138,6 +138,7 @@ Update any changed state: HP, XP, faction standings, world flags, quest progress
 | `tag rules` | Quick-reference rule cheat sheet | `tag rules output` |
 | `tag quest` | Quest lifecycle: `complete`, `add-objective`, `add-clue`, `status`, `list` | `tag quest complete main_quest_01 find_base` |
 | `tag export` | World-sharing: `generate`, `load`, `validate` `.lore.md` files | `tag export generate` |
+| `tag build-css` | Extract, minify, and hash CDN CSS from style sources | `tag build-css` |
 
 ### Widget Render Inventory
 
@@ -173,25 +174,27 @@ The AI has a finite output token budget per turn (~32K tokens). This constrains 
 - **Unique varied content** (prose, unique HTML, JavaScript): ~35–40K characters — each unique word/line costs more tokens
 - **Mixed content** (minified CSS + prose + SVG maps): ~80–125K characters — the sweet spot
 
+**CDN CSS Delivery:** Widget CSS is loaded from GitHub Pages via Shadow DOM, not embedded inline. The `tag build-css` command generates per-style CSS files in `assets/css/`. Templates call `wrapInShadowDom()` which bootstraps a shadow root with a `<link>` to the CDN CSS. This reduces widget token cost by ~95% — CSS no longer counts against the output budget.
+
 **Practical budget per scene widget:**
-- Minified CSS: ~5K chars (with CSS scoping, only relevant styles are included)
-- Audio engine JS: ~2K chars
+- CSS: loaded from CDN via Shadow DOM `<link>` — near-zero token cost
+- Audio/soundscape JS: loaded from CDN as external `<script>` — near-zero token cost
 - Panel/interaction JS: ~2K chars
-- **Remaining for narrative + panels + SVG**: ~25–30K chars of unique content
+- **Remaining for narrative + panels + SVG**: ~30–35K chars of unique content
 
 **Maximising content per widget:**
-- Use CSS scoping — `tag render` only includes CSS for the current widget type (dice CSS excluded from scenes, atmosphere CSS excluded from character sheets)
+- CSS and common JS are served from CDN — no inline CSS or script duplication across widgets
 - Use inline SVG for maps, charts, and diagrams — SVG tokenises efficiently (~3 chars/token vs ~4 chars/token for prose)
-- Minify CSS variable names where possible (use shorthand custom properties)
 - Populate panel content with data from `tag state get` — don't leave panels empty
 - Use `tag render` for the structural scaffold, then inject narrative content
 
 **What NOT to do:**
-- Don't hand-code full CSS from scratch — use `tag render` output which includes the visual style
+- Don't hand-code full CSS from scratch — use `tag render` output which loads styles from CDN
 - Don't strip CSS to save space and accidentally lose features (atmosphere, audio)
 - Don't duplicate the same CSS across multiple widgets in one turn — render one widget per turn
+- Don't embed CSS inline — the CDN + Shadow DOM pipeline handles style delivery
 
-> **Note on CSS inclusion:** Visual style CSS (theme variables) is always included in full — theme custom properties are required by all widgets. Supplementary CSS from `styles/style-reference.md` is scoped per widget type: only the rules relevant to the current widget are emitted.
+> **Note on CSS delivery:** Widget CSS is served from GitHub Pages CDN at `https://gazmagik.github.io/text-adventure-games/.claude/skills/text-adventure/assets/css/{style}.css`. Each widget is wrapped in a Shadow DOM root with a `<link>` to the appropriate stylesheet. The `assets/` directory is excluded from the skill zip — CDN assets are served from GitHub Pages, not bundled.
 
 #### Inline SVG for Maps, Diagrams, and Charts
 
@@ -1042,9 +1045,10 @@ Examples: `crew_medic_morale`, `core_rations_count`, `ship_hull_hp`, `star_reput
 ## Visual Styles
 
 Visual styles live in `styles/` as individual `.md` files — one per theme. Each file
-defines a `:root` block of CSS custom properties that control all colours, fonts, borders,
-shadows, and decorative CSS across widgets. The structural patterns (HTML skeletons, JS logic,
-component layouts) are defined separately in `styles/style-reference.md`.
+defines a `:host` block of CSS custom properties that control all colours, fonts, borders,
+shadows, and decorative CSS across widgets. Widgets use Shadow DOM for style encapsulation,
+so `:host` (not `:root`) is the correct selector. The structural patterns (HTML skeletons,
+JS logic, component layouts) are defined separately in `styles/style-reference.md`.
 
 **One visual style is active per session.** The player selects a visual style during game
 setup (settings widget), or the GM auto-selects one based on the output style or scenario.
@@ -1067,7 +1071,7 @@ These are suggestions, not constraints — players may choose any combination:
 Before rendering the first widget of a session:
 1. Read `styles/style-reference.md` for structural patterns and the CSS custom property contract.
 2. Read the selected visual style file (e.g., `styles/terminal.md`).
-3. Include the visual style's `:root` CSS block at the top of every widget's `<style>` section.
+3. The `tag render` command loads CSS from CDN via Shadow DOM — the visual style's `:host` block is served automatically. No manual CSS inclusion is needed.
 
 If no visual style file is available for the selected theme, fall back to using Claude.ai host
 theme variables directly (the widgets remain functional without custom properties, using host
