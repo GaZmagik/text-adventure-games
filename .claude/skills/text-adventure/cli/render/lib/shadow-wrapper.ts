@@ -66,7 +66,8 @@ export function wrapInShadowDom(opts: ShadowWrapperOptions): string {
     // The last script's onload triggers the inline script.
     const loads: string[] = [];
     for (let i = 0; i < scriptSrc.length; i++) {
-      const url = scriptSrc[i]!;
+      const rawUrl = scriptSrc[i]!;
+      const url = hash ? `${rawUrl}?v=${hash}` : rawUrl;
       const varName = `_s${i}`;
       const isLast = i === scriptSrc.length - 1;
       if (isLast && inlineScriptBlock) {
