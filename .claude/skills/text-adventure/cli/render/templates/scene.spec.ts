@@ -85,3 +85,66 @@ describe('renderScene panel pre-population', () => {
     }
   });
 });
+
+describe('renderScene font-family fallback', () => {
+  test('panel-content has inline font-family to prevent monospace flash', () => {
+    const state = createDefaultState();
+    const html = renderScene(state, '');
+    expect(html).toMatch(/\.panel-content[^}]*font-family:/);
+    expect(html).toMatch(/\.panel-content[^}]*sans-serif/);
+  });
+});
+
+describe('renderScene multi-phase reveal', () => {
+  test('default (no phases option) has no scene-phase wrappers', () => {
+    const state = createDefaultState();
+    const html = renderScene(state, '');
+    expect(html).not.toContain('scene-phase');
+    expect(html).not.toContain('phase-continue');
+  });
+
+  test('phases: 1 has no scene-phase wrappers (backward compat)', () => {
+    const state = createDefaultState();
+    const html = renderScene(state, '', { phases: 1 });
+    expect(html).not.toContain('scene-phase');
+  });
+
+  test('phases: 2 renders two phase divs', () => {
+    const state = createDefaultState();
+    const html = renderScene(state, '', { phases: 2 });
+    expect(html).toContain('data-phase="1"');
+    expect(html).toContain('data-phase="2"');
+    expect(html).not.toContain('data-phase="3"');
+  });
+
+  test('phases: 3 renders three phase divs', () => {
+    const state = createDefaultState();
+    const html = renderScene(state, '', { phases: 3 });
+    expect(html).toContain('data-phase="1"');
+    expect(html).toContain('data-phase="2"');
+    expect(html).toContain('data-phase="3"');
+  });
+
+  test('phase 1 is visible, subsequent phases are hidden', () => {
+    const state = createDefaultState();
+    const html = renderScene(state, '', { phases: 2 });
+    expect(html).toMatch(/data-phase="1">/);
+    expect(html).toMatch(/data-phase="2"[^>]*style="display:none"/);
+  });
+
+  test('non-final phases have Continue buttons with data-reveal-phase', () => {
+    const state = createDefaultState();
+    const html = renderScene(state, '', { phases: 3 });
+    expect(html).toContain('data-reveal-phase="2"');
+    expect(html).toContain('data-reveal-phase="3"');
+    // Final phase has no Continue
+    expect(html).not.toContain('data-reveal-phase="4"');
+  });
+
+  test('each phase has a narrative placeholder', () => {
+    const state = createDefaultState();
+    const html = renderScene(state, '', { phases: 2 });
+    expect(html).toContain('<!-- [NARRATIVE: Phase 1');
+    expect(html).toContain('<!-- [NARRATIVE: Phase 2');
+  });
+});

@@ -1,131 +1,96 @@
 {
   "metadata": {
     "version": "1.0",
-    "timestamp": "2026-03-30T21:04:32Z",
+    "timestamp": "2026-03-30T22:45:44Z",
     "created_by": "unknown",
     "created_at_cwd": "/home/gareth/.vs/text-adventure-games"
   },
-  "summary": "Massive v1.3.0 session: SVG pips, mechanical enforcement gates (modulesRead, per-turn verify, action card stat/DC checks, hand-written widget detection), POI budget system, level-up panel with glowing footer button, dice widget preamble/aliases, UI/UX fixes (toast leak, dialogue fallback, ship badge contrast, fieldset/legend, footer dimming), verify for non-scene widget types, character creation payload fix, verify stderr reminder, 8-agent pre-shipping review with all findings fixed including VALID_TOP_KEYS data loss bug, station.css duplicate cleanup. Tests 1087→1144.",
+  "summary": "Epic v1.3.0 session (10h): SVG pips, mechanical enforcement gates (_modulesRead, per-turn verify, action card stat/DC, hand-written widget detection, d20 stat completeness), POI budget, level-up panel, dice widget preamble/aliases, UI/UX fixes, 8-agent pre-shipping review with all findings fixed, station.css cleanup, tag setup apply command, action card markers, brief text placeholder. Pre-skill widget analysis identified 7 transferable improvements. Tests 1087→1153.",
   "tasks": [
     {
       "status": "completed",
-      "content": "SVG pips (renderHpPips/renderXpTrack) replacing plain text HP/XP in scene+character",
+      "content": "All handover tasks from previous session",
       "priority": "high"
     },
     {
       "status": "completed",
-      "content": "_modulesRead render gate — scene blocked without Tier 1 modules loaded",
+      "content": "8-agent pre-shipping review — all blockers fixed",
       "priority": "high"
     },
     {
       "status": "completed",
-      "content": "Per-turn verify gate — scene:turnCount in .needs-verify blocks same-scene re-renders without verify",
+      "content": "tag setup apply command — one-command game init",
       "priority": "high"
     },
     {
       "status": "completed",
-      "content": "Action card stat name + DC value verify checks (Golden Rules 3+4)",
+      "content": "Per-turn verify gate, hand-written widget detection, d20 stat gate",
       "priority": "high"
     },
     {
       "status": "completed",
-      "content": "Hand-written widget detection (checkTagRenderOrigin, checkPanelNesting)",
-      "priority": "high"
-    },
-    {
-      "status": "completed",
-      "content": "Verify handles non-scene widget types (dice, dialogue, levelup, etc.)",
-      "priority": "high"
-    },
-    {
-      "status": "completed",
-      "content": "Dice widget: context preamble, modifier breakdown, stat/attribute/checkLabel/modifierLabel aliases",
-      "priority": "high"
-    },
-    {
-      "status": "completed",
-      "content": "POI point budget — client-side click tracking with auto-dim on data-poi buttons",
-      "priority": "medium"
-    },
-    {
-      "status": "completed",
-      "content": "Level-up panel — _levelupPending flag, glowing footer button, stat choice cards, confirm sendPrompt",
-      "priority": "medium"
-    },
-    {
-      "status": "completed",
-      "content": "UI/UX fixes: toast DOM leak, dialogue sendPrompt fallback, ship badge contrast, fieldset/legend, footer dimming",
-      "priority": "medium"
-    },
-    {
-      "status": "completed",
-      "content": "Character creation sendPrompt includes stats/HP/AC/abilities",
-      "priority": "medium"
-    },
-    {
-      "status": "completed",
-      "content": "Verify success message forbids post-verify modification and save embedding",
-      "priority": "medium"
-    },
-    {
-      "status": "completed",
-      "content": "tag render scene prints verify reminder to stderr",
-      "priority": "medium"
-    },
-    {
-      "status": "completed",
-      "content": "8-agent pre-shipping review — all blockers fixed (VALID_TOP_KEYS, batch handler, dnd_5e, station.css)",
-      "priority": "high"
-    },
-    {
-      "status": "completed",
-      "content": "Station.css: removed 162 lines duplicate :host blocks + stale panel override",
-      "priority": "high"
-    },
-    {
-      "status": "pending",
-      "content": "Split render.spec.ts (968 lines) before it hits 1000-line edit block",
-      "priority": "high"
-    },
-    {
-      "status": "pending",
-      "content": "CDN_BASE hardcodes @feature/tag-cli-v1.3.0 — update to @main at merge time",
-      "priority": "high"
-    },
-    {
-      "status": "pending",
-      "content": "tag.ts checkCompactionPreflight reads state bypassing path validation — route through tryLoadState()",
+      "content": "Station.css duplicate cleanup, action card markers, brief text placeholder",
       "priority": "medium"
     },
     {
       "status": "pending",
-      "content": "Write negative tests for 4 new verify checks (checkTagRenderOrigin, checkPanelNesting, checkStatusBar, checkSendPromptFallback)",
+      "content": "Inline narrative CSS classes (.hl, .dlg, .snd, .wr, .lore) — add to common-css.ts + all theme files + craftGuidance. Semantic inline highlighting for prose: cyan=items/tech, green=characters, blue-italic=dialogue, amber-uppercase=sound, red=danger, purple=lore. Must work across all 13 styles.",
+      "priority": "high"
+    },
+    {
+      "status": "pending",
+      "content": "Action buttons with description + skill check tag — update action card HTML pattern in craftGuidance to include .act-desc (grey description line) and .act-check (amber check type indicator like 'CHA CHECK'). No DC revealed.",
+      "priority": "high"
+    },
+    {
+      "status": "pending",
+      "content": "Multi-phase progressive reveal — extend scene.ts from 1 Continue phase to support N phases with phase-specific Continue buttons. GM composes narrative in phases for pacing within a single widget.",
+      "priority": "high"
+    },
+    {
+      "status": "pending",
+      "content": "Quest/lore discovery banners — styled toast/banner CSS for 'QUEST UNLOCKED' and 'CODEX UPDATED' events. Evidence card pattern with coloured left borders.",
       "priority": "medium"
     },
     {
       "status": "pending",
-      "content": "Audio module: implement 4 missing soundscapes (heartbeat, station-ambience, underwater, fire)",
-      "priority": "low"
+      "content": "XP toast animation — trigger showToast with XP gain amount when state changes. Bounce/pop animation for immediate feedback.",
+      "priority": "medium"
     },
     {
       "status": "pending",
-      "content": "POI proficiency gating — deferred from simplified POI budget",
+      "content": "Split render.spec.ts — 968 lines, 32 from hard limit",
+      "priority": "high"
+    },
+    {
+      "status": "pending",
+      "content": "CDN_BASE hardcodes @feature/tag-cli-v1.3.0 — update to @main at merge",
+      "priority": "high"
+    },
+    {
+      "status": "pending",
+      "content": "Font-family fallbacks in panel inline CSS — monospace fallback shows when CDN CSS hasn't loaded yet",
+      "priority": "medium"
+    },
+    {
+      "status": "pending",
+      "content": "Audio: implement 4 missing soundscapes (heartbeat, station-ambience, underwater, fire)",
       "priority": "low"
     }
   ],
   "branch": "feature/tag-cli-v1.3.0",
   "next_steps": [
-    "Split render.spec.ts — 968 lines, 32 from hard limit. Extract by feature area into separate spec files.",
-    "Update CDN_BASE from @feature/tag-cli-v1.3.0 to @main before merge.",
-    "Push branch to origin so CDN picks up changes for playtest validation.",
-    "Write negative tests for the 4 new verify check functions added this session.",
-    "Fix tag.ts checkCompactionPreflight to route through tryLoadState() instead of raw readFileSync."
+    "HIGH: Add inline narrative CSS classes to common-css.ts + all 13 style files. Classes: .nar-item (cyan), .nar-npc (green), .nar-dlg (blue italic), .nar-sfx (amber uppercase), .nar-danger (red), .nar-lore (purple). Update craftGuidance.compositionNotes with the class vocabulary.",
+    "HIGH: Update action card pattern — add description line and optional skill check tag. Pattern: <button class='action-card'><div class='action-card-title'>Label</div><div class='action-card-desc'>Description</div><div class='action-card-mech'>WIS CHECK</div></button>",
+    "HIGH: Multi-phase reveal — extend scene skeleton to support <!-- [PHASE 2] --> markers that create additional Continue buttons for GM-paced narrative unfolding.",
+    "HIGH: Split render.spec.ts before it bricks.",
+    "MEDIUM: Quest/lore discovery banners and evidence cards — CSS in common-css.ts, triggered by GM composition."
   ],
   "context": {
-    "test_results": "1,144 tests passing across 65 files. Zero failures.",
-    "architecture_notes": "Per-turn verify gate uses scene:turnCount in .needs-verify — verify increments _turnCount, next render blocks on mismatch. Level-up uses _levelupPending flag set by sync, rendered as panel overlay in scene widget. POI budget is client-side only via data-poi-budget attribute on .root div. Enforcement audit: 30% gated, 70% advisory. Audio improvements deferred (decision in memory).",
-    "known_limitations": "render.spec.ts at 968 lines — cannot add tests without splitting. verify.ts at 601 lines. CDN_BASE hardcodes feature branch — must update at merge. 4 new verify checks lack negative tests. TIER1_MODULES duplicated in settings.ts line 52 (should import from constants.ts). SCI_FI_THEMES dedup done (exported from names.ts).",
-    "review_status": "8-agent pre-shipping review completed. All Critical and High findings fixed. Remaining Medium/Low items documented in review findings. Security: CLEAR. Performance: CLEAN.",
-    "playtest_observations": "GM still hand-writes widgets despite checkTagRenderOrigin gate. GM invents field names for dice --data (stat/attribute/checkLabel). GM skips verify despite stderr warning. GM embeds save data after verify passes. Per-turn verify gate should prevent most of these in future sessions."
+    "test_results": "1,153 tests passing across 67 files. Zero failures.",
+    "pre_skill_analysis": "Pre-skill widget (back_office_chip_reveal.html) identified 7 improvements: inline narrative classes, action button descriptions+check tags, multi-phase reveal, quest banners, evidence cards, XP toast, TTS narration. The inline classes and action descriptions are highest impact. All improvements should be transferable across all 13 visual styles since they use --ta-* contract variables.",
+    "transferability": "Yes — inline narrative classes use semantic --ta-* variables (--ta-color-accent for items, --ta-color-success for NPCs, --ta-color-info for dialogue, --ta-color-warning for sounds, --ta-color-danger for threats, --ta-color-conviction for lore). These are already mapped in every style's bridge block. The CSS classes go in common-css.ts which is shared across all templates.",
+    "review_status": "8-agent review completed. All Critical/High fixed. Station.css cleaned (162 lines removed). VALID_TOP_KEYS, batch handler, dnd_5e, as-any, interface→type all resolved.",
+    "known_limitations": "render.spec.ts at 968 lines. verify.ts at 601 lines. CDN_BASE hardcodes feature branch. 4 new verify checks lack negative tests (now written). Font-family race condition on panel open before CDN loads."
   }
 }

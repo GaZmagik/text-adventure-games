@@ -180,8 +180,8 @@ describe('SOUNDSCAPE_ENGINE_CODE', () => {
   });
 
   // Sound types
-  test('includes all 8 sound presets', () => {
-    for (const preset of ['ship-engine', 'rain', 'wind', 'forest', 'mechanical', 'terminal', 'alarm', 'silence']) {
+  test('includes all 12 sound presets', () => {
+    for (const preset of ['ship-engine', 'rain', 'wind', 'forest', 'mechanical', 'terminal', 'alarm', 'silence', 'heartbeat', 'station-ambience', 'underwater', 'fire']) {
       expect(SOUNDSCAPE_ENGINE_CODE).toContain(preset);
     }
   });

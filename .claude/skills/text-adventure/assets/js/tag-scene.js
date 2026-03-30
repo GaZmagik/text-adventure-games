@@ -11,6 +11,18 @@ function initTagScene(root) {
     });
   }
 
+  // Wire up phase-continue buttons for multi-phase reveal
+  root.querySelectorAll('.phase-continue').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var nextPhase = this.getAttribute('data-reveal-phase');
+      var target = root.querySelector('[data-phase="' + nextPhase + '"]');
+      if (target) {
+        target.style.display = 'block';
+        this.style.display = 'none';
+      }
+    });
+  });
+
   var panelCloseBtn = root.getElementById('panel-close-btn');
   if (panelCloseBtn) {
     panelCloseBtn.addEventListener('click', function() {
@@ -121,9 +133,18 @@ function initTagScene(root) {
     }, durationMs);
   }
 
+  function showXpToast(el, amount) {
+    var toast = document.createElement('div');
+    toast.className = 'xp-toast';
+    toast.textContent = '+' + amount + ' XP';
+    el.appendChild(toast);
+    toast.addEventListener('animationend', function() { toast.remove(); }, { once: true });
+  }
+
   window.tag.triggerShake = triggerShake;
   window.tag.triggerFlash = triggerFlash;
   window.tag.showToast = showToast;
+  window.tag.showXpToast = showXpToast;
 
   // Wire up revealable redactions
   root.querySelectorAll('.atmo-redacted.revealable').forEach(function(el) {

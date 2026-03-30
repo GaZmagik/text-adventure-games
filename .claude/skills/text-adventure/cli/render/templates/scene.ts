@@ -73,7 +73,7 @@ export function renderScene(state: GmState | null, styleName: string, options?: 
   color: var(--sta-text-tertiary, #545880); cursor: pointer;
 }
 .panel-close-btn:hover { border-color: var(--sta-border-secondary, rgba(154,160,192,0.35)); color: var(--sta-text-secondary, #9AA0C0); }
-.panel-content { display: none; }
+.panel-content { display: none; font-family: var(--ta-font-body, var(--sta-font-sans, system-ui, -apple-system, sans-serif)); }
 .narrative, .brief-text { font-family: var(--sta-font-serif, Georgia, serif); font-size: var(--sta-text-base, 15px); line-height: 1.7; }
 .atmo-strip { display: flex; gap: var(--sta-space-sm, 8px); flex-wrap: wrap; margin-bottom: var(--sta-space-md, 14px); }
 .atmo-pill { font-family: var(--sta-font-mono, monospace); font-size: var(--sta-text-xs, 10px); letter-spacing: 0.06em; padding: 3px 10px; border-radius: var(--sta-radius-pill, 999px); border: var(--sta-border-width, 0.5px) solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); color: var(--sta-text-tertiary, #545880); }`,
@@ -92,9 +92,7 @@ export function renderScene(state: GmState | null, styleName: string, options?: 
       <div class="atmo-strip">
         <span class="atmo-pill">The scene unfolds before you...</span>
       </div>
-      <div id="narrative" class="narrative">
-        <p><!-- Narrative content rendered by the GM --></p>
-      </div>
+      ${buildNarrativePhases(options)}
       <!-- [ACTIONS: Insert POI buttons (data-poi, dashed border) and action cards (solid border) here] -->
       <div class="status-bar">
         ${char ? `${renderHpPips(Number(char.hp) || 0, Number(char.maxHp) || 0)}
@@ -217,4 +215,27 @@ function buildLevelupPanel(state: GmState | null): string {
   ${hasProfChoice ? `<div style="margin:8px 0;font-size:11px;color:var(--sta-text-secondary,#9AA0C0)">The GM will offer a new proficiency after you confirm.</div>` : ''}
   <button class="confirm-btn" id="levelup-confirm" style="margin-top:14px" data-prompt="Confirm level up to ${newLevel}. HP +${reward.hpGain}.${profChanged ? ` Prof bonus +${oldProf} → +${newProf}.` : ''}" title="Confirm level up">Confirm Level Up</button>
 </div>`;
+}
+
+/** Build narrative section — single div for phases≤1, wrapped phase divs for multi-phase. */
+function buildNarrativePhases(options?: Record<string, unknown>): string {
+  const phases = Number(options?.phases) || 1;
+  if (phases <= 1) {
+    return `<div id="narrative" class="narrative">
+        <p><!-- Narrative content rendered by the GM --></p>
+      </div>`;
+  }
+  const parts: string[] = [];
+  for (let i = 1; i <= phases; i++) {
+    const hidden = i > 1 ? ' style="display:none"' : '';
+    const continueBtn = i < phases
+      ? `\n        <button class="continue-btn phase-continue" data-reveal-phase="${i + 1}">Continue</button>`
+      : '';
+    parts.push(`<div class="scene-phase" data-phase="${i}"${hidden}>
+        <div class="narrative">
+          <!-- [NARRATIVE: Phase ${i}] -->
+        </div>${continueBtn}
+      </div>`);
+  }
+  return parts.join('\n      ');
 }
