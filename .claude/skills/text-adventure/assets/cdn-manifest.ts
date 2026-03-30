@@ -11,7 +11,7 @@ export const CSS_MANIFEST: Record<string, string> = {
   'neon': 'e3082620',
   'parchment': '361e43ff',
   'stained-glass': '32d43420',
-  'station': '416c92d0',
+  'station': '71810467',
   'sveltekit': 'a7379a18',
   'terminal': '4636494f',
   'weathered': 'f3b73688',
