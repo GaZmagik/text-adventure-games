@@ -137,7 +137,21 @@ export const SCENE_SCRIPT_CODE = `
   document.querySelectorAll('.footer-btn[data-prompt]').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var prompt = this.getAttribute('data-prompt');
-      if (typeof sendPrompt === 'function') sendPrompt(prompt);
+      if (typeof sendPrompt === 'function') {
+        sendPrompt(prompt);
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = prompt;
+        ta.style.cssText = 'position:fixed;opacity:0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        var orig = this.textContent;
+        this.textContent = 'Copied! Paste as your reply.';
+        var self = this;
+        setTimeout(function() { self.textContent = orig; }, 3000);
+      }
     });
   });
 
