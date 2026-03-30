@@ -426,6 +426,11 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
         + 'You have 65K+ chars of budget headroom — USE IT. A thin act opener is a critical failure. '
         + 'This scene sets the entire tone. Write it like it matters.'
       : `Standard scene ${sceneNum} (2-4¶): one sensory beat, one plot beat, one choice.`,
+    compositionNotes: {
+      htmlEscaping: 'The html field is inside a JS template literal (backticks). Use regular " for HTML attributes — do NOT escape as \\". Apostrophes in prose are fine as-is. Only backticks (`) and ${} need escaping inside template literals.',
+      buttonPattern: 'Action cards and POI buttons: <button class="action-card" data-prompt="I do the thing." title="I do the thing." style="padding:10px 14px;font-size:12px;border:0.5px solid var(--ta-color-accent,#4ECDC4);border-radius:6px;background:transparent;color:var(--sta-text-primary,#EEF0FF);cursor:pointer;text-align:left;min-height:44px">Do the thing</button>',
+      commonMistake: 'Do NOT use \\\\", &quot;, or escaped quotes in data-prompt or title attributes. Plain " works. The template literal handles it. If your string replacement tool adds backslashes, the buttons will not render and verify will report 0 data-prompt elements.',
+    },
     contextVerification: {
       instruction: 'BEFORE composing narrative: if you cannot recall reading prose-craft.md and the modules below in THIS conversation, re-read them now. Context compaction may have removed them.',
       requiredFiles: modulesRequired,

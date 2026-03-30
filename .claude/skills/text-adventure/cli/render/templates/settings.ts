@@ -19,10 +19,16 @@ type SettingsData = {
 export function renderSettings(_state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
   const raw = (options?.data ?? {}) as Record<string, unknown>;
 
-  // Safely extract string[] fields — guard against non-array values from untrusted JSON
+  // Safely extract string[] fields — guard against non-array values from untrusted JSON.
+  // If the GM passes objects like {id, label, desc}, extract the id or label as the string value.
   const toStringArray = (v: unknown): string[] | undefined => {
     if (!Array.isArray(v)) return undefined;
-    return v.every((el: unknown) => typeof el === 'string') ? v as string[] : v.map(String);
+    return v.map((el: unknown) => {
+      if (typeof el === 'string') return el;
+      if (el && typeof el === 'object' && 'id' in el && typeof (el as Record<string, unknown>).id === 'string') return (el as Record<string, unknown>).id as string;
+      if (el && typeof el === 'object' && 'label' in el && typeof (el as Record<string, unknown>).label === 'string') return (el as Record<string, unknown>).label as string;
+      return String(el);
+    });
   };
 
   // Accept common field name aliases the GM might naturally use
@@ -102,7 +108,12 @@ export function renderSettings(_state: GmState | null, styleName: string, option
   <div class="widget-section">
     <div class="widget-label">Optional Modules</div>
     <div class="option-grid" data-group="modules">
-      ${modules.map(m => `<button class="option-card module-card" data-group="modules" data-value="${esc(m)}" aria-pressed="false"><span class="module-check"></span>${esc(m)}</button>`).join('\n      ')}
+      ${modules.map(m => {
+        const isTier1 = ['gm-checklist','prose-craft','core-systems','die-rolls','character-creation','save-codex'].includes(m);
+        return isTier1
+          ? `<button class="option-card module-card selected" data-group="modules" data-value="${esc(m)}" aria-pressed="true" disabled style="opacity:0.7;cursor:default;"><span class="module-check checked"></span>${esc(m)} (required)</button>`
+          : `<button class="option-card module-card" data-group="modules" data-value="${esc(m)}" aria-pressed="false"><span class="module-check"></span>${esc(m)}</button>`;
+      }).join('\n      ')}
     </div>
   </div>
 
@@ -157,10 +168,14 @@ shadow.querySelectorAll('.module-card').forEach(function(btn) {
 });
 
 shadow.getElementById('settings-confirm').addEventListener('click', function() {
-  selections.modules = selectedModules;
+  // Always include Tier 1 modules regardless of player selection
+  var tier1 = ['gm-checklist','prose-craft','core-systems','die-rolls','character-creation','save-codex'];
+  var allModules = tier1.slice();
+  selectedModules.forEach(function(m) { if (allModules.indexOf(m) < 0) allModules.push(m); });
+  selections.modules = allModules;
   var cmds = ['state set visualStyle ' + (selections.visualStyle || 'station')];
   if (selections.rulebook) cmds.push('state set worldFlags.rulebook ' + selections.rulebook);
-  if (selectedModules.length) cmds.push('state set modulesActive ' + JSON.stringify(selectedModules));
+  cmds.push('state set modulesActive ' + JSON.stringify(allModules));
   var prompt = 'Begin adventure with settings: ' + JSON.stringify(selections)
     + '\\nRequired: tag batch --commands "' + cmds.join('; ') + '"';
   if (typeof sendPrompt === 'function') sendPrompt(prompt);

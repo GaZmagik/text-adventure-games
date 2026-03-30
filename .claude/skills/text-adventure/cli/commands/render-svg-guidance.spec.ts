@@ -112,18 +112,21 @@ describe('svgGuidance in scene render', () => {
 });
 
 describe('[object Object] detection in render output', () => {
-  test('settings widget fails when --data contains unserialisable objects', async () => {
+  test('settings widget extracts id from object arrays instead of [object Object]', async () => {
     await setupState();
-    // Pass objects where strings are expected — this is the exact bug from playtesting
-    const badData = JSON.stringify({
+    // Pass objects with id/label fields — template should extract the id
+    const objData = JSON.stringify({
       difficulties: [
         { id: 'forgiving', label: 'Forgiving', description: 'Lower DCs' },
         { id: 'standard', label: 'Standard', description: 'Balanced' },
       ],
     });
-    const result = await handleRender(['settings', '--data', badData]);
-    expect(result.ok).toBe(false);
-    expect(result.error?.message).toContain('[object Object]');
+    const result = await handleRender(['settings', '--data', objData]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const html = typeof data === 'string' ? data : (data.html as string) ?? '';
+    expect(html).not.toContain('[object Object]');
+    expect(html).toContain('forgiving');
   });
 
   test('settings widget passes with valid string arrays', async () => {
