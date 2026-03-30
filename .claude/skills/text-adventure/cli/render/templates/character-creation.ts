@@ -174,9 +174,11 @@ export function renderCharacterCreation(_state: GmState | null, styleName: strin
 </div>`,
     script: `var selectedArchetype = -1;
 var selectedProfs = [];
+var lockedProfs = [];
 var selectedPronouns = '';
 var givenPool = ${serialiseInlineScriptData(givenNames)};
 var surnamePool = ${serialiseInlineScriptData(surnames)};
+var archetypeProfs = ${JSON.stringify(archetypes.map(a => a.fixedProficiencies ?? []))};
 
 shadow.querySelectorAll('.archetype-card').forEach(function(card) {
   card.addEventListener('click', function() {
@@ -187,11 +189,30 @@ shadow.querySelectorAll('.archetype-card').forEach(function(card) {
     this.classList.add('selected');
     this.setAttribute('aria-pressed', 'true');
     selectedArchetype = parseInt(this.getAttribute('data-index'), 10);
+    // Reset proficiency grid — unlock previous, lock new archetype profs
+    selectedProfs = [];
+    lockedProfs = archetypeProfs[selectedArchetype] || [];
+    shadow.querySelectorAll('.prof-option').forEach(function(btn) {
+      var prof = btn.getAttribute('data-prof');
+      btn.classList.remove('selected');
+      btn.setAttribute('aria-pressed', 'false');
+      btn.disabled = false;
+      btn.style.opacity = '';
+      if (lockedProfs.indexOf(prof) >= 0) {
+        btn.classList.add('selected');
+        btn.setAttribute('aria-pressed', 'true');
+        btn.disabled = true;
+        btn.style.opacity = '0.7';
+        btn.style.cursor = 'default';
+      }
+    });
   });
 });
 
 shadow.querySelectorAll('.prof-option').forEach(function(btn) {
   btn.addEventListener('click', function() {
+    // Skip locked archetype proficiencies
+    if (lockedProfs.indexOf(this.getAttribute('data-prof')) >= 0) return;
     var prof = this.getAttribute('data-prof');
     var idx = selectedProfs.indexOf(prof);
     if (idx >= 0) {
@@ -257,10 +278,14 @@ shadow.getElementById('creation-confirm').addEventListener('click', function() {
     return;
   }
 
+  // Combine archetype-granted (locked) + player-chosen proficiencies
+  var allProfs = lockedProfs.slice();
+  selectedProfs.forEach(function(p) { if (allProfs.indexOf(p) < 0) allProfs.push(p); });
   var payload = {
     name: name,
     archetypeIndex: selectedArchetype,
-    proficiencies: selectedProfs,
+    archetypeLabel: selectedArchetype >= 0 && shadow.querySelectorAll('.arch-name')[selectedArchetype] ? shadow.querySelectorAll('.arch-name')[selectedArchetype].textContent : '',
+    proficiencies: allProfs,
     pronouns: selectedPronouns || 'they/them'
   };
   var prompt = 'Create character: ' + JSON.stringify(payload);
