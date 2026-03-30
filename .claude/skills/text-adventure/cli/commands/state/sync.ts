@@ -5,7 +5,7 @@ import type { CommandResult, GmState, TimeState, RollType } from '../../types';
 import { ok, fail, noState } from '../../lib/errors';
 import { tryLoadState, saveState, getSyncMarkerPath } from '../../lib/state-store';
 import { validateState } from '../../lib/validator';
-import { TIER1_MODULES } from '../../lib/constants';
+import { TIER1_MODULES, STAT_NAMES } from '../../lib/constants';
 import { parseArgs } from '../../lib/args';
 import { XP_THRESHOLDS } from '../../data/xp-tables';
 import { containsForbiddenKeys } from '../../lib/security';
@@ -266,6 +266,22 @@ function checkRulebookSet(state: GmState, warnings: string[]): void {
   );
 }
 
+/** D20 system requires all 6 stats (STR/DEX/CON/INT/WIS/CHA) on the character. */
+function checkStatCompleteness(state: GmState, warnings: string[]): void {
+  if (!state.character) return;
+  const rulebook = state.worldFlags.rulebook;
+  if (typeof rulebook !== 'string' || !rulebook.includes('d20') && !rulebook.includes('dnd') && !rulebook.includes('pf2e')) return;
+  const stats = state.character.stats;
+  const missing = STAT_NAMES.filter(s => !(s in stats) || typeof stats[s] !== 'number');
+  if (missing.length > 0) {
+    warnings.push(
+      `BLOCK: Character stats incomplete for ${rulebook} — missing: ${missing.join(', ')}. `
+      + 'D20-based systems require all 6 attributes (STR, DEX, CON, INT, WIS, CHA). '
+      + 'Set via `tag state set character.stats \'{"STR":10,"DEX":10,"CON":10,"INT":10,"WIS":10,"CHA":10}\'`.',
+    );
+  }
+}
+
 function checkRollRatio(state: GmState, warnings: string[]): void {
   const rulebook = state.worldFlags.rulebook;
   if (typeof rulebook !== 'string' || NARRATIVE_RULEBOOKS.has(rulebook)) return;
@@ -328,6 +344,7 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
   checkPendingRolls(state, warnings);
   checkRollRatio(state, warnings);
   checkRulebookSet(state, warnings);
+  checkStatCompleteness(state, warnings);
 
   const featureChecklist = buildFeatureChecklist(state);
   const status = warnings.length > 0 ? 'warnings' : 'clean';
