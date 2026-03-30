@@ -134,6 +134,11 @@ async function main(): Promise<void> {
   let result: CommandResult;
 
   switch (command) {
+    case 'module': {
+      const { handleModule } = await import('./commands/module');
+      result = await handleModule(args.slice(1));
+      break;
+    }
     case 'help': {
       const { handleHelp } = await import('./commands/help');
       result = await handleHelp(args.slice(1));

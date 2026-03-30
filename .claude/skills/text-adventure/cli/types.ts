@@ -317,6 +317,7 @@ export type GmState = {
   _schemaVersion?: string;
   _compactionCount?: number;
   _pendingRolls?: PendingRoll[];
+  _modulesRead?: string[];
   _turnCount?: number;
 };
 

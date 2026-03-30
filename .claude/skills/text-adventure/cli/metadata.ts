@@ -3,6 +3,7 @@ import { MODULE_DIGESTS } from './data/module-digests';
 
 export type TopLevelCommandName =
   | 'help'
+  | 'module'
   | 'state'
   | 'compute'
   | 'render'
@@ -29,6 +30,7 @@ export type CommandHelp = {
 
 export const TOP_LEVEL_COMMANDS = [
   'help',
+  'module',
   'state',
   'compute',
   'render',
@@ -49,6 +51,15 @@ export const COMMAND_HELP: Record<TopLevelCommandName, CommandHelp> = {
       { name: '(default)', usage: 'tag help', description: 'Quick-start workflow, turn loop, command summary, cardinal rules', example: 'tag help' },
       { name: 'new-game', usage: 'tag help new-game', description: 'Step-by-step new game setup from scenario select to opening scene', example: 'tag help new-game' },
       { name: 'scene', usage: 'tag help scene', description: 'Scene composition workflow, prose checklist, density guidance, structure reference', example: 'tag help scene' },
+    ],
+  },
+  module: {
+    command: 'tag module',
+    description: 'Activate modules and load their content into GM context. Returns full module markdown so the GM has the rules in context.',
+    subcommands: [
+      { name: 'activate', usage: 'tag module activate <name>', description: 'Activate a module — adds to modulesActive and _modulesRead, returns full content', example: 'tag module activate prose-craft' },
+      { name: 'activate-tier', usage: 'tag module activate-tier <N>', description: 'Activate all modules in a tier (1/2/3) — returns all content in one call', example: 'tag module activate-tier 1' },
+      { name: 'status', usage: 'tag module status', description: 'Show which modules are active vs read vs unread', example: 'tag module status' },
     ],
   },
   state: {

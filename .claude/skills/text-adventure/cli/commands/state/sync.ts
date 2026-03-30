@@ -314,6 +314,14 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
 
   const { compactionDetected, filesystemCount } = checkCompaction(state, warnings);
 
+  // On compaction: reset _modulesRead — GM must re-activate modules to reload content
+  if (compactionDetected && Array.isArray(state._modulesRead) && state._modulesRead.length > 0) {
+    warnings.push(
+      `Compaction detected: _modulesRead reset to empty. Run \`tag module activate-tier 1\` then activate any Tier 2/3 modules to reload content into context.`,
+    );
+    state._modulesRead = [];
+  }
+
   checkPendingRolls(state, warnings);
   checkRollRatio(state, warnings);
   checkRulebookSet(state, warnings);
