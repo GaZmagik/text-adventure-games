@@ -49,7 +49,8 @@ export function renderSettings(_state: GmState | null, styleName: string, option
   const DEFAULT_DIFFICULTIES = ['easy', 'normal', 'hard', 'brutal'];
   const DEFAULT_PACING = ['fast', 'normal', 'slow'];
   const DEFAULT_STYLES = ['station', 'terminal', 'parchment', 'neon', 'brutalist', 'art-deco', 'ink-wash', 'blueprint', 'stained-glass', 'sveltekit', 'weathered', 'holographic'];
-  const DEFAULT_MODULES = ['save-codex', 'bestiary', 'story-architect', 'ship-systems', 'crew-manifest', 'star-chart', 'geo-map', 'procedural-world-gen', 'world-history', 'lore-codex', 'rpg-systems', 'ai-npc', 'atmosphere', 'audio', 'adventure-exporting'];
+  const TIER1_MODULES = ['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex'];
+  const DEFAULT_MODULES = [...TIER1_MODULES, 'bestiary', 'story-architect', 'ship-systems', 'crew-manifest', 'star-chart', 'geo-map', 'procedural-world-gen', 'world-history', 'lore-codex', 'rpg-systems', 'ai-npc', 'atmosphere', 'audio', 'adventure-exporting'];
 
   /** Merge GM-provided options with defaults — GM's picks first, then any missing defaults appended. */
   const merge = (provided: string[] | undefined, defaults: string[]): string[] => {
@@ -109,7 +110,7 @@ export function renderSettings(_state: GmState | null, styleName: string, option
     <div class="widget-label">Optional Modules</div>
     <div class="option-grid" data-group="modules">
       ${modules.map(m => {
-        const isTier1 = ['gm-checklist','prose-craft','core-systems','die-rolls','character-creation','save-codex'].includes(m);
+        const isTier1 = TIER1_MODULES.includes(m);
         return isTier1
           ? `<button class="option-card module-card selected" data-group="modules" data-value="${esc(m)}" aria-pressed="true" disabled style="opacity:0.7;cursor:default;"><span class="module-check checked"></span>${esc(m)} (required)</button>`
           : `<button class="option-card module-card" data-group="modules" data-value="${esc(m)}" aria-pressed="false"><span class="module-check"></span>${esc(m)}</button>`;
