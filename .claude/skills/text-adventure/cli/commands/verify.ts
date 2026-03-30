@@ -144,11 +144,17 @@ function checkAtmosphere(html: string, state: GmState, failures: string[]): void
 }
 
 function checkActionCards(html: string, failures: string[]): void {
-  const promptCount = (html.match(/data-prompt="/g) ?? []).length;
-  if (promptCount < MIN_ACTION_PROMPTS) {
+  // Count data-prompt elements OUTSIDE the footer (exclude Save/Export buttons)
+  // Footer buttons are inside .footer-row or have id="save-btn"/"export-btn"
+  const allPrompts = html.match(/data-prompt="/g) ?? [];
+  const footerPrompts = (html.match(/id="save-btn"[^>]*data-prompt|id="export-btn"[^>]*data-prompt|data-prompt[^>]*id="save-btn"|data-prompt[^>]*id="export-btn"/g) ?? []).length;
+  const contentPrompts = allPrompts.length - footerPrompts;
+
+  if (contentPrompts < MIN_ACTION_PROMPTS) {
     failures.push(
-      `Found ${promptCount} interactive element(s) with data-prompt — minimum is ${MIN_ACTION_PROMPTS}. `
-      + 'Every scene needs at least 2 action cards or POI buttons so the player has choices.',
+      `Found ${contentPrompts} interactive element(s) with data-prompt outside footer — minimum is ${MIN_ACTION_PROMPTS}. `
+      + 'Every scene needs at least 2 action cards or POI buttons so the player has choices. '
+      + 'Save/Export footer buttons do not count.',
     );
   }
 }
@@ -358,6 +364,9 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
         const btns = (html.match(/scenario-select-btn/g) ?? []).length;
         if (btns < 2) failures.push(`Found ${btns} select button(s) — each scenario card needs a select button with data-prompt.`);
       },
+      () => {
+        if (!html.includes('title=')) failures.push('Scenario buttons missing title fallback — player cannot copy prompt if sendPrompt unavailable.');
+      },
     ];
   } else if (widgetType === 'rules') {
     failures = [];
@@ -373,10 +382,17 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
         const groups = html.match(/data-group="([^"]+)"/g) ?? [];
         const unique = new Set(groups.map(g => g.replace(/data-group="|"/g, '')));
         if (unique.size < 2) failures.push(`Found ${unique.size} option group(s) — settings needs at least 2 (e.g. rulebook, difficulty).`);
+        const required = ['rulebook', 'visualStyle'];
+        for (const r of required) {
+          if (!unique.has(r)) failures.push(`Settings missing required option group: "${r}".`);
+        }
       },
       () => {
         const objectValues = (html.match(/data-value="\[object Object\]"/g) ?? []).length;
         if (objectValues > 0) failures.push(`Found ${objectValues} option(s) with data-value="[object Object]" — arrays must contain strings, not objects.`);
+      },
+      () => {
+        if (!html.includes('data-group="modules"')) failures.push('Settings missing module selection group (data-group="modules") — player cannot choose active modules.');
       },
     ];
   } else if (widgetType === 'character') {
@@ -392,6 +408,21 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
       () => {
         const hasNameInput = html.includes('type="text"') || html.includes('contenteditable');
         if (!hasNameInput) failures.push('Character creation widget missing name input field.');
+      },
+      () => {
+        const archetypeCards = (html.match(/archetype-card/g) ?? []).length;
+        if (archetypeCards < 2) failures.push(`Found ${archetypeCards} archetype card(s) — expected at least 2.`);
+      },
+      () => {
+        // Check archetype cards have visible names — empty .arch-name divs are a known bug
+        const emptyNames = (html.match(/class="arch-name"><\/div>/g) ?? []).length;
+        if (emptyNames > 0) failures.push(`Found ${emptyNames} archetype card(s) with empty names — archetype labels must be visible.`);
+      },
+      () => {
+        if (!html.includes('data-pronouns')) failures.push('Character creation missing pronoun selector (data-pronouns buttons).');
+      },
+      () => {
+        if (!html.includes('data-prof')) failures.push('Character creation missing proficiency selector (data-prof buttons).');
       },
     ];
   } else {
