@@ -5,6 +5,16 @@ export const COMMON_WIDGET_CSS = `
 .widget-section { margin-bottom: 16px; }
 .widget-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--sta-text-tertiary, #545880); margin-bottom: 8px; }
 .empty-state { color: var(--sta-text-tertiary, #545880); font-style: italic; font-size: 12px; padding: 8px 0; }
+.option-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.option-card {
+  padding: 8px 14px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  border-radius: 6px; font-size: 12px; color: var(--sta-text-primary, #EEF0FF);
+  cursor: pointer; background: transparent; transition: all 0.2s;
+  text-transform: capitalize; min-height: 44px; box-sizing: border-box;
+}
+.option-card:hover { border-color: var(--ta-color-accent); background: var(--ta-color-accent-bg); }
+.option-card:focus-visible { outline: 2px solid var(--ta-color-focus, #4ECDC4); outline-offset: 2px; }
+.option-card.selected { border-color: var(--ta-color-accent); background: var(--ta-color-accent-bg); color: var(--ta-color-accent); font-weight: 600; }
 .confirm-btn {
   display: block; width: 100%; margin-top: 20px; padding: 12px;
   font-family: var(--ta-font-heading); font-size: 14px; font-weight: 700;
