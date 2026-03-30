@@ -137,21 +137,24 @@ function initTagScene(root) {
     });
   });
 
-  // Wire ALL data-prompt buttons (action cards, POI, footer, etc.)
+  // Wire ALL data-prompt buttons — always try sendPrompt AND copy to clipboard.
+  // If sendPrompt works, the user never notices the clipboard copy.
+  // If sendPrompt fails silently, the clipboard has the text and the button shows feedback.
   root.querySelectorAll('[data-prompt]').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var prompt = this.getAttribute('data-prompt');
+      // Always copy to clipboard as fallback
+      var ta = document.createElement('textarea');
+      ta.value = prompt;
+      ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      // Try sendPrompt — if it works, great. If not, clipboard has the text.
       if (typeof sendPrompt === 'function') {
         sendPrompt(prompt);
       } else {
-        // Fallback: copy prompt to clipboard and show feedback
-        var ta = document.createElement('textarea');
-        ta.value = prompt;
-        ta.style.cssText = 'position:fixed;opacity:0';
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
         var orig = this.textContent;
         this.textContent = 'Copied! Paste as your reply.';
         var self = this;
@@ -159,47 +162,6 @@ function initTagScene(root) {
       }
     });
   });
-
-  // Visible fallback when sendPrompt is not available
-  if (typeof sendPrompt !== 'function') {
-    var prompts = root.querySelectorAll('[data-prompt]');
-    var actionPrompts = [];
-    prompts.forEach(function(btn) {
-      var id = btn.id || '';
-      if (id === 'save-btn' || id === 'export-btn') return;
-      actionPrompts.push(btn.getAttribute('data-prompt'));
-    });
-    if (actionPrompts.length > 0) {
-      var fb = document.createElement('div');
-      fb.className = 'fallback-text';
-      fb.style.display = 'block';
-      var heading = document.createElement('p');
-      heading.style.cssText = 'margin:0 0 8px;font-weight:600;';
-      heading.textContent = 'If buttons do not respond, copy one of these and paste as your reply:';
-      fb.appendChild(heading);
-      actionPrompts.forEach(function(p) {
-        var code = document.createElement('code');
-        code.style.cssText = 'display:block;margin:4px 0;padding:6px 8px;cursor:pointer;user-select:all;';
-        code.textContent = p;
-        code.addEventListener('click', function() {
-          var ta = document.createElement('textarea');
-          ta.value = p;
-          ta.style.cssText = 'position:fixed;opacity:0';
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand('copy');
-          document.body.removeChild(ta);
-          this.textContent = 'Copied!';
-          var self = this;
-          var orig = p;
-          setTimeout(function() { self.textContent = orig; }, 2000);
-        });
-        fb.appendChild(code);
-      });
-      var footer = root.querySelector('.footer-row');
-      if (footer) footer.parentNode.insertBefore(fb, footer);
-    }
-  }
 
   // Audio engine — only active when audio module is present
   var audioBtn = root.getElementById('audio-btn');
