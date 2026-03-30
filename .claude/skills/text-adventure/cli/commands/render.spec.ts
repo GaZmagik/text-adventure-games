@@ -22,6 +22,9 @@ beforeEach(() => {
   // and the render gate will pass because scene 999 >= any test scene
   const { signMarker } = require('./verify');
   writeFileSync(join(tempDir, '.last-sync'), signMarker(999, '{}'), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-scenario'), signMarker(0), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-rules'), signMarker(0), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-character'), signMarker(0), 'utf-8');
 });
 
 afterEach(() => {

@@ -286,6 +286,19 @@ function checkStatusBar(html: string, state: GmState, failures: string[]): void 
 
 const PRE_GAME_WIDGET_TYPES = new Set(['scenario', 'rules', 'character']);
 
+/** Check if a pre-game widget type has a valid verify marker. */
+export function hasPreGameVerifyMarker(widgetType: string): boolean {
+  const markerPath = join(resolveStateDir(), `.verified-${widgetType}`);
+  return readSignedMarker(markerPath) >= 0;
+}
+
+/** Pre-game verify chain: which widget type must be verified before rendering each widget. */
+export const PRE_GAME_GATE: Record<string, string> = {
+  settings: 'scenario',
+  'character-creation': 'rules',
+  scene: 'character',
+};
+
 function readHtmlFile(filePath: string): string | CommandResult {
   try {
     const safePath = resolveSafeReadPath(filePath, { kind: 'Verify', extensions: ['.html', '.htm'] });
@@ -408,12 +421,18 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
   const TOTAL_CHECKS = checks.length;
   const passed = failures.length === 0;
 
-  // On success for scene widgets: write signed marker
-  if (passed && widgetType === 'scene') {
-    writeFileSync(getVerifyMarkerPath(), signMarker(state.scene), 'utf-8');
-    state._turnCount = (state._turnCount ?? 0) + 1;
-    await saveState(state);
-    try { unlinkSync(getNeedsVerifyPath()); } catch { /* already cleared */ }
+  // On success: write signed marker for the widget type
+  if (passed) {
+    if (widgetType === 'scene') {
+      writeFileSync(getVerifyMarkerPath(), signMarker(state.scene), 'utf-8');
+      state._turnCount = (state._turnCount ?? 0) + 1;
+      await saveState(state);
+      try { unlinkSync(getNeedsVerifyPath()); } catch { /* already cleared */ }
+    } else {
+      // Pre-game widgets: write a type-specific marker so render can gate on it
+      const markerPath = join(resolveStateDir(), `.verified-${widgetType}`);
+      writeFileSync(markerPath, signMarker(0), 'utf-8');
+    }
   }
 
   return ok({

@@ -14,6 +14,9 @@ beforeEach(() => {
   process.env.TAG_STATE_DIR = tempDir;
   const { signMarker } = require('../../commands/verify');
   writeFileSync(join(tempDir, '.last-sync'), signMarker(999), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-scenario'), signMarker(0), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-rules'), signMarker(0), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-character'), signMarker(0), 'utf-8');
 });
 
 afterEach(() => {

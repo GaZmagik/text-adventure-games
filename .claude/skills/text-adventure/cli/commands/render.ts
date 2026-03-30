@@ -1,4 +1,4 @@
-import { readSignedMarker, getNeedsVerifyPath } from './verify';
+import { readSignedMarker, getNeedsVerifyPath, hasPreGameVerifyMarker, PRE_GAME_GATE } from './verify';
 import { existsSync, writeFileSync, readFileSync, unlinkSync } from 'node:fs';
 import type { CommandResult, GmState, PendingRoll, StatName } from '../types';
 import { ok, fail, styleNotSet } from '../lib/errors';
@@ -218,6 +218,16 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     return fail(
       `Unknown widget type: "${widgetType}".`,
       `Valid types: ${Object.keys(TEMPLATES).join(', ')}`,
+      'render',
+    );
+  }
+
+  // Pre-game verify chain: block render if previous widget wasn't verified
+  const requiredVerify = PRE_GAME_GATE[widgetType];
+  if (requiredVerify && !hasPreGameVerifyMarker(requiredVerify)) {
+    return fail(
+      `Cannot render ${widgetType}: the ${requiredVerify} widget has not been verified.`,
+      `Run \`tag verify ${requiredVerify} /tmp/${requiredVerify}.html\` first.`,
       'render',
     );
   }
