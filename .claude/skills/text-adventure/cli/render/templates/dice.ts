@@ -31,9 +31,10 @@ export function renderDice(state: GmState | null, styleName: string, options?: R
   // Allow --data overrides for testing — with runtime validation for script safety
   const rawDieType = (data?.dieType as string) ?? rollComp?.dieType ?? 'd20';
   const dieType = VALID_DIE_TYPES.has(rawDieType) ? rawDieType : 'd20';
-  const stat = (data?.stat as string) ?? (data?.attribute as string) ?? (statComp ? statComp.stat : rollComp?.stat) ?? '???';
+  const stat = (data?.stat as string) ?? (data?.attribute as string) ?? (data?.checkLabel as string) ?? (statComp ? statComp.stat : rollComp?.stat) ?? '???';
   const modifier = Number.isFinite(Number(data?.modifier ?? rollComp?.modifier)) ? Number(data?.modifier ?? rollComp?.modifier) : 0;
   const profBonus = Number.isFinite(Number(data?.proficiencyBonus)) ? Number(data?.proficiencyBonus) : 0;
+  const modLabel = typeof data?.modifierLabel === 'string' ? data.modifierLabel : undefined;
   const context = typeof data?.context === 'string' ? data.context : undefined;
   const rawDc = data?.dc ?? (statComp ? statComp.dc : undefined);
   const dc = rawDc !== undefined ? (Number.isFinite(Number(rawDc)) ? Number(rawDc) : undefined) : undefined;
@@ -138,7 +139,7 @@ export function renderDice(state: GmState | null, styleName: string, options?: R
   <div class="w">
     <div class="tt">${esc(title)}</div>
     ${context ? `<div class="ctx">${esc(context)}</div>` : ''}
-    <div class="mods">${esc(stat)} ${modifier >= 0 ? '+' + modifier : String(modifier)}${profBonus > 0 ? ` · Proficiency +${profBonus}` : ''}${dc !== undefined ? ` · DC ${dc}` : ''}</div>
+    <div class="mods">${modLabel ? esc(modLabel) : `${esc(stat)} ${modifier >= 0 ? '+' + modifier : String(modifier)}${profBonus > 0 ? ' · Proficiency +' + profBonus : ''}`}${dc !== undefined ? ` · DC ${dc}` : ''}</div>
     ${isD100 ? `<div class="dr" id="rollArea">
       <div class="dw">
         <div class="cz"><canvas id="cvT" width="${canvasW}" height="${canvasH}"></canvas></div>
