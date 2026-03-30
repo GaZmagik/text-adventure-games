@@ -45,6 +45,7 @@ export function renderDialogue(state: GmState | null, styleName: string, options
   border-left: 3px solid var(--ta-color-accent);
   background: var(--ta-color-accent-bg);
   border-radius: 0 6px 6px 0;
+  font-family: var(--sta-font-serif, Georgia, serif);
   font-size: 13px; line-height: 1.6;
   color: var(--sta-text-primary, #EEF0FF);
   font-style: italic;
