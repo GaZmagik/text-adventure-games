@@ -543,7 +543,7 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
     checks: TOTAL_CHECKS,
     htmlChars: html.length,
     ...(passed
-      ? { message: `${widgetType} widget verified. All ${TOTAL_CHECKS} checks passed. Ready for show_widget.` }
+      ? { message: `${widgetType} widget verified. All ${TOTAL_CHECKS} checks passed. Pass to show_widget NOW. Do NOT modify the HTML. Do NOT embed save data, export data, or base64 strings — the Save and Export footer buttons handle this when the player clicks them.` }
       : { message: `${widgetType} widget failed verification: ${failures.length} issue(s). Fix and re-verify before show_widget.` }),
   }, 'verify');
 }
