@@ -97,6 +97,12 @@ function newGame(): CommandResult {
       },
       {
         step: 9,
+        name: 'World Building',
+        command: 'tag module activate-tier 2',
+        description: 'Load Tier 2 modules and initialise world state from the seed. For each active module, populate the corresponding state: (1) procedural-world-gen: generate rooms, factions, NPCs, loot, encounters from seed. (2) geo-map: initialise mapState with zones, connections, starting zone revealed. (3) star-chart: generate sector, set starting system revealed+visited. (4) ship-systems: initialise shipState from class template. (5) crew-manifest: generate crew roster from seed+ship class. (6) world-history: author 3-5 epochs, power structures, cultural layer. (7) story-architect: initialise pacing to Act 1 with empty thread arrays. Create initial NPCs via tag state create-npc. Set up quests and factions.',
+      },
+      {
+        step: 10,
         name: 'Opening Scene',
         command: 'tag state sync --apply --scene 1 --room <starting_room> && tag render scene --style <style>',
         description: 'Act opener: 6-10 paragraphs, short story density. World-building, character establishment, sensory grounding, NPC introduction, tension, hook.',
