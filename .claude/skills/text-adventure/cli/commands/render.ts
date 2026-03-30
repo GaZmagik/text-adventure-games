@@ -386,7 +386,9 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   if (widgetType === 'scene' && !isPreGame) {
     const turnTag = `${state?.scene ?? 0}:${state?._turnCount ?? 0}`;
     writeFileSync(getNeedsVerifyPath(), turnTag, 'utf-8');
-    console.error(`\n⚠️  VERIFY REQUIRED (scene ${state?.scene ?? 0}, turn ${state?._turnCount ?? 0}):\n   tag verify /tmp/scene.html\n   BEFORE passing to show_widget. Next render will BLOCK without it.\n`);
+    if (!raw) {
+      console.error(`\n⚠️  VERIFY REQUIRED (scene ${state?.scene ?? 0}, turn ${state?._turnCount ?? 0}):\n   tag verify /tmp/scene.html\n   BEFORE passing to show_widget. Next render will BLOCK without it.\n`);
+    }
   }
 
   // Return raw HTML early — skip checklist/skeleton computation

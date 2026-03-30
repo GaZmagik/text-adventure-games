@@ -80,7 +80,7 @@ export function renderScene(state: GmState | null, styleName: string, options?: 
     html: `<div class="root" data-poi-budget="${char?.poiMax ?? 2}">
   <!-- Progressive reveal -->
   <div id="reveal-brief">
-    <p class="brief-text">Scene ${scene}: You find yourself in ${esc(room)}.</p>
+    <p class="brief-text">${esc(room.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()))}. Scene ${scene}.</p>
     <button class="continue-btn" id="continue-reveal-btn">Continue</button>
   </div>
   <div id="reveal-full" style="display:none">
@@ -95,6 +95,7 @@ export function renderScene(state: GmState | null, styleName: string, options?: 
       <div id="narrative" class="narrative">
         <p><!-- Narrative content rendered by the GM --></p>
       </div>
+      <!-- [ACTIONS: Insert POI buttons (data-poi, dashed border) and action cards (solid border) here] -->
       <div class="status-bar">
         ${char ? `${renderHpPips(Number(char.hp) || 0, Number(char.maxHp) || 0)}
         <span class="ac-display">AC ${Number(char.ac) || 0}</span>

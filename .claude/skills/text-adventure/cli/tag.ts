@@ -194,6 +194,11 @@ async function main(): Promise<void> {
       result = await handleBuildCss(args.slice(1));
       break;
     }
+    case 'setup': {
+      const { handleSetup } = await import('./commands/setup');
+      result = await handleSetup(args.slice(1));
+      break;
+    }
     default:
       result = unknownCommand(command!);
   }

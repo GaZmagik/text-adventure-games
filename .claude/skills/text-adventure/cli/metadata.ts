@@ -13,7 +13,8 @@ export type TopLevelCommandName =
   | 'rules'
   | 'export'
   | 'verify'
-  | 'build-css';
+  | 'build-css'
+  | 'setup';
 
 export type SubcommandHelp = {
   name: string;
@@ -41,6 +42,7 @@ export const TOP_LEVEL_COMMANDS = [
   'export',
   'verify',
   'build-css',
+  'setup',
 ] as const satisfies readonly TopLevelCommandName[];
 
 export const COMMAND_HELP: Record<TopLevelCommandName, CommandHelp> = {
@@ -154,6 +156,13 @@ export const COMMAND_HELP: Record<TopLevelCommandName, CommandHelp> = {
     subcommands: [
       { name: '(default)', usage: 'tag build-css', description: 'Build all styles to assets/css/ and generate cdn-manifest.ts', example: 'tag build-css' },
       { name: '--output-dir', usage: 'tag build-css --output-dir /tmp/out', description: 'Override output directory (writes css/ and cdn-manifest.ts inside it)', example: 'tag build-css --output-dir /tmp/out' },
+    ],
+  },
+  setup: {
+    command: 'tag setup',
+    description: 'One-command game initialisation. Applies settings + character data, sets visual style, rulebook, modules, pronouns, and calculates modifiers.',
+    subcommands: [
+      { name: 'apply', usage: "tag setup apply --settings '<json>' --character '<json>'", description: 'Apply settings and character creation payloads in one call. Replaces 10+ manual state set commands.', example: "tag setup apply --settings '{\"rulebook\":\"d20_system\",\"visualStyle\":\"station\",\"modules\":[...]}' --character '{\"name\":\"Dren\",\"stats\":{...},\"hp\":9,\"ac\":13,\"proficiencies\":[...],\"pronouns\":\"he/him\"}'" },
     ],
   },
 };
