@@ -31,8 +31,10 @@ export function renderDice(state: GmState | null, styleName: string, options?: R
   // Allow --data overrides for testing — with runtime validation for script safety
   const rawDieType = (data?.dieType as string) ?? rollComp?.dieType ?? 'd20';
   const dieType = VALID_DIE_TYPES.has(rawDieType) ? rawDieType : 'd20';
-  const stat = (data?.stat as string) ?? (statComp ? statComp.stat : rollComp?.stat) ?? '???';
+  const stat = (data?.stat as string) ?? (data?.attribute as string) ?? (statComp ? statComp.stat : rollComp?.stat) ?? '???';
   const modifier = Number.isFinite(Number(data?.modifier ?? rollComp?.modifier)) ? Number(data?.modifier ?? rollComp?.modifier) : 0;
+  const profBonus = Number.isFinite(Number(data?.proficiencyBonus)) ? Number(data?.proficiencyBonus) : 0;
+  const context = typeof data?.context === 'string' ? data.context : undefined;
   const rawDc = data?.dc ?? (statComp ? statComp.dc : undefined);
   const dc = rawDc !== undefined ? (Number.isFinite(Number(rawDc)) ? Number(rawDc) : undefined) : undefined;
 
@@ -127,12 +129,16 @@ export function renderDice(state: GmState | null, styleName: string, options?: R
   margin-top: 6px; border: 1.5px solid transparent;
 }
 .widget-dice .mg { font-size: 10px; color: var(--t3); margin-top: 4px; display: none; }
+.widget-dice .ctx { font-size: 12px; color: var(--t2); margin-bottom: 8px; font-style: italic; line-height: 1.5; }
+.widget-dice .mods { font-size: 11px; color: var(--t3); margin-bottom: 10px; letter-spacing: 0.06em; }
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0s !important; animation-duration: 0s !important; }
 }`,
     html: `<div class="widget-dice widget-dice-${esc(dieType) /* dieType validated by VALID_DIE_TYPES whitelist */}">
   <div class="w">
     <div class="tt">${esc(title)}</div>
+    ${context ? `<div class="ctx">${esc(context)}</div>` : ''}
+    <div class="mods">${esc(stat)} ${modifier >= 0 ? '+' + modifier : String(modifier)}${profBonus > 0 ? ` · Proficiency +${profBonus}` : ''}${dc !== undefined ? ` · DC ${dc}` : ''}</div>
     ${isD100 ? `<div class="dr" id="rollArea">
       <div class="dw">
         <div class="cz"><canvas id="cvT" width="${canvasW}" height="${canvasH}"></canvas></div>

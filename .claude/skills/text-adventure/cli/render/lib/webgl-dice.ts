@@ -302,7 +302,7 @@ function generateStandardCode(options: WebGLDiceCodeOptions): string {
     : Array.from({ length: options.config.faceCount }, (_, i) => String(range[0] + i));
   const assign = options.config.assign ?? labels.map(Number);
   const mirror = options.config.trianglesPerFace === 1 || options.config.trianglesPerFace === 3;
-  const offY = options.config.trianglesPerFace === 1 ? -Math.round(0.15 * 128) : 0;
+  const offY = options.config.trianglesPerFace === 1 ? -Math.round(0.12 * 128) : 0;
   const atlasExpr = options.dieType === 'd6'
     ? `createPipAtlas(ASSIGN,dieTx,dieBg)`
     : `createTextAtlas(${js(labels)},${options.fontScale},dieTx,dieBg,${mirror},${offY},${options.dieType !== 'd10'})`;
