@@ -26,6 +26,9 @@ export const COMMON_WIDGET_CSS = `
 .confirm-btn:focus-visible { outline: 2px solid var(--ta-color-focus); outline-offset: 2px; }
 .footer-btn-dim { opacity: 0.4; }
 .footer-btn-dim:hover { opacity: 0.6; background: transparent; }
+.footer-btn-levelup { color: var(--ta-color-accent, #4ECDC4); border-color: var(--ta-color-accent, #4ECDC4); animation: levelup-pulse 2s ease-in-out infinite; }
+.footer-btn-levelup:hover { background: var(--ta-color-accent-bg); }
+@keyframes levelup-pulse { 0%,100% { box-shadow: 0 0 4px var(--ta-color-accent, #4ECDC4); } 50% { box-shadow: 0 0 12px var(--ta-color-accent, #4ECDC4), 0 0 24px rgba(78,205,196,0.3); } }
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0s !important; animation-duration: 0s !important; }
 }

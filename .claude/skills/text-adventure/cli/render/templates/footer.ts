@@ -56,6 +56,13 @@ export function renderFooter(state: GmState | null, styleName: string, _options?
     }
   }
 
+  // Level-up button — glowing when pending
+  if (state?._levelupPending) {
+    leftButtons.push(
+      '<button class="footer-btn footer-btn-levelup" data-panel="levelup" aria-expanded="false">✦ Level Up</button>',
+    );
+  }
+
   // Audio button — stopped state, player must click to play
   if (hasAudio) {
     leftButtons.push(

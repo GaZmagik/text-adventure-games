@@ -320,6 +320,7 @@ export type GmState = {
   _pendingRolls?: PendingRoll[];
   _modulesRead?: string[];
   _turnCount?: number;
+  _levelupPending?: boolean;
 };
 
 // ── Command Types ──────────────────────────────────────────────────

@@ -15,6 +15,8 @@ import { MODULE_PANEL_MAP } from '../../lib/module-panel-map';
 import { wrapInShadowDom } from '../lib/shadow-wrapper';
 import { CDN_BASE } from '../../../assets/cdn-manifest.ts';
 import { renderHpPips } from '../lib/svg-pips';
+import { LEVEL_REWARDS } from '../../data/xp-tables';
+import { proficiencyBonus } from '../../lib/modifier';
 
 export function renderScene(state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
   const char = state?.character;
@@ -105,6 +107,7 @@ export function renderScene(state: GmState | null, styleName: string, options?: 
         <button class="panel-close-btn" id="panel-close-btn" aria-label="Close panel">Close</button>
       </div>
       <div class="panel-content" data-panel="character">${renderCharacter(state, '')}</div>
+      ${state?._levelupPending ? `<div class="panel-content" data-panel="levelup">${buildLevelupPanel(state)}</div>` : ''}
       ${panelDivs}
     </div>
   </div>
@@ -173,4 +176,44 @@ function renderQuestsPanel(state: GmState | null): string {
   return `<div class="panel-quests" style="font-family:var(--ta-font-body);padding:16px">`
     + `<div style="font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:var(--sta-text-primary, #EEF0FF);margin-bottom:12px">Quests</div>`
     + rows + '</div>';
+}
+
+/** Build level-up panel content for the panel overlay. */
+function buildLevelupPanel(state: GmState | null): string {
+  const char = state?.character;
+  if (!char) return '<div class="empty-state">No character data.</div>';
+
+  const currentLevel = Number(char.level) || 1;
+  const newLevel = currentLevel + 1;
+  const reward = LEVEL_REWARDS[newLevel];
+  if (!reward) return '<div class="empty-state">Maximum level reached.</div>';
+
+  const oldProf = proficiencyBonus(currentLevel);
+  const newProf = proficiencyBonus(newLevel);
+  const profChanged = newProf > oldProf;
+  const improvement = reward.improvement;
+
+  const hasAbilityChoice = improvement.includes('new ability');
+  const hasStatChoice = improvement.includes('+1 attribute');
+  const hasProfChoice = improvement.includes('New proficiency');
+
+  const statOptions = hasStatChoice
+    ? ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].map(s =>
+      `<button class="ability-card levelup-choice" data-levelup-stat="${s}" aria-pressed="false">${s} (${Number(char.stats[s as keyof typeof char.stats]) || 0} → ${(Number(char.stats[s as keyof typeof char.stats]) || 0) + 1})</button>`).join('\n      ')
+    : '';
+
+  return `<div style="font-family:var(--ta-font-body);padding:16px;text-align:center">
+  <div style="font-family:var(--ta-font-heading);font-size:22px;font-weight:700;color:var(--ta-color-accent,#4ECDC4);margin-bottom:6px">Level Up!</div>
+  <div style="font-size:13px;color:var(--sta-text-secondary,#9AA0C0);margin-bottom:14px">${esc(char.name)} → Level ${newLevel}</div>
+  <div style="display:flex;justify-content:center;gap:20px;margin:12px 0">
+    <div style="text-align:center"><span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--sta-text-tertiary,#545880)">HP Gain</span><span style="font-size:20px;font-weight:700;color:var(--sta-text-primary,#EEF0FF)">+${reward.hpGain}</span></div>
+    <div style="text-align:center"><span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--sta-text-tertiary,#545880)">Prof.</span><span style="font-size:20px;font-weight:700;color:var(--sta-text-primary,#EEF0FF)">+${newProf}</span></div>
+  </div>
+  ${profChanged ? `<div style="display:inline-block;padding:5px 12px;margin:6px 0;background:var(--ta-color-accent-bg);color:var(--ta-color-accent);border-radius:8px;font-size:11px;font-weight:600">Proficiency bonus: +${oldProf} → +${newProf}</div>` : ''}
+  <div style="font-size:11px;color:var(--sta-text-tertiary,#545880);margin:10px 0 6px;text-transform:uppercase;letter-spacing:0.08em">Reward: ${esc(improvement)}</div>
+  ${hasStatChoice ? `<div style="margin:8px 0"><div style="font-size:10px;color:var(--sta-text-tertiary,#545880);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Choose attribute to increase</div><div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px">${statOptions}</div></div>` : ''}
+  ${hasAbilityChoice ? `<div style="margin:8px 0;font-size:11px;color:var(--sta-text-secondary,#9AA0C0)">The GM will offer ability choices after you confirm.</div>` : ''}
+  ${hasProfChoice ? `<div style="margin:8px 0;font-size:11px;color:var(--sta-text-secondary,#9AA0C0)">The GM will offer a new proficiency after you confirm.</div>` : ''}
+  <button class="confirm-btn" id="levelup-confirm" style="margin-top:14px" data-prompt="Confirm level up to ${newLevel}. HP +${reward.hpGain}.${profChanged ? ` Prof bonus +${oldProf} → +${newProf}.` : ''}" title="Confirm level up">Confirm Level Up</button>
+</div>`;
 }

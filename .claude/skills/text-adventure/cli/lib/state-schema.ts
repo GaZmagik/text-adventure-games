@@ -246,6 +246,7 @@ export const GM_STATE_SHAPE: StateShape = object({
   _compactionCount: leaf(),
   _turnCount: leaf(),
   _modulesRead: array(leaf()),
+  _levelupPending: leaf(),
   _pendingRolls: array(object({
     action: leaf(),
     type: leaf(),

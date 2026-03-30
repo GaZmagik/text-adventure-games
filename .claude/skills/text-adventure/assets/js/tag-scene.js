@@ -194,6 +194,38 @@ function initTagScene(root) {
     });
   });
 
+  // Level-up panel — stat choice selection + confirm with sendPrompt
+  var levelupConfirm = root.getElementById('levelup-confirm');
+  if (levelupConfirm) {
+    var chosenStat = '';
+    root.querySelectorAll('.levelup-choice[data-levelup-stat]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        root.querySelectorAll('.levelup-choice').forEach(function(b) {
+          b.setAttribute('aria-pressed', 'false');
+          b.style.borderColor = '';
+        });
+        this.setAttribute('aria-pressed', 'true');
+        this.style.borderColor = 'var(--ta-color-accent, #4ECDC4)';
+        chosenStat = this.getAttribute('data-levelup-stat');
+      });
+    });
+    levelupConfirm.addEventListener('click', function() {
+      var basePrompt = this.getAttribute('data-prompt') || 'Confirm level up.';
+      var prompt = basePrompt + (chosenStat ? ' Attribute: ' + chosenStat + ' +1.' : '');
+      var ta = document.createElement('textarea');
+      ta.value = prompt; ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+      if (typeof sendPrompt === 'function') {
+        sendPrompt(prompt);
+      } else {
+        this.textContent = 'Copied! Paste as your reply.';
+      }
+      // Remove glow from footer button
+      var glowBtn = root.querySelector('.footer-btn-levelup');
+      if (glowBtn) { glowBtn.classList.remove('footer-btn-levelup'); glowBtn.style.animation = 'none'; }
+    });
+  }
+
   // Audio engine — only active when audio module is present
   var audioBtn = root.getElementById('audio-btn');
   if (audioBtn && typeof SoundscapeEngine !== 'undefined') {

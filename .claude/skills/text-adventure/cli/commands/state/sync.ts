@@ -138,10 +138,13 @@ function checkLevelUpEligibility(state: GmState, warnings: string[]): void {
     const { level, xp } = state.character;
     const nextThreshold = XP_THRESHOLDS.find(threshold => threshold.level === level + 1);
     if (nextThreshold && xp >= nextThreshold.xp) {
+      state._levelupPending = true;
       warnings.push(
         `Level-up available! XP ${xp} >= ${nextThreshold.xp} `
-        + `(level ${level + 1}). Run \`tag compute levelup\`.`,
+        + `(level ${level + 1}). The scene footer will show a glowing Level Up button.`,
       );
+    } else {
+      state._levelupPending = false;
     }
   }
 }
