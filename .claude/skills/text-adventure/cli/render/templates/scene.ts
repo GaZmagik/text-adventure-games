@@ -80,7 +80,7 @@ export function renderScene(state: GmState | null, styleName: string, options?: 
     html: `<div class="root" data-poi-budget="${char?.poiMax ?? 2}">
   <!-- Progressive reveal -->
   <div id="reveal-brief">
-    <p class="brief-text">${esc(room.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()))}. Scene ${scene}.</p>
+    <p class="brief-text"><!-- [BRIEF: Replace with 1-2 atmospheric sentences that hook the player before they click Continue] --></p>
     <button class="continue-btn" id="continue-reveal-btn">Continue</button>
   </div>
   <div id="reveal-full" style="display:none">
