@@ -54,9 +54,9 @@ export function renderArcComplete(state: GmState | null, styleName: string, opti
     ${char ? `<div class="arc-stat-card"><span class="arc-stat-value">Lv ${Number(char.level) || 1}</span><span class="arc-stat-label">Level</span></div>` : ''}
   </div>
   <div class="arc-actions">
-    <button class="arc-action-btn" data-prompt="Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md.">Save Game</button>
-    <button class="arc-action-btn" data-prompt="Generate a .lore.md world export using tag export generate. Include all NPCs, factions, quests, and world state.">Export World</button>
-    <button class="arc-action-btn arc-action-primary" data-prompt="Begin Act ${esc(String(arc + 1))}. Carry forward character progression, faction standings, and world consequences. Run tag state set arc ${esc(String(arc + 1))} then render the next act opener.">Continue to Act ${esc(String(arc + 1))}</button>
+    <button class="arc-action-btn" data-prompt="Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md." title="Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md.">Save Game</button>
+    <button class="arc-action-btn" data-prompt="Generate a .lore.md world export using tag export generate. Include all NPCs, factions, quests, and world state." title="Generate a .lore.md world export using tag export generate. Include all NPCs, factions, quests, and world state.">Export World</button>
+    <button class="arc-action-btn arc-action-primary" data-prompt="Begin Act ${esc(String(arc + 1))}. Carry forward character progression, faction standings, and world consequences. Run tag state set arc ${esc(String(arc + 1))} then render the next act opener." title="Begin Act ${esc(String(arc + 1))}. Carry forward character progression, faction standings, and world consequences.">Continue to Act ${esc(String(arc + 1))}</button>
   </div>
 </div>`,
     script: `shadow.querySelectorAll('.arc-action-btn[data-prompt]').forEach(function(btn) {

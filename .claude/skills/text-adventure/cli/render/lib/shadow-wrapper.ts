@@ -26,7 +26,7 @@ export interface ShadowWrapperOptions {
  * Backticks and ${ sequences must be escaped to prevent interpolation.
  */
 function escapeForTemplateLiteral(raw: string): string {
-  return raw.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
+  return raw.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${').replace(/<\/script/gi, '<\\/script');
 }
 
 /**

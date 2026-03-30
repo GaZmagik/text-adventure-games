@@ -163,13 +163,13 @@ function renderQuestsPanel(state: GmState | null): string {
       `<li style="font-size:11px;color:var(--sta-text-secondary, #9AA0C0);padding:2px 0">`
       + `${o.completed ? '✓' : '○'} ${esc(o.description)}</li>`,
     ).join('');
-    return `<div style="padding:10px;margin-bottom:8px;border:0.5px solid var(--color-border-tertiary);border-radius:6px">`
+    return `<div style="padding:10px;margin-bottom:8px;border:0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));border-radius:6px">`
       + `<div style="display:flex;justify-content:space-between;align-items:center">`
-      + `<span style="font-size:13px;font-weight:600;color:var(--color-text-primary)">${esc(q.title)}</span>`
-      + `<span style="font-size:10px;color:var(--color-text-tertiary)">${pct}%</span></div>`
+      + `<span style="font-size:13px;font-weight:600;color:var(--sta-text-primary, #EEF0FF)">${esc(q.title)}</span>`
+      + `<span style="font-size:10px;color:var(--sta-text-tertiary, #545880)">${pct}%</span></div>`
       + `<ul style="list-style:none;padding:0;margin:4px 0 0">${objectives}</ul></div>`;
   }).join('');
   return `<div class="panel-quests" style="font-family:var(--ta-font-body);padding:16px">`
-    + `<div style="font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:var(--color-text-primary);margin-bottom:12px">Quests</div>`
+    + `<div style="font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:var(--sta-text-primary, #EEF0FF);margin-bottom:12px">Quests</div>`
     + rows + '</div>';
 }

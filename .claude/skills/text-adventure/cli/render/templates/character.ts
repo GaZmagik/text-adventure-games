@@ -10,28 +10,28 @@ const STAT_ORDER: StatName[] = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
 
 const CHARACTER_CSS = `.widget-character { font-family: var(--ta-font-body); padding: 16px; }
 .char-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
-.char-name { font-family: var(--ta-font-heading); font-size: 20px; font-weight: 700; color: var(--color-text-primary); }
-.char-class { font-size: 12px; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.08em; }
-.char-bar-container { width: 100%; height: 10px; background: var(--color-border-tertiary); border-radius: 5px; overflow: hidden; margin: 4px 0; }
+.char-name { font-family: var(--ta-font-heading); font-size: 20px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); }
+.char-class { font-size: 12px; color: var(--sta-text-tertiary, #545880); text-transform: uppercase; letter-spacing: 0.08em; }
+.char-bar-container { width: 100%; height: 10px; background: var(--sta-border-tertiary, rgba(84,88,128,0.4)); border-radius: 5px; overflow: hidden; margin: 4px 0; }
 .bar-fill-hp { height: 100%; background: var(--ta-color-success); border-radius: 5px; transition: width 0.3s; }
 .bar-fill-xp { height: 100%; background: var(--ta-color-xp); border-radius: 5px; transition: width 0.3s; }
-.bar-label { font-size: 11px; color: var(--color-text-tertiary); display: flex; justify-content: space-between; }
+.bar-label { font-size: 11px; color: var(--sta-text-tertiary, #545880); display: flex; justify-content: space-between; }
 .stat-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin: 12px 0; text-align: center; }
-.stat-cell { padding: 8px 4px; border: 0.5px solid var(--color-border-tertiary); border-radius: 6px; }
+.stat-cell { padding: 8px 4px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); border-radius: 6px; }
 .stat-cell.proficient { border-color: var(--ta-color-accent); }
-.stat-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-tertiary); }
-.stat-value { display: block; font-size: 18px; font-weight: 700; color: var(--color-text-primary); }
+.stat-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--sta-text-tertiary, #545880); }
+.stat-value { display: block; font-size: 18px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); }
 .stat-mod { display: block; font-size: 11px; color: var(--ta-color-accent); }
-.section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-tertiary); margin: 14px 0 6px; }
+.section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--sta-text-tertiary, #545880); margin: 14px 0 6px; }
 .inv-list { list-style: none; padding: 0; margin: 0; }
-.inv-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 12px; }
-.inv-name { color: var(--color-text-primary); }
-.inv-type { color: var(--color-text-tertiary); font-size: 10px; text-transform: uppercase; }
-.inv-slots { color: var(--color-text-tertiary); font-size: 10px; }
+.inv-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); font-size: 12px; }
+.inv-name { color: var(--sta-text-primary, #EEF0FF); }
+.inv-type { color: var(--sta-text-tertiary, #545880); font-size: 10px; text-transform: uppercase; }
+.inv-slots { color: var(--sta-text-tertiary, #545880); font-size: 10px; }
 .condition-badge { display: inline-block; padding: 2px 8px; font-size: 10px; border-radius: 10px; background: var(--ta-color-warning-bg); color: var(--ta-color-warning); margin-right: 4px; }
-.no-conditions { font-size: 11px; color: var(--color-text-tertiary); }
+.no-conditions { font-size: 11px; color: var(--sta-text-tertiary, #545880); }
 .equipment-row { font-size: 12px; color: var(--sta-text-secondary, #9AA0C0); margin: 2px 0; }
-.equipment-label { color: var(--color-text-tertiary); text-transform: uppercase; font-size: 10px; letter-spacing: 0.06em; }
+.equipment-label { color: var(--sta-text-tertiary, #545880); text-transform: uppercase; font-size: 10px; letter-spacing: 0.06em; }
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0s !important; animation-duration: 0s !important; }
 }`;
