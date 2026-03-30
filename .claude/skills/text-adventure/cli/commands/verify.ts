@@ -282,6 +282,44 @@ function checkCssVariables(html: string, failures: string[]): void {
   }
 }
 
+function checkTagRenderOrigin(html: string, failures: string[]): void {
+  if (!html.includes('id="reveal-brief"') || !html.includes('id="reveal-full"')) {
+    failures.push(
+      'Missing progressive reveal structure (#reveal-brief / #reveal-full). '
+      + 'This widget was NOT produced by tag render scene. Hand-coded widgets are forbidden — '
+      + 'use the html field from tag render scene output as the base, then compose narrative into it.',
+    );
+  }
+  if (!html.includes('tag-scene.js')) {
+    failures.push(
+      'Missing CDN script reference (tag-scene.js). '
+      + 'This widget was hand-coded instead of using tag render scene output. '
+      + 'Hand-coded JS lacks panel wiring, sendPrompt fallback, POI budget, and audio support.',
+    );
+  }
+}
+
+function checkPanelNesting(html: string, failures: string[]): void {
+  const sceneContentPos = html.indexOf('id="scene-content"');
+  const panelOverlayPos = html.indexOf('id="panel-overlay"');
+  if (sceneContentPos >= 0 && panelOverlayPos >= 0) {
+    // Find closing </div> for scene-content — panel-overlay should be AFTER it
+    // In correct structure: scene-content closes, THEN panel-overlay opens at same depth
+    // In broken structure: panel-overlay is inside scene-content
+    const betweenContent = html.substring(sceneContentPos, panelOverlayPos);
+    const openDivs = (betweenContent.match(/<div[\s>]/g) || []).length;
+    const closeDivs = (betweenContent.match(/<\/div>/g) || []).length;
+    if (openDivs > closeDivs) {
+      failures.push(
+        'Panel overlay (#panel-overlay) is nested inside #scene-content. '
+        + 'When scene-content is hidden to show a panel, the overlay hides too — '
+        + 'breaking all panel buttons. Use tag render scene output which places the '
+        + 'overlay as a sibling of scene-content.',
+      );
+    }
+  }
+}
+
 function checkStatusBar(html: string, state: GmState, failures: string[]): void {
   if (state.character) {
     if (!html.includes('hp-pips') && !html.includes('status-bar')) {
@@ -511,6 +549,8 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
       () => checkCssVariables(html, failures),
       () => checkBrokenSerialisation(html, failures),
       () => checkPreGameWidget(html, failures),
+      () => checkTagRenderOrigin(html, failures),
+      () => checkPanelNesting(html, failures),
       () => checkActionCardStatNames(html, failures),
       () => checkActionCardDcValues(html, state, failures),
     ];
