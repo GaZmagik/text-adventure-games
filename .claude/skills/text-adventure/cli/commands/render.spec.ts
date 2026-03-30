@@ -10,6 +10,7 @@ import {
   MAX_DICE_POOL_CANVAS_HEIGHT,
   MAX_DICE_POOL_TOTAL,
 } from '../render/templates/dice-pool';
+import { TIER1_MODULES } from '../lib/constants';
 
 let tempDir: string;
 const originalEnv = process.env.TAG_STATE_DIR;
@@ -618,6 +619,7 @@ describe('render modulesRequired and featureChecklist', () => {
       npcId: 'test_npc',
       npcModifier: 1,
     };
+    state._modulesRead = [...TIER1_MODULES];
   });
 
   test('modulesRequired is present in render output', async () => {
@@ -717,6 +719,7 @@ describe('render requiredElements and skeleton', () => {
       npcId: 'test_npc',
       npcModifier: 1,
     };
+    state._modulesRead = [...TIER1_MODULES];
   });
 
   test('requiredElements is present in render output', async () => {
@@ -832,6 +835,7 @@ describe('render template output', () => {
       calendarSystem: 'elapsed-only',
       deadline: null,
     };
+    state._modulesRead = [...TIER1_MODULES];
     await saveState(state);
   });
 
@@ -941,6 +945,7 @@ describe('render pending roll persistence', () => {
       inventory: [], conditions: [], equipment: { weapon: 'blaster', armour: 'light' },
     };
     state.modulesActive = ['core-systems'];
+    state._modulesRead = [...TIER1_MODULES];
     await saveState(state);
   });
 

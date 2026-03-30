@@ -3,7 +3,7 @@ import { existsSync, writeFileSync, readFileSync, unlinkSync } from 'node:fs';
 import type { CommandResult, GmState, PendingRoll, StatName } from '../types';
 import { ok, fail, styleNotSet } from '../lib/errors';
 import { tryLoadState, saveState, getSyncMarkerPath } from '../lib/state-store';
-import { STAT_NAMES } from '../lib/constants';
+import { STAT_NAMES, TIER1_MODULES } from '../lib/constants';
 import { parseArgs } from '../lib/args';
 import { containsForbiddenKeys } from '../lib/security';
 import {
@@ -250,6 +250,21 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
       return fail(
         `State sync required before rendering scene ${state.scene}. Last sync: ${lastSyncScene < 0 ? 'never' : `scene ${lastSyncScene}`}.`,
         'Run `tag state sync --apply` before rendering.',
+        'render',
+      );
+    }
+  }
+
+  // Tier 1 modules gate — scene widgets require all Tier 1 modules in _modulesRead.
+  // Ensures the GM has actually loaded module content via tag module activate-tier 1.
+  if (!isPreGame && widgetType === 'scene' && state) {
+    const modulesRead = state._modulesRead ?? [];
+    const readSet = new Set(modulesRead);
+    const missingTier1 = TIER1_MODULES.filter(m => !readSet.has(m));
+    if (missingTier1.length > 0) {
+      return fail(
+        `Cannot render scene: Tier 1 modules not in _modulesRead: ${missingTier1.join(', ')}. Module content must be loaded into GM context before rendering.`,
+        'Run `tag module activate-tier 1` to load all Tier 1 module content.',
         'render',
       );
     }

@@ -19,7 +19,7 @@ function quickstart(): CommandResult {
       setup: 'Run via Bash tool from .claude/skills/text-adventure/: . ./setup.sh && tag state reset',
       turnLoop: [
         { step: 1, name: 'Sync', command: 'tag state sync --apply --scene <N> --room <id>', description: 'Mandatory before every scene. Validates module context, quest consistency, NPC references, pending computations.' },
-        { step: 2, name: 'Read Modules', command: 'tag state context', description: 'Re-read every Tier 1 module listed in context output. prose-craft.md every turn, no exceptions.' },
+        { step: 2, name: 'Load Modules', command: 'tag module activate-tier 1', description: 'Load all Tier 1 modules into context. After compaction, re-run to reload. Scene rendering is gated on _modulesRead.' },
         { step: 3, name: 'Render', command: 'tag render scene --style <style>', description: 'Generate complete widget HTML with Shadow DOM, CDN CSS, JS, and interactive elements. Do NOT modify the html field.' },
         { step: 4, name: 'Compose', command: '(write narrative into #narrative div)', description: 'Write prose into the skeleton. Follow craftGuidance.proseChecklist and densityGuidance exactly.' },
         { step: 5, name: 'Verify', command: 'tag verify /tmp/scene.html', description: 'Validate composed HTML before show_widget. Checks footer, panels, scene-meta, narrative, CSS, action cards.' },
@@ -91,9 +91,9 @@ function newGame(): CommandResult {
       },
       {
         step: 8,
-        name: 'Read Tier 1 Modules',
-        command: 'tag state context',
-        description: 'Read every Tier 1 module in full before generating the first scene widget.',
+        name: 'Load Tier 1 Modules',
+        command: 'tag module activate-tier 1',
+        description: 'Load all Tier 1 module content into GM context. Scene rendering is gated — tag render scene refuses until all Tier 1 modules are in _modulesRead.',
       },
       {
         step: 9,
@@ -163,9 +163,9 @@ function scene(): CommandResult {
       },
       {
         step: 2,
-        name: 'Read Modules',
-        command: 'tag state context',
-        description: 'Re-read prose-craft.md every turn. Re-read all Tier 1 modules listed in context output. After compaction, re-read everything — you have lost context.',
+        name: 'Load Modules',
+        command: 'tag module activate-tier 1',
+        description: 'Load all Tier 1 modules into context. After compaction, re-run — _modulesRead resets and tag render scene will refuse until modules are reloaded.',
       },
       {
         step: 3,

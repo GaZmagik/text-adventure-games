@@ -9,7 +9,7 @@ const STATUS_COLOURS: Record<string, { bg: string; text: string }> = {
   operational: { bg: 'var(--ta-color-success)', text: 'var(--ta-badge-success-text)' },
   degraded:    { bg: 'var(--ta-color-warning)', text: 'var(--ta-badge-partial-text)' },
   critical:    { bg: 'var(--ta-color-danger)', text: 'var(--ta-badge-failure-text)' },
-  offline:     { bg: 'var(--sta-border-tertiary, rgba(84,88,128,0.4))', text: 'var(--sta-text-tertiary, #545880)' },
+  offline:     { bg: 'var(--sta-border-tertiary, rgba(84,88,128,0.6))', text: 'var(--sta-text-primary, #EEF0FF)' },
 };
 
 const SHIP_CSS = `.widget-ship { font-family: var(--ta-font-body); padding: 16px; }

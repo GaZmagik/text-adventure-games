@@ -2,8 +2,8 @@
 export const COMMON_WIDGET_CSS = `
 .widget-title { font-family: var(--ta-font-heading); font-size: 22px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); margin-bottom: 4px; }
 .widget-subtitle { font-size: 12px; color: var(--sta-text-tertiary, #545880); margin-bottom: 20px; }
-.widget-section { margin-bottom: 16px; }
-.widget-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--sta-text-tertiary, #545880); margin-bottom: 8px; }
+.widget-section { margin-bottom: 16px; border: none; padding: 0; margin-inline: 0; }
+.widget-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--sta-text-tertiary, #545880); margin-bottom: 8px; padding: 0; }
 .empty-state { color: var(--sta-text-tertiary, #545880); font-style: italic; font-size: 12px; padding: 8px 0; }
 .option-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .option-card {
@@ -24,6 +24,8 @@ export const COMMON_WIDGET_CSS = `
 }
 .confirm-btn:hover { background: var(--ta-color-accent-hover); }
 .confirm-btn:focus-visible { outline: 2px solid var(--ta-color-focus); outline-offset: 2px; }
+.footer-btn-dim { opacity: 0.4; }
+.footer-btn-dim:hover { opacity: 0.6; background: transparent; }
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0s !important; animation-duration: 0s !important; }
 }

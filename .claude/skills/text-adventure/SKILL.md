@@ -56,7 +56,7 @@ All operational guides, checklists, and rules are delivered via CLI commands:
 
 ## Module Architecture
 
-Tier 1 modules (MUST be active): `gm-checklist`, `prose-craft`, `core-systems`, `die-rolls`, `character-creation`, `save-codex`.
-Tier 2/3 modules load based on scenario. Run `tag help new-game` for the full tier list.
+Tier 1 modules load via `tag module activate-tier 1` — this delivers all module content into GM context and gates scene rendering.
+Tier 2/3 modules load based on scenario via `tag module activate-tier 2` or `tag module activate <name>`. Run `tag help new-game` for the full tier list.
 
 Visual styles live in `styles/`. Run `tag help scene` for rendering workflow.

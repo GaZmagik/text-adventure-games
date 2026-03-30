@@ -284,9 +284,58 @@ function checkCssVariables(html: string, failures: string[]): void {
 
 function checkStatusBar(html: string, state: GmState, failures: string[]): void {
   if (state.character) {
-    if (!html.includes('hp-display') && !html.includes('status-bar')) {
+    if (!html.includes('hp-pips') && !html.includes('status-bar')) {
       failures.push('Missing status bar with HP/AC/Level — required when character exists in state.');
     }
+  }
+}
+
+/** Extract data-prompt attribute values from action cards (not footer buttons). */
+function extractActionPrompts(html: string): string[] {
+  const prompts: string[] = [];
+  const pattern = /class="action-card"[^>]*data-prompt="([^"]*)"/g;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(html)) !== null) prompts.push(match[1]!);
+  // Also catch data-prompt before class
+  const alt = /data-prompt="([^"]*)"[^>]*class="action-card"/g;
+  while ((match = alt.exec(html)) !== null) prompts.push(match[1]!);
+  return prompts;
+}
+
+/** Golden Rule 4: action cards must not reveal which stat a check tests. */
+function checkActionCardStatNames(html: string, failures: string[]): void {
+  const prompts = extractActionPrompts(html);
+  if (prompts.length === 0) return;
+  const statPattern = /\b(STR|DEX|CON|INT|WIS|CHA)\b/;
+  const found: string[] = [];
+  for (const prompt of prompts) {
+    const m = statPattern.exec(prompt);
+    if (m) found.push(`"${prompt}" reveals stat name ${m[1]}`);
+  }
+  if (found.length > 0) {
+    failures.push(
+      `Action card(s) reveal stat name(s) — Golden Rule 4 violation. `
+      + `Options must describe actions, not stats. ${found.join('; ')}.`,
+    );
+  }
+}
+
+/** Golden Rule 3: action cards must not reveal DC values before the roll. */
+function checkActionCardDcValues(html: string, state: GmState, failures: string[]): void {
+  if (!state.modulesActive.includes('die-rolls')) return;
+  const prompts = extractActionPrompts(html);
+  if (prompts.length === 0) return;
+  const dcPattern = /\bDC\s*\d+/i;
+  const found: string[] = [];
+  for (const prompt of prompts) {
+    const m = dcPattern.exec(prompt);
+    if (m) found.push(`"${prompt}" reveals difficulty class ${m[0]}`);
+  }
+  if (found.length > 0) {
+    failures.push(
+      `Action card(s) reveal difficulty class (DC) values — Golden Rule 3 violation. `
+      + `DC is hidden until after the player commits to an action. ${found.join('; ')}.`,
+    );
   }
 }
 
@@ -445,6 +494,8 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
       () => checkCssVariables(html, failures),
       () => checkBrokenSerialisation(html, failures),
       () => checkPreGameWidget(html, failures),
+      () => checkActionCardStatNames(html, failures),
+      () => checkActionCardDcValues(html, state, failures),
     ];
   }
 

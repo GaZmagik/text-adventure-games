@@ -106,14 +106,17 @@ function initTagScene(root) {
     toast.className = 'atmo-toast';
     toast.textContent = message;
     el.appendChild(toast);
+    // Safeguard: force-remove after duration + 500ms in case transitionend never fires
+    var cleanup = setTimeout(function() { if (toast.parentNode) toast.remove(); }, durationMs + 500);
     toast.getBoundingClientRect();
     toast.classList.add('visible');
     setTimeout(function() {
       toast.classList.remove('visible');
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        clearTimeout(cleanup);
         toast.remove();
       } else {
-        toast.addEventListener('transitionend', function() { toast.remove(); }, { once: true });
+        toast.addEventListener('transitionend', function() { clearTimeout(cleanup); toast.remove(); }, { once: true });
       }
     }, durationMs);
   }

@@ -34,6 +34,10 @@ async function setupState(): Promise<void> {
     'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
     'character-creation', 'save-codex',
   ])]);
+  await handleState(['set', '_modulesRead', JSON.stringify([
+    'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
+    'character-creation', 'save-codex',
+  ])]);
 }
 
 async function renderToFile(args: string[], filename: string): Promise<string> {

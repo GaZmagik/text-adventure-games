@@ -78,36 +78,36 @@ export function renderSettings(_state: GmState | null, styleName: string, option
   <div class="widget-title">Game Settings</div>
   <div class="widget-subtitle">Configure your adventure before beginning</div>
 
-  <div class="widget-section">
-    <div class="widget-label">Rulebook</div>
+  <fieldset class="widget-section">
+    <legend class="widget-label">Rulebook</legend>
     <div class="option-grid" data-group="rulebook">
       ${rulebooks.map(r => `<button class="option-card${defaults.rulebook === r ? ' selected' : ''}" data-group="rulebook" data-value="${esc(r)}" aria-pressed="${defaults.rulebook === r ? 'true' : 'false'}">${esc(r.replace(/_/g, ' '))}</button>`).join('\n      ')}
     </div>
-  </div>
+  </fieldset>
 
-  <div class="widget-section">
-    <div class="widget-label">Difficulty</div>
+  <fieldset class="widget-section">
+    <legend class="widget-label">Difficulty</legend>
     <div class="option-grid" data-group="difficulty">
       ${difficulties.map(d => `<button class="option-card${defaults.difficulty === d ? ' selected' : ''}" data-group="difficulty" data-value="${esc(d)}" aria-pressed="${defaults.difficulty === d ? 'true' : 'false'}">${esc(d)}</button>`).join('\n      ')}
     </div>
-  </div>
+  </fieldset>
 
-  <div class="widget-section">
-    <div class="widget-label">Pacing</div>
+  <fieldset class="widget-section">
+    <legend class="widget-label">Pacing</legend>
     <div class="option-grid" data-group="pacing">
       ${pacingOptions.map(p => `<button class="option-card${defaults.pacing === p ? ' selected' : ''}" data-group="pacing" data-value="${esc(p)}" aria-pressed="${defaults.pacing === p ? 'true' : 'false'}">${esc(p)}</button>`).join('\n      ')}
     </div>
-  </div>
+  </fieldset>
 
-  <div class="widget-section">
-    <div class="widget-label">Visual Style</div>
+  <fieldset class="widget-section">
+    <legend class="widget-label">Visual Style</legend>
     <div class="option-grid" data-group="visualStyle">
       ${visualStyles.map(v => `<button class="option-card${defaults.visualStyle === v ? ' selected' : ''}" data-group="visualStyle" data-value="${esc(v)}" aria-pressed="${defaults.visualStyle === v ? 'true' : 'false'}">${esc(v)}</button>`).join('\n      ')}
     </div>
-  </div>
+  </fieldset>
 
-  <div class="widget-section">
-    <div class="widget-label">Optional Modules</div>
+  <fieldset class="widget-section">
+    <legend class="widget-label">Optional Modules</legend>
     <div class="option-grid" data-group="modules">
       ${modules.map(m => {
         const isTier1 = TIER1_MODULES.includes(m);
@@ -116,7 +116,7 @@ export function renderSettings(_state: GmState | null, styleName: string, option
           : `<button class="option-card module-card" data-group="modules" data-value="${esc(m)}" aria-pressed="false"><span class="module-check"></span>${esc(m)}</button>`;
       }).join('\n      ')}
     </div>
-  </div>
+  </fieldset>
 
   <button class="confirm-btn" id="settings-confirm" title="Begin adventure with the selected settings">Begin Adventure</button>
 </div>`,

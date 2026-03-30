@@ -19,7 +19,21 @@ const MODULE_BUTTONS: { module: string; panel: string; label: string }[] = [
   { module: 'core-systems', panel: 'quests', label: 'Quests' },
 ];
 
-const SAVE_PROMPT = 'Run `tag save generate` via the Bash tool to produce my save payload. The CLI generates the checksummed SF2 string — never hand-code save encoding, checksums, or base64. Present the result as a downloadable .save.md file with YAML frontmatter.';
+/** Check whether a panel has meaningful data to display. */
+function panelHasData(panel: string, state: GmState | null): boolean {
+  if (!state) return false;
+  switch (panel) {
+    case 'codex': return (state.codexMutations?.length ?? 0) > 0;
+    case 'ship': return state.shipState != null;
+    case 'crew': return (state.crewMutations?.length ?? 0) > 0;
+    case 'nav': return (state.visitedRooms?.length ?? 0) > 1 || state.navPlottedCourse != null;
+    case 'map': return state.mapState != null;
+    case 'quests': return (state.quests?.length ?? 0) > 0;
+    default: return true;
+  }
+}
+
+const SAVE_PROMPT ='Run `tag save generate` via the Bash tool to produce my save payload. The CLI generates the checksummed SF2 string — never hand-code save encoding, checksums, or base64. Present the result as a downloadable .save.md file with YAML frontmatter.';
 const EXPORT_PROMPT = 'Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format.';
 
 export function renderFooter(state: GmState | null, styleName: string, _options?: Record<string, unknown>): string {
@@ -32,11 +46,12 @@ export function renderFooter(state: GmState | null, styleName: string, _options?
     '<button class="footer-btn" data-panel="character" aria-expanded="false">Character</button>',
   ];
 
-  // Add module-specific buttons
+  // Add module-specific buttons — dimmed when panel has no data yet
   for (const mapping of MODULE_BUTTONS) {
     if (moduleSet.has(mapping.module)) {
+      const dim = !panelHasData(mapping.panel, state);
       leftButtons.push(
-        `<button class="footer-btn" data-panel="${mapping.panel}" aria-expanded="false">${mapping.label}</button>`,
+        `<button class="footer-btn${dim ? ' footer-btn-dim' : ''}" data-panel="${mapping.panel}" aria-expanded="false">${mapping.label}</button>`,
       );
     }
   }

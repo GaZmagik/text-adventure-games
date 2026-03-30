@@ -219,7 +219,8 @@ export const WIDGET_CSS_SELECTORS: Record<string, readonly string[]> = {
     // Panel overlay + panel content
     '#panel-overlay', '.panel-header', '.panel-title', '.panel-close-btn', '.panel-content',
     '.stat-grid', '.stat-cell', '.stat-label', '.stat-value', '.stat-mod',
-    '.char-bar-container', '.bar-fill-hp', '.condition-badge',
+    '.hp-pips', '.pip', '.pip-filled', '.pip-empty', '.hp-bar-fill',
+    '.xp-track', '.xp-fill', '.condition-badge',
     '.inv-list', '.inv-item', '.equipment-row',
     '.widget-character', '.widget-codex', '.widget-ship', '.widget-crew',
     // Animations

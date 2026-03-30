@@ -17,6 +17,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { handleRender } from './render';
 import { saveState, createDefaultState } from '../lib/state-store';
+import { TIER1_MODULES } from '../lib/constants';
 
 let tempDir: string;
 const originalEnv = process.env.TAG_STATE_DIR;
@@ -84,6 +85,7 @@ describe('render needs-verify gate', () => {
       inventory: [], conditions: [], equipment: { weapon: 'Knife', armour: 'Vest' },
     };
     state.modulesActive = ['core-systems'];
+    state._modulesRead = [...TIER1_MODULES];
     await saveState(state);
 
     // Write .needs-verify for scene 1 — current scene is 2, so this should block
@@ -107,6 +109,7 @@ describe('render needs-verify gate', () => {
       inventory: [], conditions: [], equipment: { weapon: 'Knife', armour: 'Vest' },
     };
     state.modulesActive = ['core-systems'];
+    state._modulesRead = [...TIER1_MODULES];
     await saveState(state);
 
     // Write .needs-verify for scene 1 — same as current scene, should allow re-render
@@ -132,6 +135,7 @@ describe('render data.actions non-array validation', () => {
       inventory: [], conditions: [], equipment: { weapon: 'Knife', armour: 'Vest' },
     };
     state.modulesActive = ['core-systems'];
+    state._modulesRead = [...TIER1_MODULES];
     await saveState(state);
 
     const data = JSON.stringify({ actions: 'not-an-array' });
@@ -153,6 +157,7 @@ describe('render data.actions non-array validation', () => {
       inventory: [], conditions: [], equipment: { weapon: 'Knife', armour: 'Vest' },
     };
     state.modulesActive = ['core-systems'];
+    state._modulesRead = [...TIER1_MODULES];
     await saveState(state);
 
     const data = JSON.stringify({ actions: { bad: true } });
@@ -178,6 +183,7 @@ describe('render unknown style name produces warning in Shadow DOM output', () =
       inventory: [], conditions: [], equipment: { weapon: 'Knife', armour: 'Vest' },
     };
     state.modulesActive = ['core-systems'];
+    state._modulesRead = [...TIER1_MODULES];
     await saveState(state);
 
     // Shadow DOM renders with a warning comment when style is not in CSS_MANIFEST
@@ -206,6 +212,7 @@ describe('render atmosphere effects scoping', () => {
       inventory: [], conditions: [], equipment: { weapon: 'Knife', armour: 'Vest' },
     };
     state.modulesActive = ['core-systems', 'atmosphere'];
+    state._modulesRead = [...TIER1_MODULES];
     await saveState(state);
 
     const data = JSON.stringify({ atmosphereEffects: ['dust', 'rain'] });

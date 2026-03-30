@@ -14,6 +14,7 @@ import { renderMap } from './map';
 import { MODULE_PANEL_MAP } from '../../lib/module-panel-map';
 import { wrapInShadowDom } from '../lib/shadow-wrapper';
 import { CDN_BASE } from '../../../assets/cdn-manifest.ts';
+import { renderHpPips } from '../lib/svg-pips';
 
 export function renderScene(state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
   const char = state?.character;
@@ -93,7 +94,7 @@ export function renderScene(state: GmState | null, styleName: string, options?: 
         <p><!-- Narrative content rendered by the GM --></p>
       </div>
       <div class="status-bar">
-        ${char ? `<span class="hp-display">HP ${Number(char.hp) || 0}/${Number(char.maxHp) || 0}</span>
+        ${char ? `${renderHpPips(Number(char.hp) || 0, Number(char.maxHp) || 0)}
         <span class="ac-display">AC ${Number(char.ac) || 0}</span>
         <span class="level-display">Lv ${Number(char.level) || 0}</span>` : ''}
       </div>

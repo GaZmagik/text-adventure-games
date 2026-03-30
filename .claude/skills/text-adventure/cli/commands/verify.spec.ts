@@ -45,6 +45,10 @@ async function setupState(): Promise<void> {
     inventory: [], conditions: [],
     equipment: { weapon: 'Knife', armour: 'Vest' },
   })]);
+  await handleState(['set', '_modulesRead', JSON.stringify([
+    'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
+    'character-creation', 'save-codex',
+  ])]);
 }
 
 describe('tag verify', () => {

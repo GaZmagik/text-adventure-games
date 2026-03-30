@@ -5,6 +5,7 @@ import type { GmState, StatName } from '../../types';
 import { esc } from '../../lib/html';
 import { XP_THRESHOLDS } from '../../data/xp-tables';
 import { wrapInShadowDom } from '../lib/shadow-wrapper';
+import { renderHpPips, renderXpTrack } from '../lib/svg-pips';
 
 const STAT_ORDER: StatName[] = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
 
@@ -12,10 +13,8 @@ const CHARACTER_CSS = `.widget-character { font-family: var(--ta-font-body); pad
 .char-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
 .char-name { font-family: var(--ta-font-heading); font-size: 20px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); }
 .char-class { font-size: 12px; color: var(--sta-text-tertiary, #545880); text-transform: uppercase; letter-spacing: 0.08em; }
-.char-bar-container { width: 100%; height: 10px; background: var(--sta-border-tertiary, rgba(84,88,128,0.4)); border-radius: 5px; overflow: hidden; margin: 4px 0; }
-.bar-fill-hp { height: 100%; background: var(--ta-color-success); border-radius: 5px; transition: width 0.3s; }
-.bar-fill-xp { height: 100%; background: var(--ta-color-xp); border-radius: 5px; transition: width 0.3s; }
-.bar-label { font-size: 11px; color: var(--sta-text-tertiary, #545880); display: flex; justify-content: space-between; }
+.hp-pips, .xp-track { display: block; margin: 4px 0; }
+.hp-pips text, .xp-track text { font-family: var(--sta-font-mono, monospace); }
 .stat-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin: 12px 0; text-align: center; }
 .stat-cell { padding: 8px 4px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); border-radius: 6px; }
 .stat-cell.proficient { border-color: var(--ta-color-accent); }
@@ -57,10 +56,8 @@ export function renderCharacter(state: GmState | null, styleName: string, _optio
   const profBonus = Number(char.proficiencyBonus) || 0;
   const currency = Number(char.currency) || 0;
 
-  const hpPercent = maxHp > 0 ? Math.round((hp / maxHp) * 100) : 0;
   const nextThreshold = XP_THRESHOLDS.find(t => t.level === level + 1);
   const xpForLevel = nextThreshold?.xp ?? XP_THRESHOLDS[XP_THRESHOLDS.length - 1]!.xp;
-  const xpPercent = xpForLevel > 0 ? Math.min(100, Math.round((xp / xpForLevel) * 100)) : 0;
 
   const profSet = new Set(char.proficiencies);
   const statRows = STAT_ORDER.map(s => {
@@ -88,9 +85,8 @@ export function renderCharacter(state: GmState | null, styleName: string, _optio
     <span class="char-class">${esc(char.class)} · Lv ${level}</span>
   </div>
 
-  <!-- HP bar -->
-  <div class="bar-label"><span>HP</span><span>${hp} / ${maxHp}</span></div>
-  <div class="char-bar-container" role="meter" aria-valuenow="${hpPercent}" aria-valuemin="0" aria-valuemax="100" aria-label="HP: ${hp} of ${maxHp}" aria-valuetext="${hp} of ${maxHp} HP"><div class="bar-fill-hp" style="width:${hpPercent}%"></div></div>
+  <!-- HP pips -->
+  ${renderHpPips(hp, maxHp)}
 
   <!-- AC & Proficiency -->
   <div class="bar-label" style="margin-top:8px">
@@ -119,9 +115,8 @@ export function renderCharacter(state: GmState | null, styleName: string, _optio
   <div class="section-title">Conditions</div>
   <div>${conditionBadges}</div>
 
-  <!-- XP bar -->
-  <div class="bar-label" style="margin-top:12px"><span>XP</span><span>${xp} / ${xpForLevel}</span></div>
-  <div class="char-bar-container" role="meter" aria-valuenow="${xpPercent}" aria-valuemin="0" aria-valuemax="100" aria-label="XP: ${xp} of ${xpForLevel}" aria-valuetext="${xp} of ${xpForLevel} XP"><div class="bar-fill-xp" style="width:${xpPercent}%"></div></div>
+  <!-- XP track -->
+  ${renderXpTrack(xp, xpForLevel)}
 
   <!-- Proficiencies -->
   <div class="section-title">Proficiencies</div>
