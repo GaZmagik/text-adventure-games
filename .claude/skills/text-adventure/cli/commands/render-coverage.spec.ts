@@ -72,7 +72,7 @@ describe('render validateDataShape type mismatch', () => {
 // ── Needs-verify gate (lines 256-262) ────────────────────────────────
 
 describe('render needs-verify gate', () => {
-  test('scene render is blocked when .needs-verify flag is from a DIFFERENT scene', async () => {
+  test('scene render is blocked when .needs-verify flag is from a DIFFERENT turn', async () => {
     const state = createDefaultState();
     state.visualStyle = 'station';
     state.scene = 2;
@@ -88,15 +88,15 @@ describe('render needs-verify gate', () => {
     state._modulesRead = [...TIER1_MODULES];
     await saveState(state);
 
-    // Write .needs-verify for scene 1 — current scene is 2, so this should block
-    writeFileSync(join(tempDir, '.needs-verify'), '1', 'utf-8');
+    // Write .needs-verify for scene 1:turn 0 — current is scene 2:turn 0, so this should block
+    writeFileSync(join(tempDir, '.needs-verify'), '1:0', 'utf-8');
 
     const result = await handleRender(['scene', '--raw']);
     expect(result.ok).toBe(false);
     expect(result.error?.message).toContain('not verified');
   });
 
-  test('same-scene re-render is allowed when .needs-verify matches current scene', async () => {
+  test('same-turn re-render is allowed when .needs-verify matches current scene:turn', async () => {
     const state = createDefaultState();
     state.visualStyle = 'station';
     state.scene = 1;
@@ -112,8 +112,8 @@ describe('render needs-verify gate', () => {
     state._modulesRead = [...TIER1_MODULES];
     await saveState(state);
 
-    // Write .needs-verify for scene 1 — same as current scene, should allow re-render
-    writeFileSync(join(tempDir, '.needs-verify'), '1', 'utf-8');
+    // Write .needs-verify for scene 1:turn 0 — matches current scene:turn, allows composition re-render
+    writeFileSync(join(tempDir, '.needs-verify'), '1:0', 'utf-8');
 
     const result = await handleRender(['scene', '--raw']);
     expect(result.ok).toBe(true);

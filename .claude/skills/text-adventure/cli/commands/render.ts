@@ -270,22 +270,24 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     }
   }
 
-  // Per-widget verify gate — blocks rendering scene N+1 if scene N was not verified.
-  // Re-rendering the SAME scene (for composition) is always allowed.
+  // Per-turn verify gate — blocks rendering if the previous turn wasn't verified.
+  // Only same-turn re-renders (composition) are allowed without verify.
   if (!isPreGame && widgetType === 'scene') {
     const needsVerify = getNeedsVerifyPath();
     if (existsSync(needsVerify)) {
       try {
-        const pendingScene = Number(readFileSync(needsVerify, 'utf-8').trim());
-        const currentScene = state?.scene ?? 0;
-        if (pendingScene !== currentScene) {
+        const pending = readFileSync(needsVerify, 'utf-8').trim();
+        const currentTurn = `${state?.scene ?? 0}:${state?._turnCount ?? 0}`;
+        if (pending !== currentTurn) {
+          const [pScene, pTurn] = pending.split(':');
           return fail(
-            `Scene ${pendingScene} was not verified. Run \`tag verify /tmp/scene.html\` before rendering scene ${currentScene}.`,
-            'Every scene widget must be verified before the next scene render. Re-rendering the same scene for composition is allowed.',
+            `Previous render (scene ${pScene ?? '?'}, turn ${pTurn ?? '?'}) was not verified. `
+            + 'Run `tag verify /tmp/scene.html` before rendering the next turn.',
+            'Every scene render must be verified before the next render — including within the same scene.',
             'render',
           );
         }
-        // Same scene — allow re-render for composition purposes
+        // Same scene:turn — allow re-render for composition purposes
       } catch {
         // Malformed flag — clear it and allow render
         try { unlinkSync(needsVerify); } catch { /* ignore */ }
@@ -383,8 +385,9 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
 
   // Write needs-verify flag for scene widgets — next render blocks until verified
   if (widgetType === 'scene' && !isPreGame) {
-    writeFileSync(getNeedsVerifyPath(), String(state?.scene ?? 0), 'utf-8');
-    console.error(`\n⚠️  VERIFY REQUIRED: Save composed HTML to a file and run:\n   tag verify /tmp/scene.html\n   BEFORE passing to show_widget. Sync will BLOCK without it.\n`);
+    const turnTag = `${state?.scene ?? 0}:${state?._turnCount ?? 0}`;
+    writeFileSync(getNeedsVerifyPath(), turnTag, 'utf-8');
+    console.error(`\n⚠️  VERIFY REQUIRED (scene ${state?.scene ?? 0}, turn ${state?._turnCount ?? 0}):\n   tag verify /tmp/scene.html\n   BEFORE passing to show_widget. Next render will BLOCK without it.\n`);
   }
 
   // Return raw HTML early — skip checklist/skeleton computation
