@@ -384,6 +384,7 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   // Write needs-verify flag for scene widgets — next render blocks until verified
   if (widgetType === 'scene' && !isPreGame) {
     writeFileSync(getNeedsVerifyPath(), String(state?.scene ?? 0), 'utf-8');
+    console.error(`\n⚠️  VERIFY REQUIRED: Save composed HTML to a file and run:\n   tag verify /tmp/scene.html\n   BEFORE passing to show_widget. Sync will BLOCK without it.\n`);
   }
 
   // Return raw HTML early — skip checklist/skeleton computation
