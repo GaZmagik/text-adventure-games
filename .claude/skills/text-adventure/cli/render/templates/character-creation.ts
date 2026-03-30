@@ -179,6 +179,12 @@ var selectedPronouns = '';
 var givenPool = ${serialiseInlineScriptData(givenNames)};
 var surnamePool = ${serialiseInlineScriptData(surnames)};
 var archetypeProfs = ${JSON.stringify(archetypes.map(a => a.fixedProficiencies ?? []))};
+var archetypeMechanics = ${JSON.stringify(archetypes.map(a => ({
+  stats: a.stats ?? a.baseStats ?? {},
+  hp: a.hp ?? 0,
+  ac: a.ac ?? 0,
+  abilities: a.equipment ?? a.abilities ?? [],
+})))};
 
 shadow.querySelectorAll('.archetype-card').forEach(function(card) {
   card.addEventListener('click', function() {
@@ -281,12 +287,17 @@ shadow.getElementById('creation-confirm').addEventListener('click', function() {
   // Combine archetype-granted (locked) + player-chosen proficiencies
   var allProfs = lockedProfs.slice();
   selectedProfs.forEach(function(p) { if (allProfs.indexOf(p) < 0) allProfs.push(p); });
+  var mech = selectedArchetype >= 0 ? archetypeMechanics[selectedArchetype] : {};
   var payload = {
     name: name,
     archetypeIndex: selectedArchetype,
     archetypeLabel: selectedArchetype >= 0 && shadow.querySelectorAll('.arch-name')[selectedArchetype] ? shadow.querySelectorAll('.arch-name')[selectedArchetype].textContent : '',
     proficiencies: allProfs,
-    pronouns: selectedPronouns || 'they/them'
+    pronouns: selectedPronouns || 'they/them',
+    stats: mech.stats || {},
+    hp: mech.hp || 0,
+    ac: mech.ac || 0,
+    abilities: mech.abilities || []
   };
   var prompt = 'Create character: ' + JSON.stringify(payload);
   shadow.getElementById('creation-confirm').setAttribute('title', prompt);
