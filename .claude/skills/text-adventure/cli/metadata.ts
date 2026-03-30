@@ -165,6 +165,7 @@ export const MUTATING_COMMANDS = new Set<string>([
   'quest',
   'export',
   'verify',
+  'module',
 ]);
 
 export const WIDGET_TYPE_NAMES = [

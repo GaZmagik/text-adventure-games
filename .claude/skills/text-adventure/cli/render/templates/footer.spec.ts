@@ -33,7 +33,7 @@ describe('footer button dimming', () => {
   });
 
   test('ship button is dimmed when shipState is null', () => {
-    const state = makeState({ shipState: undefined });
+    const state = makeState();
     const html = renderFooter(state, '');
     expect(html).toContain('data-panel="ship"');
     expect(html).toMatch(/footer-btn-dim[^>]*data-panel="ship"/);
@@ -56,7 +56,7 @@ describe('footer button dimming', () => {
   });
 
   test('map button is dimmed when mapState is null', () => {
-    const state = makeState({ mapState: undefined });
+    const state = makeState();
     const html = renderFooter(state, '');
     expect(html).toContain('data-panel="map"');
     expect(html).toMatch(/footer-btn-dim[^>]*data-panel="map"/);
@@ -70,7 +70,7 @@ describe('footer button dimming', () => {
   });
 
   test('nav button is dimmed when no navigation data', () => {
-    const state = makeState({ visitedRooms: [], navPlottedCourse: undefined });
+    const state = makeState({ visitedRooms: [], navPlottedCourse: null });
     const html = renderFooter(state, '');
     expect(html).toContain('data-panel="nav"');
     expect(html).toMatch(/footer-btn-dim[^>]*data-panel="nav"/);

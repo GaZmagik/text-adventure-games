@@ -120,7 +120,7 @@ export function renderDice(state: GmState | null, styleName: string, options?: R
 .widget-dice.widget-dice-d100 .dr { display: flex; gap: 16px; justify-content: center; cursor: pointer; }
 .widget-dice.widget-dice-d100 .dw { flex: 0 0 auto; }
 .widget-dice.widget-dice-d100 .cz { width: 200px; height: 200px; margin: 0; cursor: default; }
-.widget-dice.widget-dice-d100 .dl { font-size: 9px; color: var(--t3); text-align: center; margin-top: 4px; letter-spacing: 0.12em; text-transform: uppercase; }
+.widget-dice.widget-dice-d100 .dl { font-size: 10px; color: var(--t3); text-align: center; margin-top: 4px; letter-spacing: 0.12em; text-transform: uppercase; }
 .widget-dice.widget-dice-d100 .hi { margin: 10px 0 12px; }
 .widget-dice.widget-dice-d100 .rt { font-size: 40px; color: var(--acc); }
 .widget-dice .dc { font-size: 11px; color: var(--t3); margin: 2px 0; letter-spacing: 0.06em; }

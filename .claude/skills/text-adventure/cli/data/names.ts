@@ -50,7 +50,7 @@ function pick(arr: string[]): string {
   return arr[Math.floor(Math.random() * arr.length)]!;
 }
 
-const SCI_FI_THEMES = new Set([
+export const SCI_FI_THEMES = new Set([
   'sci-fi', 'space', 'cyberpunk', 'post-apocalyptic',
   'station', 'terminal', 'neon', 'holographic', 'blueprint',
 ]);

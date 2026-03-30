@@ -120,7 +120,7 @@ import { renderSettings } from '../render/templates/settings';
 import { renderScenarioSelect } from '../render/templates/scenario-select';
 import { renderCharacterCreation } from '../render/templates/character-creation';
 import { renderArcComplete } from '../render/templates/arc-complete';
-import { loadNames } from '../data/names';
+import { loadNames, SCI_FI_THEMES } from '../data/names';
 
 // ── Widget registry ──────────────────────────────────────────────────
 
@@ -325,7 +325,6 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   if (widgetType === 'character-creation') {
     const names = loadNames();
     const theme = state?.theme ?? resolvedStyle ?? 'fantasy';
-    const SCI_FI_THEMES = new Set(['sci-fi', 'space', 'cyberpunk', 'post-apocalyptic', 'station', 'terminal', 'neon', 'holographic', 'blueprint']);
     const useSciFi = SCI_FI_THEMES.has(theme.toLowerCase());
     options.namePool = {
       given: useSciFi ? names.sciFiGiven : names.realWorldGiven,

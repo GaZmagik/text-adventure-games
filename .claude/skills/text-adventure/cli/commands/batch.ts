@@ -13,6 +13,7 @@ import { handleSave } from './save';
 import { handleRender } from './render';
 import { handleQuest } from './quest';
 import { handleRules } from './rules';
+import { handleModule } from './module';
 import { handleExport } from './export';
 import { handleVerify } from './verify';
 
@@ -225,6 +226,7 @@ export const BATCH_COMMAND_HANDLERS: Record<string, (args: string[]) => Promise<
   rules: handleRules,
   export: handleExport,
   verify: handleVerify,
+  module: handleModule,
 };
 
 export async function handleBatch(args: string[]): Promise<CommandResult> {

@@ -50,10 +50,21 @@ const MIN_ACTION_PROMPTS = 2;
 function resolveStateDir(): string {
   const raw = process.env.TAG_STATE_DIR || join(homedir(), '.tag');
   try {
-    return realpathSync(resolve(raw));
-  } catch {
-    // Directory may not exist yet (first run) — fall back to resolved path
-    return resolve(raw);
+    const resolved = realpathSync(resolve(raw));
+    const home = homedir();
+    const tmp = '/tmp';
+    if (!resolved.startsWith(home) && !resolved.startsWith(tmp)) {
+      throw new Error(`State directory ${resolved} is outside allowed prefixes (${home}, ${tmp}).`);
+    }
+    return resolved;
+  } catch (err) {
+    const fallback = resolve(raw);
+    const home = homedir();
+    const tmp = '/tmp';
+    if (!fallback.startsWith(home) && !fallback.startsWith(tmp)) {
+      throw new Error(`State directory ${fallback} is outside allowed prefixes (${home}, ${tmp}).`);
+    }
+    return fallback;
   }
 }
 

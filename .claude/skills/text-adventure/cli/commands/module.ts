@@ -31,10 +31,8 @@ function readModule(name: string): string | null {
 }
 
 function ensureModulesRead(state: GmState): string[] {
-  if (!Array.isArray((state as any)._modulesRead)) {
-    (state as any)._modulesRead = [];
-  }
-  return (state as any)._modulesRead;
+  state._modulesRead ??= [];
+  return state._modulesRead;
 }
 
 async function activateOne(name: string): Promise<CommandResult> {

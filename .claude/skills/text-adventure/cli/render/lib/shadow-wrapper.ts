@@ -8,7 +8,7 @@
 
 import { CDN_BASE, CSS_MANIFEST } from '../../../assets/cdn-manifest.ts';
 
-export interface ShadowWrapperOptions {
+export type ShadowWrapperOptions = {
   /** Style name matching a key in CSS_MANIFEST (e.g. 'station'). */
   styleName: string;
   /** HTML content to render inside the shadow root. */

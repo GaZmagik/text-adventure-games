@@ -178,8 +178,8 @@ var lockedProfs = [];
 var selectedPronouns = '';
 var givenPool = ${serialiseInlineScriptData(givenNames)};
 var surnamePool = ${serialiseInlineScriptData(surnames)};
-var archetypeProfs = ${JSON.stringify(archetypes.map(a => a.fixedProficiencies ?? []))};
-var archetypeMechanics = ${JSON.stringify(archetypes.map(a => ({
+var archetypeProfs = ${serialiseInlineScriptData(archetypes.map(a => a.fixedProficiencies ?? []))};
+var archetypeMechanics = ${serialiseInlineScriptData(archetypes.map(a => ({
   stats: a.stats ?? a.baseStats ?? {},
   hp: a.hp ?? 0,
   ac: a.ac ?? 0,

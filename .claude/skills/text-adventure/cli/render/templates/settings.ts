@@ -45,7 +45,7 @@ export function renderSettings(_state: GmState | null, styleName: string, option
 
   // Full default option sets — GM-provided subsets are backfilled from these
   // so the player always sees the complete menu regardless of what the GM remembered
-  const DEFAULT_RULEBOOKS = ['d20_system', 'gurps_lite', 'pf2e_lite', 'shadowrun_lite', 'narrative_engine', 'custom'];
+  const DEFAULT_RULEBOOKS = ['d20_system', 'dnd_5e', 'gurps_lite', 'pf2e_lite', 'shadowrun_lite', 'narrative_engine', 'custom'];
   const DEFAULT_DIFFICULTIES = ['easy', 'normal', 'hard', 'brutal'];
   const DEFAULT_PACING = ['fast', 'normal', 'slow'];
   const DEFAULT_STYLES = ['station', 'terminal', 'parchment', 'neon', 'brutalist', 'art-deco', 'ink-wash', 'blueprint', 'stained-glass', 'sveltekit', 'weathered', 'holographic'];

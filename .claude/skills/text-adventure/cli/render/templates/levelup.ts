@@ -50,7 +50,7 @@ export function renderLevelup(state: GmState | null, styleName: string, options?
   * { transition-duration: 0s !important; animation-duration: 0s !important; }
 }`,
     html: `<div class="widget-levelup">
-  <div class="levelup-banner">Level Up!</div>
+  <div class="levelup-banner" role="status" aria-live="assertive">Level Up!</div>
   <div class="levelup-subtitle">${char ? esc(char.name) : 'Adventurer'} has reached level ${newLevel}</div>
 
   <div class="levelup-stats">

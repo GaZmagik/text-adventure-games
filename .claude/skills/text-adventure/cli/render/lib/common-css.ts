@@ -18,7 +18,7 @@ export const COMMON_WIDGET_CSS = `
 .confirm-btn {
   display: block; width: 100%; margin-top: 20px; padding: 12px;
   font-family: var(--ta-font-heading); font-size: 14px; font-weight: 700;
-  background: var(--ta-color-accent); color: var(--ta-btn-primary-text, #fff); border: none;
+  background: var(--ta-color-accent); color: var(--sta-color-text-emphasis, #FFFFFF); border: none;
   border-radius: 8px; cursor: pointer; text-transform: uppercase;
   letter-spacing: 0.08em; transition: background 0.2s;
 }
