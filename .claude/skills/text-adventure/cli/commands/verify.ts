@@ -341,6 +341,14 @@ function checkActionCardDcValues(html: string, state: GmState, failures: string[
 
 const PRE_GAME_WIDGET_TYPES = new Set(['scenario', 'rules', 'character']);
 
+/** In-game widget types that are NOT scenes — they come unmodified from tag render
+ *  and only need lightweight verification (broken serialisation). */
+const IN_GAME_WIDGET_TYPES = new Set([
+  'dice', 'dice-pool', 'dialogue', 'levelup', 'recap',
+  'combat-turn', 'arc-complete', 'ticker', 'ship', 'crew',
+  'codex', 'map', 'starchart', 'footer', 'save-div',
+]);
+
 /** Check if a pre-game widget type has a valid verify marker. */
 export function hasPreGameVerifyMarker(widgetType: string): boolean {
   const markerPath = join(resolveStateDir(), `.verified-${widgetType}`);
@@ -372,15 +380,17 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
   if (!first) {
     return fail(
       'No arguments provided.',
-      'Usage: tag verify /tmp/scene.html OR tag verify scenario|rules|character /tmp/widget.html',
+      'Usage: tag verify /tmp/scene.html OR tag verify <type> /tmp/widget.html (types: scenario, rules, character, dice, dialogue, levelup, combat-turn, arc-complete, etc.)',
       'verify',
     );
   }
 
-  // Detect pre-game widget type
+  // Detect widget type from first argument
   const isPreGame = PRE_GAME_WIDGET_TYPES.has(first);
-  const widgetType = isPreGame ? first : 'scene';
-  const filePath = isPreGame ? args[1] : first;
+  const isInGameNonScene = IN_GAME_WIDGET_TYPES.has(first);
+  const hasTypeHint = isPreGame || isInGameNonScene;
+  const widgetType = hasTypeHint ? first : 'scene';
+  const filePath = hasTypeHint ? args[1] : first;
 
   if (!filePath) {
     return fail(
@@ -474,6 +484,13 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
         if (!html.includes('data-prof')) failures.push('Character creation missing proficiency selector (data-prof buttons).');
       },
     ];
+  } else if (isInGameNonScene) {
+    // Lightweight checks for non-scene in-game widgets (dice, dialogue, levelup, etc.)
+    // These come unmodified from tag render — only check for broken serialisation.
+    failures = [];
+    checks = [
+      () => checkBrokenSerialisation(html, failures),
+    ];
   } else {
     // Default: scene checks
     failures = [];
@@ -510,11 +527,12 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
       state._turnCount = (state._turnCount ?? 0) + 1;
       await saveState(state);
       try { unlinkSync(getNeedsVerifyPath()); } catch { /* already cleared */ }
-    } else {
+    } else if (isPreGame) {
       // Pre-game widgets: write a type-specific marker so render can gate on it
       const markerPath = join(resolveStateDir(), `.verified-${widgetType}`);
       writeFileSync(markerPath, signMarker(0), 'utf-8');
     }
+    // In-game non-scene widgets: no marker needed — they come unmodified from tag render
   }
 
   return ok({
