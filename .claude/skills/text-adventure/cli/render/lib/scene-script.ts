@@ -155,6 +155,47 @@ export const SCENE_SCRIPT_CODE = `
     });
   });
 
+  // Visible fallback when sendPrompt is not available
+  if (typeof sendPrompt !== 'function') {
+    var allPrompts = document.querySelectorAll('[data-prompt]');
+    var fallbackPrompts = [];
+    allPrompts.forEach(function(btn) {
+      var id = btn.id || '';
+      if (id === 'save-btn' || id === 'export-btn') return;
+      fallbackPrompts.push(btn.getAttribute('data-prompt'));
+    });
+    if (fallbackPrompts.length > 0) {
+      var fb = document.createElement('div');
+      fb.className = 'fallback-text';
+      fb.style.display = 'block';
+      var heading = document.createElement('p');
+      heading.style.cssText = 'margin:0 0 8px;font-weight:600;';
+      heading.textContent = 'If buttons do not respond, copy one of these and paste as your reply:';
+      fb.appendChild(heading);
+      fallbackPrompts.forEach(function(p) {
+        var code = document.createElement('code');
+        code.style.cssText = 'display:block;margin:4px 0;padding:6px 8px;cursor:pointer;user-select:all;';
+        code.textContent = p;
+        code.addEventListener('click', function() {
+          var ta = document.createElement('textarea');
+          ta.value = p;
+          ta.style.cssText = 'position:fixed;opacity:0';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          this.textContent = 'Copied!';
+          var self = this;
+          var orig = p;
+          setTimeout(function() { self.textContent = orig; }, 2000);
+        });
+        fb.appendChild(code);
+      });
+      var footer = document.querySelector('.footer-row');
+      if (footer) footer.parentNode.insertBefore(fb, footer);
+    }
+  }
+
   // Audio engine — only active when audio module is present
   var audioBtn = document.getElementById('audio-btn');
   if (audioBtn) {
