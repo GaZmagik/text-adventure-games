@@ -39,6 +39,7 @@ export type Character = {
   inventory: InventoryItem[];
   conditions: string[];
   equipment: { weapon: string; armour: string };
+  poiMax?: number;
 };
 
 export type InventoryItem = {

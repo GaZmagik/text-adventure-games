@@ -52,6 +52,7 @@ const character = object({
     weapon: leaf(),
     armour: leaf(),
   }),
+  poiMax: leaf(),
 });
 
 const npcMutation = object({

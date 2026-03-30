@@ -75,7 +75,7 @@ export function renderScene(state: GmState | null, styleName: string, options?: 
 .narrative, .brief-text { font-family: var(--sta-font-serif, Georgia, serif); font-size: var(--sta-text-base, 15px); line-height: 1.7; }
 .atmo-strip { display: flex; gap: var(--sta-space-sm, 8px); flex-wrap: wrap; margin-bottom: var(--sta-space-md, 14px); }
 .atmo-pill { font-family: var(--sta-font-mono, monospace); font-size: var(--sta-text-xs, 10px); letter-spacing: 0.06em; padding: 3px 10px; border-radius: var(--sta-radius-pill, 999px); border: var(--sta-border-width, 0.5px) solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); color: var(--sta-text-tertiary, #545880); }`,
-    html: `<div class="root">
+    html: `<div class="root" data-poi-budget="${char?.poiMax ?? 2}">
   <!-- Progressive reveal -->
   <div id="reveal-brief">
     <p class="brief-text">Scene ${scene}: You find yourself in ${esc(room)}.</p>

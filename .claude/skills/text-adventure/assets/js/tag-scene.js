@@ -166,6 +166,34 @@ function initTagScene(root) {
     });
   });
 
+  // POI budget — track clicks on data-poi buttons, dim after budget exhausted
+  var rootEl = root.querySelector('.root');
+  var poiBudget = parseInt((rootEl && rootEl.getAttribute('data-poi-budget')) || '2', 10);
+  var poiSpent = 0;
+  var poiBtns = root.querySelectorAll('[data-poi]');
+  function refreshPoiState() {
+    if (poiSpent >= poiBudget) {
+      poiBtns.forEach(function(btn) {
+        if (!btn.classList.contains('poi-spent')) {
+          btn.style.opacity = '0.4';
+          btn.style.pointerEvents = 'none';
+          btn.setAttribute('aria-disabled', 'true');
+        }
+      });
+    }
+  }
+  poiBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      if (poiSpent >= poiBudget) return;
+      poiSpent++;
+      this.classList.add('poi-spent');
+      this.style.opacity = '0.4';
+      this.style.pointerEvents = 'none';
+      this.setAttribute('aria-disabled', 'true');
+      refreshPoiState();
+    });
+  });
+
   // Audio engine — only active when audio module is present
   var audioBtn = root.getElementById('audio-btn');
   if (audioBtn && typeof SoundscapeEngine !== 'undefined') {
