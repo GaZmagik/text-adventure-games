@@ -1,0 +1,131 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "timestamp": "2026-03-30T21:04:32Z",
+    "created_by": "unknown",
+    "created_at_cwd": "/home/gareth/.vs/text-adventure-games"
+  },
+  "summary": "Massive v1.3.0 session: SVG pips, mechanical enforcement gates (modulesRead, per-turn verify, action card stat/DC checks, hand-written widget detection), POI budget system, level-up panel with glowing footer button, dice widget preamble/aliases, UI/UX fixes (toast leak, dialogue fallback, ship badge contrast, fieldset/legend, footer dimming), verify for non-scene widget types, character creation payload fix, verify stderr reminder, 8-agent pre-shipping review with all findings fixed including VALID_TOP_KEYS data loss bug, station.css duplicate cleanup. Tests 1087→1144.",
+  "tasks": [
+    {
+      "status": "completed",
+      "content": "SVG pips (renderHpPips/renderXpTrack) replacing plain text HP/XP in scene+character",
+      "priority": "high"
+    },
+    {
+      "status": "completed",
+      "content": "_modulesRead render gate — scene blocked without Tier 1 modules loaded",
+      "priority": "high"
+    },
+    {
+      "status": "completed",
+      "content": "Per-turn verify gate — scene:turnCount in .needs-verify blocks same-scene re-renders without verify",
+      "priority": "high"
+    },
+    {
+      "status": "completed",
+      "content": "Action card stat name + DC value verify checks (Golden Rules 3+4)",
+      "priority": "high"
+    },
+    {
+      "status": "completed",
+      "content": "Hand-written widget detection (checkTagRenderOrigin, checkPanelNesting)",
+      "priority": "high"
+    },
+    {
+      "status": "completed",
+      "content": "Verify handles non-scene widget types (dice, dialogue, levelup, etc.)",
+      "priority": "high"
+    },
+    {
+      "status": "completed",
+      "content": "Dice widget: context preamble, modifier breakdown, stat/attribute/checkLabel/modifierLabel aliases",
+      "priority": "high"
+    },
+    {
+      "status": "completed",
+      "content": "POI point budget — client-side click tracking with auto-dim on data-poi buttons",
+      "priority": "medium"
+    },
+    {
+      "status": "completed",
+      "content": "Level-up panel — _levelupPending flag, glowing footer button, stat choice cards, confirm sendPrompt",
+      "priority": "medium"
+    },
+    {
+      "status": "completed",
+      "content": "UI/UX fixes: toast DOM leak, dialogue sendPrompt fallback, ship badge contrast, fieldset/legend, footer dimming",
+      "priority": "medium"
+    },
+    {
+      "status": "completed",
+      "content": "Character creation sendPrompt includes stats/HP/AC/abilities",
+      "priority": "medium"
+    },
+    {
+      "status": "completed",
+      "content": "Verify success message forbids post-verify modification and save embedding",
+      "priority": "medium"
+    },
+    {
+      "status": "completed",
+      "content": "tag render scene prints verify reminder to stderr",
+      "priority": "medium"
+    },
+    {
+      "status": "completed",
+      "content": "8-agent pre-shipping review — all blockers fixed (VALID_TOP_KEYS, batch handler, dnd_5e, station.css)",
+      "priority": "high"
+    },
+    {
+      "status": "completed",
+      "content": "Station.css: removed 162 lines duplicate :host blocks + stale panel override",
+      "priority": "high"
+    },
+    {
+      "status": "pending",
+      "content": "Split render.spec.ts (968 lines) before it hits 1000-line edit block",
+      "priority": "high"
+    },
+    {
+      "status": "pending",
+      "content": "CDN_BASE hardcodes @feature/tag-cli-v1.3.0 — update to @main at merge time",
+      "priority": "high"
+    },
+    {
+      "status": "pending",
+      "content": "tag.ts checkCompactionPreflight reads state bypassing path validation — route through tryLoadState()",
+      "priority": "medium"
+    },
+    {
+      "status": "pending",
+      "content": "Write negative tests for 4 new verify checks (checkTagRenderOrigin, checkPanelNesting, checkStatusBar, checkSendPromptFallback)",
+      "priority": "medium"
+    },
+    {
+      "status": "pending",
+      "content": "Audio module: implement 4 missing soundscapes (heartbeat, station-ambience, underwater, fire)",
+      "priority": "low"
+    },
+    {
+      "status": "pending",
+      "content": "POI proficiency gating — deferred from simplified POI budget",
+      "priority": "low"
+    }
+  ],
+  "branch": "feature/tag-cli-v1.3.0",
+  "next_steps": [
+    "Split render.spec.ts — 968 lines, 32 from hard limit. Extract by feature area into separate spec files.",
+    "Update CDN_BASE from @feature/tag-cli-v1.3.0 to @main before merge.",
+    "Push branch to origin so CDN picks up changes for playtest validation.",
+    "Write negative tests for the 4 new verify check functions added this session.",
+    "Fix tag.ts checkCompactionPreflight to route through tryLoadState() instead of raw readFileSync."
+  ],
+  "context": {
+    "test_results": "1,144 tests passing across 65 files. Zero failures.",
+    "architecture_notes": "Per-turn verify gate uses scene:turnCount in .needs-verify — verify increments _turnCount, next render blocks on mismatch. Level-up uses _levelupPending flag set by sync, rendered as panel overlay in scene widget. POI budget is client-side only via data-poi-budget attribute on .root div. Enforcement audit: 30% gated, 70% advisory. Audio improvements deferred (decision in memory).",
+    "known_limitations": "render.spec.ts at 968 lines — cannot add tests without splitting. verify.ts at 601 lines. CDN_BASE hardcodes feature branch — must update at merge. 4 new verify checks lack negative tests. TIER1_MODULES duplicated in settings.ts line 52 (should import from constants.ts). SCI_FI_THEMES dedup done (exported from names.ts).",
+    "review_status": "8-agent pre-shipping review completed. All Critical and High findings fixed. Remaining Medium/Low items documented in review findings. Security: CLEAR. Performance: CLEAN.",
+    "playtest_observations": "GM still hand-writes widgets despite checkTagRenderOrigin gate. GM invents field names for dice --data (stat/attribute/checkLabel). GM skips verify despite stderr warning. GM embeds save data after verify passes. Per-turn verify gate should prevent most of these in future sessions."
+  }
+}
