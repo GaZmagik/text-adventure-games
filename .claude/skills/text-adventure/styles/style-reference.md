@@ -83,7 +83,7 @@ font values.
 
 **Dark mode overrides:** Visual style files should provide `@media (prefers-color-scheme: dark)` overrides for any properties that need adjustment. The structural patterns do not contain dark-mode colour logic — that responsibility belongs entirely to the visual style.
 
-**Host theme variables:** Widgets also use the Claude.ai host variables (`var(--color-text-primary)`, `var(--color-border-tertiary)`, etc.) for base text, borders, and backgrounds. These are provided by the host and need not be redefined by visual styles.
+**Host theme variables:** Widgets also use the Claude.ai host variables (`var(--sta-text-primary, #EEF0FF)`, `var(--sta-border-tertiary, rgba(84,88,128,0.4))`, etc.) for base text, borders, and backgrounds. These are provided by the host and need not be redefined by visual styles.
 
 ---
 
@@ -97,21 +97,21 @@ Use `#panel-overlay` (ID selector) to match the HTML element.
 .panel-header {
   display: flex; align-items: baseline; justify-content: space-between;
   padding-bottom: 10px; margin-bottom: 12px;
-  border-bottom: 0.5px solid var(--color-border-tertiary);
+  border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
 }
 .panel-title {
   font-family: var(--ta-font-heading);
-  font-size: 18px; font-weight: 600; color: var(--color-text-primary);
+  font-size: 18px; font-weight: 600; color: var(--sta-text-primary, #EEF0FF);
 }
 .panel-close-btn {
   font-family: var(--ta-font-body);
   font-size: 11px; letter-spacing: 0.08em;
-  background: transparent; border: 0.5px solid var(--color-border-tertiary);
-  border-radius: var(--border-radius-md); padding: 8px 14px;
+  background: transparent; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  border-radius: var(--sta-radius-md, 6px); padding: 8px 14px;
   min-height: 44px; min-width: 44px; box-sizing: border-box;
-  color: var(--color-text-tertiary); cursor: pointer;
+  color: var(--sta-text-tertiary, #545880); cursor: pointer;
 }
-.panel-close-btn:hover { border-color: var(--color-border-secondary); color: var(--color-text-secondary); }
+.panel-close-btn:hover { border-color: var(--sta-border-secondary, rgba(154,160,192,0.35)); color: var(--sta-text-secondary, #9AA0C0); }
 .panel-content { display: none; }
 ```
 
@@ -805,7 +805,7 @@ These classes are taken directly from the proven pattern.
 /* @extract:dice */
 /* Check panel container */
 .check-panel {
-  background: var(--color-background-secondary);
+  background: var(--sta-bg-secondary, #22263A);
   border: 0.5px solid var(--die-border-color);
   border-radius: var(--border-radius-lg);
   padding: 1.25rem;
@@ -843,11 +843,11 @@ These classes are taken directly from the proven pattern.
 .check-bonus {
   font-family: var(--ta-font-body);
   font-size: 12px;
-  color: var(--color-text-tertiary);
-  background: var(--color-background-secondary);
+  color: var(--sta-text-tertiary, #545880);
+  background: var(--sta-bg-secondary, #22263A);
   padding: 3px 10px;
-  border-radius: var(--border-radius-md);
-  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--sta-radius-md, 6px);
+  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
 }
 
 /* Breakdown row */
@@ -863,8 +863,8 @@ These classes are taken directly from the proven pattern.
 .cb-item {
   text-align: center;
   padding: 8px 12px;
-  background: var(--color-background-secondary);
-  border: 0.5px solid var(--color-border-tertiary);
+  background: var(--sta-bg-secondary, #22263A);
+  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
   border-radius: 6px;
   min-width: 80px;
 }
@@ -876,7 +876,7 @@ These classes are taken directly from the proven pattern.
 .cb-label {
   font-family: var(--ta-font-body);
   font-size: 10px;
-  color: var(--color-text-tertiary);
+  color: var(--sta-text-tertiary, #545880);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -885,7 +885,7 @@ These classes are taken directly from the proven pattern.
   font-family: var(--ta-font-body);
   font-size: 18px;
   font-weight: 500;
-  color: var(--color-text-primary);
+  color: var(--sta-text-primary, #EEF0FF);
   margin-top: 2px;
 }
 
@@ -897,7 +897,7 @@ These classes are taken directly from the proven pattern.
 .cb-plus {
   font-family: var(--ta-font-body);
   font-size: 20px;
-  color: var(--color-text-tertiary);
+  color: var(--sta-text-tertiary, #545880);
   display: flex;
   align-items: center;
 }
@@ -919,7 +919,7 @@ These classes are taken directly from the proven pattern.
 .die-hint {
   font-family: var(--ta-font-body);
   font-size: 11px;
-  color: var(--color-text-tertiary);
+  color: var(--sta-text-tertiary, #545880);
   margin-top: 8px;
 }
 
@@ -964,12 +964,12 @@ These classes are taken directly from the proven pattern.
   margin-top: 10px;
   background: var(--ta-color-accent-bg);
   border: 0.5px solid var(--ta-color-accent);
-  color: var(--color-text-primary);
+  color: var(--sta-text-primary, #EEF0FF);
   font-family: var(--ta-font-body);
   font-size: 14px;
   font-weight: 500;
   padding: 12px;
-  border-radius: var(--border-radius-md);
+  border-radius: var(--sta-radius-md, 6px);
   cursor: pointer;
   transition: background 0.2s, transform 0.15s;
   letter-spacing: 0.06em;
@@ -997,13 +997,13 @@ These classes are taken directly from the proven pattern.
 <style>
   /* Die custom properties — set by visual style */
   :host {
-    --die-border-color: var(--color-border-secondary);
+    --die-border-color: var(--sta-border-secondary, rgba(154,160,192,0.35));
     --die-bg:           transparent;
-    --die-text-color:   var(--color-text-primary);
-    --die-hover-bg:     var(--color-background-secondary);
-    --die-hover-border: var(--color-border-primary);
-    --die-rolled-bg:    var(--color-background-secondary);
-    --die-rolled-border:var(--color-border-tertiary);
+    --die-text-color:   var(--sta-text-primary, #EEF0FF);
+    --die-hover-bg:     var(--sta-bg-secondary, #22263A);
+    --die-hover-border: var(--sta-border-primary, rgba(78,205,196,0.6));
+    --die-rolled-bg:    var(--sta-bg-secondary, #22263A);
+    --die-rolled-border:var(--sta-border-tertiary, rgba(84,88,128,0.4));
     --die-animation-duration: 0.6s;
   }
 
@@ -1164,9 +1164,9 @@ with staggered delays for sequential reveal.
 .obs-card {
   position: relative;
   padding: 12px 14px 12px 18px;
-  border: 0.5px solid var(--color-border-tertiary);
-  border-radius: var(--border-radius-md);
-  background: var(--color-background-secondary);
+  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  border-radius: var(--sta-radius-md, 6px);
+  background: var(--sta-bg-secondary, #22263A);
   margin-bottom: 10px;
   animation: obs-card-in 0.4s ease-out both;
 }
@@ -1178,7 +1178,7 @@ with staggered delays for sequential reveal.
   top: 0;
   bottom: 0;
   width: 3px;
-  border-radius: var(--border-radius-md) 0 0 var(--border-radius-md);
+  border-radius: var(--sta-radius-md, 6px) 0 0 var(--sta-radius-md, 6px);
   background: var(--ta-color-accent); /* visual style overrides per card type */
 }
 
@@ -1186,7 +1186,7 @@ with staggered delays for sequential reveal.
 .obs-card.obs-danger::before   { background: var(--ta-color-danger);  }
 .obs-card.obs-warning::before  { background: var(--ta-color-warning); }
 .obs-card.obs-success::before  { background: var(--ta-color-success); }
-.obs-card.obs-neutral::before  { background: var(--color-border-secondary); }
+.obs-card.obs-neutral::before  { background: var(--sta-border-secondary, rgba(154,160,192,0.35)); }
 
 /* Staggered reveal — apply nth-of-type delays or inline style="--obs-delay: Ns" */
 .obs-card { animation-delay: var(--obs-delay, 0s); }
@@ -1222,13 +1222,13 @@ with staggered delays for sequential reveal.
   font-family: var(--ta-font-body);
   font-size: 13px;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--sta-text-primary, #EEF0FF);
 }
 
 .obs-role {
   font-family: var(--ta-font-body);
   font-size: 10px;
-  color: var(--color-text-tertiary);
+  color: var(--sta-text-tertiary, #545880);
   letter-spacing: 0.06em;
 }
 
@@ -1239,8 +1239,8 @@ with staggered delays for sequential reveal.
   text-transform: uppercase;
   padding: 2px 8px;
   border-radius: 999px;
-  border: 0.5px solid var(--color-border-tertiary);
-  color: var(--color-text-tertiary);
+  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  color: var(--sta-text-tertiary, #545880);
   margin-left: auto; /* push to right of header row */
 }
 
@@ -1253,7 +1253,7 @@ with staggered delays for sequential reveal.
   font-family: var(--ta-font-serif, Georgia, 'Times New Roman', serif);
   font-size: 12px;
   line-height: 1.7;
-  color: var(--color-text-secondary);
+  color: var(--sta-text-secondary, #9AA0C0);
   margin-bottom: 8px;
 }
 
@@ -1263,7 +1263,7 @@ with staggered delays for sequential reveal.
   align-items: flex-start;
   gap: 8px;
   padding: 8px 10px;
-  border-radius: var(--border-radius-md);
+  border-radius: var(--sta-radius-md, 6px);
   background: var(--ta-color-accent-bg);
   border: 0.5px solid var(--ta-color-accent);
   margin-top: 4px;
@@ -1279,7 +1279,7 @@ with staggered delays for sequential reveal.
   font-family: var(--ta-font-serif, Georgia, 'Times New Roman', serif);
   font-size: 11px;
   line-height: 1.6;
-  color: var(--color-text-secondary);
+  color: var(--sta-text-secondary, #9AA0C0);
 }
 ```
 
@@ -1357,8 +1357,8 @@ where each option has distinct mechanical weight.
   text-align: left;
   padding: 14px 16px;
   background: transparent;
-  border: 0.5px solid var(--color-border-tertiary);
-  border-radius: var(--border-radius-md);
+  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  border-radius: var(--sta-radius-md, 6px);
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
   margin-bottom: 8px;
@@ -1412,14 +1412,14 @@ where each option has distinct mechanical weight.
 .action-card-title {
   font-size: 13px;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--sta-text-primary, #EEF0FF);
   margin-bottom: 3px;
 }
 
 .action-card-desc {
   font-size: 12px;
   line-height: 1.6;
-  color: var(--color-text-secondary);
+  color: var(--sta-text-secondary, #9AA0C0);
   margin-bottom: 6px;
 }
 
@@ -1428,10 +1428,10 @@ where each option has distinct mechanical weight.
   font-family: var(--ta-font-body);
   font-size: 10px;
   letter-spacing: 0.06em;
-  color: var(--color-text-tertiary);
+  color: var(--sta-text-tertiary, #545880);
   padding: 3px 8px;
-  border-radius: var(--border-radius-md);
-  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--sta-radius-md, 6px);
+  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
   display: inline-block;
 }
 ```
@@ -1491,7 +1491,7 @@ where each option has distinct mechanical weight.
 Five complete HTML widget examples demonstrating the core structural patterns. Each is
 renderable as-is inside `visualize:show_widget`. CSS variables prefixed `--ta-` are
 provided by the active visual style; variables without the prefix (e.g.
-`var(--color-text-primary)`) reference the Claude.ai host theme.
+`var(--sta-text-primary, #EEF0FF)`) reference the Claude.ai host theme.
 
 **Note:** These examples use CSS custom properties for all visual presentation. The active
 visual style file defines the values. See the CSS Custom Property Contract above.
@@ -1509,31 +1509,31 @@ three POI buttons, three action buttons, status bar, and panel footer.
 
   /* Progressive reveal */
   .brief-text {
-    font-size: 14px; line-height: 1.7; color: var(--color-text-primary);
+    font-size: 14px; line-height: 1.7; color: var(--sta-text-primary, #EEF0FF);
     margin: 0 0 1rem;
   }
   .continue-btn {
     font-family: var(--ta-font-body); font-size: 11px;
     letter-spacing: 0.1em; padding: 8px 20px; min-height: 44px; min-width: 44px; box-sizing: border-box;
-    background: transparent; border: 0.5px solid var(--color-border-secondary);
-    border-radius: var(--border-radius-md); color: var(--color-text-primary);
+    background: transparent; border: 0.5px solid var(--sta-border-secondary, rgba(154,160,192,0.35));
+    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-primary, #EEF0FF);
     cursor: pointer;
   }
-  .continue-btn:hover { background: var(--color-background-secondary); }
+  .continue-btn:hover { background: var(--sta-bg-secondary, #22263A); }
   button:focus-visible, [data-prompt]:focus-visible { outline: 2px solid var(--ta-color-focus); outline-offset: 2px; }
 
   /* Location bar */
   .loc-bar {
     display: flex; justify-content: space-between; align-items: baseline;
     padding-bottom: 8px; margin-bottom: 12px;
-    border-bottom: 0.5px solid var(--color-border-tertiary);
+    border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
   }
   .loc-name {
     font-family: var(--ta-font-heading); font-size: 16px; font-weight: 700;
-    color: var(--color-text-primary); margin: 0;
+    color: var(--sta-text-primary, #EEF0FF); margin: 0;
   }
   .scene-num {
-    font-size: 10px; letter-spacing: 0.12em; color: var(--color-text-tertiary);
+    font-size: 10px; letter-spacing: 0.12em; color: var(--sta-text-tertiary, #545880);
     text-transform: uppercase;
   }
 
@@ -1541,20 +1541,20 @@ three POI buttons, three action buttons, status bar, and panel footer.
   .atmo-strip { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
   .atmo-pill {
     font-size: 10px; letter-spacing: 0.08em; padding: 3px 10px;
-    border-radius: 999px; border: 0.5px solid var(--color-border-tertiary);
-    color: var(--color-text-tertiary);
+    border-radius: 999px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    color: var(--sta-text-tertiary, #545880);
   }
 
   /* Narrative */
   .narrative {
-    font-size: 13px; line-height: 1.8; color: var(--color-text-primary);
+    font-size: 13px; line-height: 1.8; color: var(--sta-text-primary, #EEF0FF);
     margin: 0 0 16px;
   }
 
   /* POI + action buttons */
   .section-label {
     font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--color-text-tertiary); margin: 16px 0 8px;
+    color: var(--sta-text-tertiary, #545880); margin: 16px 0 8px;
   }
   .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
 
@@ -1562,12 +1562,12 @@ three POI buttons, three action buttons, status bar, and panel footer.
   .poi-btn, .btn-poi {
     font-family: var(--ta-font-body); font-size: 11px;
     letter-spacing: 0.06em; padding: 7px 14px;
-    background: transparent; border: var(--ta-border-style-poi) var(--color-border-secondary);
-    border-radius: var(--border-radius-md); color: var(--color-text-secondary);
+    background: transparent; border: var(--ta-border-style-poi) var(--sta-border-secondary, rgba(154,160,192,0.35));
+    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-secondary, #9AA0C0);
     cursor: pointer; transition: background 0.12s;
   }
   .poi-btn:hover, .btn-poi:hover {
-    background: var(--color-background-secondary);
+    background: var(--sta-bg-secondary, #22263A);
     border-style: solid;
   }
 
@@ -1576,7 +1576,7 @@ three POI buttons, three action buttons, status bar, and panel footer.
     font-family: var(--ta-font-body); font-size: 11px;
     letter-spacing: 0.06em; padding: 7px 14px;
     background: var(--ta-color-accent-bg); border: 0.5px solid var(--ta-color-accent);
-    border-radius: var(--border-radius-md); color: var(--color-text-primary);
+    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-primary, #EEF0FF);
     cursor: pointer; transition: background 0.12s;
   }
   .action-btn:hover, .btn-action:hover { background: var(--ta-color-accent-bg-hover); }
@@ -1585,8 +1585,8 @@ three POI buttons, three action buttons, status bar, and panel footer.
   .status-bar {
     display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
     padding: 10px 0; margin-top: 8px;
-    border-top: 0.5px solid var(--color-border-tertiary);
-    font-size: 10px; color: var(--color-text-tertiary);
+    border-top: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    font-size: 10px; color: var(--sta-text-tertiary, #545880);
     letter-spacing: 0.06em;
   }
   .hp-pips { display: flex; gap: 4px; align-items: center; }
@@ -1594,14 +1594,14 @@ three POI buttons, three action buttons, status bar, and panel footer.
     width: 8px; height: 8px; border-radius: 50%;
     background: var(--ta-color-success); border: 0.5px solid var(--ta-color-success-border);
   }
-  .pip.empty { background: transparent; border-color: var(--color-border-tertiary); }
+  .pip.empty { background: transparent; border-color: var(--sta-border-tertiary, rgba(84,88,128,0.4)); }
   .sr-only {
     position: absolute; width: 1px; height: 1px;
     padding: 0; margin: -1px; overflow: hidden;
     clip: rect(0,0,0,0); white-space: nowrap; border: 0;
   }
   .xp-track {
-    width: 60px; height: 3px; background: var(--color-border-tertiary);
+    width: 60px; height: 3px; background: var(--sta-border-tertiary, rgba(84,88,128,0.4));
     border-radius: 2px; overflow: hidden;
   }
   .xp-fill { height: 100%; width: 0%; background: var(--ta-color-xp); border-radius: 2px; }
@@ -1610,49 +1610,49 @@ three POI buttons, three action buttons, status bar, and panel footer.
   .footer-row {
     display: flex; justify-content: flex-start; gap: 8px; flex-wrap: wrap;
     margin-top: 14px; padding-top: 10px;
-    border-top: 0.5px solid var(--color-border-tertiary);
+    border-top: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
   }
   .footer-btn {
     font-family: var(--ta-font-body); font-size: 10px;
     letter-spacing: 0.08em; padding: 8px 14px;
     min-height: 44px; min-width: 44px; box-sizing: border-box;
-    background: transparent; border: 0.5px solid var(--color-border-tertiary);
-    border-radius: var(--border-radius-md); color: var(--color-text-tertiary);
+    background: transparent; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-tertiary, #545880);
     cursor: pointer;
   }
-  .footer-btn:hover { border-color: var(--color-border-secondary); color: var(--color-text-secondary); }
+  .footer-btn:hover { border-color: var(--sta-border-secondary, rgba(154,160,192,0.35)); color: var(--sta-text-secondary, #9AA0C0); }
 
   /* Panels */
   #panel-overlay { display: none; padding: 0; }
   .panel-header {
     display: flex; align-items: baseline; justify-content: space-between;
     padding-bottom: 10px; margin-bottom: 12px;
-    border-bottom: 0.5px solid var(--color-border-tertiary);
+    border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
   }
   .panel-title {
     font-family: var(--ta-font-heading); font-size: 18px; font-weight: 600;
-    color: var(--color-text-primary);
+    color: var(--sta-text-primary, #EEF0FF);
   }
   .panel-close-btn {
     font-family: var(--ta-font-body); font-size: 10px;
     letter-spacing: 0.08em; background: transparent;
-    border: 0.5px solid var(--color-border-tertiary);
-    border-radius: var(--border-radius-md); padding: 8px 14px;
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    border-radius: var(--sta-radius-md, 6px); padding: 8px 14px;
     min-height: 44px; min-width: 44px; box-sizing: border-box;
-    color: var(--color-text-tertiary); cursor: pointer;
+    color: var(--sta-text-tertiary, #545880); cursor: pointer;
   }
-  .panel-close-btn:hover { border-color: var(--color-border-secondary); color: var(--color-text-secondary); }
-  .panel-content { display: none; font-size: 12px; line-height: 1.7; color: var(--color-text-secondary); }
+  .panel-close-btn:hover { border-color: var(--sta-border-secondary, rgba(154,160,192,0.35)); color: var(--sta-text-secondary, #9AA0C0); }
+  .panel-content { display: none; font-size: 12px; line-height: 1.7; color: var(--sta-text-secondary, #9AA0C0); }
 
-  .fallback-text { font-size: 11px; color: var(--color-text-tertiary); margin-top: 8px; display: none; }
+  .fallback-text { font-size: 11px; color: var(--sta-text-tertiary, #545880); margin-top: 8px; display: none; }
   .copy-btn {
     font-family: var(--ta-font-body); font-size: 10px; letter-spacing: 0.06em;
     padding: 4px 10px; min-height: 44px; min-width: 44px; box-sizing: border-box;
-    background: transparent; border: 0.5px solid var(--color-border-tertiary);
-    border-radius: var(--border-radius-md); color: var(--color-text-tertiary);
+    background: transparent; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-tertiary, #545880);
     cursor: pointer; margin-left: 8px; vertical-align: middle;
   }
-  .copy-btn:hover { border-color: var(--color-border-secondary); color: var(--color-text-secondary); }
+  .copy-btn:hover { border-color: var(--sta-border-secondary, rgba(154,160,192,0.35)); color: var(--sta-text-secondary, #9AA0C0); }
 
   @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
   #reveal-full.revealed { animation: fade-in 0.25s ease-out; }
@@ -1849,16 +1849,16 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
   /* Initiative bar */
   .init-bar {
     display: flex; gap: 6px; align-items: center; margin-bottom: 14px;
-    padding-bottom: 10px; border-bottom: 0.5px solid var(--color-border-tertiary);
+    padding-bottom: 10px; border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
   }
   .init-label {
     font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--color-text-tertiary); margin-right: 4px;
+    color: var(--sta-text-tertiary, #545880); margin-right: 4px;
   }
   .init-chip {
     font-size: 10px; letter-spacing: 0.06em; padding: 3px 10px;
-    border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-tertiary);
-    color: var(--color-text-secondary);
+    border-radius: var(--sta-radius-md, 6px); border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    color: var(--sta-text-secondary, #9AA0C0);
   }
   .init-chip.active {
     border-color: var(--ta-color-success); color: var(--ta-color-success); font-weight: 500;
@@ -1867,33 +1867,33 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
   /* Encounter heading */
   .encounter-heading {
     font-family: var(--ta-font-heading); font-size: 16px; font-weight: 700;
-    color: var(--color-text-primary); margin: 0 0 4px;
+    color: var(--sta-text-primary, #EEF0FF); margin: 0 0 4px;
   }
   .encounter-sub {
-    font-size: 11px; color: var(--color-text-tertiary); margin: 0 0 16px;
+    font-size: 11px; color: var(--sta-text-tertiary, #545880); margin: 0 0 16px;
   }
 
   /* Enemy cards */
   .enemy-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
   .enemy-card {
     flex: 1; min-width: 140px; padding: 10px 12px;
-    border: 0.5px solid var(--color-border-tertiary);
-    border-radius: var(--border-radius-md);
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    border-radius: var(--sta-radius-md, 6px);
   }
   .enemy-name {
-    font-size: 12px; font-weight: 500; color: var(--color-text-primary);
+    font-size: 12px; font-weight: 500; color: var(--sta-text-primary, #EEF0FF);
     margin: 0 0 6px;
   }
   .enemy-role {
-    font-size: 10px; color: var(--color-text-tertiary); margin: 0 0 8px;
+    font-size: 10px; color: var(--sta-text-tertiary, #545880); margin: 0 0 8px;
   }
   .hp-row { display: flex; gap: 4px; align-items: center; }
-  .hp-label { font-size: 10px; color: var(--color-text-tertiary); margin-right: 4px; }
+  .hp-label { font-size: 10px; color: var(--sta-text-tertiary, #545880); margin-right: 4px; }
   .pip {
     width: 8px; height: 8px; border-radius: 50%;
     border: 0.5px solid var(--ta-color-danger-border); background: var(--ta-color-danger);
   }
-  .pip.empty { background: transparent; border-color: var(--color-border-tertiary); }
+  .pip.empty { background: transparent; border-color: var(--sta-border-tertiary, rgba(84,88,128,0.4)); }
   .sr-only {
     position: absolute; width: 1px; height: 1px;
     padding: 0; margin: -1px; overflow: hidden;
@@ -1904,49 +1904,49 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
   .player-status {
     display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
     padding: 10px 0; margin-bottom: 14px;
-    border-top: 0.5px solid var(--color-border-tertiary);
-    border-bottom: 0.5px solid var(--color-border-tertiary);
-    font-size: 11px; color: var(--color-text-primary);
+    border-top: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    font-size: 11px; color: var(--sta-text-primary, #EEF0FF);
   }
   .player-pip {
     width: 8px; height: 8px; border-radius: 50%;
     background: var(--ta-color-success); border: 0.5px solid var(--ta-color-success-border);
   }
-  .player-pip.empty { background: transparent; border-color: var(--color-border-tertiary); }
+  .player-pip.empty { background: transparent; border-color: var(--sta-border-tertiary, rgba(84,88,128,0.4)); }
   .player-pips { display: flex; gap: 4px; align-items: center; }
   .condition-tag {
     font-size: 10px; letter-spacing: 0.08em; padding: 2px 8px;
-    border-radius: 999px; border: 0.5px solid var(--color-border-tertiary);
-    color: var(--color-text-tertiary);
+    border-radius: 999px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    color: var(--sta-text-tertiary, #545880);
   }
 
   /* Action panel */
   .section-label {
     font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--color-text-tertiary); margin: 0 0 8px;
+    color: var(--sta-text-tertiary, #545880); margin: 0 0 8px;
   }
   .action-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
   .action-btn {
     font-family: var(--ta-font-body); font-size: 11px;
     letter-spacing: 0.06em; padding: 8px 16px;
-    background: transparent; border: 0.5px solid var(--color-border-secondary);
-    border-radius: var(--border-radius-md); color: var(--color-text-primary);
+    background: transparent; border: 0.5px solid var(--sta-border-secondary, rgba(154,160,192,0.35));
+    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-primary, #EEF0FF);
     cursor: pointer; transition: background 0.12s;
   }
-  .action-btn:hover { background: var(--color-background-secondary); }
+  .action-btn:hover { background: var(--sta-bg-secondary, #22263A); }
   .action-btn.attack { border-color: var(--ta-color-danger); color: var(--ta-color-danger); }
   .action-btn.attack:hover { background: var(--ta-color-danger-bg); }
-  .action-btn.retreat { border-color: var(--color-text-tertiary); color: var(--color-text-tertiary); }
+  .action-btn.retreat { border-color: var(--sta-text-tertiary, #545880); color: var(--sta-text-tertiary, #545880); }
 
-  .fallback-text { font-size: 11px; color: var(--color-text-tertiary); margin-top: 8px; display: none; }
+  .fallback-text { font-size: 11px; color: var(--sta-text-tertiary, #545880); margin-top: 8px; display: none; }
   .copy-btn {
     font-family: var(--ta-font-body); font-size: 10px; letter-spacing: 0.06em;
     padding: 4px 10px; min-height: 44px; min-width: 44px; box-sizing: border-box;
-    background: transparent; border: 0.5px solid var(--color-border-tertiary);
-    border-radius: var(--border-radius-md); color: var(--color-text-tertiary);
+    background: transparent; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-tertiary, #545880);
     cursor: pointer; margin-left: 8px; vertical-align: middle;
   }
-  .copy-btn:hover { border-color: var(--color-border-secondary); color: var(--color-text-secondary); }
+  .copy-btn:hover { border-color: var(--sta-border-secondary, rgba(154,160,192,0.35)); color: var(--sta-text-secondary, #9AA0C0); }
 </style>
 
 <div class="combat-root">
@@ -2073,37 +2073,37 @@ revealed sequentially via button clicks — never combined or skipped.
 
   .roll-heading {
     font-family: var(--ta-font-heading); font-size: 16px; font-weight: 700;
-    color: var(--color-text-primary); margin: 0 0 4px;
+    color: var(--sta-text-primary, #EEF0FF); margin: 0 0 4px;
   }
   .roll-action {
-    font-size: 12px; color: var(--color-text-secondary); margin: 0 0 16px;
+    font-size: 12px; color: var(--sta-text-secondary, #9AA0C0); margin: 0 0 16px;
     line-height: 1.6;
   }
 
   /* Attribute reveal */
   .attr-row {
     display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px;
-    padding: 10px 14px; border-radius: var(--border-radius-md);
-    background: var(--color-background-secondary);
-    border: 0.5px solid var(--color-border-tertiary);
+    padding: 10px 14px; border-radius: var(--sta-radius-md, 6px);
+    background: var(--sta-bg-secondary, #22263A);
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
   }
   .attr-name {
-    font-size: 13px; font-weight: 500; color: var(--color-text-primary);
+    font-size: 13px; font-weight: 500; color: var(--sta-text-primary, #EEF0FF);
   }
   .attr-mod {
-    font-size: 11px; color: var(--color-text-tertiary);
+    font-size: 11px; color: var(--sta-text-tertiary, #545880);
   }
 
   /* Roll button */
   .roll-btn {
     font-family: var(--ta-font-body); font-size: 14px;
     font-weight: 500; letter-spacing: 0.12em; padding: 12px 32px;
-    background: transparent; border: 1px solid var(--color-border-primary);
-    border-radius: var(--border-radius-md); color: var(--color-text-primary);
+    background: transparent; border: 1px solid var(--sta-border-primary, rgba(78,205,196,0.6));
+    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-primary, #EEF0FF);
     cursor: pointer; display: block; margin: 0 auto 16px;
     transition: background 0.12s;
   }
-  .roll-btn:hover { background: var(--color-background-secondary); }
+  .roll-btn:hover { background: var(--sta-bg-secondary, #22263A); }
   .roll-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
   /* Die display */
@@ -2111,7 +2111,7 @@ revealed sequentially via button clicks — never combined or skipped.
     display: none; text-align: center; margin-bottom: 16px;
   }
   .die-value {
-    font-size: 36px; font-weight: 700; color: var(--color-text-primary);
+    font-size: 36px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF);
     display: inline-block;
   }
   @keyframes die-spin {
@@ -2130,16 +2130,16 @@ revealed sequentially via button clicks — never combined or skipped.
   /* Resolve block */
   .resolve-block {
     display: none; padding: 12px 14px; margin-bottom: 16px;
-    border-radius: var(--border-radius-md);
-    border: 0.5px solid var(--color-border-tertiary);
-    background: var(--color-background-secondary);
+    border-radius: var(--sta-radius-md, 6px);
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    background: var(--sta-bg-secondary, #22263A);
   }
   .resolve-row {
     display: flex; justify-content: space-between; align-items: baseline;
-    font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px;
+    font-size: 12px; color: var(--sta-text-secondary, #9AA0C0); margin-bottom: 6px;
   }
   .resolve-row:last-child { margin-bottom: 0; }
-  .resolve-label { color: var(--color-text-tertiary); }
+  .resolve-label { color: var(--sta-text-tertiary, #545880); }
 
   /* Outcome badge */
   .outcome-badge {
@@ -2148,7 +2148,7 @@ revealed sequentially via button clicks — never combined or skipped.
   .badge {
     display: inline-block; font-size: 11px; font-weight: 500;
     letter-spacing: 0.14em; text-transform: uppercase;
-    padding: 5px 16px; border-radius: var(--border-radius-md);
+    padding: 5px 16px; border-radius: var(--sta-radius-md, 6px);
   }
   .badge.success      { background: var(--ta-badge-success-bg); color: var(--ta-badge-success-text); }
   .badge.partial      { background: var(--ta-badge-partial-bg); color: var(--ta-badge-partial-text); }
@@ -2162,22 +2162,22 @@ revealed sequentially via button clicks — never combined or skipped.
     font-family: var(--ta-font-body); font-size: 11px;
     letter-spacing: 0.1em; padding: 8px 20px;
     min-height: 44px; min-width: 44px; box-sizing: border-box;
-    background: transparent; border: 0.5px solid var(--color-border-secondary);
-    border-radius: var(--border-radius-md); color: var(--color-text-primary);
+    background: transparent; border: 0.5px solid var(--sta-border-secondary, rgba(154,160,192,0.35));
+    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-primary, #EEF0FF);
     cursor: pointer;
   }
-  .continue-btn:hover { background: var(--color-background-secondary); }
+  .continue-btn:hover { background: var(--sta-bg-secondary, #22263A); }
   .fallback-text {
-    font-size: 11px; color: var(--color-text-tertiary); margin-top: 8px; display: none;
+    font-size: 11px; color: var(--sta-text-tertiary, #545880); margin-top: 8px; display: none;
   }
   .copy-btn {
     font-family: var(--ta-font-body); font-size: 10px; letter-spacing: 0.06em;
     padding: 4px 10px; min-height: 44px; min-width: 44px; box-sizing: border-box;
-    background: transparent; border: 0.5px solid var(--color-border-tertiary);
-    border-radius: var(--border-radius-md); color: var(--color-text-tertiary);
+    background: transparent; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-tertiary, #545880);
     cursor: pointer; margin-left: 8px; vertical-align: middle;
   }
-  .copy-btn:hover { border-color: var(--color-border-secondary); color: var(--color-text-secondary); }
+  .copy-btn:hover { border-color: var(--sta-border-secondary, rgba(154,160,192,0.35)); color: var(--sta-text-secondary, #9AA0C0); }
 </style>
 
 <div class="roll-root">
@@ -2349,37 +2349,37 @@ barter, and leave buttons use `data-prompt` + `addEventListener`.
   .merchant-header {
     display: flex; justify-content: space-between; align-items: baseline;
     padding-bottom: 8px; margin-bottom: 4px;
-    border-bottom: 0.5px solid var(--color-border-tertiary);
+    border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
   }
   .merchant-name {
     font-family: var(--ta-font-heading); font-size: 16px; font-weight: 700;
-    color: var(--color-text-primary); margin: 0;
+    color: var(--sta-text-primary, #EEF0FF); margin: 0;
   }
   .credits-display {
     font-size: 12px; font-weight: 500; letter-spacing: 0.06em;
     color: var(--ta-color-credits);
   }
   .merchant-flavour {
-    font-size: 11px; color: var(--color-text-tertiary); margin: 4px 0 14px;
+    font-size: 11px; color: var(--sta-text-tertiary, #545880); margin: 4px 0 14px;
     line-height: 1.6;
   }
 
   /* Tab bar */
   .tab-bar {
     display: flex; gap: 0; margin-bottom: 14px;
-    border-bottom: 0.5px solid var(--color-border-tertiary);
+    border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
   }
   .tab-btn {
     font-family: var(--ta-font-body);
     font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
     padding: 8px 16px; background: transparent; border: none;
     border-bottom: 2px solid transparent;
-    color: var(--color-text-tertiary); cursor: pointer;
+    color: var(--sta-text-tertiary, #545880); cursor: pointer;
     transition: color 0.12s, border-color 0.12s;
   }
-  .tab-btn:hover { color: var(--color-text-secondary); }
+  .tab-btn:hover { color: var(--sta-text-secondary, #9AA0C0); }
   .tab-btn.active {
-    color: var(--color-text-primary);
+    color: var(--sta-text-primary, #EEF0FF);
     border-bottom-color: var(--ta-color-tab-active);
   }
   .tab-panel { display: none; }
@@ -2390,27 +2390,27 @@ barter, and leave buttons use `data-prompt` + `addEventListener`.
   .item-card {
     display: flex; align-items: center; justify-content: space-between;
     gap: 10px; padding: 10px 12px;
-    border: 0.5px solid var(--color-border-tertiary);
-    border-radius: var(--border-radius-md);
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    border-radius: var(--sta-radius-md, 6px);
     flex-wrap: wrap;
   }
   .item-info { flex: 1; min-width: 160px; }
   .item-name {
-    font-size: 12px; font-weight: 500; color: var(--color-text-primary);
+    font-size: 12px; font-weight: 500; color: var(--sta-text-primary, #EEF0FF);
     margin: 0 0 2px;
   }
   .item-type-badge {
     display: inline-block; font-size: 10px; letter-spacing: 0.08em;
     text-transform: uppercase; padding: 2px 8px;
-    border-radius: 999px; border: 0.5px solid var(--color-border-tertiary);
-    color: var(--color-text-tertiary); margin-right: 6px;
+    border-radius: 999px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    color: var(--sta-text-tertiary, #545880); margin-right: 6px;
   }
   .item-effect {
-    font-size: 10px; color: var(--color-text-tertiary); margin: 4px 0 0;
+    font-size: 10px; color: var(--sta-text-tertiary, #545880); margin: 4px 0 0;
     line-height: 1.5;
   }
   .item-price {
-    font-size: 12px; font-weight: 500; color: var(--color-text-primary);
+    font-size: 12px; font-weight: 500; color: var(--sta-text-primary, #EEF0FF);
     white-space: nowrap; margin-right: 8px;
   }
   .item-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
@@ -2421,7 +2421,7 @@ barter, and leave buttons use `data-prompt` + `addEventListener`.
     font-size: 10px; letter-spacing: 0.06em; padding: 6px 12px;
     min-height: 44px; min-width: 44px; box-sizing: border-box;
     background: var(--ta-color-accent-bg); border: 0.5px solid var(--ta-color-accent);
-    border-radius: var(--border-radius-md); color: var(--color-text-primary);
+    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-primary, #EEF0FF);
     cursor: pointer; transition: background 0.12s;
   }
   .btn-action:hover { background: var(--ta-color-accent-bg-hover); }
@@ -2429,22 +2429,22 @@ barter, and leave buttons use `data-prompt` + `addEventListener`.
     font-family: var(--ta-font-body);
     font-size: 10px; letter-spacing: 0.06em; padding: 6px 12px;
     min-height: 44px; min-width: 44px; box-sizing: border-box;
-    background: transparent; border: var(--ta-border-style-poi) var(--color-border-secondary);
-    border-radius: var(--border-radius-md); color: var(--color-text-secondary);
+    background: transparent; border: var(--ta-border-style-poi) var(--sta-border-secondary, rgba(154,160,192,0.35));
+    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-secondary, #9AA0C0);
     cursor: pointer; transition: background 0.12s;
   }
-  .btn-poi:hover { background: var(--color-background-secondary); border-style: solid; }
+  .btn-poi:hover { background: var(--sta-bg-secondary, #22263A); border-style: solid; }
 
   /* Footer actions row */
   .shop-footer {
     display: flex; justify-content: space-between; align-items: center;
     gap: 8px; flex-wrap: wrap; margin-top: 14px; padding-top: 10px;
-    border-top: 0.5px solid var(--color-border-tertiary);
+    border-top: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
   }
 
   /* Sell tab — empty state */
   .sell-empty {
-    font-size: 11px; color: var(--color-text-tertiary); padding: 16px 0;
+    font-size: 11px; color: var(--sta-text-tertiary, #545880); padding: 16px 0;
     text-align: center;
   }
 
@@ -2458,15 +2458,15 @@ barter, and leave buttons use `data-prompt` + `addEventListener`.
     * { transition-duration: 0.01ms !important; }
   }
 
-  .fallback-text { font-size: 11px; color: var(--color-text-tertiary); margin-top: 8px; display: none; }
+  .fallback-text { font-size: 11px; color: var(--sta-text-tertiary, #545880); margin-top: 8px; display: none; }
   .copy-btn {
     font-family: var(--ta-font-body); font-size: 10px; letter-spacing: 0.06em;
     padding: 4px 10px; min-height: 44px; min-width: 44px; box-sizing: border-box;
-    background: transparent; border: 0.5px solid var(--color-border-tertiary);
-    border-radius: var(--border-radius-md); color: var(--color-text-tertiary);
+    background: transparent; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-tertiary, #545880);
     cursor: pointer; margin-left: 8px; vertical-align: middle;
   }
-  .copy-btn:hover { border-color: var(--color-border-secondary); color: var(--color-text-secondary); }
+  .copy-btn:hover { border-color: var(--sta-border-secondary, rgba(154,160,192,0.35)); color: var(--sta-text-secondary, #9AA0C0); }
 </style>
 
 <div class="shop-root">
@@ -2629,11 +2629,11 @@ All approach buttons use `data-prompt` + `addEventListener`.
   .npc-header {
     display: flex; justify-content: space-between; align-items: baseline;
     padding-bottom: 8px; margin-bottom: 4px;
-    border-bottom: 0.5px solid var(--color-border-tertiary);
+    border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
   }
   .npc-name {
     font-family: var(--ta-font-heading); font-size: 16px; font-weight: 700;
-    color: var(--color-text-primary); margin: 0;
+    color: var(--sta-text-primary, #EEF0FF); margin: 0;
   }
   .disposition-badge {
     display: inline-block; font-size: 10px; font-weight: 500;
@@ -2647,15 +2647,15 @@ All approach buttons use `data-prompt` + `addEventListener`.
 
   /* Stakes text */
   .stakes-text {
-    font-size: 12px; line-height: 1.7; color: var(--color-text-secondary);
+    font-size: 12px; line-height: 1.7; color: var(--sta-text-secondary, #9AA0C0);
     margin: 8px 0 16px; padding: 10px 14px;
-    border-radius: var(--border-radius-md);
-    background: var(--color-background-secondary);
-    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--sta-radius-md, 6px);
+    background: var(--sta-bg-secondary, #22263A);
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
   }
   .stakes-label {
     font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--color-text-tertiary); display: block; margin-bottom: 4px;
+    color: var(--sta-text-tertiary, #545880); display: block; margin-bottom: 4px;
   }
 
   /* Conviction meter */
@@ -2663,7 +2663,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
     display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
   }
   .conviction-label {
-    font-size: 10px; letter-spacing: 0.08em; color: var(--color-text-tertiary);
+    font-size: 10px; letter-spacing: 0.08em; color: var(--sta-text-tertiary, #545880);
   }
   .conviction-pips { display: flex; gap: 6px; align-items: center; }
   .conviction-pip {
@@ -2677,35 +2677,35 @@ All approach buttons use `data-prompt` + `addEventListener`.
 
   /* Round indicator */
   .round-indicator {
-    font-size: 10px; letter-spacing: 0.08em; color: var(--color-text-tertiary);
+    font-size: 10px; letter-spacing: 0.08em; color: var(--sta-text-tertiary, #545880);
     margin-bottom: 16px;
   }
 
   /* Approach buttons */
   .section-label {
     font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--color-text-tertiary); margin: 0 0 8px;
+    color: var(--sta-text-tertiary, #545880); margin: 0 0 8px;
   }
   .approach-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
   .btn-action {
     font-family: var(--ta-font-body);
     font-size: 11px; letter-spacing: 0.06em; padding: 8px 14px;
     background: var(--ta-color-accent-bg); border: 0.5px solid var(--ta-color-accent);
-    border-radius: var(--border-radius-md); color: var(--color-text-primary);
+    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-primary, #EEF0FF);
     cursor: pointer; transition: background 0.12s;
   }
   .btn-action:hover { background: var(--ta-color-accent-bg-hover); }
   .approach-stat {
-    font-size: 10px; color: var(--color-text-tertiary); margin-left: 4px;
+    font-size: 10px; color: var(--sta-text-tertiary, #545880); margin-left: 4px;
   }
 
   /* NPC reaction area */
   .npc-reaction {
-    font-size: 12px; line-height: 1.7; color: var(--color-text-secondary);
+    font-size: 12px; line-height: 1.7; color: var(--sta-text-secondary, #9AA0C0);
     margin: 0 0 16px; padding: 12px 14px;
-    border-radius: var(--border-radius-md);
-    border: 0.5px solid var(--color-border-tertiary);
-    background: var(--color-background-secondary);
+    border-radius: var(--sta-radius-md, 6px);
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    background: var(--sta-bg-secondary, #22263A);
     font-style: italic;
   }
 
@@ -2719,15 +2719,15 @@ All approach buttons use `data-prompt` + `addEventListener`.
     * { transition-duration: 0.01ms !important; }
   }
 
-  .fallback-text { font-size: 11px; color: var(--color-text-tertiary); margin-top: 8px; display: none; }
+  .fallback-text { font-size: 11px; color: var(--sta-text-tertiary, #545880); margin-top: 8px; display: none; }
   .copy-btn {
     font-family: var(--ta-font-body); font-size: 10px; letter-spacing: 0.06em;
     padding: 4px 10px; min-height: 44px; min-width: 44px; box-sizing: border-box;
-    background: transparent; border: 0.5px solid var(--color-border-tertiary);
-    border-radius: var(--border-radius-md); color: var(--color-text-tertiary);
+    background: transparent; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-tertiary, #545880);
     cursor: pointer; margin-left: 8px; vertical-align: middle;
   }
-  .copy-btn:hover { border-color: var(--color-border-secondary); color: var(--color-text-secondary); }
+  .copy-btn:hover { border-color: var(--sta-border-secondary, rgba(154,160,192,0.35)); color: var(--sta-text-secondary, #9AA0C0); }
 </style>
 
 <div class="social-root">
@@ -3382,15 +3382,15 @@ All approach buttons use `data-prompt` + `addEventListener`.
 .dialogue-block {
   margin: var(--sta-space-md, 14px) 0;
   padding: var(--sta-space-sm, 8px) var(--sta-space-md, 14px);
-  border-left: 2px solid var(--color-border-tertiary, rgba(84,88,128,0.4));
-  border-radius: 0 var(--border-radius-md, 6px) var(--border-radius-md, 6px) 0;
+  border-left: 2px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  border-radius: 0 var(--sta-radius-md, 6px) var(--sta-radius-md, 6px) 0;
 }
 .dialogue-speaker {
   font-family: var(--ta-font-body);
   font-size: 10px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-text-tertiary);
+  color: var(--sta-text-tertiary, #545880);
   margin-bottom: 4px;
 }
 .dialogue-speaker.npc { color: var(--ta-color-accent); }
@@ -3399,7 +3399,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
   font-family: var(--ta-font-serif, Georgia, 'Times New Roman', serif);
   font-size: 14px;
   line-height: 1.7;
-  color: var(--color-text-secondary);
+  color: var(--sta-text-secondary, #9AA0C0);
 }
 ```
 
@@ -3411,28 +3411,28 @@ All approach buttons use `data-prompt` + `addEventListener`.
   font-family: var(--ta-font-body);
   font-size: 11px;
   padding: var(--sta-space-sm, 8px) var(--sta-space-md, 14px);
-  border: 0.5px solid var(--color-border-tertiary, rgba(84,88,128,0.4));
-  border-radius: var(--border-radius-md, 6px);
-  background: var(--color-background-secondary, rgba(34,38,58,0.5));
+  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  border-radius: var(--sta-radius-md, 6px);
+  background: var(--sta-bg-secondary, rgba(34,38,58,0.5));
   margin: var(--sta-space-sm, 8px) 0;
 }
 .data-line {
   display: flex;
   justify-content: space-between;
   padding: 3px 0;
-  border-bottom: 0.5px solid var(--color-border-tertiary, rgba(84,88,128,0.2));
+  border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.2));
 }
 .data-line:last-child { border-bottom: none; }
 .data-label {
-  color: var(--color-text-tertiary);
+  color: var(--sta-text-tertiary, #545880);
   letter-spacing: 0.06em;
 }
 .data-value {
-  color: var(--color-text-primary);
+  color: var(--sta-text-primary, #EEF0FF);
   font-weight: 500;
 }
 .data-divider {
-  border-top: 0.5px solid var(--color-border-tertiary, rgba(84,88,128,0.3));
+  border-top: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.3));
   margin: var(--sta-space-sm, 8px) 0;
 }
 .data-ok { color: var(--ta-color-success, #2BA882); }
@@ -3441,7 +3441,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 .data-quote {
   font-family: var(--ta-font-serif, Georgia, serif);
   font-style: italic;
-  color: var(--color-text-secondary);
+  color: var(--sta-text-secondary, #9AA0C0);
   padding: var(--sta-space-sm, 8px);
   border-left: 2px solid var(--ta-color-accent);
 }
@@ -3559,6 +3559,6 @@ Scene widgets should use inline SVG for star charts, floor plans, ship cross-sec
   font-family: var(--ta-font-body);
   font-size: 11px;
   letter-spacing: 0.06em;
-  color: var(--color-text-tertiary);
+  color: var(--sta-text-tertiary, #545880);
 }
 ```

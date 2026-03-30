@@ -567,7 +567,7 @@ Used for: points of interest, inspect, examine.
 .btn-poi:hover, .poi-btn:hover {
   border-style: solid;
   border-color: var(--sta-border-secondary);
-  background: var(--color-background-secondary, var(--sta-bg-secondary));
+  background: var(--sta-bg-secondary, #22263A);
   color: var(--sta-text-primary);
 }
 ```
