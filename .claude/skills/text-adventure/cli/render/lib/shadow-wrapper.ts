@@ -62,22 +62,21 @@ export function wrapInShadowDom(opts: ShadowWrapperOptions): string {
   }
 
   if (scriptSrc && scriptSrc.length > 0) {
-    // Load scripts sequentially: each waits for the previous to load.
-    // The last script's onload triggers the inline script.
-    const loads: string[] = [];
-    for (let i = 0; i < scriptSrc.length; i++) {
+    // Chain scripts sequentially: each loads inside the previous one's onload.
+    // This prevents race conditions (e.g. SoundscapeEngine undefined when initTagScene runs).
+    // Build from innermost (last script + inline) outward to first script.
+    let chain = inlineScriptBlock;
+    for (let i = scriptSrc.length - 1; i >= 0; i--) {
       const rawUrl = scriptSrc[i]!;
       const url = hash ? `${rawUrl}?v=${hash}` : rawUrl;
       const varName = `_s${i}`;
-      const isLast = i === scriptSrc.length - 1;
-      if (isLast && inlineScriptBlock) {
-        loads.push(`var ${varName}=document.createElement('script');${varName}.src='${url}';${varName}.onload=function(){${inlineScriptBlock}};document.head.appendChild(${varName});`);
-        inlineScriptBlock = ''; // consumed by onload
-      } else {
-        loads.push(`var ${varName}=document.createElement('script');${varName}.src='${url}';document.head.appendChild(${varName});`);
-      }
+      const body = chain
+        ? `var ${varName}=document.createElement('script');${varName}.src='${url}';${varName}.onload=function(){${chain}};document.head.appendChild(${varName});`
+        : `var ${varName}=document.createElement('script');${varName}.src='${url}';document.head.appendChild(${varName});`;
+      chain = body;
     }
-    scriptSrcBlock = loads.join('');
+    scriptSrcBlock = chain;
+    inlineScriptBlock = ''; // consumed by chain
   }
 
   // :host override with CSS variable fallbacks using station defaults
