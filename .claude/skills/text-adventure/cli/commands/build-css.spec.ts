@@ -176,3 +176,56 @@ describe('FNV32 hash correctness', () => {
     expect(fnv32(content1)).not.toBe(fnv32(content2));
   });
 });
+
+// ── --release flag ──────────────────────────────────────────────────
+
+describe('--release flag', () => {
+  let releaseTmpDir: string;
+  let releaseResult: Awaited<ReturnType<typeof handleBuildCss>>;
+
+  beforeAll(async () => {
+    releaseTmpDir = mkdtempSync(join(tmpdir(), 'tag-build-css-release-'));
+    releaseResult = await handleBuildCss(['--output-dir', releaseTmpDir, '--release', 'v1.3.0']);
+  });
+
+  afterAll(() => {
+    try { rmSync(releaseTmpDir, { recursive: true, force: true }); } catch { /* ignore */ }
+  });
+
+  it('returns ok: true with --release', () => {
+    expect(releaseResult.ok).toBe(true);
+  });
+
+  it('manifest CDN_BASE uses release tag instead of branch ref', () => {
+    const manifest = readFileSync(join(releaseTmpDir, 'cdn-manifest.ts'), 'utf-8');
+    expect(manifest).toContain('@v1.3.0/');
+    expect(manifest).not.toContain('@feature/');
+  });
+
+  it('CSS output is identical regardless of --release flag', () => {
+    const defaultCss = readdirSync(join(tmpDir, 'css'));
+    const releaseCss = readdirSync(join(releaseTmpDir, 'css'));
+    expect(releaseCss.sort()).toEqual(defaultCss.sort());
+    for (const file of defaultCss) {
+      const a = readFileSync(join(tmpDir, 'css', file), 'utf-8');
+      const b = readFileSync(join(releaseTmpDir, 'css', file), 'utf-8');
+      expect(b).toBe(a);
+    }
+  });
+});
+
+// ── Default CDN_BASE auto-detection ─────────────────────────────────
+
+describe('default CDN_BASE (no --release)', () => {
+  it('auto-detects current git branch in CDN_BASE', () => {
+    const manifest = readFileSync(join(tmpDir, 'cdn-manifest.ts'), 'utf-8');
+    // Must contain an @ ref (branch or tag) followed by the asset path
+    expect(manifest).toMatch(/@[a-zA-Z0-9\-\/_.]+\/.claude\/skills/);
+  });
+
+  it('does not contain a hardcoded branch name in source', async () => {
+    // The build-css.ts source should not hardcode a specific branch
+    const source = await Bun.file(join(import.meta.dir, 'build-css.ts')).text();
+    expect(source).not.toContain('@feature/tag-cli-');
+  });
+});

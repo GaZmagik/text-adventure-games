@@ -21,6 +21,10 @@ export const SOUNDSCAPE_ENGINE_CODE: string = `
         'terminal': function(e) { e.genNoise('highpass', 3000, 0.08, duration); },
         'alarm': function(e) { e.genAlarm(440, 880, 0.2, duration); },
         'silence': function(e) { e.genNoise('lowpass', 100, 0.02, duration); },
+        'heartbeat': function(e) { e.genDrone(1, 0.18, duration); e.genDrone(55, 0.1, duration); },
+        'station-ambience': function(e) { e.genDrone(60, 0.1, duration); e.genNoise('highpass', 2500, 0.06, duration); },
+        'underwater': function(e) { e.genNoise('lowpass', 300, 0.14, duration); e.genDrone(30, 0.06, duration); },
+        'fire': function(e) { e.genNoise('bandpass', 800, 0.13, duration); e.genNoise('bandpass', 1500, 0.07, duration); },
       };
       var gen = generators[type] || generators['silence'];
       gen(this);
