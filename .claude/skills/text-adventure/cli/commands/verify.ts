@@ -7,7 +7,7 @@ import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import type { CommandResult, GmState } from '../types';
 import { ok, fail, noState } from '../lib/errors';
-import { tryLoadState, saveState } from '../lib/state-store';
+import { tryLoadState, saveState, getSyncMarkerPath } from '../lib/state-store';
 import { fnv32 } from '../lib/fnv32';
 import { resolveSafeReadPath } from '../lib/path-security';
 import { MODULE_PANEL_MAP } from '../lib/module-panel-map';
@@ -578,6 +578,7 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
       state._turnCount = (state._turnCount ?? 0) + 1;
       await saveState(state);
       try { unlinkSync(getNeedsVerifyPath()); } catch { /* already cleared */ }
+      try { unlinkSync(getSyncMarkerPath()); } catch { /* already cleared */ }
     } else if (isPreGame) {
       // Pre-game widgets: write a type-specific marker so render can gate on it
       const markerPath = join(resolveStateDir(), `.verified-${widgetType}`);

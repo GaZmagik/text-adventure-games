@@ -512,3 +512,53 @@ describe('verify file path validation', () => {
     expect(data.failures.filter(f => f.includes('CSS variable')).length).toBe(0);
   });
 });
+
+describe('sync marker invalidation after verify', () => {
+  test('successful scene verify deletes the sync marker', async () => {
+    await setupState();
+    const { getSyncMarkerPath } = await import('../lib/state-store');
+    const syncMarkerPath = getSyncMarkerPath();
+
+    // Sync marker exists before verify (written in beforeEach)
+    expect(existsSync(syncMarkerPath)).toBe(true);
+
+    const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
+    let html = (renderResult.data as string)
+      .replace(
+        '<p><!-- Narrative content rendered by the GM --></p>',
+        '<p class="narrative">The bridge hums with tension.</p><p class="narrative">Something moves.</p>',
+      );
+    html = html.replace(
+      '</div>\n  <!-- Scene metadata',
+      '<button class="action-card" data-prompt="Check sonar."><div>Check sonar</div></button>'
+      + '<button class="action-card" data-prompt="Speak to Fen."><div>Speak to Fen</div></button>'
+      + '</div>\n  <!-- Scene metadata',
+    );
+    const htmlPath = join(tempDir, 'sync-gate.html');
+    writeFileSync(htmlPath, html, 'utf-8');
+
+    const result = await handleVerify([htmlPath]);
+    expect(result.ok).toBe(true);
+    expect((result.data as { verified: boolean }).verified).toBe(true);
+
+    // Sync marker must be gone — forces sync --apply before next render
+    expect(existsSync(syncMarkerPath)).toBe(false);
+  });
+
+  test('failed scene verify does NOT delete the sync marker', async () => {
+    await setupState();
+    const { getSyncMarkerPath } = await import('../lib/state-store');
+    const syncMarkerPath = getSyncMarkerPath();
+
+    // Write an HTML file that will fail verify (no narrative, no CSS)
+    const htmlPath = join(tempDir, 'bad-scene.html');
+    writeFileSync(htmlPath, '<div>empty</div>', 'utf-8');
+
+    const result = await handleVerify([htmlPath]);
+    expect(result.ok).toBe(true);
+    expect((result.data as { verified: boolean }).verified).toBe(false);
+
+    // Sync marker should still exist — no invalidation on failure
+    expect(existsSync(syncMarkerPath)).toBe(true);
+  });
+});
