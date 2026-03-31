@@ -108,6 +108,8 @@ export type QuestObjective = {
 
 export type CodexMutation = {
   id: string;
+  title?: string;
+  category?: string;
   state: 'locked' | 'partial' | 'discovered' | 'redacted';
   discoveredAt?: number;
   via?: string;

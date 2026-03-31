@@ -12,7 +12,7 @@ import { MODULE_DIGESTS } from '../../data/module-digests';
 import { containsForbiddenKeys } from '../../lib/security';
 import { validateStatePath, describeStateShape } from '../../lib/state-schema';
 
-const VALID_SUBCOMMANDS = ['get', 'set', 'create-npc', 'validate', 'reset', 'history', 'context', 'sync', 'schema'] as const;
+const VALID_SUBCOMMANDS = ['get', 'set', 'create-npc', 'validate', 'reset', 'history', 'context', 'sync', 'schema', 'codex', 'crew', 'ship'] as const;
 
 function isBestiaryTier(s: string): s is BestiaryTier {
   return (VALID_TIERS as readonly string[]).includes(s);
@@ -406,6 +406,18 @@ export async function handleState(args: string[]): Promise<CommandResult> {
     case 'sync': {
       const { handleSync } = await import('./sync');
       return handleSync(args.slice(1));
+    }
+    case 'codex': {
+      const { handleCodex } = await import('./codex');
+      return handleCodex(args.slice(1));
+    }
+    case 'crew': {
+      const { handleCrew } = await import('./crew');
+      return handleCrew(args.slice(1));
+    }
+    case 'ship': {
+      const { handleShip } = await import('./ship');
+      return handleShip(args.slice(1));
     }
     default:
       return fail(

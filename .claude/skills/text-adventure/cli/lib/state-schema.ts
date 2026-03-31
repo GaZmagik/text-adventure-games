@@ -81,6 +81,8 @@ const npcMutation = object({
 
 const codexMutation = object({
   id: leaf(),
+  title: leaf(),
+  category: leaf(),
   state: leaf(),
   discoveredAt: leaf(),
   via: leaf(),

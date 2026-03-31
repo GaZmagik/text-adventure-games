@@ -5,6 +5,10 @@ export const STAT_NAMES: readonly StatName[] = ['STR', 'DEX', 'CON', 'INT', 'WIS
 export const VALID_TIERS: readonly BestiaryTier[] = ['minion', 'rival', 'nemesis'];
 export const VALID_PRONOUNS: readonly Pronouns[] = ['she/her', 'he/him', 'they/them', 'it/its'];
 
+export const VALID_CODEX_STATES = ['locked', 'partial', 'discovered', 'redacted'] as const;
+export const VALID_CREW_STATUSES = ['active', 'injured', 'incapacitated', 'missing', 'defected', 'dead'] as const;
+export const DEFAULT_SHIP_SYSTEMS = ['hull', 'engines', 'power_core', 'life_support', 'weapons', 'sensors', 'shields'] as const;
+
 export const MAX_ROLL_HISTORY = 50;
 export const MAX_STATE_HISTORY = 100;
 export const MAX_DICE_COUNT = 1000;

@@ -151,6 +151,17 @@ NEW GAME CHECKLIST
      Every NPC who will appear in this arc MUST be created here — not when
      they first enter a scene. This ensures stats, pronouns, and modifiers
      are deterministic from the start and available for contested rolls.
+     - **Codex**: Seed 5–10 locked entries for locations, factions, and key items.
+       `tag state codex create <id> --title '<title>' --category <cat>` for each.
+       Categories: location, faction, character, item, event, bestiary.
+       Entries start locked; use `codex unlock` / `codex advance` during play.
+     - **Crew** (if crew-manifest active): Initialise the crew roster.
+       `tag state crew add <id> --name '<name>' --pronouns <p> --role <role>`
+       Defaults: morale 70, stress 20, loyalty 50, status active.
+       Use `crew morale/stress/loyalty/status` during play to mutate.
+     - **Ship** (if ship-systems active): Initialise the ship.
+       `tag state ship init --name '<name>'` — creates 7 systems at 100%.
+       Use `ship damage/repair/power/condition/parts` during play.
 □ 17. Generate the opening scene: run `tag render scene --style <style-name>`
      Then compose the narrative prose into the scene HTML output.
      If atmosphere module is active, effects are applied automatically by tag render scene.
