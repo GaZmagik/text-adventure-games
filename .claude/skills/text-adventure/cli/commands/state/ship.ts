@@ -29,6 +29,15 @@ function requireShip(ship: ShipState | undefined): ship is ShipState {
   return ship !== undefined && ship !== null;
 }
 
+function parsePositiveAmount(rawAmount: string): number | null {
+  const amount = Number(rawAmount);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return null;
+  }
+
+  return amount;
+}
+
 // ── Action handlers ─────────────────────────────────────────────────
 
 async function handleInit(args: string[]): Promise<CommandResult> {
@@ -78,9 +87,9 @@ async function handleDamage(args: string[]): Promise<CommandResult> {
     return fail('No amount provided.', 'Usage: tag state ship damage <systemId> <amount>', COMMAND);
   }
 
-  const amount = Number(rawAmount);
-  if (Number.isNaN(amount)) {
-    return fail(`"${rawAmount}" is not a valid numeric amount.`, 'Provide a positive number.', COMMAND);
+  const amount = parsePositiveAmount(rawAmount);
+  if (amount === null) {
+    return fail(`"${rawAmount}" is not a valid positive amount.`, 'Provide a positive number greater than 0.', COMMAND);
   }
 
   const state = await tryLoadState();
@@ -120,9 +129,9 @@ async function handleRepair(args: string[]): Promise<CommandResult> {
     return fail('No amount provided.', 'Usage: tag state ship repair <systemId> <amount>', COMMAND);
   }
 
-  const amount = Number(rawAmount);
-  if (Number.isNaN(amount)) {
-    return fail(`"${rawAmount}" is not a valid numeric amount.`, 'Provide a positive number.', COMMAND);
+  const amount = parsePositiveAmount(rawAmount);
+  if (amount === null) {
+    return fail(`"${rawAmount}" is not a valid positive amount.`, 'Provide a positive number greater than 0.', COMMAND);
   }
 
   const state = await tryLoadState();
@@ -165,9 +174,9 @@ async function handlePower(args: string[]): Promise<CommandResult> {
     return fail('No units provided.', 'Usage: tag state ship power <from> <to> <units>', COMMAND);
   }
 
-  const units = Number(rawUnits);
-  if (Number.isNaN(units)) {
-    return fail(`"${rawUnits}" is not a valid numeric amount.`, 'Provide a positive number.', COMMAND);
+  const units = parsePositiveAmount(rawUnits);
+  if (units === null) {
+    return fail(`"${rawUnits}" is not a valid positive amount.`, 'Provide a positive number greater than 0.', COMMAND);
   }
 
   const state = await tryLoadState();

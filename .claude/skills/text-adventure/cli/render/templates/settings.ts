@@ -123,6 +123,24 @@ export function renderSettings(_state: GmState | null, styleName: string, option
     script: `var selections = ${serialiseInlineScriptData(defaults)};
 var selectedModules = [];
 
+function sendOrCopyPrompt(btn, prompt) {
+  btn.setAttribute('title', prompt);
+  var ta = document.createElement('textarea');
+  ta.value = prompt;
+  ta.style.cssText = 'position:fixed;opacity:0';
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+  if (typeof sendPrompt === 'function') {
+    sendPrompt(prompt);
+  } else {
+    var orig = btn.textContent;
+    btn.textContent = 'Copied! Paste as your reply.';
+    setTimeout(function() { btn.textContent = orig; }, 3000);
+  }
+}
+
 if (Array.isArray(selections.modulesActive)) {
   selections.modulesActive.forEach(function(mod) {
     var btn = shadow.querySelector('.module-card[data-value="' + mod + '"]');
@@ -179,7 +197,7 @@ shadow.getElementById('settings-confirm').addEventListener('click', function() {
   cmds.push('state set modulesActive ' + JSON.stringify(allModules));
   var prompt = 'Begin adventure with settings: ' + JSON.stringify(selections)
     + '\\nRequired: tag batch --commands "' + cmds.join('; ') + '"';
-  if (typeof sendPrompt === 'function') sendPrompt(prompt);
+  sendOrCopyPrompt(this, prompt);
 });`,
   });
 }

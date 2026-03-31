@@ -19,7 +19,7 @@ describe('handleHelp', () => {
       expect(data.topic).toBe('quickstart');
       expect(data.workflow.setup).toContain('setup.sh');
       expect(data.workflow.turnLoop.length).toBeGreaterThanOrEqual(5);
-      expect(data.workflow.turnLoop[0].name).toBe('Sync');
+      expect(data.workflow.turnLoop[0]!.name).toBe('Sync');
     });
 
     test('includes command summary list', async () => {
@@ -57,7 +57,7 @@ describe('handleHelp', () => {
       expect(data.steps.length).toBeGreaterThanOrEqual(4);
       // Steps must be in order
       for (let i = 1; i < data.steps.length; i++) {
-        expect(data.steps[i].step).toBe(data.steps[i - 1].step + 1);
+        expect(data.steps[i]!.step).toBe(data.steps[i - 1]!.step + 1);
       }
     });
 
@@ -66,8 +66,8 @@ describe('handleHelp', () => {
       const data = result.data as {
         steps: { step: number; name: string; command: string }[];
       };
-      expect(data.steps[0].name).toContain('Setup');
-      expect(data.steps[0].command).toContain('setup.sh');
+      expect(data.steps[0]!.name).toContain('Setup');
+      expect(data.steps[0]!.command).toContain('setup.sh');
     });
 
     test('includes scenario select, settings, and character creation steps', async () => {
@@ -87,9 +87,9 @@ describe('handleHelp', () => {
         moduleTiers: { tier: number; label: string; modules: string[] }[];
       };
       expect(data.moduleTiers.length).toBe(3);
-      expect(data.moduleTiers[0].tier).toBe(1);
-      expect(data.moduleTiers[0].modules).toContain('prose-craft');
-      expect(data.moduleTiers[0].modules).toContain('gm-checklist');
+      expect(data.moduleTiers[0]!.tier).toBe(1);
+      expect(data.moduleTiers[0]!.modules).toContain('prose-craft');
+      expect(data.moduleTiers[0]!.modules).toContain('gm-checklist');
     });
   });
 
@@ -115,8 +115,8 @@ describe('handleHelp', () => {
       const data = result.data as {
         workflow: { step: number; name: string }[];
       };
-      expect(data.workflow[0].name).toContain('Sync');
-      expect(data.workflow[data.workflow.length - 1].name).toContain('Post');
+      expect(data.workflow[0]!.name).toContain('Sync');
+      expect(data.workflow[data.workflow.length - 1]!.name).toContain('Post');
     });
 
     test('includes prose checklist', async () => {

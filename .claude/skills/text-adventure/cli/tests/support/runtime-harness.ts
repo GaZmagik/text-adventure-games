@@ -107,7 +107,14 @@ export class FakeElement {
     return this.attributes.get(name) ?? null;
   }
 
+  getElementById(id: string): FakeElement | null {
+    return this.ownerDocument?.getElementById(id) ?? null;
+  }
+
   querySelectorAll(selector: string): FakeElement[] {
+    if (this.tagName === 'shadow-root') {
+      return this.ownerDocument?.querySelectorAll(selector) ?? [];
+    }
     const matches: FakeElement[] = [];
     for (const child of this.children) {
       if (matchesSelector(child, selector)) matches.push(child);
@@ -117,6 +124,9 @@ export class FakeElement {
   }
 
   querySelector(selector: string): FakeElement | null {
+    if (this.tagName === 'shadow-root') {
+      return this.ownerDocument?.querySelector(selector) ?? null;
+    }
     return this.querySelectorAll(selector)[0] ?? null;
   }
 
@@ -139,17 +149,15 @@ export class FakeElement {
   attachShadow(_opts: { mode: string }): FakeElement {
     const shadowRoot = new FakeElement('shadow-root');
     shadowRoot.ownerDocument = this.ownerDocument;
-    const doc = this.ownerDocument;
-    // Shadow root delegates query methods to the ownerDocument for test compatibility
-    (shadowRoot as Record<string, unknown>).getElementById = (id: string) =>
-      doc?.getElementById(id) ?? null;
-    (shadowRoot as Record<string, unknown>).querySelectorAll = (sel: string) =>
-      doc?.querySelectorAll(sel) ?? [];
-    (shadowRoot as Record<string, unknown>).querySelector = (sel: string) =>
-      doc?.querySelector(sel) ?? null;
     return shadowRoot;
   }
 }
+
+export type FakeWindow = {
+  matchMedia: (query: string) => { matches: boolean };
+  tag?: unknown;
+  [key: string]: unknown;
+};
 
 export class FakeCanvasElement extends FakeElement {
   width = 0;
@@ -343,7 +351,7 @@ export function createRenderRuntime(options: { reducedMotion?: boolean; webglCon
     window: {
       matchMedia: () => ({ matches: options.reducedMotion ?? true }),
       tag: undefined,
-    } as Record<string, unknown>,
+    } as FakeWindow,
     getComputedStyle: (element: FakeElement) => ({
       getPropertyValue: (name: string) => element.style[name] ?? '',
     }),

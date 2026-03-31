@@ -55,7 +55,11 @@ export const SCI_FI_THEMES = new Set([
   'station', 'terminal', 'neon', 'holographic', 'blueprint',
 ]);
 
+let cachedNames: NamePool | null = null;
+
 export function loadNames(): NamePool {
+  if (cachedNames) return cachedNames;
+
   const mdPath = join(import.meta.dir, 'names.md');
   const raw = readFileSync(mdPath, 'utf-8');
   const pools = parseNamesMd(raw);
@@ -67,5 +71,6 @@ export function loadNames(): NamePool {
     return `${pick(given)} ${pick(surname)}`;
   }
 
-  return { ...pools, getRandomName };
+  cachedNames = { ...pools, getRandomName };
+  return cachedNames;
 }

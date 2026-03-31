@@ -87,6 +87,7 @@ const codexMutation = object({
   discoveredAt: leaf(),
   via: leaf(),
   secrets: array(leaf()),
+  redactedReason: leaf(),
 });
 
 const timeState = object({

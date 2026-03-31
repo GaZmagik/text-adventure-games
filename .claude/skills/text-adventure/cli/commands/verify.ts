@@ -154,12 +154,42 @@ function checkAtmosphere(html: string, state: GmState, failures: string[]): void
   }
 }
 
+type PromptElement = {
+  markup: string;
+  prompt: string;
+  id: string | null;
+  title: string | null;
+  classes: string[];
+};
+
+function extractAttr(markup: string, name: string): string | null {
+  const match = new RegExp(`\\b${name}\\s*=\\s*(['"])(.*?)\\1`, 'i').exec(markup);
+  return match?.[2] ?? null;
+}
+
+function extractPromptElements(html: string): PromptElement[] {
+  const promptElements: PromptElement[] = [];
+  const pattern = /<[a-zA-Z][\w:-]*\b[^>]*\bdata-prompt\s*=\s*(['"])(.*?)\1[^>]*>/g;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(html)) !== null) {
+    const markup = match[0];
+    const classAttr = extractAttr(markup, 'class');
+    promptElements.push({
+      markup,
+      prompt: match[2]!,
+      id: extractAttr(markup, 'id'),
+      title: extractAttr(markup, 'title'),
+      classes: classAttr ? classAttr.split(/\s+/).filter(Boolean) : [],
+    });
+  }
+  return promptElements;
+}
+
 function checkActionCards(html: string, failures: string[]): void {
-  // Count data-prompt elements OUTSIDE the footer (exclude Save/Export buttons)
-  // Footer buttons are inside .footer-row or have id="save-btn"/"export-btn"
-  const allPrompts = html.match(/data-prompt="/g) ?? [];
-  const footerPrompts = (html.match(/id="save-btn"[^>]*data-prompt|id="export-btn"[^>]*data-prompt|data-prompt[^>]*id="save-btn"|data-prompt[^>]*id="export-btn"/g) ?? []).length;
-  const contentPrompts = allPrompts.length - footerPrompts;
+  // Count data-prompt elements OUTSIDE the footer (exclude Save/Export buttons).
+  const contentPrompts = extractPromptElements(html)
+    .filter(el => el.id !== 'save-btn' && el.id !== 'export-btn')
+    .length;
 
   if (contentPrompts < MIN_ACTION_PROMPTS) {
     failures.push(
@@ -177,7 +207,7 @@ function checkPanelOverlay(html: string, failures: string[]): void {
 }
 
 function checkInlineOnclick(html: string, failures: string[]): void {
-  const onclickCount = (html.match(/onclick="/gi) ?? []).length;
+  const onclickCount = (html.match(/\bonclick\s*=\s*['"]/gi) ?? []).length;
   if (onclickCount > 0) {
     failures.push(
       `Found ${onclickCount} inline onclick handler(s). Use data-prompt + addEventListener instead. `
@@ -187,11 +217,11 @@ function checkInlineOnclick(html: string, failures: string[]): void {
 }
 
 function checkSendPromptFallback(html: string, failures: string[]): void {
-  const promptButtons = html.match(/data-prompt="[^"]+"/g) ?? [];
-  const hasTitleAttr = html.match(/title="[^"]{10,}"/g) ?? [];
-  if (promptButtons.length > 0 && hasTitleAttr.length === 0) {
+  const promptButtons = extractPromptElements(html);
+  const missingFallback = promptButtons.filter(btn => (btn.title?.length ?? 0) < 10);
+  if (missingFallback.length > 0) {
     failures.push(
-      `Found ${promptButtons.length} data-prompt button(s) but no title attributes with fallback text. `
+      `Found ${missingFallback.length} data-prompt button(s) without adequate title fallback text. `
       + 'Every data-prompt button needs a title attribute containing the prompt text so the player can copy it if sendPrompt is unavailable.',
     );
   }
@@ -341,14 +371,9 @@ function checkStatusBar(html: string, state: GmState, failures: string[]): void 
 
 /** Extract data-prompt attribute values from action cards (not footer buttons). */
 function extractActionPrompts(html: string): string[] {
-  const prompts: string[] = [];
-  const pattern = /class="action-card"[^>]*data-prompt="([^"]*)"/g;
-  let match: RegExpExecArray | null;
-  while ((match = pattern.exec(html)) !== null) prompts.push(match[1]!);
-  // Also catch data-prompt before class
-  const alt = /data-prompt="([^"]*)"[^>]*class="action-card"/g;
-  while ((match = alt.exec(html)) !== null) prompts.push(match[1]!);
-  return prompts;
+  return extractPromptElements(html)
+    .filter(el => el.classes.includes('action-card'))
+    .map(el => el.prompt);
 }
 
 /** Golden Rule 4: action cards must not reveal which stat a check tests. */

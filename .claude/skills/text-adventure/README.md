@@ -29,6 +29,7 @@ cd .claude/skills/text-adventure && . ./setup.sh && tag save load /mnt/user-data
 | `tag export` | World-sharing via .lore.md files |
 | `tag verify` | Validate composed HTML before show_widget |
 | `tag build-css` | Extract, minify, and hash CDN CSS from style sources |
+| `tag setup` | Apply settings + character payloads in one step |
 
 Run `tag <command> --help` for subcommand details.
 
@@ -47,10 +48,11 @@ Every scene follows this sequence. No exceptions.
 
 1. **Setup** — `. ./setup.sh && tag state reset`
 2. **Scenario Select** — `tag render scenario-select --data '<json>'`
-3. **Game Settings** — `tag render settings --data '<json>'` — every choice in sendPrompt payload
+3. **Game Settings** — `tag render settings --data '<json>'` — every choice is captured into the setup payload
 4. **Character Creation** — `tag render character-creation --style <style> --data '<json>'`
-5. **Read Tier 1 Modules** — `tag state context` then read every listed file
-6. **Opening Scene** — `tag state sync --apply --scene 1` then `tag render scene --style <style>`
+5. **Apply Setup Payload** — `tag setup apply --settings '<json>' --character '<json>'`
+6. **Read Tier 1 Modules** — `tag state context` then read every listed file
+7. **Opening Scene** — `tag state sync --apply --scene 1` then `tag render scene --style <style>`
 
 ## Module Tiers
 

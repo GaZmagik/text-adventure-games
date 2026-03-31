@@ -111,7 +111,19 @@ describe('ship damage', () => {
   test('fails with non-numeric amount', async () => {
     const r = await handleState(['ship', 'damage', 'hull', 'lots']);
     expect(r.ok).toBe(false);
-    expect(r.error?.message).toMatch(/numeric/i);
+    expect(r.error?.message).toMatch(/positive amount/i);
+  });
+
+  test('fails with zero amount', async () => {
+    const r = await handleState(['ship', 'damage', 'hull', '0']);
+    expect(r.ok).toBe(false);
+    expect(r.error?.message).toMatch(/positive amount/i);
+  });
+
+  test('fails with negative amount', async () => {
+    const r = await handleState(['ship', 'damage', 'hull', '-10']);
+    expect(r.ok).toBe(false);
+    expect(r.error?.message).toMatch(/positive amount/i);
   });
 
   test('fails without ship init', async () => {
@@ -157,6 +169,18 @@ describe('ship repair', () => {
     const updated = await tryLoadState();
     expect(updated!.shipState!.scenesSinceRepair).toBe(0);
   });
+
+  test('fails with zero amount', async () => {
+    const r = await handleState(['ship', 'repair', 'engines', '0']);
+    expect(r.ok).toBe(false);
+    expect(r.error?.message).toMatch(/positive amount/i);
+  });
+
+  test('fails with negative amount', async () => {
+    const r = await handleState(['ship', 'repair', 'engines', '-10']);
+    expect(r.ok).toBe(false);
+    expect(r.error?.message).toMatch(/positive amount/i);
+  });
 });
 
 // ── ship power ──────────────────────────────────────────────────────
@@ -194,7 +218,19 @@ describe('ship power', () => {
   test('fails with non-numeric units', async () => {
     const r = await handleState(['ship', 'power', 'sensors', 'weapons', 'max']);
     expect(r.ok).toBe(false);
-    expect(r.error?.message).toMatch(/numeric/i);
+    expect(r.error?.message).toMatch(/positive amount/i);
+  });
+
+  test('fails with zero units', async () => {
+    const r = await handleState(['ship', 'power', 'sensors', 'weapons', '0']);
+    expect(r.ok).toBe(false);
+    expect(r.error?.message).toMatch(/positive amount/i);
+  });
+
+  test('fails with negative units', async () => {
+    const r = await handleState(['ship', 'power', 'sensors', 'weapons', '-5']);
+    expect(r.ok).toBe(false);
+    expect(r.error?.message).toMatch(/positive amount/i);
   });
 });
 

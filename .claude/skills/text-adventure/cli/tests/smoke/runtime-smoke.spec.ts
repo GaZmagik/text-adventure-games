@@ -7,6 +7,7 @@ import {
   append,
   createRenderRuntime,
   executeGeneratedCode,
+  FakeElement,
   makeElement,
 } from '../support/runtime-harness';
 
@@ -36,56 +37,59 @@ function createSmokeRuntime(options: { reducedMotion?: boolean } = {}) {
 
 /** Stub initTagScene — builds with a bound env reference for correct window/sendPrompt wiring. */
 function createInitTagScene(env: ReturnType<typeof createSmokeRuntime>) {
-  return function initTagScene(shadow: Record<string, unknown>): void {
-    const doc = shadow as {
-      getElementById: (id: string) => Record<string, unknown> | null;
-      querySelectorAll: (sel: string) => Array<Record<string, unknown>>;
-    };
-    const w = env.window as Record<string, Record<string, unknown>>;
-    w.tag = w.tag || {};
-    w.tag.togglePanel = function(panelName: unknown, btn: unknown) {
+  type TagApi = {
+    togglePanel: (panelName: unknown, btn?: FakeElement | null) => void;
+    closePanel: () => void;
+  };
+
+  return function initTagScene(shadow: FakeElement): void {
+    const doc = shadow;
+    const tag: Partial<TagApi> = {};
+    env.window.tag = tag;
+
+    tag.togglePanel = function(panelName: unknown, btn?: FakeElement | null) {
       const overlay = doc.getElementById('panel-overlay');
       const sceneContent = doc.getElementById('scene-content');
       const title = doc.getElementById('panel-title-text');
-      if (overlay) (overlay as Record<string, Record<string, string>>).style.display = 'block';
-      if (sceneContent) (sceneContent as Record<string, Record<string, string>>).style.display = 'none';
-      if (title) (title as Record<string, string>).textContent = String(panelName).charAt(0).toUpperCase() + String(panelName).slice(1);
-      if (btn) (btn as Record<string, (...args: unknown[]) => void>).setAttribute('aria-expanded', 'true');
+      if (overlay) overlay.style.display = 'block';
+      if (sceneContent) sceneContent.style.display = 'none';
+      if (title) title.textContent = String(panelName).charAt(0).toUpperCase() + String(panelName).slice(1);
+      if (btn) btn.setAttribute('aria-expanded', 'true');
     };
-    w.tag.closePanel = function() {
+
+    tag.closePanel = function() {
       const overlay = doc.getElementById('panel-overlay');
       const sceneContent = doc.getElementById('scene-content');
-      if (overlay) (overlay as Record<string, Record<string, string>>).style.display = 'none';
-      if (sceneContent) (sceneContent as Record<string, Record<string, string>>).style.display = 'block';
-      doc.querySelectorAll('.footer-btn[aria-expanded]').forEach(function(b: Record<string, unknown>) {
-        (b as Record<string, (...args: unknown[]) => void>).setAttribute('aria-expanded', 'false');
+      if (overlay) overlay.style.display = 'none';
+      if (sceneContent) sceneContent.style.display = 'block';
+      doc.querySelectorAll('.footer-btn[aria-expanded]').forEach(function(b) {
+        b.setAttribute('aria-expanded', 'false');
       });
     };
+
     const continueBtn = doc.getElementById('continue-reveal-btn');
     if (continueBtn) {
-      (continueBtn as Record<string, (...args: unknown[]) => void>).addEventListener('click', function() {
+      continueBtn.addEventListener('click', function() {
         const brief = doc.getElementById('reveal-brief');
         const full = doc.getElementById('reveal-full');
-        if (brief) (brief as Record<string, Record<string, string>>).style.display = 'none';
-        if (full) (full as Record<string, Record<string, string>>).style.display = 'block';
+        if (brief) brief.style.display = 'none';
+        if (full) full.style.display = 'block';
       });
     }
     const panelCloseBtn = doc.getElementById('panel-close-btn');
     if (panelCloseBtn) {
-      (panelCloseBtn as Record<string, (...args: unknown[]) => void>).addEventListener('click', function() {
-        (w.tag.closePanel as () => void)();
+      panelCloseBtn.addEventListener('click', function() {
+        tag.closePanel?.();
       });
     }
-    doc.querySelectorAll('.footer-btn[data-panel]').forEach(function(btn: Record<string, unknown>) {
-      (btn as Record<string, (...args: unknown[]) => void>).addEventListener('click', function() {
-        (w.tag.togglePanel as (...args: unknown[]) => void)(
-          (btn as Record<string, (...args: unknown[]) => string>).getAttribute('data-panel'), btn,
-        );
+    doc.querySelectorAll('.footer-btn[data-panel]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        tag.togglePanel?.(btn.getAttribute('data-panel'), btn);
       });
     });
-    doc.querySelectorAll('.footer-btn[data-prompt]').forEach(function(btn: Record<string, unknown>) {
-      (btn as Record<string, (...args: unknown[]) => void>).addEventListener('click', function() {
-        const prompt = (btn as Record<string, (...args: unknown[]) => string>).getAttribute('data-prompt');
+    doc.querySelectorAll('.footer-btn[data-prompt]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        const prompt = btn.getAttribute('data-prompt');
         env.sendPrompt(prompt);
       });
     });

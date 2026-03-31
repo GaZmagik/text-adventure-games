@@ -42,4 +42,11 @@ describe('renderCharacterCreation pronouns and name randomiser', () => {
     expect(html).toContain('pronouns');
     expect(html).toContain('selectedPronouns');
   });
+
+  test('confirm script copies synthesized prompt when sendPrompt is unavailable', () => {
+    const html = renderCharacterCreation(null, '');
+    expect(html).toContain("document.execCommand('copy')");
+    expect(html).toContain("btn.textContent = 'Copied! Paste as your reply.'");
+    expect(html).toContain("btn.setAttribute('title', prompt)");
+  });
 });

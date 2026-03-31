@@ -189,9 +189,17 @@ async function handleRedact(args: string[]): Promise<CommandResult> {
   }
 
   const oldState = entry.state;
+  const oldReason = entry.redactedReason ?? null;
   entry.state = 'redacted';
+  entry.redactedReason = flags.reason;
 
-  recordHistory(state, 'state codex redact', `codexMutations.${id}.state`, oldState, 'redacted');
+  recordHistory(
+    state,
+    'state codex redact',
+    `codexMutations.${id}`,
+    { state: oldState, redactedReason: oldReason },
+    { state: entry.state, redactedReason: entry.redactedReason },
+  );
   await saveState(state);
 
   return ok(entry, COMMAND);

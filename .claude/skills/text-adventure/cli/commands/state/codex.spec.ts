@@ -217,6 +217,7 @@ describe('codex redact', () => {
     const state = await tryLoadState();
     const entry = state!.codexMutations.find(e => e.id === 'evt_01')!;
     expect(entry.state).toBe('redacted');
+    expect(entry.redactedReason).toBe('mindwipe trap');
   });
 
   test('fails if entry does not exist', async () => {
@@ -243,7 +244,21 @@ describe('codex redact', () => {
     expect(r.ok).toBe(true);
 
     const state = await tryLoadState();
-    expect(state!.codexMutations.find(e => e.id === 'evt_01')!.state).toBe('redacted');
+    const entry = state!.codexMutations.find(e => e.id === 'evt_01')!;
+    expect(entry.state).toBe('redacted');
+    expect(entry.redactedReason).toBe('memory loss');
+  });
+
+  test('records redact reason in state history payload', async () => {
+    await handleState(['codex', 'redact', 'evt_01', '--reason', 'mindwipe trap']);
+
+    const state = await tryLoadState();
+    const last = state!._stateHistory[state!._stateHistory.length - 1];
+    expect(last).toBeDefined();
+    expect(last!.command).toBe('state codex redact');
+    expect(last!.path).toBe('codexMutations.evt_01');
+    expect(last!.oldValue).toEqual({ state: 'locked', redactedReason: null });
+    expect(last!.newValue).toEqual({ state: 'redacted', redactedReason: 'mindwipe trap' });
   });
 });
 

@@ -59,10 +59,27 @@ export function renderArcComplete(state: GmState | null, styleName: string, opti
     <button class="arc-action-btn arc-action-primary" data-prompt="Begin Act ${esc(String(arc + 1))}. Carry forward character progression, faction standings, and world consequences. Run tag state set arc ${esc(String(arc + 1))} then render the next act opener." title="Begin Act ${esc(String(arc + 1))}. Carry forward character progression, faction standings, and world consequences.">Continue to Act ${esc(String(arc + 1))}</button>
   </div>
 </div>`,
-    script: `shadow.querySelectorAll('.arc-action-btn[data-prompt]').forEach(function(btn) {
+    script: `function sendOrCopyPrompt(btn, prompt) {
+  var ta = document.createElement('textarea');
+  ta.value = prompt;
+  ta.style.cssText = 'position:fixed;opacity:0';
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+  if (typeof sendPrompt === 'function') {
+    sendPrompt(prompt);
+  } else {
+    var orig = btn.textContent;
+    btn.textContent = 'Copied! Paste as your reply.';
+    setTimeout(function() { btn.textContent = orig; }, 3000);
+  }
+}
+
+shadow.querySelectorAll('.arc-action-btn[data-prompt]').forEach(function(btn) {
   btn.addEventListener('click', function() {
     var prompt = this.getAttribute('data-prompt');
-    if (typeof sendPrompt === 'function') sendPrompt(prompt);
+    sendOrCopyPrompt(this, prompt);
   });
 });`,
   });

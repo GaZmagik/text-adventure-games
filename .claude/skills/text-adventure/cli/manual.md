@@ -61,7 +61,7 @@ run before render to pass the sync gate.
 
 | Command | Subcommands | Key Flags | Example |
 |---------|-------------|-----------|---------|
-| `tag state` | `get`, `set`, `reset`, `create-npc`, `validate`, `history`, `context`, `sync` | `--tier`, `--name`, `--pronouns`, `--role`, `--apply`, `--scene`, `--room` | `tag state create-npc nyx_01 --tier nemesis --name "Nyx" --pronouns they/them --role antagonist` |
+| `tag state` | `get`, `set`, `reset`, `create-npc`, `codex`, `crew`, `ship`, `validate`, `history`, `context`, `schema`, `sync` | `--tier`, `--name`, `--pronouns`, `--role`, `--apply`, `--scene`, `--room` | `tag state ship init --name "Wayfarer"` |
 | `tag compute` | `contest`, `hazard`, `encounter`, `levelup` | `--dc` (required for hazard) | `tag compute contest WIS spy_03` / `tag compute hazard CON --dc 14` |
 | `tag render` | `scene`, `combat-turn`, `dialogue`, `dice`, `dice-pool`, `character-creation`, `settings`, `character`, `ticker`, `ship`, `crew`, `codex`, `map`, `starchart`, `footer`, `save-div`, `levelup`, `recap`, `scenario-select` | `--style`, `--data` | `tag render scene --style parchment` |
 | `tag save` | `generate`, `load`, `validate`, `migrate` | None | `tag save generate` |
@@ -70,6 +70,7 @@ run before render to pass the sync gate.
 | `tag rules` | (none), `<category>`, `<keyword>` | None | `tag rules output` |
 | `tag export` | `generate`, `load`, `validate` | None | `tag export generate` / `tag export load /path/to/world.lore.md` |
 | `tag build-css` | — | `--output-dir` | `tag build-css` |
+| `tag setup` | `apply` | `--settings`, `--character` | `tag setup apply --settings '{...}' --character '{...}'` |
 
 ### `--data` Flag (render)
 
@@ -182,9 +183,11 @@ Widget templates call `wrapInShadowDom()` which bootstraps a Shadow DOM root wit
 to the CDN-hosted CSS file for the active style. This eliminates inline CSS from widget output,
 reducing token cost by ~95%.
 
-The CDN base URL is `https://gazmagik.github.io/text-adventure-games/.claude/skills/text-adventure/assets/css/`.
-The `assets/` directory is excluded from the skill zip — CDN assets are served from GitHub Pages,
-not bundled.
+The CDN base is generated into `assets/cdn-manifest.ts` and points at jsDelivr:
+`https://cdn.jsdelivr.net/gh/GaZmagik/text-adventure-games@<ref>/.claude/skills/text-adventure/assets`.
+Feature branches use the current branch ref for testing; the final release cut swaps that ref to
+the immutable release tag. The `assets/` directory is excluded from the skill zip because those
+files are served from the CDN, not bundled into the delivery archive.
 
 Run automatically by `scripts/zip.sh` before building the skill zip.
 

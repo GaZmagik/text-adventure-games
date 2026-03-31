@@ -50,4 +50,11 @@ describe('renderSettings default backfill', () => {
     const matches = html.match(/data-value="ship-systems"/g);
     expect(matches).toHaveLength(1);
   });
+
+  test('confirm script copies synthesized prompt when sendPrompt is unavailable', () => {
+    const html = renderSettings(null, '', {});
+    expect(html).toContain("document.execCommand('copy')");
+    expect(html).toContain("btn.textContent = 'Copied! Paste as your reply.'");
+    expect(html).toContain("btn.setAttribute('title', prompt)");
+  });
 });

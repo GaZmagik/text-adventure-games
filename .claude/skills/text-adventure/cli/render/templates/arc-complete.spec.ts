@@ -54,4 +54,10 @@ describe('renderArcComplete', () => {
     const html = renderArcComplete(state, '', { data: { summary: 'The station fell silent.' } });
     expect(html).toContain('The station fell silent.');
   });
+
+  test('action script copies prompts when sendPrompt is unavailable', () => {
+    const html = renderArcComplete(null, '');
+    expect(html).toContain("document.execCommand('copy')");
+    expect(html).toContain("btn.textContent = 'Copied! Paste as your reply.'");
+  });
 });

@@ -80,7 +80,11 @@ describe('render modulesRequired and featureChecklist', () => {
     const result = await handleRender(['ticker']);
     expect(result.ok).toBe(true);
     const data = result.data as Record<string, unknown>;
-    const guidance = data.craftGuidance as Record<string, Record<string, string>>;
+    const guidance = data.craftGuidance as {
+      compositionNotes: {
+        narrativeClasses: string;
+      };
+    };
     expect(guidance.compositionNotes.narrativeClasses).toBeDefined();
     expect(guidance.compositionNotes.narrativeClasses).toContain('nar-item');
     expect(guidance.compositionNotes.narrativeClasses).toContain('nar-npc');

@@ -59,4 +59,10 @@ describe('names loader', () => {
     }
     expect(foundReal).toBe(true);
   });
+
+  test('reuses the parsed name pool across repeated calls', () => {
+    const first = loadNames();
+    const second = loadNames();
+    expect(second).toBe(first);
+  });
 });

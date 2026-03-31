@@ -76,12 +76,29 @@ export function renderLevelup(state: GmState | null, styleName: string, options?
     ${abilityOptions.map(a => `<button class="ability-card" data-prompt="I choose the ${esc(a)} ability" title="I choose the ${esc(a)} ability" aria-pressed="false">${esc(a)}</button>`).join('\n    ')}
   </div>` : ''}
 </div>`,
-    script: `shadow.querySelectorAll('.ability-card[data-prompt]').forEach(function(btn) {
+    script: `function sendOrCopyPrompt(btn, prompt) {
+  var ta = document.createElement('textarea');
+  ta.value = prompt;
+  ta.style.cssText = 'position:fixed;opacity:0';
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+  if (typeof sendPrompt === 'function') {
+    sendPrompt(prompt);
+  } else {
+    var orig = btn.textContent;
+    btn.textContent = 'Copied! Paste as your reply.';
+    setTimeout(function() { btn.textContent = orig; }, 3000);
+  }
+}
+
+shadow.querySelectorAll('.ability-card[data-prompt]').forEach(function(btn) {
   btn.addEventListener('click', function() {
     this.setAttribute('aria-pressed', 'true');
     this.disabled = true;
     var prompt = this.getAttribute('data-prompt');
-    if (typeof sendPrompt === 'function') sendPrompt(prompt);
+    sendOrCopyPrompt(this, prompt);
   });
 });`,
   });

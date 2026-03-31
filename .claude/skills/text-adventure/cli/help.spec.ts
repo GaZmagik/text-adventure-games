@@ -98,16 +98,22 @@ describe('getCommandHelp', () => {
     expect(result.command).toBe('help');
   });
 
-  test('state help includes get, set, create-npc, validate, reset, history subcommands', () => {
+  test('state help includes current v1.3.0 subcommands', () => {
     const result = getCommandHelp('state');
     const data = result.data as { subcommands: { name: string }[] };
     const names = data.subcommands.map(s => s.name);
     expect(names).toContain('get');
     expect(names).toContain('set');
     expect(names).toContain('create-npc');
+    expect(names).toContain('codex');
+    expect(names).toContain('crew');
+    expect(names).toContain('ship');
     expect(names).toContain('validate');
     expect(names).toContain('reset');
     expect(names).toContain('history');
+    expect(names).toContain('context');
+    expect(names).toContain('schema');
+    expect(names).toContain('sync');
   });
 
   test('each subcommand has usage and example fields', () => {
@@ -196,6 +202,14 @@ describe('getCommandHelp', () => {
     const data = result.data as { subcommands: { name: string }[] };
     const names = data.subcommands.map(s => s.name);
     expect(names).toContain('--commands');
+  });
+
+  test('getCommandHelp("setup") includes apply subcommand', () => {
+    const result = getCommandHelp('setup');
+    expect(result.ok).toBe(true);
+    const data = result.data as { subcommands: { name: string }[] };
+    const names = data.subcommands.map(s => s.name);
+    expect(names).toContain('apply');
   });
 
   test('getCommandHelp("rules") includes category subcommand', () => {

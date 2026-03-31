@@ -114,6 +114,7 @@ export type CodexMutation = {
   discoveredAt?: number;
   via?: string;
   secrets?: string[];
+  redactedReason?: string;
 };
 
 // ── Rolls ──────────────────────────────────────────────────────────
@@ -335,4 +336,3 @@ export type CommandResult<T = unknown> = {
   state_snapshot?: Partial<GmState> | null;
   _compactionAlert?: { detected: boolean; recovered: boolean; message: string; modulesRequired?: string[] } | null;
 };
-

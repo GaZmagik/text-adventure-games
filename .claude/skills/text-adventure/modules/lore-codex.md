@@ -115,6 +115,8 @@ const codexEntry = {
 | `redacted` | Title visible, all content replaced with `[CLASSIFIED]` | Player knew, then the knowledge was taken (amnesia, mind-wipe, etc.) |
 
 The `redacted` state is for dramatic moments — not a common mechanic. Use sparingly.
+When a GM uses `tag state codex redact <id> --reason <reason>`, the reason is stored as
+GM-side audit metadata (`redactedReason`) in state/history. It is not player-facing codex content.
 
 ---
 

@@ -5,6 +5,9 @@
 .claude/memory/
 .claude/agent-memory/
 .claude/accord/
+.claude/plans/
+.claude/flags/
+.claude/handover/
 
 # Node modules (dev-only type definitions — Bun installs via setup.sh)
 node_modules/
@@ -30,6 +33,3 @@ logs/
 # OS files
 .DS_Store
 Thumbs.db
-
-# PDF source files (too large for git)
-star-wars-rpg/*.pdf

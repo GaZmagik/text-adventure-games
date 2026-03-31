@@ -186,6 +186,24 @@ var archetypeMechanics = ${serialiseInlineScriptData(archetypes.map(a => ({
   abilities: a.equipment ?? a.abilities ?? [],
 })))};
 
+function sendOrCopyPrompt(btn, prompt) {
+  btn.setAttribute('title', prompt);
+  var ta = document.createElement('textarea');
+  ta.value = prompt;
+  ta.style.cssText = 'position:fixed;opacity:0';
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+  if (typeof sendPrompt === 'function') {
+    sendPrompt(prompt);
+  } else {
+    var orig = btn.textContent;
+    btn.textContent = 'Copied! Paste as your reply.';
+    setTimeout(function() { btn.textContent = orig; }, 3000);
+  }
+}
+
 shadow.querySelectorAll('.archetype-card').forEach(function(card) {
   card.addEventListener('click', function() {
     shadow.querySelectorAll('.archetype-card').forEach(function(c) {
@@ -300,8 +318,7 @@ shadow.getElementById('creation-confirm').addEventListener('click', function() {
     abilities: mech.abilities || []
   };
   var prompt = 'Create character: ' + JSON.stringify(payload);
-  shadow.getElementById('creation-confirm').setAttribute('title', prompt);
-  if (typeof sendPrompt === 'function') sendPrompt(prompt);
+  sendOrCopyPrompt(this, prompt);
 });`,
   });
 }

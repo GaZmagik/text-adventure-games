@@ -91,10 +91,27 @@ export function renderScenarioSelect(_state: GmState | null, styleName: string, 
   <p style="margin-top:8px;font-size:11px;">Fields: title (required), hook or description, genres or genre, difficulty, tags, modules</p>
 </div>`}
 </div>`,
-    script: `shadow.querySelectorAll('.scenario-select-btn[data-prompt]').forEach(function(btn) {
+    script: `function sendOrCopyPrompt(btn, prompt) {
+  var ta = document.createElement('textarea');
+  ta.value = prompt;
+  ta.style.cssText = 'position:fixed;opacity:0';
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+  if (typeof sendPrompt === 'function') {
+    sendPrompt(prompt);
+  } else {
+    var orig = btn.textContent;
+    btn.textContent = 'Copied! Paste as your reply.';
+    setTimeout(function() { btn.textContent = orig; }, 3000);
+  }
+}
+
+shadow.querySelectorAll('.scenario-select-btn[data-prompt]').forEach(function(btn) {
   btn.addEventListener('click', function() {
     var prompt = this.getAttribute('data-prompt');
-    if (typeof sendPrompt === 'function') sendPrompt(prompt);
+    sendOrCopyPrompt(this, prompt);
   });
 });`,
   });
