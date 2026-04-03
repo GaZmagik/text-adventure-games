@@ -31,6 +31,7 @@ const VALID_TOP_KEYS_ARRAY = [
   'navPlottedCourse', 'arc', 'arcType', 'carryForward', 'arcHistory',
   '_lastComputation', '_stateHistory', '_schemaVersion', '_compactionCount', '_pendingRolls', '_turnCount',
   '_modulesRead', '_proseCraftEpoch', '_styleReadEpoch', '_levelupPending',
+  'authoredBody', 'outputStyle', 'pacingProfile', 'authoredSourceId', '_authoredLoreReads',
 ] as const satisfies readonly (keyof Required<GmState>)[];
 // Exhaustiveness check: ensures every key of GmState is present in the array above.
 // If this line errors, add the missing key(s) to VALID_TOP_KEYS_ARRAY.

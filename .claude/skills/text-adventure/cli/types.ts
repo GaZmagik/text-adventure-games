@@ -335,6 +335,11 @@ export type GmState = {
   _styleReadEpoch?: number;
   _turnCount?: number;
   _levelupPending?: boolean;
+  authoredBody?: string;
+  outputStyle?: string;
+  pacingProfile?: 'fast' | 'normal' | 'slow';
+  authoredSourceId?: string;
+  _authoredLoreReads?: Record<string, number>;
 };
 
 // ── Command Types ──────────────────────────────────────────────────
