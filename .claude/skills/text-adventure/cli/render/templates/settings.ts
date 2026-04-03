@@ -46,8 +46,8 @@ export function renderSettings(_state: GmState | null, styleName: string, option
   const DEFAULT_DIFFICULTIES = ['easy', 'normal', 'hard', 'brutal'];
   const DEFAULT_PACING = ['fast', 'normal', 'slow'];
   const DEFAULT_STYLES = ['station', 'terminal', 'parchment', 'neon', 'brutalist', 'art-deco', 'ink-wash', 'blueprint', 'stained-glass', 'sveltekit', 'weathered', 'holographic'];
-  const TIER1_MODULES = ['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex'];
-  const DEFAULT_MODULES = [...TIER1_MODULES, 'bestiary', 'story-architect', 'ship-systems', 'crew-manifest', 'star-chart', 'geo-map', 'procedural-world-gen', 'world-history', 'lore-codex', 'rpg-systems', 'ai-npc', 'atmosphere', 'audio', 'adventure-exporting'];
+  const TIER1_MODULES = ['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex', 'arc-patterns'];
+  const DEFAULT_MODULES = [...TIER1_MODULES, 'bestiary', 'story-architect', 'ship-systems', 'crew-manifest', 'star-chart', 'geo-map', 'procedural-world-gen', 'world-history', 'lore-codex', 'rpg-systems', 'ai-npc', 'atmosphere', 'audio', 'adventure-exporting', 'pre-generated-characters', 'genre-mechanics', 'scenarios', 'adventure-authoring'];
 
   const merge = (provided: string[] | undefined, defaults: string[]): string[] => {
     if (!provided) return defaults;
