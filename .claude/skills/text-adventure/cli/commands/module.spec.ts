@@ -97,6 +97,38 @@ describe('tag module activate-tier', () => {
   });
 });
 
+describe('prose-craft epoch stamping', () => {
+  test('activating prose-craft stamps _proseCraftEpoch with _compactionCount', async () => {
+    await handleState(['reset']);
+    await handleState(['set', '_compactionCount', '5']);
+    await handleModule(['activate', 'prose-craft']);
+    const state = await loadState();
+    expect(state._proseCraftEpoch).toBe(5);
+  });
+
+  test('activating prose-craft stamps _proseCraftEpoch as 0 when no compaction', async () => {
+    await handleState(['reset']);
+    await handleModule(['activate', 'prose-craft']);
+    const state = await loadState();
+    expect(state._proseCraftEpoch).toBe(0);
+  });
+
+  test('activate-tier 1 stamps _proseCraftEpoch', async () => {
+    await handleState(['reset']);
+    await handleState(['set', '_compactionCount', '2']);
+    await handleModule(['activate-tier', '1']);
+    const state = await loadState();
+    expect(state._proseCraftEpoch).toBe(2);
+  });
+
+  test('activating a non-prose-craft module does not stamp _proseCraftEpoch', async () => {
+    await handleState(['reset']);
+    await handleModule(['activate', 'core-systems']);
+    const state = await loadState();
+    expect(state._proseCraftEpoch).toBeUndefined();
+  });
+});
+
 describe('tag module status', () => {
   test('shows which modules are active vs read', async () => {
     await handleState(['reset']);

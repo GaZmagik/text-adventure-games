@@ -550,6 +550,32 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     }
   }
 
+  // Prose-craft freshness gate — scene rendering requires prose-craft to be fresh for this recovery epoch.
+  if (!isPreGame && widgetType === 'scene' && state) {
+    const epoch = state._compactionCount ?? 0;
+    if (state._proseCraftEpoch === undefined || state._proseCraftEpoch < epoch) {
+      return fail(
+        `Cannot render scene: prose-craft content is stale (loaded at epoch ${state._proseCraftEpoch ?? 'never'}, current epoch ${epoch}). `
+        + 'Module specs must be re-read after compaction.',
+        'Run `tag module activate prose-craft` to reload prose-craft content.',
+        'render',
+      );
+    }
+  }
+
+  // Style doc freshness gate — scene rendering requires active style + style-reference to be fresh.
+  if (!isPreGame && widgetType === 'scene' && state) {
+    const epoch = state._compactionCount ?? 0;
+    if (state._styleReadEpoch === undefined || state._styleReadEpoch < epoch) {
+      return fail(
+        `Cannot render scene: style guidance is stale (loaded at epoch ${state._styleReadEpoch ?? 'never'}, current epoch ${epoch}). `
+        + 'Visual style docs must be re-read after compaction.',
+        'Run `tag style activate` to reload the active visual style and style-reference.md.',
+        'render',
+      );
+    }
+  }
+
   // Per-turn verify gate — blocks rendering if the previous turn wasn't verified.
   // Only same-turn re-renders (composition) are allowed without verify.
   if (!isPreGame && widgetType === 'scene') {

@@ -337,3 +337,115 @@ describe('render output modes', () => {
     expect(result.data as string).toMatch(/^<!-- TAG-RENDER:ticker:[0-9a-f]{8} -->\n/);
   });
 });
+
+// ── Freshness gates ─────────────────────────────────────────────────
+
+describe('render freshness gates', () => {
+  function sceneReadyState() {
+    const state = createDefaultState();
+    state.visualStyle = 'station';
+    state.scene = 1;
+    state.currentRoom = 'bridge';
+    state.character = {
+      name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
+      level: 1, xp: 0, currency: 0, currencyName: 'credits',
+      stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+      modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+      proficiencyBonus: 2, proficiencies: [], abilities: [],
+      inventory: [], conditions: [],
+      equipment: { weapon: 'None', armour: 'None' },
+    };
+    state._modulesRead = [
+      'gm-checklist', 'prose-craft', 'core-systems',
+      'die-rolls', 'character-creation', 'save-codex',
+    ];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
+    state._compactionCount = 0;
+    return state;
+  }
+
+  test('scene render fails when prose-craft epoch is stale after compaction', async () => {
+    const state = sceneReadyState();
+    state._compactionCount = 3;
+    state._proseCraftEpoch = 1; // stale — behind compaction count
+    await saveState(state);
+
+    const result = await handleRender(['scene']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toMatch(/prose.craft/i);
+    expect(result.error!.corrective).toMatch(/tag module activate prose-craft/);
+  });
+
+  test('scene render fails when prose-craft epoch is undefined', async () => {
+    const state = sceneReadyState();
+    delete (state as any)._proseCraftEpoch;
+    await saveState(state);
+
+    const result = await handleRender(['scene']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toMatch(/prose.craft/i);
+  });
+
+  test('scene render fails when style read epoch is stale after compaction', async () => {
+    const state = sceneReadyState();
+    state._compactionCount = 2;
+    state._proseCraftEpoch = 2; // fresh — so prose-craft gate passes
+    state._styleReadEpoch = 0; // stale
+    await saveState(state);
+
+    const result = await handleRender(['scene']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toMatch(/style/i);
+    expect(result.error!.corrective).toMatch(/tag style activate/);
+  });
+
+  test('scene render fails when style read epoch is undefined', async () => {
+    const state = sceneReadyState();
+    state._proseCraftEpoch = 0; // fresh
+    delete (state as any)._styleReadEpoch;
+    await saveState(state);
+
+    const result = await handleRender(['scene']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toMatch(/style/i);
+  });
+
+  test('scene render succeeds when both epochs match compaction count', async () => {
+    const state = sceneReadyState();
+    state._compactionCount = 5;
+    state._proseCraftEpoch = 5;
+    state._styleReadEpoch = 5;
+    await saveState(state);
+
+    const result = await handleRender(['scene']);
+    // May still fail for other reasons (no HTML composition) but NOT for freshness
+    if (!result.ok) {
+      expect(result.error!.message).not.toMatch(/prose.craft/i);
+      expect(result.error!.message).not.toMatch(/style.*stale/i);
+    }
+  });
+
+  test('pre-game widgets are not affected by freshness gates', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'station';
+    delete (state as any)._proseCraftEpoch;
+    delete (state as any)._styleReadEpoch;
+    await saveState(state);
+
+    const result = await handleRender(['settings']);
+    // settings is pre-game — should not fail for freshness reasons
+    expect(result.ok).toBe(true);
+  });
+
+  test('non-scene in-game widgets are not affected by freshness gates', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'station';
+    delete (state as any)._proseCraftEpoch;
+    delete (state as any)._styleReadEpoch;
+    await saveState(state);
+
+    const result = await handleRender(['ticker']);
+    expect(result.ok).toBe(true);
+  });
+});

@@ -14,7 +14,8 @@ export type TopLevelCommandName =
   | 'export'
   | 'verify'
   | 'build-css'
-  | 'setup';
+  | 'setup'
+  | 'style';
 
 export type SubcommandHelp = {
   name: string;
@@ -43,6 +44,7 @@ export const TOP_LEVEL_COMMANDS = [
   'verify',
   'build-css',
   'setup',
+  'style',
 ] as const satisfies readonly TopLevelCommandName[];
 
 export const COMMAND_HELP: Record<TopLevelCommandName, CommandHelp> = {
@@ -166,6 +168,13 @@ export const COMMAND_HELP: Record<TopLevelCommandName, CommandHelp> = {
     description: 'One-command game initialisation. Applies settings + character data, sets visual style, rulebook, modules, pronouns, and calculates modifiers.',
     subcommands: [
       { name: 'apply', usage: "tag setup apply --settings '<json>' --character '<json>'", description: 'Apply settings and character creation payloads in one call. Replaces 10+ manual state set commands.', example: "tag setup apply --settings '{\"rulebook\":\"d20_system\",\"visualStyle\":\"station\",\"modules\":[...]}' --character '{\"name\":\"Dren\",\"stats\":{...},\"hp\":9,\"ac\":13,\"proficiencies\":[...],\"pronouns\":\"he/him\"}'" },
+    ],
+  },
+  style: {
+    command: 'tag style',
+    description: 'Load visual style guidance into GM context. Returns full style file and style-reference.md content, stamps freshness epoch for render gating.',
+    subcommands: [
+      { name: 'activate', usage: 'tag style activate', description: 'Read the active visual style file and style-reference.md — stamps _styleReadEpoch so scene rendering is unblocked', example: 'tag style activate' },
     ],
   },
 };

@@ -57,6 +57,11 @@ async function activateOne(name: string): Promise<CommandResult> {
   const addedToRead = !read.includes(name);
   if (addedToRead) read.push(name);
 
+  // Stamp prose-craft freshness epoch
+  if (name === 'prose-craft') {
+    state._proseCraftEpoch = state._compactionCount ?? 0;
+  }
+
   await saveState(state);
 
   return ok({
@@ -91,6 +96,9 @@ async function activateTier(tierStr: string): Promise<CommandResult> {
 
     if (!state.modulesActive.includes(name)) state.modulesActive.push(name);
     if (!read.includes(name)) read.push(name);
+    if (name === 'prose-craft') {
+      state._proseCraftEpoch = state._compactionCount ?? 0;
+    }
 
     results.push({ name, content, chars: content.length });
   }

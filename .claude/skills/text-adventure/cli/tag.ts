@@ -199,6 +199,11 @@ async function main(): Promise<void> {
       result = await handleSetup(args.slice(1));
       break;
     }
+    case 'style': {
+      const { handleStyle } = await import('./commands/style');
+      result = await handleStyle(args.slice(1));
+      break;
+    }
     default:
       result = unknownCommand(command!);
   }

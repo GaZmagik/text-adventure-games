@@ -331,6 +331,8 @@ export type GmState = {
   _compactionCount?: number;
   _pendingRolls?: PendingRoll[];
   _modulesRead?: string[];
+  _proseCraftEpoch?: number;
+  _styleReadEpoch?: number;
   _turnCount?: number;
   _levelupPending?: boolean;
 };

@@ -571,6 +571,67 @@ describe('state context', () => {
   });
 });
 
+// ── context freshness reporting ─────────────────────────────────────
+
+describe('state context freshness', () => {
+  test('reports proseCraftFresh true when epoch matches compaction count', async () => {
+    await handleState(['reset']);
+    await handleState(['set', '_compactionCount', '3']);
+    await handleState(['set', '_proseCraftEpoch', '3']);
+    await handleState(['set', '_styleReadEpoch', '3']);
+    const result = await handleState(['context']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.proseCraftFresh).toBe(true);
+  });
+
+  test('reports proseCraftFresh false when epoch is stale', async () => {
+    await handleState(['reset']);
+    await handleState(['set', '_compactionCount', '3']);
+    await handleState(['set', '_proseCraftEpoch', '1']);
+    const result = await handleState(['context']);
+    const data = result.data as Record<string, unknown>;
+    expect(data.proseCraftFresh).toBe(false);
+  });
+
+  test('reports styleDocsFresh true when epoch matches compaction count', async () => {
+    await handleState(['reset']);
+    await handleState(['set', '_compactionCount', '2']);
+    await handleState(['set', '_styleReadEpoch', '2']);
+    await handleState(['set', '_proseCraftEpoch', '2']);
+    const result = await handleState(['context']);
+    const data = result.data as Record<string, unknown>;
+    expect(data.styleDocsFresh).toBe(true);
+  });
+
+  test('reports styleDocsFresh false when epoch is undefined', async () => {
+    await handleState(['reset']);
+    const result = await handleState(['context']);
+    const data = result.data as Record<string, unknown>;
+    expect(data.styleDocsFresh).toBe(false);
+  });
+
+  test('includes staleHint with commands when content is stale', async () => {
+    await handleState(['reset']);
+    await handleState(['set', '_compactionCount', '5']);
+    const result = await handleState(['context']);
+    const data = result.data as Record<string, unknown>;
+    expect(typeof data.staleHint).toBe('string');
+    expect(data.staleHint as string).toMatch(/tag module activate prose-craft/);
+    expect(data.staleHint as string).toMatch(/tag style activate/);
+  });
+
+  test('staleHint is empty when everything is fresh', async () => {
+    await handleState(['reset']);
+    await handleState(['set', '_compactionCount', '0']);
+    await handleState(['set', '_proseCraftEpoch', '0']);
+    await handleState(['set', '_styleReadEpoch', '0']);
+    const result = await handleState(['context']);
+    const data = result.data as Record<string, unknown>;
+    expect(data.staleHint).toBe('');
+  });
+});
+
 // ── create-npc — Phase 9 improved errors ──────────────────────────
 
 describe('state create-npc — Phase 9 improved error messages', () => {

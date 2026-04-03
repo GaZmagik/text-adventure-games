@@ -353,6 +353,15 @@ async function handleContext(): Promise<CommandResult> {
     }
   }
 
+  const epoch = state._compactionCount ?? 0;
+  const proseCraftFresh = state._proseCraftEpoch !== undefined && state._proseCraftEpoch >= epoch;
+  const styleDocsFresh = state._styleReadEpoch !== undefined && state._styleReadEpoch >= epoch;
+
+  const staleItems: string[] = [];
+  if (!proseCraftFresh) staleItems.push('Run `tag module activate prose-craft` to reload prose-craft content.');
+  if (!styleDocsFresh) staleItems.push('Run `tag style activate` to reload the active visual style and style-reference.md.');
+  const staleHint = staleItems.join(' ');
+
   return ok({
     required,
     tier1: [...tier1],
@@ -360,6 +369,9 @@ async function handleContext(): Promise<CommandResult> {
     moduleDigests,
     totalModules: active.length,
     modulesActive: active,
+    proseCraftFresh,
+    styleDocsFresh,
+    staleHint,
   }, 'state context');
 }
 

@@ -30,7 +30,7 @@ const VALID_TOP_KEYS_ARRAY = [
   'storyArchitect', 'shipState', 'crewMutations', 'mapState', 'systemResources',
   'navPlottedCourse', 'arc', 'arcType', 'carryForward', 'arcHistory',
   '_lastComputation', '_stateHistory', '_schemaVersion', '_compactionCount', '_pendingRolls', '_turnCount',
-  '_modulesRead', '_levelupPending',
+  '_modulesRead', '_proseCraftEpoch', '_styleReadEpoch', '_levelupPending',
 ] as const satisfies readonly (keyof Required<GmState>)[];
 // Exhaustiveness check: ensures every key of GmState is present in the array above.
 // If this line errors, add the missing key(s) to VALID_TOP_KEYS_ARRAY.
