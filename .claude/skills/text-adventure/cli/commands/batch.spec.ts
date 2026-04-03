@@ -3,6 +3,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { BATCH_COMMAND_HANDLERS, handleBatch } from './batch';
+import { TOP_LEVEL_COMMANDS } from '../metadata';
 import { saveState, createDefaultState, loadState, STATE_STORE_RUNTIME } from '../lib/state-store';
 import type { NpcMutation } from '../types';
 
@@ -351,5 +352,17 @@ describe('batch mode', () => {
       STATE_STORE_RUNTIME.writeFileSync = originalWrite;
       console.error = origErr;
     }
+  });
+});
+
+// ── Handler parity ────────────────────────────────────────────────
+
+describe('batch handler parity', () => {
+  const NON_BATCHABLE = new Set(['help', 'batch', 'build-css']);
+
+  test('BATCH_COMMAND_HANDLERS covers all batchable TOP_LEVEL_COMMANDS', () => {
+    const expected = TOP_LEVEL_COMMANDS.filter(c => !NON_BATCHABLE.has(c)).sort();
+    const actual = Object.keys(BATCH_COMMAND_HANDLERS).sort();
+    expect(actual).toEqual(expected);
   });
 });

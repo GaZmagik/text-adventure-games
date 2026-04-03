@@ -1,4 +1,4 @@
-import { realpathSync } from 'node:fs';
+import { realpathSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { homedir, tmpdir } from 'node:os';
 import { MAX_FILE_SIZE_BYTES } from './constants';
@@ -75,7 +75,7 @@ export async function readSafeTextFile(
   if (!(await file.exists())) {
     throw new Error(`${kind} file could not be read.`);
   }
-  if (file.size > MAX_FILE_SIZE_BYTES) {
+  if (statSync(filePath).size > MAX_FILE_SIZE_BYTES) {
     throw new Error(`${kind} file exceeds 10 MB size limit.`);
   }
 

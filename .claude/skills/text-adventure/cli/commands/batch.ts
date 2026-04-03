@@ -16,6 +16,9 @@ import { handleRules } from './rules';
 import { handleModule } from './module';
 import { handleExport } from './export';
 import { handleVerify } from './verify';
+import { handleStyle } from './style';
+import { handleSetup } from './setup';
+import { handleScenario } from './scenario';
 
 type ParsedLine = {
   raw: string;
@@ -227,6 +230,9 @@ export const BATCH_COMMAND_HANDLERS: Record<string, (args: string[]) => Promise<
   export: handleExport,
   verify: handleVerify,
   module: handleModule,
+  style: handleStyle,
+  setup: handleSetup,
+  scenario: handleScenario,
 };
 
 export async function handleBatch(args: string[]): Promise<CommandResult> {

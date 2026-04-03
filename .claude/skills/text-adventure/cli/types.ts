@@ -29,7 +29,7 @@ export type PreGeneratedCharacter = {
   pronouns: string;
   hook: string;
   background?: string;
-  stats: Record<string, number>;
+  stats: StatBlock;
   hp: number;
   ac: number;
   proficiencies: string[];

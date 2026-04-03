@@ -31,6 +31,7 @@ cd .claude/skills/text-adventure && . ./setup.sh && tag save load /mnt/user-data
 | `tag verify` | Validate composed HTML before show_widget |
 | `tag build-css` | Extract, minify, and hash CDN CSS from style sources |
 | `tag setup` | Apply settings + character payloads in one step |
+| `tag style` | Load visual style guidance into GM context |
 
 Run `tag <command> --help` for subcommand details.
 
@@ -72,7 +73,7 @@ Every scene follows this sequence. No exceptions.
 ### Tier 2 — Load when scenario activates (before opening scene)
 `scenarios`, `bestiary`, `story-architect`, `ship-systems`, `crew-manifest`,
 `star-chart`, `geo-map`, `procedural-world-gen`, `world-history`, `lore-codex`,
-`rpg-systems`, `ai-npc`, `atmosphere`, `audio`
+`rpg-systems`, `ai-npc`, `atmosphere`, `audio`, `pre-generated-characters`
 
 ### Tier 3 — Load on demand when player triggers
 `adventure-exporting`, `adventure-authoring`, `arc-patterns`, `genre-mechanics`

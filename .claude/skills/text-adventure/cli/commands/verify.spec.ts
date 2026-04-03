@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
 import { mkdtempSync, rmSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { handleVerify, getVerifyMarkerPath, signMarker, readSignedMarker } from './verify';
+import { handleVerify, getVerifyMarkerPath, signMarker, readSignedMarker, clearStateDirCache } from './verify';
 import { handleState } from './state';
 import { handleRender } from './render';
 import { loadState } from '../lib/state-store';
@@ -21,6 +21,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  clearStateDirCache();
   rmSync(tempDir, { recursive: true, force: true });
   if (originalEnv !== undefined) process.env.TAG_STATE_DIR = originalEnv;
   else delete process.env.TAG_STATE_DIR;

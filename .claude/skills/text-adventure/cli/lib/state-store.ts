@@ -1,7 +1,7 @@
 import { join, resolve } from 'node:path';
 import { homedir, tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
-import { mkdirSync, renameSync, writeFileSync, unlinkSync } from 'node:fs';
+import { mkdirSync, renameSync, writeFileSync, unlinkSync, statSync } from 'node:fs';
 import type { GmState } from '../types';
 import { MAX_ROLL_HISTORY, MAX_FILE_SIZE_BYTES, SCHEMA_VERSION } from './constants';
 import { validateState } from './validator';
@@ -61,29 +61,35 @@ function cloneState(state: GmState | null): GmState | null {
   return state ? structuredClone(state) : null;
 }
 
+/** Type predicate that validates raw JSON and narrows it to GmState without an unsafe cast. */
+function isValidGmState(raw: unknown): raw is GmState {
+  return validateState(raw).valid;
+}
+
 async function loadStateFromDisk(): Promise<GmState> {
   const path = getStatePath();
   const file = Bun.file(path);
   if (!(await file.exists())) {
     throw new Error('State file not found. Run "tag state reset" to create one.');
   }
-  if (file.size > MAX_FILE_SIZE_BYTES) throw new Error('State file exceeds 10 MB — possible corruption.');
+  if (statSync(path).size > MAX_FILE_SIZE_BYTES) throw new Error('State file exceeds 10 MB — possible corruption.');
   const raw: unknown = await file.json();
   if (!isPlausibleGmState(raw)) {
     throw new Error('State file does not contain a valid object.');
   }
-  const validation = validateState(raw);
-  if (!validation.valid) {
-    throw new Error(`State file is structurally invalid: ${validation.errors.join('; ')}`);
+  if (!isValidGmState(raw)) {
+    const { errors } = validateState(raw);
+    throw new Error(`State file is structurally invalid: ${errors.join('; ')}`);
   }
-  return raw as GmState;
+  return raw;
 }
 
 async function tryLoadStateFromDisk(): Promise<Record<string, unknown> | null> {
   try {
-    const file = Bun.file(getStatePath());
+    const statePath = getStatePath();
+    const file = Bun.file(statePath);
     if (!(await file.exists())) return null;
-    if (file.size > MAX_FILE_SIZE_BYTES) throw new Error('State file exceeds 10 MB — possible corruption.');
+    if (statSync(statePath).size > MAX_FILE_SIZE_BYTES) throw new Error('State file exceeds 10 MB — possible corruption.');
     const raw: unknown = await file.json();
     if (!isPlausibleGmState(raw)) return null;
     return raw;
@@ -206,11 +212,15 @@ export async function tryLoadState(): Promise<GmState | null> {
     if (activeStateStoreContext.state === undefined) {
       const raw = await tryLoadStateFromDisk();
       if (raw !== null) {
-        const validation = validateState(raw);
-        if (!validation.valid) {
-          console.error(`Warning: state.json failed validation: ${validation.errors.join('; ')}`);
+        if (!isValidGmState(raw)) {
+          const { errors } = validateState(raw);
+          console.error(`Warning: state.json failed validation: ${errors.join('; ')}`);
+          // Intentional: inspection commands (state validate, save generate) need the raw
+          // object even when invalid. The cast is scoped to this deliberate fallback path.
+          activeStateStoreContext.state = raw as GmState;
+        } else {
+          activeStateStoreContext.state = raw;
         }
-        activeStateStoreContext.state = raw as GmState;
       } else {
         activeStateStoreContext.state = null;
       }
@@ -219,11 +229,14 @@ export async function tryLoadState(): Promise<GmState | null> {
   }
   const raw = await tryLoadStateFromDisk();
   if (raw === null) return null;
-  const validation = validateState(raw);
-  if (!validation.valid) {
-    console.error(`Warning: state.json failed validation: ${validation.errors.join('; ')}`);
+  if (!isValidGmState(raw)) {
+    const { errors } = validateState(raw);
+    console.error(`Warning: state.json failed validation: ${errors.join('; ')}`);
+    // Intentional: inspection commands (state validate, save generate) need the raw
+    // object even when invalid. The cast is scoped to this deliberate fallback path.
+    return raw as GmState;
   }
-  return raw as GmState;
+  return raw;
 }
 
 export function createDefaultState(): GmState {

@@ -74,6 +74,7 @@ run before render to pass the sync gate.
 | `tag build-css` | — | `--output-dir` | `tag build-css` |
 | `tag setup` | `apply` | `--settings`, `--character` | `tag setup apply --settings '{...}' --character '{...}'` |
 | `tag style` | `activate` | None | `tag style activate` |
+| `tag help` | (default), `new-game`, `scene` | None | `tag help` |
 
 ### `--data` Flag (render)
 

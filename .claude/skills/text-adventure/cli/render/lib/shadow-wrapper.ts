@@ -91,7 +91,7 @@ export function wrapInShadowDom(opts: ShadowWrapperOptions): string {
     ':host{display:block;',
     'background:var(--sta-bg-primary,#1A1D2E);',
     'color:var(--sta-text-primary,#E8E6E3);',
-    'font-family:var(--sta-font-mono,monospace);',
+    "font-family:var(--sta-font-mono,'IBM Plex Mono','SF Mono','Cascadia Code','Consolas','Courier New',monospace);",
     '}',
     '.root{background:inherit;color:inherit;}',
   ].join('');

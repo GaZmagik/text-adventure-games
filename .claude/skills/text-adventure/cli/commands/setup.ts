@@ -7,6 +7,7 @@ import { ok, fail } from '../lib/errors';
 import { saveState, createDefaultState } from '../lib/state-store';
 import { parseArgs } from '../lib/args';
 import { clearWorkflowMarkers } from '../lib/workflow-markers';
+import { containsForbiddenKeys } from '../lib/security';
 
 function calcModifier(stat: number): number {
   return Math.floor((stat - 10) / 2);
@@ -95,6 +96,12 @@ export async function handleSetup(args: string[]): Promise<CommandResult> {
   let charData: Record<string, unknown>;
   try { settings = JSON.parse(settingsRaw); } catch { return fail('Invalid JSON in --settings flag.', 'Provide valid JSON.', 'setup'); }
   try { charData = JSON.parse(characterRaw); } catch { return fail('Invalid JSON in --character flag.', 'Provide valid JSON.', 'setup'); }
+  if (containsForbiddenKeys(settings)) {
+    return fail('--settings contains forbidden keys (__proto__, constructor, prototype).', 'Remove prohibited keys from --settings JSON.', 'setup');
+  }
+  if (containsForbiddenKeys(charData)) {
+    return fail('--character contains forbidden keys (__proto__, constructor, prototype).', 'Remove prohibited keys from --character JSON.', 'setup');
+  }
 
   // setup apply starts a new campaign state from scratch.
   const state = createDefaultState();

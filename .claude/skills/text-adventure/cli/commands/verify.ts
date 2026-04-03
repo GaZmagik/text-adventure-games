@@ -56,7 +56,9 @@ const VERIFY_RENDER_TYPE_MAP: Record<string, string> = {
   character: 'character-creation',
 };
 
+let _stateDirCache: string | undefined;
 function resolveStateDir(): string {
+  if (_stateDirCache !== undefined) return _stateDirCache;
   const raw = process.env.TAG_STATE_DIR || join(homedir(), '.tag');
   try {
     const resolved = realpathSync(resolve(raw));
@@ -65,6 +67,7 @@ function resolveStateDir(): string {
     if (!resolved.startsWith(home) && !resolved.startsWith(tmp)) {
       throw new Error(`State directory ${resolved} is outside allowed prefixes (${home}, ${tmp}).`);
     }
+    _stateDirCache = resolved;
     return resolved;
   } catch (err) {
     const fallback = resolve(raw);
@@ -73,8 +76,18 @@ function resolveStateDir(): string {
     if (!fallback.startsWith(home) && !fallback.startsWith(tmp)) {
       throw new Error(`State directory ${fallback} is outside allowed prefixes (${home}, ${tmp}).`);
     }
+    _stateDirCache = fallback;
     return fallback;
   }
+}
+export function clearStateDirCache(): void { _stateDirCache = undefined; }
+
+const _reCache = new Map<string, RegExp>();
+function getCachedRe(pattern: string, flags: string): RegExp {
+  const key = `${pattern}:${flags}`;
+  let re = _reCache.get(key);
+  if (!re) { re = new RegExp(pattern, flags); _reCache.set(key, re); }
+  return re;
 }
 
 export function getVerifyMarkerPath(): string {

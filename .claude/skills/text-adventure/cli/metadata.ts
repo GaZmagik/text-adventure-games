@@ -197,6 +197,7 @@ export const MUTATING_COMMANDS = new Set<string>([
   'verify',
   'module',
   'style',
+  'setup',
 ]);
 
 export const WIDGET_TYPE_NAMES = [

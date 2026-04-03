@@ -1,4 +1,4 @@
-import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import type { CommandResult } from '../types';
 import { ok, fail, noState } from '../lib/errors';
@@ -32,15 +32,16 @@ export async function handleStyle(args: string[]): Promise<CommandResult> {
     );
   }
 
-  const stylePath = join(STYLES_DIR, `${styleName}.md`);
-  if (!existsSync(stylePath)) {
+  const knownStyles = listStyles();
+  if (!knownStyles.includes(styleName)) {
     return fail(
-      `Style file not found: styles/${styleName}.md`,
-      `Available styles: ${listStyles().join(', ')}`,
+      `Unknown style: "${styleName}".`,
+      `Available styles: ${knownStyles.join(', ')}`,
       'style',
     );
   }
 
+  const stylePath = join(STYLES_DIR, `${styleName}.md`);
   const referencePath = join(STYLES_DIR, STYLE_REFERENCE);
   if (!existsSync(referencePath)) {
     return fail(
@@ -50,8 +51,8 @@ export async function handleStyle(args: string[]): Promise<CommandResult> {
     );
   }
 
-  const styleContent = readFileSync(stylePath, 'utf-8');
-  const referenceContent = readFileSync(referencePath, 'utf-8');
+  const styleContent = await Bun.file(stylePath).text();
+  const referenceContent = await Bun.file(referencePath).text();
 
   state._styleReadEpoch = state._compactionCount ?? 0;
   await saveState(state);

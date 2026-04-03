@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { homedir, tmpdir } from 'node:os';
 import type { CommandResult, GmState, TimeState } from '../../types';
+import { isAllowedPath } from '../../lib/path-security';
 import { ok, fail, noState } from '../../lib/errors';
 import { tryLoadState, saveState, getSyncMarkerPath } from '../../lib/state-store';
 import { validateState } from '../../lib/validator';
@@ -171,12 +171,7 @@ function checkCompaction(
   const transcriptsDir = process.env.TAG_TRANSCRIPTS_DIR || '/mnt/transcripts';
 
   const resolvedTranscripts = resolve(transcriptsDir);
-  const home = homedir();
-  const tmp = tmpdir();
-  const homePrefix = home === '/' ? home : home + '/';
-  const tmpPrefix = tmp === '/' ? tmp : tmp + '/';
-  const validPrefixes = [homePrefix, tmpPrefix, '/mnt/'];
-  if (!validPrefixes.some(prefix => resolvedTranscripts.startsWith(prefix))) {
+  if (!isAllowedPath(resolvedTranscripts)) {
     warnings.push(
       `Compaction check skipped: TAG_TRANSCRIPTS_DIR "${transcriptsDir}" is outside allowed paths `
       + '(home, temp, or /mnt/). Set TAG_TRANSCRIPTS_DIR to a valid location.',

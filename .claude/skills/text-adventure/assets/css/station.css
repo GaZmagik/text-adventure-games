@@ -455,23 +455,26 @@ background: var(--sta-bg-secondary); border: var(--sta-border-width) solid var(-
 #panel-overlay { display: none; padding: 0; }
 .panel-header {
 display: flex; align-items: baseline; justify-content: space-between;
-padding-bottom: 10px; margin-bottom: 12px;
-border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+padding-bottom: var(--sta-space-sm); margin-bottom: var(--sta-space-md);
+border-bottom: var(--sta-border-width) solid var(--sta-border-tertiary);
 }
 .panel-title {
-font-family: var(--ta-font-heading);
-font-size: 18px; font-weight: 600; color: var(--sta-text-primary, #EEF0FF);
+font-family: var(--sta-font-display);
+font-size: var(--sta-text-lg); font-weight: 600;
+color: var(--sta-text-primary);
+border-left: var(--sta-location-bar-width) solid var(--sta-location-bar-color);
+padding-left: var(--sta-space-sm);
 }
 .panel-close-btn {
-font-family: var(--ta-font-body);
-font-size: 11px; letter-spacing: 0.08em;
-background: transparent; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
-border-radius: var(--sta-radius-md, 6px); padding: 8px 14px;
-min-height: 44px; min-width: 44px; box-sizing: border-box;
-color: var(--sta-text-tertiary, #545880); cursor: pointer;
+font-family: var(--sta-font-mono);
+font-size: var(--sta-text-xs); letter-spacing: 0.1em;
+background: transparent; border: var(--sta-border-width) solid var(--sta-border-tertiary);
+border-radius: var(--sta-radius-md); padding: var(--sta-space-sm) var(--sta-space-md);
+min-height: var(--sta-touch-target); min-width: var(--sta-touch-target); box-sizing: border-box;
+color: var(--sta-text-tertiary); cursor: pointer;
 }
-.panel-close-btn:hover { border-color: var(--sta-border-secondary, rgba(154,160,192,0.35)); color: var(--sta-text-secondary, #9AA0C0); }
-.panel-content { display: none; }
+.panel-close-btn:hover { border-color: var(--sta-border-secondary); color: var(--sta-text-secondary); }
+.panel-content { display: none; font-family: var(--sta-font-serif); font-size: 13px; line-height: 1.7; color: var(--sta-text-secondary); }
 :host {
 --die-border-color:       ;
 --die-bg:                 ;

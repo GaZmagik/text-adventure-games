@@ -1,12 +1,13 @@
 #!/usr/bin/env bun
 import { readdirSync, readFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
-import { homedir, tmpdir } from 'node:os';
+import { homedir } from 'node:os';
 import { getTopLevelHelp, getCommandHelp } from './help';
 import type { CommandResult } from './types';
 import { VERSION } from './lib/version';
 import { TOP_LEVEL_COMMANDS } from './metadata';
 import { JOURNAL_FILENAME } from './commands/state/sync';
+import { isAllowedPath } from './lib/path-security';
 
 type CompactionAlert = {
   detected: boolean;
@@ -19,10 +20,7 @@ async function checkCompactionPreflight(): Promise<CompactionAlert | null> {
   const transcriptsDir = process.env.TAG_TRANSCRIPTS_DIR || '/mnt/transcripts';
   const resolved = resolve(transcriptsDir);
   const home = homedir();
-  const tmp = tmpdir();
-  const homePrefix = home === '/' ? home : home + '/';
-  const tmpPrefix = tmp === '/' ? tmp : tmp + '/';
-  if (![homePrefix, tmpPrefix, '/mnt/'].some(p => resolved.startsWith(p))) return null;
+  if (!isAllowedPath(resolved)) return null;
   try {
     const entries = readdirSync(transcriptsDir);
     const count = entries.filter(e => e !== JOURNAL_FILENAME).length;
