@@ -239,6 +239,37 @@ export async function tryLoadState(): Promise<GmState | null> {
   return raw;
 }
 
+/** Back up current state.json to .state-backup.json before destructive operations.
+ *  Overwrites any existing backup — this is a single-slot safety net. */
+export async function backupState(): Promise<boolean> {
+  try {
+    const statePath = getStatePath();
+    const file = Bun.file(statePath);
+    if (!(await file.exists())) return false;
+    const backupPath = join(getStateDir(), '.state-backup.json');
+    const content = await file.text();
+    STATE_STORE_RUNTIME.writeFileSync(backupPath, content, { encoding: 'utf-8', mode: 0o600 });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Restore state from .state-backup.json. Returns the restored state or null. */
+export async function restoreBackup(): Promise<GmState | null> {
+  try {
+    const backupPath = join(getStateDir(), '.state-backup.json');
+    const file = Bun.file(backupPath);
+    if (!(await file.exists())) return null;
+    const raw: unknown = await file.json();
+    if (!isPlausibleGmState(raw)) return null;
+    if (!isValidGmState(raw)) return null;
+    return raw;
+  } catch {
+    return null;
+  }
+}
+
 export function createDefaultState(): GmState {
   return {
     _version: 1,

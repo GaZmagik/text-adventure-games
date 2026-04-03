@@ -940,6 +940,6 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
     htmlChars: html.length,
     ...(passed
       ? { message: `${widgetType} widget verified. All ${TOTAL_CHECKS} checks passed. Pass to show_widget NOW. Do NOT modify the HTML. Do NOT embed save data, export data, or base64 strings — the Save and Export footer buttons handle this when the player clicks them.` }
-      : { message: `${widgetType} widget failed verification: ${failures.length} issue(s). Fix and re-verify before show_widget.` }),
+      : { message: `BLOCKED — ${widgetType} widget failed ${failures.length} of ${TOTAL_CHECKS} checks. DO NOT pass this HTML to show_widget. Fix every issue listed above, then re-run \`tag verify\`. The player must never see an unverified widget.` }),
   }, 'verify');
 }

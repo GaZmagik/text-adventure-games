@@ -358,6 +358,7 @@ export type GmState = {
   outputStyle?: string;
   pacingProfile?: 'fast' | 'normal' | 'slow';
   authoredSourceId?: string;
+  _loreSource?: string;
   _authoredLoreReads?: Record<string, number>;
 };
 

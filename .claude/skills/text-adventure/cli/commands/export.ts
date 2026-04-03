@@ -1,6 +1,6 @@
 import type { CommandResult, GmState } from '../types';
 import { ok, fail, noState } from '../lib/errors';
-import { tryLoadState, saveState, createDefaultState } from '../lib/state-store';
+import { tryLoadState, saveState, createDefaultState, backupState } from '../lib/state-store';
 import { attachChecksum, validateAndDecode } from '../lib/fnv32';
 import { VALID_TOP_KEYS } from '../lib/constants';
 import { containsForbiddenKeys } from '../lib/security';
@@ -218,6 +218,8 @@ async function load(args: string[]): Promise<CommandResult> {
     if (typeof fm.pacingProfile === 'string') state.pacingProfile = fm.pacingProfile as 'fast' | 'normal' | 'slow';
   }
 
+  await backupState();
+  state._loreSource = filePath;
   await saveState(state);
 
   return ok({

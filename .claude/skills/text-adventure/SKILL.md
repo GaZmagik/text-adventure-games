@@ -48,7 +48,7 @@ All operational guides, checklists, and rules are delivered via CLI commands:
 3. **Never auto-resolve player decisions** — die rolls and choices wait for input.
 4. **Never advance story without player input** — every scene ends with a choice, roll, or action prompt.
 5. **Run `tag state sync` before EVERY scene** — sync returns the prose checklist and key rules inline.
-6. **Run `tag verify` before EVERY `show_widget`** — verify checks ALL widget types:
+6. **Run `tag verify` before EVERY `show_widget` — if verify FAILS, DO NOT show the widget.** Fix every failure and re-run `tag verify` until it passes. A failed verification is a hard block — never bypass it, never rationalise that the widget is "close enough". Verify checks ALL widget types:
    - `tag verify scenario /tmp/scenario.html` — before showing scenario select
    - `tag verify rules /tmp/settings.html` — before showing settings
    - `tag verify character /tmp/character.html` — before showing character creation

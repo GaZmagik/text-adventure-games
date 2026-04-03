@@ -263,6 +263,7 @@ export const GM_STATE_SHAPE: StateShape = object({
   outputStyle: leaf(),
   pacingProfile: leaf(),
   authoredSourceId: leaf(),
+  _loreSource: leaf(),
   _authoredLoreReads: record(leaf()),
   _pendingRolls: array(object({
     action: leaf(),

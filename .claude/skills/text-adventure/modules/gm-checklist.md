@@ -308,10 +308,16 @@ quality rules that degrade rapidly when not actively in context. Loading it once
 game start is not sufficient — it must be re-read before every scene to maintain
 prose quality across long sessions.
 
-**Compaction detection:** `tag state sync` automatically detects conversation compactions
-by checking `/mnt/transcripts/`. When `compactionDetected` is `true` in the sync output,
-context has been lost. Re-read ALL files listed in `modulesActive` before generating
-the next scene. The sync warning includes the specific file paths to re-read.
+**Compaction detection — HARD GATE:** `tag state sync` automatically detects conversation
+compactions by checking `/mnt/transcripts/`. When `compactionDetected` is `true` in the
+sync output, module specifications have been EVICTED from your context. You no longer have
+implementation details — only degraded pattern memory from recent widgets.
+
+**DO NOT generate any scene or widget until you re-read modules.** Run
+`tag module activate-tier 1` then activate Tier 2/3 modules for the current scenario.
+This is not optional. Generating from memory instead of re-reading files produces
+progressively degraded widgets — missing audio, broken panels, absent transitions.
+`tag render scene` will refuse output until `_modulesRead` is repopulated.
 
 ---
 
@@ -361,8 +367,14 @@ NEW SCENE CHECKLIST
       dialogue scenes, and mid-scene renders all require verification. The verify
       marker is signed — writing the file manually will not work. Without verify,
       the next `tag render scene` will refuse to produce output.
+      **IF VERIFY FAILS: DO NOT pass the HTML to show_widget.** Fix every reported
+      issue and re-run `tag verify` until it passes. A failed verify is a HARD
+      BLOCK — never show unverified HTML to the player. Never rationalise that the
+      widget is "close enough". If verify reported failures, you are still on this
+      step. Only proceed to Post-Scene State Sync after verify passes with zero
+      failures.
 
-  Post-Scene State Sync — run AFTER rendering AND verifying
+  Post-Scene State Sync — run AFTER rendering AND verifying (verify MUST have passed)
 □ 16. Update any state that changed during this scene:
       `tag state set character.hp <new_hp>` (if damage taken)
       `tag state set character.xp += <xp_earned>` (if XP awarded)

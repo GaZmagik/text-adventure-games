@@ -207,10 +207,10 @@ function checkCompaction(
       : '(none active)';
 
     warnings.push(
-      `${newCompactions} new compaction${newCompactions > 1 ? 's' : ''} detected `
+      `COMPACTION DETECTED — ${newCompactions} new compaction${newCompactions > 1 ? 's' : ''} `
       + `(stored: ${storedCount}, current: ${filesystemCount}). `
-      + `Context may be lost. Re-read: ${moduleList}. `
-      + `Recovery: run \`tag state sync --apply --scene ${state.scene}\` then \`tag state context\` and re-read all listed files.`,
+      + `Module specs have been EVICTED from context. DO NOT generate any scene until you re-read: ${moduleList}. `
+      + `Recovery: run \`tag module activate-tier 1\` then activate Tier 2/3 modules. Generating from memory instead of re-reading produces degraded widgets.`,
     );
 
     return { compactionDetected: true, filesystemCount };
@@ -317,7 +317,7 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
   // On compaction: reset _modulesRead — GM must re-activate modules to reload content
   if (compactionDetected && Array.isArray(state._modulesRead) && state._modulesRead.length > 0) {
     warnings.push(
-      `Compaction detected: _modulesRead reset to empty. Run \`tag module activate-tier 1\` then activate any Tier 2/3 modules to reload content into context.`,
+      `BLOCKED — _modulesRead reset to empty. You MUST run \`tag module activate-tier 1\` then activate Tier 2/3 modules BEFORE generating any widget. \`tag render scene\` will refuse output until modules are reloaded.`,
     );
     state._modulesRead = [];
   }

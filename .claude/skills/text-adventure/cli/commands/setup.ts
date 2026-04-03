@@ -4,7 +4,7 @@
 
 import type { CommandResult, Character, CharacterOrigin, OpeningLens } from '../types';
 import { ok, fail } from '../lib/errors';
-import { saveState, createDefaultState } from '../lib/state-store';
+import { saveState, createDefaultState, tryLoadState, backupState } from '../lib/state-store';
 import { parseArgs } from '../lib/args';
 import { clearWorkflowMarkers } from '../lib/workflow-markers';
 import { containsForbiddenKeys } from '../lib/security';
@@ -103,8 +103,14 @@ export async function handleSetup(args: string[]): Promise<CommandResult> {
     return fail('--character contains forbidden keys (__proto__, constructor, prototype).', 'Remove prohibited keys from --character JSON.', 'setup');
   }
 
-  // setup apply starts a new campaign state from scratch.
-  const state = createDefaultState();
+  // Check for existing lore-populated state — merge onto it instead of replacing.
+  await backupState();
+  const existing = await tryLoadState();
+  const hasLoreData = existing !== null
+    && (existing.rosterMutations.length > 0
+      || existing.codexMutations.length > 0
+      || existing.quests.length > 0);
+  const state = hasLoreData ? existing : createDefaultState();
 
   // Apply settings
   const visualStyle = String(settings.visualStyle ?? 'station');
