@@ -9,6 +9,7 @@
 import type { GmState } from '../../types';
 import { esc, serialiseInlineScriptData } from '../../lib/html';
 import { COMMON_WIDGET_CSS } from '../lib/common-css';
+import { PREGAME_DESIGN_CSS, renderHero, renderControlDeck, renderSubpanel, renderSummaryRow } from '../lib/pregame-design';
 import { wrapInShadowDom } from '../lib/shadow-wrapper';
 
 type Archetype = {
@@ -68,6 +69,8 @@ export function renderCharacterCreation(_state: GmState | null, styleName: strin
   const givenNames: string[] = Array.isArray(namePoolRaw.given) ? namePoolRaw.given as string[] : [];
   const surnames: string[] = Array.isArray(namePoolRaw.surname) ? namePoolRaw.surname as string[] : [];
 
+  // ── Card rendering ──────────────────────────────────────────────
+
   const presetCards = preGeneratedCharacters.map((preset, i) => {
     const desc = preset.hook ?? preset.background ?? '';
     const stats = preset.stats
@@ -123,76 +126,55 @@ export function renderCharacterCreation(_state: GmState | null, styleName: strin
     ? 'Choose a ready-made character or create your own'
     : 'Choose an archetype, name your character, and select proficiencies';
 
-  return wrapInShadowDom({
-    styleName,
-    inlineCss: `${COMMON_WIDGET_CSS}
-.widget-char-creation { font-family: var(--ta-font-body); padding: 16px; }
-.selection-grid, .archetype-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
-.preset-card, .custom-entry-card, .archetype-card {
-  padding: 14px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
-  border-radius: 8px; cursor: pointer; transition: all 0.2s; background: transparent;
-}
-.preset-card:hover, .custom-entry-card:hover, .archetype-card:hover { border-color: var(--ta-color-accent); }
-.preset-card.selected, .custom-entry-card.selected, .archetype-card.selected { border-color: var(--ta-color-accent); background: var(--ta-color-accent-bg); }
-.arch-name { font-family: var(--ta-font-heading); font-size: 15px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); margin-bottom: 4px; }
-.arch-desc { font-size: 11px; color: var(--sta-text-secondary, #9AA0C0); line-height: 1.4; margin-bottom: 6px; }
-.preset-class { color: var(--ta-color-accent); }
-.arch-stats { margin-bottom: 4px; }
-.arch-stat { display: inline-block; padding: 1px 6px; font-size: 10px; border-radius: 4px; background: var(--sta-border-tertiary, rgba(84,88,128,0.4)); color: var(--sta-text-primary, #EEF0FF); margin-right: 4px; font-weight: 600; }
-.arch-abilities { margin-bottom: 4px; }
-.arch-ability { display: inline-block; padding: 1px 6px; font-size: 10px; border-radius: 4px; background: var(--ta-color-accent-bg); color: var(--ta-color-accent); margin-right: 4px; }
-.arch-meta { font-size: 10px; color: var(--sta-text-tertiary, #545880); }
-.name-input {
-  width: 100%; padding: 10px 14px; font-family: var(--ta-font-body);
-  font-size: 14px; background: transparent;
-  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); border-radius: 6px;
-  color: var(--sta-text-primary, #EEF0FF); box-sizing: border-box;
-}
-.name-input:focus { border-color: var(--ta-color-accent); outline: 2px solid var(--ta-color-focus); outline-offset: 2px; }
-.name-error { color: var(--ta-color-danger); font-size: 11px; margin-top: 4px; display: block; }
-.prof-grid { display: flex; flex-wrap: wrap; gap: 6px; }
-.prof-option {
-  padding: 8px 12px; font-size: 11px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
-  border-radius: 12px; background: transparent; color: var(--sta-text-secondary, #9AA0C0);
-  cursor: pointer; transition: all 0.2s; min-height: 44px;
-}
-.prof-option:hover { border-color: var(--ta-color-accent); }
-.prof-option.selected { border-color: var(--ta-color-accent); background: var(--ta-color-accent-bg); color: var(--ta-color-accent); font-weight: 600; }
-.preset-summary {
-  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
-  border-radius: 8px; padding: 12px; background: rgba(255,255,255,0.02);
-  color: var(--sta-text-secondary, #9AA0C0); font-size: 12px; line-height: 1.5;
-}
-.preset-summary strong { color: var(--sta-text-primary, #EEF0FF); }
-.archetype-card:focus-visible, .prof-option:focus-visible, .preset-card:focus-visible, .custom-entry-card:focus-visible {
-  outline: 2px solid var(--ta-color-focus);
-  outline-offset: 2px;
-}
-.is-hidden { display: none !important; }`,
-    html: `<div class="widget-char-creation">
-  <div class="widget-title">Create Your Character</div>
-  <div class="widget-subtitle">${esc(subtitle)}</div>
+  // ── Hero ────────────────────────────────────────────────────────
 
-  ${preGeneratedCharacters.length > 0 ? `
-  <div class="widget-section">
-    <div class="widget-label">Starting Character</div>
-    <div class="selection-grid">
+  const heroHtml = renderHero({
+    heading: 'Create Your Character',
+    copy: subtitle,
+  });
+
+  // ── Control deck ────────────────────────────────────────────────
+
+  const summaryRows = [
+    renderSummaryRow('Mode', preGeneratedCharacters.length > 0 ? 'Custom' : 'Custom build'),
+    renderSummaryRow('Name', defaultName || undefined),
+    renderSummaryRow('Archetype'),
+    renderSummaryRow('Pronouns'),
+  ].join('\n');
+
+  const deckHtml = renderControlDeck({
+    kicker: 'Current dossier',
+    heading: 'Character Build',
+    selectedTitle: defaultName || 'Unnamed',
+    statusId: 'pd-sel-status',
+    actionHtml: `<div class="pd-summary-list">${summaryRows}</div>`,
+  });
+
+  // ── Subpanels ───────────────────────────────────────────────────
+
+  const preGenPanel = preGeneratedCharacters.length > 0 ? renderSubpanel({
+    kicker: 'Starting character',
+    title: 'Character Selection',
+    copy: allowCustom ? 'Choose a ready-made character or build your own.' : 'Choose your character.',
+    contentHtml: `<div class="selection-grid">
       ${presetCards}
       ${allowCustom ? `
       <button class="custom-entry-card selected" id="custom-entry-card" aria-pressed="true">
         <div class="arch-name">Create Your Own</div>
         <div class="arch-desc">Build a custom character and let the harbour assign the opening lens that fits them best.</div>
       </button>` : ''}
-    </div>
-  </div>
-  <div class="widget-section is-hidden" id="preset-summary-wrap">
-    <div class="widget-label">Selected Character</div>
-    <div class="preset-summary" id="preset-summary"></div>
-  </div>` : ''}
+    </div>`,
+  }) : '';
 
-  <div class="widget-section">
-    <div class="widget-label">Pronouns</div>
-    <div class="option-grid" id="pronoun-grid">
+  const presetSummaryHtml = preGeneratedCharacters.length > 0 ? `
+  <div class="is-hidden" id="preset-summary-wrap" style="margin-bottom:12px;">
+    <div class="preset-summary" id="preset-summary"></div>
+  </div>` : '';
+
+  const pronounsPanel = renderSubpanel({
+    kicker: 'Identity',
+    title: 'Pronouns',
+    contentHtml: `<div class="option-grid" id="pronoun-grid">
       <button class="option-card" data-pronouns="she/her" aria-pressed="false">she/her</button>
       <button class="option-card" data-pronouns="he/him" aria-pressed="false">he/him</button>
       <button class="option-card" data-pronouns="they/them" aria-pressed="false">they/them</button>
@@ -210,33 +192,50 @@ export function renderCharacterCreation(_state: GmState | null, styleName: strin
         <option value="her">her</option>
         <option value="them">them</option>
       </select>
-    </div>
-  </div>
+    </div>`,
+  });
 
-  <div id="custom-character-fields"${preGeneratedCharacters.length > 0 && allowCustom ? '' : ''}>
-    <div class="widget-section">
-      <div class="widget-label">Name</div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input class="name-input" id="char-name-input" type="text" placeholder="Enter character name..." value="${esc(defaultName)}" maxlength="80" style="flex:1">
-        <button class="option-card" id="randomise-name" type="button" style="white-space:nowrap;flex-shrink:0" title="Generate a random name">Randomise</button>
-      </div>
-      <span id="name-error" class="name-error is-hidden" role="alert"></span>
+  const namePanel = renderSubpanel({
+    kicker: 'Identity',
+    title: 'Name',
+    contentHtml: `<div style="display:flex;gap:8px;align-items:center">
+      <input class="name-input" id="char-name-input" type="text" placeholder="Enter character name..." value="${esc(defaultName)}" maxlength="80" style="flex:1">
+      <button class="option-card" id="randomise-name" type="button" style="white-space:nowrap;flex-shrink:0" title="Generate a random name">Randomise</button>
     </div>
+    <span id="name-error" class="name-error is-hidden" role="alert"></span>`,
+  });
 
-    ${archetypes.length > 0 ? `
-    <div class="widget-section">
-      <div class="widget-label">Archetype</div>
-      <div class="archetype-grid">
-        ${archetypeCards}
-      </div>
-    </div>` : ''}
+  const archetypePanel = archetypes.length > 0 ? renderSubpanel({
+    kicker: 'Role',
+    title: 'Archetype',
+    contentHtml: `<div class="archetype-grid">${archetypeCards}</div>`,
+  }) : '';
 
-    <div class="widget-section">
-      <div class="widget-label">Proficiencies (choose 2)</div>
-      <div class="prof-grid">
-        ${profOptions}
-      </div>
-    </div>
+  const profsPanel = renderSubpanel({
+    kicker: 'Skills',
+    title: 'Proficiencies',
+    copy: 'Choose 2 additional proficiencies for your character.',
+    contentHtml: `<div class="prof-grid">${profOptions}</div>`,
+  });
+
+  // ── Assemble ────────────────────────────────────────────────────
+
+  return wrapInShadowDom({
+    styleName,
+    inlineCss: `${COMMON_WIDGET_CSS}\n${PREGAME_DESIGN_CSS}\n${CHAR_CREATION_CSS}`,
+    html: `<div class="widget-char-creation">
+  ${heroHtml}
+  ${deckHtml}
+
+  ${preGenPanel}
+  ${presetSummaryHtml}
+
+  ${pronounsPanel}
+
+  <div id="custom-character-fields">
+    ${namePanel}
+    ${archetypePanel}
+    ${profsPanel}
   </div>
 
   <button class="confirm-btn" id="creation-confirm" title="Create character with the selected setup">Create Character</button>
@@ -261,32 +260,11 @@ var archetypeMechanics = ${serialiseInlineScriptData(archetypes.map(a => ({
   equipment: a.equipment ?? [],
 })))};
 
-function sendOrCopyPrompt(btn, prompt) {
-  btn.setAttribute('title', prompt);
-  if (typeof sendPrompt === 'function') {
-    sendPrompt(prompt);
-  } else {
-    var ta = document.createElement('textarea');
-    var copied = false;
-    ta.value = prompt;
-    ta.style.cssText = 'position:fixed;opacity:0';
-    document.body.appendChild(ta);
-    ta.select();
-    try {
-      copied = !!document.execCommand('copy');
-    } catch (_err) {
-      copied = false;
-    }
-    document.body.removeChild(ta);
-    var orig = btn.textContent;
-    btn.textContent = copied ? 'Copied! Paste as your reply.' : 'Copy the prompt from the tooltip.';
-    setTimeout(function() { btn.textContent = orig; }, 3000);
-  }
-}
+${SEND_OR_COPY_SCRIPT}
 
 function summarisePreset(preset) {
   var lines = [];
-  lines.push('<strong>' + preset.name + '</strong>' + (preset.class ? ' · ' + preset.class : ''));
+  lines.push('<strong>' + preset.name + '</strong>' + (preset.class ? ' \\u00b7 ' + preset.class : ''));
   if (preset.hook) lines.push(preset.hook);
   if (preset.background && !preset.hook) lines.push(preset.background);
   return lines.join('<br>');
@@ -321,6 +299,10 @@ function setCustomMode() {
   }
   var randomise = shadow.getElementById('randomise-name');
   if (randomise) randomise.disabled = false;
+  var selTitle = shadow.getElementById('pd-sel-title');
+  if (selTitle) selTitle.textContent = customNameCache || 'Unnamed';
+  var selStatus = shadow.getElementById('pd-sel-status');
+  if (selStatus) selStatus.textContent = 'Switched to custom build';
   updateSelectionCards();
 }
 
@@ -334,8 +316,12 @@ function setPresetMode(index) {
   var summaryWrap = shadow.getElementById('preset-summary-wrap');
   var summary = shadow.getElementById('preset-summary');
   if (summaryWrap && summary) {
-    summary.innerHTML = summarisePreset(preset);
     summaryWrap.classList.remove('is-hidden');
+    var sumText = summarisePreset(preset);
+    summary.textContent = '';
+    var tmpDiv = document.createElement('div');
+    tmpDiv.textContent = sumText;
+    summary.appendChild(tmpDiv);
   }
   var nameInput = shadow.getElementById('char-name-input');
   if (nameInput) {
@@ -345,6 +331,10 @@ function setPresetMode(index) {
   }
   var randomise = shadow.getElementById('randomise-name');
   if (randomise) randomise.disabled = true;
+  var selTitle = shadow.getElementById('pd-sel-title');
+  if (selTitle) selTitle.textContent = preset.name || 'Unnamed';
+  var selStatus = shadow.getElementById('pd-sel-status');
+  if (selStatus) selStatus.textContent = 'Selected ' + (preset.name || 'preset character');
   updateSelectionCards();
 }
 
@@ -387,6 +377,9 @@ shadow.querySelectorAll('.archetype-card').forEach(function(card) {
         btn.style.cursor = 'default';
       }
     });
+    var archNameNode = this.querySelector('.arch-name');
+    var selStatus = shadow.getElementById('pd-sel-status');
+    if (selStatus && archNameNode) selStatus.textContent = 'Archetype set to ' + archNameNode.textContent;
   });
 });
 
@@ -426,6 +419,8 @@ shadow.querySelectorAll('#pronoun-grid .option-card').forEach(function(btn) {
       customDiv.classList.add('is-hidden');
       selectedPronouns = value;
     }
+    var selStatus = shadow.getElementById('pd-sel-status');
+    if (selStatus) selStatus.textContent = 'Pronouns set to ' + (value === 'custom' ? selectedPronouns : value);
   });
 });
 
@@ -444,12 +439,16 @@ shadow.getElementById('randomise-name').addEventListener('click', function() {
     customNameCache = shadow.getElementById('char-name-input').value;
   }
   shadow.getElementById('name-error').classList.add('is-hidden');
+  var selTitle = shadow.getElementById('pd-sel-title');
+  if (selTitle) selTitle.textContent = shadow.getElementById('char-name-input').value || 'Unnamed';
 });
 
 shadow.getElementById('char-name-input').addEventListener('input', function() {
   customNameCache = this.value;
   shadow.getElementById('name-error').textContent = '';
   shadow.getElementById('name-error').classList.add('is-hidden');
+  var selTitle = shadow.getElementById('pd-sel-title');
+  if (selTitle && selectedMode === 'custom') selTitle.textContent = this.value.trim() || 'Unnamed';
 });
 
 shadow.getElementById('creation-confirm').addEventListener('click', function() {
@@ -512,3 +511,74 @@ if (preGeneratedCharacters.length > 0 && !allowCustom) {
 }`,
   });
 }
+
+// ── Constants ──────────────────────────────────────────────────────
+
+const CHAR_CREATION_CSS = `
+.widget-char-creation { font-family: var(--ta-font-body); padding: 16px; }
+.pd-summary-list { display: grid; gap: 2px; min-width: 160px; }
+.selection-grid, .archetype-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.preset-card, .custom-entry-card, .archetype-card {
+  padding: 14px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  border-radius: 8px; cursor: pointer; transition: all 0.2s; background: transparent;
+}
+.preset-card:hover, .custom-entry-card:hover, .archetype-card:hover { border-color: var(--ta-color-accent); }
+.preset-card.selected, .custom-entry-card.selected, .archetype-card.selected { border-color: var(--ta-color-accent); background: var(--ta-color-accent-bg); }
+.arch-name { font-family: var(--ta-font-heading); font-size: 15px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); margin-bottom: 4px; }
+.arch-desc { font-size: 11px; color: var(--sta-text-secondary, #9AA0C0); line-height: 1.4; margin-bottom: 6px; }
+.preset-class { color: var(--ta-color-accent); }
+.arch-stats { margin-bottom: 4px; }
+.arch-stat { display: inline-block; padding: 1px 6px; font-size: 10px; border-radius: 4px; background: var(--sta-border-tertiary, rgba(84,88,128,0.4)); color: var(--sta-text-primary, #EEF0FF); margin-right: 4px; font-weight: 600; }
+.arch-abilities { margin-bottom: 4px; }
+.arch-ability { display: inline-block; padding: 1px 6px; font-size: 10px; border-radius: 4px; background: var(--ta-color-accent-bg); color: var(--ta-color-accent); margin-right: 4px; }
+.arch-meta { font-size: 10px; color: var(--sta-text-tertiary, #545880); }
+.name-input {
+  width: 100%; padding: 10px 14px; font-family: var(--ta-font-body);
+  font-size: 14px; background: transparent;
+  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); border-radius: 6px;
+  color: var(--sta-text-primary, #EEF0FF); box-sizing: border-box;
+}
+.name-input:focus { border-color: var(--ta-color-accent); outline: 2px solid var(--ta-color-focus); outline-offset: 2px; }
+.name-error { color: var(--ta-color-danger); font-size: 11px; margin-top: 4px; display: block; }
+.prof-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.prof-option {
+  padding: 8px 12px; font-size: 11px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  border-radius: 12px; background: transparent; color: var(--sta-text-secondary, #9AA0C0);
+  cursor: pointer; transition: all 0.2s; min-height: 44px;
+}
+.prof-option:hover { border-color: var(--ta-color-accent); }
+.prof-option.selected { border-color: var(--ta-color-accent); background: var(--ta-color-accent-bg); color: var(--ta-color-accent); font-weight: 600; }
+.preset-summary {
+  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  border-radius: 8px; padding: 12px; background: rgba(255,255,255,0.02);
+  color: var(--sta-text-secondary, #9AA0C0); font-size: 12px; line-height: 1.5;
+}
+.preset-summary strong { color: var(--sta-text-primary, #EEF0FF); }
+.archetype-card:focus-visible, .prof-option:focus-visible, .preset-card:focus-visible, .custom-entry-card:focus-visible {
+  outline: 2px solid var(--ta-color-focus);
+  outline-offset: 2px;
+}
+.is-hidden { display: none !important; }`;
+
+const SEND_OR_COPY_SCRIPT = `function sendOrCopyPrompt(btn, prompt) {
+  btn.setAttribute('title', prompt);
+  if (typeof sendPrompt === 'function') {
+    sendPrompt(prompt);
+  } else {
+    var ta = document.createElement('textarea');
+    var copied = false;
+    ta.value = prompt;
+    ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      copied = !!document.execCommand('copy');
+    } catch (_err) {
+      copied = false;
+    }
+    document.body.removeChild(ta);
+    var orig = btn.textContent;
+    btn.textContent = copied ? 'Copied! Paste as your reply.' : 'Copy the prompt from the tooltip.';
+    setTimeout(function() { btn.textContent = orig; }, 3000);
+  }
+}`;
