@@ -72,6 +72,8 @@ describe('render modulesRequired and featureChecklist', () => {
       npcModifier: 1,
     };
     state._modulesRead = [...TIER1_MODULES];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
   });
 
   test('craftGuidance.compositionNotes includes narrativeClasses vocabulary', async () => {
@@ -192,6 +194,8 @@ describe('render requiredElements and skeleton', () => {
       npcModifier: 1,
     };
     state._modulesRead = [...TIER1_MODULES];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
   });
 
   test('requiredElements is present in render output', async () => {
@@ -309,6 +313,8 @@ describe('render template output', () => {
       deadline: null,
     };
     state._modulesRead = [...TIER1_MODULES];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
     await saveState(state);
   });
 
@@ -419,6 +425,8 @@ describe('render pending roll persistence', () => {
     };
     state.modulesActive = ['core-systems'];
     state._modulesRead = [...TIER1_MODULES];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
     await saveState(state);
   });
 

@@ -100,6 +100,8 @@ describe('_modulesRead render gate', () => {
       inventory: [], conditions: [],
       equipment: { weapon: 'Knife', armour: 'Vest' },
     };
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
     await saveState(state);
 
     const result = await handleRender(['scene', '--style', 'station']);

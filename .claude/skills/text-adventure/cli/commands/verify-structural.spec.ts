@@ -52,6 +52,8 @@ async function setupState(): Promise<void> {
     inventory: [], conditions: [],
     equipment: { weapon: 'Knife', armour: 'Vest' },
   })]);
+  await handleState(['set', '_proseCraftEpoch', '0']);
+  await handleState(['set', '_styleReadEpoch', '0']);
 }
 
 /** Render a valid scene and inject narrative so the narrative check passes. */

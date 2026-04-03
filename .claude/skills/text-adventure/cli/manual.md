@@ -73,6 +73,7 @@ run before render to pass the sync gate.
 | `tag export` | `generate`, `load`, `validate` | None | `tag export generate` / `tag export load /path/to/world.lore.md` |
 | `tag build-css` | — | `--output-dir` | `tag build-css` |
 | `tag setup` | `apply` | `--settings`, `--character` | `tag setup apply --settings '{...}' --character '{...}'` |
+| `tag style` | `activate` | None | `tag style activate` |
 
 ### `--data` Flag (render)
 

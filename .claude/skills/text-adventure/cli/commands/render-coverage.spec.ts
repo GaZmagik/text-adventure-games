@@ -86,6 +86,8 @@ describe('render needs-verify gate', () => {
     };
     state.modulesActive = ['core-systems'];
     state._modulesRead = [...TIER1_MODULES];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
     await saveState(state);
 
     // Write .needs-verify for scene 1:turn 0 — current is scene 2:turn 0, so this should block
@@ -110,6 +112,8 @@ describe('render needs-verify gate', () => {
     };
     state.modulesActive = ['core-systems'];
     state._modulesRead = [...TIER1_MODULES];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
     await saveState(state);
 
     // Write .needs-verify for scene 1:turn 0 — matches current scene:turn, allows composition re-render
@@ -136,6 +140,8 @@ describe('render data.actions non-array validation', () => {
     };
     state.modulesActive = ['core-systems'];
     state._modulesRead = [...TIER1_MODULES];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
     await saveState(state);
 
     const data = JSON.stringify({ actions: 'not-an-array' });
@@ -158,6 +164,8 @@ describe('render data.actions non-array validation', () => {
     };
     state.modulesActive = ['core-systems'];
     state._modulesRead = [...TIER1_MODULES];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
     await saveState(state);
 
     const data = JSON.stringify({ actions: { bad: true } });
@@ -184,6 +192,8 @@ describe('render unknown style name produces warning in Shadow DOM output', () =
     };
     state.modulesActive = ['core-systems'];
     state._modulesRead = [...TIER1_MODULES];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
     await saveState(state);
 
     // Shadow DOM renders with a warning comment when style is not in CSS_MANIFEST
@@ -213,6 +223,8 @@ describe('render atmosphere effects scoping', () => {
     };
     state.modulesActive = ['core-systems', 'atmosphere'];
     state._modulesRead = [...TIER1_MODULES];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
     await saveState(state);
 
     const data = JSON.stringify({ atmosphereEffects: ['dust', 'rain'] });

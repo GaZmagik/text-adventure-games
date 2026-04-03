@@ -53,6 +53,8 @@ async function setupState(): Promise<void> {
     'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
     'character-creation', 'save-codex',
   ])]);
+  await handleState(['set', '_proseCraftEpoch', '0']);
+  await handleState(['set', '_styleReadEpoch', '0']);
 }
 
 function injectSceneActions(html: string, actions: string): string {

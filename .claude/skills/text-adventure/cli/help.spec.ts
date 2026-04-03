@@ -212,6 +212,14 @@ describe('getCommandHelp', () => {
     expect(names).toContain('apply');
   });
 
+  test('getCommandHelp("style") includes activate subcommand', () => {
+    const result = getCommandHelp('style');
+    expect(result.ok).toBe(true);
+    const data = result.data as { subcommands: { name: string }[] };
+    const names = data.subcommands.map(s => s.name);
+    expect(names).toContain('activate');
+  });
+
   test('getCommandHelp("rules") includes category subcommand', () => {
     const result = getCommandHelp('rules');
     expect(result.ok).toBe(true);

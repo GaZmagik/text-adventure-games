@@ -37,6 +37,8 @@ async function setupState(modules: string[] = []): Promise<void> {
     'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
     'character-creation', 'save-codex',
   ];
+  state._proseCraftEpoch = 0;
+  state._styleReadEpoch = 0;
   state.character = {
     name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
     level: 1, xp: 0, currency: 0, currencyName: 'credits',

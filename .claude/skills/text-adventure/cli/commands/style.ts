@@ -1,0 +1,76 @@
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
+import type { CommandResult } from '../types';
+import { ok, fail, noState } from '../lib/errors';
+import { tryLoadState, saveState } from '../lib/state-store';
+
+const STYLES_DIR = join(import.meta.dir, '..', '..', 'styles');
+const STYLE_REFERENCE = 'style-reference.md';
+
+export async function handleStyle(args: string[]): Promise<CommandResult> {
+  const subcommand = args[0];
+  if (!subcommand) {
+    return fail('Missing subcommand.', 'Usage: tag style activate', 'style');
+  }
+  if (subcommand !== 'activate') {
+    return fail(
+      `Unknown subcommand "${subcommand}".`,
+      'Available: activate',
+      'style',
+    );
+  }
+
+  const state = await tryLoadState();
+  if (!state) return noState();
+
+  const styleName = state.visualStyle;
+  if (!styleName) {
+    return fail(
+      'No visual style set in state.',
+      'Set a visual style first via `tag setup apply` or `tag state set visualStyle <name>`.',
+      'style',
+    );
+  }
+
+  const stylePath = join(STYLES_DIR, `${styleName}.md`);
+  if (!existsSync(stylePath)) {
+    return fail(
+      `Style file not found: styles/${styleName}.md`,
+      `Available styles: ${listStyles().join(', ')}`,
+      'style',
+    );
+  }
+
+  const referencePath = join(STYLES_DIR, STYLE_REFERENCE);
+  if (!existsSync(referencePath)) {
+    return fail(
+      `Style reference not found: styles/${STYLE_REFERENCE}`,
+      'The style-reference.md file is required for structural patterns.',
+      'style',
+    );
+  }
+
+  const styleContent = readFileSync(stylePath, 'utf-8');
+  const referenceContent = readFileSync(referencePath, 'utf-8');
+
+  state._styleReadEpoch = state._compactionCount ?? 0;
+  await saveState(state);
+
+  return ok({
+    style: styleName,
+    styleContent,
+    referenceContent,
+    styleChars: styleContent.length,
+    referenceChars: referenceContent.length,
+  }, 'style');
+}
+
+function listStyles(): string[] {
+  try {
+    return readdirSync(STYLES_DIR)
+      .filter(f => f.endsWith('.md') && f !== STYLE_REFERENCE)
+      .map(f => f.replace(/\.md$/, ''));
+  } catch {
+    return [];
+  }
+}
