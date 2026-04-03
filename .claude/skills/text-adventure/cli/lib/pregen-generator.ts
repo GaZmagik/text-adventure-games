@@ -7,7 +7,7 @@ export type PregenInput = {
   theme: string;
   tone?: string;
   rulebook?: string;
-  seed?: string;
+  seed?: string | undefined;
   scenarioHook?: string;
 };
 
