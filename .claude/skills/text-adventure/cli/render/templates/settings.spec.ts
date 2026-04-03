@@ -1,15 +1,15 @@
 import { describe, test, expect } from 'bun:test';
 import { renderSettings } from './settings';
 
+// ── Existing backfill contract ─────────────────────────────────────
+
 describe('renderSettings default backfill', () => {
   test('appends missing modules when GM provides a subset', () => {
     const html = renderSettings(null, '', {
       data: { modules: ['save-codex', 'bestiary'] },
     });
-    // GM's picks should be present
     expect(html).toContain('data-value="save-codex"');
     expect(html).toContain('data-value="bestiary"');
-    // Defaults the GM omitted should also appear
     expect(html).toContain('data-value="ship-systems"');
     expect(html).toContain('data-value="adventure-exporting"');
     expect(html).toContain('data-value="star-chart"');
@@ -56,5 +56,110 @@ describe('renderSettings default backfill', () => {
     expect(html).toContain("document.execCommand('copy')");
     expect(html).toContain("btn.textContent = copied ? 'Copied! Paste as your reply.' : 'Copy the prompt from the tooltip.';");
     expect(html).toContain("btn.setAttribute('title', prompt)");
+  });
+});
+
+// ── Hero section ───────────────────────────────────────────────────
+
+describe('settings hero', () => {
+  test('renders hero section', () => {
+    const html = renderSettings(null, '', {});
+    expect(html).toContain('pd-hero');
+    expect(html).toContain('pd-hero-heading');
+  });
+
+  test('hero appears before option groups', () => {
+    const html = renderSettings(null, '', {});
+    const heroIdx = html.indexOf('pd-hero');
+    const groupIdx = html.indexOf('data-group=');
+    expect(heroIdx).toBeLessThan(groupIdx);
+  });
+});
+
+// ── Control deck ───────────────────────────────────────────────────
+
+describe('settings control deck', () => {
+  test('renders control deck with summary', () => {
+    const html = renderSettings(null, '', {});
+    expect(html).toContain('pd-control-deck');
+    expect(html).toContain('pd-selection-title');
+  });
+
+  test('control deck has aria-live status region', () => {
+    const html = renderSettings(null, '', {});
+    expect(html).toContain('aria-live="polite"');
+  });
+
+  test('control deck appears between hero and subpanels', () => {
+    const html = renderSettings(null, '', {});
+    const heroIdx = html.indexOf('<header class="pd-hero"');
+    const deckIdx = html.indexOf('<section class="pd-control-deck"');
+    const subpanelIdx = html.indexOf('<article class="pd-subpanel">');
+    expect(heroIdx).toBeLessThan(deckIdx);
+    expect(deckIdx).toBeLessThan(subpanelIdx);
+  });
+
+  test('shows default selections when defaults provided', () => {
+    const html = renderSettings(null, '', {
+      data: { defaults: { rulebook: 'd20_system', difficulty: 'normal' } },
+    });
+    const deckStart = html.indexOf('<section class="pd-control-deck"');
+    const deckEnd = html.indexOf('</section>', deckStart);
+    const deck = html.slice(deckStart, deckEnd);
+    expect(deck).toContain('pd-summary-row');
+  });
+});
+
+// ── Subpanel grouping ──────────────────────────────────────────────
+
+describe('settings subpanels', () => {
+  test('wraps option groups in subpanels', () => {
+    const html = renderSettings(null, '', {});
+    expect(html).toContain('pd-subpanel');
+    // At least rulebook, difficulty, pacing, visual style, modules = 5 groups
+    const subpanelCount = (html.match(/<article class="pd-subpanel">/g) ?? []).length;
+    expect(subpanelCount).toBeGreaterThanOrEqual(5);
+  });
+
+  test('subpanels have titles for each group', () => {
+    const html = renderSettings(null, '', {});
+    expect(html).toContain('pd-subpanel-title');
+  });
+});
+
+// ── Verify-safe structure ──────────────────────────────────────────
+
+describe('settings verify safety', () => {
+  test('retains settings-confirm button', () => {
+    const html = renderSettings(null, '', {});
+    expect(html).toContain('settings-confirm');
+  });
+
+  test('retains data-group attributes for at least 2 groups', () => {
+    const html = renderSettings(null, '', {});
+    const groups = [...html.matchAll(/data-group="([^"]+)"/g)].map(m => m[1]);
+    const unique = new Set(groups);
+    expect(unique.size).toBeGreaterThanOrEqual(2);
+  });
+
+  test('retains widget-settings class', () => {
+    const html = renderSettings(null, '', {});
+    expect(html).toContain('widget-settings');
+  });
+});
+
+// ── Script interaction ─────────────────────────────────────────────
+
+describe('settings script interaction', () => {
+  test('script updates summary on selection change', () => {
+    const html = renderSettings(null, '', {});
+    // Script should reference the summary row update IDs
+    expect(html).toContain('pd-sel-title');
+  });
+
+  test('module toggle script preserved', () => {
+    const html = renderSettings(null, '', {});
+    expect(html).toContain('module-check');
+    expect(html).toContain('selectedModules');
   });
 });

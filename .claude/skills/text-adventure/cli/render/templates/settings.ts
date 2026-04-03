@@ -5,6 +5,7 @@
 import type { GmState } from '../../types';
 import { esc, serialiseInlineScriptData } from '../../lib/html';
 import { COMMON_WIDGET_CSS } from '../lib/common-css';
+import { PREGAME_DESIGN_CSS, renderHero, renderControlDeck, renderSubpanel, renderSummaryRow } from '../lib/pregame-design';
 import { wrapInShadowDom } from '../lib/shadow-wrapper';
 
 type SettingsData = {
@@ -19,8 +20,6 @@ type SettingsData = {
 export function renderSettings(_state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
   const raw = (options?.data ?? {}) as Record<string, unknown>;
 
-  // Safely extract string[] fields — guard against non-array values from untrusted JSON.
-  // If the GM passes objects like {id, label, desc}, extract the id or label as the string value.
   const toStringArray = (v: unknown): string[] | undefined => {
     if (!Array.isArray(v)) return undefined;
     return v.map((el: unknown) => {
@@ -32,7 +31,6 @@ export function renderSettings(_state: GmState | null, styleName: string, option
     });
   };
 
-  // Accept common field name aliases the GM might naturally use
   const data: SettingsData = {
     rulebooks: toStringArray(raw.rulebooks ?? raw.rules),
     difficulties: toStringArray(raw.difficulties ?? raw.difficulty),
@@ -44,8 +42,6 @@ export function renderSettings(_state: GmState | null, styleName: string, option
       : {},
   };
 
-  // Full default option sets — GM-provided subsets are backfilled from these
-  // so the player always sees the complete menu regardless of what the GM remembered
   const DEFAULT_RULEBOOKS = ['d20_system', 'dnd_5e', 'gurps_lite', 'pf2e_lite', 'shadowrun_lite', 'narrative_engine', 'custom'];
   const DEFAULT_DIFFICULTIES = ['easy', 'normal', 'hard', 'brutal'];
   const DEFAULT_PACING = ['fast', 'normal', 'slow'];
@@ -53,7 +49,6 @@ export function renderSettings(_state: GmState | null, styleName: string, option
   const TIER1_MODULES = ['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex'];
   const DEFAULT_MODULES = [...TIER1_MODULES, 'bestiary', 'story-architect', 'ship-systems', 'crew-manifest', 'star-chart', 'geo-map', 'procedural-world-gen', 'world-history', 'lore-codex', 'rpg-systems', 'ai-npc', 'atmosphere', 'audio', 'adventure-exporting'];
 
-  /** Merge GM-provided options with defaults — GM's picks first, then any missing defaults appended. */
   const merge = (provided: string[] | undefined, defaults: string[]): string[] => {
     if (!provided) return defaults;
     const seen = new Set(provided);
@@ -67,85 +62,97 @@ export function renderSettings(_state: GmState | null, styleName: string, option
   const modules = merge(data.modules, DEFAULT_MODULES);
   const defaults = data.defaults ?? {};
 
+  // ── Hero ───────────────────────────────────────────────────────
+  const heroHtml = renderHero({
+    heading: 'Game Settings',
+    copy: 'Configure your adventure before beginning. Choose a rulebook, difficulty, pacing, visual style, and optional modules.',
+  });
+
+  // ── Control deck summary ───────────────────────────────────────
+  const summaryTitle = defaults.rulebook
+    ? defaults.rulebook.replace(/_/g, ' ')
+    : 'Unconfigured';
+
+  const summaryRows = [
+    renderSummaryRow('Rulebook', defaults.rulebook?.replace(/_/g, ' ')),
+    renderSummaryRow('Difficulty', defaults.difficulty),
+    renderSummaryRow('Pacing', defaults.pacing),
+    renderSummaryRow('Style', defaults.visualStyle),
+  ].join('\n');
+
+  const deckHtml = renderControlDeck({
+    kicker: 'Active profile',
+    heading: 'Configuration',
+    selectedTitle: summaryTitle,
+    statusId: 'pd-sel-status',
+    actionHtml: `<div class="pd-summary-list">${summaryRows}</div>`,
+  });
+
+  // ── Option group helper ────────────────────────────────────────
+  const optionGrid = (group: string, items: string[]) =>
+    items.map(v =>
+      `<button class="option-card${defaults[group] === v ? ' selected' : ''}" data-group="${esc(group)}" data-value="${esc(v)}" aria-pressed="${defaults[group] === v ? 'true' : 'false'}">${esc(v.replace(/_/g, ' '))}</button>`,
+    ).join('\n      ');
+
+  const moduleGrid = modules.map(m => {
+    const isTier1 = TIER1_MODULES.includes(m);
+    return isTier1
+      ? `<button class="option-card module-card selected" data-group="modules" data-value="${esc(m)}" aria-pressed="true" disabled style="opacity:0.7;cursor:default;"><span class="module-check checked"></span>${esc(m)} (required)</button>`
+      : `<button class="option-card module-card" data-group="modules" data-value="${esc(m)}" aria-pressed="false"><span class="module-check"></span>${esc(m)}</button>`;
+  }).join('\n      ');
+
+  // ── Subpanels ──────────────────────────────────────────────────
+  const rulebookPanel = renderSubpanel({
+    kicker: 'Core system',
+    title: 'Rulebook',
+    copy: 'Choose the resolution system for your adventure.',
+    contentHtml: `<div class="option-grid" data-group="rulebook">${optionGrid('rulebook', rulebooks)}</div>`,
+  });
+
+  const difficultyPanel = renderSubpanel({
+    kicker: 'Challenge',
+    title: 'Difficulty',
+    contentHtml: `<div class="option-grid" data-group="difficulty">${optionGrid('difficulty', difficulties)}</div>`,
+  });
+
+  const pacingPanel = renderSubpanel({
+    kicker: 'Tempo',
+    title: 'Pacing',
+    contentHtml: `<div class="option-grid" data-group="pacing">${optionGrid('pacing', pacingOptions)}</div>`,
+  });
+
+  const stylePanel = renderSubpanel({
+    kicker: 'Presentation',
+    title: 'Visual Style',
+    contentHtml: `<div class="option-grid" data-group="visualStyle">${optionGrid('visualStyle', visualStyles)}</div>`,
+  });
+
+  const modulesPanel = renderSubpanel({
+    kicker: 'Extensions',
+    title: 'Optional Modules',
+    copy: 'Tier 1 modules are always active. Toggle additional modules below.',
+    contentHtml: `<div class="option-grid" data-group="modules">${moduleGrid}</div>`,
+  });
+
   return wrapInShadowDom({
     styleName,
-    inlineCss: `${COMMON_WIDGET_CSS}
-.widget-settings { font-family: var(--ta-font-body); padding: 16px; }
-.module-card { display: flex; align-items: center; gap: 8px; }
-.module-check { width: 16px; height: 16px; border: 1.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 10px; color: transparent; }
-.module-check.checked { background: var(--ta-color-accent, #4ECDC4); border-color: var(--ta-color-accent, #4ECDC4); color: #fff; }
-.module-check.checked::after { content: '\u2713'; }`,
+    inlineCss: `${COMMON_WIDGET_CSS}\n${PREGAME_DESIGN_CSS}\n${SETTINGS_CSS}`,
     html: `<div class="widget-settings">
-  <div class="widget-title">Game Settings</div>
-  <div class="widget-subtitle">Configure your adventure before beginning</div>
+  ${heroHtml}
+  ${deckHtml}
 
-  <fieldset class="widget-section">
-    <legend class="widget-label">Rulebook</legend>
-    <div class="option-grid" data-group="rulebook">
-      ${rulebooks.map(r => `<button class="option-card${defaults.rulebook === r ? ' selected' : ''}" data-group="rulebook" data-value="${esc(r)}" aria-pressed="${defaults.rulebook === r ? 'true' : 'false'}">${esc(r.replace(/_/g, ' '))}</button>`).join('\n      ')}
-    </div>
-  </fieldset>
-
-  <fieldset class="widget-section">
-    <legend class="widget-label">Difficulty</legend>
-    <div class="option-grid" data-group="difficulty">
-      ${difficulties.map(d => `<button class="option-card${defaults.difficulty === d ? ' selected' : ''}" data-group="difficulty" data-value="${esc(d)}" aria-pressed="${defaults.difficulty === d ? 'true' : 'false'}">${esc(d)}</button>`).join('\n      ')}
-    </div>
-  </fieldset>
-
-  <fieldset class="widget-section">
-    <legend class="widget-label">Pacing</legend>
-    <div class="option-grid" data-group="pacing">
-      ${pacingOptions.map(p => `<button class="option-card${defaults.pacing === p ? ' selected' : ''}" data-group="pacing" data-value="${esc(p)}" aria-pressed="${defaults.pacing === p ? 'true' : 'false'}">${esc(p)}</button>`).join('\n      ')}
-    </div>
-  </fieldset>
-
-  <fieldset class="widget-section">
-    <legend class="widget-label">Visual Style</legend>
-    <div class="option-grid" data-group="visualStyle">
-      ${visualStyles.map(v => `<button class="option-card${defaults.visualStyle === v ? ' selected' : ''}" data-group="visualStyle" data-value="${esc(v)}" aria-pressed="${defaults.visualStyle === v ? 'true' : 'false'}">${esc(v)}</button>`).join('\n      ')}
-    </div>
-  </fieldset>
-
-  <fieldset class="widget-section">
-    <legend class="widget-label">Optional Modules</legend>
-    <div class="option-grid" data-group="modules">
-      ${modules.map(m => {
-        const isTier1 = TIER1_MODULES.includes(m);
-        return isTier1
-          ? `<button class="option-card module-card selected" data-group="modules" data-value="${esc(m)}" aria-pressed="true" disabled style="opacity:0.7;cursor:default;"><span class="module-check checked"></span>${esc(m)} (required)</button>`
-          : `<button class="option-card module-card" data-group="modules" data-value="${esc(m)}" aria-pressed="false"><span class="module-check"></span>${esc(m)}</button>`;
-      }).join('\n      ')}
-    </div>
-  </fieldset>
+  ${rulebookPanel}
+  ${difficultyPanel}
+  ${pacingPanel}
+  ${stylePanel}
+  ${modulesPanel}
 
   <button class="confirm-btn" id="settings-confirm" title="Begin adventure with the selected settings">Begin Adventure</button>
 </div>`,
     script: `var selections = ${serialiseInlineScriptData(defaults)};
 var selectedModules = [];
 
-function sendOrCopyPrompt(btn, prompt) {
-  btn.setAttribute('title', prompt);
-  if (typeof sendPrompt === 'function') {
-    sendPrompt(prompt);
-  } else {
-    var ta = document.createElement('textarea');
-    var copied = false;
-    ta.value = prompt;
-    ta.style.cssText = 'position:fixed;opacity:0';
-    document.body.appendChild(ta);
-    ta.select();
-    try {
-      copied = !!document.execCommand('copy');
-    } catch (_err) {
-      copied = false;
-    }
-    document.body.removeChild(ta);
-    var orig = btn.textContent;
-    btn.textContent = copied ? 'Copied! Paste as your reply.' : 'Copy the prompt from the tooltip.';
-    setTimeout(function() { btn.textContent = orig; }, 3000);
-  }
-}
+${SEND_OR_COPY_SCRIPT}
 
 if (Array.isArray(selections.modulesActive)) {
   selections.modulesActive.forEach(function(mod) {
@@ -171,6 +178,16 @@ shadow.querySelectorAll('.option-card:not(.module-card)').forEach(function(btn) 
     });
     this.classList.add('selected');
     this.setAttribute('aria-pressed', 'true');
+
+    var selTitle = shadow.getElementById('pd-sel-title');
+    if (selTitle) {
+      var parts = [];
+      if (selections.rulebook) parts.push(selections.rulebook.replace(/_/g, ' '));
+      if (selections.difficulty) parts.push(selections.difficulty);
+      selTitle.textContent = parts.length > 0 ? parts.join(' / ') : 'Unconfigured';
+    }
+    var selStatus = shadow.getElementById('pd-sel-status');
+    if (selStatus) selStatus.textContent = group.replace(/([A-Z])/g, ' $1').trim() + ' set to ' + value.replace(/_/g, ' ');
   });
 });
 
@@ -193,7 +210,6 @@ shadow.querySelectorAll('.module-card').forEach(function(btn) {
 });
 
 shadow.getElementById('settings-confirm').addEventListener('click', function() {
-  // Always include Tier 1 modules regardless of player selection
   var tier1 = ['gm-checklist','prose-craft','core-systems','die-rolls','character-creation','save-codex'];
   var allModules = tier1.slice();
   selectedModules.forEach(function(m) { if (allModules.indexOf(m) < 0) allModules.push(m); });
@@ -207,3 +223,36 @@ shadow.getElementById('settings-confirm').addEventListener('click', function() {
 });`,
   });
 }
+
+// ── Constants ──────────────────────────────────────────────────────
+
+const SETTINGS_CSS = `
+.widget-settings { font-family: var(--ta-font-body); padding: 16px; }
+.pd-summary-list { display: grid; gap: 2px; min-width: 160px; }
+.module-card { display: flex; align-items: center; gap: 8px; }
+.module-check { width: 16px; height: 16px; border: 1.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 10px; color: transparent; }
+.module-check.checked { background: var(--ta-color-accent, #4ECDC4); border-color: var(--ta-color-accent, #4ECDC4); color: #fff; }
+.module-check.checked::after { content: '\\2713'; }`;
+
+const SEND_OR_COPY_SCRIPT = `function sendOrCopyPrompt(btn, prompt) {
+  btn.setAttribute('title', prompt);
+  if (typeof sendPrompt === 'function') {
+    sendPrompt(prompt);
+  } else {
+    var ta = document.createElement('textarea');
+    var copied = false;
+    ta.value = prompt;
+    ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      copied = !!document.execCommand('copy');
+    } catch (_err) {
+      copied = false;
+    }
+    document.body.removeChild(ta);
+    var orig = btn.textContent;
+    btn.textContent = copied ? 'Copied! Paste as your reply.' : 'Copy the prompt from the tooltip.';
+    setTimeout(function() { btn.textContent = orig; }, 3000);
+  }
+}`;

@@ -3,6 +3,8 @@ import {
   renderHero,
   renderControlDeck,
   renderStageHeader,
+  renderSubpanel,
+  renderSummaryRow,
   renderStatusChip,
   renderBadge,
   PREGAME_DESIGN_CSS,
@@ -218,6 +220,71 @@ describe('renderBadge', () => {
   });
 });
 
+// ── renderSubpanel ─────────────────────────────────────────────────
+
+describe('renderSubpanel', () => {
+  test('renders with title and content', () => {
+    const html = renderSubpanel({ title: 'Rulebook', contentHtml: '<p>cards</p>' });
+    expect(html).toContain('Rulebook');
+    expect(html).toContain('<p>cards</p>');
+    expect(html).toContain('pd-subpanel');
+  });
+
+  test('renders optional kicker', () => {
+    const html = renderSubpanel({ kicker: 'Core', title: 'T', contentHtml: '' });
+    expect(html).toContain('Core');
+    expect(html).toContain('pd-kicker');
+  });
+
+  test('omits kicker when absent', () => {
+    const html = renderSubpanel({ title: 'T', contentHtml: '' });
+    expect(html).not.toContain('pd-kicker');
+  });
+
+  test('renders optional copy', () => {
+    const html = renderSubpanel({ title: 'T', copy: 'Pick one.', contentHtml: '' });
+    expect(html).toContain('Pick one.');
+    expect(html).toContain('pd-subpanel-copy');
+  });
+
+  test('omits copy when absent', () => {
+    const html = renderSubpanel({ title: 'T', contentHtml: '' });
+    expect(html).not.toContain('pd-subpanel-copy');
+  });
+
+  test('escapes HTML in text fields', () => {
+    const html = renderSubpanel({ kicker: '<b>k</b>', title: '<b>t</b>', copy: '<b>c</b>', contentHtml: '' });
+    expect(html).not.toContain('<b>');
+  });
+
+  test('does not escape contentHtml (raw slot)', () => {
+    const html = renderSubpanel({ title: 'T', contentHtml: '<button class="my-btn">Go</button>' });
+    expect(html).toContain('<button class="my-btn">Go</button>');
+  });
+});
+
+// ── renderSummaryRow ───────────────────────────────────────────────
+
+describe('renderSummaryRow', () => {
+  test('renders label and value', () => {
+    const html = renderSummaryRow('Rulebook', 'd20 system');
+    expect(html).toContain('Rulebook');
+    expect(html).toContain('d20 system');
+    expect(html).toContain('pd-summary-row');
+  });
+
+  test('renders placeholder when no value', () => {
+    const html = renderSummaryRow('Difficulty');
+    expect(html).toContain('Difficulty');
+    expect(html).toContain('pd-summary-value');
+  });
+
+  test('escapes HTML', () => {
+    const html = renderSummaryRow('<b>L</b>', '<b>V</b>');
+    expect(html).not.toContain('<b>');
+  });
+});
+
 // ── PREGAME_DESIGN_CSS ─────────────────────────────────────────────
 
 describe('PREGAME_DESIGN_CSS', () => {
@@ -234,6 +301,8 @@ describe('PREGAME_DESIGN_CSS', () => {
     expect(PREGAME_DESIGN_CSS).toContain('.pd-badge');
     expect(PREGAME_DESIGN_CSS).toContain('.pd-kicker');
     expect(PREGAME_DESIGN_CSS).toContain('.pd-selection-title');
+    expect(PREGAME_DESIGN_CSS).toContain('.pd-subpanel');
+    expect(PREGAME_DESIGN_CSS).toContain('.pd-summary-row');
   });
 
   test('uses theme-agnostic CSS variables', () => {

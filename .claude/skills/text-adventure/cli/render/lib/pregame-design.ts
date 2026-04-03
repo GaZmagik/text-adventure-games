@@ -82,6 +82,32 @@ export function renderBadge(text: string, variant?: 'default' | 'featured' | 'ac
   return `<span class="pd-badge${modifier}">${esc(text)}</span>`;
 }
 
+// ── Subpanel ───────────────────────────────────────────────────────
+
+export type SubpanelOpts = {
+  kicker?: string;
+  title: string;
+  copy?: string;
+  contentHtml: string;
+};
+
+export function renderSubpanel(opts: SubpanelOpts): string {
+  const headerParts: string[] = [];
+  if (opts.kicker) headerParts.push(kickerEl(opts.kicker));
+  headerParts.push(`<h3 class="pd-subpanel-title">${esc(opts.title)}</h3>`);
+  if (opts.copy) headerParts.push(`<p class="pd-subpanel-copy">${esc(opts.copy)}</p>`);
+  return `<article class="pd-subpanel">
+  <div class="pd-subpanel-header">${headerParts.join('\n')}</div>
+  <div class="pd-subpanel-content">${opts.contentHtml}</div>
+</article>`;
+}
+
+// ── Summary Row ────────────────────────────────────────────────────
+
+export function renderSummaryRow(label: string, value?: string): string {
+  return `<div class="pd-summary-row"><span class="pd-summary-label">${esc(label)}</span><strong class="pd-summary-value">${value ? esc(value) : ''}</strong></div>`;
+}
+
 // ── CSS ────────────────────────────────────────────────────────────
 
 export const PREGAME_DESIGN_CSS = `
@@ -224,8 +250,42 @@ export const PREGAME_DESIGN_CSS = `
   color: var(--ta-color-accent, #4ECDC4);
 }
 
+/* ── Subpanel ─────────────────────────────────────────── */
+.pd-subpanel {
+  padding: 14px;
+  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+.pd-subpanel-header { margin-bottom: 10px; }
+.pd-subpanel-title {
+  margin: 2px 0 0;
+  font-family: var(--ta-font-heading);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--sta-text-primary, #EEF0FF);
+}
+.pd-subpanel-copy {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--sta-text-secondary, #9AA0C0);
+}
+
+/* ── Summary Row ──────────────────────────────────────── */
+.pd-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 4px 0;
+  font-size: 12px;
+  border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.2));
+}
+.pd-summary-label { color: var(--sta-text-secondary, #9AA0C0); }
+.pd-summary-value { color: var(--sta-text-primary, #EEF0FF); font-weight: 600; }
+
 /* ── Reduced Motion ───────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .pd-hero, .pd-control-deck, .pd-status-chip, .pd-badge { transition: none; }
+  .pd-hero, .pd-control-deck, .pd-subpanel, .pd-status-chip, .pd-badge { transition: none; }
 }
 `;
