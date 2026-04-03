@@ -11,6 +11,7 @@ import {
   buildLoreMarkdown,
   extractLorePayload,
   extractFrontmatterField,
+  parseLoreFrontmatter,
 } from '../lib/lore-serialiser';
 import { readSafeTextFile, resolveSafeReadPath } from '../lib/path-security';
 import { stripUnknownStateKeys } from '../lib/state-schema';
@@ -31,6 +32,17 @@ async function readLoreFile(filePath: string): Promise<{
   const editedFlag = extractFrontmatterField(content, 'edited');
   const frontmatterRulebook = extractFrontmatterField(content, 'rulebook') ?? extractFrontmatterField(content, 'system');
   return { content, payloadString, editedFlag, frontmatterRulebook };
+}
+
+// ── Extract visible body from lore content ─────────────────────────
+
+function extractVisibleBody(content: string): string {
+  const fmMatch = content.match(/^---\n[\s\S]*?\n---\n/);
+  if (!fmMatch) return '';
+  const afterFm = content.slice(fmMatch[0].length);
+  const loreIdx = afterFm.indexOf('<!-- LORE:');
+  if (loreIdx === -1) return afterFm.trim();
+  return afterFm.slice(0, loreIdx).trim();
 }
 
 // ── Decode payload into GmState ──────────────────────────────────────
@@ -163,11 +175,13 @@ async function load(args: string[]): Promise<CommandResult> {
   let payloadString: string;
   let editedFlag: string | null = null;
   let frontmatterRulebook: string | null = null;
+  let loreContent = '';
   try {
     const loreFile = await readLoreFile(filePath);
     payloadString = loreFile.payloadString;
     editedFlag = loreFile.editedFlag;
     frontmatterRulebook = loreFile.frontmatterRulebook;
+    loreContent = loreFile.content;
   } catch (err) {
     return fail(
       err instanceof Error ? err.message : 'Failed to read lore file.',
@@ -188,6 +202,20 @@ async function load(args: string[]): Promise<CommandResult> {
       'Check the lore file for corruption.',
       'export load',
     );
+  }
+
+  // ── edited:true body/payload resolution ──
+  if (editedFlag === 'true') {
+    const visibleBody = extractVisibleBody(loreContent);
+    if (visibleBody) {
+      if (state.authoredBody && state.authoredBody !== visibleBody) {
+        warnings.push('Authored body drift detected: visible body differs from payload authoredBody. Using visible body.');
+      }
+      state.authoredBody = visibleBody;
+    }
+    const fm = parseLoreFrontmatter(loreContent) as Record<string, unknown>;
+    if (typeof fm.outputStyle === 'string') state.outputStyle = fm.outputStyle;
+    if (typeof fm.pacingProfile === 'string') state.pacingProfile = fm.pacingProfile as 'fast' | 'normal' | 'slow';
   }
 
   await saveState(state);

@@ -107,6 +107,43 @@ describe('export generate', () => {
     const result = await handleExport(['generate']);
     expect(result.command).toBe('export generate');
   });
+
+  test('includes output-style in frontmatter when outputStyle is set', async () => {
+    const state = await loadState();
+    state.outputStyle = 'gothic-noir';
+    await saveState(state);
+
+    const result = await handleExport(['generate']);
+    expect(result.ok).toBe(true);
+    const content = (result.data as Record<string, unknown>).loreContent as string;
+    expect(extractFrontmatterField(content, 'output-style')).toBe('gothic-noir');
+  });
+
+  test('includes pacing-profile in frontmatter when pacingProfile is set', async () => {
+    const state = await loadState();
+    state.pacingProfile = 'slow';
+    await saveState(state);
+
+    const result = await handleExport(['generate']);
+    expect(result.ok).toBe(true);
+    const content = (result.data as Record<string, unknown>).loreContent as string;
+    expect(extractFrontmatterField(content, 'pacing-profile')).toBe('slow');
+  });
+
+  test('includes authoredBody in payload when set on state', async () => {
+    const state = await loadState();
+    state.authoredBody = 'The ancient halls echoed with forgotten whispers.';
+    await saveState(state);
+
+    const result = await handleExport(['generate']);
+    expect(result.ok).toBe(true);
+    const content = (result.data as Record<string, unknown>).loreContent as string;
+    const payloadStr = extractLorePayload(content);
+    expect(payloadStr).not.toBeNull();
+    const b64 = payloadStr!.slice(payloadStr!.indexOf('LF1:') + 4);
+    const decoded = JSON.parse(Buffer.from(b64, 'base64').toString('utf-8'));
+    expect(decoded.authoredBody).toBe('The ancient halls echoed with forgotten whispers.');
+  });
 });
 
 // ── load ─────────────────────────────────────────────────────────────
@@ -143,6 +180,45 @@ describe('export load', () => {
     expect(restored.rosterMutations[0]!.name).toBe('Kira Voss');
     expect(restored.quests).toHaveLength(1);
     expect(restored.worldFlags.rulebook).toBe('d20_system');
+  });
+
+  test('round-trip preserves authoredBody, outputStyle, pacingProfile', async () => {
+    const state = await loadState();
+    state.authoredBody = 'Authored prose for round-trip.';
+    state.outputStyle = 'gothic-noir';
+    state.pacingProfile = 'slow';
+    await saveState(state);
+
+    const genResult = await handleExport(['generate']);
+    const content = (genResult.data as Record<string, unknown>).loreContent as string;
+    const lorePath = join(tempDir, 'roundtrip-authored.lore.md');
+    writeFileSync(lorePath, content, 'utf-8');
+
+    const fresh = createDefaultState();
+    await saveState(fresh);
+
+    const loadResult = await handleExport(['load', lorePath]);
+    expect(loadResult.ok).toBe(true);
+
+    const restored = await loadState();
+    expect(restored.authoredBody).toBe('Authored prose for round-trip.');
+    expect(restored.outputStyle).toBe('gothic-noir');
+    expect(restored.pacingProfile).toBe('slow');
+  });
+
+  test('loads legacy payload without authored fields cleanly', async () => {
+    const minState = createDefaultState();
+    const mechData = extractMechanicalData(minState);
+    const payload = attachChecksum(encodeLorePayload(mechData));
+    const lorePath = join(tempDir, 'legacy.lore.md');
+    writeFileSync(lorePath, `---\nformat: text-adventure-lore\nversion: 1\nedited: false\n---\n\n<!-- LORE:${payload} -->\n`, 'utf-8');
+
+    const loadResult = await handleExport(['load', lorePath]);
+    expect(loadResult.ok).toBe(true);
+    const loaded = await loadState();
+    expect(loaded.authoredBody).toBeUndefined();
+    expect(loaded.outputStyle).toBeUndefined();
+    expect(loaded.pacingProfile).toBeUndefined();
   });
 
   test('restores rulebook from system frontmatter alias when payload omits it', async () => {
@@ -390,6 +466,93 @@ describe('export validate', () => {
     const data = result.data as Record<string, unknown>;
     expect(data.valid).toBe(false);
     expect((data.errors as string[])[0]).toContain('Lore state is structurally invalid');
+  });
+});
+
+// ── authored body resolution ────────────────────────────────────────
+
+describe('export load — authored body resolution', () => {
+  test('edited:true sets authoredBody from visible prose body', async () => {
+    const genResult = await handleExport(['generate']);
+    const content = (genResult.data as Record<string, unknown>).loreContent as string;
+    const modified = content.replace('edited: false', 'edited: true');
+    const lorePath = join(tempDir, 'authored-visible.lore.md');
+    writeFileSync(lorePath, modified, 'utf-8');
+
+    const fresh = createDefaultState();
+    await saveState(fresh);
+
+    const loadResult = await handleExport(['load', lorePath]);
+    expect(loadResult.ok).toBe(true);
+
+    const loaded = await loadState();
+    expect(loaded.authoredBody).toBeDefined();
+    expect(typeof loaded.authoredBody).toBe('string');
+    expect(loaded.authoredBody!.length).toBeGreaterThan(0);
+    expect(loaded.authoredBody).toContain('World History');
+  });
+
+  test('edited:false preserves authoredBody from payload', async () => {
+    const state = await loadState();
+    state.authoredBody = 'Preserved payload body content.';
+    await saveState(state);
+
+    const genResult = await handleExport(['generate']);
+    const content = (genResult.data as Record<string, unknown>).loreContent as string;
+    const lorePath = join(tempDir, 'payload-body.lore.md');
+    writeFileSync(lorePath, content, 'utf-8');
+
+    const fresh = createDefaultState();
+    await saveState(fresh);
+
+    const loadResult = await handleExport(['load', lorePath]);
+    expect(loadResult.ok).toBe(true);
+
+    const loaded = await loadState();
+    expect(loaded.authoredBody).toBe('Preserved payload body content.');
+  });
+
+  test('edited:true warns when payload authoredBody differs from visible', async () => {
+    const state = await loadState();
+    state.authoredBody = 'Original payload body from previous export.';
+    await saveState(state);
+
+    const genResult = await handleExport(['generate']);
+    const content = (genResult.data as Record<string, unknown>).loreContent as string;
+    const modified = content.replace('edited: false', 'edited: true');
+    const lorePath = join(tempDir, 'drift-warn.lore.md');
+    writeFileSync(lorePath, modified, 'utf-8');
+
+    const fresh = createDefaultState();
+    await saveState(fresh);
+
+    const loadResult = await handleExport(['load', lorePath]);
+    expect(loadResult.ok).toBe(true);
+    const data = loadResult.data as Record<string, unknown>;
+    const warnings = (data.warnings ?? []) as string[];
+    expect(warnings.some(w => w.toLowerCase().includes('authored') || w.toLowerCase().includes('drift'))).toBe(true);
+  });
+
+  test('edited:true extracts outputStyle and pacingProfile from frontmatter', async () => {
+    const genResult = await handleExport(['generate']);
+    const content = (genResult.data as Record<string, unknown>).loreContent as string;
+    let modified = content.replace('edited: false', 'edited: true');
+    modified = modified.replace(
+      'optional-modules: none\n---',
+      'optional-modules: none\noutput-style: gothic-noir\npacing-profile: slow\n---',
+    );
+    const lorePath = join(tempDir, 'style-pacing.lore.md');
+    writeFileSync(lorePath, modified, 'utf-8');
+
+    const fresh = createDefaultState();
+    await saveState(fresh);
+
+    const loadResult = await handleExport(['load', lorePath]);
+    expect(loadResult.ok).toBe(true);
+
+    const loaded = await loadState();
+    expect(loaded.outputStyle).toBe('gothic-noir');
+    expect(loaded.pacingProfile).toBe('slow');
   });
 });
 

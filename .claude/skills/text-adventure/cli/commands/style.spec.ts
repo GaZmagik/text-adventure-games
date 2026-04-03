@@ -53,7 +53,7 @@ describe('tag style activate', () => {
   });
 
   test('fails when visualStyle is not set', async () => {
-    state.visualStyle = undefined;
+    delete state.visualStyle;
     await saveState(state);
 
     const result = await handleStyle(['activate']);

@@ -194,8 +194,10 @@ function buildFrontmatter(state: GmState): string {
     `recommended-styles: ${yamlSafe(state.visualStyle ?? 'default')}`,
     `required-modules: ${modules.join(', ') || 'none'}`,
     `optional-modules: none`,
-    '---',
   ];
+  if (state.outputStyle) lines.push(`output-style: ${yamlSafe(state.outputStyle)}`);
+  if (state.pacingProfile) lines.push(`pacing-profile: ${yamlSafe(state.pacingProfile)}`);
+  lines.push('---');
   return lines.join('\n');
 }
 
