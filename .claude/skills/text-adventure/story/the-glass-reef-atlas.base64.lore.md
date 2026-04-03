@@ -37,6 +37,7 @@ start-time: "21:00"
 pre-generated-characters:
   - name: "Rian Vale"
     class: "Cartographer"
+    pronouns: "he/him"
     stats: { STR: 9, DEX: 13, CON: 10, INT: 16, WIS: 14, CHA: 12 }
     hp: 10
     ac: 12
@@ -55,6 +56,7 @@ pre-generated-characters:
     starting-currency: 90
   - name: "Suri Kade"
     class: "Reef Diver"
+    pronouns: "she/her"
     stats: { STR: 12, DEX: 15, CON: 13, INT: 11, WIS: 13, CHA: 10 }
     hp: 12
     ac: 13
@@ -73,6 +75,7 @@ pre-generated-characters:
     starting-currency: 55
   - name: "Mara Ilex"
     class: "Choir Defector"
+    pronouns: "they/them"
     stats: { STR: 8, DEX: 12, CON: 11, INT: 14, WIS: 15, CHA: 14 }
     hp: 9
     ac: 11
