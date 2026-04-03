@@ -13,6 +13,7 @@ import { renderStarchart } from './starchart';
 import { renderMap } from './map';
 import { MODULE_PANEL_MAP } from '../../lib/module-panel-map';
 import { wrapInShadowDom } from '../lib/shadow-wrapper';
+import { SCENE_DESIGN_CSS } from '../lib/scene-design';
 import { CDN_BASE } from '../../../assets/cdn-manifest.ts';
 import { renderHpPips } from '../lib/svg-pips';
 import { LEVEL_REWARDS } from '../../data/xp-tables';
@@ -58,7 +59,8 @@ export function renderScene(state: GmState | null, styleName: string, options?: 
 
   return wrapInShadowDom({
     styleName,
-    inlineCss: `#panel-overlay { display: none; padding: 0; }
+    inlineCss: `${SCENE_DESIGN_CSS}
+#panel-overlay { display: none; padding: 0; }
 .panel-header {
   display: flex; align-items: baseline; justify-content: space-between;
   padding-bottom: 10px; margin-bottom: 12px;

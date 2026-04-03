@@ -149,6 +149,19 @@ describe('renderScene multi-phase reveal', () => {
   });
 });
 
+describe('renderScene scene design CSS', () => {
+  test('includes scene design vocabulary in output', () => {
+    const state = createDefaultState();
+    const html = renderScene(state, '');
+    expect(html).toContain('.sc-chapter-header');
+    expect(html).toContain('.sc-meta-strip');
+    expect(html).toContain('.sc-choice-stage');
+    expect(html).toContain('.sc-roll-metric');
+    expect(html).toContain('.sc-roll-result');
+    expect(html).toContain('.sc-quote');
+  });
+});
+
 describe('renderScene script loading', () => {
   test('does not load soundscape runtime when audio module is inactive', () => {
     const state = createDefaultState();
