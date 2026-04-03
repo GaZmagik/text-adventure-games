@@ -102,7 +102,11 @@ NEW GAME CHECKLIST
      The CLI output includes validated module toggles, difficulty presets, and
      accessibility options that hand-coded versions omit, producing incomplete
      or inconsistent settings.
-     Tailor available modules and defaults to the chosen scenario.
+     When the player chose a bundled scenario, forward its `defaults` object
+     (difficulty, pacing, rulebook, visualStyle) and `requiredModules` /
+     `optionalModules` arrays from the `tag scenario bundled` output directly
+     into the settings --data JSON. This pre-selects the adventure's recommended
+     configuration so the player only needs to confirm or tweak.
 □  6. Save the HTML to `/tmp/settings.html`, run `tag verify rules /tmp/settings.html`, then pass the verified HTML to show_widget.
      Settings verification is mandatory before character creation. It catches missing
      groups, broken confirm wiring, and serialisation drift before the player sees it.

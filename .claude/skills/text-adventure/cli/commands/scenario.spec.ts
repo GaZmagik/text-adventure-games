@@ -75,6 +75,25 @@ describe('tag scenario bundled', () => {
     expect(typeof glassReef.coverBack).toBe('string');
     expect(glassReef.coverBack as string).toContain('the-glass-reef-atlas-back-cover.png');
   });
+
+  test('includes settings defaults from lore frontmatter', async () => {
+    const result = await handleScenario(['bundled']);
+    const scenarios = (result.data as Record<string, unknown>).scenarios as Record<string, unknown>[];
+    const glassReef = scenarios.find(s => s.title === 'The Glass Reef Atlas')!;
+    const defaults = glassReef.defaults as Record<string, string>;
+    expect(defaults).toBeDefined();
+    expect(defaults.difficulty).toBe('hard');
+    expect(defaults.pacing).toBe('slow');
+    expect(defaults.rulebook).toBe('d20_system');
+    expect(defaults.visualStyle).toBe('holographic');
+  });
+
+  test('includes required and optional modules from lore frontmatter', async () => {
+    const result = await handleScenario(['bundled']);
+    const scenarios = (result.data as Record<string, unknown>).scenarios as Record<string, unknown>[];
+    const glassReef = scenarios.find(s => s.title === 'The Glass Reef Atlas')!;
+    expect(Array.isArray(glassReef.requiredModules)).toBe(true);
+  });
 });
 
 describe('tag scenario subcommand routing', () => {

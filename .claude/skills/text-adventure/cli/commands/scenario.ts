@@ -35,6 +35,9 @@ type BundledScenario = {
   loreFile: string;
   coverFront?: string;
   coverBack?: string;
+  defaults: Record<string, string>;
+  requiredModules: string[];
+  optionalModules: string[];
 };
 
 function buildGenres(theme?: string, tone?: string): string[] {
@@ -75,6 +78,16 @@ function scanBundledAdventures(): BundledScenario[] {
       const coverBack = existsSync(join(STORY_DIR, backFile))
         ? `${STORY_CDN}/${backFile}` : undefined;
 
+      const recStyles = typeof fm.recommendedStyles === 'object' ? fm.recommendedStyles : {};
+      const defaults: Record<string, string> = {};
+      if (fm.difficulty) defaults.difficulty = fm.difficulty;
+      if (fm.pacing) defaults.pacing = fm.pacing;
+      if (fm.rulebook) defaults.rulebook = fm.rulebook;
+      if (recStyles.visual) defaults.visualStyle = recStyles.visual;
+
+      const toStringArray = (v: unknown): string[] =>
+        Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
+
       scenarios.push({
         id,
         title: fm.title,
@@ -84,6 +97,9 @@ function scanBundledAdventures(): BundledScenario[] {
         players: fm.players ?? '1',
         featured: true,
         loreFile: file,
+        defaults,
+        requiredModules: toStringArray(fm.requiredModules),
+        optionalModules: toStringArray(fm.optionalModules),
         ...(coverFront ? { coverFront } : {}),
         ...(coverBack ? { coverBack } : {}),
       });
