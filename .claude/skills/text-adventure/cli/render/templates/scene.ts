@@ -151,7 +151,13 @@ export function renderScene(state: GmState | null, styleName: string, options?: 
         <span class="atmo-pill">The scene unfolds before you...</span>
       </div>
       ${buildNarrativePhases(options)}
-      <!-- [ACTIONS: Insert POI buttons (data-poi, dashed border) and action cards (solid border) here] -->
+      <!-- [ACTIONS: Insert POI buttons and action cards here.
+           Each button MUST use <strong class="btn-title"> for the title:
+
+           POI:    <button class="poi-btn" data-poi="id" data-prompt="..." title="..."><strong class="btn-title">Title</strong>Description text.</button>
+           Action: <button class="action-btn" data-prompt="..." title="..."><strong class="btn-title">Title</strong>Description text.</button>
+
+           tag verify will reject buttons without <strong> title structure.] -->
       <div class="status-bar">
         ${char ? `${renderHpPips(Number(char.hp) || 0, Number(char.maxHp) || 0)}
         <span class="ac-display">AC ${Number(char.ac) || 0}</span>

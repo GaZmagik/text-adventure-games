@@ -257,6 +257,16 @@ export const SCENE_DESIGN_CSS = `
   background: rgba(255,215,0,0.06);
 }
 
+/* ── Button Title Structure ──────────────────────────── */
+.poi-btn .btn-title,
+.action-btn .btn-title,
+.action-card .btn-title {
+  display: block;
+  font-weight: 700;
+  font-size: 1em;
+  margin-bottom: 2px;
+}
+
 /* ── Reduced Motion ──────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .sc-chapter-header, .sc-meta-strip, .sc-choice-stage, .sc-roll-result { transition: none; }

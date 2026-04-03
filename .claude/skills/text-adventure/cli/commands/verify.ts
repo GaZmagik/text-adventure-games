@@ -779,6 +779,27 @@ function checkActionCardDcValues(html: string, state: GmState, failures: string[
   }
 }
 
+/** Check that POI and action buttons use internal title structure (<strong>)
+ *  rather than flat concatenated text. Flat text produces unreadable labels
+ *  when styles apply text-transform: uppercase. */
+function checkButtonTitleStructure(html: string, failures: string[]): void {
+  const buttons = extractButtonElements(html).filter(
+    btn => btn.classes.includes('poi-btn')
+      || btn.classes.includes('action-btn')
+      || btn.classes.includes('action-card'),
+  );
+  if (buttons.length === 0) return;
+
+  const flat = buttons.filter(btn => !/<strong\b/i.test(btn.markup));
+  if (flat.length > 0) {
+    failures.push(
+      `Found ${flat.length} POI/action button(s) without internal title structure. `
+      + 'Use <strong class="btn-title">Title</strong> followed by description text inside each .poi-btn, .action-btn, and .action-card. '
+      + 'Flat text concatenates title and description with no visual separation.',
+    );
+  }
+}
+
 const PRE_GAME_WIDGET_TYPES = new Set(['scenario', 'rules', 'character']);
 
 /** In-game widget types that are NOT scenes — they come unmodified from tag render
@@ -886,6 +907,7 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
       () => checkActionCardEditorialLabels(html, failures),
       () => checkActionCardStatNames(html, failures),
       () => checkActionCardDcValues(html, state, failures),
+      () => checkButtonTitleStructure(html, failures),
     ];
   }
 

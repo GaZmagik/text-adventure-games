@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { handleVerify } from './verify';
+import { handleVerify, clearStateDirCache } from './verify';
 import { handleRender } from './render';
 import { handleState } from './state/index';
 
@@ -20,6 +20,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  clearStateDirCache();
   rmSync(tempDir, { recursive: true, force: true });
   if (originalEnv !== undefined) process.env.TAG_STATE_DIR = originalEnv;
   else delete process.env.TAG_STATE_DIR;
@@ -203,5 +204,91 @@ describe('verify: DC values in action cards', () => {
     const failures = (result.data as Record<string, unknown>).failures as string[];
     // DC check should not fire when die-rolls is not active
     expect(failures.filter(f => f.includes('difficulty')).length).toBe(0);
+  });
+});
+
+// ── Button title structure check ──────────────────────────────────
+
+describe('verify: POI and action button title structure', () => {
+  test('fails when poi-btn has flat text without strong element', async () => {
+    await setupState();
+    const html = await buildSceneHtml(
+      '<button class="poi-btn" data-poi="oren" data-prompt="Investigate Oren Silt." title="Investigate Oren Silt.">Watch Oren SiltThe dock fixer signals someone is watching.</button>'
+      + '<button class="action-btn" data-prompt="Head to market." title="Head to market."><strong class="btn-title">Head to market</strong>Where scrip changes hands.</button>',
+    );
+    const path = join(tempDir, 'scene.html');
+    writeFileSync(path, html, 'utf-8');
+    const result = await handleVerify([path]);
+    const failures = (result.data as Record<string, unknown>).failures as string[];
+    expect(failures.some(f => /title structure/i.test(f))).toBe(true);
+  });
+
+  test('fails when action-btn has flat text without strong element', async () => {
+    await setupState();
+    const html = await buildSceneHtml(
+      '<button class="action-btn" data-prompt="Go to Sounding House." title="Go to Sounding House.">Go to the Sounding HouseCharter headquarters.</button>'
+      + '<button class="action-btn" data-prompt="Leave." title="Leave."><strong class="btn-title">Leave the quay</strong>Head back to your berth.</button>',
+    );
+    const path = join(tempDir, 'scene.html');
+    writeFileSync(path, html, 'utf-8');
+    const result = await handleVerify([path]);
+    const failures = (result.data as Record<string, unknown>).failures as string[];
+    expect(failures.some(f => /title structure/i.test(f))).toBe(true);
+  });
+
+  test('fails when action-card has flat text without strong element', async () => {
+    await setupState();
+    const html = await buildSceneHtml(
+      '<button class="action-card" data-prompt="Talk to Oren." title="Talk to Oren.">Talk to Oren SiltThe fixer knows dock gossip.</button>'
+      + '<button class="action-card" data-prompt="Leave." title="Leave."><strong class="btn-title">Leave quietly</strong>Slip away before anyone notices.</button>',
+    );
+    const path = join(tempDir, 'scene.html');
+    writeFileSync(path, html, 'utf-8');
+    const result = await handleVerify([path]);
+    const failures = (result.data as Record<string, unknown>).failures as string[];
+    expect(failures.some(f => /title structure/i.test(f))).toBe(true);
+  });
+
+  test('passes when all POI and action buttons have strong title', async () => {
+    await setupState();
+    const html = await buildSceneHtml(
+      '<button class="poi-btn" data-poi="oren" data-prompt="Investigate Oren." title="Investigate Oren."><strong class="btn-title">Watch Oren Silt</strong>The dock fixer signals someone is watching.</button>'
+      + '<button class="action-btn" data-prompt="Head to market." title="Head to market."><strong class="btn-title">Head to Coalglass Market</strong>Where scrip changes hands.</button>',
+    );
+    const path = join(tempDir, 'scene.html');
+    writeFileSync(path, html, 'utf-8');
+    const result = await handleVerify([path]);
+    const failures = (result.data as Record<string, unknown>).failures as string[];
+    expect(failures.filter(f => /title structure/i.test(f)).length).toBe(0);
+  });
+
+  test('does not check buttons outside scene-content (footer, panels)', async () => {
+    await setupState();
+    // Footer buttons don't need title structure — only scene-content buttons
+    const html = await buildSceneHtml(
+      '<button class="action-btn" data-prompt="Search." title="Search."><strong class="btn-title">Search the room</strong>Look for clues.</button>'
+      + '<button class="action-btn" data-prompt="Leave." title="Leave."><strong class="btn-title">Leave</strong>Head out.</button>',
+    );
+    const path = join(tempDir, 'scene.html');
+    writeFileSync(path, html, 'utf-8');
+    const result = await handleVerify([path]);
+    const failures = (result.data as Record<string, unknown>).failures as string[];
+    expect(failures.filter(f => /title structure/i.test(f)).length).toBe(0);
+  });
+
+  test('reports count of offending buttons', async () => {
+    await setupState();
+    const html = await buildSceneHtml(
+      '<button class="poi-btn" data-poi="a" data-prompt="Check A." title="Check A.">Check sensor arrayThe readings are off.</button>'
+      + '<button class="poi-btn" data-poi="b" data-prompt="Check B." title="Check B.">Examine hull breachDamage from the storm.</button>'
+      + '<button class="action-btn" data-prompt="Go." title="Go.">Go to engineeringThe lights are flickering.</button>',
+    );
+    const path = join(tempDir, 'scene.html');
+    writeFileSync(path, html, 'utf-8');
+    const result = await handleVerify([path]);
+    const failures = (result.data as Record<string, unknown>).failures as string[];
+    const match = failures.find(f => /title structure/i.test(f));
+    expect(match).toBeDefined();
+    expect(match).toContain('3');
   });
 });
