@@ -449,3 +449,59 @@ describe('render freshness gates', () => {
     expect(result.ok).toBe(true);
   });
 });
+
+// ── pre-generated character injection ───────────────────────────────
+
+describe('render character-creation pre-gen injection', () => {
+  test('injects pre-gen characters when module is active', async () => {
+    const { generatePregenCharacters } = await import('../lib/pregen-generator');
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.theme = 'sci-fi';
+    state.seed = 'render-test';
+    state.modulesActive = ['pre-generated-characters'];
+    await saveState(state);
+
+    const result = await handleRender(['character-creation', '--raw', '--style', 'terminal']);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+
+    const expected = generatePregenCharacters({ theme: 'sci-fi', seed: 'render-test' });
+    expect(html).toContain(expected[0]!.name);
+    expect(html).toContain(expected[1]!.name);
+    expect(html).toContain(expected[2]!.name);
+  });
+
+  test('authored preGeneratedCharacters override generated ones', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.theme = 'sci-fi';
+    state.seed = 'render-test';
+    state.modulesActive = ['pre-generated-characters'];
+    await saveState(state);
+
+    const authored = [{ name: 'Captain Authored', class: 'Hero', hook: 'Handcrafted by the GM.' }];
+    const dataArg = JSON.stringify({ preGeneratedCharacters: authored });
+    const result = await handleRender(['character-creation', '--raw', '--style', 'terminal', '--data', dataArg]);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+    expect(html).toContain('Captain Authored');
+  });
+
+  test('does not inject pre-gen characters when module is inactive', async () => {
+    const { generatePregenCharacters } = await import('../lib/pregen-generator');
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.theme = 'sci-fi';
+    state.seed = 'render-test';
+    state.modulesActive = [];
+    await saveState(state);
+
+    const result = await handleRender(['character-creation', '--raw', '--style', 'terminal']);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+
+    const notExpected = generatePregenCharacters({ theme: 'sci-fi', seed: 'render-test' });
+    expect(html).not.toContain(notExpected[0]!.name);
+  });
+});

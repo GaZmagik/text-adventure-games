@@ -7,6 +7,7 @@ import { STAT_NAMES, TIER1_MODULES } from '../lib/constants';
 import { parseArgs } from '../lib/args';
 import { containsForbiddenKeys } from '../lib/security';
 import { stampRenderOrigin } from '../lib/render-origin';
+import { generatePregenCharacters } from '../lib/pregen-generator';
 import {
   PRE_CONFIG_WIDGETS,
   PRE_GAME_WIDGETS,
@@ -636,6 +637,14 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
       given: useSciFi ? names.sciFiGiven : names.realWorldGiven,
       surname: useSciFi ? names.sciFiSurname : names.realWorldSurname,
     };
+    // Inject pre-generated characters when module is active and none provided
+    const existingData = (options.data ?? {}) as Record<string, unknown>;
+    if (state?.modulesActive?.includes('pre-generated-characters')
+        && !Array.isArray(existingData.preGeneratedCharacters)) {
+      const pregens = generatePregenCharacters({ theme, seed: state?.seed });
+      if (!options.data) options.data = {};
+      (options.data as Record<string, unknown>).preGeneratedCharacters = pregens;
+    }
   }
 
   // Validate actions array shape when present
