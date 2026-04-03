@@ -15,7 +15,8 @@ export type TopLevelCommandName =
   | 'verify'
   | 'build-css'
   | 'setup'
-  | 'style';
+  | 'style'
+  | 'scenario';
 
 export type SubcommandHelp = {
   name: string;
@@ -45,6 +46,7 @@ export const TOP_LEVEL_COMMANDS = [
   'build-css',
   'setup',
   'style',
+  'scenario',
 ] as const satisfies readonly TopLevelCommandName[];
 
 export const COMMAND_HELP: Record<TopLevelCommandName, CommandHelp> = {
@@ -175,6 +177,13 @@ export const COMMAND_HELP: Record<TopLevelCommandName, CommandHelp> = {
     description: 'Load visual style guidance into GM context. Returns full style file and style-reference.md content, stamps freshness epoch for render gating.',
     subcommands: [
       { name: 'activate', usage: 'tag style activate', description: 'Read the active visual style file and style-reference.md — stamps _styleReadEpoch so scene rendering is unblocked', example: 'tag style activate' },
+    ],
+  },
+  scenario: {
+    command: 'tag scenario',
+    description: 'Bundled adventure discovery. Scans story/ for .lore.md files and outputs scenario-select-compatible JSON.',
+    subcommands: [
+      { name: 'bundled', usage: 'tag scenario bundled', description: 'List bundled adventures as featured scenarios with title, description, genres, difficulty, and players from lore frontmatter', example: 'tag scenario bundled' },
     ],
   },
 };

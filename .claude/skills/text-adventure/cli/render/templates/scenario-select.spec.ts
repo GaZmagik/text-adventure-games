@@ -226,8 +226,60 @@ describe('scenario-select verify safety', () => {
 
   test('cards use scenario-card class', () => {
     const html = renderScenarioSelect(null, '', { data: TWO_SCENARIOS });
-    const cardCount = (html.match(/class="scenario-card[^"]*"/g) ?? []).length;
+    const cardCount = (html.match(/class="scenario-card"/g) ?? []).length;
     expect(cardCount).toBe(2);
+  });
+});
+
+// ── Cover art hero card ───────────────────────────────────────────
+
+describe('scenario-select cover art', () => {
+  const COVER_SCENARIOS = {
+    scenarios: [
+      {
+        id: 'the-glass-reef-atlas',
+        title: 'The Glass Reef Atlas',
+        description: 'A salvage-mystery on the Shattersea Frontier.',
+        genres: ['sci-fi', 'mystery'],
+        difficulty: 'hard',
+        players: '1',
+        featured: true,
+        coverFront: 'https://cdn.example.com/story/the-glass-reef-atlas-front-cover.png',
+        coverBack: 'https://cdn.example.com/story/the-glass-reef-atlas-back-cover.png',
+      },
+      { title: 'Dust Anvil', description: 'The drill hit something.', genres: ['horror'] },
+    ],
+  };
+
+  test('featured card with coverFront gets data-has-cover attribute', () => {
+    const html = renderScenarioSelect(null, '', { data: COVER_SCENARIOS });
+    expect(html).toContain('data-has-cover="true"');
+  });
+
+  test('cover card has background-image style with gradient overlay', () => {
+    const html = renderScenarioSelect(null, '', { data: COVER_SCENARIOS });
+    expect(html).toContain('background-image: linear-gradient');
+    expect(html).toContain('the-glass-reef-atlas-front-cover.png');
+  });
+
+  test('non-cover cards do not get data-has-cover', () => {
+    const html = renderScenarioSelect(null, '', { data: COVER_SCENARIOS });
+    // Only 1 card should have the cover attribute (match HTML attrs, not CSS selectors)
+    const coverCount = (html.match(/\sdata-has-cover="true"/g) ?? []).length;
+    expect(coverCount).toBe(1);
+  });
+
+  test('cover card CSS has min-height for hero treatment', () => {
+    const html = renderScenarioSelect(null, '', { data: COVER_SCENARIOS });
+    expect(html).toContain('data-has-cover');
+    expect(html).toContain('min-height: 280px');
+  });
+
+  test('cover card still has scenario-select-btn for verify safety', () => {
+    const html = renderScenarioSelect(null, '', { data: COVER_SCENARIOS });
+    // The cover card must still have a select button
+    const btnCount = (html.match(/class="scenario-select-btn"/g) ?? []).length;
+    expect(btnCount).toBe(2);
   });
 });
 
