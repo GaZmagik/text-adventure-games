@@ -45,8 +45,8 @@ export const SCHEMA_VERSION = '1.3.0' as const;
 export const KNOWN_MODULES = [
   'adventure-authoring', 'adventure-exporting', 'ai-npc', 'arc-patterns', 'atmosphere', 'audio',
   'bestiary', 'character-creation', 'core-systems', 'crew-manifest', 'die-rolls',
-  'genre-mechanics', 'geo-map', 'gm-checklist', 'lore-codex', 'procedural-world-gen',
-  'prose-craft', 'rpg-systems', 'save-codex', 'scenarios', 'ship-systems',
+  'genre-mechanics', 'geo-map', 'gm-checklist', 'lore-codex', 'pre-generated-characters',
+  'procedural-world-gen', 'prose-craft', 'rpg-systems', 'save-codex', 'scenarios', 'ship-systems',
   'star-chart', 'story-architect', 'world-history',
 ] as const;
 

@@ -11,7 +11,7 @@ const MODULE_DIR = join(import.meta.dir, '..', '..', 'modules');
 const TIER2_MODULES = [
   'scenarios', 'bestiary', 'story-architect', 'ship-systems', 'crew-manifest',
   'star-chart', 'geo-map', 'procedural-world-gen', 'world-history', 'lore-codex',
-  'rpg-systems', 'ai-npc', 'atmosphere', 'audio',
+  'rpg-systems', 'ai-npc', 'atmosphere', 'audio', 'pre-generated-characters',
 ];
 
 const TIER3_MODULES = [

@@ -21,6 +21,25 @@ export type NpcStatus = 'active' | 'injured' | 'incapacitated' | 'missing' | 'de
 export type OpeningLens = 'rian' | 'suri' | 'mara';
 export type CharacterOrigin = 'pregen' | 'custom';
 
+// ── Pre-Generated Character ──────────────────────────────────────
+
+export type PreGeneratedCharacter = {
+  name: string;
+  class: string;
+  pronouns: string;
+  hook: string;
+  background?: string;
+  stats: Record<string, number>;
+  hp: number;
+  ac: number;
+  proficiencies: string[];
+  startingInventory?: Array<{ name: string; type?: string; effect?: string; description?: string }>;
+  abilities?: string[];
+  startingCurrency?: number;
+  openingLens?: string;
+  prologueVariant?: string;
+};
+
 // ── Character ──────────────────────────────────────────────────────
 
 export type Character = {

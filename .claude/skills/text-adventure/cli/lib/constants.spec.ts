@@ -46,7 +46,7 @@ describe('constants', () => {
   });
 
   test('KNOWN_MODULES has correct count', () => {
-    expect(KNOWN_MODULES).toHaveLength(24);
+    expect(KNOWN_MODULES).toHaveLength(25);
   });
 
   test('TIER1_MODULES is a subset of KNOWN_MODULES', () => {

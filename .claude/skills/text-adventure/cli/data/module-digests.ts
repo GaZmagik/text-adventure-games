@@ -32,6 +32,8 @@ export const MODULE_DIGESTS: Record<string, string> = {
     'Mandatory quality gates: checklists at key moments preventing common GM mistakes.',
   'lore-codex':
     'Living encyclopaedia: faction histories, NPC dossiers, location notes, discovered secrets.',
+  'pre-generated-characters':
+    'Ready-made character selection: three themed pre-built characters plus custom creation path.',
   'procedural-world-gen':
     'Deterministic world generation from seed string: layouts, NPCs, factions, loot, encounters.',
   'prose-craft':
