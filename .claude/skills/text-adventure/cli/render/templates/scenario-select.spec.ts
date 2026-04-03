@@ -256,10 +256,23 @@ describe('scenario-select cover art', () => {
     expect(html).toContain('data-has-cover="true"');
   });
 
-  test('cover card has background-image style with gradient overlay', () => {
+  test('featured card with both covers renders front and back as img elements', () => {
     const html = renderScenarioSelect(null, '', { data: COVER_SCENARIOS });
-    expect(html).toContain('background-image: linear-gradient');
+    expect(html).toContain('<img');
     expect(html).toContain('the-glass-reef-atlas-front-cover.png');
+    expect(html).toContain('the-glass-reef-atlas-back-cover.png');
+  });
+
+  test('featured card with both covers omits description text', () => {
+    const html = renderScenarioSelect(null, '', { data: COVER_SCENARIOS });
+    // Find the cover card HTML element (not CSS selectors)
+    const cardOpen = html.indexOf('<div class="scenario-card"');
+    const coverCardStart = html.indexOf('data-has-cover="true"', cardOpen);
+    // Find the next card div after this one
+    const nextCard = html.indexOf('<div class="scenario-card"', coverCardStart);
+    const coverCard = html.slice(coverCardStart, nextCard > 0 ? nextCard : undefined);
+    // The card should not contain a scenario-desc div
+    expect(coverCard).not.toContain('scenario-desc');
   });
 
   test('non-cover cards do not get data-has-cover', () => {
@@ -269,10 +282,9 @@ describe('scenario-select cover art', () => {
     expect(coverCount).toBe(1);
   });
 
-  test('cover card CSS has min-height for hero treatment', () => {
+  test('cover card uses cover-spread layout class', () => {
     const html = renderScenarioSelect(null, '', { data: COVER_SCENARIOS });
-    expect(html).toContain('data-has-cover');
-    expect(html).toContain('min-height: 280px');
+    expect(html).toContain('cover-spread');
   });
 
   test('cover card still has scenario-select-btn for verify safety', () => {

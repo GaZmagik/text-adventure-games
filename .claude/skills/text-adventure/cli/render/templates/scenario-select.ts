@@ -66,7 +66,32 @@ function renderCard(scenario: Scenario, idx: number, isSelected: boolean): strin
   const idAttr = scenario.id ? ` data-scenario-id="${esc(scenario.id)}"` : '';
   const featAttr = scenario.featured ? ' data-featured="true"' : '';
   const accentRgb = scenario.accent ? hexToRgb(scenario.accent) : null;
+  const hasBothCovers = !!(scenario.coverFront && scenario.coverBack);
   const coverAttr = scenario.coverFront ? ' data-has-cover="true"' : '';
+  const prompt = `I choose scenario: ${scenario.title}`;
+
+  // Featured card with both covers: full book-spread layout
+  if (hasBothCovers) {
+    const accentStyle = accentRgb ? ` style="--card-accent-rgb: ${accentRgb}"` : '';
+    return `
+      <div class="scenario-card"${idAttr}${featAttr}${coverAttr}${accentStyle} aria-pressed="${isSelected}" data-desc="${esc(desc)}" data-idx="${idx}">
+        <div class="cover-spread">
+          <img class="cover-front" src="${esc(scenario.coverFront!)}" alt="${esc(scenario.title)} — front cover" loading="lazy">
+          <img class="cover-back" src="${esc(scenario.coverBack!)}" alt="${esc(scenario.title)} — back cover" loading="lazy">
+        </div>
+        <div class="scenario-card-content">
+          <div class="scenario-title">${esc(scenario.title)}</div>
+          ${genrePills ? `<div class="scenario-genres">${genrePills}</div>` : ''}
+          <div class="scenario-meta">
+            ${scenario.difficulty ? `<span class="scenario-diff">Difficulty: ${esc(scenario.difficulty)}</span>` : ''}
+            ${scenario.players ? `<span class="scenario-players">${esc(scenario.players)} players</span>` : ''}
+          </div>
+          <button class="scenario-select-btn" data-prompt="${esc(prompt)}" title="${esc(prompt)}">Select</button>
+        </div>
+      </div>`;
+  }
+
+  // Standard card (optional front-cover-only background)
   const coverStyle = scenario.coverFront
     ? `background-image: linear-gradient(to top, rgba(10,10,18,0.95) 35%, rgba(10,10,18,0.4) 70%, transparent 100%), url(${esc(scenario.coverFront)});`
     : '';
@@ -75,7 +100,6 @@ function renderCard(scenario: Scenario, idx: number, isSelected: boolean): strin
     coverStyle ? coverStyle + ' background-size: cover; background-position: center top' : '',
   ].filter(Boolean).join('; ');
   const styleAttr = cardStyle ? ` style="${cardStyle}"` : '';
-  const prompt = `I choose scenario: ${scenario.title}`;
 
   return `
       <div class="scenario-card"${idAttr}${featAttr}${coverAttr}${styleAttr} aria-pressed="${isSelected}" data-desc="${esc(desc)}" data-idx="${idx}">
@@ -165,12 +189,14 @@ const SCENARIO_CSS = `
   grid-column: span 2;
   border-color: var(--ta-color-accent, #4ECDC4);
 }
+.cover-spread {
+  display: flex; gap: 12px; justify-content: center; padding: 12px 12px 0;
+}
+.cover-spread img {
+  width: 50%; max-height: 380px; object-fit: contain; border-radius: 6px;
+}
 .scenario-card[data-has-cover="true"] {
-  min-height: 280px;
-  display: flex;
-  align-items: flex-end;
-  border-radius: 12px;
-  overflow: hidden;
+  border-radius: 12px; overflow: hidden;
   border-color: rgba(84,88,128,0.2);
 }
 .scenario-card[data-has-cover="true"] .scenario-card-content {
@@ -178,10 +204,6 @@ const SCENARIO_CSS = `
 }
 .scenario-card[data-has-cover="true"] .scenario-title {
   font-size: 22px;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.6);
-}
-.scenario-card[data-has-cover="true"] .scenario-desc {
-  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
 }
 .scenario-card[data-has-cover="true"] .genre-pill {
   background: rgba(255,255,255,0.08);

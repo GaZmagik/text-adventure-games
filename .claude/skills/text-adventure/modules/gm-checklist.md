@@ -82,7 +82,7 @@ NEW GAME CHECKLIST
 □  1. Read all Tier 1 modules IN FULL (see SKILL.md Architecture — Tiered Loading)
 □  2. Build scenario list and render Scenario Selection widget:
      a) Run `tag scenario bundled` to get bundled adventure scenarios (featured, with cover art).
-     b) Generate 2-3 procedural scenarios tailored to the player's request.
+     b) Generate 4 procedural scenarios tailored to the player's request (for 5 total with the bundled featured scenario).
      c) If the player specified a genre that does not match a bundled adventure's theme,
         omit the bundled adventure from the featured slot and generate genre-appropriate
         scenarios instead.
