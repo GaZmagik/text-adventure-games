@@ -67,7 +67,7 @@ describe('tag style activate', () => {
 
     const result = await handleStyle(['activate']);
     expect(result.ok).toBe(false);
-    expect(result.error!.message).toMatch(/not found/i);
+    expect(result.error!.message).toMatch(/unknown style/i);
   });
 
   test('returns char counts for both files', async () => {

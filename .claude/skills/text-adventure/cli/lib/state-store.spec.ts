@@ -224,11 +224,14 @@ describe('state-store edge cases', () => {
   });
 
   test('rethrows unexpected read errors from tryLoadState', async () => {
+    // Write a real file so statSync() finds it on disk before the mock's json() runs
+    const state = createDefaultState();
+    writeFileSync(getStatePath(), JSON.stringify(state), 'utf-8');
+
     const bunApi = Bun as any;
     const originalFile = bunApi.file;
     bunApi.file = () => ({
       exists: async () => true,
-      size: 0,
       json: async () => {
         const err = new Error('blocked') as Error & { code: string };
         err.code = 'EACCES';

@@ -1,7 +1,7 @@
 // tag CLI — Pre-Generated Character Generator
 // Deterministic generation of three distinct ready-made characters from theme/seed.
 
-import type { PreGeneratedCharacter } from '../types';
+import type { PreGeneratedCharacter, StatBlock } from '../types';
 
 export type PregenInput = {
   theme: string;
@@ -51,7 +51,7 @@ function shuffled<T>(arr: readonly T[], rng: () => number): T[] {
 type ArchetypeTemplate = {
   id: string;
   role: 'physical' | 'technical' | 'social';
-  stats: Record<string, number>;
+  stats: StatBlock;
   hp: number; ac: number;
   proficiencies: string[];
   weapon: string; armour: string; consumable: string;

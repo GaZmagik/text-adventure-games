@@ -1,8 +1,8 @@
 import { describe, test, expect } from 'bun:test';
 import { generatePregenCharacters } from './pregen-generator';
-import type { PreGeneratedCharacter } from '../types';
+import type { PreGeneratedCharacter, StatName } from '../types';
 
-const STAT_KEYS = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
+const STAT_KEYS: StatName[] = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
 
 describe('generatePregenCharacters', () => {
   test('generates exactly 3 characters', () => {
