@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { handleState } from './index';
 import { handleSync, JOURNAL_FILENAME } from './sync';
 import { loadState, saveState, createDefaultState, getStatePath } from '../../lib/state-store';
+import { handleCompute } from '../compute';
 
 let tempDir: string;
 const originalEnv = process.env.TAG_STATE_DIR;
@@ -13,8 +14,7 @@ beforeEach(() => {
   tempDir = mkdtempSync(join(tmpdir(), 'tag-test-'));
   process.env.TAG_STATE_DIR = tempDir;
   // Satisfy verify gate for tests that use --apply — properly signed marker
-  const { signMarker } = require('../verify');
-  writeFileSync(join(tempDir, '.last-verify'), signMarker(999), 'utf-8');
+  writeVerifyMarker(999);
 });
 
 afterEach(() => {
@@ -25,6 +25,11 @@ afterEach(() => {
     delete process.env.TAG_STATE_DIR;
   }
 });
+
+function writeVerifyMarker(scene: number): void {
+  const { signMarker } = require('../verify');
+  writeFileSync(join(tempDir, '.last-verify'), signMarker(scene), 'utf-8');
+}
 
 describe('state/sync', () => {
   test('returns noState when no state exists', async () => {
@@ -71,6 +76,7 @@ describe('state/sync', () => {
       'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
       'character-creation', 'save-codex',
     ])]);
+    writeVerifyMarker(5);
 
     const result = await handleSync(['--apply']);
     expect(result.ok).toBe(true);
@@ -402,6 +408,7 @@ describe('state/sync edge cases', () => {
       await handleState(['set', 'currentRoom', 'bridge']);
       const mods = modules ?? ['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex'];
       await handleState(['set', 'modulesActive', JSON.stringify(mods)]);
+      writeVerifyMarker(3);
     }
 
     function addTranscriptFiles(dir: string, count: number, includeJournal = true): void {
@@ -539,6 +546,7 @@ describe('state/sync edge cases', () => {
         'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
         'character-creation', 'save-codex',
       ])]);
+      writeVerifyMarker(3);
     }
 
     test('unresolved _pendingRolls produces a warning', async () => {
@@ -553,7 +561,7 @@ describe('state/sync edge cases', () => {
       expect(result.ok).toBe(true);
       const data = result.data as { warnings: string[] };
       expect(data.warnings.some(w => w.includes('pending') && w.includes('CHA'))).toBe(true);
-      expect(data.warnings.some(w => w.includes('tag compute'))).toBe(true);
+      expect(data.warnings).toContain('Unresolved pending roll: action 1 requires contest (CHA) — run `tag compute contest CHA faal_01`.');
     });
 
     test('--apply with unresolved _pendingRolls returns fail', async () => {
@@ -567,6 +575,7 @@ describe('state/sync edge cases', () => {
       const result = await handleSync(['--apply']);
       expect(result.ok).toBe(false);
       expect(result.error!.message).toContain('pending');
+      expect(result.error!.corrective).toBe('Run `tag compute hazard DEX --dc 15` first.');
     });
 
     test('--apply with resolved rolls succeeds and clears _pendingRolls', async () => {
@@ -585,6 +594,23 @@ describe('state/sync edge cases', () => {
 
       const updated = await loadState();
       expect(updated._pendingRolls).toEqual([]);
+    });
+
+    test('--apply keeps distinct same-stat pending rolls unresolved until each matching roll exists', async () => {
+      await initStateWithModules();
+      const state = await loadState();
+      state._pendingRolls = [
+        { action: 1, type: 'hazard', stat: 'DEX', dc: 10 },
+        { action: 2, type: 'hazard', stat: 'DEX', dc: 14 },
+      ];
+      await saveState(state);
+
+      await handleCompute(['hazard', 'DEX', '--dc', '10']);
+
+      const result = await handleSync(['--apply']);
+      expect(result.ok).toBe(false);
+      expect(result.error!.message).toContain('action 2');
+      expect(result.error!.corrective).toBe('Run `tag compute hazard DEX --dc 14` first.');
     });
   });
 
@@ -677,6 +703,23 @@ describe('state/sync edge cases', () => {
   // ── Verify gate during --apply (lines 326-335) ────────────────────────
 
   describe('apply verify gate', () => {
+    test('--apply blocks when verify marker is missing entirely', async () => {
+      await handleState(['reset']);
+      await handleState(['set', 'scene', '2']);
+      await handleState(['set', 'modulesActive', JSON.stringify([
+        'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
+        'character-creation', 'save-codex',
+      ])]);
+      await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
+
+      rmSync(join(tempDir, '.last-verify'), { force: true });
+
+      const result = await handleSync(['--apply']);
+      expect(result.ok).toBe(false);
+      expect(result.error!.message).toContain('Scene 2 has not been verified');
+      expect(result.error!.message).toContain('Last verified: never');
+    });
+
     test('--apply blocks when last verify scene is behind current scene', async () => {
       await handleState(['reset']);
       await handleState(['set', 'scene', '5']);
@@ -694,6 +737,24 @@ describe('state/sync edge cases', () => {
       expect(result.ok).toBe(false);
       expect(result.error!.message).toContain('has not been verified');
       expect(result.error!.message).toContain('Scene 5');
+    });
+
+    test('--apply blocks when the current scene was re-rendered after verification', async () => {
+      await handleState(['reset']);
+      await handleState(['set', 'scene', '4']);
+      await handleState(['set', 'modulesActive', JSON.stringify([
+        'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
+        'character-creation', 'save-codex',
+      ])]);
+      await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
+
+      const { signMarker } = require('../verify');
+      writeFileSync(join(tempDir, '.last-verify'), signMarker(4), 'utf-8');
+      writeFileSync(join(tempDir, '.needs-verify'), '4:1', 'utf-8');
+
+      const result = await handleSync(['--apply']);
+      expect(result.ok).toBe(false);
+      expect(result.error!.message).toContain('re-rendered since the last verification');
     });
   });
 

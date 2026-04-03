@@ -148,3 +148,21 @@ describe('renderScene multi-phase reveal', () => {
     expect(html).toContain('<!-- [NARRATIVE: Phase 2');
   });
 });
+
+describe('renderScene script loading', () => {
+  test('does not load soundscape runtime when audio module is inactive', () => {
+    const state = createDefaultState();
+    state.modulesActive = ['core-systems'];
+    const html = renderScene(state, '');
+    expect(html).toContain('tag-scene.js');
+    expect(html).not.toContain('tag-soundscape.js');
+  });
+
+  test('loads soundscape runtime when audio module is active', () => {
+    const state = createDefaultState();
+    state.modulesActive = ['audio'];
+    const html = renderScene(state, '');
+    expect(html).toContain('tag-scene.js');
+    expect(html).toContain('tag-soundscape.js');
+  });
+});

@@ -27,6 +27,11 @@ afterEach(() => {
 
 async function setupState(): Promise<void> {
   await handleState(['reset']);
+  const { signMarker } = require('./verify');
+  writeFileSync(join(tempDir, '.last-sync'), signMarker(999, '{}'), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-scenario'), signMarker(0), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-rules'), signMarker(0), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-character'), signMarker(0), 'utf-8');
   await handleState(['set', 'scene', '1']);
   await handleState(['set', 'currentRoom', 'bridge']);
   await handleState(['set', 'visualStyle', 'station']);
@@ -119,6 +124,43 @@ describe('verify: dialogue widget type', () => {
     expect(data.verified).toBe(true);
     expect(data.widgetType).toBe('dialogue');
   });
+
+  test('dialogue widget fails when the Shadow DOM bootstrap is missing', async () => {
+    await setupState();
+    const path = join(tempDir, 'dialogue-handcoded.html');
+    writeFileSync(path, '<div class="widget-dialogue"><div class="dialogue-area">Hi</div></div>', 'utf-8');
+
+    const result = await handleVerify(['dialogue', path]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.verified).toBe(false);
+    const failures = data.failures as string[];
+    expect(failures.some(f => f.includes('Shadow DOM bootstrap'))).toBe(true);
+  });
+
+  test('dialogue widget fails when bootstrap markers are forged without a valid render-origin marker', async () => {
+    await setupState();
+    const path = join(tempDir, 'dialogue-forged.html');
+    writeFileSync(
+      path,
+      [
+        '<div id="shadow-host"></div>',
+        '<script>',
+        "const host = document.getElementById('shadow-host');",
+        "const root = host.attachShadow({ mode: 'open' });",
+        "root.innerHTML = `<div class=\"widget-dialogue\"><div class=\"dialogue-area\">Fake</div></div>`;",
+        '</script>',
+      ].join('\n'),
+      'utf-8',
+    );
+
+    const result = await handleVerify(['dialogue', path]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.verified).toBe(false);
+    const failures = data.failures as string[];
+    expect(failures.some(f => f.includes('exact render-origin marker'))).toBe(true);
+  });
 });
 
 describe('verify: levelup widget type', () => {
@@ -196,5 +238,29 @@ describe('verify: broken serialisation still caught for non-scene widgets', () =
     const result = await handleVerify(['dice', path]);
     const failures = (result.data as Record<string, unknown>).failures as string[];
     expect(failures.some(f => f.includes('[object Object]'))).toBe(true);
+  });
+
+  test('dice widget fails when the roll surface/result structure is missing', async () => {
+    await setupState();
+    const path = join(tempDir, 'bad-dice-empty.html');
+    writeFileSync(path, '<div class="widget-dice"></div>', 'utf-8');
+
+    const result = await handleVerify(['dice', path]);
+    const data = result.data as Record<string, unknown>;
+    expect(data.verified).toBe(false);
+    const failures = data.failures as string[];
+    expect(failures.some(f => f.includes('id="ra"'))).toBe(true);
+  });
+
+  test('save-div widget fails when payload container is missing', async () => {
+    await setupState();
+    const path = join(tempDir, 'bad-save-div.html');
+    writeFileSync(path, '<div></div>', 'utf-8');
+
+    const result = await handleVerify(['save-div', path]);
+    const data = result.data as Record<string, unknown>;
+    expect(data.verified).toBe(false);
+    const failures = data.failures as string[];
+    expect(failures.some(f => f.includes('save-data'))).toBe(true);
   });
 });

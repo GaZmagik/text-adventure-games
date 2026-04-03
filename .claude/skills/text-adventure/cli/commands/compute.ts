@@ -6,6 +6,7 @@ import { getOpposingAttribute } from '../data/contested-pairings';
 import { STAT_NAMES } from '../lib/constants';
 import { parseArgs } from '../lib/args';
 import { XP_THRESHOLDS, LEVEL_REWARDS } from '../data/xp-tables';
+import { selectPendingRollForResolution } from '../lib/pending-rolls';
 
 function isStatName(s: string): s is StatName {
   return (STAT_NAMES as readonly string[]).includes(s);
@@ -61,6 +62,12 @@ async function contest(args: string[]): Promise<CommandResult> {
   if (!state) return noState('compute');
   const npc = state.rosterMutations.find(n => n.id === npcId);
   if (!npc) return npcNotFound(npcId);
+  const pendingRoll = selectPendingRollForResolution(
+    state._pendingRolls,
+    state.rollHistory,
+    state.scene,
+    { type: 'contest', stat, npc: npcId },
+  );
 
   const opposingAttr = getOpposingAttribute(stat);
   const npcModifier = npc.modifiers[opposingAttr];
@@ -90,7 +97,18 @@ async function contest(args: string[]): Promise<CommandResult> {
   // _lastComputation is persisted to state.json for cross-command continuity
   // but intentionally excluded from portable save strings (see save.ts)
   state._lastComputation = computation;
-  state.rollHistory.push({ scene: state.scene, type: 'contested_roll', stat, roll: playerRoll, modifier: playerModifier, total: playerTotal, outcome });
+  state.rollHistory.push({
+    scene: state.scene,
+    type: 'contested_roll',
+    stat,
+    roll: playerRoll,
+    modifier: playerModifier,
+    total: playerTotal,
+    outcome,
+    npcId,
+    ...(pendingRoll ? { action: pendingRoll.action } : {}),
+    ...(pendingRoll?.skill ? { skill: pendingRoll.skill } : {}),
+  });
   await saveState(state);
 
   return ok({
@@ -133,6 +151,12 @@ async function hazard(args: string[]): Promise<CommandResult> {
 
   const state = await tryLoadState();
   if (!state) return noState('compute');
+  const pendingRoll = selectPendingRollForResolution(
+    state._pendingRolls,
+    state.rollHistory,
+    state.scene,
+    { type: 'hazard', stat, dc },
+  );
 
   const modifier = state.character?.modifiers[stat] ?? 0;
   const roll = rollD20();
@@ -151,7 +175,18 @@ async function hazard(args: string[]): Promise<CommandResult> {
   };
 
   state._lastComputation = computation;
-  state.rollHistory.push({ scene: state.scene, type: 'hazard_save', stat, roll, modifier, total, dc, outcome });
+  state.rollHistory.push({
+    scene: state.scene,
+    type: 'hazard_save',
+    stat,
+    roll,
+    modifier,
+    total,
+    dc,
+    outcome,
+    ...(pendingRoll ? { action: pendingRoll.action } : {}),
+    ...(pendingRoll?.skill ? { skill: pendingRoll.skill } : {}),
+  });
   await saveState(state);
 
   return ok({ type: 'hazard_save', stat, roll, modifier, total, dc, outcome }, 'compute hazard');

@@ -81,6 +81,16 @@ describe('handleHelp', () => {
       expect(names.some(n => n.includes('Character'))).toBe(true);
     });
 
+    test('includes the setup apply handoff after character creation', async () => {
+      const result = await handleHelp(['new-game']);
+      const data = result.data as {
+        steps: { name: string; command: string }[];
+      };
+      const applyStep = data.steps.find(step => step.name.includes('Apply Setup Payload'));
+      expect(applyStep).toBeDefined();
+      expect(applyStep!.command).toContain('tag setup apply');
+    });
+
     test('includes module tier list', async () => {
       const result = await handleHelp(['new-game']);
       const data = result.data as {

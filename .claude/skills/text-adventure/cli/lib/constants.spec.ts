@@ -30,6 +30,7 @@ describe('constants', () => {
     const ALL_GM_STATE_KEYS = {
       _version: true, _schemaVersion: true, scene: true, currentRoom: true,
       visitedRooms: true, rollHistory: true, character: true, worldFlags: true,
+      openingLens: true, prologueVariant: true, prologueComplete: true, characterOrigin: true,
       seed: true, theme: true, visualStyle: true, modulesActive: true,
       rosterMutations: true, codexMutations: true, time: true, factions: true,
       quests: true, storyArchitect: true, shipState: true, crewMutations: true,

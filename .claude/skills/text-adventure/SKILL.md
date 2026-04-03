@@ -53,6 +53,7 @@ All operational guides, checklists, and rules are delivered via CLI commands:
    - `tag verify rules /tmp/settings.html` — before showing settings
    - `tag verify character /tmp/character.html` — before showing character creation
    - `tag verify /tmp/scene.html` — before showing every scene
+   - `tag verify <type> /tmp/widget.html` — before showing other widgets such as `dice`, `dice-pool`, `dialogue`, `combat-turn`, `levelup`, `recap`, `arc-complete`, `ticker`, `ship`, `crew`, `codex`, `map`, `starchart`, `footer`, or `save-div`
 
 ## Module Architecture
 

@@ -27,6 +27,11 @@ afterEach(() => {
 
 async function setupState(): Promise<void> {
   await handleState(['reset']);
+  const { signMarker } = require('./verify');
+  writeFileSync(join(tempDir, '.last-sync'), signMarker(999, '{}'), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-scenario'), signMarker(0), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-rules'), signMarker(0), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-character'), signMarker(0), 'utf-8');
   await handleState(['set', 'scene', '1']);
   await handleState(['set', 'currentRoom', 'bridge']);
   await handleState(['set', 'visualStyle', 'station']);

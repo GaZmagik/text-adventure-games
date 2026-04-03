@@ -123,6 +123,58 @@ describe('render state requirement', () => {
     expect(result.error!.message).toContain('forbidden keys');
   });
 
+  test('rejects non-object --data payloads', async () => {
+    const result = await handleRender([
+      'settings',
+      '--raw',
+      '--style',
+      'terminal',
+      '--data',
+      '["not","an","object"]',
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('--data must be a JSON object');
+  });
+
+  test('rejects scenario-select data with malformed scenario entries', async () => {
+    const result = await handleRender([
+      'scenario-select',
+      '--raw',
+      '--style',
+      'terminal',
+      '--data',
+      '{"scenarios":[{"hook":"Missing title"}]}',
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('scenarios[0].title');
+  });
+
+  test('rejects dialogue choices without label/prompt strings', async () => {
+    const result = await handleRender([
+      'dialogue',
+      '--raw',
+      '--style',
+      'terminal',
+      '--data',
+      '{"choices":[{"label":"Ask","prompt":42}]}',
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('choices[0].prompt');
+  });
+
+  test('rejects character-creation archetypes without names', async () => {
+    const result = await handleRender([
+      'character-creation',
+      '--raw',
+      '--style',
+      'terminal',
+      '--data',
+      '{"archetypes":[{"description":"No name"}]}',
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('archetypes[0].name');
+  });
+
   test('settings safely serialises hostile defaults inside inline scripts', async () => {
     const hostileDefaults = JSON.stringify({
       defaults: {
@@ -273,5 +325,15 @@ describe('render output modes', () => {
     expect(result.ok).toBe(true);
     expect(typeof result.data).toBe('string');
     expect(result.data as string).toContain('attachShadow');
+  });
+
+  test('non-scene widgets carry an exact render-origin marker', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    await saveState(state);
+
+    const result = await handleRender(['ticker', '--raw']);
+    expect(result.ok).toBe(true);
+    expect(result.data as string).toMatch(/^<!-- TAG-RENDER:ticker:[0-9a-f]{8} -->\n/);
   });
 });

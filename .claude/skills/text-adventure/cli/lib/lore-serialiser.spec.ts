@@ -106,6 +106,34 @@ describe('extractMechanicalData', () => {
     expect(data.time.period).toBe('evening');
   });
 
+  test('carries currentRoom, shipState, and crewMutations when present', () => {
+    const state = makePopulatedState();
+    state.currentRoom = 'Citadel';
+    state.shipState = {
+      name: 'Borrowed Tide',
+      systems: {
+        hull: { integrity: 80, status: 'operational', conditions: [] },
+        engines: { integrity: 75, status: 'degraded', conditions: ['drift'] },
+        power_core: { integrity: 90, status: 'operational', conditions: [] },
+        life_support: { integrity: 88, status: 'operational', conditions: [] },
+        weapons: { integrity: 60, status: 'degraded', conditions: [] },
+        sensors: { integrity: 72, status: 'operational', conditions: [] },
+        shields: { integrity: 70, status: 'operational', conditions: [] },
+      },
+      powerAllocations: { hull: 10, engines: 20, power_core: 10, life_support: 15, weapons: 10, sensors: 20, shields: 15 },
+      repairParts: 4,
+      scenesSinceRepair: 0,
+    };
+    state.crewMutations = [
+      { id: 'crew_1', name: 'Jin', pronouns: 'she/her', role: 'pilot', morale: 70, stress: 20, loyalty: 60, status: 'active', task: 'Watch' },
+    ];
+
+    const data = extractMechanicalData(state);
+    expect(data.currentRoom).toBe('Citadel');
+    expect(data.shipState?.name).toBe('Borrowed Tide');
+    expect(data.crewMutations?.[0]?.name).toBe('Jin');
+  });
+
   test('carries modulesActive, seed, theme, visualStyle', () => {
     const data = extractMechanicalData(makePopulatedState());
     expect(data.modulesActive).toContain('core-systems');
@@ -312,6 +340,7 @@ describe('buildLoreMarkdown', () => {
     expect(extractFrontmatterField(md, 'title')).toBeTruthy();
     expect(extractFrontmatterField(md, 'theme')).toBe('dark-fantasy');
     expect(extractFrontmatterField(md, 'seed')).toBe('abc123def456');
+    expect(extractFrontmatterField(md, 'rulebook')).toBe('d20_system');
     expect(extractFrontmatterField(md, 'exported')).toBe('true');
   });
 

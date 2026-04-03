@@ -3,7 +3,7 @@
 
 import type {
   GmState, NpcMutation, Quest, CodexMutation, TimeState,
-  MapState, StoryArchitectState, CarryForward, ArcSummary,
+  MapState, StoryArchitectState, CarryForward, ArcSummary, ShipState, CrewMutation,
 } from '../types';
 import { SCHEMA_VERSION } from './constants';
 
@@ -22,6 +22,11 @@ export type LoreMechanicalData = {
   factions: Record<string, number>;
   quests: Quest[];
   worldFlags: Record<string, boolean | number | string>;
+  currentRoom: string;
+  openingLens?: GmState['openingLens'];
+  prologueVariant?: string;
+  prologueComplete?: boolean;
+  characterOrigin?: GmState['characterOrigin'];
   time: TimeState;
   modulesActive: string[];
   seed?: string;
@@ -30,6 +35,8 @@ export type LoreMechanicalData = {
   codexMutations: CodexMutation[];
   mapState?: MapState;
   storyArchitect?: StoryArchitectState;
+  shipState?: ShipState;
+  crewMutations?: CrewMutation[];
   arc?: number;
   arcType?: 'standard' | 'epic' | 'branching';
   carryForward?: CarryForward | null;
@@ -80,6 +87,11 @@ export function extractMechanicalData(state: GmState): LoreMechanicalData {
     factions: state.factions,
     quests: state.quests,
     worldFlags: state.worldFlags,
+    currentRoom: state.currentRoom,
+    ...(state.openingLens !== undefined ? { openingLens: state.openingLens } : {}),
+    ...(state.prologueVariant !== undefined ? { prologueVariant: state.prologueVariant } : {}),
+    ...(state.prologueComplete !== undefined ? { prologueComplete: state.prologueComplete } : {}),
+    ...(state.characterOrigin !== undefined ? { characterOrigin: state.characterOrigin } : {}),
     time: state.time,
     modulesActive: state.modulesActive,
     ...(state.seed !== undefined ? { seed: state.seed } : {}),
@@ -88,6 +100,8 @@ export function extractMechanicalData(state: GmState): LoreMechanicalData {
     codexMutations,
     ...(mapState !== undefined ? { mapState } : {}),
     ...(state.storyArchitect !== undefined ? { storyArchitect: state.storyArchitect } : {}),
+    ...(state.shipState !== undefined ? { shipState: state.shipState } : {}),
+    ...(state.crewMutations !== undefined ? { crewMutations: state.crewMutations } : {}),
     ...(state.arc !== undefined ? { arc: state.arc } : {}),
     ...(state.arcType !== undefined ? { arcType: state.arcType } : {}),
     ...(state.carryForward !== undefined ? { carryForward: state.carryForward } : {}),
@@ -137,6 +151,9 @@ function buildFrontmatter(state: GmState): string {
   const title = state.theme
     ? `Lore Export — ${state.theme}`
     : 'Lore Export';
+  const rulebook = typeof state.worldFlags.rulebook === 'string' && state.worldFlags.rulebook.trim().length > 0
+    ? state.worldFlags.rulebook.trim()
+    : 'd20_system';
   const calendarSystem = state.time?.calendarSystem ?? 'elapsed-only';
   const startDate = state.time?.date ?? 'Day 1';
   const startTime = state.time?.hour != null ? `${String(state.time.hour)}:00` : '08:00';
@@ -160,6 +177,7 @@ function buildFrontmatter(state: GmState): string {
     `exported-from: scene ${state.scene}`,
     `exported-date: ${now}`,
     `seed: ${yamlSafe(state.seed ?? 'none')}`,
+    `rulebook: ${yamlSafe(rulebook)}`,
     `calendar-system: ${yamlSafe(calendarSystem)}`,
     `start-date: ${yamlSafe(startDate)}`,
     `start-time: ${yamlSafe(startTime)}`,

@@ -388,6 +388,7 @@ exported: true
 exported-from: "Gareth Williams — Scene 12"
 exported-date: "2026-03-20T08:30:00Z"
 original-seed: "pale-threshold-7"
+rulebook: d20_system
 world-state: "post-act-1"
 previous-adventurer:
   name: "Gareth Williams"
@@ -570,6 +571,7 @@ exported: true
 exported-from: "Gareth Williams — Scene 12"
 exported-date: "2026-03-20T08:30:00Z"
 original-seed: "pale-threshold-7"
+rulebook: d20_system
 world-state: "post-act-1"
 previous-adventurer:
   name: "Gareth Williams"

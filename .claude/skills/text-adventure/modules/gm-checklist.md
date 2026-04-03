@@ -80,28 +80,31 @@ NEW GAME CHECKLIST
 ═══════════════════════════════════════════
 □  0. Run `. ./setup.sh` if first session. Run `tag state reset` to initialise game state.
 □  1. Read all Tier 1 modules IN FULL (see SKILL.md Architecture — Tiered Loading)
-□  2. Present Scenario Selection widget: run `tag render scenario-select --data '<json>'` — do NOT hand-code HTML.
+□  2. Render Scenario Selection widget: run `tag render scenario-select --data '<json>'` — do NOT hand-code HTML.
      The CLI output includes accessible markup, keyboard navigation, and sendPrompt
      wiring that hand-coded versions invariably omit, producing broken or inaccessible
      selection cards.
-□  3. Wait for player to select a scenario — do NOT auto-select.
+□  3. Save the HTML to `/tmp/scenario.html`, run `tag verify scenario /tmp/scenario.html`, then pass the verified HTML to show_widget.
+     Scenario select is part of the pre-game verify chain. If you skip verification here,
+     `tag render settings` is expected to refuse the next step.
+□  4. Wait for player to select a scenario — do NOT auto-select.
      The scenario choice determines which modules load, which world-history seeds
      apply, and which NPC rosters are available. Guessing wrong front-loads an
      entire arc the player did not ask for.
-□  4. Present the Settings widget: run `tag render settings --data '<json>'` — do NOT hand-code HTML.
+□  5. Render the Settings widget: run `tag render settings --data '<json>'` — do NOT hand-code HTML.
      The CLI output includes validated module toggles, difficulty presets, and
      accessibility options that hand-coded versions omit, producing incomplete
      or inconsistent settings.
      Tailor available modules and defaults to the chosen scenario.
-□  5. Wait for player to confirm settings — do NOT proceed without confirmation.
+□  6. Save the HTML to `/tmp/settings.html`, run `tag verify rules /tmp/settings.html`, then pass the verified HTML to show_widget.
+     Settings verification is mandatory before character creation. It catches missing
+     groups, broken confirm wiring, and serialisation drift before the player sees it.
+□  7. Wait for player to confirm settings — do NOT proceed without confirmation.
      All subsequent widgets (character creation, scene rendering, save data) depend
      on the confirmed settings for module loading, difficulty values, and style
      selection. Proceeding without confirmation means every downstream widget uses
      unvalidated defaults.
-□  6. Load required modules for the selected scenario and confirmed settings
-□  7. Read the active visual style file from styles/
-□  8. Read styles/style-reference.md for structural patterns
-□  9. Present Character Creation widget: run `tag render character-creation --data '<json>'` — do NOT hand-code HTML
+□  8. Render Character Creation widget: run `tag render character-creation --style <style> --data '<json>'` — do NOT hand-code HTML.
      The render pipeline embeds a 500+ name randomiser pool from data/names.md and
      pronoun selection with custom subject/object dropdowns. Hand-written character
      creation widgets will have NONE of this — names will be a tiny hardcoded list.
@@ -109,30 +112,24 @@ NEW GAME CHECKLIST
      rewrite any part of it. Rewriting strips the embedded JavaScript event listeners,
      the name randomiser pool, and the pronoun selection logic — the widget renders
      but its interactive elements are dead.
+□  9. Save the HTML to `/tmp/character.html`, run `tag verify character /tmp/character.html`, then pass the verified HTML to show_widget.
+     Character creation verification is mandatory before the first scene. If it fails,
+     fix the widget instead of hand-completing setup in state.
 □ 10. Wait for player to confirm character — do NOT auto-generate without input.
       The character's name, class, stats, and pronouns define every subsequent
       roll modifier, dialogue option, and narrative voice line. Auto-generating
       produces a character the player feels no ownership over.
-□ 11. Parse settings AND character data from the confirm prompt — the prompt contains
-     both (rulebook, difficulty, pacing, style, atmosphere, audio, modules, AND
-     name, class, stats, proficiencies, equipment). Apply ALL settings now.
-□ 12. Store character in state: `tag state set character '<json>'`
-     Run `tag state schema character` to see the exact fields. Quick reference:
-     ```json
-     {"name":"...","class":"...","hp":10,"maxHp":10,"ac":12,"level":1,"xp":0,
-      "currency":0,"currencyName":"credits",
-      "stats":{"STR":10,"DEX":10,"CON":10,"INT":10,"WIS":10,"CHA":10},
-      "modifiers":{"STR":0,"DEX":0,"CON":0,"INT":0,"WIS":0,"CHA":0},
-      "proficiencyBonus":2,"proficiencies":[],"abilities":[],
-      "inventory":[{"name":"...","type":"weapon","slots":1,"description":"..."}],
-      "conditions":[],"equipment":{"weapon":"...","armour":"..."}}
-     ```
-     Common mistakes: `archetype` (not a field), `pronouns` (store in worldFlags),
-     `equipment` as array (must be `{weapon, armour}` object),
-     `inventory[].quantity` (not a field — use `slots`).
-□ 13. Set visual style AND rulebook: `tag state set visualStyle <style-name>`
-     Also run: `tag state set worldFlags.rulebook <system>` (e.g. d20_system).
-     Without this, dice enforcement never triggers.
+□ 11. Parse the confirmed settings + character payloads and apply them with:
+     `tag setup apply --settings '<json>' --character '<json>'`
+     This is the canonical v1.3.0 setup handoff. It replaces the old manual
+     `tag state set character ...` / `tag state set visualStyle ...` sequence,
+     computes modifiers, stores pronouns, applies modules, and persists the style/rulebook.
+□ 12. Load Tier 1 modules into `_modulesRead`: run `tag module activate-tier 1`.
+     `tag state context` is a recovery inventory, not the scene render gate.
+     The render gate checks `_modulesRead`, which is populated by `tag module`.
+□ 13. Load required scenario modules with `tag module activate-tier 2` and any targeted `tag module activate <name>` calls.
+     Then read the active visual style file from `styles/` and `styles/style-reference.md`
+     for the structure/theme contract before composing the first scene.
 □ 14. Initialise storyArchitect (see modules/story-architect.md § Seeding Threads from carryForward)
 □ 15. Initialise worldHistory (see modules/world-history.md § Historical Epoch System)
 □ 16. ARC SETUP — Create ALL content for this arc BEFORE the first scene.
@@ -167,11 +164,12 @@ NEW GAME CHECKLIST
      If atmosphere module is active, effects are applied automatically by tag render scene.
      If audio module is active, the scene widget includes a soundscape player automatically.
 □ 18. Save composed HTML to /tmp/scene.html, then run `tag verify /tmp/scene.html`
-     The verify command checks 12 structural requirements: footer buttons, panels,
-     scene-meta, narrative content, CSS size, atmosphere, action cards, status bar,
-     no inline onclick, sendPrompt fallbacks, visual style set, no hand-coded dice.
-     The verify marker is cryptographically signed — writing the marker file manually
-     will not work. Without verification, `tag state sync --apply` will refuse to
+     The verify command checks the current structural and workflow requirements:
+     footer buttons, panels, scene-meta, narrative content, CSS size, atmosphere,
+     action cards, accessibility markers, sendPrompt fallbacks, visual style set,
+     and no hand-coded dice or prompt wiring regressions.
+     The verify marker is a signed workflow gate — writing the marker file manually
+     is unsupported and will fail validation. Without verification, `tag state sync --apply` will refuse to
      advance and `tag render scene` will refuse to produce the next widget.
 □ 19. Pass the verified HTML to show_widget. Verify: is ALL game content inside the widget?
 ```
@@ -208,7 +206,9 @@ RESUME FROM SAVE CHECKLIST
 □  8. Load all required modules — same set as a new game for this scenario type
 □  9. Reconstruct gmState from save payload (compact: regenerate + apply deltas;
      full: restore directly)
-□ 10. Run `tag state context` — verify all active modules are in context. Re-read any files listed in the `required` output.
+□ 10. Run `tag state context` — inspect which active modules must be re-read after resume or compaction.
+     Then re-run `tag module activate-tier 1` and any required Tier 2/3 activations so
+     `_modulesRead` matches the loaded module content again before scene rendering.
 □ 11. Verify NPC identity: apply pronouns from rosterMutations to all NPC
      definitions (see modules/ai-npc.md § NPC Definition Object for schema,
      modules/save-codex.md § compressRosterMutations for saved fields).
@@ -218,7 +218,8 @@ RESUME FROM SAVE CHECKLIST
 □ 13. Reinitialise worldHistory context from seed/theme (if procedural)
 □ 14. Render the resume scene as a widget using the active visual style
 □ 15. Include: footer with panel buttons + Save ↗ + Export ↗ (if module active)
-□ 16. Include: pre-computed #save-data div for save fallback
+□ 16. Do NOT embed save/export payloads inside the scene HTML. Save ↗ / Export ↗ footer actions
+     are the canonical artefact path in v1.3.0; `save-div` is a standalone utility widget.
 □ 17. Verify: is ALL game content inside the widget? No prose outside?
 ```
 
@@ -254,7 +255,7 @@ ARC TRANSITION CHECKLIST
 □ 12. Read styles/style-reference.md for structural patterns
 □ 13. Generate new world from derived seed (procedural) or load authored content
 □ 14. Present arc opening scene — reference prior arc consequences in narrative
-□ 15. Embed updated save data with new arc number in #save-data div
+□ 15. Keep save/export generation in the footer actions — do NOT embed updated save payloads in the scene HTML.
 □ 16. Verify: ALL content inside widget, no prose outside
 ```
 
@@ -343,7 +344,7 @@ NEW SCENE CHECKLIST
       THEN use the result to render the outcome. Running the render before the
       compute means the outcome is invented rather than calculated — the player's
       roll has no mechanical effect on the result.
-□ 15. Include: pre-computed #save-data div for save fallback
+□ 15. Include footer Save ↗ / Export ↗ actions as required by `modulesActive`; do NOT embed save payloads in the scene HTML
 □ 16. Save composed HTML to /tmp/scene.html, run `tag verify /tmp/scene.html`
       MANDATORY for every widget — not just scene advances. POI examinations,
       dialogue scenes, and mid-scene renders all require verification. The verify
@@ -483,7 +484,7 @@ COMBAT CHECKLIST
 ═══════════════════════════════════════════
 □ 1. Initiative order is determined and displayed
 □ 2. Enemy cards show name, role, HP pips (with sr-only text)
-□ 3. Player status shows HP, conditions
+□ 3. Player status shows HP, AC, and level
 □ 4. Action panel presents options: Attack, Skill, Item, Retreat
 □ 5. Each action uses data-prompt + addEventListener
 □ 6. Each action has a copyable fallback
@@ -509,7 +510,7 @@ SAVE/EXPORT CHECKLIST
 □ 4. When generating .lore.md: strip player character, reset discoveries,
      convert resolved threads to history
 □ 5. Present the file content as a downloadable artefact
-□ 6. Include inline copyable fallback text
+□ 6. Ensure the Save/Export buttons expose a copyable fallback via prompt/title text
 ```
 
 ---
@@ -546,11 +547,11 @@ POST-SCENE VERIFICATION
 □  2. Does the widget render the active visual style? (Check CSS custom properties)
 □  3. Are all buttons wired with addEventListener? (No inline onclick on sendPrompt paths)
 □  4. Do all sendPrompt buttons have fallback text?
-□  5. Is the status bar present and accurate? (HP, XP, level)
+□  5. Is the status bar present and accurate? (HP, AC, level)
 □  6. Footer button audit: compare rendered footer buttons against modules_active
      using the Module Footer Button Table in style-reference.md. Every active module
      must have its button. No inactive module should have a button.
-□  7. Is #save-data present with pre-computed save metadata?
+□  7. Did I avoid embedding save/export/base64 payloads in the widget HTML? Save ↗ / Export ↗ should remain footer actions.
 □  8. Did I advance at least one story thread?
 □  9. Is the gmState updated? (scene number, room, flags, time)
 □ 10. Run `tag state sync` — final integrity check. Address any warnings before the next scene.

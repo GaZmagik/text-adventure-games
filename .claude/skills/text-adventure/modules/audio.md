@@ -54,19 +54,25 @@ The audio engine (`SoundscapeEngine`) and footer Play/Stop button are embedded i
 scene template (`scene.ts`). The GM does not hand-code audio — the scene template handles
 all Web Audio API synthesis, oscillator routing, and button wiring automatically.
 
-The scene template reads the `data-soundscape` and `data-sound-duration` attributes from
-the scene widget root to determine which soundscape to play and for how long.
+In v1.3.0, the runtime reads `data-sound` and `data-duration` from the rendered
+footer audio button (`#audio-btn`). The stock scene/footer path seeds that button
+automatically when the `audio` module is active. Do not hand-edit rendered scene
+HTML to inject custom root-level audio attributes.
 
 ---
 
 ## GM Integration
 
-The GM selects the soundscape type based on the scene's location and atmosphere:
+The current v1.3.0 integration is module-driven rather than scene-authored:
 
-1. Determine the primary environment (ship, station, exterior, etc.)
-2. Set the soundscape type via `data-soundscape` attribute on the scene widget
-3. Set duration via `data-sound-duration` attribute (10-30 seconds, shorter for tense scenes, longer for calm)
-4. The scene template renders the Play/Stop footer button and wires the audio engine automatically
+1. Enable the `audio` module during setup so the scene footer includes the Play/Stop button.
+2. Render the scene normally with `tag render scene --style <style>`.
+3. Verify the footer contains the audio button; do not hand-code audio markup or root attributes.
+4. Let the stock runtime manage the button wiring and playback lifecycle.
+
+The audio engine supports multiple soundscape presets internally, but per-scene
+selection is not currently a public GM authoring surface. Treat audio as an
+optional ambient footer toggle in v1.3.0, not a hand-tuned scene attribute system.
 
 ### Soundscape Selection Guide
 

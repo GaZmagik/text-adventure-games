@@ -90,7 +90,9 @@ describe('render widget smoke tests', () => {
     const html = result.data as string;
     expect(html).toContain('widget-ship');
     expect(html).toContain('Astral Wanderer');
+    expect(html).toContain('ship-schematic');
     expect(html).toContain('system-card');
+    expect(html).toContain('Power Allocation');
     expect(html).toContain('engines');
   });
 
@@ -172,6 +174,7 @@ describe('render widget smoke tests', () => {
     const html = result.data as string;
     expect(html).toContain('widget-map');
     expect(html).toContain('Docking Bay 7');
+    expect(html).toContain('map-schematic');
     expect(html).toContain('zone-current');
     expect(html).toContain('zone-list');
   });
@@ -193,6 +196,7 @@ describe('render widget smoke tests', () => {
     const html = result.data as string;
     expect(html).toContain('widget-starchart');
     expect(html).toContain('Sol System');
+    expect(html).toContain('starchart-canvas');
     expect(html).toContain('system-current');
     expect(html).toContain('system-list');
     expect(html).toContain('Alpha Centauri');

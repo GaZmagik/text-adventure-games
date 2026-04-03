@@ -28,6 +28,10 @@ afterEach(() => {
 
 async function setupState(): Promise<void> {
   await handleState(['reset']);
+  writeFileSync(join(tempDir, '.last-sync'), signMarker(999), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-scenario'), signMarker(0), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-rules'), signMarker(0), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-character'), signMarker(0), 'utf-8');
   await handleState(['set', 'scene', '1']);
   await handleState(['set', 'currentRoom', 'bridge']);
   await handleState(['set', 'visualStyle', 'station']);
@@ -51,6 +55,29 @@ async function setupState(): Promise<void> {
   ])]);
 }
 
+function injectSceneActions(html: string, actions: string): string {
+  return html.replace(
+    '<!-- [ACTIONS: Insert POI buttons (data-poi, dashed border) and action cards (solid border) here] -->',
+    actions,
+  );
+}
+
+async function renderComposedScene(args: string[] = ['scene', '--style', 'station', '--raw']): Promise<string> {
+  const renderResult = await handleRender(args);
+  expect(renderResult.ok).toBe(true);
+  let html = (renderResult.data as string).replace(
+    '<p><!-- Narrative content rendered by the GM --></p>',
+    '<p class="narrative">The bridge hums with recycled air while warning lights crawl along the bulkheads.</p>'
+    + '<p class="narrative">Something deliberate stirs beyond the viewport and every crew member waits for your call.</p>',
+  );
+  html = injectSceneActions(
+    html,
+    '<button class="action-card" data-prompt="Examine the sonar." title="Examine the sonar."><div class="action-card-title">Examine sonar</div></button>'
+    + '<button class="action-card" data-prompt="Speak to the captain." title="Speak to the captain."><div class="action-card-title">Speak to captain</div></button>',
+  );
+  return html;
+}
+
 describe('tag verify', () => {
   test('passes for valid tag render scene output with composed narrative', async () => {
     await setupState();
@@ -63,11 +90,10 @@ describe('tag verify', () => {
         '<p class="narrative">The bridge hums with the sound of recycled air and quiet tension.</p>'
         + '<p class="narrative">Something moves beyond the viewport, dark against the deeper dark.</p>',
       );
-    html = html.replace(
-      '</div>\n  <!-- Scene metadata',
+    html = injectSceneActions(
+      html,
       '<button class="action-card" data-prompt="Examine the sonar." title="Examine the sonar."><div class="action-card-title">Examine sonar</div></button>'
-      + '<button class="action-card" data-prompt="Speak to the captain." title="Speak to the captain."><div class="action-card-title">Speak to captain</div></button>'
-      + '</div>\n  <!-- Scene metadata',
+      + '<button class="action-card" data-prompt="Speak to the captain." title="Speak to the captain."><div class="action-card-title">Speak to captain</div></button>',
     );
     const filePath = join(tempDir, 'scene.html');
     writeFileSync(filePath, html, 'utf-8');
@@ -134,11 +160,10 @@ describe('tag verify', () => {
         '<p><!-- Narrative content rendered by the GM --></p>',
         '<p class="narrative">The corridor stretches ahead, lit by emergency strips.</p><p class="narrative">A sound echoes from below.</p>',
       );
-    html = html.replace(
-      '</div>\n  <!-- Scene metadata',
+    html = injectSceneActions(
+      html,
       '<button class="action-card" data-prompt="Go left." title="Go left through the corridor."><div class="action-card-title">Go left</div></button>'
-      + '<button class="action-card" data-prompt="Go right." title="Go right toward the reactor stairs."><div class="action-card-title">Go right</div></button>'
-      + '</div>\n  <!-- Scene metadata',
+      + '<button class="action-card" data-prompt="Go right." title="Go right toward the reactor stairs."><div class="action-card-title">Go right</div></button>',
     );
     const filePath = join(tempDir, 'scene.html');
     writeFileSync(filePath, html, 'utf-8');
@@ -176,12 +201,11 @@ describe('tag verify', () => {
         '<p class="narrative">A long narrative paragraph that establishes the scene properly.</p>',
       );
     // Inject an inline onclick — the exact anti-pattern
-    html = html.replace(
-      '</div>\n  <!-- Scene metadata',
+    html = injectSceneActions(
+      html,
       '<button onclick="sendPrompt(\'Do thing\')">Do thing</button>'
       + '<button class="action-card" data-prompt="Other thing"><div class="action-card-title">Other</div></button>'
-      + '<button class="action-card" data-prompt="Another thing"><div class="action-card-title">Another</div></button>'
-      + '</div>\n  <!-- Scene metadata',
+      + '<button class="action-card" data-prompt="Another thing"><div class="action-card-title">Another</div></button>',
     );
     const filePath = join(tempDir, 'onclick.html');
     writeFileSync(filePath, html, 'utf-8');
@@ -199,12 +223,11 @@ describe('tag verify', () => {
         '<p><!-- Narrative content rendered by the GM --></p>',
         '<p class="narrative">A long narrative paragraph that establishes the scene properly.</p>',
       );
-    html = html.replace(
-      '</div>\n  <!-- Scene metadata',
+    html = injectSceneActions(
+      html,
       "<button onclick='sendPrompt(\"Do thing\")'>Do thing</button>"
       + '<button class="action-card" data-prompt="Other thing" title="Other thing"><div class="action-card-title">Other</div></button>'
-      + '<button class="action-card" data-prompt="Another thing" title="Another thing"><div class="action-card-title">Another</div></button>'
-      + '</div>\n  <!-- Scene metadata',
+      + '<button class="action-card" data-prompt="Another thing" title="Another thing"><div class="action-card-title">Another</div></button>',
     );
     const filePath = join(tempDir, 'onclick-single-quoted.html');
     writeFileSync(filePath, html, 'utf-8');
@@ -240,11 +263,10 @@ describe('tag verify', () => {
         '<p><!-- Narrative content rendered by the GM --></p>',
         '<p class="narrative">The bridge hums with tension and the air smells of recycled nothing.</p>',
       );
-    html = html.replace(
-      '</div>\n  <!-- Scene metadata',
+    html = injectSceneActions(
+      html,
       '<button class="action-card" data-prompt="Do the thing" title="Do the thing"><div class="action-card-title">Do thing</div></button>'
-      + '<button class="action-card" data-prompt="Other thing"><div class="action-card-title">Other</div></button>'
-      + '</div>\n  <!-- Scene metadata',
+      + '<button class="action-card" data-prompt="Other thing"><div class="action-card-title">Other</div></button>',
     );
     const filePath = join(tempDir, 'partial-fallback.html');
     writeFileSync(filePath, html, 'utf-8');
@@ -263,11 +285,10 @@ describe('tag verify', () => {
         '<p class="narrative">The bridge hums with the sound of recycled air and quiet tension.</p>'
         + '<p class="narrative">Something moves beyond the viewport, dark against the deeper dark.</p>',
       );
-    html = html.replace(
-      '</div>\n  <!-- Scene metadata',
+    html = injectSceneActions(
+      html,
       "<button class='action-card' data-prompt='Examine the sonar.' title='Examine the sonar.'><div class='action-card-title'>Examine sonar</div></button>"
-      + "<button class='action-card' data-prompt='Speak to the captain.' title='Speak to the captain.'><div class='action-card-title'>Speak to captain</div></button>"
-      + '</div>\n  <!-- Scene metadata',
+      + "<button class='action-card' data-prompt='Speak to the captain.' title='Speak to the captain.'><div class='action-card-title'>Speak to captain</div></button>",
     );
     const filePath = join(tempDir, 'single-quoted-prompts.html');
     writeFileSync(filePath, html, 'utf-8');
@@ -325,11 +346,10 @@ describe('tag verify', () => {
         '<p><!-- Narrative content rendered by the GM --></p>',
         '<p class="narrative">The bridge hums with tension and the sound of something distant.</p><p class="narrative">Lights flicker overhead.</p>',
       );
-    html = html.replace(
-      '</div>\n  <!-- Scene metadata',
+    html = injectSceneActions(
+      html,
       '<button class="action-card" data-prompt="Investigate." title="Investigate the source of the noise."><div class="action-card-title">Investigate</div></button>'
-      + '<button class="action-card" data-prompt="Retreat." title="Retreat to safer cover."><div class="action-card-title">Retreat</div></button>'
-      + '</div>\n  <!-- Scene metadata',
+      + '<button class="action-card" data-prompt="Retreat." title="Retreat to safer cover."><div class="action-card-title">Retreat</div></button>',
     );
     const filePath = join(tempDir, 'turncount.html');
     writeFileSync(filePath, html, 'utf-8');
@@ -386,6 +406,106 @@ describe('tag verify', () => {
     const result = await handleVerify([filePath]);
     const failures = (result.data as Record<string, unknown>).failures as string[];
     expect(failures.some(f => f.includes('codex'))).toBe(true);
+  });
+
+  test('fails when save button is missing from an otherwise valid footer', async () => {
+    await setupState();
+    let html = await renderComposedScene();
+    html = html.replace(/<button class="footer-btn" id="save-btn"[^>]*>Save ↗<\/button>/, '');
+    const filePath = join(tempDir, 'missing-save.html');
+    writeFileSync(filePath, html, 'utf-8');
+
+    const result = await handleVerify([filePath]);
+    const failures = (result.data as Record<string, unknown>).failures as string[];
+    expect(failures.some(f => f.includes('save-btn'))).toBe(true);
+  });
+
+  test('fails when export button is missing while adventure-exporting is active', async () => {
+    await setupState();
+    await handleState(['set', 'modulesActive', JSON.stringify([
+      'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
+      'character-creation', 'save-codex', 'adventure-exporting',
+    ])]);
+    let html = await renderComposedScene();
+    html = html.replace(/<button class="footer-btn" id="export-btn"[^>]*>Export ↗<\/button>/, '');
+    const filePath = join(tempDir, 'missing-export.html');
+    writeFileSync(filePath, html, 'utf-8');
+
+    const result = await handleVerify([filePath]);
+    const failures = (result.data as Record<string, unknown>).failures as string[];
+    expect(failures.some(f => f.includes('export-btn'))).toBe(true);
+  });
+
+  test('fails when an inactive module footer button is present', async () => {
+    await setupState();
+    let html = await renderComposedScene();
+    html = html.replace(
+      '</div>\n</div>`;shadow.appendChild(content);',
+      '  <button class="footer-btn" data-panel="ship" aria-expanded="false">Ship</button>\n</div>\n</div>`;shadow.appendChild(content);',
+    );
+    const filePath = join(tempDir, 'unexpected-footer-button.html');
+    writeFileSync(filePath, html, 'utf-8');
+
+    const result = await handleVerify([filePath]);
+    const failures = (result.data as Record<string, unknown>).failures as string[];
+    expect(failures.some(f => f.includes('Unexpected footer button') && f.includes('ship'))).toBe(true);
+  });
+
+  test('fails when action cards use editorial guidance labels', async () => {
+    await setupState();
+    let html = await renderComposedScene();
+    html = html
+      .replace('Examine sonar', 'Safe option')
+      .replace('Speak to captain', 'Risky approach');
+    const filePath = join(tempDir, 'editorial-labels.html');
+    writeFileSync(filePath, html, 'utf-8');
+
+    const result = await handleVerify([filePath]);
+    const failures = (result.data as Record<string, unknown>).failures as string[];
+    expect(failures.some(f => f.includes('editorial guidance labels'))).toBe(true);
+  });
+
+  test('fails when atmosphere module is active but fewer than three atmo pills are present', async () => {
+    await setupState();
+    await handleState(['set', 'modulesActive', JSON.stringify([
+      'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
+      'character-creation', 'save-codex', 'atmosphere',
+    ])]);
+    let html = await renderComposedScene();
+    html = html.replace(
+      '<span class="atmo-pill">The scene unfolds before you...</span>',
+      '<span class="atmo-pill">Cold light from the viewport</span>',
+    );
+    const filePath = join(tempDir, 'too-few-atmo-pills.html');
+    writeFileSync(filePath, html, 'utf-8');
+
+    const result = await handleVerify([filePath]);
+    const failures = (result.data as Record<string, unknown>).failures as string[];
+    expect(failures.some(f => f.includes('sensory pill'))).toBe(true);
+  });
+
+  test('fails when panel close button is missing', async () => {
+    await setupState();
+    let html = await renderComposedScene();
+    html = html.replace(/<button class="panel-close-btn" id="panel-close-btn" aria-label="Close panel">Close<\/button>/, '');
+    const filePath = join(tempDir, 'missing-panel-close.html');
+    writeFileSync(filePath, html, 'utf-8');
+
+    const result = await handleVerify([filePath]);
+    const failures = (result.data as Record<string, unknown>).failures as string[];
+    expect(failures.some(f => f.includes('panel-close-btn'))).toBe(true);
+  });
+
+  test('fails when panel title is not focusable', async () => {
+    await setupState();
+    let html = await renderComposedScene();
+    html = html.replace('id="panel-title-text" tabindex="-1"', 'id="panel-title-text"');
+    const filePath = join(tempDir, 'panel-title-no-tabindex.html');
+    writeFileSync(filePath, html, 'utf-8');
+
+    const result = await handleVerify([filePath]);
+    const failures = (result.data as Record<string, unknown>).failures as string[];
+    expect(failures.some(f => f.includes('tabindex="-1"'))).toBe(true);
   });
 });
 
@@ -571,7 +691,8 @@ describe('verify file path validation', () => {
     let html = (renderResult.data as string)
       .replace(
         '<p><!-- Narrative content rendered by the GM --></p>',
-        '<p class="narrative">The bridge hums with tension.</p><p class="narrative">Something moves.</p>',
+        '<p class="narrative">The bridge hums with a low mechanical tension while static crackles through the comms and every crew member watches the sensor wall.</p>'
+        + '<p class="narrative">Something deliberate shifts beyond the viewport, slow enough to study you back before it disappears into the dark.</p>',
       );
     const htmlPath = join(tempDir, 'good-vars.html');
     writeFileSync(htmlPath, html, 'utf-8');
@@ -596,13 +717,13 @@ describe('sync marker invalidation after verify', () => {
     let html = (renderResult.data as string)
       .replace(
         '<p><!-- Narrative content rendered by the GM --></p>',
-        '<p class="narrative">The bridge hums with tension.</p><p class="narrative">Something moves.</p>',
+        '<p class="narrative">The bridge hums with a low mechanical tension while static crackles through the comms and every crew member watches the sensor wall.</p>'
+        + '<p class="narrative">Something deliberate shifts beyond the viewport, slow enough to study you back before it disappears into the dark.</p>',
       );
-    html = html.replace(
-      '</div>\n  <!-- Scene metadata',
+    html = injectSceneActions(
+      html,
       '<button class="action-card" data-prompt="Check sonar." title="Check sonar."><div>Check sonar</div></button>'
-      + '<button class="action-card" data-prompt="Speak to Fen." title="Speak to Fen."><div>Speak to Fen</div></button>'
-      + '</div>\n  <!-- Scene metadata',
+      + '<button class="action-card" data-prompt="Speak to Fen." title="Speak to Fen."><div>Speak to Fen</div></button>',
     );
     const htmlPath = join(tempDir, 'sync-gate.html');
     writeFileSync(htmlPath, html, 'utf-8');
@@ -630,5 +751,58 @@ describe('sync marker invalidation after verify', () => {
 
     // Sync marker should still exist — no invalidation on failure
     expect(existsSync(syncMarkerPath)).toBe(true);
+  });
+});
+
+describe('scene verification edge cases', () => {
+  test('passes for multi-phase scenes when every phase narrative is composed', async () => {
+    await setupState();
+    const renderResult = await handleRender(['scene', '--style', 'station', '--raw', '--data', '{"phases":2}']);
+    expect(renderResult.ok).toBe(true);
+    let html = (renderResult.data as string)
+      .replace(
+        '<!-- [NARRATIVE: Phase 1] -->',
+        '<p class="narrative">The bridge lights dim and the whole deck seems to hold its breath as the signal pulses again beyond the glass.</p>',
+      )
+      .replace(
+        '<!-- [NARRATIVE: Phase 2] -->',
+        '<p class="narrative">Fen leans over the console, voice low and urgent, while the sensor ghosts resolve into something far too deliberate to be debris.</p>',
+      );
+    html = injectSceneActions(
+      html,
+      '<button class="action-card" data-prompt="Cross-check the signal." title="Cross-check the signal."><div class="action-card-title">Cross-check</div></button>'
+      + '<button class="action-card" data-prompt="Question Fen about the drift pattern." title="Question Fen about the drift pattern."><div class="action-card-title">Question Fen</div></button>',
+    );
+    const filePath = join(tempDir, 'scene-phases.html');
+    writeFileSync(filePath, html, 'utf-8');
+
+    const result = await handleVerify([filePath]);
+    expect(result.ok).toBe(true);
+    const data = result.data as { verified: boolean; failures: string[] };
+    expect(data.verified).toBe(true);
+    expect(data.failures).toEqual([]);
+  });
+
+  test('does not count hidden levelup overlay prompts toward the visible action minimum', async () => {
+    await setupState();
+    await handleState(['set', '_levelupPending', 'true']);
+
+    const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
+    expect(renderResult.ok).toBe(true);
+    let html = (renderResult.data as string).replace(
+      '<p><!-- Narrative content rendered by the GM --></p>',
+      '<p class="narrative">The bridge shivers with a rising engine whine as the crew waits for your call.</p><p class="narrative">Every eye in the room is on the sensor bloom edging toward the hull.</p>',
+    );
+    html = html.replace(
+      '<!-- [ACTIONS: Insert POI buttons (data-poi, dashed border) and action cards (solid border) here] -->',
+      '<button class="action-card" data-prompt="Stabilise the sensor mast." title="Stabilise the sensor mast."><div class="action-card-title">Stabilise sensor mast</div></button>',
+    );
+    const filePath = join(tempDir, 'scene-hidden-levelup.html');
+    writeFileSync(filePath, html, 'utf-8');
+
+    const result = await handleVerify([filePath]);
+    expect(result.ok).toBe(true);
+    const failures = (result.data as { failures: string[] }).failures;
+    expect(failures.some(f => f.includes('minimum is 2'))).toBe(true);
   });
 });

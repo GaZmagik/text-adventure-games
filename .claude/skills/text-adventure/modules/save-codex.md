@@ -5,17 +5,15 @@ The Save Codex encodes everything needed to resume a text adventure session into
 string. That string can be pasted into a new conversation, shared with another player, posted to a
 forum, or stored in a notes app. No accounts. No servers. No localStorage. The save *is* the string.
 
-Two encoding modes handle the two world types:
+Current CLI behaviour in v1.3.0:
 
-- **Compact mode** — for procedurally generated worlds (procedural-world-gen module active). The
-  world is always regenerable from its seed. Only player-driven mutations are stored. Saves are
-  short enough to fit in a tweet.
-- **Full mode** — for hand-authored worlds (no seed to regenerate from). The complete session state
-  is serialised and LZ-compressed. Saves are longer but still a single copyable string.
+- `tag save generate` emits a checksummed `SF2:` payload containing full game state as raw base64 JSON.
+- Save and export payloads are generated on demand from the footer `Save ↗` / `Export ↗` actions.
+  They are not embedded in scene HTML.
+- Legacy `SC1:` / `SF1:` payloads are accepted on load for migration and resume only.
 
-Both modes produce a versioned, checksummed payload. The resume flow validates the checksum before
-applying state, warns the player if the version is mismatched, and gracefully recovers what it can
-from partially corrupt saves.
+Historical compact/full design notes remain below for migration context, but they do **not**
+describe the live generation path used by the current CLI.
 
 Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: all other modules (captures their state for persistence).
 
@@ -55,29 +53,23 @@ with pre-loaded state.
 ```
 GM renders scene widget
         ↓
-Save Codex reads gmState (character, flags, visited rooms, NPC mutations, codex mutations)
+Player clicks Save ↗ in the footer
         ↓
-Mode detection: seed present? → compact mode : full mode
+sendPrompt asks Claude to run `tag save generate`
         ↓
-Compact:  extract deltas only → JSON → base64
-Full:     full state → JSON → LZ compress → base64
+Save Codex reads current gmState and serialises full state
         ↓
-Version header + checksum prepended → final save string
+JSON → base64 → `SF2:` prefix → checksum prepended
         ↓
-Save string embedded in scene widget as hidden #save-data div (fallback display)
+Claude presents a downloadable `.save.md` artifact
         ↓
-Player clicks Save ↗ → sendPrompt asks Claude to generate .save.md artifact
-        ↓
-Fallback (sendPrompt unavailable): save string shown inline as copyable text
+Fallback (sendPrompt unavailable): copy the prompt from the tooltip and run it manually
         ═══════════════════════════════════════════════════
-Player resumes: pastes save string, uploads .save.md, or pastes .save.md content
+Player resumes: pastes save string, uploads `.save.md`, or pastes `.save.md` content
         ↓
-Save Codex decodes: base64 → decompress (if needed) → JSON
+Save Codex validates checksum, decodes `SF2:` base64 JSON, and loads state
         ↓
-Validate: checksum match? version compatible?
-        ↓
-Compact: regenerate world from seed → apply mutation patches
-Full:    restore full gmState directly
+Legacy `SC1:` / `SF1:` payloads are accepted only for migration and resume
         ↓
 Send gmState to GM via sendPrompt → session resumes
 ```
@@ -86,8 +78,7 @@ Send gmState to GM via sendPrompt → session resumes
 
 ## Save File Format — `.save.md`
 
-Every scene widget includes a hidden pre-computed save payload. When the player clicks
-Save, `sendPrompt()` asks Claude to generate the `.save.md` file as a downloadable
+When the player clicks Save, `sendPrompt()` asks Claude to generate the `.save.md` file as a downloadable
 conversation artifact. The file uses YAML frontmatter for metadata and markdown body for
 the save payload. This format is both human-readable (the frontmatter) and
 machine-parseable (the payload string).
@@ -109,7 +100,7 @@ game-title: "Freeport Meridian"
 theme: "space"
 visual-style: "station"
 seed: "pale-threshold-7"
-mode: "compact"
+mode: "full"
 arc: 1
 arc-type: "standard"
 ---
@@ -120,7 +111,7 @@ To resume this adventure, paste the string below into a new conversation along w
 the instruction "Continue this text adventure":
 
 ```
-SC1:eyJ2IjoxLCJtb2RlIjoiY29tcGFjdCIsInNlZWQiOiJwYWxlLXRocmVzaG9sZC03...
+2f3c4d5e.SF2:eyJ2IjoxLCJtb2RlIjoiZnVsbCIsInNjZW5lIjo3LCJjaGFyYWN0ZXIiOns...
 ```
 
 *Saved from Freeport Meridian — The Oxidiser, Bar Floor*
@@ -153,10 +144,11 @@ SC1:eyJ2IjoxLCJtb2RlIjoiY29tcGFjdCIsInNlZWQiOiJwYWxlLXRocmVzaG9sZC03...
 > **CLI:** The `tag save generate` command produces identical save payloads using
 > the same FNV-1a checksum and base64 encoding.
 
-## Per-Scene Save Generation
+## Footer-Initiated Save Generation
 
-Every scene widget includes a pre-computed save payload as a hidden data attribute.
-This enables the inline fallback display if `sendPrompt()` is unavailable.
+Scene widgets do **not** embed hidden save payloads. The footer `Save ↗` action asks Claude
+to run `tag save generate`, and the generated `.save.md` artifact becomes the canonical save output.
+If `sendPrompt()` is unavailable, the widget falls back to a copyable prompt in the button tooltip.
 
 ### Implementation
 
@@ -516,6 +508,10 @@ const newSeed = originalSeed + '_arc' + newArcNumber;
 ```
 
 ---
+
+> **Historical note:** The implementation sketches below document earlier compact/full save
+> strategies retained for migration context. They are not the live v1.3.0 generation path,
+> which always emits checksummed `SF2:` payloads from `tag save generate`.
 
 **What is never stored in the save payload:**
 - `worldData` — always regenerated from `seed` + `theme` in compact mode
@@ -1014,11 +1010,12 @@ function validateAndDecode(saveString) {
 
 | Prefix | Mode | Compression | Compatible |
 |--------|------|-------------|------------|
-| `SC1:` | Compact — procedural | Base64 (raw JSON) | Current |
-| `SF1:` | Full — hand-authored | LZ-String + Base64 | Current |
+| `SF2:` | Full — current CLI format | Base64 (raw JSON) | Current |
+| `SC1:` | Compact — legacy import only | Base64 (raw JSON) | Legacy |
+| `SF1:` | Full — legacy import only | LZ-String + Base64 | Legacy |
 
-When a future schema version increments to v2, the prefix becomes `SC2:` / `SF2:`. The decoder
-checks `payload.v` and applies a migration function if loading an older save into a newer schema.
+The current CLI always generates `SF2:`. The loader keeps `SC1:` / `SF1:` support only so older
+saves can still be resumed and migrated forward safely.
 
 ---
 

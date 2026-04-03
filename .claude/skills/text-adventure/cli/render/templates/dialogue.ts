@@ -89,14 +89,24 @@ export function renderDialogue(state: GmState | null, styleName: string, options
     script: `shadow.querySelectorAll('.dialogue-choice[data-prompt]').forEach(function(btn) {
   btn.addEventListener('click', function() {
     var prompt = this.getAttribute('data-prompt');
-    var ta = document.createElement('textarea');
-    ta.value = prompt; ta.style.cssText = 'position:fixed;opacity:0';
-    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
     if (typeof sendPrompt === 'function') {
       sendPrompt(prompt);
     } else {
+      this.setAttribute('title', prompt);
+      var ta = document.createElement('textarea');
+      var copied = false;
+      ta.value = prompt;
+      ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        copied = !!document.execCommand('copy');
+      } catch (_err) {
+        copied = false;
+      }
+      document.body.removeChild(ta);
       var orig = this.textContent;
-      this.textContent = 'Copied! Paste as your reply.';
+      this.textContent = copied ? 'Copied! Paste as your reply.' : 'Copy the prompt from the tooltip.';
       var self = this;
       setTimeout(function() { self.textContent = orig; }, 3000);
     }

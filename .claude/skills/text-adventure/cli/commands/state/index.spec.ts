@@ -1,11 +1,12 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { __stateTestInternals, handleState } from './index';
 import { loadState, saveState } from '../../lib/state-store';
 import { MAX_STATE_HISTORY } from '../../lib/constants';
 import type { GmState } from '../../types';
+import { signMarker } from '../verify';
 
 let tempDir: string;
 const originalEnv = process.env.TAG_STATE_DIR;
@@ -37,6 +38,25 @@ describe('state reset', () => {
     expect(state.character).toBeNull();
     expect(state.rosterMutations).toEqual([]);
     expect(state._stateHistory).toBeInstanceOf(Array);
+  });
+
+  test('clears stale workflow markers from previous runs', async () => {
+    writeFileSync(join(tempDir, '.verified-scenario'), signMarker(0), 'utf-8');
+    writeFileSync(join(tempDir, '.verified-rules'), signMarker(0), 'utf-8');
+    writeFileSync(join(tempDir, '.verified-character'), signMarker(0), 'utf-8');
+    writeFileSync(join(tempDir, '.last-sync'), signMarker(2), 'utf-8');
+    writeFileSync(join(tempDir, '.last-verify'), signMarker(2), 'utf-8');
+    writeFileSync(join(tempDir, '.needs-verify'), '5:0', 'utf-8');
+
+    const result = await handleState(['reset']);
+    expect(result.ok).toBe(true);
+
+    expect(existsSync(join(tempDir, '.verified-scenario'))).toBe(false);
+    expect(existsSync(join(tempDir, '.verified-rules'))).toBe(false);
+    expect(existsSync(join(tempDir, '.verified-character'))).toBe(false);
+    expect(existsSync(join(tempDir, '.last-sync'))).toBe(false);
+    expect(existsSync(join(tempDir, '.last-verify'))).toBe(false);
+    expect(existsSync(join(tempDir, '.needs-verify'))).toBe(false);
   });
 });
 

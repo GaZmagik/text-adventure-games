@@ -19,6 +19,7 @@ cd .claude/skills/text-adventure && . ./setup.sh && tag save load /mnt/user-data
 | Command | Purpose |
 |---------|---------|
 | `tag help` | Workflow guides: quickstart, new-game, scene |
+| `tag module` | Load module markdown into GM context and populate `_modulesRead` |
 | `tag state` | Game state CRUD, NPC creation, sync, context, schema |
 | `tag compute` | Hidden rolls: contest, hazard, encounter, levelup |
 | `tag render` | Deterministic HTML widget generation |
@@ -38,9 +39,9 @@ Run `tag <command> --help` for subcommand details.
 Every scene follows this sequence. No exceptions.
 
 1. **Sync** — `tag state sync --apply --scene <N> --room <id>`
-2. **Read Modules** — Re-read prose-craft.md every turn. Re-read all Tier 1 modules from `tag state context`.
-3. **Render** — `tag render scene --style <style>` — do NOT modify the html output.
-4. **Compose** — Write narrative into the `#narrative` div. Follow `craftGuidance` from render output.
+2. **Load Modules** — Run `tag module activate-tier 1` before scene work. After compaction, use `tag state context` to see which active modules need reloading, then re-run `tag module activate-tier 1` plus any required Tier 2/3 activations.
+3. **Render** — `tag render scene --style <style>` — keep the Shadow DOM shell/runtime intact.
+4. **Compose** — Write narrative into `#narrative` or each `.scene-phase .narrative` block, and add actions/POIs only in the designated scene-content area. Follow `craftGuidance` from render output.
 5. **Verify** — `tag verify /tmp/scene.html` — blocks progression until all checks pass.
 6. **Post-Scene** — `tag state sync --apply --scene <N+1>` — update HP, XP, flags, quests.
 
@@ -48,11 +49,15 @@ Every scene follows this sequence. No exceptions.
 
 1. **Setup** — `. ./setup.sh && tag state reset`
 2. **Scenario Select** — `tag render scenario-select --data '<json>'`
-3. **Game Settings** — `tag render settings --data '<json>'` — every choice is captured into the setup payload
-4. **Character Creation** — `tag render character-creation --style <style> --data '<json>'`
-5. **Apply Setup Payload** — `tag setup apply --settings '<json>' --character '<json>'`
-6. **Read Tier 1 Modules** — `tag state context` then read every listed file
-7. **Opening Scene** — `tag state sync --apply --scene 1` then `tag render scene --style <style>`
+3. **Verify Scenario** — `tag verify scenario /tmp/scenario.html` before `show_widget`
+4. **Game Settings** — `tag render settings --data '<json>'`
+5. **Verify Settings** — `tag verify rules /tmp/settings.html` before `show_widget`
+6. **Character Creation** — `tag render character-creation --style <style> --data '<json>'`
+7. **Verify Character** — `tag verify character /tmp/character.html` before `show_widget`
+8. **Apply Setup Payload** — `tag setup apply --settings '<json>' --character '<json>'`
+9. **Read Tier 1 Modules** — `tag module activate-tier 1`
+10. **Load Scenario Modules** — `tag module activate-tier 2` or targeted `tag module activate <name>` calls
+11. **Opening Scene** — `tag state sync --apply --scene 1 --room <starting_room>` then `tag render scene --style <style>`
 
 ## Module Tiers
 
@@ -111,19 +116,30 @@ Every scene follows this sequence. No exceptions.
 | Footer | `tag render footer --style <s>` | Module-aware footer |
 | Level Up | `tag render levelup --style <s>` | Level-up celebration |
 | Recap | `tag render recap --style <s>` | Session summary |
+| Arc Complete | `tag render arc-complete --style <s>` | Act boundary / transition |
 | Save Div | `tag render save-div` | Save data container |
+
+## Verification
+
+- `tag verify scenario /tmp/scenario.html` for scenario select
+- `tag verify rules /tmp/settings.html` for settings
+- `tag verify character /tmp/character.html` for character creation
+- `tag verify /tmp/scene.html` for scenes
+- `tag verify <widget> /tmp/widget.html` for standalone/in-game widgets such as `dice`, `dice-pool`, `dialogue`, `combat-turn`, `levelup`, `recap`, `arc-complete`, `ticker`, `ship`, `crew`, `codex`, `map`, `starchart`, `footer`, and `save-div`
+
+Every widget should be verified before `show_widget`. Scene verification also gates the next render/sync cycle.
 
 ## Scene Structure
 
 Every scene widget contains (inside `#reveal-full` > `#scene-content`):
 
-1. **Location bar** — location name + scene number
+1. **Location bar** — location name + optional time/date
 2. **Atmosphere strip** — 3 sensory pills (at least one non-visual)
-3. **Narrative block** — second person, present tense
-4. **Points of interest** — 2-3 examine buttons via sendPrompt
-5. **Action buttons** — 2-5 choices via sendPrompt, no right/wrong labels
-6. **Status bar** — HP pips, XP progress, inventory tags, conditions
-7. **Footer** — panel toggles (pure JS) + module buttons (sendPrompt)
+3. **Narrative block(s)** — `#narrative` or `.scene-phase .narrative`, second person, present tense
+4. **Points of interest** — optional `data-poi` buttons that share the scene POI budget
+5. **Action buttons** — 2-5 choices via `data-prompt`, no right/wrong labels
+6. **Status bar** — HP pips, AC, and level when character state exists
+7. **Footer** — panel toggles (pure JS) + save/export/audio actions
 8. **Scene metadata** — hidden `#scene-meta` div with JSON
 
 ## Session Lifecycle

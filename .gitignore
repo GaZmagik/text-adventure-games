@@ -18,9 +18,14 @@ node_modules/
 .claude/cache/
 tmp/
 *.tmp
+text-adventure-test*/
 
 # Zip archives (except root-level distribution files)
 .claude/**/*.zip
+
+# Game prose
+*.lore.md
+!*base64.lore.md
 
 # Logs
 *.log

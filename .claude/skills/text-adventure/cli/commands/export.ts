@@ -21,6 +21,7 @@ async function readLoreFile(filePath: string): Promise<{
   content: string;
   payloadString: string;
   editedFlag: string | null;
+  frontmatterRulebook: string | null;
 }> {
   const content = await readSafeTextFile(filePath, 'Lore');
   const payloadString = extractLorePayload(content);
@@ -28,12 +29,13 @@ async function readLoreFile(filePath: string): Promise<{
     throw new Error('No LORE payload found in file.');
   }
   const editedFlag = extractFrontmatterField(content, 'edited');
-  return { content, payloadString, editedFlag };
+  const frontmatterRulebook = extractFrontmatterField(content, 'rulebook') ?? extractFrontmatterField(content, 'system');
+  return { content, payloadString, editedFlag, frontmatterRulebook };
 }
 
 // ── Decode payload into GmState ──────────────────────────────────────
 
-function decodeAndBuildState(payloadString: string): {
+function decodeAndBuildState(payloadString: string, frontmatterRulebook: string | null = null): {
   state: GmState;
   warnings: string[];
 } {
@@ -61,6 +63,24 @@ function decodeAndBuildState(payloadString: string): {
     ...defaults,
     ...filtered,
   };
+  const warnings: string[] = [];
+
+  const worldFlags = typeof state.worldFlags === 'object' && state.worldFlags !== null && !Array.isArray(state.worldFlags)
+    ? { ...(state.worldFlags as Record<string, unknown>) }
+    : {};
+  const payloadRulebook = typeof worldFlags.rulebook === 'string' && worldFlags.rulebook.trim().length > 0
+    ? worldFlags.rulebook.trim()
+    : null;
+  const fallbackRulebook = typeof frontmatterRulebook === 'string' && frontmatterRulebook.trim().length > 0
+    ? frontmatterRulebook.trim()
+    : null;
+
+  if (!payloadRulebook && fallbackRulebook) {
+    worldFlags.rulebook = fallbackRulebook;
+    warnings.push(`Restored worldFlags.rulebook from lore frontmatter (${fallbackRulebook}).`);
+  }
+
+  state.worldFlags = worldFlags;
 
   // Reset session fields
   state.scene = 0;
@@ -82,7 +102,7 @@ function decodeAndBuildState(payloadString: string): {
 
   // Cast is safe here — validateState has confirmed structural validity
   const validState = state as unknown as GmState;
-  return { state: validState, warnings: [...strippedWarnings, ...validation.warnings] };
+  return { state: validState, warnings: [...warnings, ...strippedWarnings, ...validation.warnings] };
 }
 
 // ── generate ─────────────────────────────────────────────────────────
@@ -142,10 +162,12 @@ async function load(args: string[]): Promise<CommandResult> {
 
   let payloadString: string;
   let editedFlag: string | null = null;
+  let frontmatterRulebook: string | null = null;
   try {
     const loreFile = await readLoreFile(filePath);
     payloadString = loreFile.payloadString;
     editedFlag = loreFile.editedFlag;
+    frontmatterRulebook = loreFile.frontmatterRulebook;
   } catch (err) {
     return fail(
       err instanceof Error ? err.message : 'Failed to read lore file.',
@@ -157,7 +179,7 @@ async function load(args: string[]): Promise<CommandResult> {
   let state: GmState;
   let warnings: string[];
   try {
-    const result = decodeAndBuildState(payloadString);
+    const result = decodeAndBuildState(payloadString, frontmatterRulebook);
     state = result.state;
     warnings = result.warnings;
   } catch (err) {
@@ -210,10 +232,12 @@ async function validate(args: string[]): Promise<CommandResult> {
 
   let payloadString: string;
   let editedFlag: string | null = null;
+  let frontmatterRulebook: string | null = null;
   try {
     const loreFile = await readLoreFile(filePath);
     payloadString = loreFile.payloadString;
     editedFlag = loreFile.editedFlag;
+    frontmatterRulebook = loreFile.frontmatterRulebook;
   } catch (err) {
     return ok({
       valid: false,
@@ -225,7 +249,7 @@ async function validate(args: string[]): Promise<CommandResult> {
   }
 
   try {
-    const { state, warnings } = decodeAndBuildState(payloadString);
+    const { state, warnings } = decodeAndBuildState(payloadString, frontmatterRulebook);
     return ok({
       valid: true,
       npcCount: state.rosterMutations.length,

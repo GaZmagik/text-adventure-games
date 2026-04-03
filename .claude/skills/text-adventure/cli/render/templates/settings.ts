@@ -27,6 +27,7 @@ export function renderSettings(_state: GmState | null, styleName: string, option
       if (typeof el === 'string') return el;
       if (el && typeof el === 'object' && 'id' in el && typeof (el as Record<string, unknown>).id === 'string') return (el as Record<string, unknown>).id as string;
       if (el && typeof el === 'object' && 'label' in el && typeof (el as Record<string, unknown>).label === 'string') return (el as Record<string, unknown>).label as string;
+      if (el && typeof el === 'object' && 'name' in el && typeof (el as Record<string, unknown>).name === 'string') return (el as Record<string, unknown>).name as string;
       return String(el);
     });
   };
@@ -125,18 +126,23 @@ var selectedModules = [];
 
 function sendOrCopyPrompt(btn, prompt) {
   btn.setAttribute('title', prompt);
-  var ta = document.createElement('textarea');
-  ta.value = prompt;
-  ta.style.cssText = 'position:fixed;opacity:0';
-  document.body.appendChild(ta);
-  ta.select();
-  document.execCommand('copy');
-  document.body.removeChild(ta);
   if (typeof sendPrompt === 'function') {
     sendPrompt(prompt);
   } else {
+    var ta = document.createElement('textarea');
+    var copied = false;
+    ta.value = prompt;
+    ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      copied = !!document.execCommand('copy');
+    } catch (_err) {
+      copied = false;
+    }
+    document.body.removeChild(ta);
     var orig = btn.textContent;
-    btn.textContent = 'Copied! Paste as your reply.';
+    btn.textContent = copied ? 'Copied! Paste as your reply.' : 'Copy the prompt from the tooltip.';
     setTimeout(function() { btn.textContent = orig; }, 3000);
   }
 }

@@ -51,6 +51,10 @@ export function renderScene(state: GmState | null, styleName: string, options?: 
 
   // Compose the footer (without its own <style> — we include CSS once at the top)
   const footerHtml = renderFooter(state, '', options);
+  const scriptSrc = [CDN_BASE + '/js/tag-scene.js'];
+  if (modules.includes('audio')) {
+    scriptSrc.unshift(CDN_BASE + '/js/tag-soundscape.js');
+  }
 
   return wrapInShadowDom({
     styleName,
@@ -76,7 +80,59 @@ export function renderScene(state: GmState | null, styleName: string, options?: 
 .panel-content { display: none; font-family: var(--ta-font-body, var(--sta-font-sans, system-ui, -apple-system, sans-serif)); }
 .narrative, .brief-text { font-family: var(--sta-font-serif, Georgia, serif); font-size: var(--sta-text-base, 15px); line-height: 1.7; }
 .atmo-strip { display: flex; gap: var(--sta-space-sm, 8px); flex-wrap: wrap; margin-bottom: var(--sta-space-md, 14px); }
-.atmo-pill { font-family: var(--sta-font-mono, monospace); font-size: var(--sta-text-xs, 10px); letter-spacing: 0.06em; padding: 3px 10px; border-radius: var(--sta-radius-pill, 999px); border: var(--sta-border-width, 0.5px) solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); color: var(--sta-text-tertiary, #545880); }`,
+.atmo-pill { font-family: var(--sta-font-mono, monospace); font-size: var(--sta-text-xs, 10px); letter-spacing: 0.06em; padding: 3px 10px; border-radius: var(--sta-radius-pill, 999px); border: var(--sta-border-width, 0.5px) solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); color: var(--sta-text-tertiary, #545880); }
+.panel-quests, .levelup-panel { font-family: var(--ta-font-body); padding: 16px; }
+.quests-title, .levelup-heading {
+  font-family: var(--ta-font-heading); font-size: 18px; font-weight: 700;
+  color: var(--sta-text-primary, #EEF0FF); margin-bottom: 12px;
+}
+.quest-card {
+  padding: 10px; margin-bottom: 8px;
+  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  border-radius: 6px;
+}
+.quest-card-header, .levelup-stats {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.quest-title { font-size: 13px; font-weight: 600; color: var(--sta-text-primary, #EEF0FF); }
+.quest-progress, .levelup-reward, .levelup-note, .levelup-choice-intro {
+  font-size: 10px; color: var(--sta-text-tertiary, #545880);
+}
+.quest-objectives { list-style: none; padding: 0; margin: 4px 0 0; }
+.quest-objective { font-size: 11px; color: var(--sta-text-secondary, #9AA0C0); padding: 2px 0; }
+.levelup-panel { text-align: center; }
+.levelup-heading {
+  font-size: 22px; margin-bottom: 6px; color: var(--ta-color-accent, #4ECDC4);
+}
+.levelup-subtitle { font-size: 13px; color: var(--sta-text-secondary, #9AA0C0); margin-bottom: 14px; }
+.levelup-stats { justify-content: center; gap: 20px; margin: 12px 0; }
+.levelup-stat { text-align: center; }
+.levelup-stat-label {
+  display: block; font-size: 10px; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--sta-text-tertiary, #545880);
+}
+.levelup-stat-value {
+  display: block; font-size: 20px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF);
+}
+.levelup-prof-change {
+  display: inline-block; padding: 5px 12px; margin: 6px 0;
+  background: var(--ta-color-accent-bg); color: var(--ta-color-accent);
+  border-radius: 8px; font-size: 11px; font-weight: 600;
+}
+.levelup-reward { margin: 10px 0 6px; text-transform: uppercase; letter-spacing: 0.08em; }
+.levelup-choice-block { margin: 8px 0; }
+.levelup-choice-intro { text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+.levelup-choice-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.levelup-choice {
+  display: inline-block; padding: 8px 16px; margin: 4px;
+  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); border-radius: 6px;
+  font-size: 12px; color: var(--sta-text-primary, #EEF0FF); cursor: pointer;
+  background: transparent; transition: border-color 0.2s;
+  min-height: 44px; box-sizing: border-box;
+}
+.levelup-choice:hover,
+.levelup-choice[aria-pressed="true"] { border-color: var(--ta-color-accent, #4ECDC4); }
+.levelup-confirm { margin-top: 14px; }`,
     html: `<div class="root" data-poi-budget="${char?.poiMax ?? 2}">
   <!-- Progressive reveal -->
   <div id="reveal-brief">
@@ -115,10 +171,7 @@ export function renderScene(state: GmState | null, styleName: string, options?: 
   <!-- Footer -->
   ${footerHtml}
 </div>`,
-    scriptSrc: [
-      CDN_BASE + '/js/tag-soundscape.js',
-      CDN_BASE + '/js/tag-scene.js',
-    ],
+    scriptSrc,
     script: 'initTagScene(shadow);',
   });
 }
@@ -163,17 +216,17 @@ function renderQuestsPanel(state: GmState | null): string {
     const total = q.objectives.length;
     const pct = total > 0 ? Math.round((done / total) * 100) : 0;
     const objectives = q.objectives.map(o =>
-      `<li style="font-size:11px;color:var(--sta-text-secondary, #9AA0C0);padding:2px 0">`
+      `<li class="quest-objective">`
       + `${o.completed ? '✓' : '○'} ${esc(o.description)}</li>`,
     ).join('');
-    return `<div style="padding:10px;margin-bottom:8px;border:0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));border-radius:6px">`
-      + `<div style="display:flex;justify-content:space-between;align-items:center">`
-      + `<span style="font-size:13px;font-weight:600;color:var(--sta-text-primary, #EEF0FF)">${esc(q.title)}</span>`
-      + `<span style="font-size:10px;color:var(--sta-text-tertiary, #545880)">${pct}%</span></div>`
-      + `<ul style="list-style:none;padding:0;margin:4px 0 0">${objectives}</ul></div>`;
+    return `<div class="quest-card">`
+      + `<div class="quest-card-header">`
+      + `<span class="quest-title">${esc(q.title)}</span>`
+      + `<span class="quest-progress">${pct}%</span></div>`
+      + `<ul class="quest-objectives">${objectives}</ul></div>`;
   }).join('');
-  return `<div class="panel-quests" style="font-family:var(--ta-font-body);padding:16px">`
-    + `<div style="font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:var(--sta-text-primary, #EEF0FF);margin-bottom:12px">Quests</div>`
+  return `<div class="panel-quests">`
+    + `<div class="quests-title">Quests</div>`
     + rows + '</div>';
 }
 
@@ -198,22 +251,22 @@ function buildLevelupPanel(state: GmState | null): string {
 
   const statOptions = hasStatChoice
     ? ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].map(s =>
-      `<button class="ability-card levelup-choice" data-levelup-stat="${s}" aria-pressed="false">${s} (${Number(char.stats[s as keyof typeof char.stats]) || 0} → ${(Number(char.stats[s as keyof typeof char.stats]) || 0) + 1})</button>`).join('\n      ')
+      `<button class="levelup-choice" data-levelup-stat="${s}" aria-pressed="false">${s} (${Number(char.stats[s as keyof typeof char.stats]) || 0} → ${(Number(char.stats[s as keyof typeof char.stats]) || 0) + 1})</button>`).join('\n      ')
     : '';
 
-  return `<div style="font-family:var(--ta-font-body);padding:16px;text-align:center">
-  <div style="font-family:var(--ta-font-heading);font-size:22px;font-weight:700;color:var(--ta-color-accent,#4ECDC4);margin-bottom:6px">Level Up!</div>
-  <div style="font-size:13px;color:var(--sta-text-secondary,#9AA0C0);margin-bottom:14px">${esc(char.name)} → Level ${newLevel}</div>
-  <div style="display:flex;justify-content:center;gap:20px;margin:12px 0">
-    <div style="text-align:center"><span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--sta-text-tertiary,#545880)">HP Gain</span><span style="font-size:20px;font-weight:700;color:var(--sta-text-primary,#EEF0FF)">+${reward.hpGain}</span></div>
-    <div style="text-align:center"><span style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--sta-text-tertiary,#545880)">Prof.</span><span style="font-size:20px;font-weight:700;color:var(--sta-text-primary,#EEF0FF)">+${newProf}</span></div>
+  return `<div class="levelup-panel">
+  <div class="levelup-heading">Level Up!</div>
+  <div class="levelup-subtitle">${esc(char.name)} → Level ${newLevel}</div>
+  <div class="levelup-stats">
+    <div class="levelup-stat"><span class="levelup-stat-label">HP Gain</span><span class="levelup-stat-value">+${reward.hpGain}</span></div>
+    <div class="levelup-stat"><span class="levelup-stat-label">Prof.</span><span class="levelup-stat-value">+${newProf}</span></div>
   </div>
-  ${profChanged ? `<div style="display:inline-block;padding:5px 12px;margin:6px 0;background:var(--ta-color-accent-bg);color:var(--ta-color-accent);border-radius:8px;font-size:11px;font-weight:600">Proficiency bonus: +${oldProf} → +${newProf}</div>` : ''}
-  <div style="font-size:11px;color:var(--sta-text-tertiary,#545880);margin:10px 0 6px;text-transform:uppercase;letter-spacing:0.08em">Reward: ${esc(improvement)}</div>
-  ${hasStatChoice ? `<div style="margin:8px 0"><div style="font-size:10px;color:var(--sta-text-tertiary,#545880);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Choose attribute to increase</div><div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px">${statOptions}</div></div>` : ''}
-  ${hasAbilityChoice ? `<div style="margin:8px 0;font-size:11px;color:var(--sta-text-secondary,#9AA0C0)">The GM will offer ability choices after you confirm.</div>` : ''}
-  ${hasProfChoice ? `<div style="margin:8px 0;font-size:11px;color:var(--sta-text-secondary,#9AA0C0)">The GM will offer a new proficiency after you confirm.</div>` : ''}
-  <button class="confirm-btn" id="levelup-confirm" style="margin-top:14px" data-prompt="Confirm level up to ${newLevel}. HP +${reward.hpGain}.${profChanged ? ` Prof bonus +${oldProf} → +${newProf}.` : ''}" title="Confirm level up">Confirm Level Up</button>
+  ${profChanged ? `<div class="levelup-prof-change">Proficiency bonus: +${oldProf} → +${newProf}</div>` : ''}
+  <div class="levelup-reward">Reward: ${esc(improvement)}</div>
+  ${hasStatChoice ? `<div class="levelup-choice-block"><div class="levelup-choice-intro">Choose attribute to increase</div><div class="levelup-choice-grid">${statOptions}</div></div>` : ''}
+  ${hasAbilityChoice ? `<div class="levelup-note">The GM will offer ability choices after you confirm.</div>` : ''}
+  ${hasProfChoice ? `<div class="levelup-note">The GM will offer a new proficiency after you confirm.</div>` : ''}
+  <button class="confirm-btn levelup-confirm" id="levelup-confirm" data-prompt="Confirm level up to ${newLevel}. HP +${reward.hpGain}.${profChanged ? ` Prof bonus +${oldProf} → +${newProf}.` : ''}" title="Confirm level up">Confirm Level Up</button>
 </div>`;
 }
 

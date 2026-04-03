@@ -11,6 +11,7 @@ import { parseArgs } from '../../lib/args';
 import { MODULE_DIGESTS } from '../../data/module-digests';
 import { containsForbiddenKeys } from '../../lib/security';
 import { validateStatePath, describeStateShape } from '../../lib/state-schema';
+import { clearWorkflowMarkers } from '../../lib/workflow-markers';
 
 const VALID_SUBCOMMANDS = ['get', 'set', 'create-npc', 'validate', 'reset', 'history', 'context', 'sync', 'schema', 'codex', 'crew', 'ship'] as const;
 
@@ -318,6 +319,7 @@ async function handleValidate(): Promise<CommandResult> {
 async function handleReset(): Promise<CommandResult> {
   const state = createDefaultState();
   await saveState(state);
+  clearWorkflowMarkers({ includePreGameVerify: true });
   return ok({
     message: 'State reset to defaults.',
     hint: 'Run `tag state schema <path>` to see expected field shapes (e.g. `tag state schema character`, `tag state schema quests.0`).',

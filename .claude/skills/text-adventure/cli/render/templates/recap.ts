@@ -7,6 +7,40 @@ import { wrapInShadowDom } from '../lib/shadow-wrapper';
 
 const SUCCESS_OUTCOMES = new Set(['success', 'narrow_success', 'critical_success', 'decisive_success']);
 
+function formatRollLabel(
+  state: GmState | null,
+  roll: NonNullable<GmState['rollHistory']>[number],
+): string {
+  if (roll.type === 'encounter_roll') {
+    return '<span class="roll-stat">Encounter</span>';
+  }
+
+  if (roll.type === 'contested_roll') {
+    const npcName = state?.rosterMutations.find(npc => npc.id === roll.npcId)?.name ?? roll.npcId;
+    const opposition = npcName ? ` vs ${esc(npcName)}` : '';
+    return `<span class="roll-stat">${esc(roll.stat ?? '')}</span> Check${opposition}`;
+  }
+
+  return `<span class="roll-stat">${esc(roll.stat ?? '')}</span> Hazard Save`;
+}
+
+function formatRollBreakdown(roll: NonNullable<GmState['rollHistory']>[number]): string {
+  const rollValue = Number(roll.roll) || 0;
+  const modifier = Number(roll.modifier) || 0;
+  const total = Number(roll.total) || 0;
+  const outcomeClass = SUCCESS_OUTCOMES.has(roll.outcome) ? 'roll-outcome-success' : 'roll-outcome-failure';
+
+  if (roll.type === 'encounter_roll') {
+    return `Roll: ${rollValue} \u2192 <span class="${outcomeClass}">${esc(roll.outcome)}</span>`;
+  }
+
+  if (roll.type === 'contested_roll') {
+    return `${rollValue}+${modifier}=${total} <span class="${outcomeClass}">${esc(roll.outcome)}</span>`;
+  }
+
+  return `${rollValue}+${modifier}=${total} vs DC ${Number(roll.dc) || 0} <span class="${outcomeClass}">${esc(roll.outcome)}</span>`;
+}
+
 export function renderRecap(state: GmState | null, styleName: string, _options?: Record<string, unknown>): string {
   const char = state?.character;
   const room = state?.currentRoom ?? 'Unknown';
@@ -90,17 +124,9 @@ export function renderRecap(state: GmState | null, styleName: string, _options?:
   <div class="recap-section">
     <div class="recap-label">Recent Rolls</div>
     ${recentRolls.map(r => {
-      const outcomeClass = SUCCESS_OUTCOMES.has(r.outcome) ? 'roll-outcome-success' : 'roll-outcome-failure';
-      const isEncounter = r.type === 'encounter_roll';
-      const label = isEncounter
-        ? `<span class="roll-stat">Encounter</span>`
-        : `<span class="roll-stat">${esc(r.stat ?? '')}</span> ${esc(r.type)}`;
-      const breakdown = isEncounter
-        ? `Roll: ${Number(r.roll) || 0} \u2192 <span class="${outcomeClass}">${esc(r.outcome)}</span>`
-        : `${Number(r.roll) || 0}+${Number(r.modifier) || 0}=${Number(r.total) || 0} vs DC ${Number(r.dc) || 0} <span class="${outcomeClass}">${esc(r.outcome)}</span>`;
       return `<div class="roll-item">
-        <span>${label}</span>
-        <span>${breakdown}</span>
+        <span>${formatRollLabel(state, r)}</span>
+        <span>${formatRollBreakdown(r)}</span>
       </div>`;
     }).join('\n')}
   </div>` : ''}

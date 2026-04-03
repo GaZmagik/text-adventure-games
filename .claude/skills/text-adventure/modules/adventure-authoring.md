@@ -120,6 +120,7 @@ recommended-styles:
   visual: station
 
 seed: "pale-threshold-7"
+rulebook: d20_system
 
 calendar-system: "Station Standard (24h, 365-day cycle)"
 start-date: "2347-03-15"

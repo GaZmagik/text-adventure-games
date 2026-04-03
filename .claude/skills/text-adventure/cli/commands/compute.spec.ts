@@ -416,6 +416,23 @@ describe('rollHistory — contest', () => {
     const last = state.rollHistory[state.rollHistory.length - 1]!;
     expect(last.dc).toBeUndefined();
   });
+
+  test('contest record captures matching pending-roll metadata', async () => {
+    const state = await loadState();
+    state.scene = 3;
+    state._pendingRolls = [
+      { action: 2, type: 'contest', stat: 'CHA', npc: 'test_npc', skill: 'deceive' },
+    ];
+    await saveState(state);
+
+    await handleCompute(['contest', 'CHA', 'test_npc']);
+
+    const updated = await loadState();
+    const last = updated.rollHistory[updated.rollHistory.length - 1]!;
+    expect(last.action).toBe(2);
+    expect(last.npcId).toBe('test_npc');
+    expect(last.skill).toBe('deceive');
+  });
 });
 
 describe('rollHistory — hazard', () => {
@@ -427,6 +444,23 @@ describe('rollHistory — hazard', () => {
     expect(last.type).toBe('hazard_save');
     expect(last.dc).toBe(14);
     expect(last.stat).toBe('CON');
+  });
+
+  test('hazard record captures matching pending-roll metadata', async () => {
+    const state = await loadState();
+    state.scene = 4;
+    state._pendingRolls = [
+      { action: 1, type: 'hazard', stat: 'CON', dc: 14, skill: 'brace' },
+    ];
+    await saveState(state);
+
+    await handleCompute(['hazard', 'CON', '--dc', '14']);
+
+    const updated = await loadState();
+    const last = updated.rollHistory[updated.rollHistory.length - 1]!;
+    expect(last.action).toBe(1);
+    expect(last.skill).toBe('brace');
+    expect(last.dc).toBe(14);
   });
 });
 

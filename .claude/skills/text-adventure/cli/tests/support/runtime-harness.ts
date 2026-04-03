@@ -33,6 +33,10 @@ export class FakeElement {
     return this.innerHtmlValue;
   }
 
+  get activeElement(): FakeElement | null {
+    return this.ownerDocument?.activeElement ?? null;
+  }
+
   set innerHTML(value: string) {
     this.innerHtmlValue = value;
     if (value === '') {
@@ -54,6 +58,15 @@ export class FakeElement {
     return child;
   }
 
+  removeChild(child: FakeElement): FakeElement {
+    const idx = this.children.indexOf(child);
+    if (idx >= 0) {
+      this.children.splice(idx, 1);
+      child.parent = null;
+    }
+    return child;
+  }
+
   remove(): void {
     if (!this.parent) return;
     const next = this.parent.children.filter(child => child !== this);
@@ -66,6 +79,11 @@ export class FakeElement {
     const existing = this.listeners.get(type) ?? [];
     existing.push(listener);
     this.listeners.set(type, existing);
+  }
+
+  removeEventListener(type: string, listener: (this: FakeElement, event: { type: string }) => void): void {
+    const existing = this.listeners.get(type) ?? [];
+    this.listeners.set(type, existing.filter(entry => entry !== listener));
   }
 
   dispatch(type: string): void {
@@ -139,7 +157,11 @@ export class FakeElement {
     return null;
   }
 
-  focus(): void {}
+  focus(): void {
+    if (this.ownerDocument) this.ownerDocument.activeElement = this;
+  }
+
+  select(): void {}
 
   getBoundingClientRect(): { width: number; height: number } {
     return { width: 0, height: 0 };
@@ -181,6 +203,7 @@ export class FakeDocument {
   readonly documentElement: FakeElement;
   readonly body: FakeElement;
   readonly head: FakeElement;
+  activeElement: FakeElement | null = null;
   private readonly byId = new Map<string, FakeElement>();
 
   constructor(
@@ -216,6 +239,10 @@ export class FakeDocument {
 
   querySelector(selector: string): FakeElement | null {
     return this.querySelectorAll(selector)[0] ?? null;
+  }
+
+  execCommand(command: string): boolean {
+    return command === 'copy';
   }
 }
 

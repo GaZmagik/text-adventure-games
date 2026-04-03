@@ -24,7 +24,8 @@ export const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype'])
  *  GmState key was added without updating this array. */
 const VALID_TOP_KEYS_ARRAY = [
   '_version', 'scene', 'currentRoom', 'visitedRooms', 'rollHistory',
-  'character', 'worldFlags', 'seed', 'theme', 'visualStyle', 'modulesActive',
+  'character', 'worldFlags', 'openingLens', 'prologueVariant', 'prologueComplete', 'characterOrigin',
+  'seed', 'theme', 'visualStyle', 'modulesActive',
   'rosterMutations', 'codexMutations', 'time', 'factions', 'quests',
   'storyArchitect', 'shipState', 'crewMutations', 'mapState', 'systemResources',
   'navPlottedCourse', 'arc', 'arcType', 'carryForward', 'arcHistory',

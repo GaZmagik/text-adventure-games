@@ -6,6 +6,7 @@ import { tryLoadState, saveState, getSyncMarkerPath } from '../lib/state-store';
 import { STAT_NAMES, TIER1_MODULES } from '../lib/constants';
 import { parseArgs } from '../lib/args';
 import { containsForbiddenKeys } from '../lib/security';
+import { stampRenderOrigin } from '../lib/render-origin';
 import {
   PRE_CONFIG_WIDGETS,
   PRE_GAME_WIDGETS,
@@ -30,16 +31,21 @@ export function buildRequiredElements(widgetType: string, state: GmState | null,
   elements.push("<div class='footer-row'> with buttons per modulesActive");
 
   if (widgetType === SCENE_WIDGET) {
+    elements.push("<div id='reveal-brief'> with a short atmospheric hook and Continue button");
+    elements.push("<div id='reveal-full'> containing #scene-content and #panel-overlay");
+    elements.push("<div class='loc-bar'> with location and optional time");
+    elements.push("<div id='narrative' class='narrative'> or .scene-phase .narrative blocks");
+    elements.push('2-5 action buttons plus optional data-poi buttons inside #scene-content');
+    elements.push("<div class='status-bar'> with HP / AC / Level when character exists");
     elements.push("<div id='scene-meta' data-meta='...'> hidden JSON");
-    elements.push("<div class='action-cards'> with 3-4 player choices");
   }
 
   if (modules.has('atmosphere')) {
-    elements.push("<div class='scene-atmosphere'> with 3-5 sensory pills");
+    elements.push("<div class='atmo-strip'> with 3-5 sensory pills");
   }
 
   if (modules.has('audio')) {
-    elements.push("<button class='scene-audio-toggle'> play/stop in footer");
+    elements.push("<button id='audio-btn'> play/stop in footer");
   }
 
   return elements;
@@ -54,46 +60,41 @@ export function buildSkeleton(widgetType: string, state: GmState | null, moduleS
   const hasAudio = modules.has('audio');
 
   const parts: string[] = [];
-  parts.push('<div class="scene-container">');
-
-  // Atmosphere strip (conditional)
+  parts.push('<div class="root">');
+  parts.push('  <div id="reveal-brief">');
+  parts.push('    <p class="brief-text"><!-- [BRIEF: 1-2 atmospheric sentences before Continue] --></p>');
+  parts.push('    <button class="continue-btn" id="continue-reveal-btn">Continue</button>');
+  parts.push('  </div>');
+  parts.push('  <div id="reveal-full" style="display:none">');
+  parts.push('    <div id="scene-content">');
+  parts.push('      <div class="loc-bar">');
+  parts.push('        <span class="loc-name"><!-- [LOCATION] --></span>');
+  parts.push('        <span class="loc-time"><!-- [OPTIONAL TIME] --></span>');
+  parts.push('      </div>');
   if (hasAtmosphere) {
-    parts.push('  <div class="scene-atmosphere">');
-    parts.push('    <!-- [ATMOSPHERE: 3-5 sensory pills for sight, sound, smell, touch, taste] -->');
-    parts.push('  </div>');
+    parts.push('      <div class="atmo-strip">');
+    parts.push('        <!-- [ATMOSPHERE: 3-5 sensory pills, at least one non-visual] -->');
+    parts.push('      </div>');
   }
-
-  // Main narrative
-  parts.push('  <div class="scene-narrative">');
-  parts.push('    <!-- [NARRATIVE: scene prose with progressive reveal] -->');
-  parts.push('  </div>');
-
-  // Action cards
-  parts.push('  <div class="scene-actions">');
-  parts.push('    <div class="action-cards">');
-  parts.push('      <!-- [ACTIONS: 3-4 player choice cards] -->');
+  parts.push('      <div id="narrative" class="narrative">');
+  parts.push('        <!-- [NARRATIVE: second-person present-tense prose] -->');
+  parts.push('      </div>');
+  parts.push('      <!-- [ACTIONS: 2-5 player choices plus optional data-poi examine buttons] -->');
+  parts.push('      <div class="status-bar">');
+  parts.push('        <!-- [STATUS: HP / AC / Level when character exists] -->');
+  parts.push('      </div>');
+  parts.push('    </div>');
+  parts.push('    <div id="panel-overlay" role="dialog" aria-modal="true" aria-labelledby="panel-title-text" style="display:none">');
+  parts.push('      <!-- [PANELS: character, levelup, and module panels] -->');
   parts.push('    </div>');
   parts.push('  </div>');
-
-  // Scene meta
-  parts.push('  <div id="scene-meta" data-meta="..." style="display:none">');
-  parts.push('    <!-- [META: hidden JSON state] -->');
-  parts.push('  </div>');
-
-  // Footer
-  parts.push('  <div class="scene-footer">');
-  parts.push('    <div class="footer-row">');
-  parts.push('      <!-- [FOOTER: module-aware buttons] -->');
-
+  parts.push('  <div id="scene-meta" data-meta="..." style="display:none"></div>');
+  parts.push('  <div class="footer-row">');
+  parts.push('    <!-- [FOOTER: module-aware panel buttons plus Save/Export actions] -->');
   if (hasAudio) {
-    parts.push('      <button class="scene-audio-toggle">');
-    parts.push('        <!-- [AUDIO: play/stop toggle] -->');
-    parts.push('      </button>');
+    parts.push('    <button id="audio-btn">♫ Play</button>');
   }
-
-  parts.push('    </div>');
   parts.push('  </div>');
-
   parts.push('</div>');
 
   return parts.join('\n');
@@ -155,15 +156,23 @@ export const TEMPLATE_KEYS: readonly string[] = Object.keys(TEMPLATES);
 // ── Data shape validation ─────────────────────────────────────────────
 
 type DataFieldSpec = { key: string; type: 'string' | 'array' | 'number' | 'object' };
+type DataValidator = (data: Record<string, unknown>) => string | null;
 
 const WIDGET_DATA_REQUIRED: Record<string, DataFieldSpec[]> = {
   dice: [{ key: 'dieType', type: 'string' }],
 };
 
-function validateDataShape(
-  widgetType: string,
-  data: Record<string, unknown>,
-): string | null {
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function describeValue(value: unknown): string {
+  if (Array.isArray(value)) return 'array';
+  if (value === null) return 'null';
+  return typeof value;
+}
+
+function validateRequiredDataShape(widgetType: string, data: Record<string, unknown>): string | null {
   const required = WIDGET_DATA_REQUIRED[widgetType];
   if (!required) return null;
   for (const { key, type } of required) {
@@ -171,12 +180,278 @@ function validateDataShape(
     if (val === undefined) {
       return `--data missing required key "${key}" for ${widgetType} widget.`;
     }
-    const actual = Array.isArray(val) ? 'array' : typeof val;
+    const actual = describeValue(val);
     if (actual !== type) {
       return `--data key "${key}" must be ${type}, got ${actual}.`;
     }
   }
   return null;
+}
+
+function validateStringArray(value: unknown, key: string): string | null {
+  if (!Array.isArray(value)) return `--data key "${key}" must be an array.`;
+  for (const item of value) {
+    if (typeof item !== 'string') {
+      return `--data key "${key}" must contain only strings.`;
+    }
+  }
+  return null;
+}
+
+function validateNamedArray(value: unknown, key: string): string | null {
+  if (!Array.isArray(value)) return `--data key "${key}" must be an array.`;
+  for (const item of value) {
+    if (typeof item === 'string') continue;
+    if (isPlainRecord(item)) {
+      const named =
+        (typeof item.id === 'string' && item.id.trim().length > 0)
+        || (typeof item.label === 'string' && item.label.trim().length > 0)
+        || (typeof item.name === 'string' && item.name.trim().length > 0);
+      if (named) continue;
+    }
+    return `--data key "${key}" must contain strings or objects with a non-empty id, label, or name.`;
+  }
+  return null;
+}
+
+function validateNumericRecord(value: unknown, key: string): string | null {
+  if (!isPlainRecord(value)) return `--data key "${key}" must be an object.`;
+  for (const [entryKey, entryValue] of Object.entries(value)) {
+    if (!Number.isFinite(Number(entryValue))) {
+      return `--data key "${key}.${entryKey}" must be numeric.`;
+    }
+  }
+  return null;
+}
+
+function firstPresentValue(data: Record<string, unknown>, keys: string[]): unknown {
+  for (const key of keys) {
+    if (key in data) return data[key];
+  }
+  return undefined;
+}
+
+function validateSceneData(data: Record<string, unknown>): string | null {
+  if (data.atmosphereEffects !== undefined) {
+    const err = validateStringArray(data.atmosphereEffects, 'atmosphereEffects');
+    if (err) return err;
+  }
+  if (data.actions !== undefined) {
+    if (!Array.isArray(data.actions)) return '--data key "actions" must be an array.';
+    for (const [index, action] of data.actions.entries()) {
+      if (!isPlainRecord(action)) return `--data key "actions[${index}]" must be an object.`;
+      if (action.prompt !== undefined && typeof action.prompt !== 'string') {
+        return `--data key "actions[${index}].prompt" must be a string.`;
+      }
+      if (action.title !== undefined && typeof action.title !== 'string') {
+        return `--data key "actions[${index}].title" must be a string.`;
+      }
+      if (action.roll !== undefined && !isPlainRecord(action.roll)) {
+        return `--data key "actions[${index}].roll" must be an object.`;
+      }
+    }
+  }
+  return null;
+}
+
+function validateDicePoolData(data: Record<string, unknown>): string | null {
+  if (data.label !== undefined && typeof data.label !== 'string') {
+    return '--data key "label" must be a string.';
+  }
+  if (data.modifier !== undefined && !Number.isFinite(Number(data.modifier))) {
+    return '--data key "modifier" must be numeric.';
+  }
+  if (data.pool !== undefined) {
+    if (!Array.isArray(data.pool)) return '--data key "pool" must be an array.';
+    for (const [index, item] of data.pool.entries()) {
+      if (!isPlainRecord(item)) return `--data key "pool[${index}]" must be an object.`;
+      if (typeof item.dieType !== 'string' || item.dieType.trim().length === 0) {
+        return `--data key "pool[${index}].dieType" must be a non-empty string.`;
+      }
+      if (!Number.isFinite(Number(item.count))) {
+        return `--data key "pool[${index}].count" must be numeric.`;
+      }
+    }
+  }
+  return null;
+}
+
+function validateScenarioData(data: Record<string, unknown>): string | null {
+  if (data.scenarios === undefined) return null;
+  if (!Array.isArray(data.scenarios)) return '--data key "scenarios" must be an array.';
+  for (const [index, scenario] of data.scenarios.entries()) {
+    if (!isPlainRecord(scenario)) return `--data key "scenarios[${index}]" must be an object.`;
+    if (typeof scenario.title !== 'string' || scenario.title.trim().length === 0) {
+      return `--data key "scenarios[${index}].title" must be a non-empty string.`;
+    }
+    for (const field of ['description', 'hook', 'difficulty', 'players']) {
+      if (scenario[field] !== undefined && typeof scenario[field] !== 'string') {
+        return `--data key "scenarios[${index}].${field}" must be a string.`;
+      }
+    }
+    for (const field of ['genre', 'genres', 'tags']) {
+      const value = scenario[field];
+      if (value === undefined) continue;
+      if (typeof value === 'string') continue;
+      const err = validateStringArray(value, `scenarios[${index}].${field}`);
+      if (err) return err;
+    }
+  }
+  return null;
+}
+
+function validateSettingsData(data: Record<string, unknown>): string | null {
+  const arrayKeys = [
+    ['rulebooks', 'rules'],
+    ['difficulties', 'difficulty'],
+    ['pacingOptions', 'pacing'],
+    ['visualStyles', 'styles'],
+    ['modules', 'activeModules'],
+  ];
+  for (const keys of arrayKeys) {
+    const value = firstPresentValue(data, keys);
+    if (value === undefined) continue;
+    const err = validateNamedArray(value, keys[0]!);
+    if (err) return err;
+  }
+  if (data.defaults !== undefined && !isPlainRecord(data.defaults)) {
+    return '--data key "defaults" must be an object.';
+  }
+  return null;
+}
+
+function validateDialogueData(data: Record<string, unknown>): string | null {
+  if (data.text !== undefined && typeof data.text !== 'string') {
+    return '--data key "text" must be a string.';
+  }
+  if (data.npcId !== undefined && typeof data.npcId !== 'string') {
+    return '--data key "npcId" must be a string.';
+  }
+  if (data.npcName !== undefined && typeof data.npcName !== 'string') {
+    return '--data key "npcName" must be a string.';
+  }
+  if (data.choices !== undefined) {
+    if (!Array.isArray(data.choices)) return '--data key "choices" must be an array.';
+    for (const [index, choice] of data.choices.entries()) {
+      if (!isPlainRecord(choice)) return `--data key "choices[${index}]" must be an object.`;
+      if (typeof choice.label !== 'string' || choice.label.trim().length === 0) {
+        return `--data key "choices[${index}].label" must be a non-empty string.`;
+      }
+      if (typeof choice.prompt !== 'string' || choice.prompt.trim().length === 0) {
+        return `--data key "choices[${index}].prompt" must be a non-empty string.`;
+      }
+    }
+  }
+  return null;
+}
+
+function validateLevelupData(data: Record<string, unknown>): string | null {
+  if (data.abilities === undefined) return null;
+  return validateStringArray(data.abilities, 'abilities');
+}
+
+function validateArcCompleteData(data: Record<string, unknown>): string | null {
+  if (data.summary !== undefined && typeof data.summary !== 'string') {
+    return '--data key "summary" must be a string.';
+  }
+  return null;
+}
+
+function validateCharacterCreationData(data: Record<string, unknown>): string | null {
+  if (data.defaultName !== undefined && typeof data.defaultName !== 'string') {
+    return '--data key "defaultName" must be a string.';
+  }
+  if (data.allowCustom !== undefined && typeof data.allowCustom !== 'boolean') {
+    return '--data key "allowCustom" must be a boolean.';
+  }
+  if (data.proficiencies !== undefined) {
+    const err = validateNamedArray(data.proficiencies, 'proficiencies');
+    if (err) return err;
+  }
+  if (data.preGeneratedCharacters !== undefined) {
+    if (!Array.isArray(data.preGeneratedCharacters)) return '--data key "preGeneratedCharacters" must be an array.';
+    for (const [index, character] of data.preGeneratedCharacters.entries()) {
+      if (!isPlainRecord(character)) return `--data key "preGeneratedCharacters[${index}]" must be an object.`;
+      if (typeof character.name !== 'string' || character.name.trim().length === 0) {
+        return `--data key "preGeneratedCharacters[${index}].name" must be a non-empty string.`;
+      }
+      for (const field of ['class', 'hook', 'background', 'id', 'openingLens', 'prologueVariant', 'pronouns']) {
+        if (character[field] !== undefined && typeof character[field] !== 'string') {
+          return `--data key "preGeneratedCharacters[${index}].${field}" must be a string.`;
+        }
+      }
+      for (const field of ['hp', 'ac', 'startingCurrency', 'currency']) {
+        if (character[field] !== undefined && !Number.isFinite(Number(character[field]))) {
+          return `--data key "preGeneratedCharacters[${index}].${field}" must be numeric.`;
+        }
+      }
+      if (character.stats !== undefined) {
+        const err = validateNumericRecord(character.stats, `preGeneratedCharacters[${index}].stats`);
+        if (err) return err;
+      }
+      for (const field of ['proficiencies', 'abilities', 'startingInventory', 'equipment']) {
+        if (character[field] !== undefined) {
+          const err = validateNamedArray(character[field], `preGeneratedCharacters[${index}].${field}`);
+          if (err) return err;
+        }
+      }
+    }
+  }
+  if (data.archetypes !== undefined) {
+    if (!Array.isArray(data.archetypes)) return '--data key "archetypes" must be an array.';
+    for (const [index, archetype] of data.archetypes.entries()) {
+      if (!isPlainRecord(archetype)) return `--data key "archetypes[${index}]" must be an object.`;
+      if (typeof archetype.name !== 'string' || archetype.name.trim().length === 0) {
+        return `--data key "archetypes[${index}].name" must be a non-empty string.`;
+      }
+      for (const field of ['description', 'flavour', 'id']) {
+        if (archetype[field] !== undefined && typeof archetype[field] !== 'string') {
+          return `--data key "archetypes[${index}].${field}" must be a string.`;
+        }
+      }
+      for (const field of ['hp', 'ac']) {
+        if (archetype[field] !== undefined && !Number.isFinite(Number(archetype[field]))) {
+          return `--data key "archetypes[${index}].${field}" must be numeric.`;
+        }
+      }
+      for (const field of ['stats', 'baseStats']) {
+        if (archetype[field] !== undefined) {
+          const err = validateNumericRecord(archetype[field], `archetypes[${index}].${field}`);
+          if (err) return err;
+        }
+      }
+      for (const field of ['abilities', 'equipment']) {
+        if (archetype[field] !== undefined) {
+          const err = validateNamedArray(archetype[field], `archetypes[${index}].${field}`);
+          if (err) return err;
+        }
+      }
+      for (const field of ['primaryStats', 'fixedProficiencies']) {
+        if (archetype[field] !== undefined) {
+          const err = validateStringArray(archetype[field], `archetypes[${index}].${field}`);
+          if (err) return err;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+const WIDGET_DATA_VALIDATORS: Record<string, DataValidator> = {
+  scene: validateSceneData,
+  dice: (data) => validateRequiredDataShape('dice', data),
+  'dice-pool': validateDicePoolData,
+  settings: validateSettingsData,
+  'scenario-select': validateScenarioData,
+  dialogue: validateDialogueData,
+  levelup: validateLevelupData,
+  'arc-complete': validateArcCompleteData,
+  'character-creation': validateCharacterCreationData,
+};
+
+function validateDataShape(widgetType: string, data: Record<string, unknown>): string | null {
+  const validator = WIDGET_DATA_VALIDATORS[widgetType];
+  return validator ? validator(data) : null;
 }
 
 // ── Main handler ─────────────────────────────────────────────────────
@@ -188,9 +463,14 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   const raw = parsed.booleans.has('raw');
   let data: Record<string, unknown> | null = null;
   if (parsed.flags.data) {
-    try { data = JSON.parse(parsed.flags.data); } catch {
+    let parsedData: unknown;
+    try { parsedData = JSON.parse(parsed.flags.data); } catch {
       return fail('Invalid JSON in --data flag.', 'Provide valid JSON: --data \'{"key":"value"}\'', 'render');
     }
+    if (!isPlainRecord(parsedData)) {
+      return fail('--data must be a JSON object.', 'Provide valid JSON object input: --data \'{"key":"value"}\'', 'render');
+    }
+    data = parsedData;
     if (data && containsForbiddenKeys(data)) {
       return fail('Data contains forbidden keys (__proto__, constructor, prototype).', 'Remove prohibited keys from --data JSON.', 'render');
     }
@@ -342,44 +622,49 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   }
 
   // Render the template
-  const html = templateFn(state, resolvedStyle, options);
+  const renderedHtml = templateFn(state, resolvedStyle, options);
+  const html = widgetType === 'scene' ? renderedHtml : stampRenderOrigin(widgetType, renderedHtml);
 
   // Catch broken serialisation — [object Object] means --data contained objects where strings were expected
   if (html.includes('[object Object]')) {
     return fail(
-      'Rendered HTML contains "[object Object]" — the --data payload has unserialisable values. '
-      + 'Arrays passed to settings/scenario-select must contain plain strings, not objects. '
-      + 'Example: "difficulties":["easy","normal","hard"] not "difficulties":[{"id":"easy","label":"Easy"}].',
-      'Fix the --data JSON so all array values are strings, then re-render.',
+      'Rendered HTML contains "[object Object]" — the --data payload shape is not supported by this widget. '
+      + 'Use the documented string/object field shapes for this widget and re-render.',
+      'Fix the --data JSON so every field matches the widget schema, then re-render.',
       'render',
     );
   }
 
   // Persist pending rolls from scene action cards
-  if (widgetType === 'scene' && data?.actions && Array.isArray(data.actions) && state) {
+  if (widgetType === 'scene' && state) {
     const pendingRolls: PendingRoll[] = [];
-    for (let i = 0; i < data.actions.length; i++) {
-      const action = data.actions[i] as Record<string, unknown> | undefined;
-      if (action?.roll && typeof action.roll === 'object') {
-        const roll = action.roll as Record<string, unknown>;
-        const rollType = roll.type;
-        const rollStat = roll.stat;
-        if (typeof rollType !== 'string' || (rollType !== 'contest' && rollType !== 'hazard')) continue;
-        if (typeof rollStat !== 'string' || !STAT_NAMES.includes(rollStat as StatName)) continue;
-        pendingRolls.push({
-          action: i + 1,
-          type: rollType,
-          stat: rollStat as StatName,
-          ...(roll.npc ? { npc: String(roll.npc) } : {}),
-          ...(roll.dc ? { dc: Number(roll.dc) } : {}),
-          ...(roll.skill ? { skill: String(roll.skill) } : {}),
-        });
+    if (data?.actions && Array.isArray(data.actions)) {
+      for (let i = 0; i < data.actions.length; i++) {
+        const action = data.actions[i] as Record<string, unknown> | undefined;
+        if (action?.roll && typeof action.roll === 'object') {
+          const roll = action.roll as Record<string, unknown>;
+          const rollType = roll.type;
+          const rollStat = roll.stat;
+          if (typeof rollType !== 'string' || (rollType !== 'contest' && rollType !== 'hazard')) continue;
+          if (typeof rollStat !== 'string' || !STAT_NAMES.includes(rollStat as StatName)) continue;
+          pendingRolls.push({
+            action: i + 1,
+            type: rollType,
+            stat: rollStat as StatName,
+            ...(roll.npc ? { npc: String(roll.npc) } : {}),
+            ...(roll.dc !== undefined ? { dc: Number(roll.dc) } : {}),
+            ...(roll.skill ? { skill: String(roll.skill) } : {}),
+          });
+        }
       }
     }
+
     if (pendingRolls.length > 0) {
       state._pendingRolls = pendingRolls;
-      await saveState(state);
+    } else {
+      delete state._pendingRolls;
     }
+    await saveState(state);
   }
 
   // Write needs-verify flag for scene widgets — next render blocks until verified
@@ -415,7 +700,7 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     percentUsed: Math.round((html.length / WIDGET_BUDGET_CHARS) * 100),
   };
   const budgetNote = sizeCheck.withinBudget
-    ? `Output is ${sizeCheck.chars.toLocaleString()} chars (${sizeCheck.percentUsed}% of 128K budget). Pass directly to show_widget as-is.`
+    ? `Output is ${sizeCheck.chars.toLocaleString()} chars (${sizeCheck.percentUsed}% of 128K budget). Compose only inside the designated content placeholders, verify, then pass to show_widget.`
     : `WARNING: Output is ${sizeCheck.chars.toLocaleString()} chars — EXCEEDS 128K budget by ${(sizeCheck.chars - sizeCheck.budgetChars).toLocaleString()} chars. Reduce content.`;
 
   // Craft guidance — embedded so the GM cannot miss it even after compaction
@@ -448,8 +733,8 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
       : `Standard scene ${sceneNum} (2-4¶): one sensory beat, one plot beat, one choice.`,
     compositionNotes: {
       htmlEscaping: 'The html field is inside a JS template literal (backticks). Use regular " for HTML attributes — do NOT escape as \\". Apostrophes in prose are fine as-is. Only backticks (`) and ${} need escaping inside template literals.',
-      actionButtonPattern: '<button class="action-card" data-prompt="I do the thing." title="I do the thing." style="padding:10px 14px;font-size:12px;border:0.5px solid var(--ta-color-accent,#4ECDC4);border-radius:6px;background:transparent;color:var(--sta-text-primary,#EEF0FF);cursor:pointer;text-align:left;min-height:44px">Do the thing<span class="act-desc">Brief description of what this action entails</span><span class="act-check">CHA CHECK</span></button>',
-      poiButtonPattern: '<button class="action-card" data-poi data-prompt="I examine the thing." title="I examine the thing." style="padding:10px 14px;font-size:12px;border:1px dashed var(--ta-color-accent,#4ECDC4);border-radius:6px;background:transparent;color:var(--sta-text-primary,#EEF0FF);cursor:pointer;text-align:left;min-height:44px">Examine the thing</button>',
+      actionButtonPattern: '<button class="action-card" data-prompt="I edge along the gantry and inspect the cracked relay." title="I edge along the gantry and inspect the cracked relay.">Inspect the relay<span class="act-desc">Close enough to notice heat shimmer and loose cabling.</span></button>',
+      poiButtonPattern: '<button class="action-card" data-poi data-prompt="I examine the thing." title="I examine the thing.">Examine the thing</button>',
       poiBudget: `POI buttons MUST have data-poi attribute. Include 3+ POIs per scene opening. Player has ${state?.character?.poiMax ?? 2} POI points — client JS auto-dims remaining POIs after budget spent. Use dashed border to distinguish POIs from action cards.`,
       commonMistake: 'Do NOT use \\\\", &quot;, or escaped quotes in data-prompt or title attributes. Plain " works. The template literal handles it. If your string replacement tool adds backslashes, the buttons will not render and verify will report 0 data-prompt elements.',
       narrativeClasses: 'Use these inline classes to semantically highlight prose: <span class="nar-item">item/tech</span> (cyan), <span class="nar-npc">NPC name</span> (green), <span class="nar-dlg">dialogue line</span> (blue italic), <span class="nar-sfx">SOUND EFFECT</span> (amber uppercase), <span class="nar-danger">threat/warning</span> (red), <span class="nar-lore">lore term</span> (purple). These classes use --ta-* contract variables and render correctly across all visual styles.',
@@ -507,7 +792,7 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
       cdnStyle: resolvedStyle,
       verifyRequired: {
         instruction: 'MANDATORY: After composing narrative into this HTML, save to a file and run `tag verify /tmp/scene.html` BEFORE passing to show_widget.',
-        consequence: 'tag state sync --apply will REFUSE to advance to the next scene if verify has not been run. The verify marker is cryptographically signed — writing the marker file manually will not work.',
+        consequence: 'tag state sync --apply will REFUSE to advance to the next scene if verify has not been run. The verify marker is a signed workflow gate — writing the marker file manually is unsupported and will fail validation.',
         command: 'tag verify /tmp/scene_final.html',
       },
     },

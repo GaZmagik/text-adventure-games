@@ -6,7 +6,7 @@
  * :host override with CSS variable fallbacks, and content injection.
  */
 
-import { CDN_BASE, CSS_MANIFEST } from '../../../assets/cdn-manifest.ts';
+import { CDN_BASE, CSS_MANIFEST, JS_MANIFEST } from '../../../assets/cdn-manifest.ts';
 
 export type ShadowWrapperOptions = {
   /** Style name matching a key in CSS_MANIFEST (e.g. 'station'). */
@@ -39,6 +39,13 @@ export function wrapInShadowDom(opts: ShadowWrapperOptions): string {
   const hash = CSS_MANIFEST[styleName];
   const escapedHtml = escapeForTemplateLiteral(html);
 
+  function withJsHash(rawUrl: string): string {
+    const match = rawUrl.match(/\/js\/([^/?#]+)$/);
+    if (!match) return rawUrl;
+    const hash = JS_MANIFEST[match[1]!];
+    return hash ? `${rawUrl}?v=${hash}` : rawUrl;
+  }
+
   // Build CDN link element or warning comment
   let cdnLink = '';
   let warning = '';
@@ -68,7 +75,7 @@ export function wrapInShadowDom(opts: ShadowWrapperOptions): string {
     let chain = inlineScriptBlock;
     for (let i = scriptSrc.length - 1; i >= 0; i--) {
       const rawUrl = scriptSrc[i]!;
-      const url = hash ? `${rawUrl}?v=${hash}` : rawUrl;
+      const url = withJsHash(rawUrl);
       const varName = `_s${i}`;
       const body = chain
         ? `var ${varName}=document.createElement('script');${varName}.src='${url}';${varName}.onload=function(){${chain}};document.head.appendChild(${varName});`

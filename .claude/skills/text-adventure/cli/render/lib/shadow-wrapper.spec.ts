@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'bun:test';
 import { wrapInShadowDom } from './shadow-wrapper';
+import { JS_MANIFEST } from '../../../assets/cdn-manifest.ts';
 
 describe('wrapInShadowDom', () => {
   const minimalOpts = {
@@ -57,11 +58,11 @@ describe('wrapInShadowDom', () => {
     const result = wrapInShadowDom({
       ...minimalOpts,
       scriptSrc: [
-        'https://cdn.example.com/lib.js',
+        'https://cdn.jsdelivr.net/gh/GaZmagik/text-adventure-games/.claude/skills/text-adventure/assets/js/tag-scene.js',
         'https://cdn.example.com/extra.js',
       ],
     });
-    expect(result).toContain('https://cdn.example.com/lib.js');
+    expect(result).toContain(`tag-scene.js?v=${JS_MANIFEST['tag-scene.js']}`);
     expect(result).toContain('https://cdn.example.com/extra.js');
     // Should create script elements, not link elements
     expect(result).toContain("createElement('script')");

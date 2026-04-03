@@ -28,6 +28,20 @@ describe('renderCharacterCreation pronouns and name randomiser', () => {
     expect(html).toContain('id="randomise-name"');
   });
 
+  test('renders pre-generated characters alongside a custom option', () => {
+    const html = renderCharacterCreation(null, '', {
+      data: {
+        preGeneratedCharacters: [
+          { name: 'Rian Vale', class: 'Cartographer', openingLens: 'rian', prologueVariant: 'pregen_rian' },
+        ],
+      },
+    });
+    expect(html).toContain('Starting Character');
+    expect(html).toContain('Rian Vale');
+    expect(html).toContain('Create Your Own');
+    expect(html).toContain('pregen_rian');
+  });
+
   test('embeds name pools when provided via options', () => {
     const html = renderCharacterCreation(null, '', {
       data: {},
@@ -46,7 +60,7 @@ describe('renderCharacterCreation pronouns and name randomiser', () => {
   test('confirm script copies synthesized prompt when sendPrompt is unavailable', () => {
     const html = renderCharacterCreation(null, '');
     expect(html).toContain("document.execCommand('copy')");
-    expect(html).toContain("btn.textContent = 'Copied! Paste as your reply.'");
+    expect(html).toContain("btn.textContent = copied ? 'Copied! Paste as your reply.' : 'Copy the prompt from the tooltip.';");
     expect(html).toContain("btn.setAttribute('title', prompt)");
   });
 });

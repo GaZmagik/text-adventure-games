@@ -264,7 +264,30 @@ describe('render template smoke via handleRender', () => {
       ];
       state.rollHistory = [
         { scene: 6, type: 'encounter_roll', roll: 9, outcome: 'hostile' },
+        { scene: 7, type: 'contested_roll', stat: 'CHA', roll: 14, modifier: 1, total: 15, npcId: 'warden_01', outcome: 'narrow_success' },
         { scene: 7, type: 'hazard_save', stat: 'DEX', roll: 12, modifier: 3, total: 15, dc: 14, outcome: 'success' },
+      ];
+      state.rosterMutations = [
+        {
+          id: 'warden_01',
+          name: 'Warden Sile',
+          pronouns: 'they/them',
+          role: 'warden',
+          tier: 'rival',
+          level: 2,
+          stats: { STR: 12, DEX: 11, CON: 12, INT: 10, WIS: 13, CHA: 11 },
+          modifiers: { STR: 1, DEX: 0, CON: 1, INT: 0, WIS: 1, CHA: 0 },
+          hp: 18,
+          maxHp: 18,
+          ac: 12,
+          soak: 0,
+          damageDice: '1d6',
+          status: 'active',
+          alive: true,
+          trust: 25,
+          disposition: 'suspicious',
+          dispositionSeed: 7,
+        },
       ];
     });
 
@@ -272,23 +295,26 @@ describe('render template smoke via handleRender', () => {
     expect(html).toContain('Active Quests (1)');
     expect(html).toContain('Completed Quests (1)');
     expect(html).toContain('Encounter');
+    expect(html).toContain('Warden Sile');
     expect(html).toContain('12+3=15 vs DC 14');
+    expect(html).not.toContain('contested_roll');
+    expect(html).not.toContain('vs DC 0');
     expect(html).toContain('roll-outcome-success');
     expect(html).toContain('roll-outcome-failure');
   });
 
-  test('settings widget supports aliases and coerces mixed arrays to strings', async () => {
+  test('settings widget supports aliases and extracts ids, labels, and names from option objects', async () => {
     const html = await renderRaw([
       'settings',
       '--style',
       'terminal',
       '--data',
-      '{"rules":["core",2],"difficulty":["easy",3],"pacing":["fast"],"styles":["terminal"],"activeModules":["audio",42],"defaults":"invalid-defaults"}',
+      '{"rules":["core",{"id":"narrative_engine"}],"difficulty":["easy",{"label":"story"}],"pacing":["fast"],"styles":["terminal"],"activeModules":["audio",{"name":"crew-manifest"}],"defaults":{"difficulty":"easy"}}',
     ]);
-    expect(html).toContain('data-value="2"');
-    expect(html).toContain('data-value="3"');
-    expect(html).toContain('data-value="42"');
-    expect(html).toContain('var selections = {}');
+    expect(html).toContain('data-value="narrative_engine"');
+    expect(html).toContain('data-value="story"');
+    expect(html).toContain('data-value="crew-manifest"');
+    expect(html).toContain('var selections = {"difficulty":"easy"}');
   });
 
   test('starchart widget renders plotted course steps', async () => {

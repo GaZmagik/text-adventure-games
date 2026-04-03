@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { homedir, tmpdir } from 'node:os';
-import type { CommandResult, GmState, TimeState, RollType } from '../../types';
+import type { CommandResult, GmState, TimeState } from '../../types';
 import { ok, fail, noState } from '../../lib/errors';
 import { tryLoadState, saveState, getSyncMarkerPath } from '../../lib/state-store';
 import { validateState } from '../../lib/validator';
@@ -13,7 +13,8 @@ import { isRecord } from '../../lib/state-schema';
 import { buildFeatureChecklist } from '../../metadata';
 import { PROSE_CHECKLIST, RENDERING_RULES, SCENE_STRUCTURE, DENSITY_GUIDANCE } from '../../data/prose-guidance';
 import { recordHistory } from './index';
-import { getVerifyMarkerPath, readSignedMarker } from '../verify';
+import { getNeedsVerifyPath, getVerifyMarkerPath, readSignedMarker } from '../verify';
+import { buildPendingRollCommand, resolvePendingRolls } from '../../lib/pending-rolls';
 
 const VALID_TIME_KEYS = new Set<string>([
   'period', 'date', 'elapsed', 'hour',
@@ -223,12 +224,6 @@ function checkCompaction(
   return { compactionDetected: false, filesystemCount };
 }
 
-/** Map pending roll type to the RollRecord.type value used in rollHistory. */
-const PENDING_TO_ROLL_TYPE: Record<string, RollType> = {
-  contest: 'contested_roll',
-  hazard: 'hazard_save',
-};
-
 /** Warn threshold — number of rollless scenes before advisory warning. */
 const ROLLLESS_WARN_THRESHOLD = 3;
 /** Block threshold — number of rollless scenes before hard block. */
@@ -237,22 +232,12 @@ const ROLLLESS_BLOCK_THRESHOLD = 5;
 const NARRATIVE_RULEBOOKS = new Set(['narrative_engine']);
 
 function checkPendingRolls(state: GmState, warnings: string[]): void {
-  const pending = state._pendingRolls;
-  if (!pending || pending.length === 0) return;
-
-  for (const pr of pending) {
-    const expectedType = PENDING_TO_ROLL_TYPE[pr.type];
-    if (!expectedType) continue;
-    const resolved = state.rollHistory.some(
-      r => r.type === expectedType && r.stat === pr.stat && r.scene === state.scene,
+  const { unresolved } = resolvePendingRolls(state._pendingRolls, state.rollHistory, state.scene);
+  for (const pending of unresolved) {
+    warnings.push(
+      `Unresolved pending roll: action ${pending.action} requires ${pending.type} (${pending.stat}) `
+      + `— run \`${buildPendingRollCommand(pending)}\`.`,
     );
-    if (!resolved) {
-      warnings.push(
-        `Unresolved pending roll: action ${pr.action} requires ${pr.type} (${pr.stat}) `
-        + `— run \`tag compute ${pr.type === 'contest' ? 'contested' : 'hazard'} --stat ${pr.stat}`
-        + `${pr.npc ? ` --npc ${pr.npc}` : ''}${pr.dc ? ` --dc ${pr.dc}` : ''}\`.`,
-      );
-    }
   }
 }
 
@@ -296,7 +281,8 @@ function checkRollRatio(state: GmState, warnings: string[]): void {
   if (rolllessScenes >= ROLLLESS_BLOCK_THRESHOLD) {
     warnings.push(
       `BLOCK: ${rolllessScenes} consecutive rollless scenes with ${rulebook}. `
-      + 'A dice roll is required before advancing. Run `tag compute contested` or `tag compute hazard`.',
+      + 'A dice roll is required before advancing. Run `tag compute contest <ATTR> <npc_id>` '
+      + 'or `tag compute hazard <ATTR> --dc <N>`.',
     );
   } else if (rolllessScenes >= ROLLLESS_WARN_THRESHOLD) {
     warnings.push(
@@ -351,10 +337,9 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
 
   if (apply) {
     // Block apply if scene widget was not verified — signed marker prevents forgery via echo
-    // Skip on first render (lastVerify === -1) since there's no previous scene to verify
     if (state.scene > 0) {
       const lastVerifyScene = readSignedMarker(getVerifyMarkerPath());
-      if (lastVerifyScene >= 0 && lastVerifyScene < state.scene) {
+      if (lastVerifyScene < state.scene) {
         return fail(
           `Scene ${state.scene} has not been verified. Last verified: ${lastVerifyScene < 0 ? 'never' : `scene ${lastVerifyScene}`}.`,
           'Run `tag verify /tmp/scene.html` with your composed HTML before advancing. '
@@ -364,22 +349,32 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
       }
     }
 
+    const needsVerifyMarker = (() => {
+      try {
+        return readFileSync(getNeedsVerifyPath(), 'utf-8').trim();
+      } catch {
+        return '';
+      }
+    })();
+    if (needsVerifyMarker.length > 0) {
+      const markerScene = Number(needsVerifyMarker.split(':', 1)[0]);
+      if (markerScene === state.scene) {
+        return fail(
+          `Scene ${state.scene} has been re-rendered since the last verification.`,
+          'Run `tag verify /tmp/scene.html` on the latest composed HTML before advancing.',
+          'state sync',
+        );
+      }
+    }
+
     // Block apply if unresolved pending rolls exist
-    const pending = state._pendingRolls ?? [];
-    const unresolvedRolls = pending.filter(pr => {
-      const expectedType = PENDING_TO_ROLL_TYPE[pr.type];
-      if (!expectedType) return true;
-      return !state.rollHistory.some(
-        r => r.type === expectedType && r.stat === pr.stat && r.scene === state.scene,
-      );
-    });
+    const unresolvedRolls = resolvePendingRolls(state._pendingRolls, state.rollHistory, state.scene).unresolved;
     if (unresolvedRolls.length > 0) {
       const first = unresolvedRolls[0]!;
       return fail(
         `Cannot apply: ${unresolvedRolls.length} unresolved pending roll(s). `
         + `First: action ${first.action} (${first.type} ${first.stat}).`,
-        `Run \`tag compute ${first.type === 'contest' ? 'contested' : 'hazard'} --stat ${first.stat}`
-        + `${first.npc ? ` --npc ${first.npc}` : ''}${first.dc ? ` --dc ${first.dc}` : ''}\` first.`,
+        `Run \`${buildPendingRollCommand(first)}\` first.`,
         'state sync',
       );
     }

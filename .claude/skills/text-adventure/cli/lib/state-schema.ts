@@ -126,6 +126,9 @@ const rollRecord = object({
   modifier: leaf(),
   total: leaf(),
   dc: leaf(),
+  action: leaf(),
+  npcId: leaf(),
+  skill: leaf(),
   outcome: leaf(),
 });
 
@@ -224,6 +227,10 @@ export const GM_STATE_SHAPE: StateShape = object({
   rollHistory: array(rollRecord),
   character: nullable(character),
   worldFlags: record(leaf()),
+  openingLens: leaf(),
+  prologueVariant: leaf(),
+  prologueComplete: leaf(),
+  characterOrigin: leaf(),
   seed: leaf(),
   theme: leaf(),
   visualStyle: leaf(),

@@ -22,6 +22,6 @@ describe('renderLevelup', () => {
   test('ability script copies prompts when sendPrompt is unavailable', () => {
     const html = renderLevelup(createDefaultState(), '', { data: { abilities: ['Quick Draw'] } });
     expect(html).toContain("document.execCommand('copy')");
-    expect(html).toContain("btn.textContent = 'Copied! Paste as your reply.'");
+    expect(html).toContain("btn.textContent = copied ? 'Copied! Paste as your reply.' : 'Copy the prompt from the tooltip.';");
   });
 });

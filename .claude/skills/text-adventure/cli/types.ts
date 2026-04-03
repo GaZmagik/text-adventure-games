@@ -18,6 +18,8 @@ export type Pronouns = 'she/her' | 'he/him' | 'they/them' | 'it/its';
 export type DispositionState = 'hostile' | 'suspicious' | 'neutral' | 'friendly' | 'allied' | 'bonded';
 export type BestiaryTier = 'minion' | 'rival' | 'nemesis';
 export type NpcStatus = 'active' | 'injured' | 'incapacitated' | 'missing' | 'defected' | 'dead';
+export type OpeningLens = 'rian' | 'suri' | 'mara';
+export type CharacterOrigin = 'pregen' | 'custom';
 
 // ── Character ──────────────────────────────────────────────────────
 
@@ -143,6 +145,9 @@ export type RollRecord = {
   modifier?: number;
   total?: number;
   dc?: number;
+  action?: number;
+  npcId?: string;
+  skill?: string;
   outcome: RollOutcome;
 };
 
@@ -297,6 +302,10 @@ export type GmState = {
   rollHistory: RollRecord[];
   character: Character | null;
   worldFlags: Record<string, boolean | number | string>;
+  openingLens?: OpeningLens;
+  prologueVariant?: string;
+  prologueComplete?: boolean;
+  characterOrigin?: CharacterOrigin;
   seed?: string;
   theme?: string;
   visualStyle?: string;

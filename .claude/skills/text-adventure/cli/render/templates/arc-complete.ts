@@ -60,18 +60,24 @@ export function renderArcComplete(state: GmState | null, styleName: string, opti
   </div>
 </div>`,
     script: `function sendOrCopyPrompt(btn, prompt) {
-  var ta = document.createElement('textarea');
-  ta.value = prompt;
-  ta.style.cssText = 'position:fixed;opacity:0';
-  document.body.appendChild(ta);
-  ta.select();
-  document.execCommand('copy');
-  document.body.removeChild(ta);
+  btn.setAttribute('title', prompt);
   if (typeof sendPrompt === 'function') {
     sendPrompt(prompt);
   } else {
+    var ta = document.createElement('textarea');
+    var copied = false;
+    ta.value = prompt;
+    ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      copied = !!document.execCommand('copy');
+    } catch (_err) {
+      copied = false;
+    }
+    document.body.removeChild(ta);
     var orig = btn.textContent;
-    btn.textContent = 'Copied! Paste as your reply.';
+    btn.textContent = copied ? 'Copied! Paste as your reply.' : 'Copy the prompt from the tooltip.';
     setTimeout(function() { btn.textContent = orig; }, 3000);
   }
 }

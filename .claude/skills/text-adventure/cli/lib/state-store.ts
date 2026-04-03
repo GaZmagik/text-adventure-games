@@ -235,6 +235,7 @@ export function createDefaultState(): GmState {
     rollHistory: [],
     character: null,
     worldFlags: {},
+    prologueComplete: false,
     seed: randomUUID().replace(/-/g, '').slice(0, 12),
     modulesActive: [],
     rosterMutations: [],

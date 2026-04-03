@@ -73,6 +73,7 @@ describe('export generate', () => {
     const content = data.loreContent as string;
     expect(content.startsWith('---\n')).toBe(true);
     expect(extractFrontmatterField(content, 'format')).toBe('text-adventure-lore');
+    expect(extractFrontmatterField(content, 'rulebook')).toBe('d20_system');
   });
 
   test('loreContent contains checksummed LORE payload comment', async () => {
@@ -141,6 +142,32 @@ describe('export load', () => {
     expect(restored.rosterMutations).toHaveLength(1);
     expect(restored.rosterMutations[0]!.name).toBe('Kira Voss');
     expect(restored.quests).toHaveLength(1);
+    expect(restored.worldFlags.rulebook).toBe('d20_system');
+  });
+
+  test('restores rulebook from system frontmatter alias when payload omits it', async () => {
+    const payload = attachChecksum(encodeLorePayload(extractMechanicalData(createDefaultState())));
+    const lorePath = join(tempDir, 'system-alias.lore.md');
+    writeFileSync(lorePath, [
+      '---',
+      'format: text-adventure-lore',
+      'version: 1',
+      'edited: false',
+      'system: d20_system',
+      '---',
+      '',
+      `<!-- LORE:${payload} -->`,
+      '',
+    ].join('\n'), 'utf-8');
+
+    const result = await handleExport(['load', lorePath]);
+    expect(result.ok).toBe(true);
+
+    const restored = await loadState();
+    expect(restored.worldFlags.rulebook).toBe('d20_system');
+
+    const warnings = ((result.data as Record<string, unknown>).warnings ?? []) as string[];
+    expect(warnings.some(w => w.includes('worldFlags.rulebook'))).toBe(true);
   });
 
   test('fails without file path argument', async () => {

@@ -1,19 +1,18 @@
-/** Client-side scene interaction script — progressive reveal, panels, footer, redaction. */
+/** Scene CDN/runtime source of truth — shadow-DOM-aware and shared with asset generation. */
 export const SCENE_SCRIPT_CODE = `
-(function() {
-  var continueBtn = document.getElementById('continue-reveal-btn');
+function initTagScene(root) {
+  var continueBtn = root.getElementById('continue-reveal-btn');
   if (continueBtn) {
     continueBtn.addEventListener('click', function() {
-      document.getElementById('reveal-brief').style.display = 'none';
-      document.getElementById('reveal-full').style.display = 'block';
+      root.getElementById('reveal-brief').style.display = 'none';
+      root.getElementById('reveal-full').style.display = 'block';
     });
   }
 
-  // Wire up phase-continue buttons for multi-phase reveal
-  document.querySelectorAll('.phase-continue').forEach(function(btn) {
+  root.querySelectorAll('.phase-continue').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var nextPhase = this.getAttribute('data-reveal-phase');
-      var target = document.querySelector('[data-phase="' + nextPhase + '"]');
+      var target = root.querySelector('[data-phase="' + nextPhase + '"]');
       if (target) {
         target.style.display = 'block';
         this.style.display = 'none';
@@ -21,7 +20,7 @@ export const SCENE_SCRIPT_CODE = `
     });
   });
 
-  var panelCloseBtn = document.getElementById('panel-close-btn');
+  var panelCloseBtn = root.getElementById('panel-close-btn');
   if (panelCloseBtn) {
     panelCloseBtn.addEventListener('click', function() {
       window.tag.closePanel();
@@ -31,10 +30,10 @@ export const SCENE_SCRIPT_CODE = `
   var lastPanelTrigger = null;
 
   function togglePanel(panelName, btn) {
-    var overlay = document.getElementById('panel-overlay');
-    var sceneContent = document.getElementById('scene-content');
+    var overlay = root.getElementById('panel-overlay');
+    var sceneContent = root.getElementById('scene-content');
     var panels = overlay.querySelectorAll('.panel-content');
-    var title = document.getElementById('panel-title-text');
+    var title = root.getElementById('panel-title-text');
 
     panels.forEach(function(p) { p.style.display = 'none'; });
 
@@ -48,17 +47,17 @@ export const SCENE_SCRIPT_CODE = `
       sceneContent.style.display = 'none';
       if (btn) btn.setAttribute('aria-expanded', 'true');
       overlay.addEventListener('keydown', trapPanelFocus);
-      requestAnimationFrame(function() { document.getElementById('panel-title-text').focus(); });
+      requestAnimationFrame(function() { root.getElementById('panel-title-text').focus(); });
     }
   }
 
   function closePanel() {
-    var overlay = document.getElementById('panel-overlay');
-    var sceneContent = document.getElementById('scene-content');
+    var overlay = root.getElementById('panel-overlay');
+    var sceneContent = root.getElementById('scene-content');
     overlay.style.display = 'none';
     sceneContent.style.display = 'block';
     if (overlay.removeEventListener) overlay.removeEventListener('keydown', trapPanelFocus);
-    document.querySelectorAll('.footer-btn[aria-expanded]').forEach(function(b) {
+    root.querySelectorAll('.footer-btn[aria-expanded]').forEach(function(b) {
       b.setAttribute('aria-expanded', 'false');
     });
     if (lastPanelTrigger) lastPanelTrigger.focus();
@@ -67,28 +66,27 @@ export const SCENE_SCRIPT_CODE = `
   function trapPanelFocus(e) {
     if (e.key === 'Escape') { window.tag.closePanel(); return; }
     if (e.key !== 'Tab') return;
-    var overlay = document.getElementById('panel-overlay');
+    var overlay = root.getElementById('panel-overlay');
     var focusables = overlay.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     );
     if (!focusables.length) return;
     var first = focusables[0];
     var last = focusables[focusables.length - 1];
-    if (e.shiftKey && document.activeElement === first) {
+    var active = root.activeElement;
+    if (e.shiftKey && active === first) {
       e.preventDefault();
       last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
+    } else if (!e.shiftKey && active === last) {
       e.preventDefault();
       first.focus();
     }
   }
 
-  // Expose for footer buttons — namespaced under window.tag to avoid global pollution
   window.tag = window.tag || {};
   window.tag.togglePanel = togglePanel;
   window.tag.closePanel = closePanel;
 
-  // Atmosphere helpers — screen shake and colour flash
   function triggerShake(el) {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     el.classList.add('atmo-shake');
@@ -114,19 +112,20 @@ export const SCENE_SCRIPT_CODE = `
     toast.className = 'atmo-toast';
     toast.textContent = message;
     el.appendChild(toast);
+    var cleanup = setTimeout(function() { if (toast.parentNode) toast.remove(); }, durationMs + 500);
     toast.getBoundingClientRect();
     toast.classList.add('visible');
     setTimeout(function() {
       toast.classList.remove('visible');
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        clearTimeout(cleanup);
         toast.remove();
       } else {
-        toast.addEventListener('transitionend', function() { toast.remove(); }, { once: true });
+        toast.addEventListener('transitionend', function() { clearTimeout(cleanup); toast.remove(); }, { once: true });
       }
     }, durationMs);
   }
 
-  // Expose atmosphere helpers on window.tag (already initialised above)
   function showXpToast(el, amount) {
     var toast = document.createElement('div');
     toast.className = 'xp-toast';
@@ -140,48 +139,113 @@ export const SCENE_SCRIPT_CODE = `
   window.tag.showToast = showToast;
   window.tag.showXpToast = showXpToast;
 
-  // Wire up revealable redactions
-  document.querySelectorAll('.atmo-redacted.revealable').forEach(function(el) {
+  function copyPromptText(prompt) {
+    var ta = document.createElement('textarea');
+    var copied = false;
+    ta.value = prompt;
+    ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      copied = !!document.execCommand('copy');
+    } catch (_err) {
+      copied = false;
+    }
+    document.body.removeChild(ta);
+    return copied;
+  }
+
+  function sendOrCopyPrompt(btn, prompt) {
+    if (!prompt) return;
+    btn.setAttribute('title', prompt);
+    if (typeof sendPrompt === 'function') {
+      sendPrompt(prompt);
+      return;
+    }
+    var orig = btn.textContent;
+    var copied = copyPromptText(prompt);
+    btn.textContent = copied ? 'Copied! Paste as your reply.' : 'Copy the prompt from the tooltip.';
+    setTimeout(function() { btn.textContent = orig; }, 3000);
+  }
+
+  root.querySelectorAll('.atmo-redacted.revealable').forEach(function(el) {
     el.addEventListener('click', function() {
       el.classList.add('revealed');
       el.classList.remove('revealable');
     }, { once: true });
   });
 
-  // Wire up footer panel buttons
-  document.querySelectorAll('.footer-btn[data-panel]').forEach(function(btn) {
+  root.querySelectorAll('.footer-btn[data-panel]').forEach(function(btn) {
     btn.addEventListener('click', function() {
       window.tag.togglePanel(this.getAttribute('data-panel'), this);
     });
   });
 
-  document.querySelectorAll('.footer-btn[data-prompt]').forEach(function(btn) {
+  root.querySelectorAll('[data-prompt]').forEach(function(btn) {
+    if (btn.id === 'levelup-confirm') return;
     btn.addEventListener('click', function() {
+      if (this.getAttribute('aria-disabled') === 'true' || this.getAttribute('disabled') !== null) return;
       var prompt = this.getAttribute('data-prompt');
-      var ta = document.createElement('textarea');
-      ta.value = prompt;
-      ta.style.cssText = 'position:fixed;opacity:0';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      if (typeof sendPrompt === 'function') {
-        sendPrompt(prompt);
-      } else {
-        var orig = this.textContent;
-        this.textContent = 'Copied! Paste as your reply.';
-        var self = this;
-        setTimeout(function() { self.textContent = orig; }, 3000);
-      }
+      sendOrCopyPrompt(this, prompt);
     });
   });
 
-  // Audio engine — only active when audio module is present
-  var audioBtn = document.getElementById('audio-btn');
-  if (audioBtn) {
-    \${SOUNDSCAPE_ENGINE_CODE}
+  var rootEl = root.querySelector('.root');
+  var poiBudget = parseInt((rootEl && rootEl.getAttribute('data-poi-budget')) || '2', 10);
+  var poiSpent = 0;
+  var poiBtns = root.querySelectorAll('[data-poi]');
+  function refreshPoiState() {
+    if (poiSpent >= poiBudget) {
+      poiBtns.forEach(function(btn) {
+        if (!btn.classList.contains('poi-spent')) {
+          btn.style.opacity = '0.4';
+          btn.style.pointerEvents = 'none';
+          btn.setAttribute('aria-disabled', 'true');
+        }
+      });
+    }
+  }
+  poiBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      if (poiSpent >= poiBudget) return;
+      poiSpent++;
+      this.classList.add('poi-spent');
+      this.style.opacity = '0.4';
+      this.style.pointerEvents = 'none';
+      this.setAttribute('aria-disabled', 'true');
+      refreshPoiState();
+    });
+  });
 
-    var soundscape = new SoundscapeEngine();
+  var levelupConfirm = root.getElementById('levelup-confirm');
+  if (levelupConfirm) {
+    var chosenStat = '';
+    root.querySelectorAll('.levelup-choice[data-levelup-stat]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        root.querySelectorAll('.levelup-choice').forEach(function(b) {
+          b.setAttribute('aria-pressed', 'false');
+          b.style.borderColor = '';
+        });
+        this.setAttribute('aria-pressed', 'true');
+        this.style.borderColor = 'var(--ta-color-accent, #4ECDC4)';
+        chosenStat = this.getAttribute('data-levelup-stat');
+      });
+    });
+    levelupConfirm.addEventListener('click', function() {
+      var basePrompt = this.getAttribute('data-prompt') || 'Confirm level up.';
+      var prompt = basePrompt + (chosenStat ? ' Attribute: ' + chosenStat + ' +1.' : '');
+      sendOrCopyPrompt(this, prompt);
+      var glowBtn = root.querySelector('.footer-btn-levelup');
+      if (glowBtn) {
+        glowBtn.classList.remove('footer-btn-levelup');
+        glowBtn.style.animation = 'none';
+      }
+    });
+  }
+
+  var audioBtn = root.getElementById('audio-btn');
+  if (audioBtn && typeof SoundscapeEngine !== 'undefined') {
+    var soundscape = new SoundscapeEngine(root);
     var soundType = audioBtn.getAttribute('data-sound') || 'ship-engine';
     var soundDuration = parseInt(audioBtn.getAttribute('data-duration') || '25', 10);
 
@@ -190,7 +254,7 @@ export const SCENE_SCRIPT_CODE = `
         soundscape.stop();
       } else {
         soundscape.play(soundType, soundDuration);
-        audioBtn.textContent = '\u25a0 Stop';
+        audioBtn.textContent = '\\u25a0 Stop';
         setTimeout(function() {
           if (!soundscape.playing) return;
           soundscape.stop();
@@ -198,5 +262,5 @@ export const SCENE_SCRIPT_CODE = `
       }
     });
   }
-})();
-`;
+}
+`.trim();

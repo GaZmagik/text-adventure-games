@@ -2,6 +2,7 @@ import { describe, expect, spyOn, test } from 'bun:test';
 import { createDefaultState } from '../../lib/state-store';
 import { renderDice } from '../../render/templates/dice';
 import { renderDicePool } from '../../render/templates/dice-pool';
+import { SCENE_SCRIPT_CODE } from '../../render/lib/scene-script';
 import { renderScene } from '../../render/templates/scene';
 import {
   append,
@@ -35,69 +36,28 @@ function createSmokeRuntime(options: { reducedMotion?: boolean } = {}) {
   };
 }
 
-/** Stub initTagScene — builds with a bound env reference for correct window/sendPrompt wiring. */
-function createInitTagScene(env: ReturnType<typeof createSmokeRuntime>) {
-  type TagApi = {
-    togglePanel: (panelName: unknown, btn?: FakeElement | null) => void;
-    closePanel: () => void;
-  };
-
-  return function initTagScene(shadow: FakeElement): void {
-    const doc = shadow;
-    const tag: Partial<TagApi> = {};
-    env.window.tag = tag;
-
-    tag.togglePanel = function(panelName: unknown, btn?: FakeElement | null) {
-      const overlay = doc.getElementById('panel-overlay');
-      const sceneContent = doc.getElementById('scene-content');
-      const title = doc.getElementById('panel-title-text');
-      if (overlay) overlay.style.display = 'block';
-      if (sceneContent) sceneContent.style.display = 'none';
-      if (title) title.textContent = String(panelName).charAt(0).toUpperCase() + String(panelName).slice(1);
-      if (btn) btn.setAttribute('aria-expanded', 'true');
-    };
-
-    tag.closePanel = function() {
-      const overlay = doc.getElementById('panel-overlay');
-      const sceneContent = doc.getElementById('scene-content');
-      if (overlay) overlay.style.display = 'none';
-      if (sceneContent) sceneContent.style.display = 'block';
-      doc.querySelectorAll('.footer-btn[aria-expanded]').forEach(function(b) {
-        b.setAttribute('aria-expanded', 'false');
-      });
-    };
-
-    const continueBtn = doc.getElementById('continue-reveal-btn');
-    if (continueBtn) {
-      continueBtn.addEventListener('click', function() {
-        const brief = doc.getElementById('reveal-brief');
-        const full = doc.getElementById('reveal-full');
-        if (brief) brief.style.display = 'none';
-        if (full) full.style.display = 'block';
-      });
-    }
-    const panelCloseBtn = doc.getElementById('panel-close-btn');
-    if (panelCloseBtn) {
-      panelCloseBtn.addEventListener('click', function() {
-        tag.closePanel?.();
-      });
-    }
-    doc.querySelectorAll('.footer-btn[data-panel]').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        tag.togglePanel?.(btn.getAttribute('data-panel'), btn);
-      });
-    });
-    doc.querySelectorAll('.footer-btn[data-prompt]').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        const prompt = btn.getAttribute('data-prompt');
-        env.sendPrompt(prompt);
-      });
-    });
-  };
+function compileSceneRuntime(env: ReturnType<typeof createSmokeRuntime>): (shadow: FakeElement) => void {
+  const runner = new Function(
+    'window',
+    'document',
+    'getComputedStyle',
+    'requestAnimationFrame',
+    'cancelAnimationFrame',
+    'sendPrompt',
+    `${SCENE_SCRIPT_CODE}; return initTagScene;`,
+  );
+  return runner(
+    env.window,
+    env.document,
+    env.getComputedStyle,
+    env.requestAnimationFrame,
+    env.cancelAnimationFrame,
+    env.sendPrompt,
+  ) as (shadow: FakeElement) => void;
 }
 
 function executeInlineScript(script: string, env: ReturnType<typeof createSmokeRuntime>): void {
-  executeGeneratedCode(script, env, { sendPrompt: env.sendPrompt, initTagScene: createInitTagScene(env) });
+  executeGeneratedCode(script, env, { sendPrompt: env.sendPrompt, initTagScene: compileSceneRuntime(env) });
 }
 
 function mountStandardDice(env: ReturnType<typeof createSmokeRuntime>) {
@@ -355,5 +315,50 @@ describe('widget runtime smoke', () => {
     expect(overlay.style.display).toBe('none');
     expect(sceneContent.style.display).toBe('block');
     expect(footerCharacter.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  test('scene runtime sends only the enriched level-up prompt once', () => {
+    const env = createSmokeRuntime();
+    const shadow = append(env.document.body, makeElement(env.document, 'div'), env.document);
+    const root = append(shadow, makeElement(env.document, 'div', { classes: ['root'] }), env.document);
+    const statChoice = append(root, makeElement(env.document, 'button', {
+      classes: ['levelup-choice'],
+      attrs: { 'data-levelup-stat': 'STR' },
+    }), env.document);
+    const confirm = append(root, makeElement(env.document, 'button', {
+      id: 'levelup-confirm',
+      attrs: { 'data-prompt': 'Confirm level up.' },
+    }), env.document);
+
+    compileSceneRuntime(env)(shadow);
+
+    statChoice.dispatch('click');
+    confirm.dispatch('click');
+
+    expect(env.prompts).toEqual(['Confirm level up. Attribute: STR +1.']);
+  });
+
+  test('scene runtime blocks spent POI buttons after the budget is exhausted', () => {
+    const env = createSmokeRuntime();
+    const shadow = append(env.document.body, makeElement(env.document, 'div'), env.document);
+    const root = append(shadow, makeElement(env.document, 'div', {
+      classes: ['root'],
+      attrs: { 'data-poi-budget': '1' },
+    }), env.document);
+    const poi = append(root, makeElement(env.document, 'button', {
+      attrs: {
+        'data-poi': 'true',
+        'data-prompt': 'Inspect the conduit',
+        title: 'Inspect the conduit',
+      },
+    }), env.document);
+
+    compileSceneRuntime(env)(shadow);
+
+    poi.dispatch('click');
+    poi.dispatch('click');
+
+    expect(env.prompts).toEqual(['Inspect the conduit']);
+    expect(poi.getAttribute('aria-disabled')).toBe('true');
   });
 });

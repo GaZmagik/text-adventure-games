@@ -210,7 +210,7 @@ describe('render requiredElements and skeleton', () => {
     const result = await handleRender(['ticker']);
     const data = result.data as Record<string, unknown>;
     const elems = data.requiredElements as string[];
-    expect(elems.some(e => e.includes('scene-atmosphere'))).toBe(true);
+    expect(elems.some(e => e.includes("class='atmo-strip'"))).toBe(true);
   });
 
   test('requiredElements includes audio toggle when audio is active', async () => {
@@ -219,7 +219,7 @@ describe('render requiredElements and skeleton', () => {
     const result = await handleRender(['ticker']);
     const data = result.data as Record<string, unknown>;
     const elems = data.requiredElements as string[];
-    expect(elems.some(e => e.includes('scene-audio-toggle'))).toBe(true);
+    expect(elems.some(e => e.includes("id='audio-btn'"))).toBe(true);
   });
 
   test('skeleton is non-empty string for scene widget', async () => {
@@ -237,9 +237,9 @@ describe('render requiredElements and skeleton', () => {
     const result = await handleRender(['scene']);
     const data = result.data as Record<string, unknown>;
     const skel = data.skeleton as string;
+    expect(skel).toContain('<!-- [BRIEF:');
     expect(skel).toContain('<!-- [NARRATIVE:');
-    expect(skel).toContain('<!-- [ACTIONS:');
-    expect(skel).toContain('<!-- [META:');
+    expect(skel).toContain('<!-- [FOOTER:');
   });
 
   test('skeleton uses semantic class names', async () => {
@@ -248,12 +248,13 @@ describe('render requiredElements and skeleton', () => {
     const result = await handleRender(['scene']);
     const data = result.data as Record<string, unknown>;
     const skel = data.skeleton as string;
-    expect(skel).toContain('scene-container');
-    expect(skel).toContain('scene-narrative');
-    expect(skel).toContain('scene-actions');
-    expect(skel).toContain('scene-footer');
-    expect(skel).toContain('scene-atmosphere');
-    expect(skel).toContain('scene-audio-toggle');
+    expect(skel).toContain('id="scene-content"');
+    expect(skel).toContain('class="loc-bar"');
+    expect(skel).toContain('class="narrative"');
+    expect(skel).toContain('class="status-bar"');
+    expect(skel).toContain('class="atmo-strip"');
+    expect(skel).toContain('id="audio-btn"');
+    expect(skel).toContain('class="footer-row"');
   });
 });
 
@@ -435,5 +436,63 @@ describe('render pending roll persistence', () => {
     await handleRender(['scene', '--raw', '--data', data]);
     const updated = await loadState();
     expect(updated._pendingRolls).toBeUndefined();
+  });
+
+  test('scene rerender clears stale _pendingRolls when roll metadata is removed', async () => {
+    state._pendingRolls = [
+      { action: 1, type: 'hazard', stat: 'DEX', dc: 13 },
+    ];
+    await saveState(state);
+
+    const data = JSON.stringify({ actions: [{ text: 'Duck behind the crate' }] });
+    await handleRender(['scene', '--raw', '--data', data]);
+
+    const updated = await loadState();
+    expect(updated._pendingRolls).toBeUndefined();
+  });
+
+  test('recap widget formats contested rolls without raw internal labels or fake DCs', async () => {
+    state.rosterMutations = [
+      {
+        id: 'broker_01',
+        name: 'Sil Vey',
+        pronouns: 'they/them',
+        role: 'broker',
+        tier: 'rival',
+        level: 2,
+        stats: { STR: 10, DEX: 12, CON: 10, INT: 14, WIS: 11, CHA: 15 },
+        modifiers: { STR: 0, DEX: 1, CON: 0, INT: 2, WIS: 0, CHA: 2 },
+        hp: 16,
+        maxHp: 16,
+        ac: 12,
+        soak: 0,
+        damageDice: '1d6',
+        status: 'active',
+        alive: true,
+        trust: 35,
+        disposition: 'neutral',
+        dispositionSeed: 11,
+      },
+    ];
+    state.rollHistory = [
+      {
+        scene: 1,
+        type: 'contested_roll',
+        stat: 'CHA',
+        roll: 14,
+        modifier: 1,
+        total: 15,
+        npcId: 'broker_01',
+        outcome: 'narrow_success',
+      },
+    ];
+    await saveState(state);
+
+    const result = await handleRender(['recap', '--raw']);
+    const html = result.data as string;
+    expect(html).toContain('CHA');
+    expect(html).toContain('Sil Vey');
+    expect(html).not.toContain('contested_roll');
+    expect(html).not.toContain('vs DC 0');
   });
 });

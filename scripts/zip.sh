@@ -11,6 +11,7 @@
 #   - node_modules (installed locally by setup.sh)
 #   - bunfig.toml  (dev-only bun test config)
 #   - .DS_Store    (macOS junk)
+#   - *.lore.md    (plain-text lore; base64 variant is kept)
 
 set -euo pipefail
 
@@ -54,7 +55,11 @@ zip -r "$OUTPUT" . \
 	-x "node_modules/*" \
 	-x "cli/tests/*" \
 	-x "assets/css/*" \
-	-x "assets/js/*"
+	-x "assets/js/*" \
+	-x "*.lore.md"
+
+# Re-add base64 lore files (*.lore.md exclusion above catches them too)
+find . -name '*.base64.lore.md' -print0 | xargs -0 zip -g "$OUTPUT" 2>/dev/null || true
 
 FILE_COUNT=$(unzip -l "$OUTPUT" | tail -1 | awk '{print $2}')
 SIZE=$(ls -lh "$OUTPUT" | awk '{print $5}')

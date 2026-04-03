@@ -4,6 +4,8 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { handleBuildCss } from './build-css';
 import { fnv32 } from '../lib/fnv32';
+import { SCENE_SCRIPT_CODE } from '../render/lib/scene-script';
+import { SOUNDSCAPE_ENGINE_CODE } from '../render/lib/soundscape';
 
 // ── Shared test state ────────────────────────────────────────────────
 
@@ -47,6 +49,11 @@ describe('handleBuildCss()', () => {
     const data = result.data as Record<string, unknown>;
     expect(typeof data.totalBytes).toBe('number');
     expect(data.totalBytes as number).toBeGreaterThan(0);
+  });
+
+  it('returns data with a scripts array', () => {
+    const data = result.data as Record<string, unknown>;
+    expect(Array.isArray(data.scripts)).toBe(true);
   });
 });
 
@@ -148,12 +155,49 @@ describe('CDN manifest', () => {
     }
   });
 
+  it('manifest contains JS_MANIFEST export with CDN runtime hashes', () => {
+    const manifest = readFileSync(join(tmpDir, 'cdn-manifest.ts'), 'utf-8');
+    expect(manifest).toContain('export const JS_MANIFEST');
+    expect(manifest).toContain(`'tag-scene.js'`);
+    expect(manifest).toContain(`'tag-soundscape.js'`);
+  });
+
   it('manifest is valid TypeScript (parseable)', () => {
     const manifest = readFileSync(join(tmpDir, 'cdn-manifest.ts'), 'utf-8');
     // Quick structural check — must contain both exports and close properly
     expect(manifest).toMatch(/export const CDN_BASE\s*=\s*'/);
     expect(manifest).toMatch(/export const CSS_MANIFEST:\s*Record<string,\s*string>\s*=\s*\{/);
+    expect(manifest).toMatch(/export const JS_MANIFEST:\s*Record<string,\s*string>\s*=\s*\{/);
     expect(manifest).toContain('};');
+  });
+});
+
+describe('JS output files', () => {
+  it('creates a js/ directory inside the output directory', () => {
+    expect(existsSync(join(tmpDir, 'js'))).toBe(true);
+  });
+
+  it('writes the generated scene and soundscape runtime files', () => {
+    const jsFiles = readdirSync(join(tmpDir, 'js')).sort();
+    expect(jsFiles).toEqual(['tag-scene.js', 'tag-soundscape.js']);
+  });
+
+  it('generated scene runtime includes the source-of-truth scene code', () => {
+    const sceneJs = readFileSync(join(tmpDir, 'js', 'tag-scene.js'), 'utf-8');
+    expect(sceneJs).toContain(SCENE_SCRIPT_CODE.trim());
+  });
+
+  it('generated soundscape runtime includes the source-of-truth soundscape code', () => {
+    const soundscapeJs = readFileSync(join(tmpDir, 'js', 'tag-soundscape.js'), 'utf-8');
+    expect(soundscapeJs).toContain(SOUNDSCAPE_ENGINE_CODE.trim());
+  });
+
+  it('script hashes in result data match file contents', () => {
+    const data = result.data as { scripts: Array<{ fileName: string; hash: string }> };
+    for (const script of data.scripts) {
+      const content = readFileSync(join(tmpDir, 'js', script.fileName), 'utf-8');
+      expect(script.hash).toBe(fnv32(content));
+    }
   });
 });
 
@@ -212,6 +256,24 @@ describe('--release flag', () => {
       expect(b).toBe(a);
     }
   });
+
+  it('encodes slash-containing refs in CDN_BASE', async () => {
+    const encodedTmpDir = mkdtempSync(join(tmpdir(), 'tag-build-css-encoded-'));
+    try {
+      const encodedResult = await handleBuildCss([
+        '--output-dir',
+        encodedTmpDir,
+        '--release',
+        'feature/tag-cli-v1.3.0',
+      ]);
+      expect(encodedResult.ok).toBe(true);
+      const manifest = readFileSync(join(encodedTmpDir, 'cdn-manifest.ts'), 'utf-8');
+      expect(manifest).toContain('@feature%2Ftag-cli-v1.3.0/');
+      expect(manifest).not.toContain('@feature/tag-cli-v1.3.0/');
+    } finally {
+      rmSync(encodedTmpDir, { recursive: true, force: true });
+    }
+  });
 });
 
 // ── Default CDN_BASE auto-detection ─────────────────────────────────
@@ -220,7 +282,7 @@ describe('default CDN_BASE (no --release)', () => {
   it('auto-detects current git branch in CDN_BASE', () => {
     const manifest = readFileSync(join(tmpDir, 'cdn-manifest.ts'), 'utf-8');
     // Must contain an @ ref (branch or tag) followed by the asset path
-    expect(manifest).toMatch(/@[a-zA-Z0-9\-\/_.]+\/.claude\/skills/);
+    expect(manifest).toMatch(/@[a-zA-Z0-9%\-_.]+\/.claude\/skills/);
   });
 
   it('does not contain a hardcoded branch name in source', async () => {

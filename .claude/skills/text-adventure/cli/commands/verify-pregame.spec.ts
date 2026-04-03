@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { handleVerify } from './verify';
@@ -28,6 +28,12 @@ afterEach(() => {
 
 async function setupState(): Promise<void> {
   await handleState(['reset']);
+  const { signMarker } = require('./verify');
+  writeFileSync(join(tempDir, '.last-sync'), signMarker(999, '{}'), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-scenario'), signMarker(0), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-rules'), signMarker(0), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-character'), signMarker(0), 'utf-8');
+  writeFileSync(join(tempDir, '.last-verify'), signMarker(999), 'utf-8');
   await handleState(['set', 'visualStyle', 'station']);
   await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
   await handleState(['set', 'modulesActive', JSON.stringify([
@@ -90,6 +96,38 @@ describe('tag verify scenario', () => {
     expect(d.verified).toBe(false);
     expect(d.failures.some(f => f.includes('[object Object]'))).toBe(true);
   });
+
+  test('fails when only some scenario buttons have title fallbacks', async () => {
+    await setupState();
+    const html = `<div class="widget-scenario-select">
+  <div class="scenario-grid">
+    <div class="scenario-card"><button class="scenario-select-btn" data-prompt="Choose Rust Belt" title="Choose Rust Belt">Select</button></div>
+    <div class="scenario-card"><button class="scenario-select-btn" data-prompt="Choose Deep Freeze">Select</button></div>
+  </div>
+</div>`;
+    const path = join(tempDir, 'scenario-missing-title.html');
+    writeFileSync(path, html, 'utf-8');
+    const result = await handleVerify(['scenario', path]);
+    const d = result.data as { verified: boolean; failures: string[] };
+    expect(d.verified).toBe(false);
+    expect(d.failures.some(f => f.includes('title fallback'))).toBe(true);
+  });
+
+  test('fails when scenario widget is hand-coded without the Shadow DOM bootstrap', async () => {
+    await setupState();
+    const html = `<div class="widget-scenario-select">
+  <div class="scenario-grid">
+    <div class="scenario-card"><button class="scenario-select-btn" data-prompt="Choose Rust Belt" title="Choose Rust Belt">Select</button></div>
+    <div class="scenario-card"><button class="scenario-select-btn" data-prompt="Choose Deep Freeze" title="Choose Deep Freeze">Select</button></div>
+  </div>
+</div>`;
+    const path = join(tempDir, 'handcoded-scenario.html');
+    writeFileSync(path, html, 'utf-8');
+    const result = await handleVerify(['scenario', path]);
+    const d = result.data as { verified: boolean; failures: string[] };
+    expect(d.verified).toBe(false);
+    expect(d.failures.some(f => f.includes('Shadow DOM bootstrap'))).toBe(true);
+  });
 });
 
 describe('tag verify rules', () => {
@@ -124,6 +162,18 @@ describe('tag verify rules', () => {
     expect(d.verified).toBe(false);
     expect(d.failures.some(f => f.includes('[object Object]'))).toBe(true);
   });
+
+  test('rejects edited settings HTML even if the only change is single-quoted data-group attributes', async () => {
+    await setupState();
+    const path = await renderToFile(['settings'], 'single-quoted-settings.html');
+    const html = readFileSync(path, 'utf-8')
+      .replace(/data-group=\"([^\"]+)\"/g, "data-group='$1'");
+    writeFileSync(path, html, 'utf-8');
+    const result = await handleVerify(['rules', path]);
+    const d = result.data as { verified: boolean; failures: string[] };
+    expect(d.verified).toBe(false);
+    expect(d.failures.some(f => f.includes('exact render-origin marker'))).toBe(true);
+  });
 });
 
 describe('tag verify character', () => {
@@ -131,8 +181,8 @@ describe('tag verify character', () => {
     await setupState();
     const data = JSON.stringify({
       archetypes: [
-        { id: 'soldier', name: 'Soldier', stats: [14, 12, 13, 8, 10, 10] },
-        { id: 'scout', name: 'Scout', stats: [10, 16, 10, 10, 14, 10] },
+        { id: 'soldier', name: 'Soldier', stats: { STR: 14, DEX: 12, CON: 13, INT: 8, WIS: 10, CHA: 10 } },
+        { id: 'scout', name: 'Scout', stats: { STR: 10, DEX: 16, CON: 10, INT: 10, WIS: 14, CHA: 10 } },
       ],
     });
     const path = await renderToFile(['character-creation', '--style', 'station', '--data', data], 'character.html');
