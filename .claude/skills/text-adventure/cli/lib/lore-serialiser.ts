@@ -6,6 +6,8 @@ import type {
   MapState, StoryArchitectState, CarryForward, ArcSummary, ShipState, CrewMutation,
 } from '../types';
 import { SCHEMA_VERSION } from './constants';
+export { parseLoreFrontmatter, buildLoreFrontmatter } from './lore-frontmatter';
+export type { LoreFrontmatter } from './lore-frontmatter';
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -42,6 +44,10 @@ export type LoreMechanicalData = {
   carryForward?: CarryForward | null;
   arcHistory?: ArcSummary[];
   previousAdventurer: PreviousAdventurer;
+  authoredBody?: string;
+  outputStyle?: string;
+  pacingProfile?: 'fast' | 'normal' | 'slow';
+  authoredSourceId?: string;
 };
 
 // ── YAML escaping ───────────────────────────────────────────────────
@@ -107,6 +113,10 @@ export function extractMechanicalData(state: GmState): LoreMechanicalData {
     ...(state.carryForward !== undefined ? { carryForward: state.carryForward } : {}),
     ...(state.arcHistory !== undefined ? { arcHistory: state.arcHistory } : {}),
     previousAdventurer,
+    ...(state.authoredBody !== undefined ? { authoredBody: state.authoredBody } : {}),
+    ...(state.outputStyle !== undefined ? { outputStyle: state.outputStyle } : {}),
+    ...(state.pacingProfile !== undefined ? { pacingProfile: state.pacingProfile } : {}),
+    ...(state.authoredSourceId !== undefined ? { authoredSourceId: state.authoredSourceId } : {}),
   };
 
   return data;

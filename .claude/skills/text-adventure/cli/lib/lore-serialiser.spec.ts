@@ -214,6 +214,27 @@ describe('extractMechanicalData', () => {
     expect(data.rosterMutations).toEqual([]);
     expect(data.factions).toEqual({});
   });
+
+  test('carries authoredBody, outputStyle, pacingProfile, authoredSourceId', () => {
+    const state = makePopulatedState();
+    state.authoredBody = '## World History\n\nThe Glass Reef formed...';
+    state.outputStyle = 'Sci-Fi-Narrator';
+    state.pacingProfile = 'slow';
+    state.authoredSourceId = 'glass-reef-atlas-v1';
+    const data = extractMechanicalData(state);
+    expect(data.authoredBody).toBe('## World History\n\nThe Glass Reef formed...');
+    expect(data.outputStyle).toBe('Sci-Fi-Narrator');
+    expect(data.pacingProfile).toBe('slow');
+    expect(data.authoredSourceId).toBe('glass-reef-atlas-v1');
+  });
+
+  test('omits authored fields when undefined', () => {
+    const data = extractMechanicalData(makePopulatedState()) as unknown as Record<string, unknown>;
+    expect(data.authoredBody).toBeUndefined();
+    expect(data.outputStyle).toBeUndefined();
+    expect(data.pacingProfile).toBeUndefined();
+    expect(data.authoredSourceId).toBeUndefined();
+  });
 });
 
 // ── encodeLorePayload ────────────────────────────────────────────────
@@ -241,6 +262,21 @@ describe('encodeLorePayload', () => {
     const parsed = JSON.parse(atob(b64));
     expect(parsed.seed).toBe('abc123def456');
     expect(parsed.factions).toEqual({ 'The Guild': 35, 'Shadow Court': -60 });
+  });
+
+  test('round-trips authored fields through encode/decode', () => {
+    const state = makePopulatedState();
+    state.authoredBody = '## World History\n\nThe Glass Reef formed...';
+    state.outputStyle = 'Sci-Fi-Narrator';
+    state.pacingProfile = 'slow';
+    state.authoredSourceId = 'glass-reef-atlas-v1';
+    const data = extractMechanicalData(state);
+    const encoded = encodeLorePayload(data);
+    const parsed = JSON.parse(atob(encoded.slice(4)));
+    expect(parsed.authoredBody).toBe('## World History\n\nThe Glass Reef formed...');
+    expect(parsed.outputStyle).toBe('Sci-Fi-Narrator');
+    expect(parsed.pacingProfile).toBe('slow');
+    expect(parsed.authoredSourceId).toBe('glass-reef-atlas-v1');
   });
 });
 
