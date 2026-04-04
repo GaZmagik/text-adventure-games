@@ -86,12 +86,17 @@ export function wrapInShadowDom(opts: ShadowWrapperOptions): string {
     inlineScriptBlock = ''; // consumed by chain
   }
 
-  // :host override with CSS variable fallbacks using station defaults
+  // :host override with CSS variable fallbacks using station defaults.
+  // The fallback font value must not contain single quotes — this string is
+  // embedded inside a JS single-quoted literal (hostStyle.textContent='...'),
+  // so inner quotes would break the generated script. The CSS variable
+  // --sta-font-mono carries the full font stack from the external stylesheet;
+  // the bare `monospace` here is only the last-resort browser fallback.
   const hostOverride = [
     ':host{display:block;',
     'background:var(--sta-bg-primary,#1A1D2E);',
     'color:var(--sta-text-primary,#E8E6E3);',
-    "font-family:var(--sta-font-mono,'IBM Plex Mono','SF Mono','Cascadia Code','Consolas','Courier New',monospace);",
+    'font-family:var(--sta-font-mono,monospace);',
     '}',
     '.root{background:inherit;color:inherit;}',
   ].join('');

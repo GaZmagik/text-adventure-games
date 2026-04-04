@@ -10,6 +10,7 @@ let tempDir: string;
 const originalEnv = process.env.TAG_STATE_DIR;
 
 beforeEach(() => {
+  clearStateDirCache();
   tempDir = mkdtempSync(join(tmpdir(), 'tag-verify-ac-'));
   process.env.TAG_STATE_DIR = tempDir;
   const { signMarker } = require('./verify');

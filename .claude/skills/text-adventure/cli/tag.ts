@@ -225,6 +225,11 @@ async function main(): Promise<void> {
       result = await handleScenario(args.slice(1));
       break;
     }
+    case 'lore': {
+      const { handleLore } = await import('./commands/lore');
+      result = await handleLore(args.slice(1));
+      break;
+    }
     case 'compact': {
       const { handleCompact } = await import('./commands/compact');
       result = await handleCompact(args.slice(1));

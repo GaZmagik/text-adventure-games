@@ -11,6 +11,7 @@ let tempDir: string;
 const originalEnv = process.env.TAG_STATE_DIR;
 
 beforeEach(() => {
+  clearStateDirCache();
   tempDir = mkdtempSync(join(tmpdir(), 'tag-verify-test-'));
   process.env.TAG_STATE_DIR = tempDir;
   const { signMarker } = require('./verify');
@@ -60,7 +61,13 @@ async function setupState(): Promise<void> {
 
 function injectSceneActions(html: string, actions: string): string {
   return html.replace(
-    '<!-- [ACTIONS: Insert POI buttons (data-poi, dashed border) and action cards (solid border) here] -->',
+    `<!-- [ACTIONS: Insert POI buttons and action cards here.
+           Each button MUST use <strong class="btn-title"> for the title:
+
+           POI:    <button class="poi-btn" data-poi="id" data-prompt="..." title="..."><strong class="btn-title">Title</strong>Description text.</button>
+           Action: <button class="action-btn" data-prompt="..." title="..."><strong class="btn-title">Title</strong>Description text.</button>
+
+           tag verify will reject buttons without <strong> title structure.] -->`,
     actions,
   );
 }
@@ -75,8 +82,8 @@ async function renderComposedScene(args: string[] = ['scene', '--style', 'statio
   );
   html = injectSceneActions(
     html,
-    '<button class="action-card" data-prompt="Examine the sonar." title="Examine the sonar."><div class="action-card-title">Examine sonar</div></button>'
-    + '<button class="action-card" data-prompt="Speak to the captain." title="Speak to the captain."><div class="action-card-title">Speak to captain</div></button>',
+    '<button class="action-card" data-prompt="Examine the sonar." title="Examine the sonar."><strong class="btn-title">Examine sonar</strong></button>'
+    + '<button class="action-card" data-prompt="Speak to the captain." title="Speak to the captain."><strong class="btn-title">Speak to captain</strong></button>',
   );
   return html;
 }
@@ -95,8 +102,8 @@ describe('tag verify', () => {
       );
     html = injectSceneActions(
       html,
-      '<button class="action-card" data-prompt="Examine the sonar." title="Examine the sonar."><div class="action-card-title">Examine sonar</div></button>'
-      + '<button class="action-card" data-prompt="Speak to the captain." title="Speak to the captain."><div class="action-card-title">Speak to captain</div></button>',
+      '<button class="action-card" data-prompt="Examine the sonar." title="Examine the sonar."><strong class="btn-title">Examine sonar</strong></button>'
+      + '<button class="action-card" data-prompt="Speak to the captain." title="Speak to the captain."><strong class="btn-title">Speak to captain</strong></button>',
     );
     const filePath = join(tempDir, 'scene.html');
     writeFileSync(filePath, html, 'utf-8');
@@ -165,8 +172,8 @@ describe('tag verify', () => {
       );
     html = injectSceneActions(
       html,
-      '<button class="action-card" data-prompt="Go left." title="Go left through the corridor."><div class="action-card-title">Go left</div></button>'
-      + '<button class="action-card" data-prompt="Go right." title="Go right toward the reactor stairs."><div class="action-card-title">Go right</div></button>',
+      '<button class="action-card" data-prompt="Go left." title="Go left through the corridor."><strong class="btn-title">Go left</strong></button>'
+      + '<button class="action-card" data-prompt="Go right." title="Go right toward the reactor stairs."><strong class="btn-title">Go right</strong></button>',
     );
     const filePath = join(tempDir, 'scene.html');
     writeFileSync(filePath, html, 'utf-8');
@@ -207,8 +214,8 @@ describe('tag verify', () => {
     html = injectSceneActions(
       html,
       '<button onclick="sendPrompt(\'Do thing\')">Do thing</button>'
-      + '<button class="action-card" data-prompt="Other thing"><div class="action-card-title">Other</div></button>'
-      + '<button class="action-card" data-prompt="Another thing"><div class="action-card-title">Another</div></button>',
+      + '<button class="action-card" data-prompt="Other thing"><strong class="btn-title">Other</strong></button>'
+      + '<button class="action-card" data-prompt="Another thing"><strong class="btn-title">Another</strong></button>',
     );
     const filePath = join(tempDir, 'onclick.html');
     writeFileSync(filePath, html, 'utf-8');
@@ -229,8 +236,8 @@ describe('tag verify', () => {
     html = injectSceneActions(
       html,
       "<button onclick='sendPrompt(\"Do thing\")'>Do thing</button>"
-      + '<button class="action-card" data-prompt="Other thing" title="Other thing"><div class="action-card-title">Other</div></button>'
-      + '<button class="action-card" data-prompt="Another thing" title="Another thing"><div class="action-card-title">Another</div></button>',
+      + '<button class="action-card" data-prompt="Other thing" title="Other thing"><strong class="btn-title">Other</strong></button>'
+      + '<button class="action-card" data-prompt="Another thing" title="Another thing"><strong class="btn-title">Another</strong></button>',
     );
     const filePath = join(tempDir, 'onclick-single-quoted.html');
     writeFileSync(filePath, html, 'utf-8');
@@ -248,8 +255,8 @@ describe('tag verify', () => {
       + '<div class="footer-row"><button class="footer-btn" data-panel="character">Char</button></div>'
       + '<div class="status-bar"><span class="hp-display">HP 10/10</span></div>'
       + '<div id="narrative"><p class="narrative">The bridge hums with tension and the air smells of recycled nothing.</p></div>'
-      + '<button class="action-card" data-prompt="Do the thing"><div class="action-card-title">Do thing</div></button>'
-      + '<button class="action-card" data-prompt="Other thing"><div class="action-card-title">Other</div></button>';
+      + '<button class="action-card" data-prompt="Do the thing"><strong class="btn-title">Do thing</strong></button>'
+      + '<button class="action-card" data-prompt="Other thing"><strong class="btn-title">Other</strong></button>';
     const filePath = join(tempDir, 'no-fallback.html');
     writeFileSync(filePath, html, 'utf-8');
 
@@ -268,8 +275,8 @@ describe('tag verify', () => {
       );
     html = injectSceneActions(
       html,
-      '<button class="action-card" data-prompt="Do the thing" title="Do the thing"><div class="action-card-title">Do thing</div></button>'
-      + '<button class="action-card" data-prompt="Other thing"><div class="action-card-title">Other</div></button>',
+      '<button class="action-card" data-prompt="Do the thing" title="Do the thing"><strong class="btn-title">Do thing</strong></button>'
+      + '<button class="action-card" data-prompt="Other thing"><strong class="btn-title">Other</strong></button>',
     );
     const filePath = join(tempDir, 'partial-fallback.html');
     writeFileSync(filePath, html, 'utf-8');
@@ -290,8 +297,8 @@ describe('tag verify', () => {
       );
     html = injectSceneActions(
       html,
-      "<button class='action-card' data-prompt='Examine the sonar.' title='Examine the sonar.'><div class='action-card-title'>Examine sonar</div></button>"
-      + "<button class='action-card' data-prompt='Speak to the captain.' title='Speak to the captain.'><div class='action-card-title'>Speak to captain</div></button>",
+      "<button class='action-card' data-prompt='Examine the sonar.' title='Examine the sonar.'><strong class='btn-title'>Examine sonar</strong></button>"
+      + "<button class='action-card' data-prompt='Speak to the captain.' title='Speak to the captain.'><strong class='btn-title'>Speak to captain</strong></button>",
     );
     const filePath = join(tempDir, 'single-quoted-prompts.html');
     writeFileSync(filePath, html, 'utf-8');
@@ -312,8 +319,8 @@ describe('tag verify', () => {
       + '<div id="panel-overlay"></div>'
       + '<div class="footer-row"><button class="footer-btn" data-panel="character">Char</button></div>'
       + '<div id="narrative"><p class="narrative">A sufficiently long narrative paragraph for the check.</p></div>'
-      + '<button class="action-card" data-prompt="Act 1"><div class="action-card-title">Act</div></button>'
-      + '<button class="action-card" data-prompt="Act 2"><div class="action-card-title">Act 2</div></button>';
+      + '<button class="action-card" data-prompt="Act 1"><strong class="btn-title">Act</strong></button>'
+      + '<button class="action-card" data-prompt="Act 2"><strong class="btn-title">Act 2</strong></button>';
     const filePath = join(tempDir, 'no-style.html');
     writeFileSync(filePath, html, 'utf-8');
 
@@ -331,8 +338,8 @@ describe('tag verify', () => {
       + '<div class="status-bar"><span class="hp-display">HP 10/10</span></div>'
       + '<div id="narrative"><p class="narrative">The guard swings and you need to dodge urgently now.</p></div>'
       + '<canvas id="dice-canvas" width="200" height="200"></canvas>'
-      + '<button class="action-card" data-prompt="Dodge"><div class="action-card-title">Dodge</div></button>'
-      + '<button class="action-card" data-prompt="Block"><div class="action-card-title">Block</div></button>';
+      + '<button class="action-card" data-prompt="Dodge"><strong class="btn-title">Dodge</strong></button>'
+      + '<button class="action-card" data-prompt="Block"><strong class="btn-title">Block</strong></button>';
     const filePath = join(tempDir, 'hand-dice.html');
     writeFileSync(filePath, html, 'utf-8');
 
@@ -351,8 +358,8 @@ describe('tag verify', () => {
       );
     html = injectSceneActions(
       html,
-      '<button class="action-card" data-prompt="Investigate." title="Investigate the source of the noise."><div class="action-card-title">Investigate</div></button>'
-      + '<button class="action-card" data-prompt="Retreat." title="Retreat to safer cover."><div class="action-card-title">Retreat</div></button>',
+      '<button class="action-card" data-prompt="Investigate." title="Investigate the source of the noise."><strong class="btn-title">Investigate</strong></button>'
+      + '<button class="action-card" data-prompt="Retreat." title="Retreat to safer cover."><strong class="btn-title">Retreat</strong></button>',
     );
     const filePath = join(tempDir, 'turncount.html');
     writeFileSync(filePath, html, 'utf-8');
@@ -378,8 +385,8 @@ describe('tag verify', () => {
       + '<div id="panel-overlay"></div>'
       + '<div class="footer-row"><button class="footer-btn" data-panel="character">Char</button></div>'
       + '<div id="narrative"><p class="narrative">The air recyclers drone in the corridor ahead of you.</p></div>'
-      + '<button class="action-card" data-prompt="Advance" title="Advance down the corridor"><div class="action-card-title">Advance</div></button>'
-      + '<button class="action-card" data-prompt="Listen" title="Listen carefully"><div class="action-card-title">Listen</div></button>';
+      + '<button class="action-card" data-prompt="Advance" title="Advance down the corridor"><strong class="btn-title">Advance</strong></button>'
+      + '<button class="action-card" data-prompt="Listen" title="Listen carefully"><strong class="btn-title">Listen</strong></button>';
     const filePath = join(tempDir, 'no-atmo.html');
     writeFileSync(filePath, html, 'utf-8');
 
@@ -401,8 +408,8 @@ describe('tag verify', () => {
       + '<div id="panel-overlay"></div>'
       + '<div class="footer-row"><button class="footer-btn" data-panel="character">Char</button></div>'
       + '<div id="narrative"><p class="narrative">Ancient glyphs cover the walls of the abandoned station module.</p></div>'
-      + '<button class="action-card" data-prompt="Examine glyphs" title="Examine the ancient glyphs"><div class="action-card-title">Examine</div></button>'
-      + '<button class="action-card" data-prompt="Move on" title="Continue through the corridor"><div class="action-card-title">Move on</div></button>';
+      + '<button class="action-card" data-prompt="Examine glyphs" title="Examine the ancient glyphs"><strong class="btn-title">Examine</strong></button>'
+      + '<button class="action-card" data-prompt="Move on" title="Continue through the corridor"><strong class="btn-title">Move on</strong></button>';
     const filePath = join(tempDir, 'no-codex.html');
     writeFileSync(filePath, html, 'utf-8');
 
@@ -591,8 +598,8 @@ describe('verify audio module check', () => {
       + '<div id="panel-overlay"></div>'
       + '<div class="footer-row"><button class="footer-btn" data-panel="character">Char</button></div>'
       + '<div id="narrative"><p class="narrative">The hum of distant generators reverberates through the corridor walls.</p></div>'
-      + '<button class="action-card" data-prompt="Listen" title="Listen to the source"><div class="action-card-title">Listen</div></button>'
-      + '<button class="action-card" data-prompt="Move on" title="Continue past"><div class="action-card-title">Move on</div></button>';
+      + '<button class="action-card" data-prompt="Listen" title="Listen to the source"><strong class="btn-title">Listen</strong></button>'
+      + '<button class="action-card" data-prompt="Move on" title="Continue past"><strong class="btn-title">Move on</strong></button>';
     const filePath = join(tempDir, 'no-audio.html');
     writeFileSync(filePath, html, 'utf-8');
 
@@ -725,8 +732,8 @@ describe('sync marker invalidation after verify', () => {
       );
     html = injectSceneActions(
       html,
-      '<button class="action-card" data-prompt="Check sonar." title="Check sonar."><div>Check sonar</div></button>'
-      + '<button class="action-card" data-prompt="Speak to Fen." title="Speak to Fen."><div>Speak to Fen</div></button>',
+      '<button class="action-card" data-prompt="Check sonar." title="Check sonar."><strong class="btn-title">Check sonar</strong></button>'
+      + '<button class="action-card" data-prompt="Speak to Fen." title="Speak to Fen."><strong class="btn-title">Speak to Fen</strong></button>',
     );
     const htmlPath = join(tempDir, 'sync-gate.html');
     writeFileSync(htmlPath, html, 'utf-8');
@@ -773,8 +780,8 @@ describe('scene verification edge cases', () => {
       );
     html = injectSceneActions(
       html,
-      '<button class="action-card" data-prompt="Cross-check the signal." title="Cross-check the signal."><div class="action-card-title">Cross-check</div></button>'
-      + '<button class="action-card" data-prompt="Question Fen about the drift pattern." title="Question Fen about the drift pattern."><div class="action-card-title">Question Fen</div></button>',
+      '<button class="action-card" data-prompt="Cross-check the signal." title="Cross-check the signal."><strong class="btn-title">Cross-check</strong></button>'
+      + '<button class="action-card" data-prompt="Question Fen about the drift pattern." title="Question Fen about the drift pattern."><strong class="btn-title">Question Fen</strong></button>',
     );
     const filePath = join(tempDir, 'scene-phases.html');
     writeFileSync(filePath, html, 'utf-8');
@@ -796,9 +803,9 @@ describe('scene verification edge cases', () => {
       '<p><!-- Narrative content rendered by the GM --></p>',
       '<p class="narrative">The bridge shivers with a rising engine whine as the crew waits for your call.</p><p class="narrative">Every eye in the room is on the sensor bloom edging toward the hull.</p>',
     );
-    html = html.replace(
-      '<!-- [ACTIONS: Insert POI buttons (data-poi, dashed border) and action cards (solid border) here] -->',
-      '<button class="action-card" data-prompt="Stabilise the sensor mast." title="Stabilise the sensor mast."><div class="action-card-title">Stabilise sensor mast</div></button>',
+    html = injectSceneActions(
+      html,
+      '<button class="action-card" data-prompt="Stabilise the sensor mast." title="Stabilise the sensor mast."><strong class="btn-title">Stabilise sensor mast</strong></button>',
     );
     const filePath = join(tempDir, 'scene-hidden-levelup.html');
     writeFileSync(filePath, html, 'utf-8');

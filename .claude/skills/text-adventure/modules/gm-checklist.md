@@ -98,6 +98,16 @@ NEW GAME CHECKLIST
      The scenario choice determines which modules load, which world-history seeds
      apply, and which NPC rosters are available. Guessing wrong front-loads an
      entire arc the player did not ask for.
+□  4a. If a bundled scenario was selected, load its lore file:
+      `tag export load <path-from-scenario-bundled-output>`
+      This persists authored adventure defaults (_loreDefaults) and pre-generated
+      characters (_lorePregen) to game state. Run `tag lore status` to verify
+      the lore pipeline is healthy before proceeding.
+      - `tag lore defaults` — query persisted defaults (difficulty, pacing, rulebook, visualStyle)
+      - `tag lore pregen` — list pre-generated characters available for the character creation widget
+      If `tag lore status` reports that pre-generated characters exist but the
+      `pre-generated-characters` module is not active, run
+      `tag module activate pre-generated-characters` before rendering character creation.
 □  5. Render the Settings widget: run `tag render settings --data '<json>'` — do NOT hand-code HTML.
      The CLI output includes validated module toggles, difficulty presets, and
      accessibility options that hand-coded versions omit, producing incomplete

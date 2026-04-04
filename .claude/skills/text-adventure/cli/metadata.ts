@@ -17,6 +17,7 @@ export type TopLevelCommandName =
   | 'setup'
   | 'style'
   | 'scenario'
+  | 'lore'
   | 'compact';
 
 export type SubcommandHelp = {
@@ -48,6 +49,7 @@ export const TOP_LEVEL_COMMANDS = [
   'setup',
   'style',
   'scenario',
+  'lore',
   'compact',
 ] as const satisfies readonly TopLevelCommandName[];
 
@@ -186,6 +188,15 @@ export const COMMAND_HELP: Record<TopLevelCommandName, CommandHelp> = {
     description: 'Bundled adventure discovery. Scans story/ for .lore.md files and outputs scenario-select-compatible JSON.',
     subcommands: [
       { name: 'bundled', usage: 'tag scenario bundled', description: 'List bundled adventures as featured scenarios with title, description, genres, difficulty, and players from lore frontmatter', example: 'tag scenario bundled' },
+    ],
+  },
+  lore: {
+    command: 'tag lore',
+    description: 'Query lore pipeline state — defaults, pre-generated characters, and pipeline health diagnostics.',
+    subcommands: [
+      { name: 'defaults', usage: 'tag lore defaults', description: 'Show _loreDefaults from state (difficulty, pacing, rulebook, visualStyle)', example: 'tag lore defaults' },
+      { name: 'pregen', usage: 'tag lore pregen', description: 'List pre-generated characters from _lorePregen with names, classes, and stats', example: 'tag lore pregen' },
+      { name: 'status', usage: 'tag lore status', description: 'Lore pipeline health check — source, defaults, pregen, module activation issues', example: 'tag lore status' },
     ],
   },
   compact: {

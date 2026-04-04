@@ -6,6 +6,7 @@ import { handleState } from './index';
 import { handleSync, JOURNAL_FILENAME } from './sync';
 import { loadState, saveState, createDefaultState, getStatePath } from '../../lib/state-store';
 import { handleCompute } from '../compute';
+import { clearStateDirCache } from '../verify';
 
 let tempDir: string;
 const originalEnv = process.env.TAG_STATE_DIR;
@@ -13,6 +14,10 @@ const originalEnv = process.env.TAG_STATE_DIR;
 beforeEach(() => {
   tempDir = mkdtempSync(join(tmpdir(), 'tag-test-'));
   process.env.TAG_STATE_DIR = tempDir;
+  // Clear the verify.ts module-level _stateDirCache so getVerifyMarkerPath()
+  // and getNeedsVerifyPath() resolve against this test's tempDir, not a
+  // stale cached path from a previous test run in the same Bun process.
+  clearStateDirCache();
   // Satisfy verify gate for tests that use --apply — properly signed marker
   writeVerifyMarker(999);
 });
