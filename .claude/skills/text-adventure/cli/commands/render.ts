@@ -653,10 +653,16 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
       given: useSciFi ? names.sciFiGiven : names.realWorldGiven,
       surname: useSciFi ? names.sciFiSurname : names.realWorldSurname,
     };
-    // Inject pre-generated characters when module is active and none provided
+    // Inject pre-generated characters when module is active and none provided.
+    // Check state.modulesActive first, then fall back to --data.settings.modules
+    // (pre-game widgets render before state exists — the module list arrives via --data).
     const existingData = (options.data ?? {}) as Record<string, unknown>;
-    if (state?.modulesActive?.includes('pre-generated-characters')
-        && !Array.isArray(existingData.preGeneratedCharacters)) {
+    const dataModules = Array.isArray((existingData.settings as Record<string, unknown>)?.modules)
+      ? (existingData.settings as Record<string, unknown>).modules as string[]
+      : [];
+    const pregenActive = state?.modulesActive?.includes('pre-generated-characters')
+      || dataModules.includes('pre-generated-characters');
+    if (pregenActive && !Array.isArray(existingData.preGeneratedCharacters)) {
       const pregens = generatePregenCharacters({ theme, seed: state?.seed });
       if (!options.data) options.data = {};
       (options.data as Record<string, unknown>).preGeneratedCharacters = pregens;

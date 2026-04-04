@@ -563,6 +563,22 @@ describe('render character-creation pre-gen injection', () => {
     expect(html).toContain('Captain Authored');
   });
 
+  test('injects pre-gen characters via --data.settings.modules when state is absent', async () => {
+    const { generatePregenCharacters } = await import('../lib/pregen-generator');
+    // No state saved — state will be null; module list comes from --data
+    const dataArg = JSON.stringify({
+      settings: { modules: ['pre-generated-characters'] },
+    });
+    const result = await handleRender(['character-creation', '--raw', '--style', 'terminal', '--data', dataArg]);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+
+    const expected = generatePregenCharacters({ theme: 'terminal' });
+    expect(html).toContain(expected[0]!.name);
+    expect(html).toContain(expected[1]!.name);
+    expect(html).toContain(expected[2]!.name);
+  });
+
   test('does not inject pre-gen characters when module is inactive', async () => {
     const { generatePregenCharacters } = await import('../lib/pregen-generator');
     const state = createDefaultState();

@@ -198,6 +198,54 @@ describe('tag verify character', () => {
   });
 });
 
+describe('tag verify character with pre-generated-characters module', () => {
+  test('fails when pre-generated-characters module is active but no preset-cards exist', async () => {
+    await setupState();
+    // Render WITHOUT pre-generated-characters module — produces archetypes only, no preset-cards
+    const data = JSON.stringify({
+      archetypes: [
+        { id: 'soldier', name: 'Soldier', stats: { STR: 14, DEX: 12, CON: 13, INT: 8, WIS: 10, CHA: 10 } },
+        { id: 'scout', name: 'Scout', stats: { STR: 10, DEX: 16, CON: 10, INT: 10, WIS: 14, CHA: 10 } },
+      ],
+    });
+    const path = await renderToFile(['character-creation', '--style', 'station', '--data', data], 'char-no-presets.html');
+    // NOW add the module to state — verify should catch the missing preset-cards
+    await handleState(['set', 'modulesActive', JSON.stringify([
+      'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
+      'character-creation', 'save-codex', 'pre-generated-characters',
+    ])]);
+    const result = await handleVerify(['character', path]);
+    expect(result.ok).toBe(true);
+    const d = result.data as { verified: boolean; failures: string[] };
+    expect(d.verified).toBe(false);
+    expect(d.failures.some(f => f.includes('preset-card'))).toBe(true);
+  });
+
+  test('passes when pre-generated-characters module is active and preset-cards exist', async () => {
+    await setupState();
+    await handleState(['set', 'modulesActive', JSON.stringify([
+      'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
+      'character-creation', 'save-codex', 'pre-generated-characters',
+    ])]);
+    const pregens = [
+      { name: 'Kira Voss', class: 'Diver', hook: 'Brave explorer.' },
+      { name: 'Milo Dray', class: 'Pilot', hook: 'Steady hand.' },
+    ];
+    const data = JSON.stringify({
+      archetypes: [
+        { id: 'soldier', name: 'Soldier', stats: { STR: 14, DEX: 12, CON: 13, INT: 8, WIS: 10, CHA: 10 } },
+        { id: 'scout', name: 'Scout', stats: { STR: 10, DEX: 16, CON: 10, INT: 10, WIS: 14, CHA: 10 } },
+      ],
+      preGeneratedCharacters: pregens,
+    });
+    const path = await renderToFile(['character-creation', '--style', 'station', '--data', data], 'char-with-presets.html');
+    const result = await handleVerify(['character', path]);
+    expect(result.ok).toBe(true);
+    const d = result.data as { verified: boolean; failures: string[] };
+    expect(d.failures.filter(f => f.includes('preset-card')).length).toBe(0);
+  });
+});
+
 describe('tag verify (default) still works for scene HTML', () => {
   test('existing file-path behaviour unchanged', async () => {
     await setupState();

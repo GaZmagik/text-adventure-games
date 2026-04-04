@@ -556,7 +556,7 @@ function checkRulesWidget(html: string, failures: string[]): void {
   }
 }
 
-function checkCharacterWidget(html: string, failures: string[]): void {
+function checkCharacterWidget(html: string, failures: string[], state?: { modulesActive?: string[] } | null): void {
   checkShadowRenderOrigin('character', html, failures);
   checkBrokenSerialisation(html, failures);
   checkCssVariables(html, failures);
@@ -579,6 +579,14 @@ function checkCharacterWidget(html: string, failures: string[]): void {
 
   if (!/\bdata-pronouns\s*=/i.test(html)) failures.push('Character creation missing pronoun selector (data-pronouns buttons).');
   if (!/\bdata-prof\s*=/i.test(html)) failures.push('Character creation missing proficiency selector (data-prof buttons).');
+
+  // When pre-generated-characters module is active, preset-card elements must exist
+  if (state?.modulesActive?.includes('pre-generated-characters')) {
+    const presetCards = countClassOccurrences(html, 'preset-card');
+    if (presetCards === 0) {
+      failures.push('pre-generated-characters module is active but no preset-card elements found — pre-gen characters were not injected.');
+    }
+  }
 }
 
 const IN_GAME_WIDGET_MARKERS: Record<string, string[]> = {
@@ -879,7 +887,7 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
     checks = [() => checkRulesWidget(html, failures)];
   } else if (widgetType === 'character') {
     failures = [];
-    checks = [() => checkCharacterWidget(html, failures)];
+    checks = [() => checkCharacterWidget(html, failures, state)];
   } else if (isInGameNonScene) {
     failures = [];
     checks = [() => checkInGameWidget(widgetType, html, failures)];
