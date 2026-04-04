@@ -87,7 +87,7 @@ export function stripHtml(raw: string): string {
 }
 
 export function countClassOccurrences(html: string, className: string): number {
-  const pattern = new RegExp(`class\\s*=\\s*(['"])[^'"]*\\b${className}\\b[^'"]*\\1`, 'gi');
+  const pattern = new RegExp(`class\\s*=\\s*(['"])[^'"]*\\b${className}\\b(?!-)[^'"]*\\1`, 'gi');
   return [...html.matchAll(pattern)].length;
 }
 
@@ -256,10 +256,15 @@ export function checkScenarioWidget(html: string, failures: string[]): void {
   checkInlineOnclick(html, failures);
 
   const cards = countClassOccurrences(html, 'scenario-card');
-  if (cards < 2) failures.push(`Found ${cards} scenario card(s) — expected at least 2.`);
+  if (cards !== 5) failures.push(`Found ${cards} scenario card(s) — expected exactly 5 (1 featured + 4 standard).`);
+
+  const featuredCount = (html.match(/\sdata-featured="true"/g) ?? []).length;
+  if (featuredCount !== 1) {
+    failures.push(`Found ${featuredCount} featured card(s) — expected exactly 1 featured scenario.`);
+  }
 
   const buttons = extractPromptElements(html).filter(el => el.classes.includes('scenario-select-btn'));
-  if (buttons.length < 2) {
+  if (buttons.length !== 5) {
     failures.push(`Found ${buttons.length} select button(s) — each scenario card needs a select button with data-prompt.`);
   }
 

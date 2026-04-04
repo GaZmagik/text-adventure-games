@@ -81,12 +81,15 @@ NEW GAME CHECKLIST
 □  0. Run `. ./setup.sh` if first session. Run `tag state reset` to initialise game state.
 □  1. Read all Tier 1 modules IN FULL (see SKILL.md Architecture — Tiered Loading)
 □  2. Build scenario list and render Scenario Selection widget:
-     a) Run `tag scenario bundled` to get bundled adventure scenarios (featured, with cover art).
-     b) Generate 4 procedural scenarios tailored to the player's request (for 5 total with the bundled featured scenario).
-     c) If the player specified a genre that does not match a bundled adventure's theme,
-        omit the bundled adventure from the featured slot and generate genre-appropriate
-        scenarios instead.
-     d) Merge bundled + procedural into one scenarios array.
+     **RULE: The final array MUST contain exactly 5 scenarios — 1 featured + 4 standard.**
+     `tag verify scenario` will reject anything else.
+     a) Run `tag scenario bundled` to get bundled adventure scenarios.
+     b) Check whether any bundled adventure matches the player's requested theme/genre.
+        - Match → use it as the featured scenario (`featured: true`), generate 4 more.
+        - No match → do NOT include the bundled adventure. Generate all 5 scenarios
+          yourself, marking your best one as `featured: true`.
+     c) Only ONE scenario may have `featured: true`. The other 4 must omit it (or set false).
+     d) Merge into one scenarios array (length must be exactly 5).
      e) Run `tag render scenario-select --data '<merged json>'` — do NOT hand-code HTML.
      The CLI output includes accessible markup, keyboard navigation, and sendPrompt
      wiring that hand-coded versions invariably omit, producing broken or inaccessible
