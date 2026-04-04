@@ -577,6 +577,22 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     }
   }
 
+  // Hollow state gate — refuses scene render when lore data appears wiped by compaction.
+  // _loreSource present but empty roster/codex = state was reset under us.
+  // Note: seed is not checked — createDefaultState() always sets it, so it's not discriminating.
+  if (!isPreGame && widgetType === 'scene' && state) {
+    const hasLoreSource = typeof state._loreSource === 'string' && state._loreSource.length > 0;
+    const emptyLore = state.rosterMutations.length === 0 && state.codexMutations.length === 0;
+    if (hasLoreSource && emptyLore) {
+      return fail(
+        'BLOCKED — state appears hollow. Lore source is on record but roster and codex are empty. '
+        + 'This typically means compaction wiped lore data and setup was re-run on a blank state.',
+        'Run `tag compact restore` to begin recovery, then reload lore with `tag export load <file.lore.md>`.',
+        'render',
+      );
+    }
+  }
+
   // Per-turn verify gate — blocks rendering if the previous turn wasn't verified.
   // Only same-turn re-renders (composition) are allowed without verify.
   if (!isPreGame && widgetType === 'scene') {

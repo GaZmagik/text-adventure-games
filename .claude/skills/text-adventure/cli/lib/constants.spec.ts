@@ -38,7 +38,7 @@ describe('constants', () => {
       arcType: true, carryForward: true, arcHistory: true, _lastComputation: true,
       _stateHistory: true, _compactionCount: true, _pendingRolls: true, _turnCount: true,
       _modulesRead: true, _proseCraftEpoch: true, _styleReadEpoch: true, _levelupPending: true,
-      authoredBody: true, outputStyle: true, pacingProfile: true, authoredSourceId: true, _authoredLoreReads: true,
+      authoredBody: true, outputStyle: true, pacingProfile: true, authoredSourceId: true, _loreSource: true, _authoredLoreReads: true,
     } satisfies Record<keyof Required<GmState>, true>;
     const topKeys = [...VALID_TOP_KEYS].sort();
     const expectedKeys = Object.keys(ALL_GM_STATE_KEYS).sort();

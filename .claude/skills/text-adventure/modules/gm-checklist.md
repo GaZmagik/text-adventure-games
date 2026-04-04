@@ -308,16 +308,20 @@ quality rules that degrade rapidly when not actively in context. Loading it once
 game start is not sufficient — it must be re-read before every scene to maintain
 prose quality across long sessions.
 
-**Compaction detection — HARD GATE:** `tag state sync` automatically detects conversation
-compactions by checking `/mnt/transcripts/`. When `compactionDetected` is `true` in the
-sync output, module specifications have been EVICTED from your context. You no longer have
-implementation details — only degraded pattern memory from recent widgets.
+**Compaction detection — HARD GATE:** When compaction is detected, ALL tag CLI commands
+are BLOCKED except `tag compact restore`, `tag help`, and `tag version`. You cannot
+render, compute, save, or modify state until recovery is complete.
 
-**DO NOT generate any scene or widget until you re-read modules.** Run
-`tag module activate-tier 1` then activate Tier 2/3 modules for the current scenario.
-This is not optional. Generating from memory instead of re-reading files produces
+Recovery procedure:
+1. Run `tag compact restore` — clears the block, resets freshness epochs, returns recovery steps.
+2. If `_loreSource` is shown, run `tag export load <path>` to reload world data.
+3. Run `tag module activate-tier 1` then activate Tier 2/3 modules for the current scenario.
+4. Run `tag style activate` to reload visual style guidance.
+5. Run `tag state sync --apply --scene <current>` to verify state consistency.
+
+**DO NOT skip any step.** Generating from memory instead of re-reading files produces
 progressively degraded widgets — missing audio, broken panels, absent transitions.
-`tag render scene` will refuse output until `_modulesRead` is repopulated.
+`tag render scene` will refuse output until modules and style are reloaded.
 
 ---
 

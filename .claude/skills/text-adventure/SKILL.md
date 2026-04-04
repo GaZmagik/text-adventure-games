@@ -40,6 +40,7 @@ All operational guides, checklists, and rules are delivered via CLI commands:
 | `tag help scene` | Scene composition workflow, prose checklist, density guidance, scene structure |
 | `tag state sync` | Pre-scene validation — returns prose checklist and rendering rules inline |
 | `tag rules` | Quick-reference cheat sheet of all 20+ game rules |
+| `tag compact restore` | Compaction recovery — clears block, resets freshness epochs, returns recovery steps |
 
 ## Cardinal Rules
 

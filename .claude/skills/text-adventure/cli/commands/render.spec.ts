@@ -448,6 +448,43 @@ describe('render freshness gates', () => {
     const result = await handleRender(['ticker']);
     expect(result.ok).toBe(true);
   });
+
+  test('hollow state gate blocks scene render when lore source set but roster empty', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'station';
+    state.seed = 'abc123';
+    state._loreSource = '/tmp/adventure.lore.md';
+    state.rosterMutations = [];
+    state.codexMutations = [];
+    state._modulesRead = ['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex'];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
+    state._compactionCount = 0;
+    await saveState(state);
+
+    const result = await handleRender(['scene', '--style', 'station']);
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toContain('hollow');
+  });
+
+  test('hollow state gate does not block when no _loreSource', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'station';
+    state.seed = 'abc123';
+    state.rosterMutations = [];
+    state.codexMutations = [];
+    state._modulesRead = ['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex'];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
+    state._compactionCount = 0;
+    await saveState(state);
+
+    const result = await handleRender(['scene', '--style', 'station']);
+    // Should pass the hollow gate (may fail on other gates or succeed)
+    if (!result.ok) {
+      expect(result.error?.message).not.toContain('hollow');
+    }
+  });
 });
 
 // ── pre-generated character injection ───────────────────────────────

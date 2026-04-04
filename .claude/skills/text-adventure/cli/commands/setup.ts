@@ -107,9 +107,9 @@ export async function handleSetup(args: string[]): Promise<CommandResult> {
   await backupState();
   const existing = await tryLoadState();
   const hasLoreData = existing !== null
-    && (existing.rosterMutations.length > 0
-      || existing.codexMutations.length > 0
-      || existing.quests.length > 0);
+    && (typeof existing._loreSource === 'string' && existing._loreSource.length > 0
+      || existing.rosterMutations.length > 0
+      || existing.codexMutations.length > 0);
   const state = hasLoreData ? existing : createDefaultState();
 
   // Apply settings
@@ -224,6 +224,7 @@ export async function handleSetup(args: string[]): Promise<CommandResult> {
 
   return ok({
     applied: true,
+    merged: hasLoreData,
     character: { name, class: archetypeLabel, pronouns, hp, ac, stats, currency: startingCurrency, openingLens, prologueVariant, characterOrigin },
     settings: { visualStyle, rulebook, difficulty, pacing, moduleCount: modules.length },
     nextStep: 'Run `tag module activate-tier 1` then `tag module activate-tier 2` to load module content. Then `tag state sync --apply --scene 1 --room <starting_room>` to begin.',

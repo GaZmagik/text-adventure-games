@@ -16,7 +16,8 @@ export type TopLevelCommandName =
   | 'build-css'
   | 'setup'
   | 'style'
-  | 'scenario';
+  | 'scenario'
+  | 'compact';
 
 export type SubcommandHelp = {
   name: string;
@@ -47,6 +48,7 @@ export const TOP_LEVEL_COMMANDS = [
   'setup',
   'style',
   'scenario',
+  'compact',
 ] as const satisfies readonly TopLevelCommandName[];
 
 export const COMMAND_HELP: Record<TopLevelCommandName, CommandHelp> = {
@@ -186,6 +188,13 @@ export const COMMAND_HELP: Record<TopLevelCommandName, CommandHelp> = {
       { name: 'bundled', usage: 'tag scenario bundled', description: 'List bundled adventures as featured scenarios with title, description, genres, difficulty, and players from lore frontmatter', example: 'tag scenario bundled' },
     ],
   },
+  compact: {
+    command: 'tag compact',
+    description: 'Recovery from context compaction. Clears the compaction block, resets freshness epochs, and returns recovery steps.',
+    subcommands: [
+      { name: 'restore', usage: 'tag compact restore', description: 'Clear compaction block, reset module/style freshness epochs, and return step-by-step recovery instructions', example: 'tag compact restore' },
+    ],
+  },
 };
 
 export const MUTATING_COMMANDS = new Set<string>([
@@ -198,6 +207,7 @@ export const MUTATING_COMMANDS = new Set<string>([
   'module',
   'style',
   'setup',
+  'compact',
 ]);
 
 export const WIDGET_TYPE_NAMES = [

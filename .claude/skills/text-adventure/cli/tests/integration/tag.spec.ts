@@ -218,7 +218,7 @@ describe('tag CLI black-box', () => {
       expect(alert).toBeDefined();
       expect(alert!.detected).toBe(true);
       expect(alert!.recovered).toBe(true);
-      expect(alert!.message).toContain('COMPACTION RECOVERED');
+      expect(alert!.message).toContain('COMPACTION DETECTED');
       expect(alert!.message).toContain('1 new compaction');
       expect(Array.isArray(alert!.modulesRequired)).toBe(true);
     } finally {

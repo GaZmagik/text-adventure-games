@@ -358,7 +358,7 @@ describe('batch mode', () => {
 // ── Handler parity ────────────────────────────────────────────────
 
 describe('batch handler parity', () => {
-  const NON_BATCHABLE = new Set(['help', 'batch', 'build-css']);
+  const NON_BATCHABLE = new Set(['help', 'batch', 'build-css', 'compact']);
 
   test('BATCH_COMMAND_HANDLERS covers all batchable TOP_LEVEL_COMMANDS', () => {
     const expected = TOP_LEVEL_COMMANDS.filter(c => !NON_BATCHABLE.has(c)).sort();

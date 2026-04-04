@@ -8,6 +8,9 @@ import { VERSION } from './lib/version';
 import { TOP_LEVEL_COMMANDS } from './metadata';
 import { JOURNAL_FILENAME } from './commands/state/sync';
 import { isAllowedPath } from './lib/path-security';
+import { isCompactionBlocked, writeCompactionBlock } from './lib/workflow-markers';
+
+const COMPACTION_BLOCK_EXEMPT = new Set(['compact', 'help', 'version']);
 
 type CompactionAlert = {
   detected: boolean;
@@ -56,12 +59,13 @@ async function checkCompactionPreflight(): Promise<CompactionAlert | null> {
       } catch { /* recovery failed — fall back to warning */ }
 
       const moduleList = modulesRequired?.join(', ') ?? '(run `tag state context` for list)';
+      const reason = `COMPACTION DETECTED — ${newCompactions} new compaction${newCompactions > 1 ? 's' : ''}. `
+        + `Module specs evicted from context. Run \`tag compact restore\` to reload lore and modules.`;
+      writeCompactionBlock(reason);
       return {
         detected: true,
         recovered,
-        message: recovered
-          ? `COMPACTION RECOVERED: ${newCompactions} new compaction${newCompactions > 1 ? 's' : ''} auto-synced. Re-read these modules: ${moduleList}`
-          : `COMPACTION ALERT: ${newCompactions} new compaction${newCompactions > 1 ? 's' : ''} detected. Auto-recovery failed. Run \`tag state sync --apply --scene ${currentScene}\` manually.`,
+        message: reason,
         ...(modulesRequired ? { modulesRequired } : {}),
       };
     }
@@ -126,6 +130,20 @@ async function main(): Promise<void> {
 
   if (args[1] === '--help') {
     await output(getCommandHelp(command!), true);
+    return;
+  }
+
+  // Compaction block gate — refuse all commands except compact/help/version
+  if (!COMPACTION_BLOCK_EXEMPT.has(command!) && isCompactionBlocked()) {
+    await output({
+      ok: false,
+      command: command!,
+      error: {
+        message: 'BLOCKED — compaction detected. All tag commands are suspended until context is restored.',
+        corrective: 'Run `tag compact restore` to reload lore file and module specs, then resume.',
+      },
+    }, true);
+    process.exit(1);
     return;
   }
 
@@ -207,11 +225,16 @@ async function main(): Promise<void> {
       result = await handleScenario(args.slice(1));
       break;
     }
+    case 'compact': {
+      const { handleCompact } = await import('./commands/compact');
+      result = await handleCompact(args.slice(1));
+      break;
+    }
     default:
       result = unknownCommand(command!);
   }
 
-  await output(result);
+  await output(result, command === 'compact');
   if (!result.ok) process.exit(1);
 }
 
