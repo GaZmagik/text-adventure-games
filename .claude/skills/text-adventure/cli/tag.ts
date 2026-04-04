@@ -10,7 +10,10 @@ import { JOURNAL_FILENAME } from './commands/state/sync';
 import { isAllowedPath } from './lib/path-security';
 import { isCompactionBlocked, writeCompactionBlock } from './lib/workflow-markers';
 
-const COMPACTION_BLOCK_EXEMPT = new Set(['compact', 'help', 'version']);
+// Only render is hard-blocked during compaction — it produces degraded
+// player-facing output without module specs. All other commands pass through
+// so the GM can diagnose state, run recovery steps, and reload modules.
+const COMPACTION_HARD_BLOCKED = new Set(['render']);
 
 type CompactionAlert = {
   detected: boolean;
@@ -133,14 +136,16 @@ async function main(): Promise<void> {
     return;
   }
 
-  // Compaction block gate — refuse all commands except compact/help/version
-  if (!COMPACTION_BLOCK_EXEMPT.has(command!) && isCompactionBlocked()) {
+  // Compaction block gate — only render is hard-blocked (produces degraded
+  // player-facing output without module specs). All other commands pass
+  // through so the GM can run diagnostics, recovery steps, and module reloads.
+  if (COMPACTION_HARD_BLOCKED.has(command!) && isCompactionBlocked()) {
     await output({
       ok: false,
       command: command!,
       error: {
-        message: 'BLOCKED — compaction detected. All tag commands are suspended until context is restored.',
-        corrective: 'Run `tag compact restore` to reload lore file and module specs, then resume.',
+        message: 'BLOCKED — compaction detected. Rendering is suspended until module specs are restored.',
+        corrective: 'Run `tag compact restore` then `tag batch --commands "<recoveryBatch from restore output>"` to reload modules, then resume.',
       },
     }, true);
     process.exit(1);

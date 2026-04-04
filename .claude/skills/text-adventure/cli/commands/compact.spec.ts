@@ -8,7 +8,9 @@ import { STATE_STORE_RUNTIME } from '../lib/state-store';
 import { writeCompactionBlock, isCompactionBlocked } from '../lib/workflow-markers';
 
 let tempDir: string;
+let transcriptsDir: string | null = null;
 const originalEnv = process.env.TAG_STATE_DIR;
+const originalTranscriptsEnv = process.env.TAG_TRANSCRIPTS_DIR;
 const originalHomedir = STATE_STORE_RUNTIME.homedir;
 
 beforeEach(() => {
@@ -19,8 +21,14 @@ beforeEach(() => {
 
 afterEach(() => {
   rmSync(tempDir, { recursive: true, force: true });
+  if (transcriptsDir) {
+    rmSync(transcriptsDir, { recursive: true, force: true });
+    transcriptsDir = null;
+  }
   if (originalEnv !== undefined) process.env.TAG_STATE_DIR = originalEnv;
   else delete process.env.TAG_STATE_DIR;
+  if (originalTranscriptsEnv !== undefined) process.env.TAG_TRANSCRIPTS_DIR = originalTranscriptsEnv;
+  else delete process.env.TAG_TRANSCRIPTS_DIR;
   STATE_STORE_RUNTIME.homedir = originalHomedir;
 });
 
@@ -160,5 +168,81 @@ describe('tag compact restore', () => {
     expect(steps.some(s => s.includes('style activate'))).toBe(true);
     expect(steps.some(s => s.includes('state sync'))).toBe(true);
     expect(steps.some(s => s.includes('/tmp/adventure.lore.md'))).toBe(true);
+  });
+
+  test('updates _compactionCount to match filesystem transcript count', async () => {
+    transcriptsDir = mkdtempSync(join(tmpdir(), 'tag-transcripts-'));
+    process.env.TAG_TRANSCRIPTS_DIR = transcriptsDir;
+
+    // journal.txt is excluded from count; 3 transcript files = count of 3
+    writeFileSync(join(transcriptsDir, 'journal.txt'), 'log');
+    writeFileSync(join(transcriptsDir, 'transcript-1.txt'), 'data');
+    writeFileSync(join(transcriptsDir, 'transcript-2.txt'), 'data');
+    writeFileSync(join(transcriptsDir, 'transcript-3.txt'), 'data');
+
+    const state = createDefaultState();
+    state._compactionCount = 0;
+    await saveState(state);
+    writeCompactionBlock('test compaction');
+
+    const result = await handleCompact(['restore']);
+    expect(result.ok).toBe(true);
+
+    const restored = await tryLoadState();
+    expect(restored!._compactionCount).toBe(3);
+  });
+
+  test('preserves _compactionCount when transcripts dir does not exist', async () => {
+    process.env.TAG_TRANSCRIPTS_DIR = join(tmpdir(), `nonexistent-${Date.now()}`);
+
+    const state = createDefaultState();
+    state._compactionCount = 5;
+    await saveState(state);
+    writeCompactionBlock('test');
+
+    const result = await handleCompact(['restore']);
+    expect(result.ok).toBe(true);
+
+    const restored = await tryLoadState();
+    expect(restored!._compactionCount).toBe(5);
+  });
+
+  test('returns recoveryBatch command string for one-step recovery', async () => {
+    const state = createDefaultState();
+    state.modulesActive = ['gm-checklist', 'prose-craft'];
+    state._loreSource = '/tmp/test.lore.md';
+    await saveState(state);
+    writeCompactionBlock('test');
+
+    const result = await handleCompact(['restore']);
+    const data = result.data as Record<string, unknown>;
+    expect(typeof data.recoveryBatch).toBe('string');
+    const batch = data.recoveryBatch as string;
+    expect(batch).toContain('module activate-tier 1');
+    expect(batch).toContain('module activate-tier 2');
+    expect(batch).toContain('style activate');
+  });
+
+  test('recoveryBatch includes lore reload when _loreSource is set', async () => {
+    const state = createDefaultState();
+    state._loreSource = '/tmp/adventure.lore.md';
+    await saveState(state);
+    writeCompactionBlock('test');
+
+    const result = await handleCompact(['restore']);
+    const data = result.data as Record<string, unknown>;
+    const batch = data.recoveryBatch as string;
+    expect(batch).toContain('export load /tmp/adventure.lore.md');
+  });
+
+  test('recoveryBatch omits lore reload when no _loreSource', async () => {
+    const state = createDefaultState();
+    await saveState(state);
+    writeCompactionBlock('test');
+
+    const result = await handleCompact(['restore']);
+    const data = result.data as Record<string, unknown>;
+    const batch = data.recoveryBatch as string;
+    expect(batch).not.toContain('export load');
   });
 });

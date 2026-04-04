@@ -286,11 +286,11 @@ describe('tag CLI black-box', () => {
     }
   });
 
-  test('compaction block gate rejects non-exempt commands with exit 1', async () => {
+  test('compaction block gate rejects render commands with exit 1', async () => {
     await runTag(['state', 'reset']);
     writeFileSync(join(tempDir, '.compaction-blocked'), 'test block', 'utf-8');
 
-    const result = await runTag(['state', 'get', 'scene']);
+    const result = await runTag(['render', 'footer', '--raw']);
     expect(result.exitCode).toBe(1);
     expect(result.json.ok).toBe(false);
     const error = result.json.error as Record<string, string>;
@@ -332,6 +332,45 @@ describe('tag CLI black-box', () => {
     } finally {
       rmSync(transcriptsDir, { recursive: true, force: true });
     }
+  });
+
+  test('compaction block allows state commands through for diagnostics', async () => {
+    await runTag(['state', 'reset']);
+    writeFileSync(join(tempDir, '.compaction-blocked'), 'test block', 'utf-8');
+
+    const result = await runTag(['state', 'get', 'scene']);
+    expect(result.exitCode).toBe(0);
+    expect(result.json.ok).toBe(true);
+    expect(result.json.data).toBe(0);
+  });
+
+  test('compaction block allows module commands through for recovery', async () => {
+    await runTag(['state', 'reset']);
+    writeFileSync(join(tempDir, '.compaction-blocked'), 'test block', 'utf-8');
+
+    const result = await runTag(['module', 'status']);
+    expect(result.exitCode).toBe(0);
+    expect(result.json.ok).toBe(true);
+  });
+
+  test('compaction block allows compute commands through', async () => {
+    await runTag(['state', 'reset']);
+    writeFileSync(join(tempDir, '.compaction-blocked'), 'test block', 'utf-8');
+
+    const result = await runTag(['compute', 'hazard', 'CON', '--dc', '14']);
+    expect(result.exitCode).toBe(0);
+    expect(result.json.ok).toBe(true);
+  });
+
+  test('compaction block still hard-blocks render commands', async () => {
+    await runTag(['state', 'reset']);
+    writeFileSync(join(tempDir, '.compaction-blocked'), 'test block', 'utf-8');
+
+    const result = await runTag(['render', 'footer', '--raw']);
+    expect(result.exitCode).toBe(1);
+    expect(result.json.ok).toBe(false);
+    const error = result.json.error as Record<string, string>;
+    expect(error.message).toContain('BLOCKED');
   });
 
   test('no _compactionAlert when _compactionCount matches transcript count', async () => {
