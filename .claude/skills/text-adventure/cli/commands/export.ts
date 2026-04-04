@@ -1,4 +1,4 @@
-import type { CommandResult, GmState } from '../types';
+import type { CommandResult, GmState, PreGeneratedCharacter } from '../types';
 import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState, createDefaultState, backupState } from '../lib/state-store';
 import { attachChecksum, validateAndDecode } from '../lib/fnv32';
@@ -204,6 +204,9 @@ async function load(args: string[]): Promise<CommandResult> {
     );
   }
 
+  // ── Parse frontmatter (always — not just edited:true) ──
+  const fm = parseLoreFrontmatter(loreContent) as Record<string, unknown>;
+
   // ── edited:true body/payload resolution ──
   if (editedFlag === 'true') {
     const visibleBody = extractVisibleBody(loreContent);
@@ -213,9 +216,26 @@ async function load(args: string[]): Promise<CommandResult> {
       }
       state.authoredBody = visibleBody;
     }
-    const fm = parseLoreFrontmatter(loreContent) as Record<string, unknown>;
     if (typeof fm.outputStyle === 'string') state.outputStyle = fm.outputStyle;
     if (typeof fm.pacingProfile === 'string') state.pacingProfile = fm.pacingProfile as 'fast' | 'normal' | 'slow';
+  }
+
+  // ── Persist frontmatter-authored data ──
+  if (Array.isArray(fm.preGeneratedCharacters) && fm.preGeneratedCharacters.length > 0) {
+    state._lorePregen = fm.preGeneratedCharacters as PreGeneratedCharacter[];
+  }
+
+  const defaults: Record<string, string> = {};
+  if (typeof fm.difficulty === 'string') defaults.difficulty = fm.difficulty;
+  if (typeof fm.pacing === 'string') defaults.pacing = fm.pacing;
+  if (typeof fm.rulebook === 'string') defaults.rulebook = fm.rulebook;
+  const recStyles = fm.recommendedStyles;
+  if (typeof recStyles === 'object' && recStyles !== null && !Array.isArray(recStyles)) {
+    const visual = (recStyles as Record<string, unknown>).visual;
+    if (typeof visual === 'string') defaults.visualStyle = visual;
+  }
+  if (Object.keys(defaults).length > 0) {
+    state._loreDefaults = defaults;
   }
 
   await backupState();

@@ -20,3 +20,6 @@ cli/data/prose-guidance.ts
 
 # CLI manual — markdown documentation, not testable code
 cli/manual.md
+
+# Refactored extraction from verify.ts — tested via verify.spec.ts and verify-pregame.spec.ts
+cli/lib/verify-checks.ts

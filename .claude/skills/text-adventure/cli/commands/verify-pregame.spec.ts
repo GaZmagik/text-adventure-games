@@ -246,6 +246,47 @@ describe('tag verify character with pre-generated-characters module', () => {
   });
 });
 
+describe('tag verify character with _lorePregen state data', () => {
+  test('warns when _lorePregen exists but pre-generated-characters module is not active', async () => {
+    await setupState();
+    // Set _lorePregen in state WITHOUT adding pre-generated-characters to modulesActive
+    await handleState(['set', '_lorePregen', JSON.stringify([
+      { name: 'Rian Vale', class: 'Diver', pronouns: 'he/him', hook: 'Explorer',
+        stats: { STR: 12, DEX: 14, CON: 10, INT: 13, WIS: 11, CHA: 9 },
+        hp: 10, ac: 12, proficiencies: ['Athletics'] },
+    ])]);
+    // Render character-creation WITHOUT pre-gen module — no preset-cards
+    const data = JSON.stringify({
+      archetypes: [
+        { id: 'soldier', name: 'Soldier', stats: { STR: 14, DEX: 12, CON: 13, INT: 8, WIS: 10, CHA: 10 } },
+        { id: 'scout', name: 'Scout', stats: { STR: 10, DEX: 16, CON: 10, INT: 10, WIS: 14, CHA: 10 } },
+      ],
+    });
+    const path = await renderToFile(['character-creation', '--style', 'station', '--data', data], 'char-lore-no-module.html');
+    const result = await handleVerify(['character', path]);
+    expect(result.ok).toBe(true);
+    const d = result.data as { verified: boolean; failures: string[] };
+    expect(d.verified).toBe(false);
+    expect(d.failures.some(f => f.includes('_lorePregen') && f.includes('module'))).toBe(true);
+  });
+});
+
+describe('tag verify rules with _loreDefaults state data', () => {
+  test('warns when _loreDefaults exists but settings widget is missing defaulted groups', async () => {
+    await setupState();
+    await handleState(['set', '_loreDefaults', JSON.stringify({ difficulty: 'hard', pacing: 'slow', rulebook: 'd20_system' })]);
+    await handleState(['set', '_loreSource', '/tmp/test.lore.md']);
+    // Render a valid settings widget — it should pass but report lore defaults in the result
+    const path = await renderToFile(['settings'], 'settings-with-defaults.html');
+    const result = await handleVerify(['rules', path]);
+    expect(result.ok).toBe(true);
+    const d = result.data as { verified: boolean; loreDefaults?: Record<string, string> };
+    // Verify should surface the lore defaults so the GM knows to apply them
+    expect(d.loreDefaults).toBeDefined();
+    expect(d.loreDefaults!.difficulty).toBe('hard');
+  });
+});
+
 describe('tag verify (default) still works for scene HTML', () => {
   test('existing file-path behaviour unchanged', async () => {
     await setupState();

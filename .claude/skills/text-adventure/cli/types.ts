@@ -360,6 +360,8 @@ export type GmState = {
   authoredSourceId?: string;
   _loreSource?: string;
   _authoredLoreReads?: Record<string, number>;
+  _lorePregen?: PreGeneratedCharacter[];
+  _loreDefaults?: Record<string, string>;
 };
 
 // ── Command Types ──────────────────────────────────────────────────

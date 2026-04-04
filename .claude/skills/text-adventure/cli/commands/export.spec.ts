@@ -556,6 +556,119 @@ describe('export load — authored body resolution', () => {
   });
 });
 
+// ── frontmatter persistence ─────────────────────────────────────────
+
+describe('export load persists frontmatter authored data', () => {
+  test('persists pre-generated characters as _lorePregen', async () => {
+    // Generate a valid lore file from current state
+    const genResult = await handleExport(['generate']);
+    expect(genResult.ok).toBe(true);
+    let content = (genResult.data as Record<string, unknown>).loreContent as string;
+
+    // Inject pre-generated-characters into frontmatter
+    const pregenYaml = `pre-generated-characters:
+  - name: Rian Vale
+    class: Diver
+    pronouns: he/him
+    hook: Brave deep-reef explorer
+    stats:
+      STR: 12
+      DEX: 14
+      CON: 10
+      INT: 13
+      WIS: 11
+      CHA: 9
+    hp: 10
+    ac: 12
+    proficiencies:
+      - Athletics
+      - Survival
+  - name: Suri Kade
+    class: Engineer
+    pronouns: she/her
+    hook: Steady hand under pressure
+    stats:
+      STR: 8
+      DEX: 10
+      CON: 12
+      INT: 16
+      WIS: 14
+      CHA: 10
+    hp: 8
+    ac: 11
+    proficiencies:
+      - Mechanics
+      - Investigation`;
+    content = content.replace(/\n---\n/, `\n${pregenYaml}\n---\n`);
+
+    const lorePath = join(tempDir, 'pregen-lore.lore.md');
+    writeFileSync(lorePath, content, 'utf-8');
+
+    const fresh = createDefaultState();
+    await saveState(fresh);
+
+    const loadResult = await handleExport(['load', lorePath]);
+    expect(loadResult.ok).toBe(true);
+
+    const restored = await loadState();
+    expect(restored._lorePregen).toBeDefined();
+    expect(restored._lorePregen).toHaveLength(2);
+    expect(restored._lorePregen![0]!.name).toBe('Rian Vale');
+    expect(restored._lorePregen![0]!.class).toBe('Diver');
+    expect(restored._lorePregen![0]!.stats.STR).toBe(12);
+    expect(restored._lorePregen![1]!.name).toBe('Suri Kade');
+  });
+
+  test('persists frontmatter defaults as _loreDefaults', async () => {
+    const genResult = await handleExport(['generate']);
+    expect(genResult.ok).toBe(true);
+    let content = (genResult.data as Record<string, unknown>).loreContent as string;
+
+    // Inject defaults into frontmatter
+    const defaultsYaml = `difficulty: hard
+pacing: slow
+recommended-styles:
+  visual: holographic`;
+    content = content.replace(/\n---\n/, `\n${defaultsYaml}\n---\n`);
+
+    const lorePath = join(tempDir, 'defaults-lore.lore.md');
+    writeFileSync(lorePath, content, 'utf-8');
+
+    const fresh = createDefaultState();
+    await saveState(fresh);
+
+    const loadResult = await handleExport(['load', lorePath]);
+    expect(loadResult.ok).toBe(true);
+
+    const restored = await loadState();
+    expect(restored._loreDefaults).toBeDefined();
+    expect(restored._loreDefaults!.difficulty).toBe('hard');
+    expect(restored._loreDefaults!.pacing).toBe('slow');
+    expect(restored._loreDefaults!.visualStyle).toBe('holographic');
+  });
+
+  test('omits _lorePregen and _loreDefaults when frontmatter lacks them', async () => {
+    // Build a minimal lore file with only format/version — no authored fields
+    const minState = createDefaultState();
+    const mechData = extractMechanicalData(minState);
+    const payload = attachChecksum(encodeLorePayload(mechData));
+    const content = `---\nformat: text-adventure-lore\nversion: 1\nedited: false\n---\n\n<!-- LORE:${payload} -->\n`;
+
+    const lorePath = join(tempDir, 'no-authored-lore.lore.md');
+    writeFileSync(lorePath, content, 'utf-8');
+
+    const fresh = createDefaultState();
+    await saveState(fresh);
+
+    const loadResult = await handleExport(['load', lorePath]);
+    expect(loadResult.ok).toBe(true);
+
+    const restored = await loadState();
+    expect(restored._lorePregen).toBeUndefined();
+    expect(restored._loreDefaults).toBeUndefined();
+  });
+});
+
 // ── dispatch ─────────────────────────────────────────────────────────
 
 describe('export dispatch', () => {
