@@ -60,12 +60,15 @@ async function renderToFile(args: string[], filename: string): Promise<string> {
 }
 
 describe('tag verify scenario', () => {
-  test('passes for valid scenario-select widget', async () => {
+  test('passes for valid scenario-select widget with 5 scenarios (1 featured)', async () => {
     await setupState();
     const data = JSON.stringify({
       scenarios: [
+        { title: 'The Glass Reef Atlas', description: 'A bundled adventure', genre: ['sci-fi'], featured: true },
         { title: 'Rust Belt', description: 'A hauler job gone wrong', genre: ['sci-fi', 'noir'] },
         { title: 'Deep Freeze', description: 'Ice station mystery', genre: ['horror', 'survival'] },
+        { title: 'Iron Veil', description: 'A fortress of secrets', genre: ['fantasy'] },
+        { title: 'Neon Requiem', description: 'City of broken neon', genre: ['cyberpunk'] },
       ],
     });
     const path = await renderToFile(['scenario-select', '--data', data], 'scenario.html');
@@ -74,6 +77,58 @@ describe('tag verify scenario', () => {
     const d = result.data as { verified: boolean; failures: string[]; widgetType: string };
     expect(d.verified).toBe(true);
     expect(d.widgetType).toBe('scenario');
+  });
+
+  test('fails when fewer than 5 scenario cards', async () => {
+    await setupState();
+    const data = JSON.stringify({
+      scenarios: [
+        { title: 'Rust Belt', description: 'A hauler job', genre: ['sci-fi'], featured: true },
+        { title: 'Deep Freeze', description: 'Ice mystery', genre: ['horror'] },
+        { title: 'Iron Veil', description: 'A fortress', genre: ['fantasy'] },
+      ],
+    });
+    const path = await renderToFile(['scenario-select', '--data', data], 'scenario-3.html');
+    const result = await handleVerify(['scenario', path]);
+    const d = result.data as { verified: boolean; failures: string[] };
+    expect(d.verified).toBe(false);
+    expect(d.failures.some(f => f.includes('exactly 5'))).toBe(true);
+  });
+
+  test('fails when no featured card present', async () => {
+    await setupState();
+    const data = JSON.stringify({
+      scenarios: [
+        { title: 'Rust Belt', description: 'Hauler job', genre: ['sci-fi'] },
+        { title: 'Deep Freeze', description: 'Ice mystery', genre: ['horror'] },
+        { title: 'Iron Veil', description: 'A fortress', genre: ['fantasy'] },
+        { title: 'Neon Requiem', description: 'Broken neon', genre: ['cyberpunk'] },
+        { title: 'Dust Roads', description: 'Desert trek', genre: ['western'] },
+      ],
+    });
+    const path = await renderToFile(['scenario-select', '--data', data], 'scenario-no-feat.html');
+    const result = await handleVerify(['scenario', path]);
+    const d = result.data as { verified: boolean; failures: string[] };
+    expect(d.verified).toBe(false);
+    expect(d.failures.some(f => f.includes('exactly 1 featured'))).toBe(true);
+  });
+
+  test('fails when multiple featured cards present', async () => {
+    await setupState();
+    const data = JSON.stringify({
+      scenarios: [
+        { title: 'Rust Belt', description: 'Hauler job', genre: ['sci-fi'], featured: true },
+        { title: 'Deep Freeze', description: 'Ice mystery', genre: ['horror'], featured: true },
+        { title: 'Iron Veil', description: 'A fortress', genre: ['fantasy'] },
+        { title: 'Neon Requiem', description: 'Broken neon', genre: ['cyberpunk'] },
+        { title: 'Dust Roads', description: 'Desert trek', genre: ['western'] },
+      ],
+    });
+    const path = await renderToFile(['scenario-select', '--data', data], 'scenario-multi-feat.html');
+    const result = await handleVerify(['scenario', path]);
+    const d = result.data as { verified: boolean; failures: string[] };
+    expect(d.verified).toBe(false);
+    expect(d.failures.some(f => f.includes('exactly 1 featured'))).toBe(true);
   });
 
   test('fails when no scenario cards present', async () => {
