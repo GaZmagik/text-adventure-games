@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { handleRender } from './render';
 import { saveState, createDefaultState } from '../lib/state-store';
+import { clearStateDirCache } from './verify';
 import { WIDGET_CSS_SCOPES } from '../metadata';
 import {
   MAX_DICE_POOL_CANVAS_HEIGHT,
@@ -16,6 +17,7 @@ const originalEnv = process.env.TAG_STATE_DIR;
 beforeEach(() => {
   tempDir = mkdtempSync(join(tmpdir(), 'tag-render-test-'));
   process.env.TAG_STATE_DIR = tempDir;
+  clearStateDirCache();
   // Sync gate: write a properly signed marker so render doesn't block
   // State doesn't exist yet at beforeEach time, so we sign with empty JSON
   // and the render gate will pass because scene 999 >= any test scene
@@ -467,6 +469,42 @@ describe('render freshness gates', () => {
     expect(result.error?.message).toContain('hollow');
   });
 
+  test('hollow state gate does not block when roster has entries but codex is empty', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'station';
+    state.seed = 'abc123';
+    state._loreSource = '/tmp/adventure.lore.md';
+    state.rosterMutations = [{ type: 'add', id: 'npc1', name: 'Mara', role: 'guide' }] as any;
+    state.codexMutations = [];
+    state._modulesRead = ['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex'];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
+    state._compactionCount = 0;
+    await saveState(state);
+
+    const result = await handleRender(['scene', '--style', 'station']);
+    const errorMsg = result.error?.message ?? '';
+    expect(errorMsg).not.toContain('hollow');
+  });
+
+  test('hollow state gate does not block when codex has entries but roster is empty', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'station';
+    state.seed = 'abc123';
+    state._loreSource = '/tmp/adventure.lore.md';
+    state.rosterMutations = [];
+    state.codexMutations = [{ type: 'add', id: 'loc1', name: 'The Reef' }] as any;
+    state._modulesRead = ['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex'];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
+    state._compactionCount = 0;
+    await saveState(state);
+
+    const result = await handleRender(['scene', '--style', 'station']);
+    const errorMsg = result.error?.message ?? '';
+    expect(errorMsg).not.toContain('hollow');
+  });
+
   test('hollow state gate does not block when no _loreSource', async () => {
     const state = createDefaultState();
     state.visualStyle = 'station';
@@ -480,10 +518,10 @@ describe('render freshness gates', () => {
     await saveState(state);
 
     const result = await handleRender(['scene', '--style', 'station']);
-    // Should pass the hollow gate (may fail on other gates or succeed)
-    if (!result.ok) {
-      expect(result.error?.message).not.toContain('hollow');
-    }
+    // Must not be blocked by the hollow gate — any other gate failure is fine
+    const errorMsg = result.error?.message ?? '';
+    expect(errorMsg).not.toContain('hollow');
+    expect(errorMsg).not.toContain('BLOCKED');
   });
 });
 

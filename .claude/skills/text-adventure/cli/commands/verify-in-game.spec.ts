@@ -12,7 +12,8 @@ const originalEnv = process.env.TAG_STATE_DIR;
 beforeEach(() => {
   tempDir = mkdtempSync(join(tmpdir(), 'tag-verify-ingame-'));
   process.env.TAG_STATE_DIR = tempDir;
-  const { signMarker } = require('./verify');
+  const { signMarker, clearStateDirCache } = require('./verify');
+  clearStateDirCache();
   writeFileSync(join(tempDir, '.last-sync'), signMarker(999), 'utf-8');
 });
 

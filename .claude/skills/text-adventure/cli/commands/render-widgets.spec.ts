@@ -15,7 +15,8 @@ beforeEach(() => {
   // Sync gate: write a properly signed marker so render doesn't block
   // State doesn't exist yet at beforeEach time, so we sign with empty JSON
   // and the render gate will pass because scene 999 >= any test scene
-  const { signMarker } = require('./verify');
+  const { signMarker, clearStateDirCache } = require('./verify');
+  clearStateDirCache();
   writeFileSync(join(tempDir, '.last-sync'), signMarker(999, '{}'), 'utf-8');
   writeFileSync(join(tempDir, '.verified-scenario'), signMarker(0), 'utf-8');
   writeFileSync(join(tempDir, '.verified-rules'), signMarker(0), 'utf-8');

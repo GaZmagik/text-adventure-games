@@ -3,7 +3,7 @@ import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { handleSetup } from './setup';
-import { tryLoadState } from '../lib/state-store';
+import { tryLoadState, createDefaultState, saveState } from '../lib/state-store';
 import { handleState } from './state/index';
 import { signMarker } from './verify';
 
@@ -169,6 +169,58 @@ describe('tag setup apply', () => {
     expect(state!.visitedRooms).toEqual([]);
     expect(state!.quests).toEqual([]);
     expect(state!.character?.name).toBe('New Hero');
+  });
+
+  test('merges onto existing state when lore data is present', async () => {
+    const state = createDefaultState();
+    state._loreSource = '/tmp/glass-reef.lore.md';
+    state.rosterMutations = [{ type: 'add', id: 'npc1', name: 'Mara', role: 'guide' }] as any;
+    state.codexMutations = [{ type: 'add', id: 'loc1', name: 'The Reef' }] as any;
+    state.scene = 5;
+    state.currentRoom = 'bridge';
+    await saveState(state);
+
+    const settings = JSON.stringify({ rulebook: 'd20_system', visualStyle: 'station', modules: ['gm-checklist'] });
+    const character = JSON.stringify({
+      name: 'Merged Hero', pronouns: 'she/her',
+      stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+      hp: 10, ac: 10, proficiencies: [], abilities: [],
+    });
+
+    const result = await handleSetup(['apply', '--settings', settings, '--character', character]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.merged).toBe(true);
+
+    const updated = await tryLoadState();
+    expect(updated!._loreSource).toBe('/tmp/glass-reef.lore.md');
+    expect(updated!.rosterMutations.length).toBe(1);
+    expect(updated!.codexMutations.length).toBe(1);
+    expect(updated!.scene).toBe(5);
+    expect(updated!.character?.name).toBe('Merged Hero');
+  });
+
+  test('does not merge when only _loreSource is set (no roster/codex)', async () => {
+    const state = createDefaultState();
+    state._loreSource = '/tmp/test.lore.md';
+    state.scene = 3;
+    await saveState(state);
+
+    const settings = JSON.stringify({ rulebook: 'd20_system', visualStyle: 'station', modules: ['gm-checklist'] });
+    const character = JSON.stringify({
+      name: 'Fresh Hero', pronouns: 'they/them',
+      stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+      hp: 10, ac: 10, proficiencies: [], abilities: [],
+    });
+
+    const result = await handleSetup(['apply', '--settings', settings, '--character', character]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.merged).toBe(true);
+
+    const updated = await tryLoadState();
+    expect(updated!._loreSource).toBe('/tmp/test.lore.md');
+    expect(updated!.character?.name).toBe('Fresh Hero');
   });
 
   test('clears stale turn markers but preserves current pre-game verify markers', async () => {

@@ -286,6 +286,42 @@ describe('tag CLI black-box', () => {
     }
   });
 
+  test('compaction block gate rejects non-exempt commands with exit 1', async () => {
+    await runTag(['state', 'reset']);
+    writeFileSync(join(tempDir, '.compaction-blocked'), 'test block', 'utf-8');
+
+    const result = await runTag(['state', 'get', 'scene']);
+    expect(result.exitCode).toBe(1);
+    expect(result.json.ok).toBe(false);
+    const error = result.json.error as Record<string, string>;
+    expect(error.message).toContain('BLOCKED');
+    expect(error.corrective).toContain('tag compact restore');
+  });
+
+  test('compaction block gate allows exempt commands through', async () => {
+    await runTag(['state', 'reset']);
+    writeFileSync(join(tempDir, '.compaction-blocked'), 'test block', 'utf-8');
+
+    const versionResult = await runTag(['version']);
+    expect(versionResult.exitCode).toBe(0);
+    expect(versionResult.json.ok).toBe(true);
+
+    const helpResult = await runTag(['help']);
+    expect(helpResult.exitCode).toBe(0);
+    expect(helpResult.json.ok).toBe(true);
+  });
+
+  test('compaction block gate allows compact restore through', async () => {
+    await runTag(['state', 'reset']);
+    writeFileSync(join(tempDir, '.compaction-blocked'), 'test block', 'utf-8');
+
+    const result = await runTag(['compact', 'restore']);
+    expect(result.exitCode).toBe(0);
+    expect(result.json.ok).toBe(true);
+    const data = result.json.data as Record<string, unknown>;
+    expect(data.restored).toBe(true);
+  });
+
   test('no _compactionAlert when transcripts directory is empty', async () => {
     const transcriptsDir = mkdtempSync(join(tmpdir(), 'tag-transcripts-'));
 
