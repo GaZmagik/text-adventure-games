@@ -579,6 +579,41 @@ describe('render character-creation pre-gen injection', () => {
     expect(html).toContain(expected[2]!.name);
   });
 
+  test('pregenCharacters alias key is accepted as authored override', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.theme = 'sci-fi';
+    state.seed = 'render-test';
+    state.modulesActive = ['pre-generated-characters'];
+    await saveState(state);
+
+    const authored = [{ name: 'Rian Vale', class: 'Cartographer', hook: 'From the lore file.' }];
+    const dataArg = JSON.stringify({ pregenCharacters: authored });
+    const result = await handleRender(['character-creation', '--raw', '--style', 'terminal', '--data', dataArg]);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+    expect(html).toContain('Rian Vale');
+  });
+
+  test('uses _lorePregen from state when no --data characters provided', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.theme = 'sci-fi';
+    state.seed = 'render-test';
+    state.modulesActive = ['pre-generated-characters'];
+    (state as Record<string, unknown>)._lorePregen = [
+      { name: 'Suri Kade', class: 'Reef Diver', hook: 'From the lore pipeline.', pronouns: 'she/her',
+        stats: { STR: 12, DEX: 15, CON: 13, INT: 11, WIS: 13, CHA: 10 }, hp: 12, ac: 13,
+        proficiencies: ['Athletics', 'Stealth'], startingInventory: [], startingCurrency: 55 },
+    ];
+    await saveState(state);
+
+    const result = await handleRender(['character-creation', '--raw', '--style', 'terminal']);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+    expect(html).toContain('Suri Kade');
+  });
+
   test('does not inject pre-gen characters when module is inactive', async () => {
     const { generatePregenCharacters } = await import('../lib/pregen-generator');
     const state = createDefaultState();

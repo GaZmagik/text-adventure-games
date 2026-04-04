@@ -662,6 +662,16 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
       : [];
     const pregenActive = state?.modulesActive?.includes('pre-generated-characters')
       || dataModules.includes('pre-generated-characters');
+    // Normalise alias key: GM naturally writes pregenCharacters (from tag lore pregen output)
+    if (Array.isArray(existingData.pregenCharacters) && !Array.isArray(existingData.preGeneratedCharacters)) {
+      existingData.preGeneratedCharacters = existingData.pregenCharacters;
+    }
+    // Use _lorePregen from state when lore pipeline has loaded authored characters
+    if (!Array.isArray(existingData.preGeneratedCharacters) && Array.isArray(state?._lorePregen) && state!._lorePregen.length > 0) {
+      if (!options.data) options.data = existingData;
+      (options.data as Record<string, unknown>).preGeneratedCharacters = state!._lorePregen;
+      existingData.preGeneratedCharacters = state!._lorePregen;
+    }
     if (pregenActive && !Array.isArray(existingData.preGeneratedCharacters)) {
       const pregens = generatePregenCharacters({ theme, seed: state?.seed });
       if (!options.data) options.data = {};
