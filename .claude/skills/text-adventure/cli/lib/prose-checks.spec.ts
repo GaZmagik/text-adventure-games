@@ -326,6 +326,126 @@ describe('evaluatePatternRules', () => {
       const violations = evaluatePatternRules('What came next would change everything.');
       expect(violations.some(v => v.ruleId === 'portentous-pause')).toBe(true);
     });
+
+    test('flags "Nothing could have prepared"', () => {
+      const violations = evaluatePatternRules('Nothing could have prepared them for the sight.');
+      expect(violations.some(v => v.ruleId === 'portentous-pause')).toBe(true);
+    });
+
+    test('flags "Everything was about to change"', () => {
+      const violations = evaluatePatternRules('Everything was about to change.');
+      expect(violations.some(v => v.ruleId === 'portentous-pause')).toBe(true);
+    });
+  });
+
+  // -- telling-not-showing --
+  describe('telling-not-showing', () => {
+    test('flags "was terrified" (emotion)', () => {
+      const violations = evaluatePatternRules('She was terrified of the dark.');
+      expect(violations.some(v => v.ruleId === 'telling-not-showing')).toBe(true);
+    });
+
+    test('flags "were hostile" (atmosphere)', () => {
+      const violations = evaluatePatternRules('The corridors were hostile and unwelcoming.');
+      expect(violations.some(v => v.ruleId === 'telling-not-showing')).toBe(true);
+    });
+
+    test('flags "was brave" (character trait)', () => {
+      const violations = evaluatePatternRules('The captain was brave in the face of danger.');
+      expect(violations.some(v => v.ruleId === 'telling-not-showing')).toBe(true);
+    });
+
+    test('flags "grew anxious"', () => {
+      const violations = evaluatePatternRules('He grew anxious as the countdown ticked on.');
+      expect(violations.some(v => v.ruleId === 'telling-not-showing')).toBe(true);
+    });
+
+    test('does not flag non-telling adjectives like "was open"', () => {
+      const violations = evaluatePatternRules('The hatch was open.');
+      expect(violations.some(v => v.ruleId === 'telling-not-showing')).toBe(false);
+    });
+
+    test('does not flag "was broken"', () => {
+      const violations = evaluatePatternRules('The console was broken beyond repair.');
+      expect(violations.some(v => v.ruleId === 'telling-not-showing')).toBe(false);
+    });
+  });
+
+  // -- adverb-said --
+  describe('adverb-said', () => {
+    test('flags "said quietly"', () => {
+      const violations = evaluatePatternRules('"Keep moving," she said quietly.');
+      expect(violations.some(v => v.ruleId === 'adverb-said')).toBe(true);
+    });
+
+    test('flags "asked nervously"', () => {
+      const violations = evaluatePatternRules('"Is it safe?" he asked nervously.');
+      expect(violations.some(v => v.ruleId === 'adverb-said')).toBe(true);
+    });
+
+    test('does not flag "said" without adverb', () => {
+      const violations = evaluatePatternRules('"Move," she said.');
+      expect(violations.some(v => v.ruleId === 'adverb-said')).toBe(false);
+    });
+
+    test('suppresses NON_ADVERBS like "only"', () => {
+      const violations = evaluatePatternRules('He said only what was necessary.');
+      expect(violations.some(v => v.ruleId === 'adverb-said')).toBe(false);
+    });
+  });
+
+  // -- redundant-perception --
+  describe('redundant-perception', () => {
+    test('flags "Looking up, she saw"', () => {
+      const violations = evaluatePatternRules('Looking up, she saw the breach in the hull.');
+      expect(violations.some(v => v.ruleId === 'redundant-perception')).toBe(true);
+    });
+
+    test('flags "Glancing back, he spotted"', () => {
+      const violations = evaluatePatternRules('Glancing back, he spotted the shadow.');
+      expect(violations.some(v => v.ruleId === 'redundant-perception')).toBe(true);
+    });
+
+    test('flags "Listening closely, she heard"', () => {
+      const violations = evaluatePatternRules('Listening closely, she heard the hum of machinery.');
+      expect(violations.some(v => v.ruleId === 'redundant-perception')).toBe(true);
+    });
+
+    test('does not flag "Looking" without a result verb', () => {
+      const violations = evaluatePatternRules('Looking for a way out, she turned left.');
+      expect(violations.some(v => v.ruleId === 'redundant-perception')).toBe(false);
+    });
+  });
+
+  // -- expanded cliche-phrases --
+  describe('cliche-phrases (expanded)', () => {
+    test('flags "blood ran cold"', () => {
+      const violations = evaluatePatternRules('Her blood ran cold.');
+      expect(violations.some(v => v.ruleId === 'cliche-phrases')).toBe(true);
+    });
+
+    test('flags "heart skipped a beat"', () => {
+      const violations = evaluatePatternRules('His heart skipped a beat.');
+      expect(violations.some(v => v.ruleId === 'cliche-phrases')).toBe(true);
+    });
+
+    test('flags "sent shivers down"', () => {
+      const violations = evaluatePatternRules('The sound sent shivers down her spine.');
+      expect(violations.some(v => v.ruleId === 'cliche-phrases')).toBe(true);
+    });
+  });
+
+  // -- expanded summarising-tic --
+  describe('summarising-tic (expanded)', () => {
+    test('flags "And thus" as paragraph opener', () => {
+      const violations = evaluatePatternRules('And thus the crew moved forward.');
+      expect(violations.some(v => v.ruleId === 'summarising-tic')).toBe(true);
+    });
+
+    test('flags "From that moment on"', () => {
+      const violations = evaluatePatternRules('From that moment on, nothing was the same.');
+      expect(violations.some(v => v.ruleId === 'summarising-tic')).toBe(true);
+    });
   });
 
   // -- general --

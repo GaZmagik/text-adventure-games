@@ -72,6 +72,29 @@ export const FAILURE_CONTEXT = /\b(but|however|couldn't|could not|failed|unable|
 /** Emotion words for the emotional-labelling gate. */
 export const EMOTION_WORDS = /\b(dread|fear|anger|rage|fury|joy|sorrow|grief|horror|panic|anxiety|despair|hope|relief|shame|guilt|pride|disgust|awe|wonder|longing|anguish|terror|elation|resignation|defiance)\b/i;
 
+/** Adjectives that indicate telling-not-showing when preceded by a linking verb.
+ *  Three categories: emotion, atmosphere, character trait. */
+export const TELLING_ADJECTIVES: ReadonlySet<string> = new Set([
+  // Emotions
+  'angry', 'afraid', 'terrified', 'relieved', 'suspicious', 'sad', 'happy',
+  'furious', 'anxious', 'nervous', 'excited', 'desperate', 'hopeful',
+  'ashamed', 'guilty', 'proud', 'jealous', 'disgusted', 'horrified',
+  'panicked', 'depressed', 'elated', 'resigned', 'defiant', 'anguished',
+  'scared', 'frightened', 'worried', 'upset', 'thrilled', 'overjoyed',
+  'miserable', 'heartbroken', 'devastated', 'apprehensive', 'uneasy',
+  'confused', 'bewildered', 'stunned', 'shocked', 'alarmed', 'frustrated',
+  // Atmosphere
+  'creepy', 'eerie', 'menacing', 'ominous', 'foreboding', 'oppressive',
+  'suffocating', 'hostile', 'threatening', 'gloomy', 'dreary', 'sinister',
+  'unsettling', 'forbidding', 'haunting', 'imposing', 'intimidating',
+  'claustrophobic', 'inviting', 'welcoming', 'desolate', 'bleak',
+  // Character traits
+  'brave', 'cowardly', 'intelligent', 'stupid', 'kind', 'cruel', 'gentle',
+  'fierce', 'honest', 'dishonest', 'trustworthy', 'cunning', 'loyal',
+  'treacherous', 'stubborn', 'reckless', 'cautious', 'arrogant', 'humble',
+  'ruthless', 'compassionate', 'generous', 'greedy', 'patient', 'impatient',
+]);
+
 /* ------------------------------------------------------------------ */
 /*  Tier 1: Pattern Rules (severity: error — blocks verify)            */
 /* ------------------------------------------------------------------ */
@@ -161,14 +184,14 @@ export const PATTERN_RULES: readonly PatternRule[] = [
     id: 'cliche-phrases',
     name: 'Cliché phrases',
     severity: 'error',
-    pattern: /\b(a chill ran down|time stood still|silence was deafening|as if on cue|little did they know)\b/gi,
+    pattern: /\b(a chill ran down|time stood still|silence was deafening|as if on cue|little did they know|blood ran cold|heart skipped a beat|sent shivers down|world seemed to (slow|stop)|every fibre of|knot in (stomach|belly|gut)|pit of (stomach|belly|gut)|hung in the (air|balance)|pierced the silence)\b/gi,
     fix: 'Replace with a specific, concrete image grounded in the scene.',
   },
   {
     id: 'summarising-tic',
     name: 'Summarising tic',
     severity: 'error',
-    pattern: /^(And so the journey continued|And with that)\b/gim,
+    pattern: /^(And so the journey continued|And with that|And so it was|And thus|From that moment on)\b/gim,
     fix: 'Cut the summarising opener. Start the paragraph with the next concrete action or image.',
   },
   {
@@ -186,8 +209,36 @@ export const PATTERN_RULES: readonly PatternRule[] = [
     id: 'portentous-pause',
     name: 'Portentous pause',
     severity: 'error',
-    pattern: /\b(And then\s*\u2014\s*silence|What came next would change everything)\b/gi,
+    pattern: /\b(And then\s*\u2014\s*silence|What came next would change everything|Nothing could have prepared|Everything was about to change|But that was before|If only they had known|The truth was far)\b/gi,
     fix: 'Cut the portentous filler. Show what actually happens next.',
+  },
+  {
+    id: 'telling-not-showing',
+    name: 'Telling not showing (linking verb + adjective)',
+    severity: 'error',
+    pattern: /\b(was|were|grew|became)\s+(\w+)\b/gi,
+    gate(match) {
+      return TELLING_ADJECTIVES.has(match[2].toLowerCase());
+    },
+    fix: 'Show through physical action, sensory detail, or behaviour — not a linking verb + adjective.',
+  },
+  {
+    id: 'adverb-said',
+    name: 'Adverb on dialogue tag',
+    severity: 'error',
+    pattern: /\b(said|asked)\s+(\w+ly)\b/gi,
+    gate(match) {
+      const word = match[2].toLowerCase();
+      return !NON_ADVERBS.has(word);
+    },
+    fix: 'Cut the adverb — "said" is invisible. Show manner through action beats instead.',
+  },
+  {
+    id: 'redundant-perception',
+    name: 'Redundant perception verb',
+    severity: 'error',
+    pattern: /\b(Looking|Glancing|Peering|Listening|Watching|Turning)\b[^.]{0,50}\b(saw|heard|spotted|made out)\b/gi,
+    fix: 'Cut the perception frame — just describe what is perceived: "A crack split the hull" not "Looking up, she saw a crack".',
   },
 ];
 
