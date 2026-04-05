@@ -388,6 +388,13 @@ export function checkInGameWidget(widgetType: string, html: string, failures: st
     failures.push('Dice widget missing roll surface (#cv or #rollArea) — widget cannot be interacted with.');
   }
 
+  if (widgetType === 'dice') {
+    const hasContinue = extractPromptElements(html).some(el => el.classes.includes('dice-continue'));
+    if (!hasContinue) {
+      failures.push('Dice widget missing continue button (data-prompt .dice-continue) — roll result cannot be relayed to the conversation. Regenerate with `tag render dice`.');
+    }
+  }
+
   if (widgetType === 'arc-complete') {
     const actionButtons = extractPromptElements(html).filter(el => el.classes.includes('arc-action-btn')).length;
     if (actionButtons < 3) {

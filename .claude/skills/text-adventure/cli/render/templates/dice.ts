@@ -39,6 +39,37 @@ export function renderDice(state: GmState | null, styleName: string, options?: R
   const rawDc = data?.dc ?? (statComp ? statComp.dc : undefined);
   const dc = rawDc !== undefined ? (Number.isFinite(Number(rawDc)) ? Number(rawDc) : undefined) : undefined;
 
+  // Build authoritative prompt text for sendPrompt relay — uses server-side
+  // _lastComputation values, not the client-side Math.random() animation roll.
+  let promptText: string;
+  if (dieType === 'd2') {
+    const face = rollComp?.roll === 1 ? 'HEADS' : rollComp?.roll === 2 ? 'TAILS' : 'result';
+    promptText = `[DICE RESULT] Coin flip: ${face}`;
+  } else if (rollComp) {
+    const typeLabel = rollComp.type === 'contested_roll' ? 'contested roll'
+      : rollComp.type === 'hazard_save' ? 'hazard save'
+      : 'encounter roll';
+    const npcPart = rollComp.type === 'contested_roll' ? ` vs ${rollComp.npcId}` : '';
+    const rollVal = rollComp.roll;
+    const totalVal = rollComp.total ?? rollVal + modifier;
+    const outcomeLbl = rollComp.outcome
+      ? rollComp.outcome.replace(/_/g, ' ').toUpperCase() : '';
+
+    promptText = `[DICE RESULT] ${stat} ${typeLabel}${npcPart}: rolled ${rollVal}`;
+    if (modifier !== 0) promptText += ` ${modifier >= 0 ? '+' : ''}${modifier}`;
+    promptText += ` = ${totalVal}`;
+    if (dc !== undefined) promptText += ` vs DC ${dc}`;
+    if (outcomeLbl) promptText += ` \u2014 ${outcomeLbl}`;
+
+    const marginVal = 'margin' in rollComp && typeof rollComp.margin === 'number'
+      ? rollComp.margin : undefined;
+    if (marginVal !== undefined) {
+      promptText += ` (margin ${marginVal >= 0 ? '+' : ''}${marginVal})`;
+    }
+  } else {
+    promptText = `[DICE RESULT] ${stat} check complete \u2014 continue`;
+  }
+
   // Die config — fall back to d20
   const config: DieConfig = DIE_CONFIGS[dieType as keyof typeof DIE_CONFIGS] ?? DIE_CONFIGS.d20;
   const fontScale = FONT_SCALE[dieType as DieType] ?? FONT_SCALE.d20;
@@ -48,10 +79,13 @@ export function renderDice(state: GmState | null, styleName: string, options?: R
   const canvasH = 440;
   const title = isD2 ? 'Coin Flip' : `${stat} Check${dieType !== 'd20' ? ` (${dieType.toUpperCase()})` : ''}`;
   const hint = isD100 ? 'CLICK TO ROLL' : isD2 ? 'CLICK THE COIN TO FLIP' : 'CLICK THE DIE TO ROLL';
+  const continueBtn = `<button class="dice-continue" data-prompt="${esc(promptText)}" title="${esc(promptText)}">Continue</button>`;
+
   const resultMarkup = isD2
     ? `<div class="ra" id="ra">
     <div class="rv" id="xv"></div>
     <div class="ob" id="xo"></div>
+    ${continueBtn}
   </div>`
     : isD100
       ? `<div class="ra" id="ra">
@@ -62,6 +96,7 @@ export function renderDice(state: GmState | null, styleName: string, options?: R
       <span class="re">=</span>
       <span class="rt" id="xt"></span>
     </div>
+    ${continueBtn}
   </div>`
       : `<div class="ra" id="ra">
     <div class="bd">
@@ -73,6 +108,7 @@ export function renderDice(state: GmState | null, styleName: string, options?: R
     <div class="dc" id="xd"></div>
     <div class="ob" id="xo"></div>
     <div class="mg" id="xg"></div>
+    ${continueBtn}
   </div>`;
 
   const webglCode = generateWebGLDiceCode({
@@ -132,6 +168,18 @@ export function renderDice(state: GmState | null, styleName: string, options?: R
 .widget-dice .mg { font-size: 10px; color: var(--t3); margin-top: 4px; display: none; }
 .widget-dice .ctx { font-size: 12px; color: var(--t2); margin-bottom: 8px; font-style: italic; line-height: 1.5; }
 .widget-dice .mods { font-size: 11px; color: var(--t3); margin-bottom: 10px; letter-spacing: 0.06em; }
+.widget-dice .dice-continue {
+  display: block; margin: 14px auto 0; padding: 10px 28px;
+  border: 0.5px solid var(--acc); border-radius: 6px;
+  background: transparent; font-family: var(--ta-font-body);
+  font-size: 12px; color: var(--acc); cursor: pointer;
+  text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;
+  transition: background 0.2s, color 0.2s;
+}
+.widget-dice .dice-continue:hover {
+  background: var(--acc); color: var(--dbg);
+}
+.widget-dice .dice-continue:focus-visible { outline: 2px solid var(--ta-color-focus); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0s !important; animation-duration: 0s !important; }
 }`,
@@ -154,6 +202,31 @@ export function renderDice(state: GmState | null, styleName: string, options?: R
     ${resultMarkup}
   </div>
 </div>`,
-    script: shadowAdaptWebGL(webglCode),
+    script: shadowAdaptWebGL(webglCode) + `\nshadow.querySelectorAll('.dice-continue[data-prompt]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var prompt = this.getAttribute('data-prompt');
+    if (typeof sendPrompt === 'function') {
+      sendPrompt(prompt);
+    } else {
+      this.setAttribute('title', prompt);
+      var ta = document.createElement('textarea');
+      var copied = false;
+      ta.value = prompt;
+      ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        copied = !!document.execCommand('copy');
+      } catch (_err) {
+        copied = false;
+      }
+      document.body.removeChild(ta);
+      var orig = this.textContent;
+      this.textContent = copied ? 'Copied! Paste as your reply.' : 'Copy the prompt from the tooltip.';
+      var self = this;
+      setTimeout(function() { self.textContent = orig; }, 3000);
+    }
+  });
+});`,
   });
 }
