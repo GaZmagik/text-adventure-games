@@ -5,10 +5,12 @@ import {
   splitParagraphs,
   countWords,
   countSyllables,
+  extractSpeakerUtterances,
   evaluatePatternRules,
   evaluateHeuristicRules,
   computeProseMetrics,
   checkProseContent,
+  checkVoiceDifferentiation,
 } from './prose-checks';
 import { PATTERN_RULES, HEURISTIC_RULES } from '../data/prose-rules';
 import type { ProseViolation, ProseMetrics } from '../data/prose-rules';
