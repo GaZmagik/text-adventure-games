@@ -112,6 +112,21 @@ export const TELLING_ADJECTIVES: ReadonlySet<string> = new Set([
   'ruthless', 'compassionate', 'generous', 'greedy', 'patient', 'impatient',
 ]);
 
+/** Non-visual sense vocabulary — used by the non-visual-senses heuristic rule.
+ *  An array of regexes, one per sense category. At least one must match for the check to pass. */
+export const SENSE_WORDS_RE: readonly RegExp[] = [
+  // Sound
+  /\b(hum|clang|click|creak|groan|hiss|ring|rattle|scrape|thud|buzz|rumble|echo|squeal|whisper|roar|thunder|mutter|murmur|silent|silence|quiet|loud|noise|sound|heard|hear|beat|tick|chime|drip|snap|pop|screech|howl|wail|shriek)\b/i,
+  // Smell
+  /\b(smell|smells|scent|stench|odou?r|aroma|reek|whiff|fume|fumes|musty|acrid|pungent)\b/i,
+  // Temperature
+  /\b(cold|warm|hot|chill|chilly|heat|freeze|freezing|frozen|frigid|sweat|damp|humid|frost|frosty|icy|blazing|burning|scorching|tepid|cool)\b/i,
+  // Texture / touch
+  /\b(rough|smooth|slick|gritty|wet|tender|sting|itch|coarse|brittle|sticky|slippery|jagged|abrasive|velvety|grainy)\b/i,
+  // Taste
+  /\b(bitter|sour|salty|sweet|copper|metallic|acidic|bile|tang|tangy)\b/i,
+];
+
 /* ------------------------------------------------------------------ */
 /*  Tier 1: Pattern Rules (severity: error — blocks verify)            */
 /* ------------------------------------------------------------------ */
@@ -256,6 +271,13 @@ export const PATTERN_RULES: readonly PatternRule[] = [
     severity: 'error',
     pattern: /\b(Looking|Glancing|Peering|Listening|Watching|Turning)\b[^.]{0,50}\b(saw|heard|spotted|made out)\b/gi,
     fix: 'Cut the perception frame — just describe what is perceived: "A crack split the hull" not "Looking up, she saw a crack".',
+  },
+  {
+    id: 'vague-nouns',
+    name: 'Vague noun',
+    severity: 'error',
+    pattern: /\b(a thing|some stuff|the area|the place|an object|some things|the spot|the location)\b/gi,
+    fix: 'Replace with a specific concrete noun grounded in the scene: "the corridor" not "the area".',
   },
 ];
 
@@ -420,5 +442,35 @@ export const HEURISTIC_RULES: readonly HeuristicRule[] = [
       return violations;
     },
     fix: 'Reword repeated phrases. Repetition can be intentional for rhythm, but should be deliberate.',
+  },
+  {
+    id: 'non-visual-senses',
+    name: 'Non-visual senses absent',
+    severity: 'warning',
+    check(text) {
+      const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+      if (words.length < 100) return [];
+      const hasSense = SENSE_WORDS_RE.some(re => re.test(text));
+      if (!hasSense) {
+        return ['No non-visual sensory detail found — add sound, smell, temperature, texture, or taste to ground the reader.'];
+      }
+      return [];
+    },
+    fix: 'Add at least one non-visual sense: the hum of machinery, the smell of rust, the cold of the corridor floor.',
+  },
+  {
+    id: 'scene-paragraph-count',
+    name: 'Single paragraph block',
+    severity: 'warning',
+    check(text) {
+      const paragraphs = text.split(/\n\n+/).filter(p => p.trim().length > 0);
+      if (paragraphs.length > 1) return [];
+      const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+      if (words.length > 80) {
+        return [`Narrative is a single unbroken block of ${words.length} words — break into paragraphs to control pacing.`];
+      }
+      return [];
+    },
+    fix: 'Split into 2+ paragraphs. Each paragraph should develop one beat, image, or moment.',
   },
 ];

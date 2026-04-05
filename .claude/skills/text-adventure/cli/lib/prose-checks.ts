@@ -6,6 +6,7 @@ import {
   PATTERN_RULES,
   HEURISTIC_RULES,
   NON_ADVERBS,
+  SENSE_WORDS_RE,
 } from '../data/prose-rules';
 import type {
   PatternRule,
@@ -201,6 +202,69 @@ export function computeProseMetrics(text: string): ProseMetrics {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Voice differentiation                                              */
+/* ------------------------------------------------------------------ */
+
+/** Parse attribution patterns and return utterance word-count arrays per speaker.
+ *  Matches: "...utterance..." Name said/asked/...
+ *  and:     Name said/asked "...utterance..."
+ */
+export function extractSpeakerUtterances(text: string): Map<string, number[]> {
+  const speakers = new Map<string, number[]>();
+
+  const VERBS = '(?:said|asked|replied|whispered|called|murmured|added|continued|snapped|barked|noted|observed)';
+
+  // Pattern 1: "...utterance..." Name said
+  const postAttr = new RegExp(
+    `["\u201c]([^"\u201d]{1,400})["\u201d]\\s+([A-Z][a-z]{1,20})\\s+${VERBS}`,
+    'g',
+  );
+  // Pattern 2: Name said "...utterance..."
+  const preAttr = new RegExp(
+    `([A-Z][a-z]{1,20})\\s+${VERBS}[,:]?\\s+["\u201c]([^"\u201d]{1,400})["\u201d]`,
+    'g',
+  );
+
+  function addUtterance(name: string, utterance: string): void {
+    const wc = utterance.trim().split(/\s+/).filter(w => w.length > 0).length;
+    if (wc === 0) return;
+    const arr = speakers.get(name) ?? [];
+    arr.push(wc);
+    speakers.set(name, arr);
+  }
+
+  let m: RegExpExecArray | null;
+  while ((m = postAttr.exec(text)) !== null) addUtterance(m[2]!, m[1]!);
+  while ((m = preAttr.exec(text)) !== null) addUtterance(m[1]!, m[2]!);
+
+  return speakers;
+}
+
+/** Warn when all identified speakers (≥2 utterances each) have near-identical utterance
+ *  length averages (within 25% of each other). Pushes to warnings array; never throws.
+ */
+export function checkVoiceDifferentiation(text: string, warnings: string[]): void {
+  const utterances = extractSpeakerUtterances(text);
+  const qualified = [...utterances.entries()].filter(([, lengths]) => lengths.length >= 2);
+  if (qualified.length < 2) return;
+
+  const avgs = qualified.map(([name, lengths]) => ({
+    name,
+    avg: lengths.reduce((s, l) => s + l, 0) / lengths.length,
+  }));
+
+  const maxAvg = Math.max(...avgs.map(x => x.avg));
+  const minAvg = Math.min(...avgs.map(x => x.avg));
+
+  if (minAvg > 0 && maxAvg / minAvg - 1 < 0.25) {
+    const summary = avgs.map(({ name, avg }) => `${name} (avg ${avg.toFixed(1)} words)`).join(', ');
+    warnings.push(
+      `Voice differentiation: ${summary} — all speakers have similar utterance length. Give each speaker a distinct rhythm.`,
+    );
+  }
+}
+
+/* ------------------------------------------------------------------ */
 /*  Entry point — called from verify.ts scene check chain              */
 /* ------------------------------------------------------------------ */
 
@@ -225,6 +289,8 @@ export function checkProseContent(
   for (const v of heuristicViolations) {
     warnings.push(`Prose warning: [${v.ruleId}] ${v.message}. Suggestion: ${v.fix}`);
   }
+
+  checkVoiceDifferentiation(text, warnings);
 
   // Metric threshold warnings — informational only, never block verify
   if (metrics.wordCount >= 50 && metrics.fleschKincaid < 35) {
