@@ -1,0 +1,279 @@
+// Data-driven prose rule definitions for deterministic content analysis.
+// Pure types + constants — no runtime logic. Rules are evaluated by prose-checks.ts.
+
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
+
+export type RuleSeverity = 'error' | 'warning';
+
+/** Regex-based rule — matches a pattern in text. */
+export type PatternRule = {
+  readonly id: string;
+  readonly name: string;
+  readonly severity: RuleSeverity;
+  readonly pattern: RegExp;
+  /** Optional gate — return false to suppress a match (e.g. failure-context exemption). */
+  readonly gate?: (match: RegExpExecArray, text: string) => boolean;
+  readonly fix: string;
+};
+
+/** Structural / statistical rule — imperative check function. */
+export type HeuristicRule = {
+  readonly id: string;
+  readonly name: string;
+  readonly severity: 'warning';
+  readonly check: (text: string) => string[];
+  readonly fix: string;
+};
+
+/** A single violation found by either rule type. */
+export type ProseViolation = {
+  readonly ruleId: string;
+  readonly ruleName: string;
+  readonly severity: RuleSeverity;
+  readonly message: string;
+  readonly fix: string;
+};
+
+/** Informational prose metrics — Tier 3, never blocks verify. */
+export type ProseMetrics = {
+  readonly wordCount: number;
+  readonly sentenceCount: number;
+  readonly avgSentenceLength: number;
+  readonly uniqueWordRatio: number;
+  readonly emDashPer100Words: number;
+  readonly dialogueToNarrationRatio: number;
+  readonly adverbPercentage: number;
+};
+
+/* ------------------------------------------------------------------ */
+/*  Exclusion / lookup sets                                            */
+/* ------------------------------------------------------------------ */
+
+/** Words ending in -ly that are NOT adverbs — excluded from adverb density. */
+export const NON_ADVERBS: ReadonlySet<string> = new Set([
+  'only', 'family', 'early', 'likely', 'lonely', 'friendly', 'ugly',
+  'holy', 'daily', 'rally', 'belly', 'bully', 'jelly', 'tally',
+  'fly', 'reply', 'supply', 'apply', 'multiply', 'imply', 'ally',
+  'assembly', 'anomaly', 'italy', 'lily', 'folly', 'jolly', 'melancholy',
+]);
+
+/** Number words mapped to their numeric value — for word-count mismatch detection. */
+export const NUMBER_WORDS: Readonly<Record<string, number>> = {
+  one: 1, two: 2, three: 3, four: 4, five: 5,
+  six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
+  eleven: 11, twelve: 12,
+};
+
+/** Failure context — if a sentence contains these, wasted-motion verbs are permissible. */
+export const FAILURE_CONTEXT = /\b(but|however|couldn't|could not|failed|unable|though)\b/i;
+
+/** Emotion words for the emotional-labelling gate. */
+export const EMOTION_WORDS = /\b(dread|fear|anger|rage|fury|joy|sorrow|grief|horror|panic|anxiety|despair|hope|relief|shame|guilt|pride|disgust|awe|wonder|longing|anguish|terror|elation|resignation|defiance)\b/i;
+
+/* ------------------------------------------------------------------ */
+/*  Tier 1: Pattern Rules (severity: error — blocks verify)            */
+/* ------------------------------------------------------------------ */
+
+export const PATTERN_RULES: readonly PatternRule[] = [
+  {
+    id: 'filter-words',
+    name: 'Filter words',
+    severity: 'error',
+    pattern: /\b(noticed|felt|realised|realized|seemed|heard|could see|appeared to)\b/gi,
+    fix: 'Remove the filter word and show the perception directly: "The deck shuddered" not "She felt the deck shudder".',
+  },
+  {
+    id: 'wasted-motion',
+    name: 'Wasted-motion verbs',
+    severity: 'error',
+    pattern: /\b(began to|started to|managed to|decided to|tried to)\b/gi,
+    gate(match, text) {
+      // Find the sentence containing this match
+      const before = text.slice(0, match.index);
+      const after = text.slice(match.index);
+      const sentenceStart = Math.max(before.lastIndexOf('.'), before.lastIndexOf('!'), before.lastIndexOf('?')) + 1;
+      const sentenceEndRel = after.search(/[.!?]/);
+      const sentence = text.slice(sentenceStart, sentenceEndRel >= 0 ? match.index + sentenceEndRel : text.length);
+      // Suppress if sentence has failure context — "tried to but couldn't" is fine
+      return !FAILURE_CONTEXT.test(sentence);
+    },
+    fix: 'Cut the wasted-motion verb and use the main verb directly: "She ran" not "She began to run".',
+  },
+  {
+    id: 'stat-names-in-prose',
+    name: 'Stat names in narrative prose',
+    severity: 'error',
+    pattern: /\b(STR|DEX|CON|INT|WIS|CHA)\b/g,
+    fix: 'Use natural descriptions: "Your hands are steady" not "Your DEX of 16".',
+  },
+  {
+    id: 'word-count-mismatch',
+    name: 'Word-count mismatch',
+    severity: 'error',
+    pattern: /\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\s+words?\b/gi,
+    gate(match, text) {
+      const claimed = NUMBER_WORDS[match[1].toLowerCase()];
+      if (claimed === undefined) return false;
+      // Look for a quoted phrase within 60 chars after the match
+      const after = text.slice(match.index, match.index + match[0].length + 80);
+      const quoteMatch = after.match(/[""\u201c]([^""\u201d]+)[""\u201d]/);
+      if (!quoteMatch) return false; // No nearby quote — can't verify
+      const words = quoteMatch[1].trim().split(/\s+/).length;
+      return words !== claimed; // Flag only when count doesn't match
+    },
+    fix: 'Count the words in the quoted phrase and correct the number word.',
+  },
+  {
+    id: 'said-bookisms',
+    name: 'Said-bookisms',
+    severity: 'error',
+    pattern: /\b(exclaimed|retorted|gasped|uttered|proclaimed|intoned|declared)\b/gi,
+    fix: 'Use "said" or "asked" — or better, cut the dialogue tag entirely and let action beats identify the speaker.',
+  },
+  {
+    id: 'em-dash-stacking',
+    name: 'Em-dash stacking',
+    severity: 'error',
+    pattern: /\u2014/g,
+    gate(match, text) {
+      // Find the paragraph containing this em-dash
+      const before = text.slice(0, match.index);
+      const after = text.slice(match.index);
+      const paraStart = before.lastIndexOf('\n\n') + 2;
+      const paraEndRel = after.indexOf('\n\n');
+      const paragraph = text.slice(
+        paraStart < 2 ? 0 : paraStart,
+        paraEndRel >= 0 ? match.index + paraEndRel : text.length,
+      );
+      const dashCount = (paragraph.match(/\u2014/g) || []).length;
+      // Only flag if this paragraph has >2 em-dashes AND this is the first em-dash
+      // (so we report once per paragraph, not once per dash)
+      if (dashCount <= 2) return false;
+      const firstDashInPara = paragraph.indexOf('\u2014');
+      const offsetInPara = match.index - (paraStart < 2 ? 0 : paraStart);
+      return offsetInPara === firstDashInPara;
+    },
+    fix: 'Limit to 2 em-dashes per paragraph. Replace extras with commas, semicolons, or full stops.',
+  },
+  {
+    id: 'cliche-phrases',
+    name: 'Cliché phrases',
+    severity: 'error',
+    pattern: /\b(a chill ran down|time stood still|silence was deafening|as if on cue|little did they know)\b/gi,
+    fix: 'Replace with a specific, concrete image grounded in the scene.',
+  },
+  {
+    id: 'summarising-tic',
+    name: 'Summarising tic',
+    severity: 'error',
+    pattern: /^(And so the journey continued|And with that)\b/gim,
+    fix: 'Cut the summarising opener. Start the paragraph with the next concrete action or image.',
+  },
+  {
+    id: 'emotional-labelling',
+    name: 'Emotional labelling',
+    severity: 'error',
+    pattern: /\bWith (a |growing |mounting )(surge of |sense of )?\w+\b/gi,
+    gate(match) {
+      // Only flag if the captured word is an emotion word
+      return EMOTION_WORDS.test(match[0]);
+    },
+    fix: 'Show the emotion through physical action or sensory detail instead of naming it.',
+  },
+  {
+    id: 'portentous-pause',
+    name: 'Portentous pause',
+    severity: 'error',
+    pattern: /\b(And then\s*\u2014\s*silence|What came next would change everything)\b/gi,
+    fix: 'Cut the portentous filler. Show what actually happens next.',
+  },
+];
+
+/* ------------------------------------------------------------------ */
+/*  Tier 2: Heuristic Rules (severity: warning — doesn't block)        */
+/* ------------------------------------------------------------------ */
+
+export const HEURISTIC_RULES: readonly HeuristicRule[] = [
+  {
+    id: 'sentence-length-uniformity',
+    name: 'Sentence length uniformity',
+    severity: 'warning',
+    check(text) {
+      const sentences = text.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
+      if (sentences.length < 4) return [];
+      const lengths = sentences.map(s => s.split(/\s+/).length);
+      const violations: string[] = [];
+      for (let i = 0; i <= lengths.length - 3; i++) {
+        const a = lengths[i], b = lengths[i + 1], c = lengths[i + 2];
+        const avg = (a + b + c) / 3;
+        if (avg === 0) continue;
+        const withinBand = [a, b, c].every(l => Math.abs(l - avg) / avg <= 0.2);
+        if (withinBand) {
+          violations.push(`Sentences ${i + 1}–${i + 3} have similar length (${a}, ${b}, ${c} words) — vary rhythm.`);
+          break; // One report per text
+        }
+      }
+      return violations;
+    },
+    fix: 'Vary sentence length — mix short punchy sentences with longer flowing ones.',
+  },
+  {
+    id: 'paragraph-opener-repetition',
+    name: 'Paragraph opener repetition',
+    severity: 'warning',
+    check(text) {
+      const paragraphs = text.split(/\n\n+/).filter(p => p.trim().length > 0);
+      if (paragraphs.length < 3) return [];
+      const openers = paragraphs.map(p => {
+        const firstWord = p.trim().split(/\s+/)[0]?.toLowerCase().replace(/[^a-z]/g, '');
+        return firstWord || '';
+      });
+      const violations: string[] = [];
+      for (let i = 0; i <= openers.length - 3; i++) {
+        if (openers[i] && openers[i] === openers[i + 1] && openers[i + 1] === openers[i + 2]) {
+          violations.push(`Paragraphs ${i + 1}–${i + 3} all open with "${openers[i]}" — vary your openers.`);
+          break;
+        }
+      }
+      return violations;
+    },
+    fix: 'Start consecutive paragraphs with different words to avoid monotonous structure.',
+  },
+  {
+    id: 'adverb-density',
+    name: 'Adverb density',
+    severity: 'warning',
+    check(text) {
+      const words = text.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+      if (words.length < 20) return [];
+      const adverbs = words.filter(w => w.endsWith('ly') && !NON_ADVERBS.has(w.replace(/[^a-z]/g, '')));
+      const pct = (adverbs.length / words.length) * 100;
+      if (pct > 5) {
+        return [`Adverb density ${pct.toFixed(1)}% (${adverbs.length}/${words.length} words) exceeds 5% threshold.`];
+      }
+      return [];
+    },
+    fix: 'Replace adverbs with stronger verbs: "sprinted" not "ran quickly".',
+  },
+  {
+    id: 'passive-voice-density',
+    name: 'Passive voice density',
+    severity: 'warning',
+    check(text) {
+      const sentences = text.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
+      if (sentences.length < 5) return [];
+      const passivePattern = /\b(was|were|is|are|been|being)\s+\w+ed\b/gi;
+      const passiveCount = sentences.filter(s => passivePattern.test(s)).length;
+      // Reset lastIndex on the shared regex
+      passivePattern.lastIndex = 0;
+      const pct = (passiveCount / sentences.length) * 100;
+      if (pct > 15) {
+        return [`Passive voice in ${passiveCount}/${sentences.length} sentences (${pct.toFixed(0)}%) exceeds 15% threshold.`];
+      }
+      return [];
+    },
+    fix: 'Rewrite passive constructions in active voice: "The alarm shrieks" not "The alarm was heard".',
+  },
+];

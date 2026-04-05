@@ -29,6 +29,7 @@ import {
   checkCharacterWidget,
   checkInGameWidget,
 } from '../lib/verify-checks';
+import { checkProseContent } from '../lib/prose-checks';
 
 /** Compute a signed workflow marker.
  *  Format: scene:timestamp:fnv32('tag-cli-gate:' + scene + ':' + timestamp)
@@ -555,6 +556,7 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
       () => checkActionCardStatNames(html, failures),
       () => checkActionCardDcValues(html, state, failures),
       () => checkButtonTitleStructure(html, failures),
+      () => checkProseContent(html, failures),
     ];
   }
 

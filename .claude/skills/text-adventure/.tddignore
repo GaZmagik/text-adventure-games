@@ -17,6 +17,7 @@ cli/render/lib/scene-script.ts
 
 # Data constants — string arrays, no logic
 cli/data/prose-guidance.ts
+cli/data/prose-rules.ts
 
 # CLI manual — markdown documentation, not testable code
 cli/manual.md
