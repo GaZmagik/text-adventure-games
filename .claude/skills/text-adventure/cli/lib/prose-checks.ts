@@ -20,16 +20,55 @@ import type {
 
 const NARRATIVE_PATTERN = /<div\b[^>]*(?:id\s*=\s*(['"])narrative\1|class\s*=\s*(['"])[^'"]*\bnarrative\b[^'"]*\2)[^>]*>([\s\S]*?)<\/div>/gi;
 
-/** Extract and concatenate narrative text from scene HTML, stripping tags. */
+/** Strip HTML preserving block-level boundaries as double newlines. */
+function htmlToProseText(raw: string): string {
+  return raw
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/<\/p>|<\/li>|<\/h[1-6]>|<br\s*\/?>|<\/div>/gi, '\n\n')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n[ \t]+/g, '\n')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+/** Extract and concatenate narrative text from scene HTML, preserving paragraph breaks. */
 export function extractNarrativeText(html: string): string | null {
   const blocks: string[] = [];
   let match: RegExpExecArray | null;
   NARRATIVE_PATTERN.lastIndex = 0;
   while ((match = NARRATIVE_PATTERN.exec(html)) !== null) {
-    blocks.push(stripHtml(match[3]!));
+    blocks.push(htmlToProseText(match[3]!));
   }
   if (blocks.length === 0) return null;
   return blocks.join('\n\n');
+}
+
+/* ------------------------------------------------------------------ */
+/*  Syllable counting                                                  */
+/* ------------------------------------------------------------------ */
+
+/** Vowel-group heuristic syllable counter (~90% accuracy for common English). */
+export function countSyllables(word: string): number {
+  const cleaned = word.toLowerCase().replace(/[^a-z]/g, '');
+  if (cleaned.length === 0) return 0;
+  if (cleaned.length <= 3) return 1;
+
+  let w = cleaned;
+  let bonus = 0;
+
+  // Consonant + le at end = its own syllable (simple → sim|ple, battle → bat|tle)
+  if (/[^aeiou]le$/.test(w)) {
+    bonus = 1;
+    w = w.slice(0, -2);
+  } else {
+    // Remove trailing silent 'e' when preceded by a consonant
+    w = w.replace(/([^aeiou])e$/, '$1');
+  }
+
+  const matches = w.match(/[aeiouy]+/g);
+  return Math.max(1, (matches ? matches.length : 0) + bonus);
 }
 
 /* ------------------------------------------------------------------ */
@@ -135,6 +174,19 @@ export function computeProseMetrics(text: string): ProseMetrics {
   });
   const adverbPercentage = wordCount > 0 ? (adverbs.length / wordCount) * 100 : 0;
 
+  // Flesch-Kincaid readability: 206.835 − 1.015×(words/sentences) − 84.6×(syllables/words)
+  const syllableCount = words.reduce((sum, w) => sum + countSyllables(w), 0);
+  const fleschKincaid = wordCount > 0 && sentenceCount > 0
+    ? 206.835 - 1.015 * (wordCount / sentenceCount) - 84.6 * (syllableCount / wordCount)
+    : 0;
+
+  // Sentence length standard deviation
+  const sentenceLengths = sentences.map(s => s.split(/\s+/).filter(w => w.length > 0).length);
+  const variance = sentenceCount > 0
+    ? sentenceLengths.reduce((sum, l) => sum + (l - avgSentenceLength) ** 2, 0) / sentenceCount
+    : 0;
+  const sentenceLengthStdDev = Math.sqrt(variance);
+
   return {
     wordCount,
     sentenceCount,
@@ -143,6 +195,8 @@ export function computeProseMetrics(text: string): ProseMetrics {
     emDashPer100Words,
     dialogueToNarrationRatio,
     adverbPercentage,
+    fleschKincaid,
+    sentenceLengthStdDev,
   };
 }
 
@@ -170,6 +224,23 @@ export function checkProseContent(
   const warnings: string[] = [];
   for (const v of heuristicViolations) {
     warnings.push(`Prose warning: [${v.ruleId}] ${v.message}. Suggestion: ${v.fix}`);
+  }
+
+  // Metric threshold warnings — informational only, never block verify
+  if (metrics.wordCount >= 50 && metrics.fleschKincaid < 35) {
+    warnings.push(
+      `Readability score ${metrics.fleschKincaid.toFixed(0)} (Flesch-Kincaid target: 60+) — prose may be too dense. Use shorter sentences and simpler words.`,
+    );
+  }
+  if (metrics.wordCount > 100 && metrics.uniqueWordRatio < 0.50) {
+    warnings.push(
+      `Low vocabulary variety: ${(metrics.uniqueWordRatio * 100).toFixed(0)}% unique words — vary your word choices.`,
+    );
+  }
+  if (metrics.dialogueToNarrationRatio > 0.65) {
+    warnings.push(
+      `Scene is ${(metrics.dialogueToNarrationRatio * 100).toFixed(0)}% dialogue — add grounding prose between exchanges.`,
+    );
   }
 
   return { warnings, metrics };

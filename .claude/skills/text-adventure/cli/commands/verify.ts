@@ -526,6 +526,8 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
 
   let failures: string[];
   let checks: Array<() => void>;
+  let proseWarnings: string[] = [];
+  let proseMetrics: Record<string, number> | null = null;
 
   if (widgetType === 'scenario') {
     failures = [];
@@ -570,7 +572,10 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
       () => checkQuestPanelIntegrity(html, failures),
       () => checkMapPanelContent(html, failures),
       () => checkLevelUpIntegrity(state, failures),
-      () => checkProseContent(html, failures),
+      () => {
+        const r = checkProseContent(html, failures);
+        if (r) { proseWarnings = r.warnings; proseMetrics = r.metrics as unknown as Record<string, number>; }
+      },
     ];
   }
 
@@ -599,6 +604,8 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
     widgetType,
     scene: state.scene,
     failures,
+    ...(proseWarnings.length > 0 ? { proseWarnings } : {}),
+    ...(proseMetrics ? { proseMetrics } : {}),
     checks: TOTAL_CHECKS,
     htmlChars: html.length,
     ...(widgetType === 'rules' && state._loreDefaults ? { loreDefaults: state._loreDefaults } : {}),

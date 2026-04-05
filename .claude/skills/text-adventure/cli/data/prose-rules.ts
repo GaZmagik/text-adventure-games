@@ -45,6 +45,8 @@ export type ProseMetrics = {
   readonly emDashPer100Words: number;
   readonly dialogueToNarrationRatio: number;
   readonly adverbPercentage: number;
+  readonly fleschKincaid: number;
+  readonly sentenceLengthStdDev: number;
 };
 
 /* ------------------------------------------------------------------ */
@@ -57,6 +59,21 @@ export const NON_ADVERBS: ReadonlySet<string> = new Set([
   'holy', 'daily', 'rally', 'belly', 'bully', 'jelly', 'tally',
   'fly', 'reply', 'supply', 'apply', 'multiply', 'imply', 'ally',
   'assembly', 'anomaly', 'italy', 'lily', 'folly', 'jolly', 'melancholy',
+]);
+
+/** Common function words excluded from repetition window and n-gram checks. */
+export const STOPWORDS: ReadonlySet<string> = new Set([
+  'a', 'an', 'the', 'and', 'or', 'but', 'if', 'in', 'on', 'at', 'to', 'for',
+  'of', 'with', 'by', 'from', 'up', 'about', 'into', 'through', 'during',
+  'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had',
+  'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might',
+  'shall', 'can', 'not', 'also', 'just', 'more', 'most', 'very', 'some',
+  'than', 'then', 'when', 'where', 'who', 'what', 'which', 'how', 'that',
+  'this', 'these', 'those', 'such', 'each', 'both', 'all', 'any', 'own',
+  'same', 'so', 'yet', 'nor', 'after', 'before', 'since', 'while', 'until',
+  // Personal pronouns (short ones filtered by length < 4; longer ones need explicit exclusion)
+  'they', 'them', 'their', 'theirs', 'your', 'yours', 'ours', 'itself',
+  'herself', 'himself', 'themselves', 'ourselves', 'yourself', 'yourselves',
 ]);
 
 /** Number words mapped to their numeric value — for word-count mismatch detection. */
@@ -326,5 +343,82 @@ export const HEURISTIC_RULES: readonly HeuristicRule[] = [
       return [];
     },
     fix: 'Rewrite passive constructions in active voice: "The alarm shrieks" not "The alarm was heard".',
+  },
+  {
+    id: 'paragraph-density',
+    name: 'Dense paragraph',
+    severity: 'warning',
+    check(text) {
+      const paragraphs = text.split(/\n\n+/).filter(p => p.trim().length > 0);
+      const violations: string[] = [];
+      for (let i = 0; i < paragraphs.length; i++) {
+        const wc = paragraphs[i].trim().split(/\s+/).length;
+        if (wc > 100) {
+          violations.push(`Paragraph ${i + 1} is ${wc} words — break it up to aid readability.`);
+        }
+      }
+      return violations;
+    },
+    fix: 'Split paragraphs longer than 100 words. Each paragraph should develop a single beat or image.',
+  },
+  {
+    id: 'word-repetition-window',
+    name: 'Word repetition within 80-word window',
+    severity: 'warning',
+    check(text) {
+      const words = text.toLowerCase()
+        .split(/\s+/)
+        .map(w => w.replace(/[^a-z'-]/g, '').replace(/^'+|'+$/g, ''));
+      const violations: string[] = [];
+      const reported = new Set<string>();
+
+      for (let i = 0; i < words.length; i++) {
+        const word = words[i];
+        if (!word || word.length < 4 || STOPWORDS.has(word) || reported.has(word)) continue;
+        const windowEnd = Math.min(words.length, i + 80);
+        let count = 0;
+        for (let j = i; j < windowEnd; j++) {
+          if (words[j] === word) count++;
+        }
+        if (count >= 3) {
+          reported.add(word);
+          violations.push(`"${word}" appears ${count} times within 80 words — vary your vocabulary.`);
+          if (violations.length >= 3) break;
+        }
+      }
+      return violations;
+    },
+    fix: 'Replace repeated words with synonyms or restructure sentences to avoid echo.',
+  },
+  {
+    id: 'ngram-repetition',
+    name: 'Repeated phrase (bigram)',
+    severity: 'warning',
+    check(text) {
+      const words = text.toLowerCase()
+        .split(/\s+/)
+        .map(w => w.replace(/[^a-z'-]/g, '').replace(/^'+|'+$/g, ''))
+        .filter(w => w.length > 0);
+      if (words.length < 10) return [];
+
+      const bigrams = new Map<string, number>();
+      for (let i = 0; i < words.length - 1; i++) {
+        const a = words[i], b = words[i + 1];
+        if (STOPWORDS.has(a) && STOPWORDS.has(b)) continue;
+        if (a.length < 3 || b.length < 3) continue;
+        const key = `${a} ${b}`;
+        bigrams.set(key, (bigrams.get(key) ?? 0) + 1);
+      }
+
+      const violations: string[] = [];
+      for (const [phrase, count] of bigrams) {
+        if (count >= 3) {
+          violations.push(`Phrase "${phrase}" repeated ${count} times — vary your phrasing.`);
+          if (violations.length >= 3) break;
+        }
+      }
+      return violations;
+    },
+    fix: 'Reword repeated phrases. Repetition can be intentional for rhythm, but should be deliberate.',
   },
 ];

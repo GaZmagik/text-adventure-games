@@ -4,6 +4,7 @@ import {
   splitSentences,
   splitParagraphs,
   countWords,
+  countSyllables,
   evaluatePatternRules,
   evaluateHeuristicRules,
   computeProseMetrics,
@@ -45,6 +46,15 @@ describe('extractNarrativeText', () => {
     const text = extractNarrativeText(html);
     expect(text).toContain('First block.');
     expect(text).toContain('Second block.');
+  });
+
+  test('preserves paragraph boundaries from <p> tags as double newlines', () => {
+    const html = '<div id="narrative"><p>First paragraph.</p><p>Second paragraph.</p></div>';
+    const text = extractNarrativeText(html);
+    expect(text).toContain('First paragraph.');
+    expect(text).toContain('Second paragraph.');
+    // The two paragraphs should be separated by a double newline
+    expect(text).toMatch(/First paragraph\.\s*\n\n\s*Second paragraph\./);
   });
 
   test('returns null when no narrative divs exist', () => {
@@ -662,5 +672,185 @@ describe('checkProseContent', () => {
     checkProseContent(html, failures);
     // Should have at least 2 failures (filter-words x2 + said-bookisms)
     expect(failures.length).toBeGreaterThanOrEqual(2);
+  });
+
+  test('warns when Flesch-Kincaid score is below threshold', () => {
+    const dense = 'The infrastructural consolidation necessitates comprehensive architectural recalibration consideration. ';
+    const html = `<div id="narrative"><p>${dense.repeat(8)}</p></div>`;
+    const failures: string[] = [];
+    const result = checkProseContent(html, failures);
+    expect(result!.warnings.some(w => /readability|flesch/i.test(w))).toBe(true);
+  });
+
+  test('warns when vocabulary variety is low', () => {
+    const html = `<div id="narrative"><p>${'the iron wall '.repeat(60)}</p></div>`;
+    const failures: string[] = [];
+    const result = checkProseContent(html, failures);
+    expect(result!.warnings.some(w => /vocabulary|unique/i.test(w))).toBe(true);
+  });
+
+  test('warns when scene is predominantly dialogue', () => {
+    const dialogue = '"Move along the corridor now," she said. "The passage is clear and completely safe." '
+      + '"Are you certain?" he asked. "Yes, I am certain," she said. "Then let us proceed at once," he said. '
+      + '"Fine, we will go now," she replied. "Lead the way," he said.';
+    const html = `<div id="narrative"><p>${dialogue}</p></div>`;
+    const failures: string[] = [];
+    const result = checkProseContent(html, failures);
+    expect(result!.warnings.some(w => /dialogue/i.test(w))).toBe(true);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/*  countSyllables                                                      */
+/* ------------------------------------------------------------------ */
+
+describe('countSyllables', () => {
+  test('single vowel group = 1 syllable', () => {
+    expect(countSyllables('deck')).toBe(1);
+    expect(countSyllables('run')).toBe(1);
+  });
+
+  test('words ≤ 3 chars return 1', () => {
+    expect(countSyllables('the')).toBe(1);
+    expect(countSyllables('cat')).toBe(1);
+  });
+
+  test('two syllables', () => {
+    expect(countSyllables('bulkhead')).toBe(2);
+    expect(countSyllables('simple')).toBe(2);
+    expect(countSyllables('battle')).toBe(2);
+  });
+
+  test('three syllables', () => {
+    expect(countSyllables('corridor')).toBe(3);
+    expect(countSyllables('disaster')).toBe(3);
+  });
+
+  test('four syllables', () => {
+    expect(countSyllables('procedural')).toBe(4);
+  });
+
+  test('empty string returns 0', () => {
+    expect(countSyllables('')).toBe(0);
+  });
+
+  test('handles uppercase input', () => {
+    expect(countSyllables('DECK')).toBe(1);
+    expect(countSyllables('CORRIDOR')).toBe(3);
+  });
+
+  test('strips punctuation from input', () => {
+    expect(countSyllables("can't")).toBe(1);
+    expect(countSyllables('corridor.')).toBe(3);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/*  computeProseMetrics — new fields                                    */
+/* ------------------------------------------------------------------ */
+
+describe('computeProseMetrics — FK and stddev', () => {
+  test('simple text has higher FK score than complex text', () => {
+    const simple = 'The cat sat. Dogs ran fast. Rain fell down.';
+    const complex = 'The infrastructural consolidation necessitates comprehensive architectural recalibration.';
+    expect(computeProseMetrics(simple).fleschKincaid).toBeGreaterThan(
+      computeProseMetrics(complex).fleschKincaid,
+    );
+  });
+
+  test('varied sentence lengths produce higher stddev than uniform', () => {
+    const uniform = 'The cat sat on mat. Dogs run on path. Rust fell from wall.';
+    const varied = 'Run. The corridor stretched for what seemed like an eternity, dripping with condensation.';
+    expect(computeProseMetrics(varied).sentenceLengthStdDev).toBeGreaterThan(
+      computeProseMetrics(uniform).sentenceLengthStdDev,
+    );
+  });
+
+  test('empty text returns zero for FK and stddev', () => {
+    const m = computeProseMetrics('');
+    expect(m.fleschKincaid).toBe(0);
+    expect(m.sentenceLengthStdDev).toBe(0);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/*  evaluateHeuristicRules — new rules                                  */
+/* ------------------------------------------------------------------ */
+
+describe('heuristic: paragraph-density', () => {
+  test('warns when paragraph exceeds 100 words', () => {
+    const long = Array(101).fill('word').join(' ');
+    const v = evaluateHeuristicRules(long, HEURISTIC_RULES);
+    expect(v.some(x => x.ruleId === 'paragraph-density')).toBe(true);
+  });
+
+  test('no warning for paragraphs under 100 words', () => {
+    const short = Array(50).fill('word').join(' ');
+    const v = evaluateHeuristicRules(short, HEURISTIC_RULES);
+    expect(v.some(x => x.ruleId === 'paragraph-density')).toBe(false);
+  });
+
+  test('reports each offending paragraph separately', () => {
+    const long = Array(101).fill('word').join(' ');
+    const v = evaluateHeuristicRules(`${long}\n\n${long}`, HEURISTIC_RULES);
+    expect(v.filter(x => x.ruleId === 'paragraph-density')).toHaveLength(2);
+  });
+});
+
+describe('heuristic: word-repetition-window', () => {
+  test('flags non-stopword repeated 3+ times within 80 words', () => {
+    const text = 'The corridor stretched ahead. The dark corridor turned. Past the corridor entrance. The old corridor ended.';
+    const v = evaluateHeuristicRules(text, HEURISTIC_RULES);
+    const match = v.find(x => x.ruleId === 'word-repetition-window');
+    expect(match).toBeDefined();
+    expect(match!.message).toContain('corridor');
+  });
+
+  test('does not flag stopwords', () => {
+    const text = Array(25).fill('the').join(' ') + '.';
+    expect(evaluateHeuristicRules(text, HEURISTIC_RULES).some(x => x.ruleId === 'word-repetition-window')).toBe(false);
+  });
+
+  test('does not flag words shorter than 4 chars', () => {
+    const text = 'run run run and ran ran ran but ran some more.';
+    expect(evaluateHeuristicRules(text, HEURISTIC_RULES).some(x => x.ruleId === 'word-repetition-window')).toBe(false);
+  });
+
+  test('no warning when word appears fewer than 3 times', () => {
+    const text = 'The corridor stretched ahead. A dark passage turned. Past the entrance hall. The old tunnel ended.';
+    expect(evaluateHeuristicRules(text, HEURISTIC_RULES).some(x => x.ruleId === 'word-repetition-window')).toBe(false);
+  });
+
+  test('does not flag common pronouns', () => {
+    // they/them/their/your all appear many times but are stopwords
+    const text = 'They moved through the ward. They found their gear. They told them what they knew. Your turn they said.';
+    expect(evaluateHeuristicRules(text, HEURISTIC_RULES).some(x => x.ruleId === 'word-repetition-window')).toBe(false);
+  });
+});
+
+describe('heuristic: ngram-repetition', () => {
+  test('flags bigram repeated 3+ times', () => {
+    // 'iron door' appears 3 times; 'the iron' only 2
+    const text = 'Push the iron door open. The iron door resisted. An old iron door blocked the way.';
+    const v = evaluateHeuristicRules(text, HEURISTIC_RULES);
+    const match = v.find(x => x.ruleId === 'ngram-repetition');
+    expect(match).toBeDefined();
+    expect(match!.message).toContain('iron door');
+  });
+
+  test('no warning when bigram appears fewer than 3 times', () => {
+    const text = 'Push the iron door open. The metal gate resisted. An old stone portal blocked the way.';
+    expect(evaluateHeuristicRules(text, HEURISTIC_RULES).some(x => x.ruleId === 'ngram-repetition')).toBe(false);
+  });
+
+  test('skips bigrams where both words are stopwords', () => {
+    // 'with that' — both stopwords, both > 3 chars
+    const text = 'Move forward with that speed. Run away with that force. Jump high with that power. Push on with that will.';
+    expect(evaluateHeuristicRules(text, HEURISTIC_RULES).some(x => x.ruleId === 'ngram-repetition')).toBe(false);
+  });
+
+  test('skips bigrams containing words shorter than 3 chars', () => {
+    const text = 'So it was. So it was. So it was. So it was.';
+    expect(evaluateHeuristicRules(text, HEURISTIC_RULES).some(x => x.ruleId === 'ngram-repetition')).toBe(false);
   });
 });
