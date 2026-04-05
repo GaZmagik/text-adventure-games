@@ -30,6 +30,14 @@ import {
   checkInGameWidget,
 } from '../lib/verify-checks';
 import { checkProseContent } from '../lib/prose-checks';
+import {
+  checkCodexEntryCount,
+  checkShipPanelContent,
+  checkCrewPanelContent,
+  checkQuestPanelIntegrity,
+  checkMapPanelContent,
+  checkLevelUpIntegrity,
+} from '../lib/panel-checks';
 
 /** Compute a signed workflow marker.
  *  Format: scene:timestamp:fnv32('tag-cli-gate:' + scene + ':' + timestamp)
@@ -556,6 +564,12 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
       () => checkActionCardStatNames(html, failures),
       () => checkActionCardDcValues(html, state, failures),
       () => checkButtonTitleStructure(html, failures),
+      () => checkCodexEntryCount(html, failures),
+      () => checkShipPanelContent(html, failures),
+      () => checkCrewPanelContent(html, failures),
+      () => checkQuestPanelIntegrity(html, failures),
+      () => checkMapPanelContent(html, failures),
+      () => checkLevelUpIntegrity(state, failures),
       () => checkProseContent(html, failures),
     ];
   }

@@ -192,12 +192,54 @@ describe('state/sync', () => {
       inventory: [], conditions: [], equipment: { weapon: 'blaster', armour: 'light' },
     });
     await handleState(['set', 'character', char]);
+    // Mark level 2 as properly computed so XP-threshold check runs (not manual-bump check)
+    await handleState(['set', '_computedLevel', '2']);
 
     const result = await handleSync([]);
     expect(result.ok).toBe(true);
     const data = result.data as Record<string, unknown>;
     const warnings = data.warnings as string[];
     expect(warnings.some(w => w.includes('Level-up') && w.includes('level 3'))).toBe(true);
+  });
+
+  test('warns when character.level was manually bumped without compute levelup', async () => {
+    await handleState(['reset']);
+    const char = JSON.stringify({
+      name: 'Kael', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
+      level: 3, xp: 0, currency: 0, currencyName: 'credits',
+      stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+      modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+      proficiencyBonus: 2, proficiencies: [], abilities: [],
+      inventory: [], conditions: [], equipment: { weapon: 'knife', armour: 'vest' },
+    });
+    await handleState(['set', 'character', char]);
+    // _computedLevel is absent (defaults to 1); character.level=3 → mismatch
+
+    const result = await handleSync([]);
+    const data = result.data as Record<string, unknown>;
+    const warnings = data.warnings as string[];
+    expect(warnings.some(w => w.includes('tag compute levelup'))).toBe(true);
+  });
+
+  test('sets _levelupPending when manual level bump detected (persisted via --apply)', async () => {
+    await handleState(['reset']);
+    const char = JSON.stringify({
+      name: 'Kael', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
+      level: 2, xp: 0, currency: 0, currencyName: 'credits',
+      stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+      modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+      proficiencyBonus: 2, proficiencies: [], abilities: [],
+      inventory: [], conditions: [], equipment: { weapon: 'knife', armour: 'vest' },
+    });
+    await handleState(['set', 'character', char]);
+    // _computedLevel absent → defaults to 1; character.level=2 → manual bump detected
+    // scene=0 so apply gate is skipped
+
+    const result = await handleSync(['--apply']);
+    expect(result.ok).toBe(true);
+
+    const state = await loadState();
+    expect(state._levelupPending).toBe(true);
   });
 
   test('detects NPC reference gap', async () => {

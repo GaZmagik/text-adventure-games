@@ -137,6 +137,19 @@ function checkQuestWorldFlagSync(state: GmState, warnings: string[]): void {
 function checkLevelUpEligibility(state: GmState, warnings: string[]): void {
   if (state.character) {
     const { level, xp } = state.character;
+    const computedLevel = state._computedLevel ?? 1;
+
+    // Detect manual level bump — GM set character.level without running compute levelup
+    if (level > computedLevel) {
+      state._levelupPending = true;
+      warnings.push(
+        `Character is level ${level} but \`tag compute levelup\` only reached level ${computedLevel}. `
+        + 'Level-up rewards (HP, proficiency, attributes) were not applied. '
+        + 'Run `tag compute levelup` to apply rewards, or set `_computedLevel` to match.',
+      );
+      return;
+    }
+
     const nextThreshold = XP_THRESHOLDS.find(threshold => threshold.level === level + 1);
     if (nextThreshold && xp >= nextThreshold.xp) {
       state._levelupPending = true;

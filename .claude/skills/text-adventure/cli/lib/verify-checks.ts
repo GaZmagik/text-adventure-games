@@ -78,6 +78,25 @@ export function extractDivBlockByClass(html: string, className: string): string 
   return null;
 }
 
+export function extractPanelContent(html: string, panelName: string): string | null {
+  const escaped = panelName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const opener = new RegExp(`<div\\b[^>]*\\bdata-panel\\s*=\\s*(['"])${escaped}\\1[^>]*>`, 'i').exec(html);
+  if (!opener || opener.index === undefined) return null;
+
+  const tagPattern = /<\/?div\b[^>]*>/gi;
+  tagPattern.lastIndex = opener.index + opener[0].length;
+  let depth = 1;
+  let match: RegExpExecArray | null;
+
+  while ((match = tagPattern.exec(html)) !== null) {
+    if (match[0].startsWith('</')) depth--;
+    else depth++;
+    if (depth === 0) return html.slice(opener.index, tagPattern.lastIndex);
+  }
+
+  return null;
+}
+
 export function stripHtml(raw: string): string {
   return raw
     .replace(/<!--[\s\S]*?-->/g, ' ')

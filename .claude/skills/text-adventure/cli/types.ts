@@ -354,6 +354,7 @@ export type GmState = {
   _styleReadEpoch?: number;
   _turnCount?: number;
   _levelupPending?: boolean;
+  _computedLevel?: number;
   authoredBody?: string;
   outputStyle?: string;
   pacingProfile?: 'fast' | 'normal' | 'slow';

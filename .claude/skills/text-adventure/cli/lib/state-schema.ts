@@ -259,6 +259,7 @@ export const GM_STATE_SHAPE: StateShape = object({
   _proseCraftEpoch: leaf(),
   _styleReadEpoch: leaf(),
   _levelupPending: leaf(),
+  _computedLevel: leaf(),
   authoredBody: leaf(),
   outputStyle: leaf(),
   pacingProfile: leaf(),

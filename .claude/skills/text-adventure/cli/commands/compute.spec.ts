@@ -629,6 +629,24 @@ describe('compute levelup', () => {
     const after = await loadState();
     expect(after.character!.proficiencyBonus).toBe(2);
   });
+
+  test('sets _computedLevel to new level', async () => {
+    // Default setup in beforeEach has level 3, xp 500 → levels to 4
+    await handleCompute(['levelup']);
+    const state = await loadState();
+    expect(state._computedLevel).toBe(4);
+  });
+
+  test('clears _levelupPending after successful levelup', async () => {
+    const s = await loadState();
+    s._levelupPending = true;
+    await saveState(s);
+
+    await handleCompute(['levelup']);
+
+    const after = await loadState();
+    expect(after._levelupPending).toBe(false);
+  });
 });
 
 // ── T8: Contest validation ────────────────────────────────────────────
