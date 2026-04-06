@@ -371,7 +371,7 @@ describe('extractSpeakerUtterances', () => {
     const text = 'Orin said, "We leave at dawn." Orin said, "No more delays now."';
     const map = extractSpeakerUtterances(text);
     expect(map.has('Orin')).toBe(true);
-    expect(map.get('Orin')!.length).toBeGreaterThanOrEqual(1);
+    expect(map.get('Orin')!.length).toBe(3);
   });
 
   test('handles multiple speakers', () => {

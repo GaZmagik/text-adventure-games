@@ -5,6 +5,10 @@ import { tryLoadState, saveState } from '../lib/state-store';
 const VALID_PROSE_MODES = ['llm', 'manual'] as const;
 type ProseMode = typeof VALID_PROSE_MODES[number];
 
+function isProseMode(v: string): v is ProseMode {
+  return (VALID_PROSE_MODES as readonly string[]).includes(v);
+}
+
 export async function handleSettings(args: string[]): Promise<CommandResult> {
   const subcommand = args[0];
 
@@ -18,10 +22,20 @@ export async function handleSettings(args: string[]): Promise<CommandResult> {
 
   const modeArg = args[1];
 
+  // Validate mode before loading state (no I/O needed for validation)
+  if (modeArg && !isProseMode(modeArg)) {
+    return fail(
+      `Unknown mode "${modeArg}".`,
+      'Use: llm or manual',
+      'settings',
+    );
+  }
+
+  const state = await tryLoadState();
+  if (!state) return noState('settings');
+
   // Read current mode (no mutation)
   if (!modeArg) {
-    const state = await tryLoadState();
-    if (!state) return noState('settings');
     const currentMode = state.worldFlags.proseMode === 'llm' ? 'llm' : 'manual';
     return ok({
       mode: currentMode,
@@ -30,19 +44,7 @@ export async function handleSettings(args: string[]): Promise<CommandResult> {
     }, 'settings');
   }
 
-  // Validate mode
-  if (!(VALID_PROSE_MODES as readonly string[]).includes(modeArg)) {
-    return fail(
-      `Unknown mode "${modeArg}".`,
-      'Use: llm or manual',
-      'settings',
-    );
-  }
-
-  const mode = modeArg as ProseMode;
-
-  const state = await tryLoadState();
-  if (!state) return noState('settings');
+  const mode = modeArg;
 
   state.worldFlags.proseMode = mode;
   await saveState(state);

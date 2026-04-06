@@ -209,12 +209,22 @@ describe('tag prose-gate --llm (overall FAIL even if rules look fine)', () => {
     const result = await handleProseGate(['--llm', path]);
     expect(result.ok).toBe(true);
     expect((result.data as { verified: boolean }).verified).toBe(false);
+    const data = result.data as { failures: string[] };
+    expect(Array.isArray(data.failures)).toBe(true);
+    expect(data.failures.length).toBeGreaterThan(0);
+    expect(data.failures[0]).toContain('[overall] FAIL');
   });
 });
 
 // ── --llm error cases ─────────────────────────────────────────────
 
 describe('tag prose-gate --llm error cases', () => {
+  test('returns fail when --llm given but no path', async () => {
+    const result = await handleProseGate(['--llm']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toMatch(/missing result file path/i);
+  });
+
   test('returns fail when result file is missing', async () => {
     const result = await handleProseGate(['--llm', join(tempDir, 'nonexistent.json')]);
     expect(result.ok).toBe(false);
@@ -268,6 +278,18 @@ describe('--llm shape validation', () => {
     const result = await handleProseGate(['--llm', path]);
     expect(result.ok).toBe(false);
     expect(result.error?.message).toMatch(/missing required fields/i);
+  });
+
+  test('rejects JSON where a rule entry has result: null', async () => {
+    const path = writeResultFile(JSON.stringify({
+      overall: 'PASS',
+      rules: { voice_differentiation: { result: null } },
+      total_pass: 0,
+      total_fail: 0,
+    }));
+    const result = await handleProseGate(['--llm', path]);
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toMatch(/malformed rule/i);
   });
 });
 

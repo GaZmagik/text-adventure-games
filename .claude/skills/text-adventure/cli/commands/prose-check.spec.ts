@@ -2,6 +2,9 @@ import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
 import { mkdtempSync, rmSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+
+const EXPECTED_INPUT_FILE = join(tmpdir(), 'prose-check-input.txt');
+const EXPECTED_OUTPUT_FILE = join(tmpdir(), 'prose-check-result.json');
 import { handleProseCheck } from './prose-check';
 import { handleState } from './state';
 import { tryLoadState, saveState } from '../lib/state-store';
@@ -67,6 +70,7 @@ describe('tag prose-check manual mode (default)', () => {
       expect(typeof item.question).toBe('string');
       expect(item.question.length).toBeGreaterThan(0);
     }
+    expect(data.checklist.map((i: { id: string }) => i.id)).toContain('voice_differentiation');
   });
 
   test('data.proseExtracted is true', async () => {
@@ -78,7 +82,7 @@ describe('tag prose-check manual mode (default)', () => {
   test('data.wordCount is a positive number', async () => {
     const path = writeTempHtml(narrativeHtml);
     const result = await handleProseCheck([path]);
-    expect((result.data as { wordCount: number }).wordCount).toBeGreaterThan(0);
+    expect((result.data as { wordCount: number }).wordCount).toBe(24);
   });
 });
 
@@ -144,28 +148,30 @@ describe('tag prose-check llm mode', () => {
     expect(command).toContain('exposition_dump');
     expect(command).toContain('--json-schema');
     expect(command).toContain('--system-prompt');
-    expect(command).toContain('< /tmp/prose-check-input.txt');
-    expect(command).toContain('> /tmp/prose-check-result.json');
+    expect(command).toContain("< '");
+    expect(command).toContain("prose-check-input.txt'");
+    expect(command).toContain("' >");
+    expect(command).toContain("prose-check-result.json'");
   });
 
-  test('data.inputFile is /tmp/prose-check-input.txt', async () => {
+  test('data.inputFile points to temp prose-check-input.txt', async () => {
     const state = await tryLoadState();
     state!.worldFlags.proseMode = 'llm';
     await saveState(state!);
 
     const path = writeTempHtml(narrativeHtml);
     const result = await handleProseCheck([path]);
-    expect((result.data as { inputFile: string }).inputFile).toBe('/tmp/prose-check-input.txt');
+    expect((result.data as { inputFile: string }).inputFile).toBe(EXPECTED_INPUT_FILE);
   });
 
-  test('data.outputFile is /tmp/prose-check-result.json', async () => {
+  test('data.outputFile points to temp prose-check-result.json', async () => {
     const state = await tryLoadState();
     state!.worldFlags.proseMode = 'llm';
     await saveState(state!);
 
     const path = writeTempHtml(narrativeHtml);
     const result = await handleProseCheck([path]);
-    expect((result.data as { outputFile: string }).outputFile).toBe('/tmp/prose-check-result.json');
+    expect((result.data as { outputFile: string }).outputFile).toBe(EXPECTED_OUTPUT_FILE);
   });
 
   test('data.nextStep contains prose-gate command and output file', async () => {
@@ -179,7 +185,7 @@ describe('tag prose-check llm mode', () => {
     expect(typeof nextStep).toBe('string');
     expect(nextStep.length).toBeGreaterThan(0);
     expect(nextStep).toContain('prose-gate --llm');
-    expect(nextStep).toContain('/tmp/prose-check-result.json');
+    expect(nextStep).toContain('prose-check-result.json');
   });
 
   test('writes narrative text to input file', async () => {
@@ -189,8 +195,8 @@ describe('tag prose-check llm mode', () => {
 
     const path = writeTempHtml(narrativeHtml);
     await handleProseCheck([path]);
-    expect(existsSync('/tmp/prose-check-input.txt')).toBe(true);
-    const content = await Bun.file('/tmp/prose-check-input.txt').text();
+    expect(existsSync(EXPECTED_INPUT_FILE)).toBe(true);
+    const content = await Bun.file(EXPECTED_INPUT_FILE).text();
     expect(content).toContain('corridor stretched ahead');
     expect(content).not.toContain('<div');
     expect(content).not.toContain('<script');
@@ -222,10 +228,10 @@ describe('tag prose-check error cases', () => {
   });
 
   test('rejects path traversal in file path', async () => {
-    const result = await handleProseCheck(['/etc/passwd.html']);
+    // /etc/passwd exists outside allowed dirs — triggers isAllowedPath rejection
+    const result = await handleProseCheck(['/etc/passwd']);
     expect(result.ok).toBe(false);
-    // Either invalid path format or file not found — both are correct rejections
-    expect(result.error?.message).toBeTruthy();
+    expect(result.error?.message).toMatch(/path must be within/i);
   });
 
   test('returns fail when no state exists', async () => {

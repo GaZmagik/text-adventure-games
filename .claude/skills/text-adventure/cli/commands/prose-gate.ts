@@ -1,7 +1,7 @@
 import type { CommandResult } from '../types';
 import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState } from '../lib/state-store';
-import { resolveSafeReadPath } from '../lib/path-security';
+import { resolveSafeReadPath, readSafeTextFile } from '../lib/path-security';
 
 // ── Types ─────────────────────────────────────────────────────────
 
@@ -18,6 +18,17 @@ type ProseReviewOutput = {
   total_fail: number;
   overall: 'PASS' | 'FAIL';
 };
+
+// ── Type guards ───────────────────────────────────────────────────
+
+function isRuleResult(v: unknown): v is RuleResult {
+  return (
+    typeof v === 'object' &&
+    v !== null &&
+    typeof (v as Record<string, unknown>)['result'] === 'string' &&
+    ((v as Record<string, unknown>)['result'] === 'PASS' || (v as Record<string, unknown>)['result'] === 'FAIL')
+  );
+}
 
 // ── Handler ───────────────────────────────────────────────────────
 
@@ -72,15 +83,9 @@ export async function handleProseGate(args: string[]): Promise<CommandResult> {
     return fail(msg, 'Run: tag prose-check <scene-path> to generate the LLM command first.', 'prose-gate');
   }
 
-  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
-  const fileStat = Bun.file(resultPath).size;
-  if (fileStat > MAX_FILE_SIZE) {
-    return fail(`Result file too large: ${resultPath} (${fileStat} bytes, max 10 MB).`, 'This is not a valid prose review result.', 'prose-gate');
-  }
-
   let parsed: unknown;
   try {
-    const raw = await Bun.file(resultPath).text();
+    const raw = await readSafeTextFile(resultPath, 'Prose gate result');
     parsed = JSON.parse(raw);
   } catch (err) {
     const msg = err instanceof SyntaxError ? 'Malformed JSON in result file.' : `Could not read result file: ${err instanceof Error ? err.message : String(err)}`;
@@ -88,14 +93,31 @@ export async function handleProseGate(args: string[]): Promise<CommandResult> {
   }
 
   // Shape validation — guard against well-formed JSON with wrong structure
+  if (typeof parsed !== 'object' || parsed === null) {
+    return fail('Result JSON missing required fields (rules, overall).', `Check the file at: ${resultPath}`, 'prose-gate');
+  }
+
+  const candidate = parsed as Record<string, unknown>;
+
   if (
-    typeof parsed !== 'object' || parsed === null ||
-    typeof (parsed as Record<string, unknown>).overall !== 'string' ||
-    typeof (parsed as Record<string, unknown>).rules !== 'object' || (parsed as Record<string, unknown>).rules === null ||
-    Array.isArray((parsed as Record<string, unknown>).rules) ||
-    Object.keys((parsed as Record<string, unknown>).rules as object).length === 0
+    typeof candidate['overall'] !== 'string' ||
+    typeof candidate['rules'] !== 'object' || candidate['rules'] === null ||
+    Array.isArray(candidate['rules']) ||
+    Object.keys(candidate['rules'] as object).length === 0
   ) {
     return fail('Result JSON missing required fields (rules, overall).', `Check the file at: ${resultPath}`, 'prose-gate');
+  }
+
+  // Per-rule type validation — guard against null/non-string result values
+  const rulesObj = candidate['rules'] as Record<string, unknown>;
+  for (const [ruleId, ruleEntry] of Object.entries(rulesObj)) {
+    if (!isRuleResult(ruleEntry)) {
+      return fail(
+        `Malformed rule entry "${ruleId}": result must be "PASS" or "FAIL".`,
+        'Check the LLM result file format.',
+        'prose-gate',
+      );
+    }
   }
 
   const validParsed = parsed as ProseReviewOutput;

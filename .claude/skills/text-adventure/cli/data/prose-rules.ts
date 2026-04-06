@@ -1,5 +1,6 @@
-// Data-driven prose rule definitions for deterministic content analysis.
-// Pure types + constants — no runtime logic. Rules are evaluated by prose-checks.ts.
+// Prose rule definitions for deterministic content analysis. Pattern rules are declarative; heuristic rules contain evaluation logic.
+
+import { splitSentences, splitParagraphs } from '../lib/text-utils';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -202,13 +203,20 @@ export const PATTERN_RULES: readonly PatternRule[] = [
         paraStart < 2 ? 0 : paraStart,
         paraEndRel >= 0 ? match.index + paraEndRel : text.length,
       );
-      const dashCount = (paragraph.match(/\u2014/g) || []).length;
+      // Single walk: count em-dashes and find first offset simultaneously
+      let emDashCount = 0;
+      let firstOffset = -1;
+      let idx = paragraph.indexOf('\u2014');
+      while (idx !== -1) {
+        if (firstOffset === -1) firstOffset = idx;
+        emDashCount++;
+        idx = paragraph.indexOf('\u2014', idx + 1);
+      }
       // Only flag if this paragraph has >2 em-dashes AND this is the first em-dash
       // (so we report once per paragraph, not once per dash)
-      if (dashCount <= 2) return false;
-      const firstDashInPara = paragraph.indexOf('\u2014');
+      if (emDashCount <= 2) return false;
       const offsetInPara = match.index - (paraStart < 2 ? 0 : paraStart);
-      return offsetInPara === firstDashInPara;
+      return offsetInPara === firstOffset;
     },
     fix: 'Limit to 2 em-dashes per paragraph. Replace extras with commas, semicolons, or full stops.',
   },
@@ -291,7 +299,7 @@ export const HEURISTIC_RULES: readonly HeuristicRule[] = [
     name: 'Sentence length uniformity',
     severity: 'warning',
     check(text) {
-      const sentences = text.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
+      const sentences = splitSentences(text);
       if (sentences.length < 4) return [];
       const lengths = sentences.map(s => s.split(/\s+/).length);
       const violations: string[] = [];
@@ -314,7 +322,7 @@ export const HEURISTIC_RULES: readonly HeuristicRule[] = [
     name: 'Paragraph opener repetition',
     severity: 'warning',
     check(text) {
-      const paragraphs = text.split(/\n\n+/).filter(p => p.trim().length > 0);
+      const paragraphs = splitParagraphs(text);
       if (paragraphs.length < 3) return [];
       const openers = paragraphs.map(p => {
         const firstWord = p.trim().split(/\s+/)[0]?.toLowerCase().replace(/[^a-z]/g, '');
@@ -352,7 +360,7 @@ export const HEURISTIC_RULES: readonly HeuristicRule[] = [
     name: 'Passive voice density',
     severity: 'warning',
     check(text) {
-      const sentences = text.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
+      const sentences = splitSentences(text);
       if (sentences.length < 5) return [];
       const passivePattern = /\b(was|were|is|are|been|being)\s+\w+ed\b/i;
       const passiveCount = sentences.filter(s => passivePattern.test(s)).length;
@@ -369,7 +377,7 @@ export const HEURISTIC_RULES: readonly HeuristicRule[] = [
     name: 'Dense paragraph',
     severity: 'warning',
     check(text) {
-      const paragraphs = text.split(/\n\n+/).filter(p => p.trim().length > 0);
+      const paragraphs = splitParagraphs(text);
       const violations: string[] = [];
       for (let i = 0; i < paragraphs.length; i++) {
         const wc = paragraphs[i]!.trim().split(/\s+/).length;
@@ -386,24 +394,24 @@ export const HEURISTIC_RULES: readonly HeuristicRule[] = [
     name: 'Word repetition within 80-word window',
     severity: 'warning',
     check(text) {
-      const words = text.toLowerCase()
-        .split(/\s+/)
-        .map(w => w.replace(/[^a-z'-]/g, '').replace(/^'+|'+$/g, ''));
+      const words = (text.toLowerCase().match(/\b[a-z]{4,}\b/g) ?? []).filter(w => !STOPWORDS.has(w));
+      const WINDOW = 150;
+      const THRESHOLD = 3;
+      const windowMap = new Map<string, number>();
       const violations: string[] = [];
-      const reported = new Set<string>();
 
       for (let i = 0; i < words.length; i++) {
-        const word = words[i];
-        if (!word || word.length < 4 || STOPWORDS.has(word) || reported.has(word)) continue;
-        const windowEnd = Math.min(words.length, i + 80);
-        let count = 0;
-        for (let j = i; j < windowEnd; j++) {
-          if (words[j] === word) count++;
+        const word = words[i]!;
+        const count = (windowMap.get(word) ?? 0) + 1;
+        windowMap.set(word, count);
+        if (count === THRESHOLD) {
+          violations.push(`'${word}' repeated ${count} times in a 150-word window.`);
         }
-        if (count >= 3) {
-          reported.add(word);
-          violations.push(`"${word}" appears ${count} times within 80 words — vary your vocabulary.`);
-          if (violations.length >= 3) break;
+        if (i >= WINDOW) {
+          const old = words[i - WINDOW]!;
+          const oldCount = windowMap.get(old)!;
+          if (oldCount === 1) windowMap.delete(old);
+          else windowMap.set(old, oldCount - 1);
         }
       }
       return violations;
@@ -461,7 +469,7 @@ export const HEURISTIC_RULES: readonly HeuristicRule[] = [
     name: 'Single paragraph block',
     severity: 'warning',
     check(text) {
-      const paragraphs = text.split(/\n\n+/).filter(p => p.trim().length > 0);
+      const paragraphs = splitParagraphs(text);
       if (paragraphs.length > 1) return [];
       const words = text.trim().split(/\s+/).filter(w => w.length > 0);
       if (words.length > 80) {

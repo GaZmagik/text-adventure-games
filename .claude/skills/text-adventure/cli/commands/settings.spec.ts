@@ -42,13 +42,6 @@ describe('tag settings prose llm', () => {
     const state = await tryLoadState();
     expect(state!.worldFlags.proseMode).toBe('llm');
   });
-
-  test('persistence survives reload', async () => {
-    await handleSettings(['prose', 'llm']);
-    // Second independent load confirms disk write
-    const state = await tryLoadState();
-    expect(state!.worldFlags.proseMode).toBe('llm');
-  });
 });
 
 // ── tag settings prose manual ──────────────────────────────────────

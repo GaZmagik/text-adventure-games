@@ -1,6 +1,8 @@
 // Deterministic prose content analysis engine — no LLM dependency.
 // Evaluates narrative text against data-driven rules from prose-rules.ts.
 
+import { splitSentences, splitParagraphs } from './text-utils';
+export { splitSentences, splitParagraphs };
 import {
   PATTERN_RULES,
   HEURISTIC_RULES,
@@ -74,15 +76,6 @@ export function countSyllables(word: string): number {
 /*  Splitting utilities                                                */
 /* ------------------------------------------------------------------ */
 
-export function splitSentences(text: string): string[] {
-  if (!text.trim()) return [];
-  return text.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
-}
-
-export function splitParagraphs(text: string): string[] {
-  return text.split(/\n\n+/).filter(p => p.trim().length > 0);
-}
-
 export function countWords(text: string): number {
   const trimmed = text.trim();
   if (!trimmed) return 0;
@@ -93,7 +86,7 @@ export function countWords(text: string): number {
 /*  Tier 1: Pattern rule evaluation                                    */
 /* ------------------------------------------------------------------ */
 
-// Pre-compiled pattern rule regexes — keyed by rule id to avoid re-compilation on each call.
+// Cloned pattern regexes keyed by rule id. Clones prevent lastIndex mutations on shared rule definitions.
 const COMPILED_PATTERN_RULES = new Map<string, RegExp>(
   PATTERN_RULES.map(rule => [rule.id, new RegExp(rule.pattern.source, rule.pattern.flags)]),
 );

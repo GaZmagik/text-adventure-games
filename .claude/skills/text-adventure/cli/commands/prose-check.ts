@@ -1,8 +1,10 @@
 import { writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import type { CommandResult } from '../types';
 import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState } from '../lib/state-store';
-import { resolveSafeReadPath } from '../lib/path-security';
+import { resolveSafeReadPath, readSafeTextFile } from '../lib/path-security';
 import { extractNarrativeText, countWords } from '../lib/prose-checks';
 
 // ── Baked-in constants ────────────────────────────────────────────
@@ -62,15 +64,15 @@ const MANUAL_CHECKLIST = [
   { id: 'redefinition_overuse', question: 'Does the "not X — Y" construction appear more than 2 times?' },
 ] as const;
 
-const INPUT_FILE = '/tmp/prose-check-input.txt';
-const OUTPUT_FILE = '/tmp/prose-check-result.json';
+const INPUT_FILE = join(tmpdir(), 'prose-check-input.txt');
+const OUTPUT_FILE = join(tmpdir(), 'prose-check-result.json');
 
 // ── Shell command builder ─────────────────────────────────────────
 
 function buildCommand(): string {
   const escapedPrompt = PROSE_REVIEW_PROMPT.replace(/'/g, "'\\''");
   const escapedSchema = PROSE_REVIEW_SCHEMA.replace(/'/g, "'\\''");
-  return `claude -p --model sonnet --permission-mode bypassPermissions --system-prompt '${escapedPrompt}' --json-schema '${escapedSchema}' < ${INPUT_FILE} > ${OUTPUT_FILE} 2>&1`;
+  return `claude -p --model sonnet --permission-mode bypassPermissions --system-prompt '${escapedPrompt}' --json-schema '${escapedSchema}' < '${INPUT_FILE}' > '${OUTPUT_FILE}' 2>&1`;
 }
 
 // ── Handler ───────────────────────────────────────────────────────
@@ -86,7 +88,7 @@ export async function handleProseCheck(args: string[]): Promise<CommandResult> {
   try {
     const resolved = resolveSafeReadPath(filePath, { kind: 'Prose check', extensions: ['.html', '.htm'] });
     if (!resolved) {
-      return fail(`Invalid file path: ${filePath}`, 'Path must start with /, ./, ../, or ~/ and end with .html or .htm.', 'prose-check');
+      return fail(`Invalid file path: ${filePath}`, 'Path must start with /, ./, ../, or ~/ or end with .html or .htm.', 'prose-check');
     }
     safePath = resolved;
   } catch (err) {
@@ -94,18 +96,12 @@ export async function handleProseCheck(args: string[]): Promise<CommandResult> {
     return fail(msg, 'Run tag render first to generate the scene HTML.', 'prose-check');
   }
 
-  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
-  const fileStat = Bun.file(safePath).size;
-  if (fileStat > MAX_FILE_SIZE) {
-    return fail(`File too large: ${filePath} (${fileStat} bytes, max 10 MB).`, 'Reduce scene file size.', 'prose-check');
-  }
-
   let html: string;
   try {
-    html = await Bun.file(safePath).text();
+    html = await readSafeTextFile(safePath, 'Prose check');
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    return fail(`Could not read file: ${msg}`, 'Check the file is accessible.', 'prose-check');
+    return fail(msg, 'Run tag render first to generate the scene HTML.', 'prose-check');
   }
 
   const state = await tryLoadState();
