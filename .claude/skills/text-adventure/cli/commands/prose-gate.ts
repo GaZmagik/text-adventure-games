@@ -72,10 +72,16 @@ export async function handleProseGate(args: string[]): Promise<CommandResult> {
     return fail(msg, 'Run: tag prose-check <scene-path> to generate the LLM command first.', 'prose-gate');
   }
 
-  let parsed: ProseReviewOutput;
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+  const fileStat = Bun.file(resultPath).size;
+  if (fileStat > MAX_FILE_SIZE) {
+    return fail(`Result file too large: ${resultPath} (${fileStat} bytes, max 10 MB).`, 'This is not a valid prose review result.', 'prose-gate');
+  }
+
+  let parsed: unknown;
   try {
     const raw = await Bun.file(resultPath).text();
-    parsed = JSON.parse(raw) as ProseReviewOutput;
+    parsed = JSON.parse(raw);
   } catch (err) {
     const msg = err instanceof SyntaxError ? 'Malformed JSON in result file.' : `Could not read result file: ${err instanceof Error ? err.message : String(err)}`;
     return fail(msg, `Check the file at: ${resultPath}`, 'prose-gate');
@@ -84,21 +90,25 @@ export async function handleProseGate(args: string[]): Promise<CommandResult> {
   // Shape validation — guard against well-formed JSON with wrong structure
   if (
     typeof parsed !== 'object' || parsed === null ||
-    typeof parsed.overall !== 'string' ||
-    typeof parsed.rules !== 'object' || parsed.rules === null
+    typeof (parsed as Record<string, unknown>).overall !== 'string' ||
+    typeof (parsed as Record<string, unknown>).rules !== 'object' || (parsed as Record<string, unknown>).rules === null ||
+    Array.isArray((parsed as Record<string, unknown>).rules) ||
+    Object.keys((parsed as Record<string, unknown>).rules as object).length === 0
   ) {
     return fail('Result JSON missing required fields (rules, overall).', `Check the file at: ${resultPath}`, 'prose-gate');
   }
+
+  const validParsed = parsed as ProseReviewOutput;
 
   const state = await tryLoadState();
   if (!state) return noState('prose-gate');
 
   // Collect failing rules
-  const failingRules = Object.entries(parsed.rules ?? {}).filter(
+  const failingRules = Object.entries(validParsed.rules).filter(
     ([, rule]) => rule.result === 'FAIL',
   );
 
-  const hasFailures = failingRules.length > 0 || parsed.overall !== 'PASS';
+  const hasFailures = failingRules.length > 0 || validParsed.overall !== 'PASS';
 
   if (hasFailures) {
     const failures = failingRules.map(([id, rule]) => {
@@ -109,7 +119,7 @@ export async function handleProseGate(args: string[]): Promise<CommandResult> {
     });
 
     // If overall is FAIL but no individual rules failed, add a generic entry
-    if (failures.length === 0 && parsed.overall === 'FAIL') {
+    if (failures.length === 0 && validParsed.overall === 'FAIL') {
       failures.push('[overall] FAIL: Review flagged as failed. Re-examine the prose.');
     }
 

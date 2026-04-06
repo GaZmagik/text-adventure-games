@@ -1,3 +1,4 @@
+import { writeFileSync } from 'node:fs';
 import type { CommandResult } from '../types';
 import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState } from '../lib/state-store';
@@ -93,10 +94,22 @@ export async function handleProseCheck(args: string[]): Promise<CommandResult> {
     return fail(msg, 'Run tag render first to generate the scene HTML.', 'prose-check');
   }
 
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+  const fileStat = Bun.file(safePath).size;
+  if (fileStat > MAX_FILE_SIZE) {
+    return fail(`File too large: ${filePath} (${fileStat} bytes, max 10 MB).`, 'Reduce scene file size.', 'prose-check');
+  }
+
+  let html: string;
+  try {
+    html = await Bun.file(safePath).text();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return fail(`Could not read file: ${msg}`, 'Check the file is accessible.', 'prose-check');
+  }
+
   const state = await tryLoadState();
   if (!state) return noState('prose-check');
-
-  const html = await Bun.file(safePath).text();
   const prose = extractNarrativeText(html);
 
   if (!prose) {
@@ -110,7 +123,12 @@ export async function handleProseCheck(args: string[]): Promise<CommandResult> {
   const mode = state.worldFlags?.proseMode === 'llm' ? 'llm' : 'manual';
 
   if (mode === 'llm') {
-    await Bun.write(INPUT_FILE, prose);
+    try {
+      writeFileSync(INPUT_FILE, prose, { encoding: 'utf-8', mode: 0o600 });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return fail(`Could not write prose input file: ${msg}`, 'Check /tmp is writable and has sufficient space.', 'prose-check');
+    }
     return ok({
       mode: 'llm',
       proseExtracted: true,

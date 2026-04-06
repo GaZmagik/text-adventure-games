@@ -373,6 +373,9 @@ describe('batch dispatch: settings, prose-check, prose-gate', () => {
     const data = result.data as Record<string, unknown>;
     const results = data.results as { ok: boolean; error?: { message?: string } }[];
     expect(results[0]!.error?.message).not.toContain('Unknown command in batch');
+    const cmdResult = results[0]!;
+    expect(cmdResult.ok).toBe(false);
+    expect(cmdResult.error?.message).toContain('Missing path');
   });
 
   test('dispatches prose-gate via batch', async () => {
@@ -382,6 +385,9 @@ describe('batch dispatch: settings, prose-check, prose-gate', () => {
     const data = result.data as Record<string, unknown>;
     const results = data.results as { ok: boolean; error?: { message?: string } }[];
     expect(results[0]!.error?.message).not.toContain('Unknown command in batch');
+    const cmdResult = results[0]!;
+    expect(cmdResult.ok).toBe(false);
+    expect(cmdResult.error?.message).toContain('Missing flag');
   });
 });
 

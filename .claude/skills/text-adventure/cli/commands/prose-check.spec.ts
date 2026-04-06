@@ -144,6 +144,8 @@ describe('tag prose-check llm mode', () => {
     expect(command).toContain('exposition_dump');
     expect(command).toContain('--json-schema');
     expect(command).toContain('--system-prompt');
+    expect(command).toContain('< /tmp/prose-check-input.txt');
+    expect(command).toContain('> /tmp/prose-check-result.json');
   });
 
   test('data.inputFile is /tmp/prose-check-input.txt', async () => {
@@ -190,6 +192,8 @@ describe('tag prose-check llm mode', () => {
     expect(existsSync('/tmp/prose-check-input.txt')).toBe(true);
     const content = await Bun.file('/tmp/prose-check-input.txt').text();
     expect(content).toContain('corridor stretched ahead');
+    expect(content).not.toContain('<div');
+    expect(content).not.toContain('<script');
   });
 });
 
@@ -215,6 +219,13 @@ describe('tag prose-check error cases', () => {
   test('returns fail for no args', async () => {
     const result = await handleProseCheck([]);
     expect(result.ok).toBe(false);
+  });
+
+  test('rejects path traversal in file path', async () => {
+    const result = await handleProseCheck(['/etc/passwd.html']);
+    expect(result.ok).toBe(false);
+    // Either invalid path format or file not found — both are correct rejections
+    expect(result.error?.message).toBeTruthy();
   });
 
   test('returns fail when no state exists', async () => {

@@ -209,25 +209,24 @@ export function computeProseMetrics(text: string): ProseMetrics {
 /*  Voice differentiation                                              */
 /* ------------------------------------------------------------------ */
 
+const ATTRIBUTION_VERBS = '(?:said|asked|replied|whispered|called|murmured|added|continued|snapped|barked|noted|observed)';
+// Post-attribution: "quote" Speaker said
+const POST_ATTR_RE = new RegExp(
+  `["\u201c]([^"\u201d]{1,400})["\u201d]\\s+([A-Z][a-z]{1,20})\\s+${ATTRIBUTION_VERBS}`,
+  'g',
+);
+// Pre-attribution: Speaker said "quote"
+const PRE_ATTR_RE = new RegExp(
+  `([A-Z][a-z]{1,20})\\s+${ATTRIBUTION_VERBS}[,:]?\\s+["\u201c]([^"\u201d]{1,400})["\u201d]`,
+  'g',
+);
+
 /** Parse attribution patterns and return utterance word-count arrays per speaker.
  *  Matches: "...utterance..." Name said/asked/...
  *  and:     Name said/asked "...utterance..."
  */
 export function extractSpeakerUtterances(text: string): Map<string, number[]> {
   const speakers = new Map<string, number[]>();
-
-  const VERBS = '(?:said|asked|replied|whispered|called|murmured|added|continued|snapped|barked|noted|observed)';
-
-  // Pattern 1: "...utterance..." Name said
-  const postAttr = new RegExp(
-    `["\u201c]([^"\u201d]{1,400})["\u201d]\\s+([A-Z][a-z]{1,20})\\s+${VERBS}`,
-    'g',
-  );
-  // Pattern 2: Name said "...utterance..."
-  const preAttr = new RegExp(
-    `([A-Z][a-z]{1,20})\\s+${VERBS}[,:]?\\s+["\u201c]([^"\u201d]{1,400})["\u201d]`,
-    'g',
-  );
 
   function addUtterance(name: string, utterance: string): void {
     const wc = utterance.trim().split(/\s+/).filter(w => w.length > 0).length;
@@ -237,9 +236,16 @@ export function extractSpeakerUtterances(text: string): Map<string, number[]> {
     speakers.set(name, arr);
   }
 
+  POST_ATTR_RE.lastIndex = 0;
   let m: RegExpExecArray | null;
-  while ((m = postAttr.exec(text)) !== null) addUtterance(m[2]!, m[1]!);
-  while ((m = preAttr.exec(text)) !== null) addUtterance(m[1]!, m[2]!);
+  while ((m = POST_ATTR_RE.exec(text)) !== null) {
+    addUtterance(m[2]!, m[1]!);
+  }
+
+  PRE_ATTR_RE.lastIndex = 0;
+  while ((m = PRE_ATTR_RE.exec(text)) !== null) {
+    addUtterance(m[1]!, m[2]!);
+  }
 
   return speakers;
 }

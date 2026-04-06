@@ -228,6 +228,49 @@ describe('tag prose-gate --llm error cases', () => {
   });
 });
 
+// ── --llm FAIL does not stamp proseGatedAt (S5) ──────────────────
+
+describe('tag prose-gate --llm (FAIL does not stamp)', () => {
+  test('does not stamp worldFlags.proseGatedAt on FAIL', async () => {
+    const path = writeResultFile(FAIL_RESULT);
+    await handleProseGate(['--llm', path]);
+    const stateAfter = await tryLoadState();
+    expect(stateAfter?.worldFlags.proseGatedAt).toBeUndefined();
+  });
+});
+
+// ── --llm shape validation (B7) ──────────────────────────────────
+
+describe('--llm shape validation', () => {
+  test('rejects JSON missing rules field', async () => {
+    const path = writeResultFile(JSON.stringify({ overall: 'PASS', total_pass: 6, total_fail: 0 }));
+    const result = await handleProseGate(['--llm', path]);
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toMatch(/missing required fields/i);
+  });
+
+  test('rejects JSON with null rules', async () => {
+    const path = writeResultFile(JSON.stringify({ overall: 'PASS', rules: null }));
+    const result = await handleProseGate(['--llm', path]);
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toMatch(/missing required fields/i);
+  });
+
+  test('rejects JSON with array rules', async () => {
+    const path = writeResultFile(JSON.stringify({ overall: 'PASS', rules: [] }));
+    const result = await handleProseGate(['--llm', path]);
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toMatch(/missing required fields/i);
+  });
+
+  test('rejects JSON with empty rules object', async () => {
+    const path = writeResultFile(JSON.stringify({ overall: 'PASS', rules: {} }));
+    const result = await handleProseGate(['--llm', path]);
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toMatch(/missing required fields/i);
+  });
+});
+
 // ── no args / unknown flag ─────────────────────────────────────────
 
 describe('tag prose-gate no args', () => {
