@@ -20,19 +20,10 @@ export async function handleSettings(args: string[]): Promise<CommandResult> {
     );
   }
 
-  const modeArg = args[1];
-
-  // Validate mode before loading state (no I/O needed for validation)
-  if (modeArg && !isProseMode(modeArg)) {
-    return fail(
-      `Unknown mode "${modeArg}".`,
-      'Use: llm or manual',
-      'settings',
-    );
-  }
-
   const state = await tryLoadState();
   if (!state) return noState('settings');
+
+  const modeArg = args[1];
 
   // Read current mode (no mutation)
   if (!modeArg) {
@@ -44,9 +35,16 @@ export async function handleSettings(args: string[]): Promise<CommandResult> {
     }, 'settings');
   }
 
-  const mode = modeArg;
+  if (!isProseMode(modeArg)) {
+    return fail(
+      `Unknown mode "${modeArg}".`,
+      'Use: llm or manual',
+      'settings',
+    );
+  }
 
-  state.worldFlags.proseMode = mode;
+  // modeArg is now narrowed to ProseMode
+  state.worldFlags.proseMode = modeArg;
   await saveState(state);
 
   const messages: Record<ProseMode, string> = {
@@ -54,5 +52,5 @@ export async function handleSettings(args: string[]): Promise<CommandResult> {
     manual: 'Prose review mode set to manual. Run tag prose-check <path> for a self-review checklist.',
   };
 
-  return ok({ mode, message: messages[mode] }, 'settings');
+  return ok({ mode: modeArg, message: messages[modeArg] }, 'settings');
 }
