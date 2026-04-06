@@ -157,6 +157,43 @@ Every scene widget contains (inside `#reveal-full` > `#scene-content`):
 
 Never compute arithmetic in prose — use `echo "expression" | bc` via Bash tool.
 
+## Optional: Claude Code integration (LLM prose review)
+
+By default, `tag prose-check` runs in **manual mode** — the GM self-reviews against a checklist. For independent LLM review (harder gate, no conflict of interest), configure `tag` to use a live `claude -p` subprocess via the Claude Code MCP server.
+
+### One-time setup
+
+**Mac / Linux** — add to `~/.config/Claude/claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "claude-code": { "command": "claude", "args": ["mcp", "serve"] }
+  }
+}
+```
+
+**Windows (WSL)** — add to `%APPDATA%\Claude\claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "claude-code": { "command": "wsl", "args": ["bash", "-lc", "claude mcp serve"] }
+  }
+}
+```
+
+### Activation
+
+Once Claude Code MCP is connected, run once per campaign:
+```
+tag settings prose llm
+```
+
+Subsequent `tag prose-check` calls output a ready-to-run `claude -p` command. Execute it via `claude-code:Bash` (ignore "Tool execution failed" — it runs server-side). Then pass the result to `tag prose-gate --llm /tmp/prose-check-result.json`.
+
+### Degradation
+
+If Claude Code MCP is not connected, `tag settings prose manual` reverts to checklist mode. No game-breaking behaviour either way.
+
 ## Bun Runtime
 
 The tag CLI requires Bun (`Bun.file()`, `import.meta.dir`). `setup.sh` installs it.

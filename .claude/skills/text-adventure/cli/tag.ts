@@ -240,6 +240,21 @@ async function main(): Promise<void> {
       result = await handleCompact(args.slice(1));
       break;
     }
+    case 'settings': {
+      const { handleSettings } = await import('./commands/settings');
+      result = await handleSettings(args.slice(1));
+      break;
+    }
+    case 'prose-check': {
+      const { handleProseCheck } = await import('./commands/prose-check');
+      result = await handleProseCheck(args.slice(1));
+      break;
+    }
+    case 'prose-gate': {
+      const { handleProseGate } = await import('./commands/prose-gate');
+      result = await handleProseGate(args.slice(1));
+      break;
+    }
     default:
       result = unknownCommand(command!);
   }

@@ -18,7 +18,10 @@ export type TopLevelCommandName =
   | 'style'
   | 'scenario'
   | 'lore'
-  | 'compact';
+  | 'compact'
+  | 'settings'
+  | 'prose-check'
+  | 'prose-gate';
 
 export type SubcommandHelp = {
   name: string;
@@ -51,6 +54,9 @@ export const TOP_LEVEL_COMMANDS = [
   'scenario',
   'lore',
   'compact',
+  'settings',
+  'prose-check',
+  'prose-gate',
 ] as const satisfies readonly TopLevelCommandName[];
 
 export const COMMAND_HELP: Record<TopLevelCommandName, CommandHelp> = {
@@ -206,6 +212,28 @@ export const COMMAND_HELP: Record<TopLevelCommandName, CommandHelp> = {
       { name: 'restore', usage: 'tag compact restore', description: 'Clear compaction block, reset module/style freshness epochs, and return step-by-step recovery instructions', example: 'tag compact restore' },
     ],
   },
+  settings: {
+    command: 'tag settings',
+    description: 'Configure persistent skill settings. Currently supports prose review mode (llm or manual).',
+    subcommands: [
+      { name: 'prose', usage: 'tag settings prose [llm|manual]', description: 'Set prose review mode. llm = independent Claude review via claude-code:Bash; manual = GM self-review checklist. Omit value to read current mode.', example: 'tag settings prose llm' },
+    ],
+  },
+  'prose-check': {
+    command: 'tag prose-check',
+    description: 'Prepare a prose review for a composed scene. Returns a checklist (manual mode) or a ready-to-run claude -p command (llm mode).',
+    subcommands: [
+      { name: '<file>', usage: 'tag prose-check /tmp/scene.html', description: 'Extract narrative text from scene HTML and return review instructions based on configured prose mode.', example: 'tag prose-check /tmp/scene_final.html' },
+    ],
+  },
+  'prose-gate': {
+    command: 'tag prose-gate',
+    description: 'Issue prose clearance after review. Must output its clearance phrase before show_widget is permitted.',
+    subcommands: [
+      { name: '--manual', usage: 'tag prose-gate --manual', description: 'Issue manual clearance after GM self-review. Stamps worldFlags.proseGatedAt.', example: 'tag prose-gate --manual' },
+      { name: '--llm', usage: 'tag prose-gate --llm /tmp/prose-check-result.json', description: 'Validate LLM review JSON and issue hard clearance if all 6 rules pass.', example: 'tag prose-gate --llm /tmp/prose-check-result.json' },
+    ],
+  },
 };
 
 export const MUTATING_COMMANDS = new Set<string>([
@@ -219,6 +247,8 @@ export const MUTATING_COMMANDS = new Set<string>([
   'style',
   'setup',
   'compact',
+  'settings',
+  'prose-gate',
 ]);
 
 export const WIDGET_TYPE_NAMES = [

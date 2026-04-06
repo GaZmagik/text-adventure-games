@@ -20,6 +20,9 @@ import { handleStyle } from './style';
 import { handleSetup } from './setup';
 import { handleScenario } from './scenario';
 import { handleLore } from './lore';
+import { handleSettings } from './settings';
+import { handleProseCheck } from './prose-check';
+import { handleProseGate } from './prose-gate';
 
 type ParsedLine = {
   raw: string;
@@ -235,6 +238,9 @@ export const BATCH_COMMAND_HANDLERS: Record<string, (args: string[]) => Promise<
   setup: handleSetup,
   scenario: handleScenario,
   lore: handleLore,
+  settings: handleSettings,
+  'prose-check': handleProseCheck,
+  'prose-gate': handleProseGate,
 };
 
 export async function handleBatch(args: string[]): Promise<CommandResult> {

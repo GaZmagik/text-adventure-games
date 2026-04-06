@@ -55,6 +55,15 @@ All operational guides, checklists, and rules are delivered via CLI commands:
    - `tag verify character /tmp/character.html` — before showing character creation
    - `tag verify /tmp/scene.html` — before showing every scene
    - `tag verify <type> /tmp/widget.html` — before showing other widgets such as `dice`, `dice-pool`, `dialogue`, `combat-turn`, `levelup`, `recap`, `arc-complete`, `ticker`, `ship`, `crew`, `codex`, `map`, `starchart`, `footer`, or `save-div`
+7. **Run `tag prose-check` + `tag prose-gate` before EVERY scene `show_widget`** — both `tag verify` AND `tag prose-gate` must show their clearance phrase. Neither can be skipped or rationalised away:
+   ```
+   tag prose-check /tmp/scene.html
+   ```
+   Follow the `nextStep` from the response exactly:
+   - **manual mode** → review prose against each checklist item; address any concerns; then run: `tag prose-gate --manual`
+   - **llm mode** → run the `command` string via `claude-code:Bash` (ignore "Tool execution failed" — it executes); then run: `tag prose-gate --llm /tmp/prose-check-result.json`
+
+   Both gates must output their clearance phrase before `show_widget` is permitted. The prose gate is **not advisory** — a failed LLM gate blocks the scene.
 
 ## Module Architecture
 
