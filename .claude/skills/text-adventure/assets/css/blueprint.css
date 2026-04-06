@@ -252,8 +252,8 @@ transition:     border-color 0.08s ease-out, color 0.08s ease-out, background 0.
 box-sizing:     border-box;
 }
 button:active {
-border-color: var(--bp-color-line-accent);
-background:   var(--bp-color-bg-tertiary);
+border-color: var(--bp-color-line-accent) !important;
+background:   var(--bp-color-bg-tertiary) !important;
 transition:   all 0.04s ease-out;
 }
 .btn-primary {

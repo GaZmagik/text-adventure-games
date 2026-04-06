@@ -131,7 +131,12 @@ function initTagScene(root) {
     toast.className = 'xp-toast';
     toast.textContent = '+' + amount + ' XP';
     el.appendChild(toast);
-    toast.addEventListener('animationend', function() { toast.remove(); }, { once: true });
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      // Skip CSS animation listener; remove after a short visible pause instead
+      setTimeout(function() { toast.remove(); }, 1500);
+    } else {
+      toast.addEventListener('animationend', function() { toast.remove(); }, { once: true });
+    }
   }
 
   window.tag.triggerShake = triggerShake;

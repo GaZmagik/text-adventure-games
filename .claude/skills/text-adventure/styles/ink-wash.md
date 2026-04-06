@@ -140,24 +140,30 @@ attributes — use the custom properties only.
 
   /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
   --ta-font-heading:              'Noto Serif', Georgia, 'Times New Roman', serif;
-  --ta-font-body:                 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  --ta-font-body:                 system-ui, -apple-system, sans-serif;
+  --ta-font-serif:                'Noto Serif', Georgia, 'Times New Roman', serif;
   --ta-color-accent:              var(--iw-accent);
-  --ta-color-accent-hover:        var(--iw-accent-muted);
-  --ta-color-accent-bg:           var(--iw-bg-tertiary);
-  --ta-color-accent-bg-hover:     var(--iw-bg-wash);
+  --ta-color-accent-hover:        color-mix(in srgb, var(--iw-accent) 80%, black);
+  --ta-color-accent-bg:           var(--iw-accent-muted);
+  --ta-color-accent-bg-hover:     rgba(208, 58, 45, 0.18);
   --ta-color-success:             var(--iw-success);
-  --ta-color-success-border:      color-mix(in srgb, var(--iw-success) 70%, var(--iw-ink-primary));
+  --ta-color-success-border:      color-mix(in srgb, var(--iw-success) 70%, black);
   --ta-color-danger:              var(--iw-danger);
-  --ta-color-danger-border:       color-mix(in srgb, var(--iw-danger) 70%, var(--iw-ink-primary));
+  --ta-color-danger-border:       color-mix(in srgb, var(--iw-danger) 70%, black);
   --ta-color-danger-bg:           var(--iw-danger-bg);
-  --ta-color-danger-bg-hover:     color-mix(in srgb, var(--iw-danger-bg) 80%, var(--iw-danger));
+  --ta-color-danger-bg-hover:     rgba(138, 42, 42, 0.16);
   --ta-color-warning:             var(--iw-warning);
-  --ta-color-warning-border:      color-mix(in srgb, var(--iw-warning) 70%, var(--iw-ink-primary));
+  --ta-color-warning-border:      color-mix(in srgb, var(--iw-warning) 70%, black);
   --ta-color-warning-bg:          var(--iw-warning-bg);
-  --ta-color-xp:                  var(--iw-accent);
+  --ta-color-xp:                  var(--iw-warning);
   --ta-color-focus:               var(--iw-accent);
-  --ta-color-conviction:          var(--iw-accent);
-  --ta-color-conviction-border:   var(--iw-accent-border);
+  --ta-color-conviction:          #6B5C8A;
+  --ta-color-conviction-border:   #5A4B78;
+  --ta-color-bg-secondary:        var(--iw-bg-secondary);
+  --ta-color-credits:             var(--iw-warning);
+  --ta-color-tab-active:          var(--iw-accent);
+  --ta-color-info:                var(--iw-info);
+  --ta-color-xp-border:           color-mix(in srgb, var(--iw-warning) 50%, transparent);
   --ta-badge-success-bg:          var(--iw-success-bg);
   --ta-badge-success-text:        var(--iw-success);
   --ta-badge-partial-bg:          var(--iw-warning-bg);
@@ -166,9 +172,7 @@ attributes — use the custom properties only.
   --ta-badge-failure-text:        var(--iw-danger);
   --ta-badge-crit-success-border: var(--iw-success);
   --ta-badge-crit-failure-border: var(--iw-danger);
-  --ta-color-credits:             var(--iw-accent);
-  --ta-color-tab-active:          var(--iw-accent);
-  --ta-border-style-poi:          0.5px dashed;
+  --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.5s;
 }
 ```
@@ -217,38 +221,6 @@ attributes — use the custom properties only.
       transparent 70%
     );
 
-    /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
-    --ta-font-heading:              'Noto Serif', Georgia, 'Times New Roman', serif;
-    --ta-font-body:                 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
-    --ta-color-accent:              var(--iw-accent);
-    --ta-color-accent-hover:        var(--iw-accent-muted);
-    --ta-color-accent-bg:           var(--iw-bg-tertiary);
-    --ta-color-accent-bg-hover:     var(--iw-bg-wash);
-    --ta-color-success:             var(--iw-success);
-    --ta-color-success-border:      color-mix(in srgb, var(--iw-success) 70%, var(--iw-ink-primary));
-    --ta-color-danger:              var(--iw-danger);
-    --ta-color-danger-border:       color-mix(in srgb, var(--iw-danger) 70%, var(--iw-ink-primary));
-    --ta-color-danger-bg:           var(--iw-danger-bg);
-    --ta-color-danger-bg-hover:     color-mix(in srgb, var(--iw-danger-bg) 80%, var(--iw-danger));
-    --ta-color-warning:             var(--iw-warning);
-    --ta-color-warning-border:      color-mix(in srgb, var(--iw-warning) 70%, var(--iw-ink-primary));
-    --ta-color-warning-bg:          var(--iw-warning-bg);
-    --ta-color-xp:                  var(--iw-accent);
-    --ta-color-focus:               var(--iw-accent);
-    --ta-color-conviction:          var(--iw-accent);
-    --ta-color-conviction-border:   var(--iw-accent-border);
-    --ta-badge-success-bg:          var(--iw-success-bg);
-    --ta-badge-success-text:        var(--iw-success);
-    --ta-badge-partial-bg:          var(--iw-warning-bg);
-    --ta-badge-partial-text:        var(--iw-warning);
-    --ta-badge-failure-bg:          var(--iw-danger-bg);
-    --ta-badge-failure-text:        var(--iw-danger);
-    --ta-badge-crit-success-border: var(--iw-success);
-    --ta-badge-crit-failure-border: var(--iw-danger);
-    --ta-color-credits:             var(--iw-accent);
-    --ta-color-tab-active:          var(--iw-accent);
-    --ta-border-style-poi:          0.5px dashed;
-    --ta-die-spin-duration:         0.5s;
   }
 }
 ```

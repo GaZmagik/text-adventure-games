@@ -132,11 +132,11 @@ function initTagScene(root) {
     toast.textContent = '+' + amount + ' XP';
     el.appendChild(toast);
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      // Skip CSS keyframe animation; remove after a brief static display instead.
-      setTimeout(function() { if (toast.parentNode) toast.remove(); }, 1500);
-      return;
+      // Skip CSS animation listener; remove after a short visible pause instead
+      setTimeout(function() { toast.remove(); }, 1500);
+    } else {
+      toast.addEventListener('animationend', function() { toast.remove(); }, { once: true });
     }
-    toast.addEventListener('animationend', function() { toast.remove(); }, { once: true });
   }
 
   window.tag.triggerShake = triggerShake;

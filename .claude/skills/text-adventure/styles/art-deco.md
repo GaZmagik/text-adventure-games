@@ -607,6 +607,43 @@ every standard component class used by the text adventure engine.
   --ad-dur-normal: 0.25s;
   --ad-dur-slow:   0.45s;
   --ad-ease:       cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
+  --ta-font-heading:              var(--ad-font-heading);
+  --ta-font-body:                 var(--ad-font-mono);
+  --ta-font-serif:                var(--ad-font-heading);
+  --ta-color-accent:              var(--ad-gold);
+  --ta-color-accent-hover:        var(--ad-gold-light);
+  --ta-color-accent-bg:           rgba(196, 164, 80, 0.12);
+  --ta-color-accent-bg-hover:     rgba(196, 164, 80, 0.20);
+  --ta-color-success:             var(--ad-jade);
+  --ta-color-success-border:      color-mix(in srgb, var(--ad-jade) 70%, black);
+  --ta-color-danger:              var(--ad-crimson);
+  --ta-color-danger-border:       color-mix(in srgb, var(--ad-crimson) 70%, black);
+  --ta-color-danger-bg:           rgba(139, 34, 56, 0.12);
+  --ta-color-danger-bg-hover:     rgba(139, 34, 56, 0.20);
+  --ta-color-warning:             var(--ad-copper);
+  --ta-color-warning-border:      color-mix(in srgb, var(--ad-copper) 70%, black);
+  --ta-color-warning-bg:          rgba(180, 120, 60, 0.12);
+  --ta-color-xp:                  var(--ad-gold);
+  --ta-color-focus:               var(--ad-gold);
+  --ta-color-conviction:          #5B7A7A;
+  --ta-color-conviction-border:   #4A6868;
+  --ta-color-bg-secondary:        var(--ad-bg-secondary);
+  --ta-color-credits:             var(--ad-gold);
+  --ta-color-tab-active:          var(--ad-gold);
+  --ta-color-info:                var(--ad-copper);
+  --ta-color-xp-border:           color-mix(in srgb, var(--ad-gold) 50%, transparent);
+  --ta-badge-success-bg:          rgba(42, 127, 98, 0.12);
+  --ta-badge-success-text:        var(--ad-jade);
+  --ta-badge-partial-bg:          rgba(180, 120, 60, 0.12);
+  --ta-badge-partial-text:        var(--ad-copper);
+  --ta-badge-failure-bg:          rgba(139, 38, 54, 0.12);
+  --ta-badge-failure-text:        var(--ad-crimson);
+  --ta-badge-crit-success-border: var(--ad-jade);
+  --ta-badge-crit-failure-border: var(--ad-crimson);
+  --ta-border-style-poi:          1px dashed;
+  --ta-die-spin-duration:         0.5s;
 }
 
 /* Dark mode token overrides */
