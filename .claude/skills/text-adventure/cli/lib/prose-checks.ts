@@ -1,12 +1,10 @@
 // Deterministic prose content analysis engine — no LLM dependency.
 // Evaluates narrative text against data-driven rules from prose-rules.ts.
 
-import { stripHtml } from './verify-checks';
 import {
   PATTERN_RULES,
   HEURISTIC_RULES,
   NON_ADVERBS,
-  SENSE_WORDS_RE,
 } from '../data/prose-rules';
 import type {
   PatternRule,
@@ -95,6 +93,11 @@ export function countWords(text: string): number {
 /*  Tier 1: Pattern rule evaluation                                    */
 /* ------------------------------------------------------------------ */
 
+// Pre-compiled pattern rule regexes — keyed by rule id to avoid re-compilation on each call.
+const COMPILED_PATTERN_RULES = new Map<string, RegExp>(
+  PATTERN_RULES.map(rule => [rule.id, new RegExp(rule.pattern.source, rule.pattern.flags)]),
+);
+
 export function evaluatePatternRules(
   text: string,
   rules: readonly PatternRule[] = PATTERN_RULES,
@@ -102,7 +105,8 @@ export function evaluatePatternRules(
   const violations: ProseViolation[] = [];
 
   for (const rule of rules) {
-    const re = new RegExp(rule.pattern.source, rule.pattern.flags);
+    const re = COMPILED_PATTERN_RULES.get(rule.id) ?? new RegExp(rule.pattern.source, rule.pattern.flags);
+    re.lastIndex = 0;
     let match: RegExpExecArray | null;
 
     while ((match = re.exec(text)) !== null) {

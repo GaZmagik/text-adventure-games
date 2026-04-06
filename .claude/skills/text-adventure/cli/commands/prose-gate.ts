@@ -1,7 +1,7 @@
-import { existsSync, readFileSync } from 'node:fs';
 import type { CommandResult } from '../types';
 import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState } from '../lib/state-store';
+import { resolveSafeReadPath } from '../lib/path-security';
 
 // ── Types ─────────────────────────────────────────────────────────
 
@@ -50,26 +50,44 @@ export async function handleProseGate(args: string[]): Promise<CommandResult> {
 
   // ── --llm <path> ────────────────────────────────────────────────
 
-  const resultPath = args[1];
+  const rawPath = args[1];
 
-  if (!resultPath || !existsSync(resultPath)) {
+  if (!rawPath) {
     return fail(
-      resultPath ? `Result file not found: ${resultPath}` : 'Missing result file path.',
+      'Missing result file path.',
       'Run: tag prose-check <scene-path> to generate the LLM command first.',
       'prose-gate',
     );
   }
 
+  let resultPath: string;
+  try {
+    const resolved = resolveSafeReadPath(rawPath, { kind: 'Prose gate result', extensions: ['.json'] });
+    if (!resolved) {
+      return fail(`Invalid file path: ${rawPath}`, 'Path must end with .json and be within a safe directory.', 'prose-gate');
+    }
+    resultPath = resolved;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return fail(msg, 'Run: tag prose-check <scene-path> to generate the LLM command first.', 'prose-gate');
+  }
+
   let parsed: ProseReviewOutput;
   try {
-    const raw = readFileSync(resultPath, 'utf-8');
+    const raw = await Bun.file(resultPath).text();
     parsed = JSON.parse(raw) as ProseReviewOutput;
-  } catch {
-    return fail(
-      'Malformed JSON in result file.',
-      `Check the file at: ${resultPath}`,
-      'prose-gate',
-    );
+  } catch (err) {
+    const msg = err instanceof SyntaxError ? 'Malformed JSON in result file.' : `Could not read result file: ${err instanceof Error ? err.message : String(err)}`;
+    return fail(msg, `Check the file at: ${resultPath}`, 'prose-gate');
+  }
+
+  // Shape validation — guard against well-formed JSON with wrong structure
+  if (
+    typeof parsed !== 'object' || parsed === null ||
+    typeof parsed.overall !== 'string' ||
+    typeof parsed.rules !== 'object' || parsed.rules === null
+  ) {
+    return fail('Result JSON missing required fields (rules, overall).', `Check the file at: ${resultPath}`, 'prose-gate');
   }
 
   const state = await tryLoadState();
@@ -102,6 +120,9 @@ export async function handleProseGate(args: string[]): Promise<CommandResult> {
       message: `${failingRules.length} prose rule(s) failed. Revise prose and re-run tag prose-check.`,
     }, 'prose-gate');
   }
+
+  state.worldFlags.proseGatedAt = Date.now();
+  await saveState(state);
 
   return ok({
     verified: true,

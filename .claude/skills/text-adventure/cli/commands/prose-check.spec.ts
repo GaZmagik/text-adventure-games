@@ -131,14 +131,19 @@ describe('tag prose-check llm mode', () => {
     expect((result.data as { mode: string }).mode).toBe('llm');
   });
 
-  test('data.command contains "claude -p"', async () => {
+  test('data.command contains system prompt and schema flags', async () => {
     const state = await tryLoadState();
     state!.worldFlags.proseMode = 'llm';
     await saveState(state!);
 
     const path = writeTempHtml(narrativeHtml);
     const result = await handleProseCheck([path]);
-    expect((result.data as { command: string }).command).toContain('claude -p');
+    const command = (result.data as { command: string }).command;
+    expect(command).toContain('claude -p');
+    expect(command).toContain('voice_differentiation');
+    expect(command).toContain('exposition_dump');
+    expect(command).toContain('--json-schema');
+    expect(command).toContain('--system-prompt');
   });
 
   test('data.inputFile is /tmp/prose-check-input.txt', async () => {
@@ -161,7 +166,7 @@ describe('tag prose-check llm mode', () => {
     expect((result.data as { outputFile: string }).outputFile).toBe('/tmp/prose-check-result.json');
   });
 
-  test('data.nextStep is a non-empty string', async () => {
+  test('data.nextStep contains prose-gate command and output file', async () => {
     const state = await tryLoadState();
     state!.worldFlags.proseMode = 'llm';
     await saveState(state!);
@@ -171,9 +176,11 @@ describe('tag prose-check llm mode', () => {
     const nextStep = (result.data as { nextStep: string }).nextStep;
     expect(typeof nextStep).toBe('string');
     expect(nextStep.length).toBeGreaterThan(0);
+    expect(nextStep).toContain('prose-gate --llm');
+    expect(nextStep).toContain('/tmp/prose-check-result.json');
   });
 
-  test('writes prose text to /tmp/prose-check-input.txt', async () => {
+  test('writes narrative text to input file', async () => {
     const state = await tryLoadState();
     state!.worldFlags.proseMode = 'llm';
     await saveState(state!);
@@ -181,6 +188,8 @@ describe('tag prose-check llm mode', () => {
     const path = writeTempHtml(narrativeHtml);
     await handleProseCheck([path]);
     expect(existsSync('/tmp/prose-check-input.txt')).toBe(true);
+    const content = await Bun.file('/tmp/prose-check-input.txt').text();
+    expect(content).toContain('corridor stretched ahead');
   });
 });
 
@@ -217,5 +226,15 @@ describe('tag prose-check error cases', () => {
     const result = await handleProseCheck([path]);
     expect(result.ok).toBe(false);
     expect(result.error!.message).toMatch(/no game state/i);
+  });
+});
+
+// ── clearance sentinel (A6) ──────────────────────────────────────
+
+describe('tag prose-check clearance sentinels', () => {
+  test('manual mode nextStep mentions prose-gate', async () => {
+    const path = writeTempHtml(narrativeHtml);
+    const result = await handleProseCheck([path]);
+    expect((result.data as { nextStep: string }).nextStep).toContain('prose-gate');
   });
 });

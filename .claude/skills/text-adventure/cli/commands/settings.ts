@@ -22,7 +22,7 @@ export async function handleSettings(args: string[]): Promise<CommandResult> {
   if (!modeArg) {
     const state = await tryLoadState();
     if (!state) return noState('settings');
-    const currentMode = (state.worldFlags?.proseMode as string | undefined) ?? 'manual';
+    const currentMode = state.worldFlags.proseMode === 'llm' ? 'llm' : 'manual';
     return ok({
       mode: currentMode,
       usage: 'tag settings prose [llm|manual]',

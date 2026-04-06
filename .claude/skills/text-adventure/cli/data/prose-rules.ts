@@ -169,13 +169,13 @@ export const PATTERN_RULES: readonly PatternRule[] = [
     severity: 'error',
     pattern: /\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\s+words?\b/gi,
     gate(match, text) {
-      const claimed = NUMBER_WORDS[match[1].toLowerCase()];
+      const claimed = NUMBER_WORDS[match[1]!.toLowerCase()];
       if (claimed === undefined) return false;
       // Look for a quoted phrase within 60 chars after the match
       const after = text.slice(match.index, match.index + match[0].length + 80);
       const quoteMatch = after.match(/[""\u201c]([^""\u201d]+)[""\u201d]/);
       if (!quoteMatch) return false; // No nearby quote — can't verify
-      const words = quoteMatch[1].trim().split(/\s+/).length;
+      const words = quoteMatch[1]!.trim().split(/\s+/).length;
       return words !== claimed; // Flag only when count doesn't match
     },
     fix: 'Count the words in the quoted phrase and correct the number word.',
@@ -250,7 +250,7 @@ export const PATTERN_RULES: readonly PatternRule[] = [
     severity: 'error',
     pattern: /\b(was|were|grew|became)\s+(\w+)\b/gi,
     gate(match) {
-      return TELLING_ADJECTIVES.has(match[2].toLowerCase());
+      return TELLING_ADJECTIVES.has(match[2]!.toLowerCase());
     },
     fix: 'Show through physical action, sensory detail, or behaviour — not a linking verb + adjective.',
   },
@@ -260,7 +260,7 @@ export const PATTERN_RULES: readonly PatternRule[] = [
     severity: 'error',
     pattern: /\b(said|asked)\s+(\w+ly)\b/gi,
     gate(match) {
-      const word = match[2].toLowerCase();
+      const word = match[2]!.toLowerCase();
       return !NON_ADVERBS.has(word);
     },
     fix: 'Cut the adverb — "said" is invisible. Show manner through action beats instead.',
@@ -296,7 +296,7 @@ export const HEURISTIC_RULES: readonly HeuristicRule[] = [
       const lengths = sentences.map(s => s.split(/\s+/).length);
       const violations: string[] = [];
       for (let i = 0; i <= lengths.length - 3; i++) {
-        const a = lengths[i], b = lengths[i + 1], c = lengths[i + 2];
+        const a = lengths[i]!, b = lengths[i + 1]!, c = lengths[i + 2]!;
         const avg = (a + b + c) / 3;
         if (avg === 0) continue;
         const withinBand = [a, b, c].every(l => Math.abs(l - avg) / avg <= 0.2);
@@ -354,10 +354,8 @@ export const HEURISTIC_RULES: readonly HeuristicRule[] = [
     check(text) {
       const sentences = text.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
       if (sentences.length < 5) return [];
-      const passivePattern = /\b(was|were|is|are|been|being)\s+\w+ed\b/gi;
+      const passivePattern = /\b(was|were|is|are|been|being)\s+\w+ed\b/i;
       const passiveCount = sentences.filter(s => passivePattern.test(s)).length;
-      // Reset lastIndex on the shared regex
-      passivePattern.lastIndex = 0;
       const pct = (passiveCount / sentences.length) * 100;
       if (pct > 15) {
         return [`Passive voice in ${passiveCount}/${sentences.length} sentences (${pct.toFixed(0)}%) exceeds 15% threshold.`];
@@ -374,7 +372,7 @@ export const HEURISTIC_RULES: readonly HeuristicRule[] = [
       const paragraphs = text.split(/\n\n+/).filter(p => p.trim().length > 0);
       const violations: string[] = [];
       for (let i = 0; i < paragraphs.length; i++) {
-        const wc = paragraphs[i].trim().split(/\s+/).length;
+        const wc = paragraphs[i]!.trim().split(/\s+/).length;
         if (wc > 100) {
           violations.push(`Paragraph ${i + 1} is ${wc} words — break it up to aid readability.`);
         }
@@ -425,7 +423,7 @@ export const HEURISTIC_RULES: readonly HeuristicRule[] = [
 
       const bigrams = new Map<string, number>();
       for (let i = 0; i < words.length - 1; i++) {
-        const a = words[i], b = words[i + 1];
+        const a = words[i]!, b = words[i + 1]!;
         if (STOPWORDS.has(a) && STOPWORDS.has(b)) continue;
         if (a.length < 3 || b.length < 3) continue;
         const key = `${a} ${b}`;

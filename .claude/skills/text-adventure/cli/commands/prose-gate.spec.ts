@@ -83,6 +83,11 @@ describe('tag prose-gate --manual', () => {
     expect((result.data as { mode: string }).mode).toBe('manual');
   });
 
+  test('data.clearance contains Proceed to show_widget', async () => {
+    const result = await handleProseGate(['--manual']);
+    expect((result.data as { clearance: string }).clearance).toContain('Proceed to show_widget');
+  });
+
   test('records worldFlags.proseGatedAt', async () => {
     await handleProseGate(['--manual']);
     const state = await tryLoadState();
@@ -124,6 +129,30 @@ describe('tag prose-gate --llm (PASS result)', () => {
     const path = writeResultFile(PASS_RESULT);
     const result = await handleProseGate(['--llm', path]);
     expect((result.data as { mode: string }).mode).toBe('llm');
+  });
+
+  test('stamps worldFlags.proseGatedAt on LLM PASS', async () => {
+    const path = writeResultFile(PASS_RESULT);
+    await handleProseGate(['--llm', path]);
+    const stateAfter = await tryLoadState();
+    expect(typeof stateAfter?.worldFlags.proseGatedAt).toBe('number');
+  });
+
+  test('worldFlags.proseGatedAt is a recent timestamp', async () => {
+    const before = Date.now();
+    const path = writeResultFile(PASS_RESULT);
+    await handleProseGate(['--llm', path]);
+    const after = Date.now();
+    const stateAfter = await tryLoadState();
+    const gatedAt = stateAfter?.worldFlags.proseGatedAt as number;
+    expect(gatedAt).toBeGreaterThanOrEqual(before);
+    expect(gatedAt).toBeLessThanOrEqual(after);
+  });
+
+  test('data.clearance contains Proceed to show_widget', async () => {
+    const path = writeResultFile(PASS_RESULT);
+    const result = await handleProseGate(['--llm', path]);
+    expect((result.data as { clearance: string }).clearance).toContain('Proceed to show_widget');
   });
 });
 

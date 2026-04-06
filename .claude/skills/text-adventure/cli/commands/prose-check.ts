@@ -1,7 +1,7 @@
-import { existsSync, writeFileSync } from 'node:fs';
 import type { CommandResult } from '../types';
 import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState } from '../lib/state-store';
+import { resolveSafeReadPath } from '../lib/path-security';
 import { extractNarrativeText, countWords } from '../lib/prose-checks';
 
 // ── Baked-in constants ────────────────────────────────────────────
@@ -81,14 +81,22 @@ export async function handleProseCheck(args: string[]): Promise<CommandResult> {
     return fail('Missing path.', 'Usage: tag prose-check <path>', 'prose-check');
   }
 
-  if (!existsSync(filePath)) {
-    return fail(`File not found: ${filePath}`, 'Run tag render first', 'prose-check');
+  let safePath: string;
+  try {
+    const resolved = resolveSafeReadPath(filePath, { kind: 'Prose check', extensions: ['.html', '.htm'] });
+    if (!resolved) {
+      return fail(`Invalid file path: ${filePath}`, 'Path must start with /, ./, ../, or ~/ and end with .html or .htm.', 'prose-check');
+    }
+    safePath = resolved;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return fail(msg, 'Run tag render first to generate the scene HTML.', 'prose-check');
   }
 
   const state = await tryLoadState();
   if (!state) return noState('prose-check');
 
-  const html = await Bun.file(filePath).text();
+  const html = await Bun.file(safePath).text();
   const prose = extractNarrativeText(html);
 
   if (!prose) {
@@ -99,10 +107,10 @@ export async function handleProseCheck(args: string[]): Promise<CommandResult> {
   }
 
   const wordCount = countWords(prose);
-  const mode = (state.worldFlags?.proseMode as string | undefined) ?? 'manual';
+  const mode = state.worldFlags?.proseMode === 'llm' ? 'llm' : 'manual';
 
   if (mode === 'llm') {
-    writeFileSync(INPUT_FILE, prose, 'utf-8');
+    await Bun.write(INPUT_FILE, prose);
     return ok({
       mode: 'llm',
       proseExtracted: true,

@@ -355,6 +355,36 @@ describe('batch mode', () => {
   });
 });
 
+// ── Batch dispatch: settings, prose-check, prose-gate (S6) ───────
+
+describe('batch dispatch: settings, prose-check, prose-gate', () => {
+  test('dispatches settings via batch', async () => {
+    const result = await handleBatch(['--commands', 'settings prose manual']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const results = data.results as { ok: boolean }[];
+    expect(results[0]!.ok).toBe(true);
+  });
+
+  test('dispatches prose-check via batch', async () => {
+    // Will fail with "Missing path" not "Unknown command" — that's the right failure
+    const result = await handleBatch(['--commands', 'prose-check']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const results = data.results as { ok: boolean; error?: { message?: string } }[];
+    expect(results[0]!.error?.message).not.toContain('Unknown command in batch');
+  });
+
+  test('dispatches prose-gate via batch', async () => {
+    // Will fail with "Missing flag" not "Unknown command"
+    const result = await handleBatch(['--commands', 'prose-gate']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const results = data.results as { ok: boolean; error?: { message?: string } }[];
+    expect(results[0]!.error?.message).not.toContain('Unknown command in batch');
+  });
+});
+
 // ── Handler parity ────────────────────────────────────────────────
 
 describe('batch handler parity', () => {
