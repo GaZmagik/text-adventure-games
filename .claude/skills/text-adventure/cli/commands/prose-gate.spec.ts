@@ -1,10 +1,35 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, existsSync, unlinkSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { handleProseGate } from './prose-gate';
 import { handleState } from './state';
 import { tryLoadState } from '../lib/state-store';
+import { fnv32 } from '../lib/fnv32';
+import { PROSE_GATE_FILE } from '../lib/constants';
+
+const SCENE_HTML = '<div id="narrative"><p>The corridor stretched ahead. Rust covered the walls. A distant hum echoed.</p></div>';
+let scenePath: string;
+
+function writeGateFile(
+  path: string,
+  html: string,
+  mode: string,
+  errors: string[],
+  warnings: string[],
+  acknowledged = false,
+): void {
+  const gate = {
+    scenePath: path,
+    sceneHash: fnv32(html),
+    mode,
+    timestamp: Date.now(),
+    deterministicErrors: errors,
+    deterministicWarnings: warnings,
+    warningsAcknowledged: acknowledged,
+  };
+  writeFileSync(PROSE_GATE_FILE, JSON.stringify(gate), 'utf-8');
+}
 
 let tempDir: string;
 const originalEnv = process.env.TAG_STATE_DIR;
@@ -13,10 +38,15 @@ beforeEach(async () => {
   tempDir = mkdtempSync(join(tmpdir(), 'tag-prose-gate-test-'));
   process.env.TAG_STATE_DIR = tempDir;
   await handleState(['reset']);
+  // Create a scene file and a clean gate file for each test
+  scenePath = join(tempDir, 'scene.html');
+  writeFileSync(scenePath, SCENE_HTML, 'utf-8');
+  writeGateFile(scenePath, SCENE_HTML, 'manual', [], []);
 });
 
 afterEach(() => {
   rmSync(tempDir, { recursive: true, force: true });
+  if (existsSync(PROSE_GATE_FILE)) unlinkSync(PROSE_GATE_FILE);
   if (originalEnv !== undefined) {
     process.env.TAG_STATE_DIR = originalEnv;
   } else {
@@ -317,9 +347,9 @@ describe('tag prose-gate no args', () => {
 
 describe('tag prose-gate no state', () => {
   test('--manual returns fail when no state exists', async () => {
-    const { unlinkSync } = await import('node:fs');
+    const { unlinkSync: ul } = await import('node:fs');
     const { join: pathJoin } = await import('node:path');
-    unlinkSync(pathJoin(tempDir, 'state.json'));
+    ul(pathJoin(tempDir, 'state.json'));
 
     const result = await handleProseGate(['--manual']);
     expect(result.ok).toBe(false);
@@ -327,14 +357,126 @@ describe('tag prose-gate no state', () => {
   });
 
   test('--llm returns fail when no state exists', async () => {
-    const { unlinkSync } = await import('node:fs');
+    const { unlinkSync: ul } = await import('node:fs');
     const { join: pathJoin } = await import('node:path');
 
     const path = writeResultFile(PASS_RESULT);
-    unlinkSync(pathJoin(tempDir, 'state.json'));
+    ul(pathJoin(tempDir, 'state.json'));
 
     const result = await handleProseGate(['--llm', path]);
     expect(result.ok).toBe(false);
     expect(result.error!.message).toMatch(/no game state/i);
+  });
+});
+
+// ── gate file enforcement (--manual) ──────────────────────────────
+
+describe('tag prose-gate gate file enforcement (--manual)', () => {
+  test('fails when gate file is missing', async () => {
+    unlinkSync(PROSE_GATE_FILE);
+    const result = await handleProseGate(['--manual']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toMatch(/prose-check/i);
+  });
+
+  test('fails when gate file has malformed JSON', async () => {
+    writeFileSync(PROSE_GATE_FILE, '{ not valid json }', 'utf-8');
+    const result = await handleProseGate(['--manual']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toMatch(/gate file/i);
+  });
+
+  test('fails when scene has changed since prose-check (hash mismatch)', async () => {
+    writeFileSync(scenePath, SCENE_HTML + '<!-- modified -->', 'utf-8');
+    const result = await handleProseGate(['--manual']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toMatch(/scene has changed/i);
+  });
+
+  test('fails when gate has deterministic errors', async () => {
+    writeGateFile(scenePath, SCENE_HTML, 'manual', ['Prose: [filter-words] "noticed" at line 1. Fix: replace with active verb.'], []);
+    const result = await handleProseGate(['--manual']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toMatch(/filter-words/i);
+  });
+
+  test('fails on first call when gate has unacknowledged warnings', async () => {
+    writeGateFile(scenePath, SCENE_HTML, 'manual', [], ['Prose warning: [word-repetition-window] "corridor" repeated 3 times.']);
+    const result = await handleProseGate(['--manual']);
+    expect(result.ok).toBe(false);
+  });
+
+  test('warning message mentions the warning', async () => {
+    writeGateFile(scenePath, SCENE_HTML, 'manual', [], ['Prose warning: [word-repetition-window] "corridor" repeated 3 times.']);
+    const result = await handleProseGate(['--manual']);
+    expect(result.error!.message).toContain('word-repetition-window');
+  });
+
+  test('gate file updated with warningsAcknowledged=true after first warning block', async () => {
+    writeGateFile(scenePath, SCENE_HTML, 'manual', [], ['Prose warning: [word-repetition-window] "corridor" repeated 3 times.']);
+    await handleProseGate(['--manual']);
+    const gate = JSON.parse(readFileSync(PROSE_GATE_FILE, 'utf-8'));
+    expect(gate.warningsAcknowledged).toBe(true);
+  });
+
+  test('passes on second call when warnings already acknowledged', async () => {
+    writeGateFile(scenePath, SCENE_HTML, 'manual', [], ['Prose warning: [word-repetition-window] "corridor" repeated 3 times.'], true);
+    const result = await handleProseGate(['--manual']);
+    expect(result.ok).toBe(true);
+    expect((result.data as { verified: boolean }).verified).toBe(true);
+  });
+
+  test('gate file deleted after successful clearance', async () => {
+    const result = await handleProseGate(['--manual']);
+    expect(result.ok).toBe(true);
+    expect(existsSync(PROSE_GATE_FILE)).toBe(false);
+  });
+});
+
+// ── gate file enforcement (--llm) ─────────────────────────────────
+
+describe('tag prose-gate gate file enforcement (--llm)', () => {
+  test('fails when gate file is missing', async () => {
+    unlinkSync(PROSE_GATE_FILE);
+    const path = writeResultFile(PASS_RESULT);
+    const result = await handleProseGate(['--llm', path]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toMatch(/prose-check/i);
+  });
+
+  test('fails when scene has changed (hash mismatch)', async () => {
+    writeFileSync(scenePath, SCENE_HTML + '<!-- modified -->', 'utf-8');
+    const path = writeResultFile(PASS_RESULT);
+    const result = await handleProseGate(['--llm', path]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toMatch(/scene has changed/i);
+  });
+
+  test('fails when gate has deterministic errors', async () => {
+    writeGateFile(scenePath, SCENE_HTML, 'llm', ['Prose: [filter-words] "noticed" at line 1.'], []);
+    const path = writeResultFile(PASS_RESULT);
+    const result = await handleProseGate(['--llm', path]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toMatch(/filter-words/i);
+  });
+
+  test('passes on second call with acknowledged warnings', async () => {
+    writeGateFile(scenePath, SCENE_HTML, 'llm', [], ['Prose warning: [word-repetition-window] "corridor" repeated.'], true);
+    const path = writeResultFile(PASS_RESULT);
+    const result = await handleProseGate(['--llm', path]);
+    expect(result.ok).toBe(true);
+    expect((result.data as { verified: boolean }).verified).toBe(true);
+  });
+
+  test('gate file deleted after successful LLM clearance', async () => {
+    const path = writeResultFile(PASS_RESULT);
+    await handleProseGate(['--llm', path]);
+    expect(existsSync(PROSE_GATE_FILE)).toBe(false);
+  });
+
+  test('gate file NOT deleted after LLM FAIL (verified: false)', async () => {
+    const path = writeResultFile(FAIL_RESULT);
+    await handleProseGate(['--llm', path]);
+    expect(existsSync(PROSE_GATE_FILE)).toBe(true);
   });
 });

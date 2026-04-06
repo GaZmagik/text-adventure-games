@@ -1,7 +1,8 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { mkdtempSync, rmSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, existsSync, readFileSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { PROSE_GATE_FILE } from '../lib/constants';
 
 const EXPECTED_INPUT_FILE = join(tmpdir(), 'prose-check-input.txt');
 const EXPECTED_OUTPUT_FILE = join(tmpdir(), 'prose-check-result.json');
@@ -20,6 +21,7 @@ beforeEach(async () => {
 
 afterEach(() => {
   rmSync(tempDir, { recursive: true, force: true });
+  if (existsSync(PROSE_GATE_FILE)) unlinkSync(PROSE_GATE_FILE);
   if (originalEnv !== undefined) {
     process.env.TAG_STATE_DIR = originalEnv;
   } else {
@@ -253,5 +255,96 @@ describe('tag prose-check clearance sentinels', () => {
     const path = writeTempHtml(narrativeHtml);
     const result = await handleProseCheck([path]);
     expect((result.data as { nextStep: string }).nextStep).toContain('prose-gate');
+  });
+});
+
+// ── gate file ──────────────────────────────────────────────────────
+
+describe('tag prose-check gate file', () => {
+  test('writes gate file when narrative is found (manual mode)', async () => {
+    const path = writeTempHtml(narrativeHtml);
+    await handleProseCheck([path]);
+    expect(existsSync(PROSE_GATE_FILE)).toBe(true);
+  });
+
+  test('gate file sceneHash is 8-char hex', async () => {
+    const path = writeTempHtml(narrativeHtml);
+    await handleProseCheck([path]);
+    const gate = JSON.parse(readFileSync(PROSE_GATE_FILE, 'utf-8'));
+    expect(gate.sceneHash).toMatch(/^[0-9a-f]{8}$/);
+  });
+
+  test('gate file scenePath matches the input file', async () => {
+    const path = writeTempHtml(narrativeHtml);
+    await handleProseCheck([path]);
+    const gate = JSON.parse(readFileSync(PROSE_GATE_FILE, 'utf-8'));
+    expect(gate.scenePath).toBe(path);
+  });
+
+  test('gate file mode is manual for default proseMode', async () => {
+    const path = writeTempHtml(narrativeHtml);
+    await handleProseCheck([path]);
+    const gate = JSON.parse(readFileSync(PROSE_GATE_FILE, 'utf-8'));
+    expect(gate.mode).toBe('manual');
+  });
+
+  test('gate file timestamp is a recent number', async () => {
+    const before = Date.now();
+    const path = writeTempHtml(narrativeHtml);
+    await handleProseCheck([path]);
+    const gate = JSON.parse(readFileSync(PROSE_GATE_FILE, 'utf-8'));
+    expect(typeof gate.timestamp).toBe('number');
+    expect(gate.timestamp).toBeGreaterThanOrEqual(before);
+  });
+
+  test('gate file deterministicErrors is an array', async () => {
+    const path = writeTempHtml(narrativeHtml);
+    await handleProseCheck([path]);
+    const gate = JSON.parse(readFileSync(PROSE_GATE_FILE, 'utf-8'));
+    expect(Array.isArray(gate.deterministicErrors)).toBe(true);
+  });
+
+  test('gate file deterministicWarnings is an array', async () => {
+    const path = writeTempHtml(narrativeHtml);
+    await handleProseCheck([path]);
+    const gate = JSON.parse(readFileSync(PROSE_GATE_FILE, 'utf-8'));
+    expect(Array.isArray(gate.deterministicWarnings)).toBe(true);
+  });
+
+  test('gate file warningsAcknowledged is false', async () => {
+    const path = writeTempHtml(narrativeHtml);
+    await handleProseCheck([path]);
+    const gate = JSON.parse(readFileSync(PROSE_GATE_FILE, 'utf-8'));
+    expect(gate.warningsAcknowledged).toBe(false);
+  });
+
+  test('does not write gate file when no narrative found', async () => {
+    if (existsSync(PROSE_GATE_FILE)) unlinkSync(PROSE_GATE_FILE);
+    const path = writeTempHtml('<div class="scene"><p>No narrative wrapper.</p></div>');
+    await handleProseCheck([path]);
+    expect(existsSync(PROSE_GATE_FILE)).toBe(false);
+  });
+
+  test('response includes deterministicErrorCount', async () => {
+    const path = writeTempHtml(narrativeHtml);
+    const result = await handleProseCheck([path]);
+    expect(typeof (result.data as { deterministicErrorCount: number }).deterministicErrorCount).toBe('number');
+  });
+
+  test('response includes deterministicWarningCount', async () => {
+    const path = writeTempHtml(narrativeHtml);
+    const result = await handleProseCheck([path]);
+    expect(typeof (result.data as { deterministicWarningCount: number }).deterministicWarningCount).toBe('number');
+  });
+
+  test('gate file mode is llm when proseMode is llm', async () => {
+    const state = await tryLoadState();
+    state!.worldFlags.proseMode = 'llm';
+    await saveState(state!);
+
+    const path = writeTempHtml(narrativeHtml);
+    await handleProseCheck([path]);
+    const gate = JSON.parse(readFileSync(PROSE_GATE_FILE, 'utf-8'));
+    expect(gate.mode).toBe('llm');
   });
 });

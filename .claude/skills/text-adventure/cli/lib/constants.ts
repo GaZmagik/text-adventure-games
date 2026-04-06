@@ -1,4 +1,6 @@
 import type { StatName, BestiaryTier, Pronouns, GmState } from '../types';
+import { tmpdir } from 'node:os';
+import { join as joinPath } from 'node:path';
 export { MUTATING_COMMANDS, WIDGET_TYPE_NAMES } from '../metadata';
 
 export const STAT_NAMES: readonly StatName[] = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
@@ -56,3 +58,6 @@ export const TIER1_MODULES = [
   'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
   'character-creation', 'save-codex',
 ] as const;
+
+/** Fixed path for the prose-check gate file — written by prose-check, consumed by prose-gate. */
+export const PROSE_GATE_FILE = joinPath(tmpdir(), 'prose-check.gate');

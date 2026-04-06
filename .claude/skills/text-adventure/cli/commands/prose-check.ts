@@ -5,7 +5,9 @@ import type { CommandResult } from '../types';
 import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState } from '../lib/state-store';
 import { resolveSafeReadPath, readSafeTextFile } from '../lib/path-security';
-import { extractNarrativeText, countWords } from '../lib/prose-checks';
+import { extractNarrativeText, countWords, checkProseContent } from '../lib/prose-checks';
+import { fnv32 } from '../lib/fnv32';
+import { PROSE_GATE_FILE } from '../lib/constants';
 
 // ── Baked-in constants ────────────────────────────────────────────
 
@@ -118,6 +120,28 @@ export async function handleProseCheck(args: string[]): Promise<CommandResult> {
   const wordCount = countWords(prose);
   const mode = state.worldFlags?.proseMode === 'llm' ? 'llm' : 'manual';
 
+  // Run deterministic checks and write gate file
+  const deterministicErrors: string[] = [];
+  const checkResult = checkProseContent(html, deterministicErrors);
+  const deterministicWarnings = checkResult?.warnings ?? [];
+  const sceneHash = fnv32(html);
+
+  try {
+    const gateData = {
+      scenePath: safePath,
+      sceneHash,
+      mode,
+      timestamp: Date.now(),
+      deterministicErrors,
+      deterministicWarnings,
+      warningsAcknowledged: false,
+    };
+    writeFileSync(PROSE_GATE_FILE, JSON.stringify(gateData), { encoding: 'utf-8', mode: 0o600 });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return fail(`Could not write gate file: ${msg}`, 'Check /tmp is writable.', 'prose-check');
+  }
+
   if (mode === 'llm') {
     try {
       writeFileSync(INPUT_FILE, prose, { encoding: 'utf-8', mode: 0o600 });
@@ -129,6 +153,8 @@ export async function handleProseCheck(args: string[]): Promise<CommandResult> {
       mode: 'llm',
       proseExtracted: true,
       wordCount,
+      deterministicErrorCount: deterministicErrors.length,
+      deterministicWarningCount: deterministicWarnings.length,
       inputFile: INPUT_FILE,
       outputFile: OUTPUT_FILE,
       command: buildCommand(),
@@ -142,6 +168,8 @@ export async function handleProseCheck(args: string[]): Promise<CommandResult> {
     mode: 'manual',
     proseExtracted: true,
     wordCount,
+    deterministicErrorCount: deterministicErrors.length,
+    deterministicWarningCount: deterministicWarnings.length,
     checklist: MANUAL_CHECKLIST,
     nextStep: 'Review your prose against each item. When satisfied: tag prose-gate --manual',
     message: 'Manual prose self-review required.',
