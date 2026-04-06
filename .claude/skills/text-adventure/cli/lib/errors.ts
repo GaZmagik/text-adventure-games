@@ -1,5 +1,10 @@
 import type { CommandResult } from '../types';
 
+/** Safely extract a message string from an unknown caught error. */
+export function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
 export function ok<T>(data: T, command: string): CommandResult<T> {
   return { ok: true, command, data };
 }

@@ -128,6 +128,10 @@ export const SENSE_WORDS_RE: readonly RegExp[] = [
   /\b(bitter|sour|salty|sweet|copper|metallic|acidic|bile|tang|tangy)\b/i,
 ];
 
+/** Passive voice pattern — matches auxiliary + past-participle constructions.
+ *  Hoisted to module scope so it is not recreated on every check invocation. */
+const PASSIVE_PATTERN = /\b(was|were|is|are|been|being)\s+\w+ed\b/i;
+
 /* ------------------------------------------------------------------ */
 /*  Tier 1: Pattern Rules (severity: error — blocks verify)            */
 /* ------------------------------------------------------------------ */
@@ -362,8 +366,7 @@ export const HEURISTIC_RULES: readonly HeuristicRule[] = [
     check(text) {
       const sentences = splitSentences(text);
       if (sentences.length < 5) return [];
-      const passivePattern = /\b(was|were|is|are|been|being)\s+\w+ed\b/i;
-      const passiveCount = sentences.filter(s => passivePattern.test(s)).length;
+      const passiveCount = sentences.filter(s => PASSIVE_PATTERN.test(s)).length;
       const pct = (passiveCount / sentences.length) * 100;
       if (pct > 15) {
         return [`Passive voice in ${passiveCount}/${sentences.length} sentences (${pct.toFixed(0)}%) exceeds 15% threshold.`];

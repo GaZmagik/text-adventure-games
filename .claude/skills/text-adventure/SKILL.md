@@ -65,6 +65,13 @@ All operational guides, checklists, and rules are delivered via CLI commands:
 
    Both gates must output their clearance phrase before `show_widget` is permitted. The prose gate is **not advisory** — a failed LLM gate blocks the scene.
 
+   **Gate file mechanics** — `prose-check` writes `/tmp/prose-check.gate` containing the scene hash, deterministic errors, deterministic warnings, and `warningsAcknowledged: false`. `prose-gate` reads this file and behaves as follows:
+   - **Errors present** → hard-block regardless of acknowledgement; fix and re-run `prose-check`.
+   - **Warnings present, first call** → blocks with the warning list and updates the gate to `warningsAcknowledged: true`; re-run `prose-gate` to proceed.
+   - **Warnings present, second call** → warnings acknowledged; gate passes through.
+   - **Scene changed** → if the scene HTML hash no longer matches the gate file, `prose-gate` rejects with "scene has changed" — re-run `prose-check` against the updated file.
+   - **Successful clearance** → gate file is deleted; a subsequent `prose-gate` call without a fresh `prose-check` will fail.
+
 ## Module Architecture
 
 Tier 1 modules load via `tag module activate-tier 1` — this delivers all module content into GM context and gates scene rendering.

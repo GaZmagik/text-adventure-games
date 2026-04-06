@@ -1,11 +1,11 @@
 import { writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { CommandResult } from '../types';
-import { ok, fail, noState } from '../lib/errors';
+import type { CommandResult, GateFile } from '../types';
+import { ok, fail, noState, errorMessage } from '../lib/errors';
 import { tryLoadState } from '../lib/state-store';
 import { resolveSafeReadPath, readSafeTextFile } from '../lib/path-security';
-import { extractNarrativeText, countWords, checkProseContent } from '../lib/prose-checks';
+import { extractNarrativeText, countWords, checkProseContentFromText } from '../lib/prose-checks';
 import { fnv32 } from '../lib/fnv32';
 import { PROSE_GATE_FILE } from '../lib/constants';
 
@@ -69,6 +69,12 @@ const MANUAL_CHECKLIST = [
 const INPUT_FILE = join(tmpdir(), 'prose-check-input.txt');
 const OUTPUT_FILE = join(tmpdir(), 'prose-check-result.json');
 
+// ── Helpers ───────────────────────────────────────────────────────
+
+function writeGateFile(gateData: GateFile): void {
+  writeFileSync(PROSE_GATE_FILE, JSON.stringify(gateData), { encoding: 'utf-8', mode: 0o600 });
+}
+
 // ── Shell command builder ─────────────────────────────────────────
 
 function buildCommand(): string {
@@ -94,7 +100,7 @@ export async function handleProseCheck(args: string[]): Promise<CommandResult> {
     }
     safePath = resolved;
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = errorMessage(err);
     return fail(msg, 'Run tag render first to generate the scene HTML.', 'prose-check');
   }
 
@@ -102,7 +108,7 @@ export async function handleProseCheck(args: string[]): Promise<CommandResult> {
   try {
     html = await readSafeTextFile(safePath, 'Prose check');
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = errorMessage(err);
     return fail(msg, 'Run tag render first to generate the scene HTML.', 'prose-check');
   }
 
@@ -120,14 +126,14 @@ export async function handleProseCheck(args: string[]): Promise<CommandResult> {
   const wordCount = countWords(prose);
   const mode = state.worldFlags?.proseMode === 'llm' ? 'llm' : 'manual';
 
-  // Run deterministic checks and write gate file
+  // Run deterministic checks and write gate file — use already-extracted text to avoid double extraction
   const deterministicErrors: string[] = [];
-  const checkResult = checkProseContent(html, deterministicErrors);
-  const deterministicWarnings = checkResult?.warnings ?? [];
+  const checkResult = checkProseContentFromText(prose, deterministicErrors);
+  const deterministicWarnings = checkResult.warnings;
   const sceneHash = fnv32(html);
 
   try {
-    const gateData = {
+    const gateData: GateFile = {
       scenePath: safePath,
       sceneHash,
       mode,
@@ -136,9 +142,9 @@ export async function handleProseCheck(args: string[]): Promise<CommandResult> {
       deterministicWarnings,
       warningsAcknowledged: false,
     };
-    writeFileSync(PROSE_GATE_FILE, JSON.stringify(gateData), { encoding: 'utf-8', mode: 0o600 });
+    writeGateFile(gateData);
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = errorMessage(err);
     return fail(`Could not write gate file: ${msg}`, 'Check /tmp is writable.', 'prose-check');
   }
 
@@ -146,7 +152,7 @@ export async function handleProseCheck(args: string[]): Promise<CommandResult> {
     try {
       writeFileSync(INPUT_FILE, prose, { encoding: 'utf-8', mode: 0o600 });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
+      const msg = errorMessage(err);
       return fail(`Could not write prose input file: ${msg}`, 'Check /tmp is writable and has sufficient space.', 'prose-check');
     }
     return ok({

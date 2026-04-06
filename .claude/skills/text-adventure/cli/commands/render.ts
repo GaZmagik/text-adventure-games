@@ -708,8 +708,8 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     if (data?.actions && Array.isArray(data.actions)) {
       for (let i = 0; i < data.actions.length; i++) {
         const action = data.actions[i] as Record<string, unknown> | undefined;
-        if (action?.roll && typeof action.roll === 'object') {
-          const roll = action.roll as Record<string, unknown>;
+        if (action?.roll && isPlainRecord(action.roll)) {
+          const roll = action.roll;
           const rollType = roll.type;
           const rollStat = roll.stat;
           if (typeof rollType !== 'string' || (rollType !== 'contest' && rollType !== 'hazard')) continue;

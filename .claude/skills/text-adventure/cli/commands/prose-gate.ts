@@ -1,22 +1,10 @@
 import { readFileSync, writeFileSync, unlinkSync } from 'node:fs';
-import type { CommandResult } from '../types';
-import { ok, fail, noState } from '../lib/errors';
+import type { CommandResult, GateFile } from '../types';
+import { ok, fail, noState, errorMessage } from '../lib/errors';
 import { tryLoadState, saveState } from '../lib/state-store';
-import { resolveSafeReadPath, readSafeTextFile } from '../lib/path-security';
+import { resolveSafeReadPath, readSafeTextFile, isAllowedPath } from '../lib/path-security';
 import { fnv32 } from '../lib/fnv32';
-import { PROSE_GATE_FILE } from '../lib/constants';
-
-// ── Gate file types ───────────────────────────────────────────────
-
-type GateFile = {
-  scenePath: string;
-  sceneHash: string;
-  mode: string;
-  timestamp: number;
-  deterministicErrors: string[];
-  deterministicWarnings: string[];
-  warningsAcknowledged: boolean;
-};
+import { PROSE_GATE_FILE, PROSE_MANUAL_CLEARANCE, PROSE_LLM_CLEARANCE } from '../lib/constants';
 
 type GateValidationResult =
   | { valid: true; gate: GateFile }
@@ -47,7 +35,12 @@ function readAndValidateGate(command: string): GateValidationResult {
     if (
       typeof parsed !== 'object' || parsed === null ||
       typeof (parsed as Record<string, unknown>)['scenePath'] !== 'string' ||
-      typeof (parsed as Record<string, unknown>)['sceneHash'] !== 'string'
+      typeof (parsed as Record<string, unknown>)['sceneHash'] !== 'string' ||
+      typeof (parsed as Record<string, unknown>)['mode'] !== 'string' ||
+      typeof (parsed as Record<string, unknown>)['timestamp'] !== 'number' ||
+      !Array.isArray((parsed as Record<string, unknown>)['deterministicErrors']) ||
+      !Array.isArray((parsed as Record<string, unknown>)['deterministicWarnings']) ||
+      typeof (parsed as Record<string, unknown>)['warningsAcknowledged'] !== 'boolean'
     ) {
       throw new Error('bad shape');
     }
@@ -57,6 +50,18 @@ function readAndValidateGate(command: string): GateValidationResult {
       valid: false,
       result: fail(
         'Gate file is corrupt or unreadable.',
+        'Delete /tmp/prose-check.gate and re-run: tag prose-check <path>',
+        command,
+      ),
+    };
+  }
+
+  // Guard: scene path must be within allowed directories
+  if (!isAllowedPath(gate.scenePath)) {
+    return {
+      valid: false,
+      result: fail(
+        'Gate file references a scene path outside allowed directories.',
         'Delete /tmp/prose-check.gate and re-run: tag prose-check <path>',
         command,
       ),
@@ -180,7 +185,7 @@ export async function handleProseGate(args: string[]): Promise<CommandResult> {
     return ok({
       verified: true,
       mode: 'manual',
-      clearance: 'PROSE GATE: MANUAL CLEARANCE — self-review certified. Proceed to show_widget.',
+      clearance: PROSE_MANUAL_CLEARANCE,
     }, 'prose-gate');
   }
 
@@ -210,7 +215,7 @@ export async function handleProseGate(args: string[]): Promise<CommandResult> {
     }
     resultPath = resolved;
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = errorMessage(err);
     return fail(msg, 'Run: tag prose-check <scene-path> to generate the LLM command first.', 'prose-gate');
   }
 
@@ -219,7 +224,7 @@ export async function handleProseGate(args: string[]): Promise<CommandResult> {
     const raw = await readSafeTextFile(resultPath, 'Prose gate result');
     parsed = JSON.parse(raw);
   } catch (err) {
-    const msg = err instanceof SyntaxError ? 'Malformed JSON in result file.' : `Could not read result file: ${err instanceof Error ? err.message : String(err)}`;
+    const msg = err instanceof SyntaxError ? 'Malformed JSON in result file.' : `Could not read result file: ${errorMessage(err)}`;
     return fail(msg, `Check the file at: ${resultPath}`, 'prose-gate');
   }
 
@@ -290,6 +295,6 @@ export async function handleProseGate(args: string[]): Promise<CommandResult> {
   return ok({
     verified: true,
     mode: 'llm',
-    clearance: 'PROSE GATE: LLM CLEARANCE — independent review passed. Proceed to show_widget.',
+    clearance: PROSE_LLM_CLEARANCE,
   }, 'prose-gate');
 }

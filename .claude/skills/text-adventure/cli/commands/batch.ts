@@ -1,5 +1,5 @@
 import type { CommandResult, GmState } from '../types';
-import { ok, fail } from '../lib/errors';
+import { ok, fail, errorMessage } from '../lib/errors';
 import {
   flushStateStoreContext,
   tryLoadState,
@@ -314,7 +314,7 @@ export async function handleBatch(args: string[]): Promise<CommandResult> {
         try {
           result = await dispatch(parsedLine.command, resolvedArgs);
         } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
+          const message = errorMessage(err);
           result = fail(message, `Check batch command ${i + 1}: ${parsedLine.raw}`, 'batch');
         }
 

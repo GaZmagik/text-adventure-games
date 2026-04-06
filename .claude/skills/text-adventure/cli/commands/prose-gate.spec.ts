@@ -431,6 +431,46 @@ describe('tag prose-gate gate file enforcement (--manual)', () => {
     expect(result.ok).toBe(true);
     expect(existsSync(PROSE_GATE_FILE)).toBe(false);
   });
+
+  test('returns fail when scene file has been deleted since prose-check', async () => {
+    const fakePath = join(tempDir, 'deleted-scene.html');
+    // Gate points to fakePath but the file is never written — it does not exist
+    const gateData = {
+      scenePath: fakePath,
+      sceneHash: '00000000',
+      mode: 'manual',
+      timestamp: Date.now(),
+      deterministicErrors: [],
+      deterministicWarnings: [],
+      warningsAcknowledged: false,
+    };
+    writeFileSync(PROSE_GATE_FILE, JSON.stringify(gateData), { encoding: 'utf-8' });
+
+    const result = await handleProseGate(['--manual']);
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toMatch(/scene file not found/i);
+  });
+});
+
+// ── path security ─────────────────────────────────────────────────
+
+describe('tag prose-gate path security', () => {
+  test('returns fail when gate file references a scene path outside allowed directories', async () => {
+    const gateData = {
+      scenePath: '/etc/passwd',
+      sceneHash: '00000000',
+      mode: 'manual',
+      timestamp: Date.now(),
+      deterministicErrors: [],
+      deterministicWarnings: [],
+      warningsAcknowledged: false,
+    };
+    writeFileSync(PROSE_GATE_FILE, JSON.stringify(gateData), { encoding: 'utf-8' });
+
+    const result = await handleProseGate(['--manual']);
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toMatch(/outside allowed/i);
+  });
 });
 
 // ── gate file enforcement (--llm) ─────────────────────────────────

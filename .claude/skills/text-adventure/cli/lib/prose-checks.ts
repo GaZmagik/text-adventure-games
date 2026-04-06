@@ -179,7 +179,7 @@ export function computeProseMetrics(text: string): ProseMetrics {
     : 0;
 
   // Sentence length standard deviation
-  const sentenceLengths = sentences.map(s => s.split(/\s+/).filter(w => w.length > 0).length);
+  const sentenceLengths = sentences.map(s => s.trim().split(/\s+/).length);
   const variance = sentenceCount > 0
     ? sentenceLengths.reduce((sum, l) => sum + (l - avgSentenceLength) ** 2, 0) / sentenceCount
     : 0;
@@ -268,16 +268,16 @@ export function checkVoiceDifferentiation(text: string, warnings: string[]): voi
 }
 
 /* ------------------------------------------------------------------ */
-/*  Entry point — called from verify.ts scene check chain              */
+/*  Shared prose evaluation logic (operates on pre-extracted text)     */
 /* ------------------------------------------------------------------ */
 
-export function checkProseContent(
-  html: string,
+/** Run all prose checks against already-extracted narrative text.
+ *  Avoids double `extractNarrativeText` when the caller already holds the text.
+ *  Used by prose-check.ts; verify.ts uses `checkProseContent` (HTML entry point). */
+export function checkProseContentFromText(
+  text: string,
   failures: string[],
-): { warnings: string[]; metrics: ProseMetrics } | null {
-  const text = extractNarrativeText(html);
-  if (!text) return null;
-
+): { warnings: string[]; metrics: ProseMetrics } {
   const patternViolations = evaluatePatternRules(text);
   const heuristicViolations = evaluateHeuristicRules(text);
   const metrics = computeProseMetrics(text);
@@ -295,7 +295,7 @@ export function checkProseContent(
 
   checkVoiceDifferentiation(text, warnings);
 
-  // Metric threshold warnings — informational only, never block verify
+  // Metric threshold warnings — informational only, never block
   if (metrics.wordCount >= 50 && metrics.fleschKincaid < 35) {
     warnings.push(
       `Readability score ${metrics.fleschKincaid.toFixed(0)} (Flesch-Kincaid target: 60+) — prose may be too dense. Use shorter sentences and simpler words.`,
@@ -313,4 +313,17 @@ export function checkProseContent(
   }
 
   return { warnings, metrics };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Entry point — called from verify.ts scene check chain              */
+/* ------------------------------------------------------------------ */
+
+export function checkProseContent(
+  html: string,
+  failures: string[],
+): { warnings: string[]; metrics: ProseMetrics } | null {
+  const text = extractNarrativeText(html);
+  if (!text) return null;
+  return checkProseContentFromText(text, failures);
 }

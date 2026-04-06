@@ -1,4 +1,39 @@
 :host {
+--ta-font-heading:              'Noto Serif', Georgia, 'Times New Roman', serif;
+--ta-font-body:                 system-ui, -apple-system, sans-serif;
+--ta-font-serif:                'Noto Serif', Georgia, 'Times New Roman', serif;
+--ta-color-accent:              var(--iw-accent);
+--ta-color-accent-hover:        color-mix(in srgb, var(--iw-accent) 80%, black);
+--ta-color-accent-bg:           var(--iw-accent-muted);
+--ta-color-accent-bg-hover:     rgba(208, 58, 45, 0.18);
+--ta-color-success:             var(--iw-success);
+--ta-color-success-border:      color-mix(in srgb, var(--iw-success) 70%, black);
+--ta-color-danger:              var(--iw-danger);
+--ta-color-danger-border:       color-mix(in srgb, var(--iw-danger) 70%, black);
+--ta-color-danger-bg:           var(--iw-danger-bg);
+--ta-color-danger-bg-hover:     rgba(138, 42, 42, 0.16);
+--ta-color-warning:             var(--iw-warning);
+--ta-color-warning-border:      color-mix(in srgb, var(--iw-warning) 70%, black);
+--ta-color-warning-bg:          var(--iw-warning-bg);
+--ta-color-xp:                  var(--iw-warning);
+--ta-color-focus:               var(--iw-accent);
+--ta-color-conviction:          #6B5C8A;
+--ta-color-conviction-border:   #5A4B78;
+--ta-color-bg-secondary:        var(--iw-bg-secondary);
+--ta-color-credits:             var(--iw-warning);
+--ta-color-tab-active:          var(--iw-accent);
+--ta-color-info:                var(--iw-info);
+--ta-color-xp-border:           color-mix(in srgb, var(--iw-warning) 50%, transparent);
+--ta-badge-success-bg:          var(--iw-success-bg);
+--ta-badge-success-text:        var(--iw-success);
+--ta-badge-partial-bg:          var(--iw-warning-bg);
+--ta-badge-partial-text:        var(--iw-warning);
+--ta-badge-failure-bg:          var(--iw-danger-bg);
+--ta-badge-failure-text:        var(--iw-danger);
+--ta-badge-crit-success-border: var(--iw-success);
+--ta-badge-crit-failure-border: var(--iw-danger);
+--ta-border-style-poi:          1px dashed;
+--ta-die-spin-duration:         0.5s;
 --iw-bg-primary:      #F5F2EB;
 --iw-bg-secondary:    #EDE9E0;
 --iw-bg-tertiary:     #E4DFD4;
@@ -58,7 +93,7 @@
 --iw-edge-wash: radial-gradient(ellipse at 50% 100%, rgba(197,192,182,0.04) 0%, transparent 70%);
 }
 }
-.iw-root {
+.root, .iw-root {
 background: var(--iw-bg-primary);
 background-image: var(--iw-edge-wash);
 padding: var(--iw-space-lg) var(--iw-space-md) var(--iw-space-xl);
@@ -83,7 +118,7 @@ color: var(--iw-ink-primary);
 margin: 0;
 line-height: 1.3;
 }
-.iw-narrative {
+.narrative, .iw-narrative {
 font-family: 'Noto Serif', Georgia, serif;
 font-size: 14px;
 font-weight: 400;
@@ -146,14 +181,14 @@ border-radius: 999px;
 border: 0.5px solid var(--iw-border-subtle);
 background: transparent;
 }
-.iw-btn-action {
+.btn-action, .iw-btn-action {
 font-family: 'Noto Serif', Georgia, serif;
 font-size: 13px;
 letter-spacing: 0.02em;
 color: var(--iw-ink-primary);
-background: transparent;
+background: rgba(208,58,45,0.10);
 border: none;
-border-bottom: 1px solid var(--iw-accent-border);
+border-bottom: 2px solid var(--iw-accent);
 border-radius: 0;
 padding: 6px 2px;
 min-height: 44px;
@@ -162,12 +197,12 @@ display: inline-flex;
 align-items: center;
 cursor: pointer;
 text-align: left;
-transition: border-color 200ms ease, color 200ms ease;
+transition: border-color 200ms ease, color 200ms ease, background 200ms ease;
 box-sizing: border-box;
 }
-.iw-btn-action:hover { color: var(--iw-accent); border-bottom-color: var(--iw-accent); }
-.iw-btn-action:active { opacity: 0.75; }
-.iw-btn-poi {
+.btn-action:hover, .iw-btn-action:hover { color: var(--iw-accent); border-bottom-color: var(--iw-accent); background: rgba(208,58,45,0.16); }
+.btn-action:active, .iw-btn-action:active { opacity: 0.75; }
+.btn-poi, .iw-btn-poi {
 font-family: system-ui, -apple-system, sans-serif;
 font-size: 12px;
 letter-spacing: 0.04em;
@@ -184,12 +219,12 @@ cursor: pointer;
 transition: background 200ms ease, color 150ms ease, border-color 150ms ease;
 box-sizing: border-box;
 }
-.iw-btn-poi:hover {
+.btn-poi:hover, .iw-btn-poi:hover {
 background: var(--iw-bg-secondary);
 color: var(--iw-ink-secondary);
 border-color: var(--iw-border-strong);
 }
-.iw-btn-continue {
+.continue-btn, .iw-btn-continue {
 font-family: system-ui, -apple-system, sans-serif;
 font-size: 11px;
 letter-spacing: 0.10em;

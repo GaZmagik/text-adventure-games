@@ -365,6 +365,18 @@ export type GmState = {
   _loreDefaults?: Record<string, string>;
 };
 
+// ── Prose Gate ────────────────────────────────────────────────────
+
+export type GateFile = {
+  scenePath: string;
+  sceneHash: string;
+  mode: string;
+  timestamp: number;
+  deterministicErrors: string[];
+  deterministicWarnings: string[];
+  warningsAcknowledged: boolean;
+};
+
 // ── Command Types ──────────────────────────────────────────────────
 
 export type CommandResult<T = unknown> = {

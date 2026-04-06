@@ -8,6 +8,7 @@ import { VERSION } from './lib/version';
 import { TOP_LEVEL_COMMANDS } from './metadata';
 import { JOURNAL_FILENAME } from './commands/state/sync';
 import { isAllowedPath } from './lib/path-security';
+import { errorMessage } from './lib/errors';
 import { isCompactionBlocked, writeCompactionBlock } from './lib/workflow-markers';
 
 // Only render is hard-blocked during compaction — it produces degraded
@@ -264,7 +265,7 @@ async function main(): Promise<void> {
 }
 
 main().catch(async (err: unknown) => {
-  const message = err instanceof Error ? err.message : String(err);
+  const message = errorMessage(err);
   await output({
     ok: false,
     command: 'tag',

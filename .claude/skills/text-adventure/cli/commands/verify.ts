@@ -6,7 +6,7 @@ import { readFileSync, realpathSync, writeFileSync, unlinkSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import type { CommandResult, GmState } from '../types';
-import { ok, fail, noState } from '../lib/errors';
+import { ok, fail, noState, errorMessage } from '../lib/errors';
 import { tryLoadState, saveState, getSyncMarkerPath } from '../lib/state-store';
 import { fnv32 } from '../lib/fnv32';
 import { resolveSafeReadPath } from '../lib/path-security';
@@ -30,6 +30,7 @@ import {
   checkInGameWidget,
 } from '../lib/verify-checks';
 import { checkProseContent } from '../lib/prose-checks';
+import type { ProseMetrics } from '../data/prose-rules';
 import {
   checkCodexEntryCount,
   checkShipPanelContent,
@@ -42,14 +43,14 @@ import {
 /** Compute a signed workflow marker.
  *  Format: scene:timestamp:fnv32('tag-cli-gate:' + scene + ':' + timestamp)
  *  This is a workflow gate, not a hard security boundary. */
-export function signMarker(scene: number, _stateJSON?: string): string {
+export function signMarker(scene: number): string {
   const ts = Date.now();
   return `${scene}:${ts}:${fnv32('tag-cli-gate:' + scene + ':' + ts)}`;
 }
 
 /** Validate a signed workflow marker. Returns the scene number or -1 if invalid.
  *  Checks: 3-part format, valid scene, valid timestamp, hash matches. */
-export function readSignedMarker(markerPath: string, _stateJSON?: string): number {
+export function readSignedMarker(markerPath: string): number {
   try {
     const raw = readFileSync(markerPath, 'utf-8').trim();
     const parts = raw.split(':');
@@ -487,7 +488,7 @@ function readHtmlFile(filePath: string): string | CommandResult {
     }
     return readFileSync(safePath, 'utf-8');
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
+    const msg = errorMessage(err);
     return fail(`Failed to read file: ${msg}`, 'Check the file path exists and is readable.', 'verify');
   }
 }
@@ -527,7 +528,7 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
   let failures: string[];
   let checks: Array<() => void>;
   let proseWarnings: string[] = [];
-  let proseMetrics: Record<string, number> | null = null;
+  let proseMetrics: ProseMetrics | null = null;
 
   if (widgetType === 'scenario') {
     failures = [];
@@ -574,7 +575,7 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
       () => checkLevelUpIntegrity(state, failures),
       () => {
         const r = checkProseContent(html, failures);
-        if (r) { proseWarnings = r.warnings; proseMetrics = r.metrics as unknown as Record<string, number>; }
+        if (r) { proseWarnings = r.warnings; proseMetrics = r.metrics; }
       },
     ];
   }

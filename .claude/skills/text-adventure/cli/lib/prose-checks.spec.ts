@@ -392,6 +392,22 @@ describe('extractSpeakerUtterances', () => {
     expect(lengths).toBeDefined();
     expect(lengths![0]).toBeGreaterThanOrEqual(3);
   });
+
+  test('attribution tags do not cause double-counting — post-pattern utterance counted once', () => {
+    // POST_ATTR_RE and PRE_ATTR_RE are mutually exclusive patterns; a single
+    // attributed quote must appear exactly once in the result, not twice.
+    const text = '"We leave at dawn," Orin said. "No more delays," Orin said.';
+    const map = extractSpeakerUtterances(text);
+    // Exactly 2 utterances — not 4 (which would indicate double-counting)
+    expect(map.get('Orin')!.length).toBe(2);
+  });
+
+  test('mixed pre- and post-attribution passages do not double-count across patterns', () => {
+    // One pre-attribution and one post-attribution for the same speaker; total must be 2
+    const text = 'Kira said, "Stay back." "Move now," Kira said.';
+    const map = extractSpeakerUtterances(text);
+    expect(map.get('Kira')!.length).toBe(2);
+  });
 });
 
 /* ------------------------------------------------------------------ */

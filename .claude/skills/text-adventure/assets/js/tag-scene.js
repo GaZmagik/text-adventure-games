@@ -131,6 +131,11 @@ function initTagScene(root) {
     toast.className = 'xp-toast';
     toast.textContent = '+' + amount + ' XP';
     el.appendChild(toast);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      // Skip CSS keyframe animation; remove after a brief static display instead.
+      setTimeout(function() { if (toast.parentNode) toast.remove(); }, 1500);
+      return;
+    }
     toast.addEventListener('animationend', function() { toast.remove(); }, { once: true });
   }
 

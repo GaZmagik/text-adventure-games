@@ -61,3 +61,7 @@ export const TIER1_MODULES = [
 
 /** Fixed path for the prose-check gate file — written by prose-check, consumed by prose-gate. */
 export const PROSE_GATE_FILE = joinPath(tmpdir(), 'prose-check.gate');
+
+/** Prose gate clearance messages — used by prose-gate command and tests. */
+export const PROSE_MANUAL_CLEARANCE = 'PROSE GATE: MANUAL CLEARANCE — self-review certified. Proceed to show_widget.';
+export const PROSE_LLM_CLEARANCE = 'PROSE GATE: LLM CLEARANCE — independent review passed. Proceed to show_widget.';
