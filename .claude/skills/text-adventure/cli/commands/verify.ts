@@ -33,8 +33,16 @@ import {
   checkTtsComponent,
   checkScenarioCardMeta,
 } from '../lib/verify-checks';
-import { checkProseContent } from '../lib/prose-checks';
+import { checkProseContent, extractNarrativeText } from '../lib/prose-checks';
 import type { ProseMetrics } from '../data/prose-rules';
+import {
+  buildProseFingerprint,
+  loadProseHistory,
+  appendFingerprint,
+  saveProseHistory,
+  checkCrossSceneProse,
+} from '../lib/prose-history';
+import type { ProseFingerprint, ProseHistory } from '../lib/prose-history';
 import {
   checkCodexEntryCount,
   checkShipPanelContent,
@@ -533,6 +541,8 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
   let checks: Array<() => void>;
   let proseWarnings: string[] = [];
   let proseMetrics: ProseMetrics | null = null;
+  let pendingProseFingerprint: ProseFingerprint | null = null;
+  let pendingProseHistory: ProseHistory | null = null;
 
   if (widgetType === 'scenario') {
     failures = [];
@@ -585,6 +595,13 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
         const r = checkProseContent(html, failures);
         if (r) { proseWarnings = r.warnings; proseMetrics = r.metrics; }
       },
+      () => {
+        const text = extractNarrativeText(html);
+        if (!text) return;
+        pendingProseFingerprint = buildProseFingerprint(String(state.scene), text);
+        pendingProseHistory = loadProseHistory(resolveStateDir());
+        checkCrossSceneProse(pendingProseFingerprint, pendingProseHistory, failures, proseWarnings);
+      },
     ];
   }
 
@@ -600,6 +617,9 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
       await saveState(state);
       try { unlinkSync(getNeedsVerifyPath()); } catch { /* already cleared */ }
       try { unlinkSync(getSyncMarkerPath()); } catch { /* already cleared */ }
+      if (pendingProseFingerprint) {
+        saveProseHistory(resolveStateDir(), appendFingerprint(pendingProseHistory, pendingProseFingerprint));
+      }
     } else if (isPreGame) {
       // Pre-game widgets: write a type-specific marker so render can gate on it
       const markerPath = join(resolveStateDir(), `.verified-${widgetType}`);
