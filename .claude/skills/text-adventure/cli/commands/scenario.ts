@@ -35,6 +35,8 @@ type BundledScenario = {
   loreFile: string;
   coverFront?: string;
   coverBack?: string;
+  accent?: string;
+  svgLogo?: string;
   defaults: Record<string, string>;
   requiredModules: string[];
   optionalModules: string[];
@@ -102,6 +104,8 @@ function scanBundledAdventures(): BundledScenario[] {
         optionalModules: toStringArray(fm.optionalModules),
         ...(coverFront ? { coverFront } : {}),
         ...(coverBack ? { coverBack } : {}),
+        ...(fm.accent ? { accent: fm.accent } : {}),
+        ...(fm.svgLogo ? { svgLogo: fm.svgLogo } : {}),
       });
     } catch {
       // Skip malformed files

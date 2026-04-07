@@ -62,13 +62,14 @@ async function renderToFile(args: string[], filename: string): Promise<string> {
 describe('tag verify scenario', () => {
   test('passes for valid scenario-select widget with 5 scenarios (1 featured)', async () => {
     await setupState();
+    const logo = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/></svg>';
     const data = JSON.stringify({
       scenarios: [
-        { title: 'The Glass Reef Atlas', description: 'A bundled adventure', genre: ['sci-fi'], featured: true },
-        { title: 'Rust Belt', description: 'A hauler job gone wrong', genre: ['sci-fi', 'noir'] },
-        { title: 'Deep Freeze', description: 'Ice station mystery', genre: ['horror', 'survival'] },
-        { title: 'Iron Veil', description: 'A fortress of secrets', genre: ['fantasy'] },
-        { title: 'Neon Requiem', description: 'City of broken neon', genre: ['cyberpunk'] },
+        { title: 'The Glass Reef Atlas', description: 'A bundled adventure', genre: ['sci-fi'], featured: true, accent: '#78e4ff', svgLogo: logo },
+        { title: 'Rust Belt', description: 'A hauler job gone wrong', genre: ['sci-fi', 'noir'], accent: '#e4a278', svgLogo: logo },
+        { title: 'Deep Freeze', description: 'Ice station mystery', genre: ['horror', 'survival'], accent: '#78c8e4', svgLogo: logo },
+        { title: 'Iron Veil', description: 'A fortress of secrets', genre: ['fantasy'], accent: '#a278e4', svgLogo: logo },
+        { title: 'Neon Requiem', description: 'City of broken neon', genre: ['cyberpunk'], accent: '#e478a2', svgLogo: logo },
       ],
     });
     const path = await renderToFile(['scenario-select', '--data', data], 'scenario.html');

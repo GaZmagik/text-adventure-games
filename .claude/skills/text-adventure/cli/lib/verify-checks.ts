@@ -454,6 +454,30 @@ export function checkPendingLevelUp(html: string, failures: string[], state: GmS
   }
 }
 
+export function checkScenarioCardMeta(html: string, failures: string[]): void {
+  const cardCount = (html.match(/class="scenario-card"/g) ?? []).length;
+  if (cardCount === 0) return;
+
+  const accentCount = (html.match(/--card-accent:/g) ?? []).length;
+  const logoCount = (html.match(/class="scenario-logo"/g) ?? []).length;
+
+  if (accentCount < cardCount) {
+    const missing = cardCount - accentCount;
+    failures.push(
+      `Verify: [scenario-missing-accent] ${missing} scenario card${missing === 1 ? '' : 's'} missing --card-accent colour. `
+      + "Set accent: '#hexvalue' on each scenario in your --data to give each world a distinct colour identity.",
+    );
+  }
+
+  if (logoCount < cardCount) {
+    const missing = cardCount - logoCount;
+    failures.push(
+      `Verify: [scenario-missing-logo] ${missing} scenario card${missing === 1 ? '' : 's'} missing an SVG logo. `
+      + "Set svgLogo: '<svg>...</svg>' on each scenario in your --data to give each world a distinctive icon.",
+    );
+  }
+}
+
 export function checkTtsComponent(html: string, failures: string[], state: GmState): void {
   if (!state.modulesActive?.includes('audio')) return;
   if (!/<ta-tts\b/i.test(html)) {

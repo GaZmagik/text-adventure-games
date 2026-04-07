@@ -295,6 +295,70 @@ describe('scenario-select cover art', () => {
   });
 });
 
+// ── SVG logo ──────────────────────────────────────────────────────
+
+const SVG_FIXTURE = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/></svg>';
+
+describe('scenario-select svgLogo', () => {
+  test('renders .scenario-logo div when svgLogo is a valid <svg> string', () => {
+    const html = renderScenarioSelect(null, '', {
+      data: { scenarios: [{ title: 'A', svgLogo: SVG_FIXTURE }, { title: 'B' }] },
+    });
+    expect(html).toContain('scenario-logo');
+  });
+
+  test('injects the raw SVG markup inside .scenario-logo', () => {
+    const html = renderScenarioSelect(null, '', {
+      data: { scenarios: [{ title: 'A', svgLogo: SVG_FIXTURE }] },
+    });
+    expect(html).toContain(SVG_FIXTURE);
+  });
+
+  test('omits .scenario-logo when svgLogo is absent', () => {
+    const html = renderScenarioSelect(null, '', { data: TWO_SCENARIOS });
+    expect(html).not.toContain('class="scenario-logo"');
+  });
+
+  test('omits .scenario-logo when svgLogo is not a valid <svg> root (security)', () => {
+    const html = renderScenarioSelect(null, '', {
+      data: { scenarios: [{ title: 'A', svgLogo: '<script>alert(1)</script>' }] },
+    });
+    expect(html).not.toContain('class="scenario-logo"');
+    expect(html).not.toContain('<script>alert');
+  });
+
+  test('renders .scenario-logo only on cards that have svgLogo', () => {
+    const html = renderScenarioSelect(null, '', {
+      data: {
+        scenarios: [
+          { title: 'A', svgLogo: SVG_FIXTURE },
+          { title: 'B', svgLogo: SVG_FIXTURE },
+          { title: 'C' },
+        ],
+      },
+    });
+    const logoCount = (html.match(/class="scenario-logo"/g) ?? []).length;
+    expect(logoCount).toBe(2);
+  });
+});
+
+// ── Per-card accent hex ────────────────────────────────────────────
+
+describe('scenario-select per-card accent hex', () => {
+  test('sets --card-accent inline style with full hex when accent provided', () => {
+    const html = renderScenarioSelect(null, '', { data: FEATURED_SCENARIOS });
+    expect(html).toContain('--card-accent: #78e4ff');
+    expect(html).toContain('--card-accent: #9e8fff');
+  });
+
+  test('omits --card-accent when accent is absent', () => {
+    const html = renderScenarioSelect(null, '', {
+      data: { scenarios: [{ title: 'A' }, { title: 'B' }] },
+    });
+    expect(html).not.toContain('--card-accent:');
+  });
+});
+
 // ── Empty state ────────────────────────────────────────────────────
 
 describe('scenario-select empty state', () => {

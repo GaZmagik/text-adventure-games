@@ -34,6 +34,10 @@ export type LoreFrontmatter = {
   preGeneratedCharacters?: Record<string, unknown>[];
   requiredModules?: string[];
   optionalModules?: string[];
+  /** Hex accent colour for scenario card e.g. '#C87941' */
+  accent?: string;
+  /** Raw SVG markup for scenario card logo (single-line, <svg>...</svg>) */
+  svgLogo?: string;
 };
 
 // ── Internal helpers ─────────────────────────────────────────────────

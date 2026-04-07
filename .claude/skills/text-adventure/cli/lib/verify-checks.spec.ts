@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'bun:test';
-import { checkSvgViewBox, checkPendingLevelUp, checkTtsComponent } from './verify-checks';
+import { checkSvgViewBox, checkPendingLevelUp, checkTtsComponent, checkScenarioCardMeta } from './verify-checks';
 import type { GmState } from '../types';
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -156,5 +156,59 @@ describe('checkTtsComponent', () => {
     const failures: string[] = [];
     checkTtsComponent('<div>scene</div>', failures, makeModuleState([]));
     expect(failures).toHaveLength(0);
+  });
+});
+
+// ── checkScenarioCardMeta ────────────────────────────────────────────
+
+describe('checkScenarioCardMeta', () => {
+  const card = (accent: string, logo: string) =>
+    `<div class="scenario-card"${accent}>${logo}</div>`;
+  const withAccent = ' style="--card-accent: #ff0000"';
+  const withLogo = '<div class="scenario-logo"><svg viewBox="0 0 10 10"></svg></div>';
+
+  test('passes when no scenario cards present', () => {
+    const failures: string[] = [];
+    checkScenarioCardMeta('<div>no cards here</div>', failures);
+    expect(failures).toHaveLength(0);
+  });
+
+  test('passes when all cards have accent and logo', () => {
+    const failures: string[] = [];
+    checkScenarioCardMeta(card(withAccent, withLogo) + card(withAccent, withLogo), failures);
+    expect(failures).toHaveLength(0);
+  });
+
+  test('fails with [scenario-missing-accent] when a card lacks --card-accent', () => {
+    const failures: string[] = [];
+    checkScenarioCardMeta(card(withAccent, withLogo) + card('', withLogo), failures);
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toContain('[scenario-missing-accent]');
+  });
+
+  test('fails with [scenario-missing-logo] when a card lacks .scenario-logo', () => {
+    const failures: string[] = [];
+    checkScenarioCardMeta(card(withAccent, withLogo) + card(withAccent, ''), failures);
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toContain('[scenario-missing-logo]');
+  });
+
+  test('emits both failures when cards lack both accent and logo', () => {
+    const failures: string[] = [];
+    checkScenarioCardMeta(card('', ''), failures);
+    expect(failures).toHaveLength(2);
+  });
+
+  test('reports plural count in failure message', () => {
+    const failures: string[] = [];
+    checkScenarioCardMeta(card('', '') + card('', ''), failures);
+    expect(failures[0]).toContain('2 scenario cards');
+  });
+
+  test('reports singular count for one missing card', () => {
+    const failures: string[] = [];
+    checkScenarioCardMeta(card(withAccent, withLogo) + card('', withLogo), failures);
+    expect(failures[0]).toContain('1 scenario card');
+    expect(failures[0]).not.toMatch(/\d+ scenario cards/);
   });
 });
