@@ -30,6 +30,7 @@ import {
   checkInGameWidget,
   checkSvgViewBox,
   checkPendingLevelUp,
+  checkTtsComponent,
 } from '../lib/verify-checks';
 import { checkProseContent } from '../lib/prose-checks';
 import type { ProseMetrics } from '../data/prose-rules';
@@ -577,6 +578,7 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
       () => checkLevelUpIntegrity(state, failures),
       () => checkSvgViewBox(html, failures),
       () => checkPendingLevelUp(html, failures, state),
+      () => checkTtsComponent(html, failures, state),
       () => {
         const r = checkProseContent(html, failures);
         if (r) { proseWarnings = r.warnings; proseMetrics = r.metrics; }

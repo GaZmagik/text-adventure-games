@@ -453,3 +453,13 @@ export function checkPendingLevelUp(html: string, failures: string[], state: GmS
     );
   }
 }
+
+export function checkTtsComponent(html: string, failures: string[], state: GmState): void {
+  if (!state.modulesActive?.includes('audio')) return;
+  if (!/<ta-tts\b/i.test(html)) {
+    failures.push(
+      'Verify: [missing-ta-tts] The audio module is active but the scene contains no <ta-tts> element. '
+      + 'Add <ta-tts> to the scene widget to enable text-to-speech narration.',
+    );
+  }
+}
