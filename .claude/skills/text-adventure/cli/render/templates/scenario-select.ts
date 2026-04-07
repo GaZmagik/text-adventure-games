@@ -92,8 +92,8 @@ function renderCard(scenario: Scenario, idx: number, isSelected: boolean): strin
   // Featured card with both covers: full book-spread layout
   if (hasBothCovers) {
     const accentParts = [
-      accentRgb ? `--card-accent-rgb: ${accentRgb}` : '',
-      scenario.accent ? `--card-accent: ${scenario.accent}` : '',
+      accentRgb ? `--ta-card-accent-rgb: ${accentRgb}` : '',
+      scenario.accent ? `--ta-card-accent: ${scenario.accent}` : '',
     ].filter(Boolean).join('; ');
     const accentStyle = accentParts ? ` style="${accentParts}"` : '';
     return `
@@ -120,8 +120,8 @@ function renderCard(scenario: Scenario, idx: number, isSelected: boolean): strin
     ? `background-image: linear-gradient(to top, rgba(10,10,18,0.95) 35%, rgba(10,10,18,0.4) 70%, transparent 100%), url(${esc(scenario.coverFront)});`
     : '';
   const cardStyle = [
-    accentRgb ? `--card-accent-rgb: ${accentRgb}` : '',
-    scenario.accent ? `--card-accent: ${scenario.accent}` : '',
+    accentRgb ? `--ta-card-accent-rgb: ${accentRgb}` : '',
+    scenario.accent ? `--ta-card-accent: ${scenario.accent}` : '',
     coverStyle ? coverStyle + ' background-size: cover; background-position: center top' : '',
   ].filter(Boolean).join('; ');
   const styleAttr = cardStyle ? ` style="${cardStyle}"` : '';
@@ -211,14 +211,14 @@ const SCENARIO_CSS = `
 .scenario-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
 .scenario-card {
   padding: 16px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
-  border-top: 2px solid var(--card-accent, var(--ta-color-accent, #4ECDC4));
+  border-top: 2px solid var(--ta-card-accent, var(--ta-color-accent, #4ECDC4));
   border-radius: 8px; transition: border-color 0.2s, box-shadow 0.2s;
   cursor: pointer; position: relative;
 }
-.scenario-card:hover { border-color: var(--card-accent, var(--ta-color-accent, #4ECDC4)); }
+.scenario-card:hover { border-color: var(--ta-card-accent, var(--ta-color-accent, #4ECDC4)); }
 .scenario-card[data-featured="true"] {
   grid-column: span 2;
-  border-color: var(--card-accent, var(--ta-color-accent, #4ECDC4));
+  border-color: var(--ta-card-accent, var(--ta-color-accent, #4ECDC4));
 }
 .scenario-logo { display: flex; justify-content: center; align-items: center; padding: 8px 8px 12px; }
 .scenario-logo svg { max-height: 80px; width: auto; }
@@ -244,8 +244,8 @@ const SCENARIO_CSS = `
   color: var(--sta-text-secondary, #9AA0C0);
 }
 .scenario-card[aria-pressed="true"] {
-  border-color: var(--card-accent, var(--ta-color-accent, #4ECDC4));
-  box-shadow: 0 0 0 1px var(--card-accent, var(--ta-color-accent, #4ECDC4)) inset;
+  border-color: var(--ta-card-accent, var(--ta-color-accent, #4ECDC4));
+  box-shadow: 0 0 0 1px var(--ta-card-accent, var(--ta-color-accent, #4ECDC4)) inset;
 }
 .scenario-title { font-family: var(--ta-font-heading); font-size: 16px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); margin-bottom: 6px; }
 .scenario-desc { font-size: 12px; line-height: 1.5; color: var(--sta-text-secondary, #9AA0C0); margin-bottom: 10px; }
@@ -253,7 +253,7 @@ const SCENARIO_CSS = `
 .genre-pill {
   display: inline-block; padding: 2px 8px; font-size: 10px;
   border-radius: 10px; background: var(--ta-color-accent-bg);
-  color: var(--card-accent, var(--ta-color-accent, #4ECDC4)); margin-right: 4px; text-transform: capitalize;
+  color: var(--ta-card-accent, var(--ta-color-accent, #4ECDC4)); margin-right: 4px; text-transform: capitalize;
 }
 .scenario-meta { font-size: 10px; color: var(--sta-text-tertiary, #545880); margin-bottom: 10px; }
 .scenario-meta span { margin-right: 12px; }
@@ -261,12 +261,12 @@ const SCENARIO_CSS = `
 .scenario-select-btn {
   display: block; width: 100%; padding: 8px;
   font-family: var(--ta-font-body); font-size: 12px; font-weight: 600;
-  background: transparent; border: 0.5px solid var(--card-accent, var(--ta-color-accent, #4ECDC4));
-  border-radius: 6px; color: var(--card-accent, var(--ta-color-accent, #4ECDC4)); cursor: pointer;
+  background: transparent; border: 0.5px solid var(--ta-card-accent, var(--ta-color-accent, #4ECDC4));
+  border-radius: 6px; color: var(--ta-card-accent, var(--ta-color-accent, #4ECDC4)); cursor: pointer;
   text-transform: uppercase; letter-spacing: 0.08em; transition: all 0.2s;
   min-height: 44px; box-sizing: border-box;
 }
-.scenario-select-btn:hover { background: var(--card-accent, var(--ta-color-accent, #4ECDC4)); color: var(--ta-btn-primary-text, #fff); }
+.scenario-select-btn:hover { background: var(--ta-card-accent, var(--ta-color-accent, #4ECDC4)); color: var(--ta-btn-primary-text, #fff); }
 .scenario-select-btn:focus-visible { outline: 2px solid var(--ta-color-focus); outline-offset: 2px; }
 .empty-scenarios { font-size: 13px; color: var(--sta-text-tertiary, #545880); text-align: center; padding: 40px; }
 @media (prefers-reduced-motion: reduce) {

@@ -144,19 +144,19 @@ describe('scenario-select featured', () => {
 // ── Accent colour ──────────────────────────────────────────────────
 
 describe('scenario-select accent', () => {
-  test('sets --card-accent-rgb CSS variable from hex accent', () => {
+  test('sets --ta-card-accent-rgb CSS variable from hex accent', () => {
     const html = renderScenarioSelect(null, '', { data: FEATURED_SCENARIOS });
     // #78e4ff → 120, 228, 255
-    expect(html).toContain('--card-accent-rgb: 120, 228, 255');
+    expect(html).toContain('--ta-card-accent-rgb: 120, 228, 255');
     // #9e8fff → 158, 143, 255
-    expect(html).toContain('--card-accent-rgb: 158, 143, 255');
+    expect(html).toContain('--ta-card-accent-rgb: 158, 143, 255');
   });
 
   test('omits accent variable when no accent provided', () => {
     const html = renderScenarioSelect(null, '', {
       data: { scenarios: [{ title: 'A' }, { title: 'B' }] },
     });
-    expect(html).not.toContain('--card-accent-rgb');
+    expect(html).not.toContain('--ta-card-accent-rgb');
   });
 });
 
@@ -350,17 +350,17 @@ describe('scenario-select svgLogo', () => {
 // ── Per-card accent hex ────────────────────────────────────────────
 
 describe('scenario-select per-card accent hex', () => {
-  test('sets --card-accent inline style with full hex when accent provided', () => {
+  test('sets --ta-card-accent inline style with full hex when accent provided', () => {
     const html = renderScenarioSelect(null, '', { data: FEATURED_SCENARIOS });
-    expect(html).toContain('--card-accent: #78e4ff');
-    expect(html).toContain('--card-accent: #9e8fff');
+    expect(html).toContain('--ta-card-accent: #78e4ff');
+    expect(html).toContain('--ta-card-accent: #9e8fff');
   });
 
-  test('omits --card-accent when accent is absent', () => {
+  test('omits --ta-card-accent when accent is absent', () => {
     const html = renderScenarioSelect(null, '', {
       data: { scenarios: [{ title: 'A' }, { title: 'B' }] },
     });
-    expect(html).not.toContain('--card-accent:');
+    expect(html).not.toContain('--ta-card-accent:');
   });
 });
 

@@ -469,13 +469,13 @@ export function checkScenarioCardMeta(html: string, failures: string[]): void {
   const cardCount = countClassOccurrences(html, 'scenario-card');
   if (cardCount === 0) return;
 
-  const accentCount = (html.match(/--card-accent:/g) ?? []).length;
+  const accentCount = (html.match(/--ta-card-accent:/g) ?? []).length;
   const logoCount = (html.match(/class="scenario-logo"/g) ?? []).length;
 
   if (accentCount < cardCount) {
     const missing = cardCount - accentCount;
     failures.push(
-      `Verify: [scenario-missing-accent] ${missing} scenario card${missing === 1 ? '' : 's'} missing --card-accent colour. `
+      `Verify: [scenario-missing-accent] ${missing} scenario card${missing === 1 ? '' : 's'} missing --ta-card-accent colour. `
       + "Set accent: '#hexvalue' on each scenario in your --data to give each world a distinct colour identity.",
     );
   }

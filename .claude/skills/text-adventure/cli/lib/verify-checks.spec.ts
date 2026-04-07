@@ -173,7 +173,7 @@ describe('checkTtsComponent', () => {
 describe('checkScenarioCardMeta', () => {
   const card = (accent: string, logo: string) =>
     `<div class="scenario-card"${accent}>${logo}</div>`;
-  const withAccent = ' style="--card-accent: #ff0000"';
+  const withAccent = ' style="--ta-card-accent: #ff0000"';
   const withLogo = '<div class="scenario-logo"><svg viewBox="0 0 10 10"></svg></div>';
 
   test('passes when no scenario cards present', () => {
@@ -188,7 +188,7 @@ describe('checkScenarioCardMeta', () => {
     expect(failures).toHaveLength(0);
   });
 
-  test('fails with [scenario-missing-accent] when a card lacks --card-accent', () => {
+  test('fails with [scenario-missing-accent] when a card lacks --ta-card-accent', () => {
     const failures: string[] = [];
     checkScenarioCardMeta(card(withAccent, withLogo) + card('', withLogo), failures);
     expect(failures).toHaveLength(1);
