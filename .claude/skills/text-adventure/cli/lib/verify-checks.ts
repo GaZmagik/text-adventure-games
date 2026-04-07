@@ -308,6 +308,73 @@ export function checkScenarioWidget(html: string, failures: string[]): void {
   }
 }
 
+// ── Settings group / value constants ────────────────────────────────
+
+const VALID_SETTINGS_GROUPS = new Set(['rulebook', 'difficulty', 'pacing', 'visualStyle', 'modules']);
+
+const VALID_SETTINGS_VALUES: Record<string, Set<string>> = {
+  rulebook: new Set(['d20_system', 'dnd_5e', 'gurps_lite', 'pf2e_lite', 'shadowrun_lite', 'narrative_engine', 'custom']),
+  difficulty: new Set(['easy', 'normal', 'hard', 'brutal']),
+  pacing: new Set(['fast', 'normal', 'slow']),
+  visualStyle: new Set(['station', 'terminal', 'parchment', 'neon', 'brutalist', 'art-deco', 'ink-wash', 'blueprint', 'stained-glass', 'sveltekit', 'weathered', 'holographic']),
+  // modules: intentionally omitted — values are extensible
+};
+
+/** Flags any data-group values that are not in the known set of valid settings groups. */
+export function checkSettingsGroups(html: string, failures: string[]): void {
+  for (const group of extractAttributeValues(html, 'data-group')) {
+    if (!VALID_SETTINGS_GROUPS.has(group)) {
+      failures.push(
+        `Settings contains unknown option group "${group}". Valid groups: rulebook, difficulty, pacing, visualStyle, modules.`,
+      );
+    }
+  }
+}
+
+/** Flags data-value attributes whose values are not in the known set for their group. */
+export function checkSettingsValues(html: string, failures: string[]): void {
+  const invalidsByGroup = new Map<string, string[]>();
+
+  // Pattern 1: both attributes on the same element (tag render output)
+  const forward = [...html.matchAll(/data-group="([^"]*)"[^>]*data-value="([^"]*)"/g)];
+  const reverse = [...html.matchAll(/data-value="([^"]*)"[^>]*data-group="([^"]*)"/g)]
+    .map(m => [m[0], m[2], m[1]] as const);
+
+  const pairs: [group: string, value: string][] = [
+    ...forward.map(m => [m[1], m[2]] as [string, string]),
+    ...reverse.map(([, group, value]) => [group, value] as [string, string]),
+  ];
+
+  // Pattern 2: data-group on container, data-value on children (hand-coded HTML)
+  // Match containers with data-group and extract data-value from their inner HTML
+  for (const m of html.matchAll(/data-group="([^"]*)"[^>]*>([\s\S]*?)(?=data-group="|$)/g)) {
+    const group = m[1]!;
+    const inner = m[2]!;
+    for (const v of inner.matchAll(/data-value="([^"]*)"/g)) {
+      pairs.push([group, v[1]!]);
+    }
+  }
+
+  // Deduplicate pairs (pattern 1 and 2 may overlap)
+  const seen = new Set<string>();
+  for (const [group, value] of pairs) {
+    const key = `${group}::${value}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const validSet = VALID_SETTINGS_VALUES[group];
+    if (validSet && !validSet.has(value)) {
+      if (!invalidsByGroup.has(group)) invalidsByGroup.set(group, []);
+      invalidsByGroup.get(group)!.push(value);
+    }
+  }
+
+  for (const [group, values] of invalidsByGroup) {
+    failures.push(
+      `Settings group "${group}" contains ${values.length} unrecognised value(s): ${values.join(', ')}. Check valid options in the settings template.`,
+    );
+  }
+}
+
 export function checkRulesWidget(html: string, failures: string[]): void {
   checkShadowRenderOrigin('rules', html, failures);
   checkBrokenSerialisation(html, failures);
@@ -333,6 +400,9 @@ export function checkRulesWidget(html: string, failures: string[]): void {
   if (objectValues > 0) {
     failures.push(`Found ${objectValues} option(s) with data-value="[object Object]" — arrays must contain strings, not objects.`);
   }
+
+  checkSettingsGroups(html, failures);
+  checkSettingsValues(html, failures);
 }
 
 export function checkCharacterWidget(html: string, failures: string[], state?: { modulesActive?: string[]; _loreSource?: string; _lorePregen?: unknown[] } | null): void {

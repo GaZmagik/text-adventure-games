@@ -8,6 +8,8 @@ import {
   checkCssVariables,
   checkInlineOnclick,
   checkSendPromptFallback,
+  checkSettingsGroups,
+  checkSettingsValues,
 } from './verify-checks';
 import type { GmState } from '../types';
 
@@ -332,6 +334,139 @@ describe('checkSendPromptFallback', () => {
   test('passes when no data-prompt buttons are present', () => {
     const failures: string[] = [];
     checkSendPromptFallback('<div>no interactive elements</div>', failures);
+    expect(failures).toHaveLength(0);
+  });
+});
+
+// ── checkSettingsGroups ──────────────────────────────────────────────
+
+describe('checkSettingsGroups', () => {
+  test('passes when all groups are valid', () => {
+    const failures: string[] = [];
+    checkSettingsGroups(
+      '<div data-group="rulebook"></div>'
+      + '<div data-group="difficulty"></div>'
+      + '<div data-group="pacing"></div>'
+      + '<div data-group="visualStyle"></div>'
+      + '<div data-group="modules"></div>',
+      failures,
+    );
+    expect(failures).toHaveLength(0);
+  });
+
+  test('fails when an unknown group is present', () => {
+    const failures: string[] = [];
+    checkSettingsGroups('<div data-group="tone"></div>', failures);
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toContain('"tone"');
+    expect(failures[0]).toContain('unknown option group');
+  });
+
+  test('reports all unknown groups when multiple are present', () => {
+    const failures: string[] = [];
+    checkSettingsGroups(
+      '<div data-group="tone"></div><div data-group="mood"></div>',
+      failures,
+    );
+    expect(failures).toHaveLength(2);
+    expect(failures.some(f => f.includes('"tone"'))).toBe(true);
+    expect(failures.some(f => f.includes('"mood"'))).toBe(true);
+  });
+
+  test('passes with empty html (no groups to validate)', () => {
+    const failures: string[] = [];
+    checkSettingsGroups('<div>no groups here</div>', failures);
+    expect(failures).toHaveLength(0);
+  });
+});
+
+// ── checkSettingsValues ──────────────────────────────────────────────
+
+describe('checkSettingsValues', () => {
+  test('passes when all values are valid for their groups', () => {
+    const failures: string[] = [];
+    checkSettingsValues(
+      '<div data-group="rulebook" data-value="dnd_5e"></div>'
+      + '<div data-group="difficulty" data-value="hard"></div>'
+      + '<div data-group="pacing" data-value="fast"></div>'
+      + '<div data-group="visualStyle" data-value="terminal"></div>',
+      failures,
+    );
+    expect(failures).toHaveLength(0);
+  });
+
+  test('fails for an invalid rulebook value', () => {
+    const failures: string[] = [];
+    checkSettingsValues('<div data-group="rulebook" data-value="pbta"></div>', failures);
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toContain('"rulebook"');
+    expect(failures[0]).toContain('pbta');
+  });
+
+  test('fails for an invalid difficulty value', () => {
+    const failures: string[] = [];
+    checkSettingsValues('<div data-group="difficulty" data-value="impossible"></div>', failures);
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toContain('"difficulty"');
+    expect(failures[0]).toContain('impossible');
+  });
+
+  test('fails for an invalid visualStyle value', () => {
+    const failures: string[] = [];
+    checkSettingsValues('<div data-group="visualStyle" data-value="comic-book"></div>', failures);
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toContain('"visualStyle"');
+    expect(failures[0]).toContain('comic-book');
+  });
+
+  test('does not validate module values (extensible)', () => {
+    const failures: string[] = [];
+    checkSettingsValues(
+      '<div data-group="modules" data-value="my-custom-module"></div>',
+      failures,
+    );
+    expect(failures).toHaveLength(0);
+  });
+
+  test('reports only invalid values when mixed with valid ones', () => {
+    const failures: string[] = [];
+    checkSettingsValues(
+      '<div data-group="rulebook" data-value="dnd_5e"></div>'
+      + '<div data-group="rulebook" data-value="pbta"></div>'
+      + '<div data-group="difficulty" data-value="normal"></div>',
+      failures,
+    );
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toContain('"rulebook"');
+    expect(failures[0]).toContain('pbta');
+    expect(failures[0]).not.toContain('dnd_5e');
+  });
+
+  test('handles attributes in reverse order (data-value before data-group)', () => {
+    const failures: string[] = [];
+    checkSettingsValues('<div data-value="pbta" data-group="rulebook"></div>', failures);
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toContain('"rulebook"');
+    expect(failures[0]).toContain('pbta');
+  });
+
+  test('detects invalid values when data-group is on container and data-value on children', () => {
+    const failures: string[] = [];
+    checkSettingsValues(
+      '<fieldset data-group="rulebook"><button data-value="d20_system">D20</button>'
+      + '<button data-value="pbta">PbtA</button><button data-value="fate">Fate</button></fieldset>'
+      + '<fieldset data-group="difficulty"><button data-value="easy">Easy</button></fieldset>',
+      failures,
+    );
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toContain('"rulebook"');
+    expect(failures[0]).toContain('pbta');
+    expect(failures[0]).toContain('fate');
+  });
+
+  test('passes with empty html', () => {
+    const failures: string[] = [];
+    checkSettingsValues('<div>no settings here</div>', failures);
     expect(failures).toHaveLength(0);
   });
 });

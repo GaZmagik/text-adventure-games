@@ -46,16 +46,17 @@ All operational guides, checklists, and rules are delivered via CLI commands:
 
 1. **ALL output inside `visualize:show_widget`** — zero text in conversation. No prose, narration, status updates, or stat breakdowns outside widgets.
 2. **ALL widgets rendered via `tag render`** — never hand-code HTML, CSS, or JS. Run commands via the Bash tool.
-3. **Never auto-resolve player decisions** — die rolls and choices wait for input.
-4. **Never advance story without player input** — every scene ends with a choice, roll, or action prompt.
-5. **Run `tag state sync` before EVERY scene** — sync returns the prose checklist and key rules inline.
-6. **Run `tag verify` before EVERY `show_widget` — if verify FAILS, DO NOT show the widget.** Fix every failure and re-run `tag verify` until it passes. A failed verification is a hard block — never bypass it, never rationalise that the widget is "close enough". Verify checks ALL widget types:
+3. **Widget HTML for `show_widget` MUST be read verbatim from the file** — after `tag render` writes to a file and `tag verify` passes, `cat` the ENTIRE file and use its complete contents as the `widget_code` parameter. NEVER reconstruct widget HTML from memory, NEVER paraphrase or abbreviate the file, NEVER read only part of the file. The verified file IS the widget. If you cannot fit the full file content, the widget is too large — do not attempt to reproduce it from recall.
+4. **Never auto-resolve player decisions** — die rolls and choices wait for input.
+5. **Never advance story without player input** — every scene ends with a choice, roll, or action prompt.
+6. **Run `tag state sync` before EVERY scene** — sync returns the prose checklist and key rules inline.
+7. **Run `tag verify` before EVERY `show_widget` — if verify FAILS, DO NOT show the widget.** Fix every failure and re-run `tag verify` until it passes. A failed verification is a hard block — never bypass it, never rationalise that the widget is "close enough". Verify checks ALL widget types:
    - `tag verify scenario /tmp/scenario.html` — before showing scenario select
    - `tag verify rules /tmp/settings.html` — before showing settings
    - `tag verify character /tmp/character.html` — before showing character creation
    - `tag verify /tmp/scene.html` — before showing every scene
    - `tag verify <type> /tmp/widget.html` — before showing other widgets such as `dice`, `dice-pool`, `dialogue`, `combat-turn`, `levelup`, `recap`, `arc-complete`, `ticker`, `ship`, `crew`, `codex`, `map`, `starchart`, `footer`, or `save-div`
-7. **Run `tag prose-check` + `tag prose-gate` before EVERY scene `show_widget`** — both `tag verify` AND `tag prose-gate` must show their clearance phrase. Neither can be skipped or rationalised away:
+8. **Run `tag prose-check` + `tag prose-gate` before EVERY scene `show_widget`** — both `tag verify` AND `tag prose-gate` must show their clearance phrase. Neither can be skipped or rationalised away:
    ```
    tag prose-check /tmp/scene.html
    ```
