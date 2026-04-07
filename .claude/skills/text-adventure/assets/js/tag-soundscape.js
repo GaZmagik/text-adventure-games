@@ -34,7 +34,7 @@ SoundscapeEngine.prototype.stop = function() {
   this.nodes.forEach(function(n) { try { n.stop(); } catch(e) {} try { n.disconnect(); } catch(e) {} });
   this.nodes = []; this.playing = false;
   if (this.timeout) { clearTimeout(this.timeout); this.timeout = null; }
-  if (this.ctx) { try { this.ctx.close(); } catch(e) {} this.ctx = null; }
+  // ctx stays open for reuse — closing permanently destroys it (browser limit: ~6 per origin)
   var btn = this.root.getElementById('audio-btn');
   if (btn) btn.textContent = '\u266b Play';
 };

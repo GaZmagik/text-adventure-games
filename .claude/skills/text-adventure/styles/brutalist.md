@@ -172,6 +172,13 @@ Invert everything. White borders on black, red stays red (it always stands out).
     --ta-btn-primary-text:          #ffffff;
     --ta-border-style-poi:          2px dashed;
     --ta-die-spin-duration:         0.3s;
+
+    /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
+    --sta-text-primary:             var(--bru-text-primary);
+    --sta-text-secondary:           var(--bru-text-secondary);
+    --sta-text-tertiary:            var(--bru-text-tertiary);
+    --sta-border-tertiary:          var(--bru-border-tertiary);
+    --sta-color-text-emphasis:      var(--bru-text-inverse);
   }
 
   /* --- Speaker colours (multi-dialogue) --- */

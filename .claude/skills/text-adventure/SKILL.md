@@ -12,7 +12,7 @@ metadata:
 The skill directory must be copied to a writable location before setup:
 
 ```bash
-cp -r /mnt/skills/user/text-adventure /home/claude/text-adventure && cd /home/claude/text-adventure && . ./setup.sh && tag state reset
+cp -r /mnt/skills/user/text-adventure /home/claude/text-adventure && cd /home/claude/text-adventure && . ./setup.sh && tag state reset && tag style activate
 ```
 
 To resume from a save file:
@@ -98,7 +98,7 @@ Six named recipes define the ambient texture:
 | `action` | Percussive pulse, fast LFO | Chase, escape, firefight |
 | `mystery` | Narrow bandpass, medium stereo | Investigation, hidden passage, agenda |
 
-Audio starts automatically on scene load and respects `prefers-reduced-motion`. Unknown keywords are silently ignored. See `modules/audio.md` for full recipe parameters and the SoundscapeEngine (player-triggered effects) system.
+Audio starts on first user interaction (click or keypress) and respects `prefers-reduced-motion`. Unknown keywords are silently ignored. See `modules/audio.md` for full recipe parameters and the SoundscapeEngine (player-triggered effects) system.
 
 ## SVG Usage
 

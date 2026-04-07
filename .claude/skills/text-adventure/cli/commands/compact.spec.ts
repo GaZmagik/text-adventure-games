@@ -232,7 +232,7 @@ describe('tag compact restore', () => {
     const result = await handleCompact(['restore']);
     const data = result.data as Record<string, unknown>;
     const batch = data.recoveryBatch as string;
-    expect(batch).toContain('export load /tmp/adventure.lore.md');
+    expect(batch).toContain("export load '/tmp/adventure.lore.md'");
   });
 
   test('recoveryBatch omits lore reload when no _loreSource', async () => {

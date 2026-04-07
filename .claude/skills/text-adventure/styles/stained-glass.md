@@ -161,6 +161,13 @@ attribute override is also provided for runtime switching.
   --ta-border-style-poi:          2px dashed;
   --ta-die-spin-duration:         0.6s;
 
+  /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
+  --sta-text-primary:             var(--sg-text-primary);
+  --sta-text-secondary:           var(--sg-text-secondary);
+  --sta-text-tertiary:            var(--sg-text-muted);
+  --sta-border-tertiary:          var(--sg-lead-subtle);
+  --sta-color-text-emphasis:      var(--sg-text-on-jewel);
+
   /* --- Speaker colours (multi-dialogue) --- */
   --speaker-color-0: #c0392b;
   --speaker-color-1: #2980b9;

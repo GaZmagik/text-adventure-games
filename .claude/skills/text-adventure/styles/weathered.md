@@ -883,6 +883,13 @@ any host page styles.
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.5s;
 
+  /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
+  --sta-text-primary:             var(--w-text-primary);
+  --sta-text-secondary:           var(--w-text-secondary);
+  --sta-text-tertiary:            var(--w-text-tertiary);
+  --sta-border-tertiary:          var(--w-border-light);
+  --sta-color-text-emphasis:      #1a1a1a;
+
   /* --- Speaker colours (multi-dialogue) --- */
   --speaker-color-0: #8b6f47;
   --speaker-color-1: #6b8ea6;

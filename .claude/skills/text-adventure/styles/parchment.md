@@ -601,6 +601,13 @@ tag after the base engine styles. It uses the CSS cascade — only override what
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.5s;
 
+  /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
+  --sta-text-primary:             var(--pt-text-primary);
+  --sta-text-secondary:           var(--pt-text-secondary);
+  --sta-text-tertiary:            var(--pt-text-tertiary);
+  --sta-border-tertiary:          var(--pt-border-soft);
+  --sta-color-text-emphasis:      #1a1a1a;
+
   /* --- Speaker colours (multi-dialogue) --- */
   --speaker-color-0: #6b3a2a;
   --speaker-color-1: #2d5a27;

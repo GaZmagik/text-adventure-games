@@ -206,6 +206,13 @@ inverts the surface/text relationship.
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.6s;
 
+  /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
+  --sta-text-primary:             var(--neon-text-primary);
+  --sta-text-secondary:           var(--neon-text-secondary);
+  --sta-text-tertiary:            var(--neon-text-tertiary);
+  --sta-border-tertiary:          var(--neon-border-tertiary);
+  --sta-color-text-emphasis:      #ffffff;
+
   /* --- Speaker colours (multi-dialogue) --- */
   --speaker-color-0: #ff2d78;
   --speaker-color-1: #00d4ff;

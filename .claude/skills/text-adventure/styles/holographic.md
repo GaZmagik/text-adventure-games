@@ -954,6 +954,13 @@ acceptable result if CSP blocks the request.
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.6s;
 
+  /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
+  --sta-text-primary:             var(--holo-text-primary);
+  --sta-text-secondary:           var(--holo-text-secondary);
+  --sta-text-tertiary:            var(--holo-text-tertiary);
+  --sta-border-tertiary:          var(--holo-border-tertiary);
+  --sta-color-text-emphasis:      #ffffff;
+
   /* --- Speaker colours (multi-dialogue) --- */
   --speaker-color-0: #ff79c6;
   --speaker-color-1: #80ffea;

@@ -176,6 +176,13 @@ attributes — use the custom properties only.
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.5s;
 
+  /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
+  --sta-text-primary:             var(--iw-ink-primary);
+  --sta-text-secondary:           var(--iw-ink-secondary);
+  --sta-text-tertiary:            var(--iw-ink-tertiary);
+  --sta-border-tertiary:          var(--iw-border-subtle);
+  --sta-color-text-emphasis:      #1a1a1a;
+
   /* --- Speaker colours (multi-dialogue) --- */
   --speaker-color-0: #c8853a;
   --speaker-color-1: #5b7fa6;

@@ -163,6 +163,13 @@ badges only. Headings and buttons use sentence case.
   --ta-btn-primary-text:          #ffffff;
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.4s;
+
+  /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
+  --sta-text-primary:             var(--t-text-primary);
+  --sta-text-secondary:           var(--t-text-secondary);
+  --sta-text-tertiary:            var(--t-text-muted);
+  --sta-border-tertiary:          var(--t-border-hard);
+  --sta-color-text-emphasis:      #ffffff;
 ```
 
 ### Design Tokens — Light Mode

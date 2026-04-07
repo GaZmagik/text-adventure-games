@@ -880,6 +880,13 @@ definitions and can be applied selectively.
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.5s;
 
+  /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
+  --sta-text-primary:             var(--bp-color-text-primary);
+  --sta-text-secondary:           var(--bp-color-text-secondary);
+  --sta-text-tertiary:            var(--bp-color-text-tertiary);
+  --sta-border-tertiary:          var(--bp-color-border-tertiary);
+  --sta-color-text-emphasis:      #1a1a1a;
+
   /* --- Speaker colours (multi-dialogue) --- */
   --speaker-color-0: #ffffff;
   --speaker-color-1: #a8d8ea;

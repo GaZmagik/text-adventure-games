@@ -603,6 +603,45 @@ describe('validateState — warning coverage', () => {
     expect(result.warnings).toContain('seed should be a string.');
   });
 
+  test('reports quest per-entry errors and warnings across id, title, status, objectives, and clues', () => {
+    const state = createDefaultState();
+    state.quests = [
+      { id: '', title: 42, status: 'pending', objectives: 'none', clues: 'secret' } as any,
+    ];
+    const result = validateState(state);
+    expect(result.errors.some(e => e.includes('quests[0].id'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('quests[0].title'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('quests[0].status'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('quests[0].objectives'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('quests[0].clues'))).toBe(true);
+  });
+
+  test('reports character extended field errors and warnings', () => {
+    const state = createDefaultState();
+    state.character = mkChar({
+      class: '' as any,
+      xp: -1, currency: 'rich' as any, currencyName: 99 as any,
+      modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0 } as any,
+      proficiencyBonus: 'high' as any, proficiencies: 'all' as any,
+      abilities: {} as any, inventory: 'none' as any,
+      conditions: 'poisoned' as any,
+      equipment: { weapon: 42 as any, armour: null as any },
+    });
+    const result = validateState(state);
+    expect(result.errors.some(e => e.includes('character.class'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('character.xp'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('character.currency'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('character.currencyName'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('character.modifiers.CHA'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('character.proficiencyBonus'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('character.proficiencies'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('character.abilities'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('character.inventory'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('character.conditions'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('character.equipment.weapon'))).toBe(true);
+    expect(result.warnings.some(w => w.includes('character.equipment.armour'))).toBe(true);
+  });
+
   test('reports NPC structural errors and warnings across name, stats, hp, status, and modifiers', () => {
     const state = createDefaultState();
     state.rosterMutations = [

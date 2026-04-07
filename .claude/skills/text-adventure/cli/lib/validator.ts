@@ -126,9 +126,15 @@ export function validateState(state: unknown): ValidationResult {
     }
   }
 
-  // quests — must be an array (sync crashes on quest.objectives.length otherwise)
-  if (s.quests !== undefined && !Array.isArray(s.quests)) {
-    errors.push('quests must be an array.');
+  // quests — must be an array; validate each entry
+  if (s.quests !== undefined) {
+    if (!Array.isArray(s.quests)) {
+      errors.push('quests must be an array.');
+    } else {
+      for (let i = 0; i < s.quests.length; i++) {
+        validateQuest(s.quests[i], i, errors, warnings);
+      }
+    }
   }
 
   // modulesActive — warn on unknown module names
@@ -160,6 +166,10 @@ function validateCharacter(char: unknown, errors: string[], warnings: string[]):
     errors.push('character.name must be a non-empty string.');
   }
 
+  if (typeof c.class !== 'string' || c.class.length === 0) {
+    errors.push('character.class must be a non-empty string.');
+  }
+
   if (typeof c.hp !== 'number') {
     errors.push('character.hp must be a number.');
   } else if (c.hp < 0) {
@@ -188,6 +198,59 @@ function validateCharacter(char: unknown, errors: string[], warnings: string[]):
     warnings.push('character.ac should be >= 0.');
   }
 
+  if (typeof c.xp !== 'number' || c.xp < 0) {
+    warnings.push('character.xp should be a non-negative number.');
+  }
+
+  if (typeof c.currency !== 'number') {
+    warnings.push('character.currency should be a number.');
+  }
+
+  if (typeof c.currencyName !== 'string') {
+    warnings.push('character.currencyName should be a string.');
+  }
+
+  if (typeof c.proficiencyBonus !== 'number') {
+    warnings.push('character.proficiencyBonus should be a number.');
+  }
+
+  if (!Array.isArray(c.proficiencies)) {
+    warnings.push('character.proficiencies should be an array.');
+  }
+
+  if (!Array.isArray(c.abilities)) {
+    warnings.push('character.abilities should be an array.');
+  }
+
+  if (!Array.isArray(c.inventory)) {
+    warnings.push('character.inventory should be an array.');
+  }
+
+  if (!Array.isArray(c.conditions)) {
+    warnings.push('character.conditions should be an array.');
+  }
+
+  // modifiers — StatBlock
+  if (typeof c.modifiers !== 'object' || c.modifiers === null) {
+    warnings.push('character.modifiers should be an object.');
+  } else {
+    const mods = c.modifiers as Record<string, unknown>;
+    for (const stat of STAT_NAMES) {
+      if (typeof mods[stat] !== 'number') {
+        warnings.push(`character.modifiers.${stat} should be a number.`);
+      }
+    }
+  }
+
+  // equipment
+  if (typeof c.equipment !== 'object' || c.equipment === null) {
+    warnings.push('character.equipment should be an object.');
+  } else {
+    const eq = c.equipment as Record<string, unknown>;
+    if (typeof eq.weapon !== 'string') warnings.push('character.equipment.weapon should be a string.');
+    if (typeof eq.armour !== 'string') warnings.push('character.equipment.armour should be a string.');
+  }
+
   // stats
   if (typeof c.stats !== 'object' || c.stats === null) {
     errors.push('character.stats must be an object.');
@@ -198,6 +261,32 @@ function validateCharacter(char: unknown, errors: string[], warnings: string[]):
         errors.push(`character.stats.${stat} must be a number.`);
       }
     }
+  }
+}
+
+const VALID_QUEST_STATUSES = new Set(['active', 'completed', 'failed']);
+
+function validateQuest(quest: unknown, index: number, errors: string[], warnings: string[]): void {
+  if (typeof quest !== 'object' || quest === null) {
+    errors.push(`quests[${index}] must be an object.`);
+    return;
+  }
+  const q = quest as Record<string, unknown>;
+  const prefix = `quests[${index}]`;
+  if (typeof q.id !== 'string' || q.id.length === 0) {
+    errors.push(`${prefix}.id must be a non-empty string.`);
+  }
+  if (typeof q.title !== 'string') {
+    warnings.push(`${prefix}.title should be a string.`);
+  }
+  if (typeof q.status !== 'string' || !VALID_QUEST_STATUSES.has(q.status)) {
+    warnings.push(`${prefix}.status should be 'active', 'completed', or 'failed'.`);
+  }
+  if (!Array.isArray(q.objectives)) {
+    warnings.push(`${prefix}.objectives should be an array.`);
+  }
+  if (!Array.isArray(q.clues)) {
+    warnings.push(`${prefix}.clues should be an array.`);
   }
 }
 

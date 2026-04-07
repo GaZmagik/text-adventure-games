@@ -98,6 +98,8 @@
 --ta-badge-crit-failure-border: var(--sta-badge-crit-failure-border);
 --ta-color-credits:          var(--sta-color-currency);
 --ta-color-tab-active:       var(--sta-color-location);
+--ta-color-info:             #4A9FD4;
+--ta-btn-primary-text:       #ffffff;
 --ta-border-style-poi:       1px dashed;
 --ta-die-spin-duration:      0.5s;
 --ta-die-bg:         #909AB4;
@@ -158,6 +160,8 @@
 --ta-badge-crit-failure-border: var(--sta-badge-crit-failure-border);
 --ta-color-credits:           var(--sta-color-currency);
 --ta-color-tab-active:        var(--sta-color-location);
+--ta-color-info:              #4A9FD4;
+--ta-btn-primary-text:        #ffffff;
 --ta-die-bg:                  #424A60;
 --ta-die-text-color:          #F0F2FF;
 }

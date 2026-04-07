@@ -26,11 +26,16 @@ function readTranscriptCount(): number | null {
   }
 }
 
+/** Shell-quote a string with single quotes (POSIX-safe). */
+function shQuote(s: string): string {
+  return "'" + s.replace(/'/g, "'\\''") + "'";
+}
+
 /** Build a single batch command string that performs all recovery steps. */
 function buildRecoveryBatch(loreSource: string | null): string {
   const steps: string[] = [];
   if (loreSource) {
-    steps.push(`export load ${loreSource}`);
+    steps.push(`export load ${shQuote(loreSource)}`);
   }
   steps.push('module activate-tier 1');
   steps.push('module activate-tier 2');
@@ -77,7 +82,7 @@ async function restore(): Promise<CommandResult> {
   const nextSteps: string[] = [];
 
   if (loreSource) {
-    nextSteps.push(`Lore source on record: ${loreSource}. Run \`tag export load ${loreSource}\` if world data needs reloading.`);
+    nextSteps.push(`Lore source on record: ${loreSource}. Run \`tag export load ${shQuote(loreSource)}\` if world data needs reloading.`);
   }
   nextSteps.push('Run `tag module activate-tier 1` then `tag module activate-tier 2` to reload module specs.');
   nextSteps.push('Run `tag style activate` to reload visual style guidance.');

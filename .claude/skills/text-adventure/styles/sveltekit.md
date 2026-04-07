@@ -291,6 +291,13 @@ Dark mode contrast ratios are calculated against `#1A1B26`.
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.55s;
 
+  /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
+  --sta-text-primary:             var(--svk-text-primary);
+  --sta-text-secondary:           var(--svk-text-secondary);
+  --sta-text-tertiary:            var(--svk-text-tertiary);
+  --sta-border-tertiary:          var(--svk-border-tertiary);
+  --sta-color-text-emphasis:      var(--svk-color-text-emphasis);
+
   /* --- Speaker colours (multi-dialogue) --- */
   --speaker-color-0: #ff3e00;
   --speaker-color-1: #40b3ff;

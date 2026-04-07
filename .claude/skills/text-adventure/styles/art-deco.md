@@ -646,6 +646,13 @@ every standard component class used by the text adventure engine.
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.5s;
 
+  /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
+  --sta-text-primary:             var(--ad-text-primary);
+  --sta-text-secondary:           var(--ad-text-secondary);
+  --sta-text-tertiary:            var(--ad-text-muted);
+  --sta-border-tertiary:          var(--ad-border-muted);
+  --sta-color-text-emphasis:      #ffffff;
+
   /* --- Speaker colours (multi-dialogue) --- */
   --speaker-color-0: #c9a84c;
   --speaker-color-1: #1a472a;

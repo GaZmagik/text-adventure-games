@@ -55,6 +55,7 @@
 --ta-color-credits:             var(--ad-gold);
 --ta-color-tab-active:          var(--ad-gold);
 --ta-color-info:                var(--ad-copper);
+--ta-btn-primary-text:          #ffffff;
 --ta-color-xp-border:           color-mix(in srgb, var(--ad-gold) 50%, transparent);
 --ta-badge-success-bg:          rgba(42, 127, 98, 0.12);
 --ta-badge-success-text:        var(--ad-jade);
@@ -66,6 +67,11 @@
 --ta-badge-crit-failure-border: var(--ad-crimson);
 --ta-border-style-poi:          1px dashed;
 --ta-die-spin-duration:         0.5s;
+--sta-text-primary:             var(--ad-text-primary);
+--sta-text-secondary:           var(--ad-text-secondary);
+--sta-text-tertiary:            var(--ad-text-muted);
+--sta-border-tertiary:          var(--ad-border-muted);
+--sta-color-text-emphasis:      #ffffff;
 --speaker-color-0: #c9a84c;
 --speaker-color-1: #1a472a;
 --speaker-color-2: #8b1a1a;
