@@ -224,6 +224,39 @@ describe('render state requirement', () => {
     expect(result.ok).toBe(false);
     expect(result.error!.message).toContain('State sync required');
   });
+
+  test('scene 1 bootstrap: allows render when no sync marker exists', async () => {
+    // Scene 1 is the first in-game scene — there is no prior scene to sync from,
+    // so requiring sync before render creates a chicken-and-egg deadlock.
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.scene = 1;
+    state._modulesRead = [...require('../lib/constants').TIER1_MODULES];
+    state._proseCraftEpoch = 0;
+    state._styleDocEpoch = 0;
+    await saveState(state);
+    // Remove the sync marker written by beforeEach — simulate fresh game start
+    const syncPath = join(tempDir, '.last-sync');
+    if (existsSync(syncPath)) rmSync(syncPath);
+
+    const result = await handleRender(['scene', '--style', 'terminal']);
+    // Should NOT fail with "State sync required"
+    expect(result.error?.message ?? '').not.toContain('State sync required');
+  });
+
+  test('scene 2+ still requires sync even with no marker', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.scene = 2;
+    await saveState(state);
+    // Remove the sync marker — scene 2 should still be blocked
+    const syncPath = join(tempDir, '.last-sync');
+    if (existsSync(syncPath)) rmSync(syncPath);
+
+    const result = await handleRender(['ticker']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('State sync required');
+  });
 });
 
 // ── Style resolution ─────────────────────────────────────────────────

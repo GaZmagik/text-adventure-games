@@ -527,7 +527,9 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   // Sync gate — in-game widgets require sync to have been run for the current scene (signed marker)
   if (!isPreGame && state) {
     const lastSyncScene = readSignedMarker(getSyncMarkerPath());
-    if (lastSyncScene < state.scene) {
+    // Scene 1 bootstrap: no prior scene exists to sync from — allow initial render
+    const isFirstSceneBootstrap = state.scene === 1 && lastSyncScene < 0;
+    if (!isFirstSceneBootstrap && lastSyncScene < state.scene) {
       return fail(
         `State sync required before rendering scene ${state.scene}. Last sync: ${lastSyncScene < 0 ? 'never' : `scene ${lastSyncScene}`}.`,
         'Run `tag state sync --apply` before rendering.',
