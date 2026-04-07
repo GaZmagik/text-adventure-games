@@ -79,3 +79,55 @@ describe('SCENE_SCRIPT_CODE audio recipe system', () => {
     expect(SCENE_SCRIPT_CODE).toContain('if (recipe)');
   });
 });
+
+describe('SCENE_SCRIPT_CODE ta-tts web component', () => {
+  test('contains TaTts class definition', () => {
+    expect(SCENE_SCRIPT_CODE).toContain('class TaTts');
+  });
+
+  test('registers ta-tts custom element', () => {
+    expect(SCENE_SCRIPT_CODE).toContain("customElements.define('ta-tts'");
+  });
+
+  test('guards against re-registration', () => {
+    expect(SCENE_SCRIPT_CODE).toContain("customElements.get('ta-tts')");
+  });
+
+  test('uses nar-selector attribute', () => {
+    expect(SCENE_SCRIPT_CODE).toContain('nar-selector');
+  });
+
+  test('applies tts-active class to light DOM elements', () => {
+    expect(SCENE_SCRIPT_CODE).toContain('tts-active');
+  });
+
+  test('implements voice preference chain', () => {
+    expect(SCENE_SCRIPT_CODE).toContain('Google UK English Male');
+    expect(SCENE_SCRIPT_CODE).toContain('en-GB');
+  });
+
+  test('respects prefers-reduced-motion for scroll', () => {
+    expect(SCENE_SCRIPT_CODE).toContain('scrollIntoView');
+  });
+
+  test('degrades silently when speechSynthesis unavailable', () => {
+    expect(SCENE_SCRIPT_CODE).toContain('window.speechSynthesis');
+  });
+
+  test('supports 1.5x speed option', () => {
+    expect(SCENE_SCRIPT_CODE).toContain('value="1.5"');
+  });
+
+  test('updates aria-label on play/pause state change', () => {
+    expect(SCENE_SCRIPT_CODE).toContain('Play narration');
+    expect(SCENE_SCRIPT_CODE).toContain('Pause narration');
+  });
+
+  test('strips vendor prefix from voice name', () => {
+    expect(SCENE_SCRIPT_CODE).toContain('Google |Microsoft |Apple ');
+  });
+
+  test('uses shadow DOM', () => {
+    expect(SCENE_SCRIPT_CODE).toContain('attachShadow');
+  });
+});

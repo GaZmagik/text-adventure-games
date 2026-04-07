@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'bun:test';
-import { checkSvgViewBox, checkPendingLevelUp } from './verify-checks';
+import { checkSvgViewBox, checkPendingLevelUp, checkTtsComponent } from './verify-checks';
 import type { GmState } from '../types';
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -123,5 +123,38 @@ describe('checkPendingLevelUp', () => {
     checkPendingLevelUp(html, failures, makeState(true));
     expect(failures).toHaveLength(1);
     expect(failures[0]).toContain('[pending-level-up]');
+  });
+});
+
+// ── checkTtsComponent ────────────────────────────────────────────────
+
+function makeModuleState(modules: string[]): GmState {
+  return { modulesActive: modules } as unknown as GmState;
+}
+
+describe('checkTtsComponent', () => {
+  test('passes when audio module not active', () => {
+    const failures: string[] = [];
+    checkTtsComponent('<div>no ta-tts here</div>', failures, makeModuleState(['core-systems']));
+    expect(failures).toHaveLength(0);
+  });
+
+  test('passes when audio active and ta-tts present', () => {
+    const failures: string[] = [];
+    checkTtsComponent('<ta-tts></ta-tts>', failures, makeModuleState(['audio']));
+    expect(failures).toHaveLength(0);
+  });
+
+  test('warns when audio active and ta-tts absent', () => {
+    const failures: string[] = [];
+    checkTtsComponent('<div>scene content without tts</div>', failures, makeModuleState(['audio']));
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toContain('[missing-ta-tts]');
+  });
+
+  test('passes when modulesActive is empty', () => {
+    const failures: string[] = [];
+    checkTtsComponent('<div>scene</div>', failures, makeModuleState([]));
+    expect(failures).toHaveLength(0);
   });
 });
