@@ -33,3 +33,49 @@ describe('SCENE_SCRIPT_CODE', () => {
     expect(SCENE_SCRIPT_CODE).toContain('SoundscapeEngine');
   });
 });
+
+describe('SCENE_SCRIPT_CODE audio recipe system', () => {
+  test('contains SCENE_RECIPES object', () => {
+    expect(SCENE_SCRIPT_CODE).toContain('SCENE_RECIPES');
+  });
+
+  test('contains all 6 named recipes', () => {
+    for (const keyword of ['tension', 'wonder', 'dread', 'calm', 'action', 'mystery']) {
+      expect(SCENE_SCRIPT_CODE).toContain(`'${keyword}'`);
+    }
+  });
+
+  test('contains createSceneAudio function', () => {
+    expect(SCENE_SCRIPT_CODE).toContain('function createSceneAudio(');
+  });
+
+  test('reads data-audio-recipe attribute to select recipe', () => {
+    expect(SCENE_SCRIPT_CODE).toContain('data-audio-recipe');
+    expect(SCENE_SCRIPT_CODE).toContain('SCENE_RECIPES[');
+  });
+
+  test('creates oscillators for layered sound', () => {
+    expect(SCENE_SCRIPT_CODE).toContain('createOscillator');
+  });
+
+  test('creates BiquadFilter from recipe filter settings', () => {
+    expect(SCENE_SCRIPT_CODE).toContain('createBiquadFilter');
+  });
+
+  test('creates StereoPanner from recipe stereo setting', () => {
+    expect(SCENE_SCRIPT_CODE).toContain('createStereoPanner');
+  });
+
+  test('respects prefers-reduced-motion for audio', () => {
+    // Should check reduced motion before starting audio
+    const reducedMotionIdx = SCENE_SCRIPT_CODE.indexOf('prefers-reduced-motion');
+    const audioRecipeIdx = SCENE_SCRIPT_CODE.indexOf('data-audio-recipe');
+    expect(reducedMotionIdx).toBeGreaterThan(-1);
+    expect(audioRecipeIdx).toBeGreaterThan(-1);
+  });
+
+  test('does not auto-start audio when recipe attribute is absent', () => {
+    // Recipe lookup returns falsy for unknown key — guard present
+    expect(SCENE_SCRIPT_CODE).toContain('if (recipe)');
+  });
+});

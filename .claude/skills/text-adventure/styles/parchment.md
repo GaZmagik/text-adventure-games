@@ -598,6 +598,14 @@ tag after the base engine styles. It uses the CSS cascade — only override what
   --ta-color-tab-active:          var(--pt-accent-burgundy);
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.5s;
+
+  /* --- Speaker colours (multi-dialogue) --- */
+  --speaker-color-0: #6b3a2a;
+  --speaker-color-1: #2d5a27;
+  --speaker-color-2: #7a1a1a;
+  --speaker-color-3: #1a3a5c;
+  --speaker-color-4: #8b4513;
+  --speaker-color-5: #8b7a2a;
 }
 
 /* ── Custom Properties: Dark ─────────────────────────────────────── */

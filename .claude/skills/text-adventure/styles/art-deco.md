@@ -644,6 +644,14 @@ every standard component class used by the text adventure engine.
   --ta-badge-crit-failure-border: var(--ad-crimson);
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.5s;
+
+  /* --- Speaker colours (multi-dialogue) --- */
+  --speaker-color-0: #c9a84c;
+  --speaker-color-1: #1a472a;
+  --speaker-color-2: #8b1a1a;
+  --speaker-color-3: #4a4a6a;
+  --speaker-color-4: #b8860b;
+  --speaker-color-5: #c0c0c0;
 }
 
 /* Dark mode token overrides */

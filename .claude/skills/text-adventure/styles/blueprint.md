@@ -877,6 +877,14 @@ definitions and can be applied selectively.
   --ta-color-tab-active:          var(--bp-color-line-accent);
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.5s;
+
+  /* --- Speaker colours (multi-dialogue) --- */
+  --speaker-color-0: #ffffff;
+  --speaker-color-1: #a8d8ea;
+  --speaker-color-2: #b0c4de;
+  --speaker-color-3: #7ec8e3;
+  --speaker-color-4: #dce9f5;
+  --speaker-color-5: #4a90d9;
 }
 
 /* --- CSS Custom Properties: Light Mode --------------------- */

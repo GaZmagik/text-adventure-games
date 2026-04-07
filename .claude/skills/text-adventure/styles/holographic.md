@@ -951,6 +951,14 @@ acceptable result if CSP blocks the request.
   --ta-color-tab-active:          var(--holo-cyan);
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.6s;
+
+  /* --- Speaker colours (multi-dialogue) --- */
+  --speaker-color-0: #ff79c6;
+  --speaker-color-1: #80ffea;
+  --speaker-color-2: #f1fa8c;
+  --speaker-color-3: #bd93f9;
+  --speaker-color-4: #8be9fd;
+  --speaker-color-5: #ffb86c;
 }
 
 @media (prefers-color-scheme: light) {

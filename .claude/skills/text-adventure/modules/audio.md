@@ -1,96 +1,118 @@
-# Audio — Procedural Soundscapes
+# Audio — Acoustic Identity & Soundscapes
 > Module for text-adventure orchestrator. Optional — selected at game start in Settings widget.
 
-Adds procedural ambient soundscapes to scene widgets using the Web Audio API.
-All sounds are synthesised using oscillators and noise generators — no external
-audio files, no network requests. Sounds are one-shot (max 30 seconds), never
-auto-loop, and require player interaction to start.
+Adds audio to scene widgets using the Web Audio API. Two distinct layers work together:
+- **Acoustic identity** — recipe-based drone that starts automatically when a scene loads, giving each location a sonic signature. Opt-in per scene via a single attribute.
+- **Soundscape effects** — player-triggered one-shot sounds via the footer Play/Stop button (existing SoundscapeEngine).
 
-Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: all visual
-style files, atmosphere module (visual + audio complement each other).
+No external audio files. All sound is synthesised from oscillators and noise generators.
 
 ---
 
-## CRITICAL — Audio Rules
+## Philosophy
 
-1. **No auto-play.** Sound NEVER starts automatically. The player must click Play.
+Audio should define a location, not decorate it. A tense interrogation room sounds different from a serene observation deck — not because a sound effect plays, but because the ambient texture is woven into the scene before the player reads a word. Each scene type has an acoustic identity: a set of frequency, modulation, and filter parameters that give it a distinctive feel.
+
+Use acoustic recipes to establish identity. Use soundscape effects for discrete events the player triggers.
+
+---
+
+## Acoustic Identity — Recipe System
+
+The recipe system auto-starts ambient audio when a scene loads, using `data-audio-recipe` on the scene root element. The GM selects a recipe keyword matching the scene's emotional register.
+
+**Usage:**
+```html
+<div class="root" data-audio-recipe="tension" ...>
+```
+
+**Behaviour:**
+- Starts automatically on scene load (no player click required)
+- Respects `prefers-reduced-motion: reduce` — if set, no audio starts
+- Silently no-ops if the browser does not support Web Audio API
+- Unknown recipe keywords are ignored (no error, no audio)
+
+### Recipe Catalogue
+
+| Keyword | Emotional register | Sonic character | Suggested contexts |
+|---|---|---|---|
+| `tension` | Dread, pressure, confrontation | Low growl (55Hz), slow LFO, tight stereo | Interrogation, standoff, approaching danger |
+| `wonder` | Awe, discovery, scale | High shimmer (440Hz), wide stereo | First contact, ancient ruins, orbital view |
+| `dread` | Horror, wrongness, the unknown | Sub drone (40Hz), almost-still, very narrow | Void, body horror, deep space silence |
+| `calm` | Safety, reflection, breath | Mid warmth (220Hz), gentle sway | Camp, safe house, flashback |
+| `action` | Urgency, movement, stakes | Percussive pulse (110Hz), fast LFO | Chase, escape, firefight |
+| `mystery` | Ambiguity, secrets, intrigue | Narrow bandpass (330Hz), medium stereo | Investigation, hidden passage, NPC with an agenda |
+
+### Recipe Parameters (reference)
+
+| Keyword | base_freq | mod_rate | mod_depth | layers | filter | filter_freq | stereo |
+|---|---|---|---|---|---|---|---|
+| `tension` | 55Hz | 0.3Hz | 0.4 | 3 | lowpass | 400Hz | 0.2 |
+| `wonder` | 440Hz | 0.8Hz | 0.3 | 2 | highpass | 800Hz | 0.9 |
+| `dread` | 40Hz | 0.1Hz | 0.6 | 4 | lowpass | 200Hz | 0.1 |
+| `calm` | 220Hz | 0.5Hz | 0.2 | 2 | bandpass | 600Hz | 0.5 |
+| `action` | 110Hz | 2.0Hz | 0.5 | 3 | bandpass | 900Hz | 0.6 |
+| `mystery` | 330Hz | 0.4Hz | 0.3 | 2 | bandpass | 700Hz | 0.4 |
+
+---
+
+## Soundscape Effects — Player-Triggered
+
+The existing `SoundscapeEngine` provides one-shot soundscape effects started by the player clicking the footer Play/Stop button (`#audio-btn`). This system is active when the `audio` module is enabled in game settings.
+
+### Rules (soundscape effects only)
+
+1. **No auto-play.** The player must click Play. The recipe system (above) is the only exception.
 2. **No looping.** Each soundscape plays once for up to 30 seconds, then stops.
-3. **Play/Stop button in footer.** Every scene widget with audio includes a
-   visible Play/Stop toggle in the widget footer.
-4. **One sound per widget.** Only one soundscape active at a time. Starting a new
-   sound stops the previous one.
-5. **Sounds are ephemeral.** When a new widget renders (new iframe), the previous
-   widget's audio stops naturally. No persistence, no stacking.
-6. **Respect user preference.** If the player has not enabled the audio module in
-   game settings, no audio code is included in widgets.
+3. **One sound per widget.** Only one soundscape active at a time.
+4. **Ephemeral.** When a new widget renders, previous audio stops naturally.
+
+### Soundscape Types
+
+| Soundscape | Context | Character |
+|---|---|---|
+| `ship-engine` | Vessel, engine room, corridors | Low hum (40–60Hz), subtle oscillation |
+| `rain` | Exterior, storm, wet environment | Filtered white noise, irregular rhythm |
+| `wind` | Open spaces, desert, mountaintop | Noise with slow LFO modulation |
+| `heartbeat` | Tension, horror, near death | Low sine pulse, accelerating |
+| `station-ambience` | Space station, busy hub | Low hum + high-frequency pings |
+| `forest` | Woodland, calm exterior | Layered noise + sine chirps |
+| `underwater` | Submerged, flooded | Low-pass noise + slow bubble oscillations |
+| `alarm` | Emergency, red alert | Square wave alternating frequencies |
+| `silence` | Void, suspense, isolation | Faint noise floor only |
+| `mechanical` | Factory, machinery, clockwork | Rhythmic clicks + low drone |
+| `fire` | Campfire, burning, volcanic | Crackle bursts + low roar |
+| `terminal` | Hacking, data, computer | High-frequency sweeps + digital noise |
+
+### Selection Guide
+
+| Location type | Recommended soundscape | Duration |
+|---|---|---|
+| Ship corridor / cabin | `ship-engine` | 25–30s |
+| Space station hub | `station-ambience` | 25–30s |
+| Planet surface | `wind` or `forest` | 20–30s |
+| Combat / heartbeat | `heartbeat` | 15–20s |
+| Emergency / alarm | `alarm` | 10–15s |
+| Computer terminal | `terminal` | 15–20s |
+
+### Volume
+
+All volumes are pre-set in the engine and intentionally quiet. Ambient sound should be a texture, not a feature.
 
 ---
 
-## Soundscape Types
+## Spatial Audio — Stereo & Future 3D
 
-Each scene can specify one soundscape type. The GM selects based on location and
-atmosphere.
+The recipe system uses `StereoPanner` for left/right stereo spread (0 = mono, 1 = fully separated). Off-screen NPCs can be positioned in the stereo field:
 
-| Soundscape | Context | Sonic Character |
-|-----------|---------|-----------------|
-| `ship-engine` | Aboard a vessel, engine room, corridors | Low-frequency hum (40-60Hz), subtle oscillation |
-| `rain` | Exterior, storm, wet environment | White noise filtered through bandpass, irregular rhythm |
-| `wind` | Open spaces, mountaintop, desert | Filtered noise with slow LFO modulation |
-| `heartbeat` | Tension, horror, chase, near death | Low sine wave pulse (60-80 BPM), increasing in speed |
-| `station-ambience` | Space station, busy environment | Mixed low hum + occasional high-frequency pings |
-| `forest` | Woodland, nature, calm exterior | Layered filtered noise (leaves) + sine chirps (birds) |
-| `underwater` | Submerged, deep sea, flooded | Low-pass filtered noise + slow bubble oscillations |
-| `alarm` | Emergency, red alert, danger | Square wave alternating between two frequencies |
-| `silence` | Deliberately quiet, void, suspense | Very faint noise floor only — almost nothing |
-| `mechanical` | Factory, machinery, clockwork | Rhythmic clicking (short noise bursts) + low drone |
-| `fire` | Campfire, burning, volcanic | Crackle (random noise bursts) + low roar |
-| `terminal` | Computer interface, hacking, data | High-frequency sine sweeps + digital noise |
+- **Left field** (`stereo: 0.1`) — off-screen NPC speaking from the left
+- **Right field** (`stereo: 0.9`) — off-screen NPC speaking from the right
+- **Centre** (`stereo: 0.5`) — on-screen or ambient
+
+**True 3D spatial audio** (Web Audio API `PannerNode` with distance model, azimuth, and elevation) is deferred to v1.5.0 pending broader browser support maturity.
 
 ---
 
-## Audio Engine
+## Accessibility
 
-The audio engine (`SoundscapeEngine`) and footer Play/Stop button are embedded in the
-scene template (`scene.ts`). The GM does not hand-code audio — the scene template handles
-all Web Audio API synthesis, oscillator routing, and button wiring automatically.
-
-In v1.3.0, the runtime reads `data-sound` and `data-duration` from the rendered
-footer audio button (`#audio-btn`). The stock scene/footer path seeds that button
-automatically when the `audio` module is active. Do not hand-edit rendered scene
-HTML to inject custom root-level audio attributes.
-
----
-
-## GM Integration
-
-The current v1.3.0 integration is module-driven rather than scene-authored:
-
-1. Enable the `audio` module during setup so the scene footer includes the Play/Stop button.
-2. Render the scene normally with `tag render scene --style <style>`.
-3. Verify the footer contains the audio button; do not hand-code audio markup or root attributes.
-4. Let the stock runtime manage the button wiring and playback lifecycle.
-
-The audio engine supports multiple soundscape presets internally, but per-scene
-selection is not currently a public GM authoring surface. Treat audio as an
-optional ambient footer toggle in v1.3.0, not a hand-tuned scene attribute system.
-
-### Soundscape Selection Guide
-
-| Location Type | Recommended Soundscape | Duration |
-|--------------|----------------------|----------|
-| Ship corridor / cabin | `ship-engine` | 25-30s |
-| Space station hub | `station-ambience` | 25-30s |
-| Planet surface | `wind` or `forest` | 20-30s |
-| Storm / rain scene | `rain` | 20-25s |
-| Combat encounter | `heartbeat` | 15-20s |
-| Horror / suspense | `heartbeat` or `silence` | 10-15s |
-| Emergency / alarm | `alarm` | 10-15s |
-| Underwater / flooded | `underwater` | 20-25s |
-| Computer terminal | `terminal` | 15-20s |
-| Fire / explosion aftermath | `fire` | 15-20s |
-
-### Volume Guidelines
-
-All volumes are pre-set in the engine and intentionally quiet. Ambient sound
-should be barely noticeable — a texture, not a feature. If the player notices
-the sound consciously, it's too loud.
+Both audio systems check `prefers-reduced-motion: reduce` before starting. Users who have set this preference receive no audio. This is enforced at the JavaScript level — the GM does not need to handle it.

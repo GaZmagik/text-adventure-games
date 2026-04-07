@@ -267,5 +267,62 @@ function initTagScene(root) {
       }
     });
   }
+
+  // ── Recipe-based scene audio ─────────────────────────────────────
+  // Opt-in: add data-audio-recipe="tension|wonder|dread|calm|action|mystery"
+  // to the scene root element. No audio plays if attribute is absent.
+
+  var SCENE_RECIPES = {
+    'tension': { base_freq: 55,  mod_rate: 0.3, mod_depth: 0.4, layers: 3, filter_type: 'lowpass',  filter_freq: 400, stereo: 0.2, duration: 2 },
+    'wonder':  { base_freq: 440, mod_rate: 0.8, mod_depth: 0.3, layers: 2, filter_type: 'highpass', filter_freq: 800, stereo: 0.9, duration: 3 },
+    'dread':   { base_freq: 40,  mod_rate: 0.1, mod_depth: 0.6, layers: 4, filter_type: 'lowpass',  filter_freq: 200, stereo: 0.1, duration: 4 },
+    'calm':    { base_freq: 220, mod_rate: 0.5, mod_depth: 0.2, layers: 2, filter_type: 'bandpass', filter_freq: 600, stereo: 0.5, duration: 3 },
+    'action':  { base_freq: 110, mod_rate: 2.0, mod_depth: 0.5, layers: 3, filter_type: 'bandpass', filter_freq: 900, stereo: 0.6, duration: 1 },
+    'mystery': { base_freq: 330, mod_rate: 0.4, mod_depth: 0.3, layers: 2, filter_type: 'bandpass', filter_freq: 700, stereo: 0.4, duration: 3 }
+  };
+
+  function createSceneAudio(ctx, recipe) {
+    var panner = ctx.createStereoPanner();
+    panner.pan.value = (recipe.stereo - 0.5) * 2;
+    panner.connect(ctx.destination);
+
+    var filter = ctx.createBiquadFilter();
+    filter.type = recipe.filter_type;
+    filter.frequency.value = recipe.filter_freq;
+    filter.connect(panner);
+
+    var gainNode = ctx.createGain();
+    gainNode.gain.setValueAtTime(0, ctx.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.15, ctx.currentTime + recipe.duration);
+    gainNode.connect(filter);
+
+    var lfo = ctx.createOscillator();
+    var lfoGain = ctx.createGain();
+    lfo.frequency.value = recipe.mod_rate;
+    lfoGain.gain.value = recipe.mod_depth * 0.1;
+    lfo.connect(lfoGain);
+
+    for (var i = 0; i < recipe.layers; i++) {
+      var osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = recipe.base_freq * (1 + i * 0.005);
+      lfoGain.connect(osc.frequency);
+      osc.connect(gainNode);
+      osc.start();
+    }
+    lfo.start();
+  }
+
+  var sceneRootEl = root.querySelector('[data-audio-recipe]');
+  if (sceneRootEl && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    var recipeKey = sceneRootEl.getAttribute('data-audio-recipe');
+    var recipe = SCENE_RECIPES[recipeKey];
+    if (recipe) {
+      try {
+        var AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) { createSceneAudio(new AudioCtx(), recipe); }
+      } catch (_audioErr) { /* Web Audio unavailable in this environment */ }
+    }
+  }
 }
 `.trim();

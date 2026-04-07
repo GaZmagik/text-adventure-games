@@ -78,3 +78,58 @@ Tier 1 modules load via `tag module activate-tier 1` — this delivers all modul
 Tier 2/3 modules load based on scenario via `tag module activate-tier 2` or `tag module activate <name>`. Run `tag help new-game` for the full tier list.
 
 Visual styles live in `styles/`. Run `tag help scene` for rendering workflow.
+
+## Audio — Acoustic Identity
+
+Every scene has a sonic character. Set it by adding `data-audio-recipe` to the scene root element:
+
+```html
+<div class="root" data-audio-recipe="tension" ...>
+```
+
+Six named recipes define the ambient texture:
+
+| Keyword | Register | Use when |
+|---|---|---|
+| `tension` | Low growl, tight stereo | Interrogation, standoff, danger approaching |
+| `wonder` | High shimmer, wide stereo | Discovery, ancient ruins, orbital view |
+| `dread` | Sub drone, almost still | Void, horror, deep-space silence |
+| `calm` | Mid warmth, gentle sway | Safe house, camp, reflection |
+| `action` | Percussive pulse, fast LFO | Chase, escape, firefight |
+| `mystery` | Narrow bandpass, medium stereo | Investigation, hidden passage, agenda |
+
+Audio starts automatically on scene load and respects `prefers-reduced-motion`. Unknown keywords are silently ignored. See `modules/audio.md` for full recipe parameters and the SoundscapeEngine (player-triggered effects) system.
+
+## SVG Usage
+
+SVG must be used proactively in scenes — not just for maps. Three named patterns to reach for first:
+
+**Porthole viewport** — circular frame clipping a background image or scene illustration:
+```html
+<svg viewBox="0 0 200 200">
+  <defs><clipPath id="port"><circle cx="100" cy="100" r="95"/></clipPath></defs>
+  <image href="..." clip-path="url(#port)" width="200" height="200"/>
+</svg>
+```
+
+**Starfield with proximity distortion** — dots that scale or shift on hover, suggesting depth:
+```html
+<svg viewBox="0 0 400 400">
+  <!-- N circles, r varies by depth layer, CSS :hover scales transform-origin -->
+</svg>
+```
+
+**Status arc** — SVG arc segment as a health or stamina progress indicator:
+```html
+<svg viewBox="0 0 100 100">
+  <circle class="arc-track" cx="50" cy="50" r="40" fill="none" stroke-width="8"/>
+  <circle class="arc-fill" cx="50" cy="50" r="40" fill="none" stroke-width="8"
+    stroke-dasharray="251" stroke-dashoffset="63"/>
+</svg>
+```
+
+**Rules:**
+- Every `<svg>` MUST include a `viewBox` attribute — `tag verify` enforces this.
+- Prefer inline SVG over `<img src="*.svg">` — inline SVG inherits CSS variables and is scriptable.
+- Keep SVG self-contained: no external `href` references to files or URLs.
+- SVG is not only for maps — use it for status indicators, atmospheric borders, spatial diagrams, and any data that benefits from scalable vector rendering.

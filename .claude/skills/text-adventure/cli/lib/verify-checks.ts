@@ -3,6 +3,7 @@
 // Extracted from verify.ts to keep the command handler under the line limit.
 
 import { hasValidRenderOrigin } from './render-origin';
+import type { GmState } from '../types';
 
 // ── Types ────────────────���───────────────────────────────────────────
 
@@ -419,5 +420,36 @@ export function checkInGameWidget(widgetType: string, html: string, failures: st
     if (actionButtons < 3) {
       failures.push(`Arc-complete widget has ${actionButtons} action button(s) — expected Save, Export, and Continue.`);
     }
+  }
+}
+
+// ── Scene-level structural checks ────────────────────────────────────
+
+export function checkSvgViewBox(html: string, failures: string[]): void {
+  const svgTags = [...html.matchAll(/<svg\b([^>]*)>/gi)];
+  const missing = svgTags.filter(m => {
+    const attrs = m[1]!;
+    // role="meter" SVGs are fixed-size data indicators (HP pips, XP bars) — viewBox not required
+    if (/\brole\s*=\s*(['"])meter\1/i.test(attrs)) return false;
+    return !/\bviewBox\s*=/i.test(attrs);
+  });
+  if (missing.length > 0) {
+    failures.push(
+      `Verify: [svg-viewbox] ${missing.length} <svg> element${missing.length === 1 ? '' : 's'} missing viewBox attribute. `
+      + 'Add viewBox to all SVG elements for correct scaling across display sizes.',
+    );
+  }
+}
+
+export function checkPendingLevelUp(html: string, failures: string[], state: GmState): void {
+  if (!state._levelupPending) return;
+  const hasLevelUpChoice =
+    /\bdata-levelup-stat\s*=/i.test(html) ||
+    /\bdata-levelup-skill\s*=/i.test(html);
+  if (!hasLevelUpChoice) {
+    failures.push(
+      'Verify: [pending-level-up] A level-up is pending (_levelupPending is true) but the scene contains no '
+      + 'data-levelup-stat or data-levelup-skill choices. Include stat upgrade choices so the player can select their reward.',
+    );
   }
 }

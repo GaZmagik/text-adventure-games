@@ -301,6 +301,14 @@ All WCAG AA contrast ratios are calculated against `--sta-bg-primary` (`#1A1D2E`
   --ta-color-tab-active:       var(--sta-color-location);
   --ta-border-style-poi:       1px dashed;
   --ta-die-spin-duration:      0.5s;
+
+  /* --- Speaker colours (multi-dialogue) --- */
+  --speaker-color-0: #1b5e3b;
+  --speaker-color-1: #f5e6c8;
+  --speaker-color-2: #8b1a2d;
+  --speaker-color-3: #f5c518;
+  --speaker-color-4: #1c3a5e;
+  --speaker-color-5: #a0a0a0;
 }
 ```
 

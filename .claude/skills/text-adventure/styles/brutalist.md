@@ -171,6 +171,14 @@ Invert everything. White borders on black, red stays red (it always stands out).
     --ta-border-style-poi:          2px dashed;
     --ta-die-spin-duration:         0.3s;
   }
+
+  /* --- Speaker colours (multi-dialogue) --- */
+  --speaker-color-0: #ffffff;
+  --speaker-color-1: #cc0000;
+  --speaker-color-2: #ffdd00;
+  --speaker-color-3: #333333;
+  --speaker-color-4: #888888;
+  --speaker-color-5: #000000;
 }
 ```
 

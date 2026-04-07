@@ -3,21 +3,21 @@
 export const CDN_BASE = 'https://cdn.jsdelivr.net/gh/GaZmagik/text-adventure-games@feature%2Ftag-cli-v1.3.0/.claude/skills/text-adventure/assets';
 
 export const CSS_MANIFEST: Record<string, string> = {
-  'art-deco': 'c53b9035',
-  'blueprint': '3a216f3f',
+  'art-deco': 'e6f04ad8',
+  'blueprint': 'e3c437f1',
   'brutalist': 'f8e36cbf',
-  'holographic': '800b1828',
+  'holographic': '58efcc98',
   'ink-wash': 'd22ab7b4',
   'neon': 'e3082620',
-  'parchment': '361e43ff',
+  'parchment': '3daf06d5',
   'stained-glass': '32d43420',
   'station': '71810467',
   'sveltekit': 'a7379a18',
-  'terminal': '4636494f',
-  'weathered': 'f3b73688',
+  'terminal': '5b6c0d60',
+  'weathered': '41021f0c',
 };
 
 export const JS_MANIFEST: Record<string, string> = {
-  'tag-scene.js': '73b36c66',
+  'tag-scene.js': '05188b88',
   'tag-soundscape.js': 'aabcfbb8',
 };

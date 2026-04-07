@@ -158,6 +158,14 @@ attribute override is also provided for runtime switching.
   --ta-color-tab-active:          var(--sg-sapphire);
   --ta-border-style-poi:          2px dashed;
   --ta-die-spin-duration:         0.6s;
+
+  /* --- Speaker colours (multi-dialogue) --- */
+  --speaker-color-0: #c0392b;
+  --speaker-color-1: #2980b9;
+  --speaker-color-2: #27ae60;
+  --speaker-color-3: #e67e22;
+  --speaker-color-4: #8e44ad;
+  --speaker-color-5: #16a085;
 }
 ```
 

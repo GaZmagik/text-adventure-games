@@ -1194,6 +1194,14 @@ the iframe into the host page.
   --ta-color-tab-active:          var(--t-accent-cyan);
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.4s;
+
+  /* --- Speaker colours (multi-dialogue) --- */
+  --speaker-color-0: #33ff33;
+  --speaker-color-1: #ffb000;
+  --speaker-color-2: #00ffff;
+  --speaker-color-3: #ffffff;
+  --speaker-color-4: #99ff99;
+  --speaker-color-5: #ff6600;
 }
 
 /* ── Light mode token overrides ────────────────────────────── */

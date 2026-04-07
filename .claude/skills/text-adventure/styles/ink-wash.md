@@ -174,6 +174,14 @@ attributes — use the custom properties only.
   --ta-badge-crit-failure-border: var(--iw-danger);
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.5s;
+
+  /* --- Speaker colours (multi-dialogue) --- */
+  --speaker-color-0: #c8853a;
+  --speaker-color-1: #5b7fa6;
+  --speaker-color-2: #7a9e7e;
+  --speaker-color-3: #c47c82;
+  --speaker-color-4: #b5714d;
+  --speaker-color-5: #6b6b6b;
 }
 ```
 

@@ -72,6 +72,12 @@ position: relative;
 --ta-color-tab-active:          var(--w-rust);
 --ta-border-style-poi:          1px dashed;
 --ta-die-spin-duration:         0.5s;
+--speaker-color-0: #8b6f47;
+--speaker-color-1: #6b8ea6;
+--speaker-color-2: #a05050;
+--speaker-color-3: #c4b89a;
+--speaker-color-4: #6b7c5a;
+--speaker-color-5: #b07040;
 }
 @media (prefers-color-scheme: dark) {
 .root {

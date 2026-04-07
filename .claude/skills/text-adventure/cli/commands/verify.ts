@@ -28,6 +28,8 @@ import {
   checkRulesWidget,
   checkCharacterWidget,
   checkInGameWidget,
+  checkSvgViewBox,
+  checkPendingLevelUp,
 } from '../lib/verify-checks';
 import { checkProseContent } from '../lib/prose-checks';
 import type { ProseMetrics } from '../data/prose-rules';
@@ -573,6 +575,8 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
       () => checkQuestPanelIntegrity(html, failures),
       () => checkMapPanelContent(html, failures),
       () => checkLevelUpIntegrity(state, failures),
+      () => checkSvgViewBox(html, failures),
+      () => checkPendingLevelUp(html, failures, state),
       () => {
         const r = checkProseContent(html, failures);
         if (r) { proseWarnings = r.warnings; proseMetrics = r.metrics; }

@@ -288,6 +288,14 @@ Dark mode contrast ratios are calculated against `#1A1B26`.
   --ta-color-tab-active:          var(--svk-color-accent-display);
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.55s;
+
+  /* --- Speaker colours (multi-dialogue) --- */
+  --speaker-color-0: #ff3e00;
+  --speaker-color-1: #40b3ff;
+  --speaker-color-2: #ff6d3a;
+  --speaker-color-3: #676778;
+  --speaker-color-4: #ffffff;
+  --speaker-color-5: #1c1c1c;
 }
 ```
 

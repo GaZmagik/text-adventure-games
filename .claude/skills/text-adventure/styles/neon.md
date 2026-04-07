@@ -203,6 +203,14 @@ inverts the surface/text relationship.
   --ta-color-tab-active:          var(--neon-blue);
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.6s;
+
+  /* --- Speaker colours (multi-dialogue) --- */
+  --speaker-color-0: #ff2d78;
+  --speaker-color-1: #00d4ff;
+  --speaker-color-2: #39ff14;
+  --speaker-color-3: #bf5fff;
+  --speaker-color-4: #00ffee;
+  --speaker-color-5: #ff9500;
 }
 ```
 
