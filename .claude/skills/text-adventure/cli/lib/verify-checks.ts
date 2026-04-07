@@ -43,6 +43,11 @@ export function extractAttr(markup: string, name: string): string | null {
   return match?.[2] ?? null;
 }
 
+/** True when a value looks like a JS concatenation artifact, e.g. `' + group + '` from querySelector strings. */
+function isJsArtifact(value: string): boolean {
+  return /['"+]/.test(value);
+}
+
 export function extractAttributeValues(html: string, name: string): string[] {
   const values: string[] = [];
   const pattern = new RegExp(`\\b${name}\\s*=\\s*(['"])(.*?)\\1`, 'gi');
@@ -323,6 +328,7 @@ const VALID_SETTINGS_VALUES: Record<string, Set<string>> = {
 /** Flags any data-group values that are not in the known set of valid settings groups. */
 export function checkSettingsGroups(html: string, failures: string[]): void {
   for (const group of extractAttributeValues(html, 'data-group')) {
+    if (isJsArtifact(group)) continue;
     if (!VALID_SETTINGS_GROUPS.has(group)) {
       failures.push(
         `Settings contains unknown option group "${group}". Valid groups: rulebook, difficulty, pacing, visualStyle, modules.`,
@@ -358,6 +364,7 @@ export function checkSettingsValues(html: string, failures: string[]): void {
   // Deduplicate pairs (pattern 1 and 2 may overlap)
   const seen = new Set<string>();
   for (const [group, value] of pairs) {
+    if (isJsArtifact(group) || isJsArtifact(value)) continue;
     const key = `${group}::${value}`;
     if (seen.has(key)) continue;
     seen.add(key);

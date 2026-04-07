@@ -47,11 +47,10 @@ All operational guides, checklists, and rules are delivered via CLI commands:
 1. **ALL output inside `visualize:show_widget`** — zero text in conversation. No prose, narration, status updates, or stat breakdowns outside widgets.
 2. **ALL widgets rendered via `tag render`** — never hand-code HTML, CSS, or JS. Run commands via the Bash tool.
 3. **Widget-to-screen pipeline — follow these steps exactly, in order, every time:**
-   1. **Render:** `tag render <widget> --data '<json>'` — outputs JSON to stdout. The HTML is in `.data.html`.
-   2. **Extract:** Pipe the JSON through `node -e "..."` or equivalent to write ONLY the `.data.html` value to `/tmp/<widget>.html`. Do NOT redirect raw stdout (that writes the JSON wrapper, not the HTML).
-   3. **Verify:** `tag verify <type> /tmp/<widget>.html` — must report `verified: true`. If it fails, fix and re-render. Do NOT hand-edit the file (this invalidates the render-origin hash).
-   4. **Read:** `cat /tmp/<widget>.html` — read the ENTIRE file. Not `head`. Not `tail`. Not a partial read. The complete file.
-   5. **Show:** Pass the COMPLETE `cat` output as `widget_code` to `show_widget`. Copy it verbatim — do NOT reconstruct from memory, do NOT paraphrase, do NOT abbreviate.
+   1. **Render:** `tag render <widget> --data '<json>' --out /tmp/<widget>.html` — renders HTML and writes it directly to file.
+   2. **Verify:** `tag verify <type> /tmp/<widget>.html` — must report `verified: true`. If it fails, fix and re-render. Do NOT hand-edit the file (this invalidates the render-origin hash).
+   3. **Read:** `cat /tmp/<widget>.html` — read the ENTIRE file. Not `head`. Not `tail`. Not a partial read. The complete file.
+   4. **Show:** Pass the COMPLETE `cat` output as `widget_code` to `show_widget`. Copy it verbatim — do NOT reconstruct from memory, do NOT paraphrase, do NOT abbreviate.
    - If you cannot recall the full `cat` output, run `cat` again. Never guess what the HTML looked like.
 4. **Never auto-resolve player decisions** — die rolls and choices wait for input.
 5. **Never advance story without player input** — every scene ends with a choice, roll, or action prompt.

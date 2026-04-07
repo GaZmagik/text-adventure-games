@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { handleRender } from './render';
@@ -629,5 +629,62 @@ describe('render character-creation pre-gen injection', () => {
 
     const notExpected = generatePregenCharacters({ theme: 'sci-fi', seed: 'render-test' });
     expect(html).not.toContain(notExpected[0]!.name);
+  });
+});
+
+// ── --out flag ──────────────────────────────────────────────────────
+
+describe('render --out flag', () => {
+  const scenarioData = JSON.stringify({
+    scenarios: [
+      { title: 'Alpha', description: 'First.', genres: ['mystery'] },
+      { title: 'Beta', description: 'Second.', genres: ['horror'] },
+    ],
+  });
+
+  test('writes HTML to specified file path', async () => {
+    const outFile = join(tempDir, 'scenario.html');
+    const result = await handleRender(['scenario-select', '--data', scenarioData, '--out', outFile]);
+    expect(result.ok).toBe(true);
+    expect(existsSync(outFile)).toBe(true);
+    const fileContent = readFileSync(outFile, 'utf-8');
+    expect(fileContent).toContain('Alpha');
+    expect(fileContent).toContain('Beta');
+  });
+
+  test('outFile field is present in response when --out used', async () => {
+    const outFile = join(tempDir, 'scenario2.html');
+    const result = await handleRender(['scenario-select', '--data', scenarioData, '--out', outFile]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.outFile).toBe(outFile);
+  });
+
+  test('outFile field is absent when --out not used', async () => {
+    const result = await handleRender(['scenario-select', '--data', scenarioData]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.outFile).toBeUndefined();
+  });
+
+  test('--out works with --raw flag', async () => {
+    const outFile = join(tempDir, 'raw-scenario.html');
+    const result = await handleRender(['scenario-select', '--raw', '--data', scenarioData, '--out', outFile]);
+    expect(result.ok).toBe(true);
+    expect(existsSync(outFile)).toBe(true);
+    const fileContent = readFileSync(outFile, 'utf-8');
+    expect(fileContent).toContain('Alpha');
+    // Raw mode with --out returns { html, outFile } instead of bare string
+    const data = result.data as Record<string, unknown>;
+    expect(data.outFile).toBe(outFile);
+  });
+
+  test('file content matches html in response data', async () => {
+    const outFile = join(tempDir, 'match-test.html');
+    const result = await handleRender(['scenario-select', '--data', scenarioData, '--out', outFile]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const fileContent = readFileSync(outFile, 'utf-8');
+    expect(fileContent).toBe(data.html);
   });
 });

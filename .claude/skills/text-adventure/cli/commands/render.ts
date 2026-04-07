@@ -702,6 +702,12 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     );
   }
 
+  // Write HTML directly to file if --out specified (eliminates JSON extraction step)
+  const outPath = parsed.flags.out;
+  if (outPath) {
+    writeFileSync(outPath, html, 'utf-8');
+  }
+
   // Persist pending rolls from scene action cards
   if (widgetType === 'scene' && state) {
     const pendingRolls: PendingRoll[] = [];
@@ -748,7 +754,7 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     if (html.length > WIDGET_BUDGET_CHARS) {
       console.error(`WARNING: render output is ${html.length} chars — exceeds 128K widget budget.`);
     }
-    return ok(html, 'render');
+    return ok(outPath ? { html, outFile: outPath } : html, 'render');
   }
 
   // Phase 5: module checklist
@@ -856,6 +862,7 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
       requiredElements,
       ...(skeleton !== null ? { skeleton } : {}),
       ...(svgGuidance !== undefined ? { svgGuidance } : {}),
+      ...(outPath ? { outFile: outPath } : {}),
       cdnStyle: resolvedStyle,
       verifyRequired: {
         instruction: 'MANDATORY: After composing narrative into this HTML, save to a file and run `tag verify /tmp/scene.html` BEFORE passing to show_widget.',

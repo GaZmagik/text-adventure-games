@@ -378,6 +378,14 @@ describe('checkSettingsGroups', () => {
     checkSettingsGroups('<div>no groups here</div>', failures);
     expect(failures).toHaveLength(0);
   });
+
+  test('ignores data-group inside <script> blocks (querySelector false positive)', () => {
+    const failures: string[] = [];
+    const html = '<div data-group="rulebook"><button data-group="rulebook" data-value="d20_system">d20</button></div>'
+      + '<script>shadow.querySelectorAll(\'.option-card[data-group="\' + group + \'"]\').forEach(function(b) {});</script>';
+    checkSettingsGroups(html, failures);
+    expect(failures).toHaveLength(0);
+  });
 });
 
 // ── checkSettingsValues ──────────────────────────────────────────────
@@ -467,6 +475,14 @@ describe('checkSettingsValues', () => {
   test('passes with empty html', () => {
     const failures: string[] = [];
     checkSettingsValues('<div>no settings here</div>', failures);
+    expect(failures).toHaveLength(0);
+  });
+
+  test('ignores data-group/data-value inside <script> blocks (querySelector false positive)', () => {
+    const failures: string[] = [];
+    const html = '<div data-group="rulebook"><button data-group="rulebook" data-value="d20_system">d20</button></div>'
+      + '<script>shadow.querySelectorAll(\'.option-card[data-group="\' + group + \'"]\').forEach(function(b) { b.getAttribute("data-value"); });</script>';
+    checkSettingsValues(html, failures);
     expect(failures).toHaveLength(0);
   });
 });

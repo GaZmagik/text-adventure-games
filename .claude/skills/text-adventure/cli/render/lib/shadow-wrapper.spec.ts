@@ -21,7 +21,7 @@ describe('wrapInShadowDom', () => {
   it('output contains cache-busting hash from manifest', () => {
     const result = wrapInShadowDom(minimalOpts);
     // station hash from manifest (changes when CSS is rebuilt)
-    expect(result).toContain('?v=71810467');
+    expect(result).toContain(`?v=${require('../../../assets/cdn-manifest.ts').CSS_MANIFEST['station']}`);
   });
 
   it('output contains the :host override block', () => {
