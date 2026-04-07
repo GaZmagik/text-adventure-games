@@ -7,7 +7,7 @@ metadata:
 
 # Text Adventure Game — Core Engine v1.3.0
 
-## Step 0 — Setup (run once per session via Bash tool)
+## Step 1 — Setup (run once per session via Bash tool)
 
 The skill directory must be copied to a writable location before setup:
 
@@ -25,7 +25,7 @@ To load a `.lore.md` adventure file:
 cp -r /mnt/skills/user/text-adventure /home/claude/text-adventure && cd /home/claude/text-adventure && . ./setup.sh && tag export load /mnt/user-data/uploads/<filename>.lore.md
 ```
 
-## Step 1 — Run `tag help` for the complete workflow
+## Step 2 — Run `tag help` for the complete workflow
 
 ```bash
 tag help
