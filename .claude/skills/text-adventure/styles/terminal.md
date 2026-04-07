@@ -159,6 +159,8 @@ badges only. Headings and buttons use sentence case.
   --ta-badge-crit-failure-border: var(--t-danger);
   --ta-color-credits:             var(--t-accent-magenta);
   --ta-color-tab-active:          var(--t-accent-cyan);
+  --ta-color-info:                #00BFFF;
+  --ta-btn-primary-text:          #ffffff;
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.4s;
 ```
@@ -1192,6 +1194,8 @@ the iframe into the host page.
   --ta-badge-crit-failure-border: var(--t-danger);
   --ta-color-credits:             var(--t-accent-magenta);
   --ta-color-tab-active:          var(--t-accent-cyan);
+  --ta-color-info:                #00BFFF;
+  --ta-btn-primary-text:          #ffffff;
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.4s;
 

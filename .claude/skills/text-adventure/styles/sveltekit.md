@@ -286,6 +286,8 @@ Dark mode contrast ratios are calculated against `#1A1B26`.
   --ta-badge-crit-failure-border: var(--svk-badge-crit-failure-border);
   --ta-color-credits:             var(--svk-color-currency);
   --ta-color-tab-active:          var(--svk-color-accent-display);
+  --ta-color-info:                #3B82F6;
+  --ta-btn-primary-text:          #ffffff;
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.55s;
 

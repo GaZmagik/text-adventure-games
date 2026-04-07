@@ -14,6 +14,7 @@ cli/render/templates/*.ts
 cli/render/lib/soundscape.ts
 cli/render/lib/webgl-dice.ts
 cli/render/lib/scene-script.ts
+cli/render/lib/send-prompt.ts
 
 # Data constants — string arrays, no logic
 cli/data/prose-guidance.ts

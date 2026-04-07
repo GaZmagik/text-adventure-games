@@ -201,6 +201,8 @@ inverts the surface/text relationship.
   --ta-badge-crit-failure-border: var(--neon-pink);
   --ta-color-credits:             var(--neon-acid);
   --ta-color-tab-active:          var(--neon-blue);
+  --ta-color-info:                #00C4E8;
+  --ta-btn-primary-text:          #ffffff;
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.6s;
 

@@ -12,6 +12,7 @@ function initTagScene(root) {
   root.querySelectorAll('.phase-continue').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var nextPhase = this.getAttribute('data-reveal-phase');
+      if (!nextPhase || !/^[\w-]+$/.test(nextPhase)) return;
       var target = root.querySelector('[data-phase="' + nextPhase + '"]');
       if (target) {
         target.style.display = 'block';
@@ -74,6 +75,7 @@ function initTagScene(root) {
     var first = focusables[0];
     var last = focusables[focusables.length - 1];
     var active = root.activeElement;
+    if (!active) return;
     if (e.shiftKey && active === first) {
       e.preventDefault();
       last.focus();
@@ -144,22 +146,6 @@ function initTagScene(root) {
   window.tag.showToast = showToast;
   window.tag.showXpToast = showXpToast;
 
-  function copyPromptText(prompt) {
-    var ta = document.createElement('textarea');
-    var copied = false;
-    ta.value = prompt;
-    ta.style.cssText = 'position:fixed;opacity:0';
-    document.body.appendChild(ta);
-    ta.select();
-    try {
-      copied = !!document.execCommand('copy');
-    } catch (_err) {
-      copied = false;
-    }
-    document.body.removeChild(ta);
-    return copied;
-  }
-
   function sendOrCopyPrompt(btn, prompt) {
     if (!prompt) return;
     btn.setAttribute('title', prompt);
@@ -168,7 +154,25 @@ function initTagScene(root) {
       return;
     }
     var orig = btn.textContent;
-    var copied = copyPromptText(prompt);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(prompt).then(function() {
+        btn.textContent = 'Copied! Paste as your reply.';
+        setTimeout(function() { btn.textContent = orig; }, 3000);
+      }).catch(function() {
+        btn.textContent = 'Copy the prompt from the tooltip.';
+        setTimeout(function() { btn.textContent = orig; }, 3000);
+      });
+      return;
+    }
+    // Legacy fallback for browsers without Clipboard API
+    var ta = document.createElement('textarea');
+    var copied = false;
+    ta.value = prompt;
+    ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { copied = !!document.execCommand('copy'); } catch (_err) {}
+    document.body.removeChild(ta);
     btn.textContent = copied ? 'Copied! Paste as your reply.' : 'Copy the prompt from the tooltip.';
     setTimeout(function() { btn.textContent = orig; }, 3000);
   }
@@ -302,6 +306,8 @@ function initTagScene(root) {
     lfoGain.gain.value = recipe.mod_depth * 0.1;
     lfo.connect(lfoGain);
 
+    var stopTime = ctx.currentTime + recipe.duration + 0.1;
+
     for (var i = 0; i < recipe.layers; i++) {
       var osc = ctx.createOscillator();
       osc.type = 'sine';
@@ -309,20 +315,29 @@ function initTagScene(root) {
       lfoGain.connect(osc.frequency);
       osc.connect(gainNode);
       osc.start();
+      osc.stop(stopTime);
     }
     lfo.start();
+    lfo.stop(stopTime);
   }
 
   var sceneRootEl = root.querySelector('[data-audio-recipe]');
   if (sceneRootEl && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    var recipeKey = sceneRootEl.getAttribute('data-audio-recipe');
-    var recipe = SCENE_RECIPES[recipeKey];
-    if (recipe) {
-      try {
-        var AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (AudioCtx) { createSceneAudio(new AudioCtx(), recipe); }
-      } catch (_audioErr) { /* Web Audio unavailable in this environment */ }
+    var _sceneAudioFired = false;
+    function _playSceneAudio() {
+      if (_sceneAudioFired) return;
+      _sceneAudioFired = true;
+      var recipeKey = sceneRootEl.getAttribute('data-audio-recipe');
+      var recipe = SCENE_RECIPES[recipeKey];
+      if (recipe) {
+        try {
+          var AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) { createSceneAudio(new AudioCtx(), recipe); }
+        } catch (_audioErr) { /* Web Audio unavailable in this environment */ }
+      }
     }
+    document.addEventListener('click', _playSceneAudio, { once: true });
+    document.addEventListener('keydown', _playSceneAudio, { once: true });
   }
 }
 
@@ -337,12 +352,14 @@ function initTagScene(root) {
       this._playing = false;
       this._voice = null;
       this._rate = 1;
+      this._voicesChangedHandler = null;
       this.attachShadow({ mode: 'open' });
       this._render();
       if (this._synth) {
         this._loadVoices();
         if (typeof this._synth.onvoiceschanged !== 'undefined') {
-          this._synth.onvoiceschanged = this._loadVoices.bind(this);
+          this._voicesChangedHandler = this._loadVoices.bind(this);
+          this._synth.onvoiceschanged = this._voicesChangedHandler;
         }
       }
     }
@@ -353,7 +370,9 @@ function initTagScene(root) {
     }
 
     _collectEls() {
-      var selector = this.getAttribute('nar-selector') || '.prose p, .dlg p, .flash';
+      var rawSel = this.getAttribute('nar-selector') || '.prose p, .dlg p, .flash';
+      // Allow only safe CSS selectors: classes, tags, combinators, pseudo-classes — no attribute selectors or URLs
+      var selector = /^[a-zA-Z0-9 .#,\-_>+~:*]+$/.test(rawSel) ? rawSel : '.prose p, .dlg p, .flash';
       var scope = this.closest('.root, [data-scene]') || document;
       var all = Array.from(scope.querySelectorAll(selector));
       this._els = all.filter(function(el) { return !el.closest('.sp'); });
@@ -501,7 +520,13 @@ function initTagScene(root) {
       }
     }
 
-    disconnectedCallback() { this._stop(); }
+    disconnectedCallback() {
+      this._stop();
+      if (this._synth && this._voicesChangedHandler) {
+        this._synth.onvoiceschanged = null;
+        this._voicesChangedHandler = null;
+      }
+    }
   }
 
   if (typeof customElements !== 'undefined' && !customElements.get('ta-tts')) {

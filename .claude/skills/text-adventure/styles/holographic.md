@@ -949,6 +949,8 @@ acceptable result if CSP blocks the request.
   --ta-badge-crit-failure-border: var(--holo-pink);
   --ta-color-credits:             var(--holo-cyan);
   --ta-color-tab-active:          var(--holo-cyan);
+  --ta-color-info:                #00E5FF;
+  --ta-btn-primary-text:          #ffffff;
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.6s;
 

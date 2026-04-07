@@ -156,6 +156,8 @@ attribute override is also provided for runtime switching.
   --ta-badge-crit-failure-border: var(--sg-ruby);
   --ta-color-credits:             var(--sg-amber);
   --ta-color-tab-active:          var(--sg-sapphire);
+  --ta-color-info:                var(--sg-sapphire);
+  --ta-btn-primary-text:          #ffffff;
   --ta-border-style-poi:          2px dashed;
   --ta-die-spin-duration:         0.6s;
 

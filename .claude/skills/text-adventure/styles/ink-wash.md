@@ -163,6 +163,7 @@ attributes — use the custom properties only.
   --ta-color-credits:             var(--iw-warning);
   --ta-color-tab-active:          var(--iw-accent);
   --ta-color-info:                var(--iw-info);
+  --ta-btn-primary-text:          #1a1a1a;
   --ta-color-xp-border:           color-mix(in srgb, var(--iw-warning) 50%, transparent);
   --ta-badge-success-bg:          var(--iw-success-bg);
   --ta-badge-success-text:        var(--iw-success);

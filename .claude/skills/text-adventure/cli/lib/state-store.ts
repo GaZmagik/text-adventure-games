@@ -1,7 +1,7 @@
 import { join, resolve } from 'node:path';
 import { homedir, tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
-import { mkdirSync, renameSync, writeFileSync, unlinkSync, statSync } from 'node:fs';
+import { mkdirSync, renameSync, writeFileSync, unlinkSync, statSync, realpathSync } from 'node:fs';
 import type { GmState } from '../types';
 import { MAX_ROLL_HISTORY, MAX_FILE_SIZE_BYTES, SCHEMA_VERSION } from './constants';
 import { validateState } from './validator';
@@ -35,19 +35,22 @@ function isPlausibleGmState(raw: unknown): raw is Record<string, unknown> {
   return typeof raw === 'object' && raw !== null && !Array.isArray(raw);
 }
 
-function getStateDir(): string {
+export function getStateDir(): string {
   const dir = process.env.TAG_STATE_DIR || join(STATE_STORE_RUNTIME.homedir(), '.tag');
   const resolved = resolve(dir);
   const home = STATE_STORE_RUNTIME.homedir();
   const tmp = STATE_STORE_RUNTIME.tmpdir();
-  if (home === '/') {
-    throw new Error('TAG_STATE_DIR validation requires a non-root home directory.');
-  }
+  if (home === '/') throw new Error('TAG_STATE_DIR validation requires a non-root home directory.');
   const homePrefix = home + '/';
   const tmpPrefix = tmp === '/' ? tmp : tmp + '/';
   if (!resolved.startsWith(homePrefix) && !resolved.startsWith(tmpPrefix)) {
     throw new Error('TAG_STATE_DIR must be within the home or temp directory.');
   }
+  // Follow symlinks so verify markers and state files land in the same canonical dir
+  try {
+    const real = realpathSync(resolved);
+    if (real.startsWith(homePrefix) || real.startsWith(tmpPrefix)) return real;
+  } catch { /* dir doesn't exist yet — return unresolved */ }
   return resolved;
 }
 export function getStatePath(): string {

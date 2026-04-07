@@ -5,6 +5,7 @@ import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
 import { proficiencyBonus } from '../../lib/modifier';
 import { wrapInShadowDom } from '../lib/shadow-wrapper';
+import { SEND_OR_COPY_PROMPT_JS } from '../lib/send-prompt';
 
 export function renderLevelup(state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
   const char = state?.character;
@@ -76,28 +77,7 @@ export function renderLevelup(state: GmState | null, styleName: string, options?
     ${abilityOptions.map(a => `<button class="ability-card" data-prompt="I choose the ${esc(a)} ability" title="I choose the ${esc(a)} ability" aria-pressed="false">${esc(a)}</button>`).join('\n    ')}
   </div>` : ''}
 </div>`,
-    script: `function sendOrCopyPrompt(btn, prompt) {
-  btn.setAttribute('title', prompt);
-  if (typeof sendPrompt === 'function') {
-    sendPrompt(prompt);
-  } else {
-    var ta = document.createElement('textarea');
-    var copied = false;
-    ta.value = prompt;
-    ta.style.cssText = 'position:fixed;opacity:0';
-    document.body.appendChild(ta);
-    ta.select();
-    try {
-      copied = !!document.execCommand('copy');
-    } catch (_err) {
-      copied = false;
-    }
-    document.body.removeChild(ta);
-    var orig = btn.textContent;
-    btn.textContent = copied ? 'Copied! Paste as your reply.' : 'Copy the prompt from the tooltip.';
-    setTimeout(function() { btn.textContent = orig; }, 3000);
-  }
-}
+    script: `${SEND_OR_COPY_PROMPT_JS}
 
 shadow.querySelectorAll('.ability-card[data-prompt]').forEach(function(btn) {
   btn.addEventListener('click', function() {

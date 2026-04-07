@@ -299,6 +299,8 @@ All WCAG AA contrast ratios are calculated against `--sta-bg-primary` (`#1A1D2E`
   --ta-badge-crit-failure-border: var(--sta-badge-crit-failure-border);
   --ta-color-credits:          var(--sta-color-currency);
   --ta-color-tab-active:       var(--sta-color-location);
+  --ta-color-info:             #4A9FD4;
+  --ta-btn-primary-text:       #ffffff;
   --ta-border-style-poi:       1px dashed;
   --ta-die-spin-duration:      0.5s;
 
@@ -1587,6 +1589,8 @@ handle that case independently.
   --ta-badge-crit-failure-border: var(--sta-badge-crit-failure-border);
   --ta-color-credits:          var(--sta-color-currency);
   --ta-color-tab-active:       var(--sta-color-location);
+  --ta-color-info:             #4A9FD4;
+  --ta-btn-primary-text:       #ffffff;
   --ta-border-style-poi:       1px dashed;
   --ta-die-spin-duration:      0.5s;
   --ta-die-bg:         #909AB4;   /* Steel — 5.06:1 against page bg */
@@ -1649,6 +1653,8 @@ handle that case independently.
     --ta-badge-crit-failure-border: var(--sta-badge-crit-failure-border);
     --ta-color-credits:           var(--sta-color-currency);
     --ta-color-tab-active:        var(--sta-color-location);
+    --ta-color-info:              #4A9FD4;
+    --ta-btn-primary-text:        #ffffff;
     --ta-die-bg:                  #424A60;   /* Steel — 8.44:1 against page bg */
     --ta-die-text-color:          #F0F2FF;   /* Light text on steel — 7.92:1 */
   }

@@ -875,6 +875,8 @@ definitions and can be applied selectively.
   --ta-badge-crit-failure-border: var(--bp-color-accent-danger);
   --ta-color-credits:             var(--bp-color-accent-info);
   --ta-color-tab-active:          var(--bp-color-line-accent);
+  --ta-color-info:                var(--bp-color-accent-info);
+  --ta-btn-primary-text:          #1a1a1a;
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.5s;
 

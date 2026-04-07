@@ -2,12 +2,11 @@
 // Validates composed scene HTML against current game state before show_widget.
 // Writes a .last-verify marker on success; tag state sync requires this marker.
 
-import { readFileSync, realpathSync, writeFileSync, unlinkSync } from 'node:fs';
-import { join, resolve } from 'node:path';
-import { homedir } from 'node:os';
+import { readFileSync, writeFileSync, unlinkSync } from 'node:fs';
+import { join } from 'node:path';
 import type { CommandResult, GmState } from '../types';
 import { ok, fail, noState, errorMessage } from '../lib/errors';
-import { tryLoadState, saveState, getSyncMarkerPath } from '../lib/state-store';
+import { tryLoadState, saveState, getSyncMarkerPath, getStateDir } from '../lib/state-store';
 import { fnv32 } from '../lib/fnv32';
 import { resolveSafeReadPath } from '../lib/path-security';
 import { MODULE_PANEL_MAP } from '../lib/module-panel-map';
@@ -33,7 +32,7 @@ import {
   checkTtsComponent,
   checkScenarioCardMeta,
 } from '../lib/verify-checks';
-import { checkProseContent, extractNarrativeText } from '../lib/prose-checks';
+import { checkProseContentFromText, extractNarrativeText } from '../lib/prose-checks';
 import type { ProseMetrics } from '../data/prose-rules';
 import {
   buildProseFingerprint,
@@ -91,26 +90,8 @@ const PANEL_MODULE_MAP: Record<string, string> = Object.fromEntries(
 let _stateDirCache: string | undefined;
 function resolveStateDir(): string {
   if (_stateDirCache !== undefined) return _stateDirCache;
-  const raw = process.env.TAG_STATE_DIR || join(homedir(), '.tag');
-  try {
-    const resolved = realpathSync(resolve(raw));
-    const home = homedir();
-    const tmp = '/tmp';
-    if (!resolved.startsWith(home) && !resolved.startsWith(tmp)) {
-      throw new Error(`State directory ${resolved} is outside allowed prefixes (${home}, ${tmp}).`);
-    }
-    _stateDirCache = resolved;
-    return resolved;
-  } catch (err) {
-    const fallback = resolve(raw);
-    const home = homedir();
-    const tmp = '/tmp';
-    if (!fallback.startsWith(home) && !fallback.startsWith(tmp)) {
-      throw new Error(`State directory ${fallback} is outside allowed prefixes (${home}, ${tmp}).`);
-    }
-    _stateDirCache = fallback;
-    return fallback;
-  }
+  _stateDirCache = getStateDir();
+  return _stateDirCache;
 }
 export function clearStateDirCache(): void { _stateDirCache = undefined; }
 
@@ -592,13 +573,12 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
       () => checkTtsComponent(html, failures, state),
       () => checkScenarioCardMeta(html, failures),
       () => {
-        const r = checkProseContent(html, failures);
-        if (r) { proseWarnings = r.warnings; proseMetrics = r.metrics; }
-      },
-      () => {
         const text = extractNarrativeText(html);
         if (!text) return;
-        pendingProseFingerprint = buildProseFingerprint(String(state.scene), text);
+        const r = checkProseContentFromText(text, failures);
+        proseWarnings = r.warnings;
+        proseMetrics = r.metrics;
+        pendingProseFingerprint = buildProseFingerprint(String(state.scene), text, r.metrics);
         pendingProseHistory = loadProseHistory(resolveStateDir());
         checkCrossSceneProse(pendingProseFingerprint, pendingProseHistory, failures, proseWarnings);
       },
@@ -612,7 +592,11 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
   // On success: write signed marker for the widget type
   if (passed) {
     if (widgetType === 'scene') {
-      writeFileSync(getVerifyMarkerPath(), signMarker(state.scene), 'utf-8');
+      try {
+        writeFileSync(getVerifyMarkerPath(), signMarker(state.scene), 'utf-8');
+      } catch (err) {
+        console.error(`[tag verify] Failed to write verify marker: ${errorMessage(err)}. Ensure ${resolveStateDir()} exists and is writable.`);
+      }
       state._turnCount = (state._turnCount ?? 0) + 1;
       await saveState(state);
       try { unlinkSync(getNeedsVerifyPath()); } catch { /* already cleared */ }
@@ -623,7 +607,11 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
     } else if (isPreGame) {
       // Pre-game widgets: write a type-specific marker so render can gate on it
       const markerPath = join(resolveStateDir(), `.verified-${widgetType}`);
-      writeFileSync(markerPath, signMarker(0), 'utf-8');
+      try {
+        writeFileSync(markerPath, signMarker(0), 'utf-8');
+      } catch (err) {
+        console.error(`[tag verify] Failed to write pre-game marker: ${errorMessage(err)}. Ensure ${resolveStateDir()} exists and is writable.`);
+      }
     }
     // In-game non-scene widgets: no marker needed — they come unmodified from tag render
   }

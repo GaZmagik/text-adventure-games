@@ -41,7 +41,7 @@ export const COMMON_WIDGET_CSS = `
 .discovery-quest { color: var(--ta-color-accent, #4ECDC4); background: var(--ta-color-accent-bg, rgba(78,205,196,0.08)); border: 0.5px solid var(--ta-color-accent, #4ECDC4); }
 .discovery-codex { color: var(--ta-color-conviction, #7C6BF0); background: rgba(124,107,240,0.08); border: 0.5px solid var(--ta-color-conviction, #7C6BF0); }
 .evidence-card { padding: 10px 14px; margin: 8px 0; border-left: 3px solid var(--ta-color-accent, #4ECDC4); background: rgba(84,88,128,0.06); font-size: 12px; color: var(--sta-text-secondary, #9AA0C0); border-radius: 0 6px 6px 0; }
-.xp-toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--ta-color-xp, #FFD700); font-family: var(--ta-font-heading); font-size: 22px; font-weight: 700; text-shadow: 0 0 8px rgba(255,215,0,0.4); pointer-events: none; z-index: 9999; animation: xp-pop 0.6s ease-out forwards; }
+.xp-toast { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--ta-color-xp, #FFD700); font-family: var(--ta-font-heading); font-size: 22px; font-weight: 700; text-shadow: 0 0 8px rgba(255,215,0,0.4); pointer-events: none; z-index: 9999; animation: xp-pop 0.6s ease-out forwards; }
 @keyframes xp-pop { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } 30% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); } 60% { transform: translate(-50%, -50%) scale(0.95); } 100% { opacity: 0; transform: translate(-50%, -70%) scale(1); } }
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0s !important; animation-duration: 0s !important; }

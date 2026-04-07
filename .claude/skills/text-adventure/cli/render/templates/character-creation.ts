@@ -11,6 +11,7 @@ import { esc, serialiseInlineScriptData } from '../../lib/html';
 import { COMMON_WIDGET_CSS } from '../lib/common-css';
 import { PREGAME_DESIGN_CSS, renderHero, renderControlDeck, renderSubpanel, renderSummaryRow } from '../lib/pregame-design';
 import { wrapInShadowDom } from '../lib/shadow-wrapper';
+import { SEND_OR_COPY_PROMPT_JS } from '../lib/send-prompt';
 
 type Archetype = {
   name: string;
@@ -560,25 +561,4 @@ const CHAR_CREATION_CSS = `
 }
 .is-hidden { display: none !important; }`;
 
-const SEND_OR_COPY_SCRIPT = `function sendOrCopyPrompt(btn, prompt) {
-  btn.setAttribute('title', prompt);
-  if (typeof sendPrompt === 'function') {
-    sendPrompt(prompt);
-  } else {
-    var ta = document.createElement('textarea');
-    var copied = false;
-    ta.value = prompt;
-    ta.style.cssText = 'position:fixed;opacity:0';
-    document.body.appendChild(ta);
-    ta.select();
-    try {
-      copied = !!document.execCommand('copy');
-    } catch (_err) {
-      copied = false;
-    }
-    document.body.removeChild(ta);
-    var orig = btn.textContent;
-    btn.textContent = copied ? 'Copied! Paste as your reply.' : 'Copy the prompt from the tooltip.';
-    setTimeout(function() { btn.textContent = orig; }, 3000);
-  }
-}`;
+const SEND_OR_COPY_SCRIPT = SEND_OR_COPY_PROMPT_JS;

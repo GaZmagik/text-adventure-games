@@ -4,6 +4,7 @@
 import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
 import { wrapInShadowDom } from '../lib/shadow-wrapper';
+import { SEND_OR_COPY_PROMPT_JS } from '../lib/send-prompt';
 
 export function renderArcComplete(state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
   const arc = state?.arc ?? 1;
@@ -59,28 +60,7 @@ export function renderArcComplete(state: GmState | null, styleName: string, opti
     <button class="arc-action-btn arc-action-primary" data-prompt="Begin Act ${esc(String(arc + 1))}. Carry forward character progression, faction standings, and world consequences. Run tag state set arc ${esc(String(arc + 1))} then render the next act opener." title="Begin Act ${esc(String(arc + 1))}. Carry forward character progression, faction standings, and world consequences.">Continue to Act ${esc(String(arc + 1))}</button>
   </div>
 </div>`,
-    script: `function sendOrCopyPrompt(btn, prompt) {
-  btn.setAttribute('title', prompt);
-  if (typeof sendPrompt === 'function') {
-    sendPrompt(prompt);
-  } else {
-    var ta = document.createElement('textarea');
-    var copied = false;
-    ta.value = prompt;
-    ta.style.cssText = 'position:fixed;opacity:0';
-    document.body.appendChild(ta);
-    ta.select();
-    try {
-      copied = !!document.execCommand('copy');
-    } catch (_err) {
-      copied = false;
-    }
-    document.body.removeChild(ta);
-    var orig = btn.textContent;
-    btn.textContent = copied ? 'Copied! Paste as your reply.' : 'Copy the prompt from the tooltip.';
-    setTimeout(function() { btn.textContent = orig; }, 3000);
-  }
-}
+    script: `${SEND_OR_COPY_PROMPT_JS}
 
 shadow.querySelectorAll('.arc-action-btn[data-prompt]').forEach(function(btn) {
   btn.addEventListener('click', function() {

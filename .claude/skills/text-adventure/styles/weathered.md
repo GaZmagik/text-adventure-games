@@ -878,6 +878,8 @@ any host page styles.
   --ta-badge-crit-failure-border: var(--w-blood);
   --ta-color-credits:             var(--w-brass);
   --ta-color-tab-active:          var(--w-rust);
+  --ta-color-info:                #6B8EA6;
+  --ta-btn-primary-text:          #1a1a1a;
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.5s;
 

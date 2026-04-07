@@ -27,8 +27,19 @@ export type ButtonElement = {
 
 // ── Utility helpers ──────────────────────────────────────────────────
 
+/** Cache for single-match (i flag) attribute regexes used by extractAttr. */
+const _attrRegexCache = new Map<string, RegExp>();
+function getAttrRegex(name: string): RegExp {
+  let re = _attrRegexCache.get(name);
+  if (!re) {
+    re = new RegExp(`\\b${name}\\s*=\\s*(['"])(.*?)\\1`, 'i');
+    _attrRegexCache.set(name, re);
+  }
+  return re;
+}
+
 export function extractAttr(markup: string, name: string): string | null {
-  const match = new RegExp(`\\b${name}\\s*=\\s*(['"])(.*?)\\1`, 'i').exec(markup);
+  const match = getAttrRegex(name).exec(markup);
   return match?.[2] ?? null;
 }
 
@@ -455,7 +466,7 @@ export function checkPendingLevelUp(html: string, failures: string[], state: GmS
 }
 
 export function checkScenarioCardMeta(html: string, failures: string[]): void {
-  const cardCount = (html.match(/class="scenario-card"/g) ?? []).length;
+  const cardCount = countClassOccurrences(html, 'scenario-card');
   if (cardCount === 0) return;
 
   const accentCount = (html.match(/--card-accent:/g) ?? []).length;

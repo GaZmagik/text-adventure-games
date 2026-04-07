@@ -633,6 +633,7 @@ every standard component class used by the text adventure engine.
   --ta-color-credits:             var(--ad-gold);
   --ta-color-tab-active:          var(--ad-gold);
   --ta-color-info:                var(--ad-copper);
+  --ta-btn-primary-text:          #ffffff;
   --ta-color-xp-border:           color-mix(in srgb, var(--ad-gold) 50%, transparent);
   --ta-badge-success-bg:          rgba(42, 127, 98, 0.12);
   --ta-badge-success-text:        var(--ad-jade);

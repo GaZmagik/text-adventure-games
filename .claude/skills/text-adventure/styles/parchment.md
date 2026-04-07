@@ -596,6 +596,8 @@ tag after the base engine styles. It uses the CSS cascade — only override what
   --ta-badge-crit-failure-border: var(--pt-accent-burgundy);
   --ta-color-credits:             var(--pt-accent-gold);
   --ta-color-tab-active:          var(--pt-accent-burgundy);
+  --ta-color-info:                #2B5A8A;
+  --ta-btn-primary-text:          #1a1a1a;
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.5s;
 
@@ -672,6 +674,8 @@ tag after the base engine styles. It uses the CSS cascade — only override what
   --ta-badge-crit-failure-border: var(--pt-accent-burgundy);
   --ta-color-credits:             var(--pt-accent-gold);
   --ta-color-tab-active:          var(--pt-accent-burgundy);
+  --ta-color-info:                #2B5A8A;
+  --ta-btn-primary-text:          #1a1a1a;
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.5s;
   }

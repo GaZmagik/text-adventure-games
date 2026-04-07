@@ -42,10 +42,14 @@ function genresOf(s: Scenario): string[] {
 
 function hexToRgb(hex: string): string | null {
   const clean = hex.replace('#', '');
-  if (clean.length !== 6) return null;
-  const r = parseInt(clean.slice(0, 2), 16);
-  const g = parseInt(clean.slice(2, 4), 16);
-  const b = parseInt(clean.slice(4, 6), 16);
+  // Expand 3-digit shorthand (#abc → #aabbcc)
+  const full = clean.length === 3
+    ? clean.split('').map(c => c + c).join('')
+    : clean;
+  if (full.length !== 6) return null;
+  const r = parseInt(full.slice(0, 2), 16);
+  const g = parseInt(full.slice(2, 4), 16);
+  const b = parseInt(full.slice(4, 6), 16);
   if (isNaN(r) || isNaN(g) || isNaN(b)) return null;
   return `${r}, ${g}, ${b}`;
 }
@@ -53,6 +57,12 @@ function hexToRgb(hex: string): string | null {
 function sanitizeSvg(raw: string): string | null {
   const trimmed = raw.trim();
   if (!/^<svg\b/i.test(trimmed) || !/\/svg>$/i.test(trimmed)) return null;
+  // Reject dangerous elements
+  if (/<(?:script|foreignObject|iframe|object|embed)\b/i.test(trimmed)) return null;
+  // Reject event handler attributes
+  if (/\bon\w+\s*=/i.test(trimmed)) return null;
+  // Reject javascript: and data: URIs in href/src/xlink:href
+  if (/\b(?:href|src|xlink:href)\s*=\s*['"]?\s*(?:javascript:|data:)/i.test(trimmed)) return null;
   return trimmed;
 }
 
@@ -87,7 +97,7 @@ function renderCard(scenario: Scenario, idx: number, isSelected: boolean): strin
     ].filter(Boolean).join('; ');
     const accentStyle = accentParts ? ` style="${accentParts}"` : '';
     return `
-      <div class="scenario-card"${idAttr}${featAttr}${coverAttr}${accentStyle} aria-pressed="${isSelected}" data-desc="${esc(desc)}" data-idx="${idx}">
+      <div class="scenario-card"${idAttr}${featAttr}${coverAttr}${accentStyle} role="button" tabindex="0" aria-pressed="${isSelected}" data-desc="${esc(desc)}" data-idx="${idx}">
         <div class="cover-spread">
           <img class="cover-front" src="${esc(scenario.coverFront!)}" alt="${esc(scenario.title)} — front cover" loading="lazy">
           <img class="cover-back" src="${esc(scenario.coverBack!)}" alt="${esc(scenario.title)} — back cover" loading="lazy">
@@ -117,7 +127,7 @@ function renderCard(scenario: Scenario, idx: number, isSelected: boolean): strin
   const styleAttr = cardStyle ? ` style="${cardStyle}"` : '';
 
   return `
-      <div class="scenario-card"${idAttr}${featAttr}${coverAttr}${styleAttr} aria-pressed="${isSelected}" data-desc="${esc(desc)}" data-idx="${idx}">
+      <div class="scenario-card"${idAttr}${featAttr}${coverAttr}${styleAttr} role="button" tabindex="0" aria-pressed="${isSelected}" data-desc="${esc(desc)}" data-idx="${idx}">
         ${logoHtml}
         <div class="scenario-card-content">
           <div class="scenario-title">${esc(scenario.title)}</div>
@@ -136,7 +146,11 @@ function renderCard(scenario: Scenario, idx: number, isSelected: boolean): strin
 
 export function renderScenarioSelect(_state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
   const raw = (options?.data ?? {}) as Record<string, unknown>;
-  const scenarios: Scenario[] = Array.isArray(raw.scenarios) ? raw.scenarios as Scenario[] : [];
+  const scenarios: Scenario[] = Array.isArray(raw.scenarios)
+    ? (raw.scenarios as unknown[]).filter(
+        (s): s is Scenario => typeof s === 'object' && s !== null && typeof (s as Record<string, unknown>).title === 'string',
+      )
+    : [];
 
   // Empty state — no hero or control deck
   if (scenarios.length === 0) {
@@ -266,19 +280,25 @@ const SCENARIO_SCRIPT = `function sendOrCopyPrompt(btn, prompt) {
   if (typeof sendPrompt === 'function') {
     sendPrompt(prompt);
   } else {
+    var orig = btn.textContent;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(prompt).then(function() {
+        btn.textContent = 'Copied! Paste as your reply.';
+        setTimeout(function() { btn.textContent = orig; }, 3000);
+      }).catch(function() {
+        btn.textContent = 'Copy the prompt from the tooltip.';
+        setTimeout(function() { btn.textContent = orig; }, 3000);
+      });
+      return;
+    }
     var ta = document.createElement('textarea');
     var copied = false;
     ta.value = prompt;
     ta.style.cssText = 'position:fixed;opacity:0';
     document.body.appendChild(ta);
     ta.select();
-    try {
-      copied = !!document.execCommand('copy');
-    } catch (_err) {
-      copied = false;
-    }
+    try { copied = !!document.execCommand('copy'); } catch (_err) {}
     document.body.removeChild(ta);
-    var orig = btn.textContent;
     btn.textContent = copied ? 'Copied! Paste as your reply.' : 'Copy the prompt from the tooltip.';
     setTimeout(function() { btn.textContent = orig; }, 3000);
   }
@@ -308,5 +328,14 @@ shadow.querySelectorAll('.scenario-card').forEach(function(card) {
     if (selTitle && title) selTitle.textContent = title.textContent;
     if (selPreamble) selPreamble.textContent = desc;
     if (selStatus) selStatus.textContent = 'Scenario selected: ' + (title ? title.textContent : '');
+  });
+});
+
+shadow.querySelectorAll('.scenario-card').forEach(function(card) {
+  card.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      this.click();
+    }
   });
 });`;

@@ -168,6 +168,8 @@ Invert everything. White borders on black, red stays red (it always stands out).
     --ta-badge-crit-failure-border: var(--bru-danger);
     --ta-color-credits:             var(--bru-warning);
     --ta-color-tab-active:          var(--bru-accent);
+    --ta-color-info:                var(--bru-info);
+    --ta-btn-primary-text:          #ffffff;
     --ta-border-style-poi:          2px dashed;
     --ta-die-spin-duration:         0.3s;
   }

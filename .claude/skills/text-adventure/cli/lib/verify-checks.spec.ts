@@ -1,5 +1,14 @@
 import { describe, test, expect } from 'bun:test';
-import { checkSvgViewBox, checkPendingLevelUp, checkTtsComponent, checkScenarioCardMeta } from './verify-checks';
+import {
+  checkSvgViewBox,
+  checkPendingLevelUp,
+  checkTtsComponent,
+  checkScenarioCardMeta,
+  checkBrokenSerialisation,
+  checkCssVariables,
+  checkInlineOnclick,
+  checkSendPromptFallback,
+} from './verify-checks';
 import type { GmState } from '../types';
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -210,5 +219,119 @@ describe('checkScenarioCardMeta', () => {
     checkScenarioCardMeta(card(withAccent, withLogo) + card('', withLogo), failures);
     expect(failures[0]).toContain('1 scenario card');
     expect(failures[0]).not.toMatch(/\d+ scenario cards/);
+  });
+});
+
+// ── checkBrokenSerialisation ─────────────────────────────────────────
+
+describe('checkBrokenSerialisation', () => {
+  test('passes when no [object Object] present', () => {
+    const failures: string[] = [];
+    checkBrokenSerialisation('<div class="scene">Hello world</div>', failures);
+    expect(failures).toHaveLength(0);
+  });
+
+  test('fails when [object Object] appears in HTML', () => {
+    const failures: string[] = [];
+    checkBrokenSerialisation('<div data-value="[object Object]">bad</div>', failures);
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toContain('[object Object]');
+  });
+
+  test('counts multiple occurrences in the failure message', () => {
+    const failures: string[] = [];
+    checkBrokenSerialisation('[object Object] and [object Object]', failures);
+    expect(failures[0]).toContain('2 occurrence');
+  });
+});
+
+// ── checkCssVariables ────────────────────────────────────────────────
+
+describe('checkCssVariables', () => {
+  test('passes when only valid --sta-* prefixed variables are used', () => {
+    const failures: string[] = [];
+    checkCssVariables('<div style="color: var(--sta-color-primary)"></div>', failures);
+    expect(failures).toHaveLength(0);
+  });
+
+  test('passes when only valid --ta-* prefixed variables are used', () => {
+    const failures: string[] = [];
+    checkCssVariables('<div style="background: var(--ta-bg)"></div>', failures);
+    expect(failures).toHaveLength(0);
+  });
+
+  test('fails when an invalid prefix is used', () => {
+    const failures: string[] = [];
+    checkCssVariables('<div style="color: var(--color-foo)"></div>', failures);
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toContain('--color-foo');
+  });
+
+  test('passes when variable is defined locally in the same HTML', () => {
+    const failures: string[] = [];
+    const html = '<style>:root { --color-foo: red; }</style><div style="color: var(--color-foo)"></div>';
+    checkCssVariables(html, failures);
+    expect(failures).toHaveLength(0);
+  });
+});
+
+// ── checkInlineOnclick ───────────────────────────────────────────────
+
+describe('checkInlineOnclick', () => {
+  test('passes when no onclick attributes are present', () => {
+    const failures: string[] = [];
+    checkInlineOnclick('<button data-prompt="Go north">Go north</button>', failures);
+    expect(failures).toHaveLength(0);
+  });
+
+  test('fails when an inline onclick handler is present', () => {
+    const failures: string[] = [];
+    checkInlineOnclick('<button onclick="doSomething()">Click me</button>', failures);
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toContain('onclick');
+  });
+
+  test('counts multiple onclick handlers in the failure message', () => {
+    const failures: string[] = [];
+    checkInlineOnclick('<button onclick="a()"></button><button onclick="b()"></button>', failures);
+    expect(failures[0]).toContain('2 inline onclick');
+  });
+});
+
+// ── checkSendPromptFallback ──────────────────────────────────────────
+
+describe('checkSendPromptFallback', () => {
+  test('passes when data-prompt button has an adequate title', () => {
+    const failures: string[] = [];
+    checkSendPromptFallback(
+      '<button data-prompt="Go north through the gate" title="Go north through the gate">Go north</button>',
+      failures,
+    );
+    expect(failures).toHaveLength(0);
+  });
+
+  test('fails when data-prompt button has a title shorter than 10 characters', () => {
+    const failures: string[] = [];
+    checkSendPromptFallback(
+      '<button data-prompt="Go north" title="Go">Go north</button>',
+      failures,
+    );
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toContain('title fallback');
+  });
+
+  test('fails when data-prompt button has no title attribute', () => {
+    const failures: string[] = [];
+    checkSendPromptFallback(
+      '<button data-prompt="Go north">Go north</button>',
+      failures,
+    );
+    expect(failures).toHaveLength(1);
+  });
+
+  test('passes when no data-prompt buttons are present', () => {
+    const failures: string[] = [];
+    checkSendPromptFallback('<div>no interactive elements</div>', failures);
+    expect(failures).toHaveLength(0);
   });
 });

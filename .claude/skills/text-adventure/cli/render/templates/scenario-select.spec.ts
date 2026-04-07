@@ -27,8 +27,13 @@ describe('renderScenarioSelect', () => {
 
   test('selection script copies prompts when sendPrompt is unavailable', () => {
     const html = renderScenarioSelect(null, '', { data: TWO_SCENARIOS });
+    // Clipboard API is preferred; execCommand textarea is the legacy fallback
+    expect(html).toContain('navigator.clipboard');
+    expect(html).toContain('navigator.clipboard.writeText');
+    // Legacy fallback is still present for environments without Clipboard API
     expect(html).toContain("document.execCommand('copy')");
-    expect(html).toContain("btn.textContent = copied ? 'Copied! Paste as your reply.' : 'Copy the prompt from the tooltip.';");
+    expect(html).toContain("'Copied! Paste as your reply.'");
+    expect(html).toContain("'Copy the prompt from the tooltip.'");
   });
 });
 
