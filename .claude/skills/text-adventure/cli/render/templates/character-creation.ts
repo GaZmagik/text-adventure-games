@@ -263,12 +263,17 @@ var archetypeMechanics = ${serialiseInlineScriptData(archetypes.map(a => ({
 
 ${SEND_OR_COPY_SCRIPT}
 
-function summarisePreset(preset) {
-  var lines = [];
-  lines.push('<strong>' + preset.name + '</strong>' + (preset.class ? ' \\u00b7 ' + preset.class : ''));
-  if (preset.hook) lines.push(preset.hook);
-  if (preset.background && !preset.hook) lines.push(preset.background);
-  return lines.join('<br>');
+function buildPresetSummary(parent, preset) {
+  parent.textContent = '';
+  var nameEl = document.createElement('strong');
+  nameEl.textContent = preset.name || '';
+  parent.appendChild(nameEl);
+  if (preset.class) parent.appendChild(document.createTextNode(' \\u00b7 ' + preset.class));
+  var hook = preset.hook || preset.background || '';
+  if (hook) {
+    parent.appendChild(document.createElement('br'));
+    parent.appendChild(document.createTextNode(hook));
+  }
 }
 
 function updateSelectionCards() {
@@ -318,11 +323,7 @@ function setPresetMode(index) {
   var summary = shadow.getElementById('preset-summary');
   if (summaryWrap && summary) {
     summaryWrap.classList.remove('is-hidden');
-    var sumText = summarisePreset(preset);
-    summary.textContent = '';
-    var tmpDiv = document.createElement('div');
-    tmpDiv.textContent = sumText;
-    summary.appendChild(tmpDiv);
+    buildPresetSummary(summary, preset);
   }
   var nameInput = shadow.getElementById('char-name-input');
   if (nameInput) {

@@ -186,4 +186,17 @@ describe('character-creation script interaction', () => {
     expect(html).toContain('setPresetMode');
     expect(html).toContain('setCustomMode');
   });
+
+  test('preset summary uses DOM construction not textContent with HTML', () => {
+    const html = renderCharacterCreation(null, '', {
+      data: {
+        preGeneratedCharacters: [
+          { name: 'Riley Chen', class: 'Scout', hook: 'Promised someone.' },
+        ],
+      },
+    });
+    // Must use buildPresetSummary (DOM nodes), not summarisePreset (HTML string via textContent)
+    expect(html).toContain('buildPresetSummary');
+    expect(html).not.toContain('summarisePreset');
+  });
 });
