@@ -1,12 +1,15 @@
+import { writeFileSync, unlinkSync } from 'node:fs';
+import { join } from 'node:path';
 import type { CommandResult, GmState } from '../types';
 import { ok, fail, noState } from '../lib/errors';
-import { tryLoadState, saveState, createDefaultState } from '../lib/state-store';
+import { tryLoadState, saveState, createDefaultState, getSyncMarkerPath, getStateDir } from '../lib/state-store';
 import { validateState } from '../lib/validator';
 import { attachChecksum, validateAndDecode } from '../lib/fnv32';
 import { VALID_TOP_KEYS, MAX_STATE_HISTORY, SCHEMA_VERSION } from '../lib/constants';
 import { containsForbiddenKeys } from '../lib/security';
 import { readSafeTextFile, resolveSafeReadPath } from '../lib/path-security';
 import { stripUnknownStateKeys } from '../lib/state-schema';
+import { signMarker, getVerifyMarkerPath, getNeedsVerifyPath } from './verify';
 
 /** Numeric semver comparison — avoids lexicographic string comparison pitfalls (e.g. '2.0.0' < '10.0.0'). */
 function semverLessThan(a: string, b: string): boolean {
@@ -161,6 +164,20 @@ async function load(args: string[]): Promise<CommandResult> {
   // Cast is safe here — validateState has confirmed structural validity
   const validState = state as unknown as GmState;
   await saveState(validState);
+
+  // Stamp workflow markers — the save captures a fully-synced, fully-verified state.
+  // Without these markers, the render/sync pipeline would deadlock (render needs sync,
+  // sync needs verify, verify needs rendered HTML that doesn't exist yet).
+  const stateDir = getStateDir();
+  const scene = validState.scene;
+  writeFileSync(getSyncMarkerPath(), signMarker(scene), 'utf-8');
+  writeFileSync(getVerifyMarkerPath(), signMarker(scene), 'utf-8');
+  // Pre-game gates: these were all passed before the save was created
+  for (const type of ['scenario', 'rules', 'character']) {
+    writeFileSync(join(stateDir, `.verified-${type}`), signMarker(0), 'utf-8');
+  }
+  // Clear any stale needs-verify marker
+  try { unlinkSync(getNeedsVerifyPath()); } catch { /* already absent */ }
 
   return ok({
     message: 'Save loaded successfully.',

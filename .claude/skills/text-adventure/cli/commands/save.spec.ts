@@ -1,11 +1,12 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { handleSave } from './save';
-import { saveState, createDefaultState, loadState } from '../lib/state-store';
+import { saveState, createDefaultState, loadState, getSyncMarkerPath } from '../lib/state-store';
 import { validateAndDecode, attachChecksum } from '../lib/fnv32';
 import { MAX_STATE_HISTORY, SCHEMA_VERSION } from '../lib/constants';
+import { readSignedMarker, getVerifyMarkerPath, getNeedsVerifyPath, clearStateDirCache } from './verify';
 import type { StateHistoryEntry } from '../types';
 
 let tempDir: string;
@@ -14,6 +15,7 @@ const originalEnv = process.env.TAG_STATE_DIR;
 beforeEach(async () => {
   tempDir = mkdtempSync(join(tmpdir(), 'tag-save-'));
   process.env.TAG_STATE_DIR = tempDir;
+  clearStateDirCache();
   const state = createDefaultState();
   state.scene = 7;
   state.factions = { rebels: 42 };
@@ -601,5 +603,66 @@ describe('save — schema versioning', () => {
     const restored = await loadState();
     expect(restored._schemaVersion).toBe(SCHEMA_VERSION);
     expect(restored.character!.hp).toBe(18);
+  });
+});
+
+// ── Workflow marker stamping on load ────────────────────────────────
+
+describe('save load — workflow markers', () => {
+  test('stamps sync marker for loaded scene', async () => {
+    const genResult = await handleSave(['generate']);
+    const saveString = (genResult.data as Record<string, unknown>).saveString as string;
+    const fresh = createDefaultState();
+    await saveState(fresh);
+    clearStateDirCache();
+
+    const loadResult = await handleSave(['load', saveString]);
+    expect(loadResult.ok).toBe(true);
+
+    const syncScene = readSignedMarker(getSyncMarkerPath());
+    expect(syncScene).toBe(7);
+  });
+
+  test('stamps verify marker for loaded scene', async () => {
+    const genResult = await handleSave(['generate']);
+    const saveString = (genResult.data as Record<string, unknown>).saveString as string;
+    const fresh = createDefaultState();
+    await saveState(fresh);
+    clearStateDirCache();
+
+    await handleSave(['load', saveString]);
+
+    const verifyScene = readSignedMarker(getVerifyMarkerPath());
+    expect(verifyScene).toBe(7);
+  });
+
+  test('stamps pre-game verify markers', async () => {
+    const genResult = await handleSave(['generate']);
+    const saveString = (genResult.data as Record<string, unknown>).saveString as string;
+    const fresh = createDefaultState();
+    await saveState(fresh);
+    clearStateDirCache();
+
+    await handleSave(['load', saveString]);
+
+    for (const type of ['scenario', 'rules', 'character']) {
+      const marker = readSignedMarker(join(tempDir, `.verified-${type}`));
+      expect(marker).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  test('clears stale needs-verify marker', async () => {
+    // Write a stale needs-verify marker before loading
+    writeFileSync(getNeedsVerifyPath(), '5:stale', 'utf-8');
+
+    const genResult = await handleSave(['generate']);
+    const saveString = (genResult.data as Record<string, unknown>).saveString as string;
+    const fresh = createDefaultState();
+    await saveState(fresh);
+    clearStateDirCache();
+
+    await handleSave(['load', saveString]);
+
+    expect(existsSync(getNeedsVerifyPath())).toBe(false);
   });
 });
