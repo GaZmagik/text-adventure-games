@@ -162,6 +162,19 @@ describe('renderScene scene design CSS', () => {
   });
 });
 
+describe('renderScene ta-tts element', () => {
+  test('includes ta-tts element before narrative', () => {
+    const state = createDefaultState();
+    const html = renderScene(state, '');
+    expect(html).toContain('<ta-tts>');
+    const ttsIdx = html.indexOf('<ta-tts>');
+    const narIdx = html.indexOf('id="narrative"');
+    expect(ttsIdx).toBeGreaterThan(-1);
+    expect(narIdx).toBeGreaterThan(-1);
+    expect(ttsIdx).toBeLessThan(narIdx);
+  });
+});
+
 describe('renderScene script loading', () => {
   test('does not load soundscape runtime when audio module is inactive', () => {
     const state = createDefaultState();

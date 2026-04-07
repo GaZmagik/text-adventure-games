@@ -370,9 +370,9 @@ function initTagScene(root) {
     }
 
     _collectEls() {
-      var rawSel = this.getAttribute('nar-selector') || '.prose p, .dlg p, .flash';
+      var rawSel = this.getAttribute('nar-selector') || '.narrative p, .prose p, .dlg p, .flash';
       // Allow only safe CSS selectors: classes, tags, combinators, pseudo-classes — no attribute selectors or URLs
-      var selector = /^[a-zA-Z0-9 .#,-_>+~:*]+$/.test(rawSel) ? rawSel : '.prose p, .dlg p, .flash';
+      var selector = /^[a-zA-Z0-9 .#,-_>+~:*]+$/.test(rawSel) ? rawSel : '.narrative p, .prose p, .dlg p, .flash';
       var scope = this.closest('.root, [data-scene]') || document;
       var all = Array.from(scope.querySelectorAll(selector));
       this._els = all.filter(function(el) { return !el.closest('.sp'); });

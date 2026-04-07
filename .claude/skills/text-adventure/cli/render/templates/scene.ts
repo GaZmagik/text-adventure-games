@@ -150,6 +150,7 @@ export function renderScene(state: GmState | null, styleName: string, options?: 
       <div class="atmo-strip">
         <span class="atmo-pill">The scene unfolds before you...</span>
       </div>
+      <ta-tts></ta-tts>
       ${buildNarrativePhases(options)}
       <!-- [ACTIONS: Insert POI buttons and action cards here.
            Each button MUST use <strong class="btn-title"> for the title:
