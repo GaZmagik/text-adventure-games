@@ -18,6 +18,6 @@ export const CSS_MANIFEST: Record<string, string> = {
 };
 
 export const JS_MANIFEST: Record<string, string> = {
-  'tag-scene.js': 'f6206276',
+  'tag-scene.js': '8a866a0e',
   'tag-soundscape.js': 'af6d06f0',
 };
