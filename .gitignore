@@ -26,7 +26,6 @@ text-adventure-test*/
 # Game prose
 *.lore.md
 !*base64.lore.md
-!*-demo.lore.md
 
 # Logs
 *.log

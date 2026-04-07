@@ -61,9 +61,6 @@ zip -r "$OUTPUT" . \
 # Re-add base64 lore files (*.lore.md exclusion above catches them too)
 find . -name '*.base64.lore.md' -print0 | xargs -0 zip -g "$OUTPUT" 2>/dev/null || true
 
-# Re-add authored demo lore files (human-readable; excluded by *.lore.md pattern above)
-find . -name '*-demo.lore.md' -print0 | xargs -0 zip -g "$OUTPUT" 2>/dev/null || true
-
 FILE_COUNT=$(unzip -l "$OUTPUT" | tail -1 | awk '{print $2}')
 SIZE=$(ls -lh "$OUTPUT" | awk '{print $5}')
 
