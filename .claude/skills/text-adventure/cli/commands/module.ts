@@ -90,11 +90,23 @@ async function activateTier(tierStr: string): Promise<CommandResult> {
   const read = ensureModulesRead(state);
   const results: { name: string; content: string; chars: number }[] = [];
 
+  const activeSet = new Set(state.modulesActive);
+  const skipped: string[] = [];
+
   for (const name of modules) {
+    // Only load modules the player selected in settings (tier 1 is always active)
+    if (tier > 1 && !activeSet.has(name)) {
+      skipped.push(name);
+      continue;
+    }
+
     const content = readModule(name);
     if (content === null) continue;
 
-    if (!state.modulesActive.includes(name)) state.modulesActive.push(name);
+    if (!activeSet.has(name)) {
+      state.modulesActive.push(name);
+      activeSet.add(name);
+    }
     if (!read.includes(name)) read.push(name);
     if (name === 'prose-craft') {
       state._proseCraftEpoch = state._compactionCount ?? 0;
@@ -110,6 +122,7 @@ async function activateTier(tierStr: string): Promise<CommandResult> {
     modules: results,
     totalChars: results.reduce((sum, m) => sum + m.chars, 0),
     count: results.length,
+    ...(skipped.length > 0 ? { skipped, skippedNote: `${skipped.length} tier ${tier} module(s) not loaded — not in modulesActive.` } : {}),
   }, 'module');
 }
 
