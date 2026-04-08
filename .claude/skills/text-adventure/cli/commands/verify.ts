@@ -50,6 +50,7 @@ import {
   checkMapPanelContent,
   checkLevelUpIntegrity,
 } from '../lib/panel-checks';
+import { verifyLoreFile } from '../lib/verify-lore';
 
 /** Compute a signed workflow marker.
  *  Format: scene:timestamp:fnv32('tag-cli-gate:' + scene + ':' + timestamp)
@@ -486,6 +487,19 @@ function readHtmlFile(filePath: string): string | CommandResult {
   }
 }
 
+function readLoreMdFile(filePath: string): string | CommandResult {
+  try {
+    const safePath = resolveSafeReadPath(filePath, { kind: 'Verify', extensions: ['.md'] });
+    if (!safePath) {
+      return fail(`Invalid file path: ${filePath}`, 'Path must end with .md and start with /, ./, ../, or ~/.', 'verify lore');
+    }
+    return readFileSync(safePath, 'utf-8');
+  } catch (err: unknown) {
+    const msg = errorMessage(err);
+    return fail(`Failed to read lore file: ${msg}`, 'Check the file path exists and is readable.', 'verify lore');
+  }
+}
+
 export async function handleVerify(args: string[]): Promise<CommandResult> {
   const first = args[0];
   if (!first) {
@@ -494,6 +508,34 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
       'Usage: tag verify /tmp/scene.html OR tag verify <type> /tmp/widget.html (types: scenario, rules, character, dice, dialogue, levelup, combat-turn, arc-complete, etc.)',
       'verify',
     );
+  }
+
+  // Lore verification — stateless, dispatched before state load
+  if (first === 'lore') {
+    const lorePath = args[1];
+    if (!lorePath) {
+      return fail('No file path provided for lore verification.', 'Usage: tag verify lore /path/to/world.lore.md', 'verify lore');
+    }
+    const contentOrError = readLoreMdFile(lorePath);
+    if (typeof contentOrError !== 'string') return contentOrError;
+
+    const result = verifyLoreFile(contentOrError);
+    if (result.failures.length > 0) {
+      return ok({
+        status: 'fail',
+        failures: result.failures,
+        warnings: result.warnings,
+        checks: result.checks,
+        frontmatter: result.frontmatter,
+      }, 'verify lore');
+    }
+    return ok({
+      status: 'pass',
+      failures: [],
+      warnings: result.warnings,
+      checks: result.checks,
+      frontmatter: result.frontmatter,
+    }, 'verify lore');
   }
 
   // Detect widget type from first argument
