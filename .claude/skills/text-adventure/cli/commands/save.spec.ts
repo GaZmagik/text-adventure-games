@@ -80,6 +80,69 @@ describe('save generate', () => {
   });
 });
 
+describe('save generate — frontmatter', () => {
+  test('returns a frontmatter object with required fields', async () => {
+    const result = await handleSave(['generate']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const fm = data.frontmatter as Record<string, unknown>;
+    expect(fm).toBeDefined();
+    expect(fm.format).toBe('text-adventure-save');
+    expect(fm.version).toBe(1);
+    expect(fm['skill-version']).toBe(SCHEMA_VERSION);
+    expect(fm.character).toBe('Test Hero');
+    expect(fm.class).toBe('Scout');
+    expect(fm.level).toBe(3);
+    expect(fm.scene).toBe(7);
+    expect(fm.mode).toBe('full');
+  });
+
+  test('frontmatter includes date-saved as ISO 8601', async () => {
+    const result = await handleSave(['generate']);
+    const fm = (result.data as Record<string, unknown>).frontmatter as Record<string, unknown>;
+    expect(typeof fm['date-saved']).toBe('string');
+    expect(fm['date-saved'] as string).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+  });
+
+  test('frontmatter includes location from currentRoom', async () => {
+    const state = await loadState();
+    state.currentRoom = 'bridge';
+    await saveState(state);
+    const result = await handleSave(['generate']);
+    const fm = (result.data as Record<string, unknown>).frontmatter as Record<string, unknown>;
+    expect(fm.location).toBe('bridge');
+  });
+
+  test('frontmatter has null character fields when no character', async () => {
+    const state = await loadState();
+    state.character = null;
+    await saveState(state);
+    const result = await handleSave(['generate']);
+    const fm = (result.data as Record<string, unknown>).frontmatter as Record<string, unknown>;
+    expect(fm.character).toBeNull();
+    expect(fm.class).toBeNull();
+    expect(fm.level).toBeNull();
+  });
+
+  test('frontmatter includes arc and arc-type with defaults', async () => {
+    const result = await handleSave(['generate']);
+    const fm = (result.data as Record<string, unknown>).frontmatter as Record<string, unknown>;
+    expect(fm.arc).toBe(1);
+    expect(fm['arc-type']).toBe('standard');
+  });
+
+  test('frontmatter reflects theme and visual-style from state', async () => {
+    const state = await loadState();
+    state.theme = 'space';
+    state.visualStyle = 'station';
+    await saveState(state);
+    const result = await handleSave(['generate']);
+    const fm = (result.data as Record<string, unknown>).frontmatter as Record<string, unknown>;
+    expect(fm.theme).toBe('space');
+    expect(fm['visual-style']).toBe('station');
+  });
+});
+
 describe('save load', () => {
   test('round-trips: generate then load restores state', async () => {
     const genResult = await handleSave(['generate']);

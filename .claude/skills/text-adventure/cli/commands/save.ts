@@ -56,6 +56,24 @@ async function generate(): Promise<CommandResult> {
   const code = 'SF2:' + Buffer.from(json, 'utf-8').toString('base64');
   const saveString = attachChecksum(code);
 
+  const frontmatter: Record<string, string | number | null> = {
+    format: 'text-adventure-save',
+    version: 1,
+    'skill-version': SCHEMA_VERSION,
+    character: state.character?.name ?? null,
+    class: state.character?.class ?? null,
+    level: state.character?.level ?? null,
+    scene: state.scene,
+    location: state.currentRoom,
+    'date-saved': new Date().toISOString(),
+    theme: state.theme ?? null,
+    'visual-style': state.visualStyle ?? null,
+    mode: 'full',
+    seed: state.seed ?? null,
+    arc: state.arc ?? 1,
+    'arc-type': state.arcType ?? 'standard',
+  };
+
   return ok({
     saveString,
     mode: 'full',
@@ -63,6 +81,7 @@ async function generate(): Promise<CommandResult> {
     characterName: state.character?.name ?? null,
     scene: state.scene,
     byteLength: saveString.length,
+    frontmatter,
   }, 'save generate');
 }
 
