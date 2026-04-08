@@ -9,6 +9,7 @@
 #   - bun.lock     (locks devDependencies only)
 #   - cli/tests/   (test support harness and fixtures)
 #   - node_modules (installed locally by setup.sh)
+#   - coverage/    (test coverage output)
 #   - bunfig.toml  (dev-only bun test config)
 #   - .DS_Store    (macOS junk)
 #   - *.lore.md    (plain-text lore; base64 variant is kept)
@@ -56,6 +57,7 @@ zip -r "$OUTPUT" . \
 	-x "cli/tests/*" \
 	-x "assets/css/*" \
 	-x "assets/js/*" \
+	-x "coverage/*" \
 	-x "*.lore.md"
 
 # Re-add base64 lore files (*.lore.md exclusion above catches them too)
