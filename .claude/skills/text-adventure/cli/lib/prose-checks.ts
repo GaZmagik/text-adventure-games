@@ -19,8 +19,6 @@ import type {
 /*  Text extraction                                                    */
 /* ------------------------------------------------------------------ */
 
-const NARRATIVE_PATTERN = /<div\b[^>]*(?:id\s*=\s*(['"])narrative\1|class\s*=\s*(['"])[^'"]*\bnarrative\b[^'"]*\2)[^>]*>([\s\S]*?)<\/div>/gi;
-
 /** Strip HTML preserving block-level boundaries as double newlines. */
 function htmlToProseText(raw: string): string {
   return raw
@@ -37,11 +35,41 @@ function htmlToProseText(raw: string): string {
 /** Extract and concatenate narrative text from scene HTML, preserving paragraph breaks. */
 export function extractNarrativeText(html: string): string | null {
   const blocks: string[] = [];
+  const startRegex = /<div\b[^>]*(?:id\s*=\s*(['"])narrative\1|class\s*=\s*(['"])[^'"]*\bnarrative\b[^'"]*\2)[^>]*>/gi;
+  const tokenRegex = /<\/?div\b[^>]*>/gi;
+  
   let match: RegExpExecArray | null;
-  NARRATIVE_PATTERN.lastIndex = 0;
-  while ((match = NARRATIVE_PATTERN.exec(html)) !== null) {
-    blocks.push(htmlToProseText(match[3]!));
+  startRegex.lastIndex = 0;
+  
+  while ((match = startRegex.exec(html)) !== null) {
+    const contentStart = match.index + match[0].length;
+    let depth = 1;
+    
+    tokenRegex.lastIndex = contentStart;
+    let endIndex = -1;
+    let tokenMatch: RegExpExecArray | null;
+    
+    while ((tokenMatch = tokenRegex.exec(html)) !== null) {
+      if (tokenMatch[0].toLowerCase().startsWith('</div')) {
+        depth--;
+        if (depth === 0) {
+          endIndex = tokenMatch.index;
+          break;
+        }
+      } else {
+        depth++;
+      }
+    }
+    
+    if (endIndex !== -1) {
+      blocks.push(htmlToProseText(html.slice(contentStart, endIndex)));
+      startRegex.lastIndex = endIndex + 6; // Move past this block
+    } else {
+      blocks.push(htmlToProseText(html.slice(contentStart)));
+      break; 
+    }
   }
+  
   if (blocks.length === 0) return null;
   return blocks.join('\n\n');
 }
