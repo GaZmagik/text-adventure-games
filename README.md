@@ -71,7 +71,9 @@ To build the `text-adventure.zip` file yourself:
 
 1. Clone the repository.
 2. Ensure you have [Bun](https://bun.sh/) installed.
-3. Run `./scripts/zip.sh` from the project root. (You can also append `--release main` to force the CDN assets to point to the main branch).
+3. Run `./scripts/zip.sh` from the project root.
+   - Append `--release <branch>` to force the CDN assets to point to a specific branch (defaults to the current branch).
+   - Append `--user <username>` to point the CDN to your own GitHub username if you have forked the repository.
 
 ### Upgrading to a New Version
 
