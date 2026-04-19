@@ -65,6 +65,14 @@ The game engine selects a visual style during setup based on the genre, or the p
 4. Under **Skills**, click **Add Skill**.
 5. Drag and drop the `.zip` file onto the skill upload area, or click to browse and select it.
 
+### Building from Source
+
+To build the `text-adventure.zip` file yourself:
+
+1. Clone the repository.
+2. Ensure you have [Bun](https://bun.sh/) installed.
+3. Run `./scripts/zip.sh` from the project root. (You can also append `--release main` to force the CDN assets to point to the main branch).
+
 ### Upgrading to a New Version
 
 If you already have an older version of the skill installed:
@@ -113,7 +121,7 @@ The engine will guide you through settings, character creation, and into the adv
 The project uses an **orchestrator + modules** pattern:
 
 - **`text-adventure`** is the orchestrator skill — it handles the session lifecycle, widget rendering, core rules, and loads expansion modules on demand.
-- **`tag` CLI** (v1.3.0+) is the rendering engine — a TypeScript/Bun tool that produces deterministic HTML widgets from game state. Eight commands: `state`, `compute`, `render`, `save`, `batch`, `rules`, `quest`, `export`. 20 widget types. Zero npm dependencies.
+- **`tag` CLI** (v1.3.0+) is the rendering engine — a TypeScript/Bun tool that produces deterministic HTML widgets from game state. Fourteen commands: `help`, `module`, `state`, `compute`, `render`, `save`, `quest`, `batch`, `rules`, `export`, `verify`, `build-css`, `setup`, `style`. 20 widget types. Zero npm dependencies.
 - **Output styles** are independent rendering layers — they change the narrative voice, pacing, and prose craft without touching game logic or mechanics.
 
 All game output is rendered inside `visualize:show_widget` panels. No plain text output — everything is styled, interactive, and widget-based.

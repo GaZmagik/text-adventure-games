@@ -30,9 +30,13 @@ fi
 rm -f "$OUTPUT"
 
 # Pre-build: regenerate CDN CSS assets + manifest
-echo "Running tag build-css..."
+if [ $# -gt 0 ]; then
+	echo "Running tag build-css $*..."
+else
+	echo "Running tag build-css..."
+fi
 cd "$SKILL_DIR/cli"
-bun run tag.ts build-css >/dev/null
+bun run tag.ts build-css "$@" >/dev/null
 cd "$SKILL_DIR"
 
 # Sanity check: CDN assets exist

@@ -16,7 +16,6 @@ const SKILL_DIR = resolve(CLI_DIR, '..');
 const STYLES_DIR = join(SKILL_DIR, 'styles');
 const DEFAULT_OUTPUT_DIR = join(SKILL_DIR, 'assets');
 
-const CDN_REPO = 'https://cdn.jsdelivr.net/gh/GaZmagik/text-adventure-games';
 const CDN_ASSET_PATH = '/.claude/skills/text-adventure/assets';
 
 /** Detect current git branch for CDN ref. Falls back to 'main'. */
@@ -30,8 +29,8 @@ function detectGitRef(): string {
   }
 }
 
-function buildCdnBase(ref: string): string {
-  return `${CDN_REPO}@${encodeURIComponent(ref)}${CDN_ASSET_PATH}`;
+function buildCdnBase(ref: string, user: string): string {
+  return `https://cdn.jsdelivr.net/gh/${user}/text-adventure-games@${encodeURIComponent(ref)}${CDN_ASSET_PATH}`;
 }
 
 // ── Minification ─────────────────────────────────────────────────────
@@ -63,9 +62,10 @@ type ScriptEntry = {
 
 // ── Parse args ───────────────────────────────────────────────────────
 
-function parseArgs(args: string[]): { outputDir: string; release: string | null } {
+function parseArgs(args: string[]): { outputDir: string; release: string | null; user: string } {
   let outputDir = DEFAULT_OUTPUT_DIR;
   let release: string | null = null;
+  let user = 'GaZmagik';
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--output-dir' && args[i + 1]) {
       outputDir = resolve(args[i + 1]!);
@@ -73,9 +73,12 @@ function parseArgs(args: string[]): { outputDir: string; release: string | null 
     } else if (args[i] === '--release' && args[i + 1]) {
       release = args[i + 1]!;
       i++;
+    } else if (args[i] === '--user' && args[i + 1]) {
+      user = args[i + 1]!;
+      i++;
     }
   }
-  return { outputDir, release };
+  return { outputDir, release, user };
 }
 
 // ── Manifest generation ──────────────────────────────────────────────
@@ -105,9 +108,9 @@ function generateManifest(entries: StyleEntry[], scripts: ScriptEntry[], cdnBase
 // ── Main handler ─────────────────────────────────────────────────────
 
 export async function handleBuildCss(args: string[]): Promise<CommandResult> {
-  const { outputDir, release } = parseArgs(args);
+  const { outputDir, release, user } = parseArgs(args);
   const ref = release ?? detectGitRef();
-  const cdnBase = buildCdnBase(ref);
+  const cdnBase = buildCdnBase(ref, user);
 
   // Discover style files (exclude style-reference.md)
   let styleFiles: string[];
