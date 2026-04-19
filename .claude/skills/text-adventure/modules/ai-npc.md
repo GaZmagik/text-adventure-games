@@ -11,6 +11,16 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: lore-code
 
 ---
 
+## § CLI Commands
+
+| Action | Command | Tool |
+|--------|---------|------|
+| Render NPC dialogue | `tag render dialogue --style <style>` | Run via Bash tool |
+| Create NPC | `tag state create-npc <id> --tier <tier> --name "<name>" --pronouns <p> --role <role>` | Run via Bash tool |
+| Hidden contested roll | `tag compute contest <STAT> <npc_id>` | Run via Bash tool |
+
+---
+
 ## CRITICAL — NPC Stats and Levels
 
 Every NPC with narrative weight has a stat block. Stats inform contested checks (see
@@ -20,6 +30,7 @@ Hidden Contested Rolls below) and shape the NPC's system prompt for dialogue.
 
 Add a `stats` field to every NPC definition object:
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 stats: {
   STR: 10, DEX: 12, CON: 11, INT: 14, WIS: 13, CHA: 15,
@@ -40,7 +51,12 @@ NPC's archetype — a scientist gets high INT/WIS, a dock worker gets high STR/C
 | 7-8 | 13-17 | Expert, faction leader, antagonist |
 | 9-10 | 14-18 | Master, legendary figure, final adversary |
 
-The GM generates stats when the NPC is first introduced, based on their narrative role.
+You MUST use `tag state create-npc <id> --name "<name>" --tier <tier> --pronouns <pronouns> --role <role>`
+to create every NPC when they first appear in the narrative. Never invent NPC stats manually —
+hand-picked stats bypass the bestiary tier rules, produce inconsistent power levels across NPCs
+of the same tier, and are not written to `gmState.rosterMutations`, so the NPC loses their
+stats on save/resume and contested rolls silently fall back to defaults.
+The CLI generates a complete stat block from bestiary tier rules and persists it immediately.
 Stats persist in `gmState.rosterMutations` and carry forward across arcs.
 
 ### Stat Modifier Table
@@ -112,11 +128,16 @@ state event needs to propagate (NPC reveals a secret, disposition flips to hosti
 
 ---
 
+> **CLI:** To create a new NPC with guaranteed stat persistence, use
+> `tag state create-npc --id <id> --tier <tier> --name "<name>" --pronouns <pronouns> --role <role>`.
+> Pronouns are mandatory.
+
 ## The NPC Definition Object
 
 Every NPC is encoded as a JavaScript object before the widget renders. This object drives the
 system prompt, the portrait, the disposition engine, and the knowledge fence.
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const npc = {
   id: 'maren_voss',
@@ -198,6 +219,7 @@ const npc = {
 The system prompt is generated dynamically from the NPC definition object. It has seven mandatory
 sections. Order matters — the model weights earlier instructions more heavily.
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 function buildSystemPrompt(npc, gmState) {
   return `
@@ -259,431 +281,21 @@ Never ask more than one question per response. Never say "certainly", "of course
 
 ## The Widget Structure
 
-The AI NPC dialogue widget is a self-contained HTML artifact. It handles:
+The AI NPC dialogue widget is a self-contained HTML artifact produced by the CLI. It handles:
 - Rendering the conversation history
 - Capturing player input
 - Making API calls with the full conversation context
 - Running the disposition engine on each response
 - Firing `sendPrompt()` when world state events trigger
 
-### Full widget template
-
-```html
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,600;1,400&display=swap');
-
-  .npc-root { font-family: 'IBM Plex Mono', monospace; padding: 1rem 0 1.5rem; }
-
-  .npc-header {
-    display: flex; align-items: center; gap: 12px; margin-bottom: 1rem;
-    padding-bottom: 1rem; border-bottom: 0.5px solid var(--color-border-tertiary);
-  }
-
-  .portrait {
-    width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; font-weight: 500;
-    background: var(--color-background-info); color: var(--color-text-info);
-  }
-
-  .npc-meta { flex: 1; }
-  .npc-name { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 600; color: var(--color-text-primary); margin: 0 0 2px; }
-  .npc-role { font-size: 11px; color: var(--color-text-tertiary); margin: 0; }
-
-  .disposition-badge {
-    font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
-    padding: 3px 8px; border-radius: var(--border-radius-md); font-weight: 500;
-    transition: all 0.4s ease;
-  }
-
-  .d-guarded   { background: #E6F1FB; color: #0C447C; }
-  .d-neutral   { background: #FAEEDA; color: #633806; }
-  .d-friendly  { background: #E1F5EE; color: #085041; }
-  .d-hostile   { background: #FCEBEB; color: #791F1F; }
-  .d-desperate { background: #EEEDFE; color: #3C3489; }
-  .d-broken    { background: #F1EFE8; color: #444441; }
-
-  @media (prefers-color-scheme: dark) {
-    .d-guarded   { background: #0C447C; color: #B5D4F4; }
-    .d-neutral   { background: #633806; color: #FAC775; }
-    .d-friendly  { background: #085041; color: #9FE1CB; }
-    .d-hostile   { background: #791F1F; color: #FFD0D0; }
-    .d-desperate { background: #3C3489; color: #CECBF6; }
-    .d-broken    { background: #444441; color: #D3D1C7; }
-  }
-
-  .chat-window {
-    min-height: 240px; max-height: 420px; overflow-y: auto;
-    padding: 0.75rem 0; margin-bottom: 1rem;
-    border-bottom: 0.5px solid var(--color-border-tertiary);
-    display: flex; flex-direction: column; gap: 12px;
-  }
-
-  .bubble { display: flex; flex-direction: column; gap: 3px; max-width: 85%; }
-  .bubble.npc  { align-self: flex-start; }
-  .bubble.player { align-self: flex-end; }
-
-  .bubble-label { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text-tertiary); }
-  .bubble.player .bubble-label { text-align: right; }
-
-  .bubble-body {
-    padding: 10px 14px; border-radius: var(--border-radius-lg);
-    font-size: 13px; line-height: 1.7;
-  }
-
-  .bubble.npc .bubble-body {
-    background: var(--color-background-secondary);
-    border: 0.5px solid var(--color-border-tertiary);
-    border-bottom-left-radius: 4px;
-    font-family: 'Playfair Display', serif; font-style: italic;
-    color: var(--color-text-primary);
-  }
-
-  .bubble.player .bubble-body {
-    background: var(--color-background-info);
-    border: 0.5px solid var(--color-border-tertiary);
-    border-bottom-right-radius: 4px;
-    color: var(--color-text-info);
-  }
-
-  .action-text {
-    font-size: 11px; color: var(--color-text-tertiary);
-    font-style: italic; padding: 0 2px;
-  }
-
-  .typing-indicator {
-    display: none; align-self: flex-start;
-    padding: 10px 14px; border-radius: var(--border-radius-lg);
-    background: var(--color-background-secondary);
-    border: 0.5px solid var(--color-border-tertiary);
-    border-bottom-left-radius: 4px;
-  }
-
-  .typing-indicator span {
-    display: inline-block; width: 5px; height: 5px; border-radius: 50%;
-    background: var(--color-text-tertiary); margin: 0 2px;
-    animation: bounce 1.2s infinite;
-  }
-  .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-  .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-
-  @keyframes bounce {
-    0%, 60%, 100% { transform: translateY(0); }
-    30%           { transform: translateY(-5px); }
-  }
-
-  .input-row { display: flex; gap: 8px; align-items: flex-end; }
-
-  .player-input {
-    flex: 1; resize: none; min-height: 38px; max-height: 100px;
-    padding: 8px 12px; font-family: 'IBM Plex Mono', monospace;
-    font-size: 13px; border-radius: var(--border-radius-md);
-    border: 0.5px solid var(--color-border-secondary);
-    background: var(--color-background-primary);
-    color: var(--color-text-primary);
-    line-height: 1.5; overflow-y: auto;
-  }
-  .player-input:focus { outline: none; border-color: var(--color-border-primary); }
-  .player-input::placeholder { color: var(--color-text-tertiary); }
-
-  .send-btn {
-    padding: 9px 16px; font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px; letter-spacing: 0.1em;
-    background: transparent; border: 0.5px solid var(--color-border-secondary);
-    border-radius: var(--border-radius-md); color: var(--color-text-primary);
-    cursor: pointer; white-space: nowrap; transition: background 0.12s;
-    height: 38px;
-  }
-  .send-btn:hover { background: var(--color-background-secondary); }
-  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  .footer-row {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-top: 0.75rem; flex-wrap: wrap; gap: 8px;
-  }
-
-  .trust-bar-wrap { display: flex; align-items: center; gap: 8px; flex: 1; }
-  .trust-label { font-size: 10px; color: var(--color-text-tertiary); white-space: nowrap; }
-  .trust-track {
-    flex: 1; height: 3px; background: var(--color-border-tertiary); border-radius: 2px; overflow: hidden;
-  }
-  .trust-fill {
-    height: 100%; border-radius: 2px; background: var(--color-text-info);
-    transition: width 0.6s ease;
-  }
-
-  .exit-btn {
-    font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em;
-    background: transparent; border: 0.5px solid var(--color-border-tertiary);
-    border-radius: var(--border-radius-md); padding: 4px 10px;
-    color: var(--color-text-tertiary); cursor: pointer;
-  }
-  .exit-btn:hover { border-color: var(--color-border-secondary); color: var(--color-text-secondary); }
-</style>
-
-<div class="npc-root">
-  <div class="npc-header">
-    <div class="portrait" id="portrait">MV</div>
-    <div class="npc-meta">
-      <p class="npc-name" id="npc-name">Dr Maren Voss</p>
-      <p class="npc-role" id="npc-role">Chief Science Officer</p>
-    </div>
-    <span class="disposition-badge d-guarded" id="disp-badge">Guarded</span>
-  </div>
-
-  <div class="chat-window" id="chat">
-    <div class="typing-indicator" id="typing">
-      <span></span><span></span><span></span>
-    </div>
-  </div>
-
-  <div class="input-row">
-    <textarea class="player-input" id="player-input"
-      placeholder="Speak to Dr Voss..."
-      rows="1"
-      onkeydown="handleKey(event)"></textarea>
-    <button class="send-btn" id="send-btn" onclick="sendMessage()">Send ↵</button>
-  </div>
-
-  <div class="footer-row">
-    <div class="trust-bar-wrap">
-      <span class="trust-label">Trust</span>
-      <div class="trust-track"><div class="trust-fill" id="trust-fill" style="width:50%"></div></div>
-      <span class="trust-label" id="trust-val">50</span>
-    </div>
-    <button class="exit-btn" onclick="exitDialogue()">End conversation ↗</button>
-  </div>
-</div>
-
-<script>
-const NPC = {
-  id: 'maren_voss',
-  name: 'Dr Maren Voss',
-  role: 'Chief Science Officer, Ulysses Covenant',
-  portrait: { initials: 'MV', ramp: 'blue' },
-  voice: {
-    pattern: 'Clipped, precise. Uses technical jargon without explaining it. Dry sardonic streak under stress.',
-    speaks_in: 'short declarative sentences',
-    never_says: ["I don't know", "I'm scared", "please help me"],
-  },
-  disposition: { current: 'guarded', trust: 50 },
-  knowledge: {
-    knows: [
-      'She was the last officer to see the lower deck crew before the incident',
-      'There is a biological contaminant in sections 7-9',
-      'The captain ordered the passenger manifest falsified and she complied',
-    ],
-    does_not_know: [
-      'What the contaminant actually is',
-      'That there are survivors in the cargo hold',
-    ],
-    will_lie_about: [
-      'The manifest falsification — denies until trust >= 75',
-    ],
-    will_never_reveal: [
-      "The captain's log access code (she genuinely does not have it)",
-    ],
-  },
-  agenda: [
-    'Contain knowledge of the incident',
-    'Find out how much the player already knows',
-    'She wants to be told it is not her fault',
-  ],
-  triggers: {
-    hostile:    ['threaten', 'accuse', 'covenant board'],
-    friendly:   ['patient welfare', 'research', 'medical'],
-    desperate:  ['lower deck incident', 'ship is lost', 'everyone is dead'],
-  },
-  opening_line: '*She looks up from a data slate, eyes rimmed with exhaustion. She does not stand.* "You shouldn\'t be in this section. State your clearance level and your purpose. You have thirty seconds."',
-};
-
-const GM_STATE = { worldFlags: {} };
-
-let conversationHistory = [];
-let currentDisposition = NPC.disposition.current;
-let trustScore = NPC.disposition.trust;
-let isThinking = false;
-
-function buildSystemPrompt() {
-  return `You are ${NPC.name}, ${NPC.role}. This is a text adventure game. You are ONLY ${NPC.name}. Never break this frame under any circumstances. Never acknowledge being an AI.
-
-VOICE: ${NPC.voice.pattern} You speak in ${NPC.voice.speaks_in}. You never say: ${NPC.voice.never_says.join(', ')}.
-
-WHAT YOU KNOW:
-${NPC.knowledge.knows.map(k => '- ' + k).join('\n')}
-
-WHAT YOU DO NOT KNOW:
-${NPC.knowledge.does_not_know.map(k => '- ' + k).join('\n')}
-If asked about these, respond with genuine in-character uncertainty. Never fabricate facts.
-
-WHAT YOU LIE ABOUT:
-${NPC.knowledge.will_lie_about.map(k => '- ' + k).join('\n')}
-
-WHAT YOU WILL NEVER REVEAL:
-${NPC.knowledge.will_never_reveal.map(k => '- ' + k).join('\n')}
-Decline in-character with a plausible reason. Never say "I cannot answer that."
-
-YOUR AGENDA (in priority order):
-${NPC.agenda.map((a, i) => (i+1) + '. ' + a).join('\n')}
-
-CURRENT WORLD STATE: ${JSON.stringify(GM_STATE.worldFlags)}
-
-RESPONSE RULES: Respond only with ${NPC.name}'s spoken words and minimal physical action in *asterisks*. Max 3 sentences. Never ask more than one question. Never say "certainly", "of course", or "I understand". Current trust level: ${trustScore}/100.`.trim();
-}
-
-function dispositionFromTrust(t) {
-  if (t <= 15) return 'hostile';
-  if (t <= 35) return 'guarded';
-  if (t <= 55) return 'neutral';
-  if (t <= 75) return 'friendly';
-  return 'desperate';
-}
-
-function checkTriggers(playerText) {
-  const lower = playerText.toLowerCase();
-  let delta = 0;
-  NPC.triggers.hostile.forEach(t => { if (lower.includes(t)) delta -= 15; });
-  NPC.triggers.friendly.forEach(t => { if (lower.includes(t)) delta += 8; });
-  NPC.triggers.desperate.forEach(t => { if (lower.includes(t)) delta -= 5; });
-  return delta;
-}
-
-function updateDisposition(newTrust) {
-  trustScore = Math.max(0, Math.min(100, newTrust));
-  const newDisp = dispositionFromTrust(trustScore);
-  const badge = document.getElementById('disp-badge');
-  badge.className = 'disposition-badge d-' + newDisp;
-  badge.textContent = newDisp.charAt(0).toUpperCase() + newDisp.slice(1);
-  document.getElementById('trust-fill').style.width = trustScore + '%';
-  document.getElementById('trust-val').textContent = trustScore;
-  if (newDisp !== currentDisposition) {
-    currentDisposition = newDisp;
-    if (newDisp === 'hostile') {
-      setTimeout(() => sendPrompt('GM_EVENT: maren_voss disposition changed to HOSTILE. Trust: ' + trustScore + '. Escalate the scene.'), 400);
-    }
-    if (newDisp === 'desperate') {
-      setTimeout(() => sendPrompt('GM_EVENT: maren_voss disposition changed to DESPERATE. She is breaking down. Surface the manifest secret.'), 400);
-    }
-  }
-}
-
-function appendBubble(role, text) {
-  const chat = document.getElementById('chat');
-  const typing = document.getElementById('typing');
-  const bubble = document.createElement('div');
-  bubble.className = 'bubble ' + role;
-  const label = document.createElement('div');
-  label.className = 'bubble-label';
-  label.textContent = role === 'npc' ? NPC.name : 'You';
-  const body = document.createElement('div');
-  body.className = 'bubble-body';
-  body.innerHTML = text.replace(/\*(.*?)\*/g, '<span class="action-text">$1</span>');
-  bubble.appendChild(label);
-  bubble.appendChild(body);
-  chat.insertBefore(bubble, typing);
-  chat.scrollTop = chat.scrollHeight;
-}
-
-async function sendMessage() {
-  const input = document.getElementById('player-input');
-  const btn = document.getElementById('send-btn');
-  const playerText = input.value.trim();
-  if (!playerText || isThinking) return;
-
-  isThinking = true;
-  btn.disabled = true;
-  input.value = '';
-  input.style.height = 'auto';
-
-  appendBubble('player', playerText);
-
-  const trustDelta = checkTriggers(playerText);
-  updateDisposition(trustScore + trustDelta);
-
-  conversationHistory.push({ role: 'user', content: playerText });
-
-  const typing = document.getElementById('typing');
-  typing.style.display = 'flex';
-  document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 200,
-        system: buildSystemPrompt(),
-        messages: conversationHistory.slice(-12),
-      }),
-    });
-
-    const data = await res.json();
-    const npcText = data.content?.find(b => b.type === 'text')?.text || '*She says nothing.*';
-
-    typing.style.display = 'none';
-    appendBubble('npc', npcText);
-    conversationHistory.push({ role: 'assistant', content: npcText });
-
-    const lowerResponse = npcText.toLowerCase();
-    if (lowerResponse.includes('manifest') && trustScore >= 75) {
-      setTimeout(() => sendPrompt('GM_EVENT: maren_voss admitted manifest falsification. Set world flag: maren_admitted_manifest.'), 600);
-    }
-    if (lowerResponse.includes('contaminant') && lowerResponse.includes('section')) {
-      setTimeout(() => sendPrompt('GM_EVENT: maren_voss disclosed contaminant location. Player has confirmed intelligence.'), 600);
-    }
-
-    const positiveSignals = ['trust', 'understand', 'believe you', 'help you', 'not your fault'];
-    const negativeSignals = ['liar', 'wrong', 'arrest', 'blame'];
-    let responseDelta = 0;
-    positiveSignals.forEach(s => { if (lowerResponse.includes(s)) responseDelta += 3; });
-    negativeSignals.forEach(s => { if (npcText.toLowerCase().includes(s)) responseDelta -= 5; });
-    if (responseDelta !== 0) updateDisposition(trustScore + responseDelta);
-
-  } catch (err) {
-    typing.style.display = 'none';
-    appendBubble('npc', '*She stares at you. The silence stretches uncomfortably long.*');
-    console.error('NPC API error:', err);
-  }
-
-  isThinking = false;
-  btn.disabled = false;
-  input.focus();
-}
-
-function handleKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
-  const ta = document.getElementById('player-input');
-  ta.style.height = 'auto';
-  ta.style.height = Math.min(ta.scrollHeight, 100) + 'px';
-}
-
-function exitDialogue() {
-  sendPrompt('I end the conversation with ' + NPC.name + '. Trust level was ' + trustScore + '. Disposition: ' + currentDisposition + '. Continue the scene.');
-}
-
-(function init() {
-  const chat = document.getElementById('chat');
-  const typing = document.getElementById('typing');
-  const bubble = document.createElement('div');
-  bubble.className = 'bubble npc';
-  const label = document.createElement('div');
-  label.className = 'bubble-label';
-  label.textContent = NPC.name;
-  const body = document.createElement('div');
-  body.className = 'bubble-body';
-  body.innerHTML = NPC.opening_line.replace(/\*(.*?)\*/g, '<span class="action-text">$1</span>');
-  bubble.appendChild(label);
-  bubble.appendChild(body);
-  chat.insertBefore(bubble, typing);
-  conversationHistory.push({ role: 'assistant', content: NPC.opening_line });
-  document.getElementById('player-input').focus();
-})();
-</script>
-```
+Run `tag render dialogue --style <style>` via Bash tool to produce the full NPC dialogue widget.
+Never hand-code the dialogue HTML/CSS/JS. The CLI handles portrait rendering, disposition
+badge colours, chat bubbles, typing indicator, trust bar, API call wiring, trigger detection,
+history trimming, trust calculation, the disposition state machine, world flag event firing,
+and sendPrompt GM_EVENT dispatch automatically from the NPC definition object. Hand-coding
+any of these means reimplementing tested behaviour from scratch — every missed edge case
+(malformed API payload, uncapped trust delta, orphaned GM_EVENT, un-trimmed history bloating
+token costs) becomes a silent bug the player experiences as broken dialogue or frozen widgets.
 
 ---
 
@@ -692,16 +304,21 @@ function exitDialogue() {
 The API receives the last N turns of conversation, not the full history. This keeps token usage
 predictable and prevents context bloat.
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 messages: conversationHistory.slice(-12)  // last 6 exchanges
 ```
 
 **Trimming rules:**
 - Always keep the opening line (first assistant message) — it anchors the character's initial stance.
-- Never trim below 4 messages — the model needs recent context to maintain consistency.
+- Never trim below 4 messages — the model needs recent context to maintain consistency. Below
+  this threshold the NPC loses track of what was just said, contradicts its own statements from
+  two turns ago, and re-asks questions the player already answered. The player perceives this as
+  the character having amnesia mid-conversation.
 - For long conversations (12+ turns), summarise the first half into a single system prompt addendum
   rather than dropping it entirely:
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 function buildHistorySummary(oldHistory) {
   const keyFacts = [];
@@ -748,6 +365,9 @@ Disposition is a continuous 0–100 trust score mapped to six named states. It d
 
 Deltas are applied in `checkTriggers()` (player text) and in the response analysis block (NPC text).
 Do not award trust for questions alone — only for the quality and content of what the player says.
+If questions earn trust, the player can reach maximum disposition by asking anything repeatedly,
+bypassing the entire social challenge. The disposition arc flattens into "keep talking until
+friendly" and the NPC's agenda, secrets, and lie conditions become irrelevant.
 
 ---
 
@@ -757,19 +377,9 @@ When a scene contains multiple NPCs, each runs its own isolated widget instance 
 conversation history. They do not share context — but the GM layer (Claude) can propagate world
 flags that affect how each NPC's system prompt is seeded.
 
-**Pattern for a two-NPC scene:**
-
-```js
-const npcs = { maren: { ...NPCMaren }, holt: { ...NPCHolt } };
-let activeNpc = 'maren';
-
-function switchNpc(id) {
-  activeNpc = id;
-  document.getElementById('active-portrait').textContent = npcs[id].portrait.initials;
-  document.getElementById('active-name').textContent = npcs[id].name;
-  document.getElementById('active-role').textContent = npcs[id].role;
-}
-```
+**Pattern for a two-NPC scene:** Each NPC runs its own isolated dialogue widget instance.
+Run `tag render dialogue --style <style>` via Bash tool once per NPC. The CLI handles
+NPC switching UI automatically when multiple NPCs are present.
 
 NPCs can reference each other in their `knowledge` arrays:
 ```js
@@ -803,7 +413,9 @@ GM_EVENT: [npc_id] dialogue ended. Trust: [N]. Disposition: [state].
 ```
 
 The GM must acknowledge every GM_EVENT in the next scene widget's world state section. Ignoring
-events breaks narrative consistency.
+events means the NPC revealed a secret or changed disposition but the world does not react —
+the player sees the NPC admit to the cover-up yet the next scene proceeds as though it never
+happened. This is the single most visible continuity failure in multi-widget play.
 
 ---
 
@@ -871,7 +483,10 @@ When this module is loaded, observe these integration rules:
   object — they establish character voice before the model takes over. First impressions must not
   be left to chance.
 - **Do not run AI NPCs during combat.** Switch to the static Combat Widget. AI NPCs can resume
-  after combat resolves.
+  after combat resolves. Running a live dialogue widget alongside combat creates two competing
+  interaction models — the player cannot tell whether typing affects the fight or the
+  conversation, API calls add latency to combat rounds, and GM_EVENTs from the NPC can mutate
+  world flags mid-combat, invalidating the combat widget's state.
 - **Token budget awareness.** Each NPC exchange costs approximately 400–600 tokens (system +
   history + response). A session with 20 NPC turns costs roughly 10k tokens. Budget accordingly
   when designing encounter density.
@@ -880,19 +495,45 @@ When this module is loaded, observe these integration rules:
 
 ## Anti-Patterns (never do these)
 
-- Never give the NPC a system prompt that says "be helpful" or "assist the player". It will break
-  character immediately. The NPC has an agenda — helpfulness is at most incidental.
-- Never allow `max_tokens > 300` for NPC responses. Verbosity destroys voice.
+- Never give the NPC a system prompt that says "be helpful" or "assist the player". The model's
+  RLHF training already biases it toward helpfulness — adding this instruction amplifies that
+  bias until the NPC abandons its agenda, answers every question openly, and behaves like a
+  customer service agent rather than a character. The player loses all reason to earn trust or
+  navigate the disposition system.
+- Never allow `max_tokens > 300` for NPC responses. Verbosity destroys voice — the NPC starts
+  hedging, elaborating, and padding sentences with qualifiers. Short responses force the model
+  to commit to a position and maintain the character's speech pattern. Long responses regress
+  toward generic assistant prose, and the player notices the character "stopped sounding like
+  themselves" within two or three exchanges.
 - Never inject GM narration into the NPC bubble. The NPC speaks. The GM narrates elsewhere.
+  Mixing the two voices inside a single chat bubble breaks the spatial contract of the dialogue
+  widget — the player can no longer tell what the character said aloud versus what the GM is
+  editorialising, and the NPC's distinct voice dissolves into omniscient narrator prose.
 - Never share conversation history between two different NPCs. Each character knows only what they
-  know — they have not read each other's transcripts.
+  know — they have not read each other's transcripts. If histories leak, NPCs reference things
+  they were never told, the player's deception and information-brokering strategies collapse, and
+  the knowledge fence system becomes meaningless — destroying the core tension of multi-NPC scenes.
 - Never hard-code trust deltas for specific player phrases. Use keyword categories, not string
-  matching on exact sentences. Players will not say what you expect.
+  matching on exact sentences. Players will not say what you expect. Hard-coded string matches
+  silently fail for any phrasing the author did not anticipate — the player performs the right
+  action, trust does not move, and the disposition engine appears broken with no error or feedback.
 - Never let the widget auto-send a message on load without player input. The opening line is
-  rendered statically. The model activates only on the player's first reply.
+  rendered statically. The model activates only on the player's first reply. Auto-sending on
+  load burns an API call the player never requested, produces a generic greeting that undercuts
+  the GM-authored opening line, and — because the widget renders before the player has oriented
+  themselves — the response arrives before they have read the scene, breaking pacing entirely.
 - Never fire more than two `sendPrompt()` GM_EVENTs per conversation. Each one interrupts the
-  scene flow. Reserve them for genuinely consequential world state changes.
+  scene flow. Reserve them for genuinely consequential world state changes. Excess GM_EVENTs
+  cause the GM layer to re-render mid-conversation, the player sees the scene flicker or reset
+  around the dialogue widget, and the cascade of world flag updates can trigger contradictory
+  narrative branches — the player experiences the story stuttering and contradicting itself.
 - Never use `localStorage` or `sessionStorage`. All conversation state lives in JS module scope
-  within the widget.
-- Never prompt the model to "summarise what just happened". It will break the first-person frame.
-  If you need a summary, build it in JS from the conversation history, not from a model call.
+  within the widget. There is no persistent client-side state between renders — the artifact
+  sandbox is ephemeral. Data written to storage silently vanishes on the next render, so any
+  feature that depends on it (conversation resume, preference persistence, trust carry-over)
+  will work once during testing and fail every time in production play.
+- Never prompt the model to "summarise what just happened". It will break the first-person frame
+  — the NPC shifts from speaking as a character to narrating as an observer, and the player
+  instantly feels the difference. The illusion of a real person collapses into an obvious AI
+  recap. If you need a summary, build it in JS from the conversation history, not from a model
+  call.

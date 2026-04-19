@@ -159,8 +159,7 @@ Dark mode contrast ratios are calculated against `#1A1B26`.
 ### Light Mode (primary)
 
 ```css
-:root,
-[data-theme="sveltekit"] {
+:host {
 
   /* ── Surfaces ──────────────────────────────────────────────────────── */
   --svk-bg-primary:      #FFFFFF;   /* pure white — main background */
@@ -287,8 +286,25 @@ Dark mode contrast ratios are calculated against `#1A1B26`.
   --ta-badge-crit-failure-border: var(--svk-badge-crit-failure-border);
   --ta-color-credits:             var(--svk-color-currency);
   --ta-color-tab-active:          var(--svk-color-accent-display);
+  --ta-color-info:                #3B82F6;
+  --ta-btn-primary-text:          #ffffff;
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.55s;
+
+  /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
+  --sta-text-primary:             var(--svk-text-primary);
+  --sta-text-secondary:           var(--svk-text-secondary);
+  --sta-text-tertiary:            var(--svk-text-tertiary);
+  --sta-border-tertiary:          var(--svk-border-tertiary);
+  --sta-color-text-emphasis:      var(--svk-color-text-emphasis);
+
+  /* --- Speaker colours (multi-dialogue) --- */
+  --speaker-color-0: #ff3e00;
+  --speaker-color-1: #40b3ff;
+  --speaker-color-2: #ff6d3a;
+  --speaker-color-3: #676778;
+  --speaker-color-4: #ffffff;
+  --speaker-color-5: #1c1c1c;
 }
 ```
 
@@ -300,8 +316,7 @@ be slightly brighter for legibility on dark surfaces.
 
 ```css
 @media (prefers-color-scheme: dark) {
-  :root,
-  [data-theme="sveltekit"] {
+  :host {
 
     /* ── Surfaces ────────────────────────────────────────────────────── */
     --svk-bg-primary:      #1A1B26;   /* deep charcoal — main background */
@@ -1409,14 +1424,14 @@ into a single deployable stylesheet. The `--svk-font-primary` and `--svk-font-mo
 properties are defined inline alongside all other tokens; no external resources are needed.
 
 ```css
+/* @extract */
 /* ─────────────────────────────────────────────────────────────────────────
    SVELTEKIT VISUAL STYLE — text-adventure engine
    Light-mode primary. Svelte orange accent. Zero external dependencies.
    ───────────────────────────────────────────────────────────────────────── */
 
 /* ── Font stacks ──────────────────────────────────────────────────────── */
-:root,
-[data-theme="sveltekit"] {
+:host {
   --svk-font-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
                       Oxygen, Ubuntu, Cantarell, sans-serif;
   --svk-font-mono:    'Fira Code', 'JetBrains Mono', 'Cascadia Code',
@@ -1528,8 +1543,7 @@ properties are defined inline alongside all other tokens; no external resources 
 
 /* ── Dark Mode ─────────────────────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
-  :root,
-  [data-theme="sveltekit"] {
+  :host {
     --svk-bg-primary:      #1A1B26;
     --svk-bg-secondary:    #24253A;
     --svk-bg-tertiary:     #2E2F47;

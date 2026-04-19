@@ -754,6 +754,7 @@ the grid overlay, and component resets. Individual component styles follow the v
 definitions and can be applied selectively.
 
 ```css
+/* @extract */
 /* ============================================================
    BLUEPRINT VISUAL STYLE
    Text Adventure Game Engine — Visual Theme Override
@@ -763,7 +764,7 @@ definitions and can be applied selectively.
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 /* --- CSS Custom Properties: Dark Mode (default) ------------ */
-:root {
+:host {
   /* Typography */
   --bp-font-mono: 'IBM Plex Mono', 'Cascadia Code', 'SF Mono', 'Consolas', 'Courier New', monospace;
   --bp-font-sans: var(--bp-font-mono); /* Blueprint uses mono throughout */
@@ -874,13 +875,30 @@ definitions and can be applied selectively.
   --ta-badge-crit-failure-border: var(--bp-color-accent-danger);
   --ta-color-credits:             var(--bp-color-accent-info);
   --ta-color-tab-active:          var(--bp-color-line-accent);
+  --ta-color-info:                var(--bp-color-accent-info);
+  --ta-btn-primary-text:          #1a1a1a;
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.5s;
+
+  /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
+  --sta-text-primary:             var(--bp-color-text-primary);
+  --sta-text-secondary:           var(--bp-color-text-secondary);
+  --sta-text-tertiary:            var(--bp-color-text-tertiary);
+  --sta-border-tertiary:          var(--bp-color-border-tertiary);
+  --sta-color-text-emphasis:      #1a1a1a;
+
+  /* --- Speaker colours (multi-dialogue) --- */
+  --speaker-color-0: #ffffff;
+  --speaker-color-1: #a8d8ea;
+  --speaker-color-2: #b0c4de;
+  --speaker-color-3: #7ec8e3;
+  --speaker-color-4: #dce9f5;
+  --speaker-color-5: #4a90d9;
 }
 
 /* --- CSS Custom Properties: Light Mode --------------------- */
 @media (prefers-color-scheme: light) {
-  :root {
+  :host {
     --bp-color-bg-primary:        #FAFCFF;
     --bp-color-bg-secondary:      #F0F5FF;
     --bp-color-bg-tertiary:       #E4EDFA;

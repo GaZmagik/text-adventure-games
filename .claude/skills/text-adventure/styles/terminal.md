@@ -159,8 +159,17 @@ badges only. Headings and buttons use sentence case.
   --ta-badge-crit-failure-border: var(--t-danger);
   --ta-color-credits:             var(--t-accent-magenta);
   --ta-color-tab-active:          var(--t-accent-cyan);
+  --ta-color-info:                #00BFFF;
+  --ta-btn-primary-text:          #ffffff;
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.4s;
+
+  /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
+  --sta-text-primary:             var(--t-text-primary);
+  --sta-text-secondary:           var(--t-text-secondary);
+  --sta-text-tertiary:            var(--t-text-muted);
+  --sta-border-tertiary:          var(--t-border-hard);
+  --sta-color-text-emphasis:      #ffffff;
 ```
 
 ### Design Tokens — Light Mode
@@ -170,7 +179,7 @@ to values that maintain WCAG AA contrast on white/near-white backgrounds.
 
 ```css
 @media (prefers-color-scheme: light) {
-  :root, .root {
+  :host {
     --t-bg-base:        #FFFFFF;
     --t-bg-surface:     #F5F6F8;
     --t-bg-inset:       #ECEEF2;
@@ -1117,6 +1126,7 @@ The block uses `.root` as a scoping ancestor so styles do not leak out of
 the iframe into the host page.
 
 ```css
+/* @extract */
 /* ============================================================
    TERMINAL STYLE — text-adventure engine visual theme
    Version: 1.0.0
@@ -1191,8 +1201,18 @@ the iframe into the host page.
   --ta-badge-crit-failure-border: var(--t-danger);
   --ta-color-credits:             var(--t-accent-magenta);
   --ta-color-tab-active:          var(--t-accent-cyan);
+  --ta-color-info:                #00BFFF;
+  --ta-btn-primary-text:          #ffffff;
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.4s;
+
+  /* --- Speaker colours (multi-dialogue) --- */
+  --speaker-color-0: #33ff33;
+  --speaker-color-1: #ffb000;
+  --speaker-color-2: #00ffff;
+  --speaker-color-3: #ffffff;
+  --speaker-color-4: #99ff99;
+  --speaker-color-5: #ff6600;
 }
 
 /* ── Light mode token overrides ────────────────────────────── */

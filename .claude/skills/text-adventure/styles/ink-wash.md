@@ -79,14 +79,14 @@ Section labels are always `text-transform: uppercase`. Everything else is senten
 
 ## Colour Palette
 
-All colours are defined as CSS custom properties on `:root` and overridden for dark mode
+All colours are defined as CSS custom properties on `:host` and overridden for dark mode
 via `@media (prefers-color-scheme: dark)`. Widget HTML must never hard-code hex values in
 attributes — use the custom properties only.
 
 ### Light Mode (Rice Paper)
 
 ```css
-:root {
+:host {
   /* --- Backgrounds --- */
   --iw-bg-primary:      #F5F2EB;   /* rice paper — widget root */
   --iw-bg-secondary:    #EDE9E0;   /* slightly deeper paper — inset surfaces */
@@ -140,24 +140,31 @@ attributes — use the custom properties only.
 
   /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
   --ta-font-heading:              'Noto Serif', Georgia, 'Times New Roman', serif;
-  --ta-font-body:                 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  --ta-font-body:                 system-ui, -apple-system, sans-serif;
+  --ta-font-serif:                'Noto Serif', Georgia, 'Times New Roman', serif;
   --ta-color-accent:              var(--iw-accent);
-  --ta-color-accent-hover:        var(--iw-accent-muted);
-  --ta-color-accent-bg:           var(--iw-bg-tertiary);
-  --ta-color-accent-bg-hover:     var(--iw-bg-wash);
+  --ta-color-accent-hover:        color-mix(in srgb, var(--iw-accent) 80%, black);
+  --ta-color-accent-bg:           var(--iw-accent-muted);
+  --ta-color-accent-bg-hover:     rgba(208, 58, 45, 0.18);
   --ta-color-success:             var(--iw-success);
-  --ta-color-success-border:      color-mix(in srgb, var(--iw-success) 70%, var(--iw-ink-primary));
+  --ta-color-success-border:      color-mix(in srgb, var(--iw-success) 70%, black);
   --ta-color-danger:              var(--iw-danger);
-  --ta-color-danger-border:       color-mix(in srgb, var(--iw-danger) 70%, var(--iw-ink-primary));
+  --ta-color-danger-border:       color-mix(in srgb, var(--iw-danger) 70%, black);
   --ta-color-danger-bg:           var(--iw-danger-bg);
-  --ta-color-danger-bg-hover:     color-mix(in srgb, var(--iw-danger-bg) 80%, var(--iw-danger));
+  --ta-color-danger-bg-hover:     rgba(138, 42, 42, 0.16);
   --ta-color-warning:             var(--iw-warning);
-  --ta-color-warning-border:      color-mix(in srgb, var(--iw-warning) 70%, var(--iw-ink-primary));
+  --ta-color-warning-border:      color-mix(in srgb, var(--iw-warning) 70%, black);
   --ta-color-warning-bg:          var(--iw-warning-bg);
-  --ta-color-xp:                  var(--iw-accent);
+  --ta-color-xp:                  var(--iw-warning);
   --ta-color-focus:               var(--iw-accent);
-  --ta-color-conviction:          var(--iw-accent);
-  --ta-color-conviction-border:   var(--iw-accent-border);
+  --ta-color-conviction:          #6B5C8A;
+  --ta-color-conviction-border:   #5A4B78;
+  --ta-color-bg-secondary:        var(--iw-bg-secondary);
+  --ta-color-credits:             var(--iw-warning);
+  --ta-color-tab-active:          var(--iw-accent);
+  --ta-color-info:                var(--iw-info);
+  --ta-btn-primary-text:          #1a1a1a;
+  --ta-color-xp-border:           color-mix(in srgb, var(--iw-warning) 50%, transparent);
   --ta-badge-success-bg:          var(--iw-success-bg);
   --ta-badge-success-text:        var(--iw-success);
   --ta-badge-partial-bg:          var(--iw-warning-bg);
@@ -166,10 +173,23 @@ attributes — use the custom properties only.
   --ta-badge-failure-text:        var(--iw-danger);
   --ta-badge-crit-success-border: var(--iw-success);
   --ta-badge-crit-failure-border: var(--iw-danger);
-  --ta-color-credits:             var(--iw-accent);
-  --ta-color-tab-active:          var(--iw-accent);
-  --ta-border-style-poi:          0.5px dashed;
+  --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.5s;
+
+  /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
+  --sta-text-primary:             var(--iw-ink-primary);
+  --sta-text-secondary:           var(--iw-ink-secondary);
+  --sta-text-tertiary:            var(--iw-ink-tertiary);
+  --sta-border-tertiary:          var(--iw-border-subtle);
+  --sta-color-text-emphasis:      #1a1a1a;
+
+  /* --- Speaker colours (multi-dialogue) --- */
+  --speaker-color-0: #c8853a;
+  --speaker-color-1: #5b7fa6;
+  --speaker-color-2: #7a9e7e;
+  --speaker-color-3: #c47c82;
+  --speaker-color-4: #b5714d;
+  --speaker-color-5: #6b6b6b;
 }
 ```
 
@@ -177,7 +197,7 @@ attributes — use the custom properties only.
 
 ```css
 @media (prefers-color-scheme: dark) {
-  :root {
+  :host {
     /* --- Backgrounds --- */
     --iw-bg-primary:      #1A1816;   /* deep charcoal — widget root */
     --iw-bg-secondary:    #232120;   /* raised surface */
@@ -217,38 +237,6 @@ attributes — use the custom properties only.
       transparent 70%
     );
 
-    /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
-    --ta-font-heading:              'Noto Serif', Georgia, 'Times New Roman', serif;
-    --ta-font-body:                 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
-    --ta-color-accent:              var(--iw-accent);
-    --ta-color-accent-hover:        var(--iw-accent-muted);
-    --ta-color-accent-bg:           var(--iw-bg-tertiary);
-    --ta-color-accent-bg-hover:     var(--iw-bg-wash);
-    --ta-color-success:             var(--iw-success);
-    --ta-color-success-border:      color-mix(in srgb, var(--iw-success) 70%, var(--iw-ink-primary));
-    --ta-color-danger:              var(--iw-danger);
-    --ta-color-danger-border:       color-mix(in srgb, var(--iw-danger) 70%, var(--iw-ink-primary));
-    --ta-color-danger-bg:           var(--iw-danger-bg);
-    --ta-color-danger-bg-hover:     color-mix(in srgb, var(--iw-danger-bg) 80%, var(--iw-danger));
-    --ta-color-warning:             var(--iw-warning);
-    --ta-color-warning-border:      color-mix(in srgb, var(--iw-warning) 70%, var(--iw-ink-primary));
-    --ta-color-warning-bg:          var(--iw-warning-bg);
-    --ta-color-xp:                  var(--iw-accent);
-    --ta-color-focus:               var(--iw-accent);
-    --ta-color-conviction:          var(--iw-accent);
-    --ta-color-conviction-border:   var(--iw-accent-border);
-    --ta-badge-success-bg:          var(--iw-success-bg);
-    --ta-badge-success-text:        var(--iw-success);
-    --ta-badge-partial-bg:          var(--iw-warning-bg);
-    --ta-badge-partial-text:        var(--iw-warning);
-    --ta-badge-failure-bg:          var(--iw-danger-bg);
-    --ta-badge-failure-text:        var(--iw-danger);
-    --ta-badge-crit-success-border: var(--iw-success);
-    --ta-badge-crit-failure-border: var(--iw-danger);
-    --ta-color-credits:             var(--iw-accent);
-    --ta-color-tab-active:          var(--iw-accent);
-    --ta-border-style-poi:          0.5px dashed;
-    --ta-die-spin-duration:         0.5s;
   }
 }
 ```
@@ -1005,6 +993,7 @@ The `@import` for Noto Serif is included as a best-effort attempt; the fallback 
 handles the case where it is CSP-blocked.
 
 ```css
+/* @extract */
 /* ==========================================================================
    INK WASH — text adventure visual theme
    East Asian sumi-e inspired. Near-monochrome. Vermillion seal accent.
@@ -1016,7 +1005,7 @@ handles the case where it is CSP-blocked.
 /* --------------------------------------------------------------------------
    1. Custom Properties — Light Mode
    -------------------------------------------------------------------------- */
-:root {
+:host {
   --iw-bg-primary:      #F5F2EB;
   --iw-bg-secondary:    #EDE9E0;
   --iw-bg-tertiary:     #E4DFD4;
@@ -1061,7 +1050,7 @@ handles the case where it is CSP-blocked.
    2. Custom Properties — Dark Mode
    -------------------------------------------------------------------------- */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :host {
     --iw-bg-primary:      #1A1816;
     --iw-bg-secondary:    #232120;
     --iw-bg-tertiary:     #2C2A28;

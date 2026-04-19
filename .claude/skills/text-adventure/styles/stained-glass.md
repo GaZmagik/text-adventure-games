@@ -70,14 +70,14 @@ Mono/Stats: 'Courier New', 'Courier', 'Lucida Console', monospace
 
 ## Colour Palette
 
-All colours are defined as CSS custom properties on `:root` and overridden
+All colours are defined as CSS custom properties on `:host` and overridden
 for dark mode via `@media (prefers-color-scheme: dark)`. A `[data-theme]`
 attribute override is also provided for runtime switching.
 
 ### Light Mode (warm parchment ground, 80% saturation jewel tones)
 
 ```css
-:root {
+:host {
   /* Ground colours */
   --sg-bg-page:          #FFF8F0;   /* warm cream parchment */
   --sg-bg-panel:         #FDF3E7;   /* slightly darker parchment for panels */
@@ -156,8 +156,25 @@ attribute override is also provided for runtime switching.
   --ta-badge-crit-failure-border: var(--sg-ruby);
   --ta-color-credits:             var(--sg-amber);
   --ta-color-tab-active:          var(--sg-sapphire);
+  --ta-color-info:                var(--sg-sapphire);
+  --ta-btn-primary-text:          #ffffff;
   --ta-border-style-poi:          2px dashed;
   --ta-die-spin-duration:         0.6s;
+
+  /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
+  --sta-text-primary:             var(--sg-text-primary);
+  --sta-text-secondary:           var(--sg-text-secondary);
+  --sta-text-tertiary:            var(--sg-text-muted);
+  --sta-border-tertiary:          var(--sg-lead-subtle);
+  --sta-color-text-emphasis:      var(--sg-text-on-jewel);
+
+  /* --- Speaker colours (multi-dialogue) --- */
+  --speaker-color-0: #c0392b;
+  --speaker-color-1: #2980b9;
+  --speaker-color-2: #27ae60;
+  --speaker-color-3: #e67e22;
+  --speaker-color-4: #8e44ad;
+  --speaker-color-5: #16a085;
 }
 ```
 
@@ -165,7 +182,7 @@ attribute override is also provided for runtime switching.
 
 ```css
 @media (prefers-color-scheme: dark) {
-  :root {
+  :host {
     /* Ground colours */
     --sg-bg-page:          #0F0F0F;
     --sg-bg-panel:         #181210;
@@ -265,7 +282,7 @@ All body-text pairings have been selected to meet WCAG AA (4.5:1 minimum):
 ## Spacing and Layout
 
 ```css
-:root {
+:host {
   /* Spacing scale */
   --sg-space-xs:   4px;
   --sg-space-sm:   8px;
@@ -921,6 +938,7 @@ custom properties, and defines all utility classes. No external dependencies
 beyond the font stack fallbacks are required.
 
 ```css
+/* @extract */
 /* ═══════════════════════════════════════════════════════════════════════
    STAINED GLASS — Text Adventure Visual Theme
    Inject into any widget <style> block.
@@ -930,7 +948,7 @@ beyond the font stack fallbacks are required.
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap');
 
 /* ── Custom properties — light mode ─────────────────────────────────── */
-:root {
+:host {
   --sg-bg-page:          #FFF8F0;
   --sg-bg-panel:         #FDF3E7;
   --sg-bg-inset:         #F5EAD8;
@@ -973,7 +991,7 @@ beyond the font stack fallbacks are required.
 
 /* ── Custom properties — dark mode ──────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :host {
     --sg-bg-page:          #0F0F0F;
     --sg-bg-panel:         #181210;
     --sg-bg-inset:         #0A0806;

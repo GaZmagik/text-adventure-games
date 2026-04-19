@@ -15,6 +15,17 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: crew-mani
 
 ---
 
+## § CLI Commands
+
+| Action | Command | Tool |
+|--------|---------|------|
+| Render ship status | `tag render ship --style <style>` | Run via Bash tool |
+| Set ship state | `tag state set shipState.<path> <value>` | Run via Bash tool |
+
+> **Do not hand-code ship status HTML/CSS/JS.** Always run the CLI command via Bash tool to render the ship status widget. The `tag render ship` command handles all system cards, power pips, condition pills, integrity bars, action buttons, and sendPrompt wiring automatically.
+
+---
+
 ## Architecture Overview
 
 ```
@@ -28,7 +39,7 @@ SHIP_EVENT protocol propagates changes to GM layer
         ↓
 GM applies cascade effects, DC modifiers, and narrative consequences
         ↓
-Ship status widget rendered on demand or auto-surfaced at crisis threshold
+Ship status widget rendered via CLI on demand or auto-surfaced at crisis threshold
         ↓
 Player allocates power / initiates repairs / makes triage decisions
         ↓
@@ -84,6 +95,7 @@ module. The seven crew roles bond to ship systems as follows: pilot and navigato
 outside the seven power-draw systems). See crew-manifest module for the full role/system mapping
 and mandatory roles per ship class.
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const SHIP_CLASSES = {
 
@@ -164,6 +176,7 @@ const SHIP_CLASSES = {
 
 ### Initialise ship from class
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 function initShip(classKey, shipName) {
   const template = SHIP_CLASSES[classKey] || SHIP_CLASSES.freighter;
@@ -240,6 +253,7 @@ The ship's power core generates a fixed pool of power units. Every powered syste
 this pool. The player can reallocate power between scenes — but never during active events
 unless a system goes offline (freeing its allocation automatically).
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 function getPowerPool(shipState) {
   return {
@@ -307,6 +321,7 @@ pool bar updating live.
 Damage is applied per system. Sources: combat hits, hazard rolls (from the star-chart module),
 environmental events, cascade failures.
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 function damageSystem(shipState, systemId, amount, source) {
   const sys = shipState.systems[systemId];
@@ -407,6 +422,7 @@ const STATUS_CHANGE_NARRATIVES = {
 When a system goes offline, dependent systems lose power and take damage. The cascade
 chain is the most dramatic mechanical moment in a ship-systems session.
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 // Dependency graph: which systems are affected when a given system fails
 const CASCADE_DEPENDENCIES = {
@@ -453,6 +469,7 @@ function triggerCascade(shipState, offlineSystemId) {
 Repairs cost parts and time (scenes). They can be attempted in the field (partial repair)
 or at a station (full repair). The player makes a repair roll; outcome determines recovery.
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const REPAIR_DCS = {
   operational: null,   // no repair needed
@@ -543,6 +560,7 @@ Roll 1d6 for hit location:
 | 6 | Core section | `power_core` (half damage) + `shields` (half damage) |
 
 Shields absorb damage before it reaches other systems:
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 function applyWeaponsDamage(shipState, rawDamage, hitLocation) {
   const shields = shipState.systems.shields;
@@ -568,338 +586,22 @@ function applyWeaponsDamage(shipState, rawDamage, hitLocation) {
 
 ## The Ship Status Widget
 
-The full interactive status widget. A single-page dashboard showing all seven systems,
-the power pool, conditions, and repair options. Opens on demand or auto-surfaces when
-any system crosses into critical.
+To render the ship status widget, run the CLI command via Bash tool:
 
-```html
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@700&display=swap');
-
-  .ss-root { font-family:'IBM Plex Mono','SF Mono','Cascadia Code','Consolas',monospace; padding:1rem 0 1.5rem; }
-
-  .ss-header { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:0.75rem; flex-wrap:wrap; gap:8px; }
-  .ss-ship-name { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; color:var(--color-text-primary); margin:0; }
-  .ss-ship-class { font-size:10px; color:var(--color-text-tertiary); letter-spacing:0.1em; }
-
-  .ss-conditions { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:0.75rem; }
-  .cond-pill { font-size:9px; letter-spacing:0.1em; text-transform:uppercase; padding:2px 8px; border-radius:var(--border-radius-md); border:0.5px solid; }
-  .cond-venting   { background:#FCEBEB; color:#791F1F; border-color:#E24B4A; }
-  .cond-adrift    { background:#F1EFE8; color:#444441; border-color:#888780; }
-  .cond-boarded   { background:#FAECE7; color:#712B13; border-color:#D85A30; }
-  .cond-overclocked { background:#FAEEDA; color:#633806; border-color:#EF9F27; }
-  @media(prefers-color-scheme:dark){
-    .cond-venting { background:#791F1F; color:#FFD0D0; border-color:#A32D2D; }
-    .cond-adrift  { background:var(--color-background-secondary, #444441); color:var(--color-text-secondary, #D3D1C7); border-color:var(--color-border-secondary, #5F5E5A); }
-    .cond-boarded { background:#712B13; color:#F5C4B3; border-color:#993C1D; }
-    .cond-overclocked { background:#633806; color:#FAC775; border-color:#BA7517; }
-  }
-
-  .power-bar-row { display:flex; align-items:center; gap:10px; margin-bottom:1rem; padding:8px 12px; background:var(--color-background-secondary); border-radius:var(--border-radius-md); }
-  .power-label { font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--color-text-tertiary); min-width:60px; }
-  .power-pips  { display:flex; gap:3px; flex:1; flex-wrap:wrap; }
-  .power-pip   { width:12px; height:12px; border-radius:2px; border:0.5px solid #8a95a8; background:#c8d0dc; transition:background 0.2s; }
-  .power-pip.used   { background:#4a8abf; border-color:#3a7abf; }
-  .power-pip.excess { background:#c04040; border-color:#aa3030; }
-  @media(prefers-color-scheme:dark){
-    .power-pip         { border-color:var(--color-border-secondary, #2a3a50); background:var(--color-background-secondary, #0e1a28); }
-    .power-pip.used    { background:#1a4a7a; border-color:#3a7abf; }
-    .power-pip.excess  { background:#6a2020; border-color:#aa3030; }
-  }
-  .power-val { font-size:11px; color:var(--color-text-secondary); min-width:40px; text-align:right; }
-
-  .systems-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:8px; margin-bottom:1rem; }
-
-  .sys-card {
-    background:var(--color-background-primary);
-    border:0.5px solid var(--color-border-tertiary);
-    border-radius:var(--border-radius-lg, 12px);
-    padding:0.85rem 1rem;
-    transition:border-color 0.12s;
-  }
-  .sys-card.s-degraded { border-color:#854F0B; }
-  .sys-card.s-critical { border-color:#993C1D; }
-  .sys-card.s-failing  { border-color:#791F1F; border-width:1.5px; }
-  .sys-card.s-offline  { border-color:#501313; background:var(--color-background-secondary); opacity:0.7; }
-
-  .sys-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
-  .sys-label { font-size:11px; font-weight:500; color:var(--color-text-primary); }
-  .sys-status-badge { font-size:8px; letter-spacing:0.1em; text-transform:uppercase; padding:2px 6px; border-radius:var(--border-radius-md); }
-  .sb-operational { background:#E1F5EE; color:#085041; }
-  .sb-degraded    { background:#FAEEDA; color:#633806; }
-  .sb-critical    { background:#FAECE7; color:#712B13; }
-  .sb-failing     { background:#FCEBEB; color:#791F1F; }
-  .sb-offline     { background:#F1EFE8; color:#444441; }
-  @media(prefers-color-scheme:dark){
-    .sb-operational { background:#085041; color:#9FE1CB; }
-    .sb-degraded    { background:#633806; color:#FAC775; }
-    .sb-critical    { background:#712B13; color:#F5C4B3; }
-    .sb-failing     { background:#791F1F; color:#FFD0D0; }
-    .sb-offline     { background:var(--color-background-secondary, #444441); color:var(--color-text-secondary, #D3D1C7); }
-  }
-
-  .sys-bar-track { height:4px; background:var(--color-border-tertiary); border-radius:2px; overflow:hidden; margin-bottom:6px; }
-  .sys-bar-fill  { height:100%; border-radius:2px; transition:width 0.4s ease; }
-  /* Reduced motion — disable bar fill transition and all other transitions */
-  @media (prefers-reduced-motion: reduce) {
-    .sys-bar-fill { transition: none; }
-    * { transition-duration: 0.01ms !important; }
-  }
-  .bar-op  { background:#1D9E75; }
-  .bar-deg { background:#EF9F27; }
-  .bar-crit{ background:#D85A30; }
-  .bar-fail{ background:#E24B4A; }
-  .bar-off { background:#888780; }
-
-  .sys-power-row { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
-  .sys-power-label { font-size:11px; color:var(--color-text-tertiary); min-width:40px; }
-  .sys-power-pips  { display:flex; gap:2px; }
-  .sys-power-pip   { width:8px; height:8px; border-radius:1px; border:0.5px solid; }
-  .sp-active { background:#1a4a7a; border-color:#3a7abf; }
-  .sp-inactive { background:var(--color-background-tertiary); border-color:var(--color-border-tertiary); }
-
-  .sys-integrity-val { font-size:10px; color:var(--color-text-tertiary); }
-
-  .sys-actions { display:flex; gap:5px; margin-top:8px; flex-wrap:wrap; }
-  .sys-btn {
-    padding:8px 14px; min-height:44px; min-width:44px; box-sizing:border-box; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.08em;
-    background:transparent; border:0.5px solid var(--color-border-secondary);
-    border-radius:var(--border-radius-md); color:var(--color-text-secondary); cursor:pointer; transition:background 0.1s;
-  }
-  .sys-btn:hover { background:var(--color-background-secondary); }
-  .sys-btn:disabled { opacity:0.3; cursor:not-allowed; }
-
-  .sys-conditions-row { display:flex; flex-wrap:wrap; gap:3px; margin-top:5px; }
-  .sys-cond { font-size:8px; padding:1px 6px; border-radius:var(--border-radius-md); background:var(--color-background-warning, #fef3cd); color:var(--color-text-warning, #856404); border:0.5px solid var(--color-border-warning, #ffc107); }
-
-  .parts-row { display:flex; align-items:center; gap:10px; padding:8px 12px; background:var(--color-background-secondary); border-radius:var(--border-radius-md); margin-bottom:0.75rem; }
-  .parts-label { font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--color-text-tertiary); }
-  .parts-count { font-size:18px; font-weight:500; color:var(--color-text-primary); }
-  .parts-sub   { font-size:10px; color:var(--color-text-tertiary); flex:1; }
-
-  .ss-footer { display:flex; justify-content:space-between; align-items:center; padding-top:0.75rem; border-top:0.5px solid var(--color-border-tertiary); flex-wrap:wrap; gap:8px; }
-  .close-btn { font-family:'IBM Plex Mono','SF Mono','Cascadia Code','Consolas',monospace; font-size:11px; letter-spacing:0.08em; background:transparent; border:0.5px solid var(--color-border-secondary); border-radius:var(--border-radius-md); padding:8px 14px; min-height:44px; min-width:44px; box-sizing:border-box; color:var(--color-text-secondary); cursor:pointer; }
-  .close-btn:hover { background:var(--color-background-secondary); }
-  .ss-overall { font-size:11px; color:var(--color-text-tertiary); }
-  button:focus-visible, [data-prompt]:focus-visible { outline: 2px solid var(--color-border-primary, #4a90d9); outline-offset: 2px; }
-</style>
-
-<div class="ss-root">
-  <div class="ss-header">
-    <div>
-      <p class="ss-ship-name" id="ss-ship-name">Loading...</p>
-      <span class="ss-ship-class" id="ss-ship-class"></span>
-    </div>
-    <span class="ss-overall" id="ss-overall"></span>
-  </div>
-
-  <div class="ss-conditions" id="ss-conditions"></div>
-
-  <div class="power-bar-row">
-    <span class="power-label">Power</span>
-    <div class="power-pips" id="power-pips"></div>
-    <span class="power-val" id="power-val"></span>
-  </div>
-
-  <div class="parts-row">
-    <span class="parts-label">Repair parts</span>
-    <span class="parts-count" id="parts-count">--</span>
-    <span class="parts-sub" id="parts-sub"></span>
-  </div>
-
-  <div class="systems-grid" id="systems-grid"></div>
-
-  <p class="ss-fallback" id="ss-fallback" style="display:none; font-size:11px; padding:8px 12px; margin:0.5rem 0; background:var(--color-background-warning); border:0.5px solid var(--color-border-warning); border-radius:var(--border-radius-md); color:var(--color-text-warning); word-break:break-word; user-select:all;"></p>
-
-  <!-- Overlay controls (not a scene footer — see styles/style-reference.md for the canonical scene footer) -->
-  <div class="ss-footer">
-    <button class="close-btn" data-prompt="Close the ship status. Continue the adventure.">Close</button>
-    <button class="close-btn" data-prompt="I want to reallocate ship power.">Reallocate power</button>
-  </div>
-</div>
-
-<script>
-const SHIP = /* INJECT_SHIP_JSON */ {};
-
-function showFallback(text) {
-  const el = document.getElementById('ss-fallback');
-  if (!el) return;
-  el.textContent = text;
-  el.style.display = 'block';
-}
-
-const STATUS_ORDER = ['operational','degraded','critical','failing','offline'];
-const BAR_CLASS = { operational:'bar-op', degraded:'bar-deg', critical:'bar-crit', failing:'bar-fail', offline:'bar-off' };
-const BADGE_CLASS = { operational:'sb-operational', degraded:'sb-degraded', critical:'sb-critical', failing:'sb-failing', offline:'sb-offline' };
-const CARD_CLASS  = { operational:'', degraded:'s-degraded', critical:'s-critical', failing:'s-failing', offline:'s-offline' };
-
-function renderShip() {
-  document.getElementById('ss-ship-name').textContent = SHIP.name || 'Unknown vessel';
-  document.getElementById('ss-ship-class').textContent = SHIP.flavour || '';
-
-  // Conditions
-  const condEl = document.getElementById('ss-conditions');
-  condEl.textContent = '';
-  (SHIP.conditions || []).forEach(c => {
-    const pill = document.createElement('span');
-    pill.className = 'cond-pill cond-' + c.replace(/[^a-z]/g,'_');
-    pill.textContent = c.replace(/_/g,' ');
-    condEl.appendChild(pill);
-  });
-
-  // Power bar
-  const pipsEl = document.getElementById('power-pips');
-  while (pipsEl.firstChild) pipsEl.removeChild(pipsEl.firstChild);
-  const maxP = SHIP.maxPower || 12;
-  const usedP = Object.values(SHIP.systems||{}).reduce((t,s)=>t+(s.power||0),0);
-  for (let i = 0; i < maxP; i++) {
-    const pip = document.createElement('div');
-    pip.className = 'power-pip' + (i < usedP ? ' used' : '');
-    pipsEl.appendChild(pip);
-  }
-  document.getElementById('power-val').textContent = usedP + '/' + maxP;
-
-  // Parts
-  document.getElementById('parts-count').textContent = SHIP.repairParts != null ? SHIP.repairParts : 0;
-  const broken = Object.values(SHIP.systems||{}).filter(s=>s.status!=='operational').length;
-  document.getElementById('parts-sub').textContent = broken > 0
-    ? broken + ' system' + (broken!==1?'s':'') + ' need attention'
-    : 'All systems operational';
-
-  // Systems grid
-  const grid = document.getElementById('systems-grid');
-  while (grid.firstChild) grid.removeChild(grid.firstChild);
-  const SYS_ORDER = ['hull','shields','engines','power_core','life_support','weapons','sensors'];
-  SYS_ORDER.forEach(id => {
-    const sys = SHIP.systems ? SHIP.systems[id] : null;
-    if (!sys) return;
-    const card = document.createElement('div');
-    card.className = 'sys-card ' + (CARD_CLASS[sys.status]||'');
-
-    const integ = Math.round(sys.integrity || 0);
-    const barW = integ + '%';
-    const barCls = BAR_CLASS[sys.status] || 'bar-off';
-    const badgeCls = BADGE_CLASS[sys.status] || 'sb-offline';
-    const sysLabel = sys.label || id;
-
-    // Build card using DOM methods
-    const topDiv = document.createElement('div');
-    topDiv.className = 'sys-top';
-    const labelSpan = document.createElement('span');
-    labelSpan.className = 'sys-label';
-    labelSpan.textContent = sysLabel;
-    const badgeSpan = document.createElement('span');
-    badgeSpan.className = 'sys-status-badge ' + badgeCls;
-    badgeSpan.textContent = sys.status;
-    topDiv.appendChild(labelSpan);
-    topDiv.appendChild(badgeSpan);
-    card.appendChild(topDiv);
-
-    const barTrack = document.createElement('div');
-    barTrack.className = 'sys-bar-track';
-    const barFill = document.createElement('div');
-    barFill.className = 'sys-bar-fill ' + barCls;
-    barFill.style.width = barW;
-    barTrack.appendChild(barFill);
-    card.appendChild(barTrack);
-
-    const integVal = document.createElement('div');
-    integVal.className = 'sys-integrity-val';
-    integVal.textContent = integ + '% integrity';
-    card.appendChild(integVal);
-
-    // Power pips for powered systems
-    if (sys.maxPower > 0) {
-      const powerRow = document.createElement('div');
-      powerRow.className = 'sys-power-row';
-      const powerLabel = document.createElement('span');
-      powerLabel.className = 'sys-power-label';
-      powerLabel.textContent = 'Power';
-      powerRow.appendChild(powerLabel);
-      const powerPips = document.createElement('div');
-      powerPips.className = 'sys-power-pips';
-      for (let i = 0; i < sys.maxPower; i++) {
-        const pip = document.createElement('div');
-        pip.className = 'sys-power-pip ' + (i < (sys.power||0) ? 'sp-active' : 'sp-inactive');
-        powerPips.appendChild(pip);
-      }
-      powerRow.appendChild(powerPips);
-      card.appendChild(powerRow);
-    }
-
-    // Conditions
-    if ((sys.conditions||[]).length > 0) {
-      const condRow = document.createElement('div');
-      condRow.className = 'sys-conditions-row';
-      sys.conditions.forEach(c => {
-        const condSpan = document.createElement('span');
-        condSpan.className = 'sys-cond';
-        condSpan.textContent = c.replace(/_/g,' ');
-        condRow.appendChild(condSpan);
-      });
-      card.appendChild(condRow);
-    }
-
-    // Actions
-    const actionsDiv = document.createElement('div');
-    actionsDiv.className = 'sys-actions';
-    const canRepair = sys.status !== 'operational';
-    const canPower  = sys.maxPower > 0 && sys.status !== 'offline';
-    if (canRepair) {
-      const repairBtn = document.createElement('button');
-      repairBtn.className = 'sys-btn';
-      repairBtn.textContent = 'Repair';
-      repairBtn.addEventListener('click', function() {
-        const prompt = 'I attempt to repair the ' + sysLabel + '.';
-        if (typeof sendPrompt === 'function') { sendPrompt(prompt); }
-        else { showFallback(prompt); }
-      });
-      actionsDiv.appendChild(repairBtn);
-    }
-    if (canPower) {
-      const powerBtn = document.createElement('button');
-      powerBtn.className = 'sys-btn';
-      powerBtn.textContent = 'Reroute power';
-      powerBtn.addEventListener('click', function() {
-        const prompt = 'I reroute power to ' + sysLabel + '.';
-        if (typeof sendPrompt === 'function') { sendPrompt(prompt); }
-        else { showFallback(prompt); }
-      });
-      actionsDiv.appendChild(powerBtn);
-    }
-    const diagBtn = document.createElement('button');
-    diagBtn.className = 'sys-btn';
-    diagBtn.textContent = 'Diagnose';
-    diagBtn.addEventListener('click', function() {
-      const prompt = 'I run diagnostics on ' + sysLabel + '.';
-      if (typeof sendPrompt === 'function') { sendPrompt(prompt); }
-      else { showFallback(prompt); }
-    });
-    actionsDiv.appendChild(diagBtn);
-    card.appendChild(actionsDiv);
-
-    grid.appendChild(card);
-  });
-
-  // Overall status
-  const statuses = Object.values(SHIP.systems||{}).map(s=>STATUS_ORDER.indexOf(s.status));
-  const worst = Math.max.apply(null, statuses);
-  const worstName = STATUS_ORDER[worst] || 'operational';
-  document.getElementById('ss-overall').textContent = 'Overall: ' + worstName;
-}
-
-renderShip();
-
-// ── sendPrompt wiring (data-prompt + addEventListener pattern) ────────────
-document.querySelectorAll('[data-prompt]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const prompt = btn.dataset.prompt;
-    if (typeof sendPrompt === 'function') { sendPrompt(prompt); }
-    else { showFallback(prompt); }
-  });
-});
-</script>
 ```
+tag render ship --style <style>
+```
+
+The CLI handles all system cards, power pips, condition pills, integrity bars, repair/power
+action buttons, and sendPrompt wiring. Do not hand-code the widget HTML/CSS/JS.
+
+<!-- Widget HTML/CSS/JS removed — CLI renders this widget. See § CLI Commands above. -->
+
+### Power allocation widget embed
+
+The power allocation panel is embedded within the ship status widget (not standalone).
+It shows each system's current draw and `+/-` buttons for reallocation, with the power
+pool bar updating live.
 
 ---
 
@@ -922,6 +624,7 @@ SHIP_EVENT: status   | (opens the ship status widget)
 
 `shipState` lives at `gmState.shipState`. It is saved and restored by the save-codex module.
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 // In save-codex compact mode: ship state stored as worldFlags delta
 const shipFlags = {
@@ -948,6 +651,7 @@ Object.assign(gmState.worldFlags, shipFlags);
 ```
 
 Auto-surface the widget (without player prompt) when any system crosses into critical:
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 if (Object.values(shipState.systems).some(s => s.status === 'critical' || s.status === 'failing')) {
   // Include a note in the next scene widget: "Ship status requires attention."

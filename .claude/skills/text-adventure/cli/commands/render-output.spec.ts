@@ -1,0 +1,507 @@
+import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { handleRender } from './render';
+import { saveState, loadState, createDefaultState } from '../lib/state-store';
+import type { GmState } from '../types';
+import { TIER1_MODULES } from '../lib/constants';
+
+let tempDir: string;
+const originalEnv = process.env.TAG_STATE_DIR;
+
+beforeEach(() => {
+  tempDir = mkdtempSync(join(tmpdir(), 'tag-render-test-'));
+  process.env.TAG_STATE_DIR = tempDir;
+  // Sync gate: write a properly signed marker so render doesn't block
+  // State doesn't exist yet at beforeEach time, so we sign with empty JSON
+  // and the render gate will pass because scene 999 >= any test scene
+  const { signMarker, clearStateDirCache } = require('./verify');
+  clearStateDirCache();
+  writeFileSync(join(tempDir, '.last-sync'), signMarker(999, '{}'), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-scenario'), signMarker(0), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-rules'), signMarker(0), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-character'), signMarker(0), 'utf-8');
+});
+
+afterEach(() => {
+  rmSync(tempDir, { recursive: true, force: true });
+  if (originalEnv !== undefined) {
+    process.env.TAG_STATE_DIR = originalEnv;
+  } else {
+    delete process.env.TAG_STATE_DIR;
+  }
+});
+
+// ── Phase 5: Module checklist ────────────────────────────────────────
+
+describe('render modulesRequired and featureChecklist', () => {
+  let state: GmState;
+
+  beforeEach(async () => {
+    state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.character = {
+      name: 'Kira',
+      class: 'Pilot',
+      hp: 20,
+      maxHp: 24,
+      ac: 14,
+      level: 4,
+      xp: 3200,
+      currency: 100,
+      currencyName: 'Credits',
+      stats: { STR: 10, DEX: 16, CON: 12, INT: 14, WIS: 11, CHA: 13 },
+      modifiers: { STR: 0, DEX: 3, CON: 1, INT: 2, WIS: 0, CHA: 1 },
+      proficiencyBonus: 2,
+      proficiencies: ['Piloting'],
+      abilities: ['Evasive Manoeuvres'],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'Blaster', armour: 'Light Armour' },
+    };
+    state._lastComputation = {
+      type: 'contested_roll',
+      stat: 'DEX',
+      roll: 12,
+      modifier: 3,
+      total: 15,
+      dc: 13,
+      margin: 2,
+      outcome: 'success',
+      npcId: 'test_npc',
+      npcModifier: 1,
+    };
+    state._modulesRead = [...TIER1_MODULES];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
+  });
+
+  test('craftGuidance.compositionNotes includes narrativeClasses vocabulary', async () => {
+    state.modulesActive = ['core-systems'];
+    await saveState(state);
+    const result = await handleRender(['ticker']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const guidance = data.craftGuidance as {
+      compositionNotes: {
+        narrativeClasses: string;
+      };
+    };
+    expect(guidance.compositionNotes.narrativeClasses).toBeDefined();
+    expect(guidance.compositionNotes.narrativeClasses).toContain('nar-item');
+    expect(guidance.compositionNotes.narrativeClasses).toContain('nar-npc');
+    expect(guidance.compositionNotes.narrativeClasses).toContain('nar-dlg');
+    expect(guidance.compositionNotes.narrativeClasses).toContain('nar-sfx');
+    expect(guidance.compositionNotes.narrativeClasses).toContain('nar-danger');
+    expect(guidance.compositionNotes.narrativeClasses).toContain('nar-lore');
+  });
+
+  test('modulesRequired is present in render output', async () => {
+    state.modulesActive = ['core-systems'];
+    await saveState(state);
+    const result = await handleRender(['ticker']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.modulesRequired).toBeDefined();
+    expect(Array.isArray(data.modulesRequired)).toBe(true);
+  });
+
+  test('modulesRequired always includes prose-craft', async () => {
+    state.modulesActive = ['core-systems', 'audio'];
+    await saveState(state);
+    const result = await handleRender(['ticker']);
+    const data = result.data as Record<string, unknown>;
+    const paths = data.modulesRequired as string[];
+    expect(paths).toContain('modules/prose-craft.md');
+  });
+
+  test('modulesRequired maps active modules to correct file paths', async () => {
+    state.modulesActive = ['audio', 'atmosphere'];
+    await saveState(state);
+    const result = await handleRender(['ticker']);
+    const data = result.data as Record<string, unknown>;
+    const paths = data.modulesRequired as string[];
+    expect(paths).toContain('modules/audio.md');
+    expect(paths).toContain('modules/atmosphere.md');
+  });
+
+  test('featureChecklist is present in render output', async () => {
+    state.modulesActive = ['prose-craft'];
+    await saveState(state);
+    const result = await handleRender(['ticker']);
+    const data = result.data as Record<string, unknown>;
+    expect(data.featureChecklist).toBeDefined();
+    expect(Array.isArray(data.featureChecklist)).toBe(true);
+  });
+
+  test('featureChecklist includes audio instruction when audio is active', async () => {
+    state.modulesActive = ['audio', 'core-systems'];
+    await saveState(state);
+    const result = await handleRender(['ticker']);
+    const data = result.data as Record<string, unknown>;
+    const items = data.featureChecklist as string[];
+    expect(items.some(i => i.includes('audio') && i.includes('Web Audio'))).toBe(true);
+  });
+
+  test('non-scene widget still gets modulesRequired and featureChecklist', async () => {
+    state.modulesActive = ['prose-craft', 'atmosphere'];
+    await saveState(state);
+    const result = await handleRender(['dice']);
+    const data = result.data as Record<string, unknown>;
+    expect(data.modulesRequired).toBeDefined();
+    expect(data.featureChecklist).toBeDefined();
+    expect((data.modulesRequired as string[]).length).toBeGreaterThan(0);
+  });
+});
+
+// ── Phase 11: Required elements and skeleton ────────────────────────
+
+describe('render requiredElements and skeleton', () => {
+  let state: GmState;
+
+  beforeEach(async () => {
+    state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.character = {
+      name: 'Kira',
+      class: 'Pilot',
+      hp: 20,
+      maxHp: 24,
+      ac: 14,
+      level: 4,
+      xp: 3200,
+      currency: 100,
+      currencyName: 'Credits',
+      stats: { STR: 10, DEX: 16, CON: 12, INT: 14, WIS: 11, CHA: 13 },
+      modifiers: { STR: 0, DEX: 3, CON: 1, INT: 2, WIS: 0, CHA: 1 },
+      proficiencyBonus: 2,
+      proficiencies: ['Piloting'],
+      abilities: ['Evasive Manoeuvres'],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'Blaster', armour: 'Light Armour' },
+    };
+    state._lastComputation = {
+      type: 'contested_roll',
+      stat: 'DEX',
+      roll: 12,
+      modifier: 3,
+      total: 15,
+      dc: 13,
+      margin: 2,
+      outcome: 'success',
+      npcId: 'test_npc',
+      npcModifier: 1,
+    };
+    state._modulesRead = [...TIER1_MODULES];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
+  });
+
+  test('requiredElements is present in render output', async () => {
+    state.modulesActive = ['core-systems'];
+    await saveState(state);
+    const result = await handleRender(['ticker']);
+    const data = result.data as Record<string, unknown>;
+    expect(data.requiredElements).toBeDefined();
+    expect(Array.isArray(data.requiredElements)).toBe(true);
+    expect((data.requiredElements as string[]).length).toBeGreaterThan(0);
+  });
+
+  test('requiredElements includes atmosphere when atmosphere is active', async () => {
+    state.modulesActive = ['atmosphere'];
+    await saveState(state);
+    const result = await handleRender(['ticker']);
+    const data = result.data as Record<string, unknown>;
+    const elems = data.requiredElements as string[];
+    expect(elems.some(e => e.includes("class='atmo-strip'"))).toBe(true);
+  });
+
+  test('requiredElements includes audio toggle when audio is active', async () => {
+    state.modulesActive = ['audio'];
+    await saveState(state);
+    const result = await handleRender(['ticker']);
+    const data = result.data as Record<string, unknown>;
+    const elems = data.requiredElements as string[];
+    expect(elems.some(e => e.includes("id='audio-btn'"))).toBe(true);
+  });
+
+  test('skeleton is non-empty string for scene widget', async () => {
+    state.modulesActive = ['prose-craft', 'core-systems'];
+    await saveState(state);
+    const result = await handleRender(['scene']);
+    const data = result.data as Record<string, unknown>;
+    expect(typeof data.skeleton).toBe('string');
+    expect((data.skeleton as string).length).toBeGreaterThan(0);
+  });
+
+  test('skeleton contains placeholder markers', async () => {
+    state.modulesActive = ['prose-craft'];
+    await saveState(state);
+    const result = await handleRender(['scene']);
+    const data = result.data as Record<string, unknown>;
+    const skel = data.skeleton as string;
+    expect(skel).toContain('<!-- [BRIEF:');
+    expect(skel).toContain('<!-- [NARRATIVE:');
+    expect(skel).toContain('<!-- [FOOTER:');
+  });
+
+  test('skeleton uses semantic class names', async () => {
+    state.modulesActive = ['atmosphere', 'audio'];
+    await saveState(state);
+    const result = await handleRender(['scene']);
+    const data = result.data as Record<string, unknown>;
+    const skel = data.skeleton as string;
+    expect(skel).toContain('id="scene-content"');
+    expect(skel).toContain('class="loc-bar"');
+    expect(skel).toContain('class="narrative"');
+    expect(skel).toContain('class="status-bar"');
+    expect(skel).toContain('class="atmo-strip"');
+    expect(skel).toContain('id="audio-btn"');
+    expect(skel).toContain('class="footer-row"');
+  });
+});
+
+// ── Template rendering ───────────────────────────────────────────────
+
+describe('render template output', () => {
+  let state: GmState;
+
+  beforeEach(async () => {
+    state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.character = {
+      name: 'Aldric',
+      class: 'Fighter',
+      hp: 28,
+      maxHp: 35,
+      ac: 16,
+      level: 3,
+      xp: 2400,
+      currency: 50,
+      currencyName: 'Gold',
+      stats: { STR: 16, DEX: 12, CON: 14, INT: 10, WIS: 13, CHA: 8 },
+      modifiers: { STR: 3, DEX: 1, CON: 2, INT: 0, WIS: 1, CHA: -1 },
+      proficiencyBonus: 2,
+      proficiencies: ['Athletics', 'Intimidation'],
+      abilities: ['Second Wind', 'Action Surge'],
+      inventory: [{ name: 'Longsword', type: 'weapon', slots: 1 }],
+      conditions: [],
+      equipment: { weapon: 'Longsword', armour: 'Chain Mail' },
+    };
+    state.modulesActive = ['prose-craft', 'core-systems', 'ai-npc'];
+    state._lastComputation = {
+      type: 'contested_roll',
+      stat: 'STR',
+      roll: 14,
+      modifier: 3,
+      total: 17,
+      dc: 15,
+      margin: 2,
+      outcome: 'success',
+      npcId: 'test_npc',
+      npcModifier: 1,
+    };
+    state.time = {
+      period: 'evening',
+      date: 'Day 5',
+      elapsed: 5,
+      hour: 19,
+      playerKnowsDate: true,
+      playerKnowsTime: true,
+      calendarSystem: 'elapsed-only',
+      deadline: null,
+    };
+    state._modulesRead = [...TIER1_MODULES];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
+    await saveState(state);
+  });
+
+  test('scene widget contains progressive reveal structure', async () => {
+    const result = await handleRender(['scene', '--raw']);
+    const html = result.data as string;
+    expect(html).toContain('id="reveal-brief"');
+    expect(html).toContain('id="reveal-full"');
+    expect(html).toContain('id="scene-content"');
+    expect(html).toContain('id="panel-overlay"');
+    expect(html).toContain('id="scene-meta"');
+    expect(html).toContain('footer-row');
+  });
+
+  test('character widget shows stats and inventory', async () => {
+    const result = await handleRender(['character', '--raw']);
+    const html = result.data as string;
+    expect(html).toContain('Aldric');
+    expect(html).toContain('Fighter');
+    expect(html).toContain('Longsword');
+    expect(html).toContain('STR');
+  });
+
+  test('dice widget starts in pre-roll state', async () => {
+    const result = await handleRender(['dice', '--raw']);
+    const html = result.data as string;
+    expect(html).toContain('STR');
+    expect(html).toContain('id="hi"');
+    expect(html).toContain('CLICK THE DIE TO ROLL');
+    expect(html).toContain('id="ra"');
+    expect(html).toContain('class="tt"');
+    expect(html).toContain('id="cv"');
+    expect(html).toContain('var MOD=3,DC=15,rolling=false,locked=false;');
+    expect(html).not.toContain('id="dice-result"');
+    expect(html).not.toContain('aria-label=');
+    expect(html).not.toContain('<span class="rv">14</span>');
+    expect(html).not.toContain('rolled 14+3 = 17');
+  });
+
+  test('dice-pool widget renders grouped pre-roll state', async () => {
+    const result = await handleRender([
+      'dice-pool',
+      '--raw',
+      '--data',
+      '{"label":"Boss Damage","pool":[{"dieType":"d6","count":2},{"dieType":"d8","count":2},{"dieType":"d10","count":3},{"dieType":"d20","count":1}],"modifier":4}',
+    ]);
+    const html = result.data as string;
+    expect(html).toContain('Boss Damage');
+    expect(html).toContain('2d6 + 2d8 + 3d10 + 1d20');
+    expect(html).toContain('id="dice-pool-hint"');
+    expect(html).toContain('CLICK THE POOL TO ROLL');
+    expect(html).toContain('id="dice-pool-result"');
+    expect(html).toContain('var POOL_MODIFIER=4;');
+    expect(html).toContain('aria-label="Boss Damage. Click to roll the dice pool."');
+  });
+
+  test('ticker widget shows time data', async () => {
+    const result = await handleRender(['ticker', '--raw']);
+    const html = result.data as string;
+    expect(html).toContain('evening');
+    expect(html).toContain('Day 5');
+  });
+
+  test('footer widget includes Character and Save buttons', async () => {
+    const result = await handleRender(['footer', '--raw']);
+    const html = result.data as string;
+    expect(html).toContain('data-panel="character"');
+    expect(html).toContain('id="save-btn"');
+    expect(html).toContain('data-panel="quests"'); // core-systems is active
+  });
+
+  test('recap widget contains session summary elements', async () => {
+    const result = await handleRender(['recap', '--raw']);
+    const html = result.data as string;
+    expect(html).toContain('Aldric');
+    expect(html).toContain('widget-recap');
+  });
+
+  test('save-div widget contains hidden save data with valid JSON payload', async () => {
+    const result = await handleRender(['save-div', '--raw']);
+    const html = result.data as string;
+    expect(html).toContain('id="save-data"');
+    expect(html).toContain('display:none');
+    // Extract data-payload attribute and verify it contains valid JSON with _version
+    const payloadMatch = html.match(/data-payload="([^"]*)"/);
+    expect(payloadMatch).not.toBeNull();
+    const payload = JSON.parse(payloadMatch![1]!.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'"));
+    expect(payload._version).toBe(1);
+    expect(payload.scene).toBe(0);
+    expect(payload.character.name).toBe('Aldric');
+  });
+});
+
+// ── Pending roll persistence ──────────────────────────────────────────
+
+describe('render pending roll persistence', () => {
+  let state: GmState;
+  beforeEach(async () => {
+    state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.character = {
+      name: 'Kael', class: 'Scout', hp: 12, maxHp: 12, ac: 12, level: 1, xp: 0,
+      currency: 0, currencyName: 'credits',
+      stats: { STR: 10, DEX: 14, CON: 12, INT: 10, WIS: 11, CHA: 8 },
+      modifiers: { STR: 0, DEX: 2, CON: 1, INT: 0, WIS: 0, CHA: -1 },
+      proficiencyBonus: 2, proficiencies: [], abilities: [],
+      inventory: [], conditions: [], equipment: { weapon: 'blaster', armour: 'light' },
+    };
+    state.modulesActive = ['core-systems'];
+    state._modulesRead = [...TIER1_MODULES];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
+    await saveState(state);
+  });
+
+  test('scene with roll actions persists _pendingRolls', async () => {
+    const data = JSON.stringify({ actions: [{ text: 'Deceive', roll: { type: 'contest', stat: 'CHA', npc: 'faal_01' } }] });
+    await handleRender(['scene', '--raw', '--data', data]);
+    const updated = await loadState();
+    expect(updated._pendingRolls).toBeDefined();
+    expect(updated._pendingRolls!.length).toBe(1);
+    expect(updated._pendingRolls![0]!.stat).toBe('CHA');
+  });
+
+  test('scene without roll actions does NOT write _pendingRolls', async () => {
+    const data = JSON.stringify({ actions: [{ text: 'Walk away' }] });
+    await handleRender(['scene', '--raw', '--data', data]);
+    const updated = await loadState();
+    expect(updated._pendingRolls).toBeUndefined();
+  });
+
+  test('scene rerender clears stale _pendingRolls when roll metadata is removed', async () => {
+    state._pendingRolls = [
+      { action: 1, type: 'hazard', stat: 'DEX', dc: 13 },
+    ];
+    await saveState(state);
+
+    const data = JSON.stringify({ actions: [{ text: 'Duck behind the crate' }] });
+    await handleRender(['scene', '--raw', '--data', data]);
+
+    const updated = await loadState();
+    expect(updated._pendingRolls).toBeUndefined();
+  });
+
+  test('recap widget formats contested rolls without raw internal labels or fake DCs', async () => {
+    state.rosterMutations = [
+      {
+        id: 'broker_01',
+        name: 'Sil Vey',
+        pronouns: 'they/them',
+        role: 'broker',
+        tier: 'rival',
+        level: 2,
+        stats: { STR: 10, DEX: 12, CON: 10, INT: 14, WIS: 11, CHA: 15 },
+        modifiers: { STR: 0, DEX: 1, CON: 0, INT: 2, WIS: 0, CHA: 2 },
+        hp: 16,
+        maxHp: 16,
+        ac: 12,
+        soak: 0,
+        damageDice: '1d6',
+        status: 'active',
+        alive: true,
+        trust: 35,
+        disposition: 'neutral',
+        dispositionSeed: 11,
+      },
+    ];
+    state.rollHistory = [
+      {
+        scene: 1,
+        type: 'contested_roll',
+        stat: 'CHA',
+        roll: 14,
+        modifier: 1,
+        total: 15,
+        npcId: 'broker_01',
+        outcome: 'narrow_success',
+      },
+    ];
+    await saveState(state);
+
+    const result = await handleRender(['recap', '--raw']);
+    const html = result.data as string;
+    expect(html).toContain('CHA');
+    expect(html).toContain('Sil Vey');
+    expect(html).not.toContain('contested_roll');
+    expect(html).not.toContain('vs DC 0');
+  });
+});

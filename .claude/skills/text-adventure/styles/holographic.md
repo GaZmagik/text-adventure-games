@@ -81,7 +81,7 @@ Monospace (stats, dice values, XP counters, code):
 
 ## Colour Palette
 
-All values are defined as CSS custom properties on `:root` and overridden per
+All values are defined as CSS custom properties on `:host` and overridden per
 colour scheme. Properties prefixed `--holo-` are theme-specific. Properties
 named `--color-*` shadow the Claude.ai host variables, providing holographic
 overrides for the base engine's structural selectors.
@@ -839,6 +839,7 @@ The Google Fonts `@import` is attempted first; the fallback stacks produce an
 acceptable result if CSP blocks the request.
 
 ```css
+/* @extract */
 /* ============================================================
    HOLOGRAPHIC THEME — Text Adventure Game Engine
    Visual Style: Translucent iridescent sci-fi HUD
@@ -848,7 +849,7 @@ acceptable result if CSP blocks the request.
 
 /* ── Custom Properties ─────────────────────────────────────── */
 
-:root {
+:host {
   /* Iridescent accents (scheme-independent) */
   --holo-cyan:         #00E5FF;
   --holo-teal:         #00BFA5;
@@ -948,12 +949,29 @@ acceptable result if CSP blocks the request.
   --ta-badge-crit-failure-border: var(--holo-pink);
   --ta-color-credits:             var(--holo-cyan);
   --ta-color-tab-active:          var(--holo-cyan);
+  --ta-color-info:                #00E5FF;
+  --ta-btn-primary-text:          #ffffff;
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.6s;
+
+  /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
+  --sta-text-primary:             var(--holo-text-primary);
+  --sta-text-secondary:           var(--holo-text-secondary);
+  --sta-text-tertiary:            var(--holo-text-tertiary);
+  --sta-border-tertiary:          var(--holo-border-tertiary);
+  --sta-color-text-emphasis:      #ffffff;
+
+  /* --- Speaker colours (multi-dialogue) --- */
+  --speaker-color-0: #ff79c6;
+  --speaker-color-1: #80ffea;
+  --speaker-color-2: #f1fa8c;
+  --speaker-color-3: #bd93f9;
+  --speaker-color-4: #8be9fd;
+  --speaker-color-5: #ffb86c;
 }
 
 @media (prefers-color-scheme: light) {
-  :root {
+  :host {
     --holo-bg-base:         #F0F0F5;
     --holo-bg-panel:        rgba(0, 0, 0, 0.03);
     --holo-bg-panel-hover:  rgba(0, 0, 0, 0.06);

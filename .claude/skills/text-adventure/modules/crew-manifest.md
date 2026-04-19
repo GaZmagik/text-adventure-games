@@ -20,6 +20,17 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: ship-syst
 
 ---
 
+## § CLI Commands
+
+| Action | Command | Tool |
+|--------|---------|------|
+| Render crew manifest | `tag render crew --style <style>` | Run via Bash tool |
+| Create NPC crew member | `tag state create-npc <id> --tier <tier> --name "<name>" --pronouns <p> --role <role>` | Run via Bash tool |
+
+> **Do not hand-code crew manifest HTML/CSS/JS.** Always run the CLI command via Bash tool to render the crew manifest widget. The `tag render crew` command handles all styling, morale bars, crew cards, action buttons, and sendPrompt wiring automatically.
+
+---
+
 ## Architecture Overview
 
 ```
@@ -65,6 +76,7 @@ module) that determines where their expertise applies:
 | navigator | engines | Nav computer feeds jump calculations to drives |
 | cargo_master | cargo_hold | Logical system — not one of the seven power-draw systems |
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const CREW_ROLES = {
   pilot: {
@@ -130,6 +142,7 @@ const CREW_ROLES = {
 
 ## The Crew Member Schema
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const crewMember = {
   id:          'petrov_vas',
@@ -191,6 +204,7 @@ const crewMember = {
 Morale operates at two levels: **individual morale** (per crew member, 0–100) and the
 **ship morale pool** (the collective average, displayed on the manifest widget).
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 function getShipMorale(crewState) {
   const active = crewState.roster.filter(c => c.alive && c.status === 'active');
@@ -209,6 +223,7 @@ function getMoraleLabel(morale) {
 
 ### Morale events — what moves it
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const MORALE_DELTAS = {
   // Positive
@@ -269,6 +284,7 @@ function adjustMorale(crewMember, delta, reason, gmState) {
 
 ## Crew Generation
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 // Name tables shared with procedural-world-gen — use same seed pass + ':crew' suffix
 const CREW_FIRST = ['Petrov','Chen','Sable','Rin','Oryn','Talia','Holt','Dael','Zev','Cass','Finn','Kira'];
@@ -344,9 +360,12 @@ function generateCrew(worldSeed, shipClass, crewSize) {
     const ramp = rampPool[rampIdx++ % rampPool.length];
     const hasSecret = rng() < 0.65;
 
+    const pronouns = pick(['he/him','she/her','they/them']);
+
     return {
       id:     name.toLowerCase().replace(/\s+/g,'_'),
       name,
+      pronouns,
       role,
       portrait: { initials, ramp },
       morale:  ri(55, 80),
@@ -420,6 +439,7 @@ function initCrewState(worldSeed, shipClass, crewSize = 4) {
 
 ### Defection check
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const DEFECTION_TRIGGERS = [
   'Crew morale ≤ 15 for two consecutive scenes',
@@ -449,6 +469,7 @@ function triggerDefectionCheck(crewMember, gmState) {
 
 ### Breakdown event
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const BREAKDOWN_TYPES = [
   {
@@ -505,6 +526,7 @@ Crew members at high morale and loyalty can volunteer for dangerous tasks, absor
 consequences, or sacrifice themselves for the crew. This is never automatic — the GM
 presents the moment and the player can accept or refuse.
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const HEROISM_TRIGGERS = [
   { condition: 'loyalty >= 80 && shipState.hull.status === "failing"',
@@ -525,6 +547,7 @@ const HEROISM_TRIGGERS = [
 Crew members can be assigned to specific tasks that improve their effectiveness or unlock
 capabilities. Assignment persists until changed or the crew member is incapacitated.
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const TASK_DEFINITIONS = {
   // Ship-bonded tasks
@@ -591,305 +614,16 @@ function assignCrewToTask(crewMember, taskId, crewState) {
 
 ## The Crew Manifest Widget
 
-The full interactive widget. Surfaces the roster with individual morale bars, assigned tasks,
-status badges, and the collective ship morale pool. Each crew member has a quick-action panel.
+To render the crew manifest widget, run the CLI command via Bash tool:
 
-```html
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@700&family=Playfair+Display:ital@1&display=swap');
-
-  .cm-root { font-family:'IBM Plex Mono','SF Mono','Cascadia Code','Consolas',monospace; padding:1rem 0 1.5rem; }
-
-  .cm-header { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:0.75rem; flex-wrap:wrap; gap:8px; }
-  .cm-title  { font-family:'Syne','Segoe UI',system-ui,sans-serif; font-size:18px; font-weight:700; color:var(--color-text-primary); margin:0; }
-  .cm-meta   { font-size:10px; color:var(--color-text-tertiary); }
-
-  /* Ship morale pool bar */
-  .morale-pool {
-    display:flex; align-items:center; gap:10px; padding:10px 14px;
-    background:var(--color-background-secondary); border-radius:var(--border-radius-md);
-    margin-bottom:1rem;
-  }
-  .morale-label { font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--color-text-tertiary); min-width:80px; }
-  .morale-track { flex:1; height:5px; background:var(--color-border-tertiary); border-radius:3px; overflow:hidden; }
-  .morale-fill  { height:100%; border-radius:3px; transition:width 0.5s ease; }
-  .m-resolute { background:#1D9E75; }
-  .m-steady   { background:#378ADD; }
-  .m-strained { background:#EF9F27; }
-  .m-low      { background:#D85A30; }
-  .m-breaking { background:#E24B4A; }
-  .morale-badge {
-    font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
-    padding:3px 9px; border-radius:var(--border-radius-md); font-weight:500; flex-shrink:0;
-  }
-  .mb-resolute { background:#E1F5EE; color:#085041; }
-  .mb-steady   { background:#E6F1FB; color:#0C447C; }
-  .mb-strained { background:#FAEEDA; color:#633806; }
-  .mb-low      { background:#FAECE7; color:#712B13; }
-  .mb-breaking { background:#FCEBEB; color:#791F1F; }
-  @media(prefers-color-scheme:dark){
-    .mb-resolute { background:#085041; color:#9FE1CB; }
-    .mb-steady   { background:#0C447C; color:#B5D4F4; }
-    .mb-strained { background:#633806; color:#FAC775; }
-    .mb-low      { background:#712B13; color:#F5C4B3; }
-    .mb-breaking { background:#791F1F; color:#FFD0D0; }
-  }
-  /* Note: morale badge dark mode colours are semantic design tokens (success/info/warning/danger) — intentionally hardcoded */
-
-  /* Crew cards */
-  .crew-list { display:flex; flex-direction:column; gap:8px; }
-
-  .crew-card {
-    background:var(--color-background-primary);
-    border:0.5px solid var(--color-border-tertiary);
-    border-radius:var(--border-radius-lg, 12px);
-    padding:0.9rem 1rem;
-    transition:border-color 0.12s;
-  }
-  .crew-card.c-strained { border-color:#854F0B; }
-  .crew-card.c-low      { border-color:#993C1D; }
-  .crew-card.c-breaking { border-color:#791F1F; border-width:1.5px; }
-  .crew-card.c-dead, .crew-card.c-defected { opacity:0.4; }
-  .crew-card.c-injured  { border-color:#BA7517; }
-
-  .crew-top { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
-
-  .portrait {
-    width:36px; height:36px; border-radius:50%; flex-shrink:0;
-    display:flex; align-items:center; justify-content:center;
-    font-size:11px; font-weight:500; font-family:'IBM Plex Mono','SF Mono','Cascadia Code','Consolas',monospace;
-  }
-  .p-teal   { background:var(--color-background-success, #085041); color:var(--color-text-success, #9FE1CB); }
-  .p-blue   { background:var(--color-background-info, #0C447C);    color:var(--color-text-info, #B5D4F4);    }
-  .p-purple { background:#EEEDFE; color:#3C3489; }
-  .p-amber  { background:#FAEEDA; color:#633806; }
-  .p-coral  { background:#FAECE7; color:#712B13; }
-  .p-pink   { background:#FBEAF0; color:#72243E; }
-  @media(prefers-color-scheme:dark){
-    .p-purple { background:#3C3489; color:#CECBF6; }
-    .p-amber  { background:#633806; color:#FAC775; }
-    .p-coral  { background:#712B13; color:#F5C4B3; }
-    .p-pink   { background:#72243E; color:#F4C0D1; }
-  }
-  /* Note: portrait dark mode colours are accent design tokens — intentionally hardcoded */
-
-  .crew-meta { flex:1; }
-  .crew-name { font-family:'Syne','Segoe UI',system-ui,sans-serif; font-size:14px; font-weight:700; color:var(--color-text-primary); margin:0 0 2px; }
-  .crew-role-badge {
-    font-size:11px; letter-spacing:0.08em; text-transform:uppercase; padding:2px 7px;
-    border-radius:var(--border-radius-md); background:var(--color-background-secondary);
-    color:var(--color-text-secondary); border:0.5px solid var(--color-border-tertiary);
-    display:inline-block;
-  }
-
-  .crew-status-badge {
-    font-size:8px; letter-spacing:0.1em; text-transform:uppercase;
-    padding:2px 7px; border-radius:var(--border-radius-md); flex-shrink:0; font-weight:500;
-  }
-  .cs-active       { background:#E1F5EE; color:#085041; }
-  .cs-injured      { background:#FAEEDA; color:#633806; }
-  .cs-incapacitated{ background:#FAECE7; color:#712B13; }
-  .cs-missing      { background:#F1EFE8; color:#444441; }
-  .cs-defected     { background:#FCEBEB; color:#791F1F; }
-  .cs-dead         { background:#F1EFE8; color:#2C2C2A; }
-  @media(prefers-color-scheme:dark){
-    .cs-active       { background:#085041; color:#9FE1CB; }
-    .cs-injured      { background:#633806; color:#FAC775; }
-    .cs-incapacitated{ background:#712B13; color:#F5C4B3; }
-    .cs-missing      { background:var(--color-background-secondary, #444441); color:var(--color-text-secondary, #D3D1C7); }
-    .cs-defected     { background:#791F1F; color:#FFD0D0; }
-    .cs-dead         { background:var(--color-background-primary, #2C2C2A); color:var(--color-text-tertiary, #888780); }
-  }
-
-  /* Morale + stress bars */
-  .bars-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
-  .bar-item {}
-  .bar-item-label { font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--color-text-tertiary); margin-bottom:3px; }
-  .bar-track { height:3px; background:var(--color-border-tertiary); border-radius:2px; overflow:hidden; }
-  .bar-fill  { height:100%; border-radius:2px; transition:width 0.4s ease; }
-  .morale-high  { background:#1D9E75; }
-  .morale-mid   { background:#EF9F27; }
-  .morale-low   { background:#E24B4A; }
-  .stress-fill  { background:#D85A30; }
-
-  .crew-tension {
-    font-family:'Playfair Display',serif; font-style:italic;
-    font-size:11px; color:var(--color-text-tertiary); line-height:1.6;
-    margin-bottom:8px;
-    border-left:2px solid var(--color-border-tertiary); padding-left:8px;
-  }
-
-  .crew-assignment {
-    font-size:10px; color:var(--color-text-secondary);
-    padding:4px 8px; border-radius:var(--border-radius-md);
-    background:var(--color-background-secondary); margin-bottom:8px; display:inline-block;
-  }
-
-  .crew-actions { display:flex; gap:5px; flex-wrap:wrap; }
-  .crew-btn {
-    padding:8px 14px; min-height:44px; min-width:44px; box-sizing:border-box;
-    font-family:'IBM Plex Mono','SF Mono','Cascadia Code','Consolas',monospace; font-size:11px; letter-spacing:0.08em;
-    background:transparent; border:0.5px solid var(--color-border-secondary);
-    border-radius:var(--border-radius-md); color:var(--color-text-secondary);
-    cursor:pointer; transition:background 0.1s;
-  }
-  .crew-btn:hover { background:var(--color-background-secondary); }
-  .crew-btn:disabled { opacity:0.3; cursor:not-allowed; }
-
-  .cm-footer { display:flex; justify-content:space-between; align-items:center; padding-top:0.75rem; border-top:0.5px solid var(--color-border-tertiary); margin-top:0.5rem; flex-wrap:wrap; gap:8px; }
-  .close-btn { font-family:'IBM Plex Mono','SF Mono','Cascadia Code','Consolas',monospace; font-size:11px; letter-spacing:0.08em; background:transparent; border:0.5px solid var(--color-border-secondary); border-radius:var(--border-radius-md); padding:8px 14px; min-height:44px; min-width:44px; box-sizing:border-box; color:var(--color-text-secondary); cursor:pointer; }
-  .close-btn:hover { background:var(--color-background-secondary); }
-
-  @media (prefers-reduced-motion: reduce) {
-    * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
-  }
-
-  button:focus-visible, [data-prompt]:focus-visible, input:focus-visible {
-    outline: 2px solid var(--color-border-primary, #4a90d9);
-    outline-offset: 2px;
-  }
-</style>
-
-<div class="cm-root">
-  <div class="cm-header">
-    <p class="cm-title">Crew manifest</p>
-    <span class="cm-meta" id="cm-meta">—</span>
-  </div>
-
-  <div class="morale-pool">
-    <span class="morale-label">Ship morale</span>
-    <div class="morale-track"><div class="morale-fill" id="morale-fill" style="width:0%"></div></div>
-    <span class="morale-badge" id="morale-badge">—</span>
-  </div>
-
-  <div class="crew-list" id="crew-list"></div>
-
-  <p class="cm-fallback" id="cm-fallback" style="display:none; font-size:11px; padding:8px 12px; margin:0.5rem 0; background:var(--color-background-warning); border:0.5px solid var(--color-border-warning); border-radius:var(--border-radius-md); color:var(--color-text-warning); word-break:break-word; user-select:all;"></p>
-
-  <div class="cm-footer">
-    <button class="close-btn" data-prompt="Close the crew manifest. Continue the adventure.">Close ↗</button>
-    <button class="close-btn" data-prompt="I want to address the whole crew.">Address crew ↗</button>
-  </div>
-</div>
-
-<script>
-const CREW = /* INJECT_CREW_JSON */ [];
-
-function esc(str) {
-  if (typeof str !== 'string') return str == null ? '' : String(str);
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function showFallback(text) {
-  const el = document.getElementById('cm-fallback');
-  if (!el) return;
-  el.textContent = text;
-  el.style.display = 'block';
-}
-
-function getMoraleClass(m) {
-  if (m >= 80) return 'resolute';
-  if (m >= 60) return 'steady';
-  if (m >= 40) return 'strained';
-  if (m >= 20) return 'low';
-  return 'breaking';
-}
-
-function getCardClass(member) {
-  if (!member.alive || member.status === 'dead') return 'c-dead';
-  if (member.status === 'defected') return 'c-defected';
-  if (member.status === 'injured') return 'c-injured';
-  const mc = getMoraleClass(member.morale);
-  if (mc === 'strained') return 'c-strained';
-  if (mc === 'low')      return 'c-low';
-  if (mc === 'breaking') return 'c-breaking';
-  return '';
-}
-
-function render() {
-  const activeList = CREW.filter(c => c.alive && c.status !== 'dead' && c.status !== 'defected');
-  const pool = activeList.length
-    ? Math.round(activeList.reduce((s,c)=>s+c.morale,0)/activeList.length) : 0;
-  const mc   = getMoraleClass(pool);
-
-  document.getElementById('morale-fill').style.width  = pool + '%';
-  document.getElementById('morale-fill').className = `morale-fill m-${mc}`;
-  document.getElementById('morale-badge').className = `morale-badge mb-${mc}`;
-  document.getElementById('morale-badge').textContent = mc.charAt(0).toUpperCase() + mc.slice(1);
-  document.getElementById('cm-meta').textContent =
-    `${activeList.length} active · ${CREW.length - activeList.length} lost`;
-
-  const list = document.getElementById('crew-list');
-  list.innerHTML = '';
-
-  CREW.forEach(member => {
-    const card = document.createElement('div');
-    const cc = getCardClass(member);
-    card.className = 'crew-card' + (cc ? ' ' + cc : '');
-
-    const mor = Math.round(member.morale || 0);
-    const str = Math.round(member.stress || 0);
-    const morClass = mor >= 60 ? 'morale-high' : mor >= 35 ? 'morale-mid' : 'morale-low';
-    const ramp = (member.portrait?.ramp) || 'blue';
-    const badge = ({active:'cs-active',injured:'cs-injured',incapacitated:'cs-incapacitated',
-      missing:'cs-missing',defected:'cs-defected',dead:'cs-dead'})[member.status] || 'cs-active';
-
-    const alive = member.alive && member.status !== 'dead' && member.status !== 'defected';
-    const roleLabel = member.role ? member.role.replace(/_/g,' ') : '—';
-
-    // All interpolated values escaped via esc() to prevent XSS from injected crew data
-    const safeName = esc(member.name);
-    const safeInitials = esc(member.portrait?.initials || '?');
-    const safeStatus = esc(member.status || 'active');
-    const safeTension = esc(member.tension || '');
-    const safeAssigned = member.assignedTask ? esc(member.assignedTask.replace(/_/g,' ')) : '';
-
-    card.innerHTML = `
-      <div class="crew-top">
-        <div class="portrait p-${esc(ramp)}">${safeInitials}</div>
-        <div class="crew-meta">
-          <p class="crew-name">${safeName}</p>
-          <span class="crew-role-badge">${esc(roleLabel)}</span>
-        </div>
-        <span class="crew-status-badge ${badge}">${safeStatus}</span>
-      </div>
-      <div class="bars-row">
-        <div class="bar-item">
-          <div class="bar-item-label">Morale · ${mor}</div>
-          <div class="bar-track"><div class="bar-fill ${morClass}" style="width:${mor}%"></div></div>
-        </div>
-        <div class="bar-item">
-          <div class="bar-item-label">Stress · ${str}</div>
-          <div class="bar-track"><div class="bar-fill stress-fill" style="width:${str}%"></div></div>
-        </div>
-      </div>
-      ${alive ? `<div class="crew-tension">${safeTension}</div>` : ''}
-      ${safeAssigned ? `<div class="crew-assignment">Assigned: ${safeAssigned}</div>` : ''}
-      <div class="crew-actions">
-        ${alive ? `<button class="crew-btn" data-prompt="I speak privately with ${safeName}.">Talk ↗</button>` : ''}
-        ${alive && !member.assignedTask ? `<button class="crew-btn" data-prompt="I assign ${safeName} to a task.">Assign ↗</button>` : ''}
-        ${alive && member.assignedTask  ? `<button class="crew-btn" data-prompt="I pull ${safeName} off their current task.">Reassign ↗</button>` : ''}
-        ${alive && member.stress >= 60  ? `<button class="crew-btn" data-prompt="I check in on ${safeName} -- they seem under a lot of stress.">Check in ↗</button>` : ''}
-      </div>
-    `;
-    list.appendChild(card);
-  });
-}
-
-render();
-
-// ── sendPrompt wiring (data-prompt + addEventListener pattern) ────────────
-// Use event delegation on the document since crew cards are rendered dynamically
-document.addEventListener('click', (e) => {
-  const btn = e.target.closest('[data-prompt]');
-  if (btn) {
-    const prompt = btn.dataset.prompt;
-    if (typeof sendPrompt === 'function') { sendPrompt(prompt); }
-    else { showFallback(prompt); }
-  }
-});
-</script>
 ```
+tag render crew --style <style>
+```
+
+The CLI handles all styling, morale bars, crew cards, status badges, action buttons, and
+sendPrompt wiring. Do not hand-code the widget HTML/CSS/JS.
+
+<!-- Widget HTML/CSS/JS removed — CLI renders this widget. See § CLI Commands above. -->
 
 ---
 
@@ -913,6 +647,7 @@ CREW_EVENT: secret   | [crewId]     | (trigger secret reveal for this crew membe
 When the player speaks privately with a crew member, expand their `crewMember` profile into a
 full ai-npc `NPC` definition object. Key differences from world NPCs:
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 function crewMemberToNPC(member, crewState, gmState) {
   const shipMorale = getMoralePool(crewState);
@@ -1007,6 +742,7 @@ roll determines how it lands.
 
 `crewState` lives at `gmState.crewState`. Save-codex stores delta mutations only:
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 // Save compact: only changed fields
 const crewFlags = {};

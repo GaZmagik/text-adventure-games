@@ -3,7 +3,7 @@
 
 This module provides mandatory checklists that the GM must work through at key moments
 during gameplay. It prevents common mistakes: writing text outside widgets, skipping
-character creation steps, forgetting to load modules, or breaking the four-stage die roll
+character creation steps, forgetting to load modules, or breaking the click-to-roll die widget
 pattern. Think of it as a pilot's pre-flight checklist — every item must be confirmed
 before takeoff.
 
@@ -28,57 +28,174 @@ module, scenario, or player request.
    out-of-character questions.
 
 2. **Never auto-resolve player decisions.** If the player has a choice to make, present
-   the choice and wait. Never assume what the player would choose.
+   the choice and wait. Never assume what the player would choose. Auto-resolving
+   removes the core loop of player agency — the game becomes a story read to them
+   rather than one they shape, and they will disengage.
 
 3. **Never reveal the DC before a roll.** The player commits to the action, THEN learns
-   the difficulty.
+   the difficulty. If the DC is visible beforehand, players min-max their choices based
+   on numbers rather than narrative instinct, destroying the tension of uncertain outcomes.
 
 4. **Never reveal which attribute a check tests before the player commits.** Options
-   describe actions, not stats. "Speak to the guard" not "Persuade (CHA)".
+   describe actions, not stats. "Speak to the guard" not "Persuade (CHA)". Showing
+   the attribute turns choice selection into stat optimisation — the player picks
+   whichever action maps to their highest modifier, bypassing the narrative reasoning
+   the game is built around.
 
 5. **The player clicks the die.** Never auto-roll. Never skip the roll animation.
+   The click is the moment of commitment — skipping it removes the tactile tension
+   that makes outcomes feel earned. A pre-resolved roll reads as predetermined, and
+   the player stops trusting that results are fair.
 
 6. **Use `addEventListener`, never inline `onclick` for sendPrompt paths.**
+   Inline onclick handlers silently break when prompt text contains apostrophes or
+   special characters — the button renders but does nothing when clicked, with no
+   visible error.
 
-7. **Include a copyable fallback on every sendPrompt button.**
+7. **Include a copyable fallback on every sendPrompt button.** The `sendPrompt()`
+   API is not available in all Claude.ai widget iframe contexts. Without a fallback,
+   the player has no way to continue the game — they see a button that does nothing
+   and no text to copy-paste manually.
 
 8. **Read the active visual style file before rendering any widget.** Apply its CSS
-   custom properties.
+   custom properties. Without the correct style file loaded, widgets render with wrong
+   colours, broken contrast ratios, and invisible text — particularly in dark-mode
+   themes where foreground defaults to black.
+
+**If unsure about any rule, run `tag rules` via the Bash tool.** It outputs all 20 rules
+with file references. Filter by topic: `tag rules output`, `tag rules agency`, `tag rules cli`.
 
 ---
 
 ## New Game Checklist
 
 When starting a new game (player says "play a text adventure" or similar), verify each
-step IN ORDER. Do not skip ahead. Do not combine steps.
+step IN ORDER. Do not skip ahead. Do not combine steps. Skipping or merging steps
+causes downstream failures: modules load without their dependencies, the visual style
+renders with defaults, and the character creation widget loses its name pool and pronoun
+dropdowns because the CLI pipeline was never invoked.
 
 ```
 NEW GAME CHECKLIST
 ═══════════════════════════════════════════
-□  0. Read all Tier 1 modules IN FULL (see SKILL.md Architecture — Tiered Loading)
-□  1. Present the Settings widget (rulebook, difficulty, pacing, visual style, modules)
-□  2. Wait for player to confirm settings — do NOT proceed without confirmation
-□  3. Present Scenario Selection widget (3–4 scenario cards with genre pills)
-□  4. Wait for player to select a scenario — do NOT auto-select
-□  5. Load required modules for the selected scenario
-□  6. Read the active visual style file from styles/
-□  7. Read styles/style-reference.md for structural patterns
-□  8. Present Character Creation widget — MUST embed confirmed settings as a hidden
-     #game-settings div so the confirm button can forward them (see SKILL.md)
-□  9. Wait for player to confirm character — do NOT auto-generate without input
-□ 10. Parse settings AND character data from the confirm prompt — the prompt contains
-     both (rulebook, difficulty, pacing, style, atmosphere, audio, modules, AND
-     name, class, stats, proficiencies, equipment). Apply ALL settings now.
-□ 11. Initialise gmState (see modules/save-codex.md § The Full gmState Contract for schema;
-     read each active module file for its state field definitions)
-□ 12. Initialise storyArchitect (see modules/story-architect.md § Seeding Threads)
-□ 13. Initialise worldHistory (see modules/world-history.md § Epoch Schema)
-□ 14. Generate the opening scene as a widget — NOT as plain text.
-     Include atmosphere effects if atmosphere=on (read modules/atmosphere.md).
-     Include audio if audio=on (read modules/audio.md).
-     Apply the correct visual style (read styles/{style-name}.md).
-     Load geo-map if active (read modules/geo-map.md).
-□ 15. Verify: is ALL game content inside the widget? No prose outside?
+□  0. Run `. ./setup.sh` if first session. Run `tag state reset` to initialise game state.
+□  1. Read all Tier 1 modules IN FULL (see SKILL.md Architecture — Tiered Loading)
+□  2. Build scenario list and render Scenario Selection widget:
+     **RULE: The final array MUST contain exactly 5 scenarios — 1 featured + 4 standard.**
+     `tag verify scenario` will reject anything else.
+     a) Run `tag scenario bundled` to get bundled adventure scenarios.
+     b) Check whether any bundled adventure matches the player's requested theme/genre.
+        - Match → use it as the featured scenario (`featured: true`), generate 4 more.
+        - No match → do NOT include the bundled adventure. Generate all 5 scenarios
+          yourself, marking your best one as `featured: true`.
+     c) Only ONE scenario may have `featured: true`. The other 4 must omit it (or set false).
+     d) Merge into one scenarios array (length must be exactly 5).
+     e) Run `tag render scenario-select --data '<merged json>'` — do NOT hand-code HTML.
+     The CLI output includes accessible markup, keyboard navigation, and sendPrompt
+     wiring that hand-coded versions invariably omit, producing broken or inaccessible
+     selection cards.
+□  3. Save the HTML to `/tmp/scenario.html`, run `tag verify scenario /tmp/scenario.html`, then pass the verified HTML to show_widget.
+     Scenario select is part of the pre-game verify chain. If you skip verification here,
+     `tag render settings` is expected to refuse the next step.
+□  4. Wait for player to select a scenario — do NOT auto-select.
+     The scenario choice determines which modules load, which world-history seeds
+     apply, and which NPC rosters are available. Guessing wrong front-loads an
+     entire arc the player did not ask for.
+□  4a. If a bundled scenario was selected, load its lore file:
+      `tag export load <path-from-scenario-bundled-output>`
+      This persists authored adventure defaults (_loreDefaults) and pre-generated
+      characters (_lorePregen) to game state. Run `tag lore status` to verify
+      the lore pipeline is healthy before proceeding.
+      - `tag lore defaults` — query persisted defaults (difficulty, pacing, rulebook, visualStyle)
+      - `tag lore pregen` — list pre-generated characters available for the character creation widget
+      If `tag lore status` reports that pre-generated characters exist but the
+      `pre-generated-characters` module is not active, run
+      `tag module activate pre-generated-characters` before rendering character creation.
+□  5. Render the Settings widget: run `tag render settings --data '<json>'` — do NOT hand-code HTML.
+     The CLI output includes validated module toggles, difficulty presets, and
+     accessibility options that hand-coded versions omit, producing incomplete
+     or inconsistent settings.
+     When the player chose a bundled scenario, forward its `defaults` object
+     (difficulty, pacing, rulebook, visualStyle) and `requiredModules` /
+     `optionalModules` arrays from the `tag scenario bundled` output directly
+     into the settings --data JSON. This pre-selects the adventure's recommended
+     configuration so the player only needs to confirm or tweak.
+□  6. Save the HTML to `/tmp/settings.html`, run `tag verify rules /tmp/settings.html`, then pass the verified HTML to show_widget.
+     Settings verification is mandatory before character creation. It catches missing
+     groups, broken confirm wiring, and serialisation drift before the player sees it.
+□  7. Wait for player to confirm settings — do NOT proceed without confirmation.
+     All subsequent widgets (character creation, scene rendering, save data) depend
+     on the confirmed settings for module loading, difficulty values, and style
+     selection. Proceeding without confirmation means every downstream widget uses
+     unvalidated defaults.
+□  8. Render Character Creation widget: run `tag render character-creation --style <style> --data '<json>'` — do NOT hand-code HTML.
+     The render pipeline embeds a 500+ name randomiser pool from data/names.md and
+     pronoun selection with custom subject/object dropdowns. Hand-written character
+     creation widgets will have NONE of this — names will be a tiny hardcoded list.
+     Pass the FULL tag render output to show_widget. Do NOT extract, summarise, or
+     rewrite any part of it. Rewriting strips the embedded JavaScript event listeners,
+     the name randomiser pool, and the pronoun selection logic — the widget renders
+     but its interactive elements are dead.
+□  9. Save the HTML to `/tmp/character.html`, run `tag verify character /tmp/character.html`, then pass the verified HTML to show_widget.
+     Character creation verification is mandatory before the first scene. If it fails,
+     fix the widget instead of hand-completing setup in state.
+□ 10. Wait for player to confirm character — do NOT auto-generate without input.
+      The character's name, class, stats, and pronouns define every subsequent
+      roll modifier, dialogue option, and narrative voice line. Auto-generating
+      produces a character the player feels no ownership over.
+□ 11. Parse the confirmed settings + character payloads and apply them with:
+     `tag setup apply --settings '<json>' --character '<json>'`
+     This is the canonical v1.3.0 setup handoff. It replaces the old manual
+     `tag state set character ...` / `tag state set visualStyle ...` sequence,
+     computes modifiers, stores pronouns, applies modules, and persists the style/rulebook.
+□ 12. Load Tier 1 modules into `_modulesRead`: run `tag module activate-tier 1`.
+     `tag state context` is a recovery inventory, not the scene render gate.
+     The render gate checks `_modulesRead`, which is populated by `tag module`.
+□ 13. Load required scenario modules with `tag module activate-tier 2` and any targeted `tag module activate <name>` calls.
+     Then read the active visual style file from `styles/` and `styles/style-reference.md`
+     for the structure/theme contract before composing the first scene.
+□ 14. Initialise storyArchitect (see modules/story-architect.md § Seeding Threads from carryForward)
+□ 15. Initialise worldHistory (see modules/world-history.md § Historical Epoch System)
+□ 16. ARC SETUP — Create ALL content for this arc BEFORE the first scene.
+     This is a batch operation. Do NOT create NPCs, quests, or factions mid-arc.
+     Plan the arc's full cast, key locations, faction dynamics, and quest structure,
+     then persist everything in one batch call.
+     Run `tag state schema quests.0` and `tag state schema factions` to check shapes. Quick reference:
+     - **Factions**: `{"faction_id": 0, "other_faction": 0}` — values are numbers (standing), NOT objects.
+     - **Quests**: `[{"id":"...","title":"...","status":"active","objectives":[{"id":"...","description":"...","completed":false}],"clues":[]}]`
+       No `type`, `text`, or `rewards` fields. Objectives use `description` not `text`.
+     - **NPC tiers**: `minion`, `rival`, `nemesis` only. No `ally` or `friendly` tier.
+     - **Time**: `{"period":"morning","date":"Day 1","elapsed":0,"hour":8,"playerKnowsDate":true,"playerKnowsTime":true,"calendarSystem":"standard","deadline":null}`
+     ```
+     tag batch --commands "state set scene 1; state set currentRoom <room>; state set time '<json>'; state create-npc <id> --name '<name>' --tier <tier> --pronouns <p> --role <role>; state set factions '<json>'; state set quests '<json>'; state set worldFlags.rulebook <system>"
+     ```
+     Every NPC who will appear in this arc MUST be created here — not when
+     they first enter a scene. This ensures stats, pronouns, and modifiers
+     are deterministic from the start and available for contested rolls.
+     - **Codex**: Seed 5–10 locked entries for locations, factions, and key items.
+       `tag state codex create <id> --title '<title>' --category <cat>` for each.
+       Categories: location, faction, character, item, event, bestiary.
+       Entries start locked; use `codex unlock` / `codex advance` during play.
+     - **Crew** (if crew-manifest active): Initialise the crew roster.
+       `tag state crew add <id> --name '<name>' --pronouns <p> --role <role>`
+       Defaults: morale 70, stress 20, loyalty 50, status active.
+       Use `crew morale/stress/loyalty/status` during play to mutate.
+     - **Ship** (if ship-systems active): Initialise the ship.
+       `tag state ship init --name '<name>'` — creates 7 systems at 100%.
+       Use `ship damage/repair/power/condition/parts` during play.
+□ 17. Generate the opening scene: run `tag render scene --style <style-name>`
+     Then compose the narrative prose into the scene HTML output.
+     If atmosphere module is active, effects are applied automatically by tag render scene.
+     If audio module is active, the scene widget includes a soundscape player automatically.
+□ 18. Save composed HTML to /tmp/scene.html, then run `tag verify /tmp/scene.html`
+     The verify command checks the current structural and workflow requirements:
+     footer buttons, panels, scene-meta, narrative content, CSS size, atmosphere,
+     action cards, accessibility markers, sendPrompt fallbacks, visual style set,
+     and no hand-coded dice or prompt wiring regressions.
+     The verify marker is a signed workflow gate — writing the marker file manually
+     is unsupported and will fail validation. Without verification, `tag state sync --apply` will refuse to
+     advance and `tag render scene` will refuse to produce the next widget.
+□ 19. Pass the verified HTML to show_widget. Verify: is ALL game content inside the widget?
 ```
 
 ---
@@ -93,6 +210,16 @@ modules, and broken narrative tracking.
 ```
 RESUME FROM SAVE CHECKLIST
 ═══════════════════════════════════════════
+□  0. Run `. ./setup.sh` — resuming always starts a new conversation, so the CLI
+     needs installing first. Then restore game state from the save file:
+     ```
+     . ./setup.sh
+     tag save load /mnt/user-data/uploads/<filename>.save.md
+     ```
+     Uploaded files land in `/mnt/user-data/uploads/`. The load command reads the
+     file, extracts the save string from the code block, validates the checksum,
+     and writes the full gmState to disk. After this step, `tag state get` will
+     return the restored game data — verify it before rendering.
 □  1. Parse and validate the save payload (checksum, version, mode)
 □  2. Warn (do not block) if skill-version differs from current version
 □  3. Check for arc field — if present, load arc context and carryForward data
@@ -103,17 +230,21 @@ RESUME FROM SAVE CHECKLIST
 □  8. Load all required modules — same set as a new game for this scenario type
 □  9. Reconstruct gmState from save payload (compact: regenerate + apply deltas;
      full: restore directly)
-□ 10. Verify NPC identity: apply pronouns from rosterMutations to all NPC
+□ 10. Run `tag state context` — inspect which active modules must be re-read after resume or compaction.
+     Then re-run `tag module activate-tier 1` and any required Tier 2/3 activations so
+     `_modulesRead` matches the loaded module content again before scene rendering.
+□ 11. Verify NPC identity: apply pronouns from rosterMutations to all NPC
      definitions (see modules/ai-npc.md § NPC Definition Object for schema,
      modules/save-codex.md § compressRosterMutations for saved fields).
      If compact mode, confirm seeded pronouns match saved pronouns.
      Use saved pronouns as authoritative if they conflict.
-□ 11. Reinitialise storyArchitect from worldFlags and codexMutations
-□ 12. Reinitialise worldHistory context from seed/theme (if procedural)
-□ 13. Render the resume scene as a widget using the active visual style
-□ 14. Include: footer with panel buttons + Save ↗ + Export ↗ (if module active)
-□ 15. Include: pre-computed #save-data div for save fallback
-□ 16. Verify: is ALL game content inside the widget? No prose outside?
+□ 12. Reinitialise storyArchitect from worldFlags and codexMutations
+□ 13. Reinitialise worldHistory context from seed/theme (if procedural)
+□ 14. Render the resume scene as a widget using the active visual style
+□ 15. Include: footer with panel buttons + Save ↗ + Export ↗ (if module active)
+□ 16. Do NOT embed save/export payloads inside the scene HTML. Save ↗ / Export ↗ footer actions
+     are the canonical artefact path in v1.3.0; `save-div` is a standalone utility widget.
+□ 17. Verify: is ALL game content inside the widget? No prose outside?
 ```
 
 **Critical:** Steps 5–8 are the ones most commonly skipped on resume. Without them,
@@ -133,7 +264,9 @@ with carried state — it is NOT a simple scene transition.
 ARC TRANSITION CHECKLIST
 ═══════════════════════════════════════════
 □  1. Build carryForward from current gmState (see save-codex.md)
-□  2. Cap previousArcSummaries at 3 entries — drop oldest if 4th added
+□  2. Cap previousArcSummaries at 3 entries — drop oldest if 4th added.
+     Unbounded summaries bloat the save payload and consume context window tokens
+     that are needed for module instructions and narrative generation.
 □  3. Derive new seed: originalSeed + '_arc' + newArcNumber
 □  4. Reset gmState: clear inventory, quests, scene, room, conditions, rollHistory
 □  5. Restore HP to maxHp
@@ -146,7 +279,7 @@ ARC TRANSITION CHECKLIST
 □ 12. Read styles/style-reference.md for structural patterns
 □ 13. Generate new world from derived seed (procedural) or load authored content
 □ 14. Present arc opening scene — reference prior arc consequences in narrative
-□ 15. Embed updated save data with new arc number in #save-data div
+□ 15. Keep save/export generation in the footer actions — do NOT embed updated save payloads in the scene HTML.
 □ 16. Verify: ALL content inside widget, no prose outside
 ```
 
@@ -173,13 +306,35 @@ TURN-START MODULE CHECKLIST
        — Genre overlay triggered? → genre-mechanics.md
        — Atmosphere/audio active? → atmosphere.md, audio.md
 □  5. Load any newly required modules before proceeding
-□  6. Proceed to New Scene Checklist
+□  6. Sync state — you MUST run these before proceeding:
+     `tag state set scene <N>` (increment scene counter)
+     `tag state set currentRoom <room_id>` (if location changed)
+     `tag state set time '<json>'` (advance time if appropriate)
+     Stale scene/room/time values break narrative continuity: the save file records
+     the wrong location, NPC encounters reference rooms the player left scenes ago,
+     and time-of-day descriptions contradict the actual progression.
+□  7. Proceed to New Scene Checklist
 ```
 
 **Critical:** Step 1 is non-negotiable. The prose-craft module contains sentence-level
 quality rules that degrade rapidly when not actively in context. Loading it once at
 game start is not sufficient — it must be re-read before every scene to maintain
 prose quality across long sessions.
+
+**Compaction detection — HARD GATE:** When compaction is detected, ALL tag CLI commands
+are BLOCKED except `tag compact restore`, `tag help`, and `tag version`. You cannot
+render, compute, save, or modify state until recovery is complete.
+
+Recovery procedure:
+1. Run `tag compact restore` — clears the block, resets freshness epochs, returns recovery steps.
+2. If `_loreSource` is shown, run `tag export load <path>` to reload world data.
+3. Run `tag module activate-tier 1` then activate Tier 2/3 modules for the current scenario.
+4. Run `tag style activate` to reload visual style guidance.
+5. Run `tag state sync --apply --scene <current>` to verify state consistency.
+
+**DO NOT skip any step.** Generating from memory instead of re-reading files produces
+progressively degraded widgets — missing audio, broken panels, absent transitions.
+`tag render scene` will refuse output until modules and style are reloaded.
 
 ---
 
@@ -192,47 +347,70 @@ before this checklist begins.
 ```
 NEW SCENE CHECKLIST
 ═══════════════════════════════════════════
+□  1. Run `tag state sync` — verify module context, quest consistency, and pending computations. If warnings appear, address them before proceeding.
+     Sync detects compaction-induced context loss, stale module references, and
+     quest state inconsistencies that manual state-set commands miss. Skipping it
+     means the scene may reference completed quests as active or use NPC data from
+     a context that was silently discarded.
 
-  Narrative Threading (consult modules/story-architect.md § Pre-Scene Checklist)
-□  1. Which thread(s) does this scene advance?
-□  2. Check foreshadowing registry: any seeds to reinforce or pay off?
-□  3. Check consequence chains: any pending effects to deliver?
-□  4. Check pacing tracker: what scene type should this be? (action/discovery/dialogue/quiet)
-□  5. Has any thread been untouched for 3+ scenes? Touch it.
-□  6. Are any NPCs due for an arc beat?
+  Narrative Threading (consult modules/story-architect.md § Pre-Scene)
+□  2. Which thread(s) does this scene advance?
+□  3. Check foreshadowing registry: any seeds to reinforce or pay off?
+□  4. Check consequence chains: any pending effects to deliver?
+□  5. Check pacing tracker: what scene type should this be? (action/discovery/dialogue/quiet)
+□  6. Has any thread been untouched for 3+ scenes? Touch it.
+□  7. Are any NPCs due for an arc beat?
 
   Prose Craft (consult prose-craft.md)
-□  7. Determine the scene's location, atmosphere, and narrative content
-□  8. Write narrative: zero meta-commentary, zero emotion labels, zero filter words
-□  9. Verify: sentence length varies, strong verbs, at least one non-visual sense
-□ 10. Verify: each NPC voice is distinct, no cliché clusters, no summarising tic
+□  8. Determine the scene's location, atmosphere, and narrative content
+□  9. Write narrative: zero meta-commentary, zero emotion labels, zero filter words
+□ 10. Verify: sentence length varies, strong verbs, at least one non-visual sense
+□ 11. Verify: each NPC voice is distinct, no cliché clusters, no summarising tic
 
-  Widget Assembly
-□ 11. Build the widget HTML with the active visual style's CSS
-□ 12. Include: loc-bar, atmo-strip, narrative, POIs, actions, status bar
-      (see SKILL.md § Scene Widget for component specs and styles/style-reference.md
-      § Scene Widget — HTML Skeleton for structural pattern)
-□ 13. Build footer using the Module Footer Button Table in style-reference.md:
-      — Always: Character button + Save ↗ button
-      — For each value in modules_active: look up and include its button from the table
-      — If adventure-exporting in modules_active: include Export ↗
-      — Do NOT include buttons for modules not in modules_active
-      — Do NOT guess button labels or data-panel values — copy from the table
-□ 14. Include: pre-computed #save-data div for save fallback
-□ 15. Include: #scene-meta hidden div (see styles/style-reference.md § Scene Metadata)
-□ 16. Every interactive button uses data-prompt + addEventListener (no inline onclick)
-□ 17. Every sendPrompt button has a copyable fallback
-□ 18. ALL narrative content is inside the widget — NOTHING outside
-□ 19. Update gmState: scene number, current room, world flags, time
-□ 20. Output ONLY the widget — no text before, no text after
+  Widget Assembly — use `tag render`, do NOT hand-code HTML
+□ 12. Run `tag render scene --style <style-name>` to generate the scene skeleton
+      Then compose your narrative prose into the HTML output.
+□ 13. For one logical die, use `tag render dice`; for grouped numeric rolls, use `tag render dice-pool` — never hand-code the roll widget.
+      The CLI dice provide numbered 3D faces, settle animation, click-to-roll locking,
+      and accessible result announcements. Hand-coded dice invariably produce blank
+      geometry without numbered faces, missing animations, or broken lock states.
+□ 14. For contested checks, FIRST run `tag compute contest <ATTR> <npc_id>`,
+      THEN use the result to render the outcome. Running the render before the
+      compute means the outcome is invented rather than calculated — the player's
+      roll has no mechanical effect on the result.
+□ 15. Include footer Save ↗ / Export ↗ actions as required by `modulesActive`; do NOT embed save payloads in the scene HTML
+□ 16. Save composed HTML to /tmp/scene.html, run `tag verify /tmp/scene.html`
+      MANDATORY for every widget — not just scene advances. POI examinations,
+      dialogue scenes, and mid-scene renders all require verification. The verify
+      marker is signed — writing the file manually will not work. Without verify,
+      the next `tag render scene` will refuse to produce output.
+      **IF VERIFY FAILS: DO NOT pass the HTML to show_widget.** Fix every reported
+      issue and re-run `tag verify` until it passes. A failed verify is a HARD
+      BLOCK — never show unverified HTML to the player. Never rationalise that the
+      widget is "close enough". If verify reported failures, you are still on this
+      step. Only proceed to Post-Scene State Sync after verify passes with zero
+      failures.
+
+  Post-Scene State Sync — run AFTER rendering AND verifying (verify MUST have passed)
+□ 16. Update any state that changed during this scene:
+      `tag state set character.hp <new_hp>` (if damage taken)
+      `tag state set character.xp += <xp_earned>` (if XP awarded)
+      `tag state set factions.<id> += <delta>` (if faction changed)
+      `tag state set worldFlags.<flag> true` (if discovery made)
+□ 17. Include: #scene-meta hidden div (see styles/style-reference.md § Scene Metadata)
+□ 18. Every interactive button uses data-prompt + addEventListener (no inline onclick)
+□ 19. Every sendPrompt button has a copyable fallback
+□ 20. ALL narrative content is inside the widget — NOTHING outside
+□ 21. Update gmState: scene number, current room, world flags, time
+□ 22. Output ONLY the widget — no text before, no text after
 ```
 
 ---
 
 ## Die Roll Checklist
 
-Before generating a die roll widget, verify every stage is present and correctly ordered.
-All four stages (Declare → Animate → Resolve → Continue) must appear in a SINGLE widget.
+Before generating a die roll widget, verify the current click-to-roll flow is correct.
+Use `tag render dice` for one logical die and `tag render dice-pool` for grouped numeric pools.
 
 ```
 DIE ROLL CHECKLIST
@@ -240,23 +418,34 @@ DIE ROLL CHECKLIST
 □  1. The player has already committed to an action (never pre-announce the check)
 □  2. The attribute was NOT revealed in the action options
 □  3. The DC is set but NOT revealed to the player
-□  4. Read die-rolls.md § "3D Dice Rendering" and use the COMPLETE code from
-     § "Complete 3D Die Widget" — texture atlas, face clustering, opposite-face
-     pairing, UV mapping, quaternion settle. Do NOT write simplified replacements.
-     The module code renders numbered faces on the polyhedron; a bare shape
-     without numbers is not a die, it is a geometry lesson.
-□  5. Stage 1 (Declare): show action, attribute, modifier — NOT the DC
-□  6. Stage 2 (Animate): 3D die button is clickable, NOT auto-rolled — tumble animation
-     with numbered faces visible. Die settles with rolled value facing camera.
-□  7. Stage 3 (Resolve): show raw roll + modifier + proficiency (if applicable) = total,
-     THEN reveal DC, THEN outcome badge
-□  8. Stage 4 (Continue): proceed button with sendPrompt + fallback
-□  9. All four stages are in a SINGLE widget — never split across messages
-□ 10. No consequences described in the roll widget — those go in the next scene
+□  4. Choose the correct renderer:
+     `tag render dice --style <style>` for one logical die
+     `tag render dice-pool --style <style> --data '<json>'` for grouped numeric rolls
+□  5. Pre-roll state is visible: idle 3D die or pool, click hint shown, result hidden
+□  6. The player must click to roll. Never auto-roll. Never show a pre-baked visible result.
+     A visible result on load tells the player the outcome was decided before they
+     acted — it breaks trust in the fairness of the dice system and removes the
+     anticipation that makes rolls exciting.
+□  7. After the settle animation, reveal the result:
+     single die → roll breakdown and optional DC/outcome
+     dice pool → grouped rolls, subtotal, optional modifier
+□  8. The widget locks after reveal. No rerolls from the widget itself.
+□  9. The entire roll interaction lives in a SINGLE widget — never split across messages.
+     Splitting causes the click-to-roll JavaScript to lose its event listeners and
+     state between widgets, so the second message cannot reference the first message's
+     roll result — the player sees a disconnected outcome with no mechanical link.
+□ 10. No consequences described in the roll widget — those go in the next scene.
+      Mixing consequences into the roll widget robs the next scene of its narrative
+      payload and forces the player to process mechanical and narrative information
+      simultaneously, diluting both.
 □ 11. The widget is the ONLY output — no prose before or after
-□ 12. Never use flat CSS circles or rectangles for dice — always 3D polyhedra
-     with numbered faces from the die-rolls.md code. Never simplify the code.
+□ 12. Always use `tag render dice` or `tag render dice-pool` — never hand-code dice geometry of any kind.
+      Hand-coded dice produce simplified 3D geometry without numbered faces, missing
+      settle physics, and no accessibility announcements — the player sees a spinning
+      blank cube instead of a legible d20.
 ```
+
+> **Arithmetic rule:** ALL calculations (damage totals, HP changes, currency transactions) MUST use `echo "expression" | bc` via bash. Never compute arithmetic in prose output. LLMs routinely mis-calculate multi-step arithmetic; over several scenes, HP drift accumulates — the player's character dies (or survives) based on a maths error the player can see but the GM cannot.
 
 ---
 
@@ -269,19 +458,28 @@ deceive, intimidate, pickpocket, sneak past, etc.), verify each step.
 NPC HIDDEN ROLL CHECKLIST
 ═══════════════════════════════════════════
 □  1. Identify the contested action (persuade, deceive, intimidate, etc.)
-□  2. Determine player's relevant attribute (see modules/die-rolls.md § Attribute Pairings)
+□  2. Determine player's relevant attribute (see modules/die-rolls.md § Contested Check Attribute Pairings)
 □  3. Determine NPC's opposing attribute from the same table
 □  4. Look up NPC stats from definition object (see modules/ai-npc.md § NPC Definition Object)
      or threat tier (see modules/bestiary.md § Threat Tiers)
-□  5. Player rolls normally — visible 4-stage die roll widget with 3D dice
+□  5. Player rolls normally — visible click-to-roll single-die widget with 3D dice
 □  6. GM secretly resolves NPC roll: d20 + NPC attribute modifier
 □  7. Compare totals — player result vs NPC result
 □  8. Determine margin of success/failure (decisive/narrow/tie)
 □  9. Show outcome badge with NARRATIVE description only
-□ 10. NEVER reveal: NPC roll, NPC modifier, NPC stats, the word "contested"
-□ 11. Narrate outcome using modules/die-rolls.md § Narrative Language Table
+□ 10. NEVER reveal: NPC roll, NPC modifier, NPC stats, the word "contested".
+      If the player sees NPC numbers, they will reverse-engineer modifier ranges and
+      game their approach — choosing targets by weakness rather than narrative instinct,
+      which collapses the role-playing into spreadsheet optimisation.
+□ 11. Narrate outcome using modules/die-rolls.md § Outcome Badge Text for Contested Checks
 □ 12. If NPC is from bestiary: use tier-based resistance modifier, not full stats
 ```
+
+     For contested checks, you MUST use `tag compute contest <ATTR> <npc_id>`.
+     Never invent NPC modifiers — read them from persisted state. Invented modifiers
+     drift between scenes, making the same NPC easier or harder for no narrative
+     reason. The player notices when a guard they barely persuaded last scene is
+     suddenly a pushover.
 
 **Common mistakes:**
 - Showing "vs DC 15" on a contested check — contested checks show narrative only
@@ -300,9 +498,18 @@ CHARACTER CREATION CHECKLIST
 ═══════════════════════════════════════════
 □ 1. Name input field is present with a Random Name button
 □ 2. Archetype/class selection cards are present (3–6 options)
-□ 3. Stat array is NOT visible until after archetype selection
-□ 4. Equipment differs by archetype — no identical loadouts
-□ 5. A Confirm button is present — never auto-confirm
+□ 3. Stat array is NOT visible until after archetype selection.
+     Showing stats first causes players to pick archetypes by numbers rather than
+     fantasy — they optimise for the highest array instead of choosing the class
+     that appeals to them narratively.
+□ 4. Equipment differs by archetype — no identical loadouts.
+     Identical gear removes the mechanical distinction between classes, making the
+     archetype choice cosmetic and undermining the role-playing identity the player
+     just selected.
+□ 5. A Confirm button is present — never auto-confirm.
+     The confirm prompt carries the full character payload (name, stats, class,
+     pronouns, equipment) back to the GM. Auto-confirming skips this data transfer,
+     so the GM proceeds with incomplete or default character data.
 □ 6. The widget is the ONLY output — no descriptive text outside it
 ```
 
@@ -317,12 +524,14 @@ COMBAT CHECKLIST
 ═══════════════════════════════════════════
 □ 1. Initiative order is determined and displayed
 □ 2. Enemy cards show name, role, HP pips (with sr-only text)
-□ 3. Player status shows HP, conditions
+□ 3. Player status shows HP, AC, and level
 □ 4. Action panel presents options: Attack, Skill, Item, Retreat
 □ 5. Each action uses data-prompt + addEventListener
 □ 6. Each action has a copyable fallback
 □ 7. The combat widget is the ONLY output — no narration outside it
-□ 8. Player chooses action BEFORE any resolution happens
+□ 8. Player chooses action BEFORE any resolution happens.
+     Resolving before the player picks removes tactical agency — the combat
+     becomes a cutscene the player watches rather than a fight they direct.
 ```
 
 ---
@@ -341,7 +550,7 @@ SAVE/EXPORT CHECKLIST
 □ 4. When generating .lore.md: strip player character, reset discoveries,
      convert resolved threads to history
 □ 5. Present the file content as a downloadable artefact
-□ 6. Include inline copyable fallback text
+□ 6. Ensure the Save/Export buttons expose a copyable fallback via prompt/title text
 ```
 
 ---
@@ -358,7 +567,10 @@ PANEL CHECKLIST
 □ 3. Panel title gets focus on open (tabindex="-1", focus() called)
 □ 4. Footer buttons have aria-expanded toggled
 □ 5. Panel close restores scene content
-□ 6. The panel is part of the scene widget — never a separate message
+□ 6. The panel is part of the scene widget — never a separate message.
+     A separate message creates a new widget iframe, losing the scene's JavaScript
+     state, CSS custom properties, and footer button wiring. The Close button
+     cannot restore a scene that exists in a different message.
 ```
 
 ---
@@ -371,17 +583,21 @@ If any check fails, fix it before the widget reaches the player.
 ```
 POST-SCENE VERIFICATION
 ═══════════════════════════════════════════
-□ 1. Did I write ANY text outside the widget? If yes — ERROR. Move it inside.
-□ 2. Does the widget render the active visual style? (Check CSS custom properties)
-□ 3. Are all buttons wired with addEventListener? (No inline onclick on sendPrompt paths)
-□ 4. Do all sendPrompt buttons have fallback text?
-□ 5. Is the status bar present and accurate? (HP, XP, level)
-□ 6. Footer button audit: compare rendered footer buttons against modules_active
+□  1. Did I write ANY text outside the widget? If yes — ERROR. Move it inside.
+□  2. Does the widget render the active visual style? (Check CSS custom properties)
+□  3. Are all buttons wired with addEventListener? (No inline onclick on sendPrompt paths)
+□  4. Do all sendPrompt buttons have fallback text?
+□  5. Is the status bar present and accurate? (HP, AC, level)
+□  6. Footer button audit: compare rendered footer buttons against modules_active
      using the Module Footer Button Table in style-reference.md. Every active module
      must have its button. No inactive module should have a button.
-□ 7. Is #save-data present with pre-computed save metadata?
-□ 8. Did I advance at least one story thread?
-□ 9. Is the gmState updated? (scene number, room, flags, time)
+□  7. Did I avoid embedding save/export/base64 payloads in the widget HTML? Save ↗ / Export ↗ should remain footer actions.
+□  8. Did I advance at least one story thread?
+□  9. Is the gmState updated? (scene number, room, flags, time)
+□ 10. Run `tag state sync` — final integrity check. Address any warnings before the next scene.
+      Warnings left unresolved compound across scenes — a missed quest completion
+      flag or stale NPC disposition will produce contradictory dialogue and broken
+      quest-giver interactions in subsequent scenes.
 ```
 
 ---
@@ -408,19 +624,18 @@ mistake and the correct approach.
   Present "Talk to the guard" and determine the DC internally.
 
 - **Revealing the attribute before commitment** — "Persuade (CHA)" is WRONG. Present
-  "Persuade" and reveal the attribute only in Stage 1 of the die roll widget, after the
+  "Persuade" and reveal the attribute only in the die roll widget, after the
   player has already committed to the action.
 
-- **Skipping die roll stages** — all four stages (Declare → Animate → Resolve → Continue)
-  must appear in sequence in a single widget. Never omit the animation. Never jump straight
-  to the result.
+- **Skipping the click-to-roll flow** — the widget must show an idle pre-roll state, wait
+  for the player click, animate, reveal, and then lock. Never omit the animation. Never
+  jump straight to the result.
 
-- **Splitting a die roll across two messages** — the declare, animate, resolve, and
-  continue stages are ONE widget. Never send "You rolled a 14" in one message and the
-  outcome in another.
+- **Splitting a die roll across two messages** — the pre-roll, animation, and reveal are
+  ONE widget. Never send "You rolled a 14" in one message and the outcome in another.
 
 - **Describing roll consequences in the roll widget** — consequences go in the NEXT scene
-  widget. The roll widget shows the mechanical result and a continue button. Nothing more.
+  widget. The roll widget shows the mechanical result only. Nothing more.
 
 - **Forgetting the sendPrompt fallback** — every button that calls sendPrompt must have a
   copyable text alternative. The `sendPrompt()` function is not always available in the

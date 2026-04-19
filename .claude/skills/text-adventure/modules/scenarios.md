@@ -1,10 +1,28 @@
-# Scenarios — Starter Scenarios and Theme Adaptation
+# Scenarios — Procedural Scenario Generation and Theme Adaptation
 > Module for text-adventure orchestrator. Always loaded — provides scenario selection and theme adaptation.
 
-This module defines the starter scenarios presented to the player at game start and the rules
-for adapting scenarios to any genre or setting.
-
 Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: all other modules.
+
+---
+
+## CRITICAL: Generate Unique Scenarios Every Session
+
+**NEVER present the same four scenarios verbatim across sessions.** The examples below are
+structural archetypes showing format and tone — NOT ready-to-serve scenarios. Each new game
+MUST generate four FRESH scenario cards with:
+
+1. **Unique titles** — evocative, 3-5 words, never repeated from prior sessions
+2. **Unique hooks** — 3-4 sentences, same structural tension but different premise, characters, and setting details
+3. **Genre variety** — at least 3 different genres across the 4 cards
+4. **The 4th card is GM's Choice** — a genre the player hasn't seen recently, or an unusual mashup
+
+Use the game seed (`state.seed`) to inspire variation. If no seed exists, invent fresh premises.
+The default theme is space, but scenarios SHOULD span multiple genres (historical, horror,
+fantasy, heist, mystery, survival, etc.) unless the player specifically requests a single genre.
+
+**Example structural archetypes follow below** — adapt their STRUCTURE (confined setting +
+slow mystery, blue-collar horror, social intrigue, political survival) but write NEW titles,
+locations, characters, and hooks every time.
 
 ---
 

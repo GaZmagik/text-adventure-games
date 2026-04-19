@@ -89,8 +89,7 @@ inverts the surface/text relationship.
 ### Dark Mode (default)
 
 ```css
-:root,
-[data-theme="neon"] {
+:host {
   /* --- Surfaces --- */
   --neon-bg-primary:    #0B0C1E;   /* deep navy — main background */
   --neon-bg-secondary:  #12142B;   /* slightly lighter navy — cards, panels */
@@ -202,8 +201,25 @@ inverts the surface/text relationship.
   --ta-badge-crit-failure-border: var(--neon-pink);
   --ta-color-credits:             var(--neon-acid);
   --ta-color-tab-active:          var(--neon-blue);
+  --ta-color-info:                #00C4E8;
+  --ta-btn-primary-text:          #ffffff;
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.6s;
+
+  /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
+  --sta-text-primary:             var(--neon-text-primary);
+  --sta-text-secondary:           var(--neon-text-secondary);
+  --sta-text-tertiary:            var(--neon-text-tertiary);
+  --sta-border-tertiary:          var(--neon-border-tertiary);
+  --sta-color-text-emphasis:      #ffffff;
+
+  /* --- Speaker colours (multi-dialogue) --- */
+  --speaker-color-0: #ff2d78;
+  --speaker-color-1: #00d4ff;
+  --speaker-color-2: #39ff14;
+  --speaker-color-3: #bf5fff;
+  --speaker-color-4: #00ffee;
+  --speaker-color-5: #ff9500;
 }
 ```
 
@@ -211,8 +227,7 @@ inverts the surface/text relationship.
 
 ```css
 @media (prefers-color-scheme: light) {
-  :root,
-  [data-theme="neon"] {
+  :host {
     --neon-bg-primary:    #FAFAFA;
     --neon-bg-secondary:  #F0F1F8;
     --neon-bg-tertiary:   #E4E6F4;
@@ -1042,6 +1057,7 @@ The `@import` line will silently no-op if Google Fonts is CSP-blocked — the fa
 handle that case.
 
 ```css
+/* @extract */
 /* =======================================================================
    NEON THEME — text-adventure game engine
    Cyberpunk arcade / synthwave visual style
@@ -1052,7 +1068,7 @@ handle that case.
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500&display=swap');
 
 /* --- Custom Properties --- */
-:root {
+:host {
   --font-display: 'Space Grotesk', 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
   --font-sans:    'Inter', 'Space Grotesk', 'Segoe UI', system-ui, -apple-system, sans-serif;
   --font-mono:    'Space Mono', 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
@@ -1117,7 +1133,7 @@ handle that case.
 
 /* --- Light Mode Override --- */
 @media (prefers-color-scheme: light) {
-  :root {
+  :host {
     --neon-bg-primary:    #FAFAFA;
     --neon-bg-secondary:  #F0F1F8;
     --neon-bg-tertiary:   #E4E6F4;

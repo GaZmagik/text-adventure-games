@@ -4,6 +4,13 @@
 # Memory (managed by memory CLI, not shared)
 .claude/memory/
 .claude/agent-memory/
+.claude/accord/
+.claude/plans/
+.claude/flags/
+.claude/handover/
+
+# Node modules (dev-only type definitions — Bun installs via setup.sh)
+node_modules/
 
 # Cache and temporary files
 *.cache
@@ -11,17 +18,23 @@
 .claude/cache/
 tmp/
 *.tmp
+text-adventure-test*/
 
 # Zip archives (except root-level distribution files)
 .claude/**/*.zip
+
+# Game prose
+*.lore.md
+!*base64.lore.md
 
 # Logs
 *.log
 logs/
 
+# SDD & TDD ignore
+.tddignore
+.specify/
+
 # OS files
 .DS_Store
 Thumbs.db
-
-# PDF source files (too large for git)
-star-wars-rpg/*.pdf

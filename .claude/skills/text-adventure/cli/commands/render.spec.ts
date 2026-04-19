@@ -1,0 +1,750 @@
+import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
+import { mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { handleRender } from './render';
+import { saveState, createDefaultState } from '../lib/state-store';
+import { clearStateDirCache } from './verify';
+import { WIDGET_CSS_SCOPES } from '../metadata';
+import {
+  MAX_DICE_POOL_CANVAS_HEIGHT,
+  MAX_DICE_POOL_TOTAL,
+} from '../render/templates/dice-pool';
+
+let tempDir: string;
+const originalEnv = process.env.TAG_STATE_DIR;
+
+beforeEach(() => {
+  tempDir = mkdtempSync(join(tmpdir(), 'tag-render-test-'));
+  process.env.TAG_STATE_DIR = tempDir;
+  clearStateDirCache();
+  // Sync gate: write a properly signed marker so render doesn't block
+  // State doesn't exist yet at beforeEach time, so we sign with empty JSON
+  // and the render gate will pass because scene 999 >= any test scene
+  const { signMarker } = require('./verify');
+  writeFileSync(join(tempDir, '.last-sync'), signMarker(999, '{}'), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-scenario'), signMarker(0), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-rules'), signMarker(0), 'utf-8');
+  writeFileSync(join(tempDir, '.verified-character'), signMarker(0), 'utf-8');
+});
+
+afterEach(() => {
+  rmSync(tempDir, { recursive: true, force: true });
+  if (originalEnv !== undefined) {
+    process.env.TAG_STATE_DIR = originalEnv;
+  } else {
+    delete process.env.TAG_STATE_DIR;
+  }
+});
+
+// ── Argument validation ──────────────────────────────────────────────
+
+describe('render argument validation', () => {
+  test('returns error when no widget type specified', async () => {
+    const result = await handleRender([]);
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toContain('No widget type');
+  });
+
+  test('returns error for unknown widget type', async () => {
+    const result = await handleRender(['nonexistent']);
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toContain('Unknown widget type');
+  });
+});
+
+// ── State requirement ────────────────────────────────────────────────
+
+describe('render state requirement', () => {
+  test('returns error when no state exists for in-game widget', async () => {
+    const result = await handleRender(['ticker']);
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toContain('No game state');
+  });
+
+  test('data-driven dice-pool widget renders without state', async () => {
+    const result = await handleRender([
+      'dice-pool',
+      '--raw',
+      '--data',
+      '{"label":"Volley","pool":[{"dieType":"d6","count":2},{"dieType":"d8","count":1}],"modifier":2}',
+    ]);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+    expect(html).toContain('Volley');
+    expect(html).toContain('2d6 + 1d8');
+    expect(html).toContain('id="dice-pool-canvas"');
+  });
+
+  test('dice-pool safely serialises hostile inline-script payloads', async () => {
+    const result = await handleRender([
+      'dice-pool',
+      '--raw',
+      '--data',
+      '{"label":"</script><script>alert(1)</script>","pool":[{"dieType":"d6","count":2}],"modifier":0}',
+    ]);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+    expect((html.match(/<script>/g) ?? [])).toHaveLength(1);
+    expect(html).not.toContain('</script><script>alert(1)</script>');
+    expect(html).toContain('\\u003c/script\\u003e\\u003cscript\\u003ealert(1)\\u003c/script\\u003e');
+  });
+
+  test('rejects dice widget --data missing required dieType', async () => {
+    const result = await handleRender([
+      'dice',
+      '--raw',
+      '--data',
+      '{"stat":"STR","modifier":2}',
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('missing required key "dieType"');
+  });
+
+  test('rejects dice widget --data with wrong dieType type', async () => {
+    const result = await handleRender([
+      'dice',
+      '--raw',
+      '--data',
+      '{"dieType":42}',
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('"dieType" must be string');
+  });
+
+  test('rejects render data with forbidden keys', async () => {
+    const result = await handleRender([
+      'settings',
+      '--raw',
+      '--style',
+      'terminal',
+      '--data',
+      '{"__proto__":{"polluted":true}}',
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('forbidden keys');
+  });
+
+  test('rejects non-object --data payloads', async () => {
+    const result = await handleRender([
+      'settings',
+      '--raw',
+      '--style',
+      'terminal',
+      '--data',
+      '["not","an","object"]',
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('--data must be a JSON object');
+  });
+
+  test('rejects scenario-select data with malformed scenario entries', async () => {
+    const result = await handleRender([
+      'scenario-select',
+      '--raw',
+      '--style',
+      'terminal',
+      '--data',
+      '{"scenarios":[{"hook":"Missing title"}]}',
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('scenarios[0].title');
+  });
+
+  test('rejects dialogue choices without label/prompt strings', async () => {
+    const result = await handleRender([
+      'dialogue',
+      '--raw',
+      '--style',
+      'terminal',
+      '--data',
+      '{"choices":[{"label":"Ask","prompt":42}]}',
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('choices[0].prompt');
+  });
+
+  test('rejects character-creation archetypes without names', async () => {
+    const result = await handleRender([
+      'character-creation',
+      '--raw',
+      '--style',
+      'terminal',
+      '--data',
+      '{"archetypes":[{"description":"No name"}]}',
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('archetypes[0].name');
+  });
+
+  test('settings safely serialises hostile defaults inside inline scripts', async () => {
+    const hostileDefaults = JSON.stringify({
+      defaults: {
+        rulebook: '</script><script>alert(1)</script>',
+      },
+    });
+    const result = await handleRender(['settings', '--raw', '--style', 'terminal', '--data', hostileDefaults]);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+    expect((html.match(/<script>/g) ?? [])).toHaveLength(1);
+    expect(html).toContain('\\u003c/script\\u003e\\u003cscript\\u003ealert(1)\\u003c/script\\u003e');
+  });
+
+  test('dice-pool caps total logical dice and canvas size deterministically', async () => {
+    const result = await handleRender([
+      'dice-pool',
+      '--raw',
+      '--data',
+      '{"label":"Crowd Control","pool":[{"dieType":"d6","count":24},{"dieType":"d8","count":24}],"modifier":1}',
+    ]);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+    const canvasHeight = Number(html.match(/height="(\d+)"/)?.[1] ?? '0');
+    expect(html).toContain(`Displaying ${MAX_DICE_POOL_TOTAL} of 48 dice`);
+    expect(canvasHeight).toBeLessThanOrEqual(MAX_DICE_POOL_CANVAS_HEIGHT);
+    expect(html).toContain(`var POOL_MAX_DICE=${MAX_DICE_POOL_TOTAL}`);
+  });
+
+  test('returns style error when state has no visualStyle', async () => {
+    const state = createDefaultState();
+    await saveState(state);
+    const result = await handleRender(['ticker']);
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toContain('No visual style');
+  });
+
+  test('requires state sync before rendering in-game widgets', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.scene = 4;
+    await saveState(state);
+    writeFileSync(join(tempDir, '.last-sync'), '2', 'utf-8');
+
+    const result = await handleRender(['ticker']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('State sync required');
+  });
+
+  test('scene 1 bootstrap: allows render when no sync marker exists', async () => {
+    // Scene 1 is the first in-game scene — there is no prior scene to sync from,
+    // so requiring sync before render creates a chicken-and-egg deadlock.
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.scene = 1;
+    state._modulesRead = [...require('../lib/constants').TIER1_MODULES];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
+    await saveState(state);
+    // Remove the sync marker written by beforeEach — simulate fresh game start
+    const syncPath = join(tempDir, '.last-sync');
+    if (existsSync(syncPath)) rmSync(syncPath);
+
+    const result = await handleRender(['scene', '--style', 'terminal']);
+    // Should NOT fail with "State sync required"
+    expect(result.error?.message ?? '').not.toContain('State sync required');
+  });
+
+  test('scene 2+ still requires sync even with no marker', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.scene = 2;
+    await saveState(state);
+    // Remove the sync marker — scene 2 should still be blocked
+    const syncPath = join(tempDir, '.last-sync');
+    if (existsSync(syncPath)) rmSync(syncPath);
+
+    const result = await handleRender(['ticker']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('State sync required');
+  });
+
+  test('sync gate error for scene 1 names the exact opening scene command', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.scene = 1;
+    await saveState(state);
+    // Write a stale sync marker (scene 0) to block the render
+    const { signMarker } = require('./verify');
+    writeFileSync(join(tempDir, '.last-sync'), signMarker(0), 'utf-8');
+
+    const result = await handleRender(['ticker']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.corrective).toContain('--scene 1');
+    expect(result.error!.corrective).toContain('--room');
+  });
+
+  test('sync gate error for scene 3 names generic --apply command', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.scene = 3;
+    await saveState(state);
+    writeFileSync(join(tempDir, '.last-sync'), '1', 'utf-8'); // plain text — invalid signature
+
+    const result = await handleRender(['ticker']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.corrective).toContain('--apply');
+    expect(result.error!.corrective).not.toContain('--scene 1');
+  });
+});
+
+// ── Style resolution ─────────────────────────────────────────────────
+
+describe('render style resolution', () => {
+  test('--style flag overrides state visualStyle', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'parchment';
+    await saveState(state);
+
+    // terminal style exists in the styles/ directory
+    const result = await handleRender(['ticker', '--style', 'terminal']);
+    expect(result.ok).toBe(true);
+    const data = result.data as { style: string };
+    expect(data.style).toBe('terminal');
+  });
+
+  test('falls back to state visualStyle when no --style flag', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    await saveState(state);
+
+    const result = await handleRender(['ticker']);
+    expect(result.ok).toBe(true);
+    const data = result.data as { style: string };
+    expect(data.style).toBe('terminal');
+  });
+
+  test('unknown style name produces output with warning comment', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'does-not-exist-xyz';
+    await saveState(state);
+
+    const result = await handleRender(['ticker', '--raw']);
+    // Shadow DOM renders with a warning comment when style is not in CDN manifest
+    expect(result.ok).toBe(true);
+    expect(result.data as string).toContain('WARNING');
+  });
+
+  test('rejects style names with invalid characters', async () => {
+    const result = await handleRender(['settings', '--style', '../bad-style']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('invalid characters');
+  });
+
+  test('CSS scope mapping removal does not affect Shadow DOM rendering', async () => {
+    const original = WIDGET_CSS_SCOPES.settings!;
+    delete (WIDGET_CSS_SCOPES as Record<string, readonly string[]>).settings;
+    try {
+      // Shadow DOM bypasses CSS scope mapping — templates receive styleName directly
+      const result = await handleRender(['settings', '--style', 'terminal', '--raw']);
+      expect(result.ok).toBe(true);
+      expect(result.data as string).toContain('attachShadow');
+    } finally {
+      (WIDGET_CSS_SCOPES as Record<string, readonly string[]>).settings = original;
+    }
+  });
+});
+
+// ── Output modes ─────────────────────────────────────────────────────
+
+describe('render output modes', () => {
+  test('returns JSON-wrapped output by default', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    await saveState(state);
+
+    const result = await handleRender(['ticker']);
+    expect(result.ok).toBe(true);
+    const data = result.data as { widget: string; style: string; html: string };
+    expect(data.widget).toBe('ticker');
+    expect(data.style).toBe('terminal');
+    expect(typeof data.html).toBe('string');
+    expect(data.html).toContain('attachShadow');
+  });
+
+  test('non-raw response includes sizeCheck with budget info', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    await saveState(state);
+
+    const result = await handleRender(['ticker']);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const sc = data.sizeCheck as { chars: number; budgetChars: number; withinBudget: boolean; percentUsed: number };
+    expect(sc).toBeDefined();
+    expect(sc.chars).toBe((data.html as string).length);
+    expect(sc.budgetChars).toBe(128 * 1024);
+    expect(sc.withinBudget).toBe(true);
+    expect(sc.percentUsed).toBeGreaterThan(0);
+    expect(sc.percentUsed).toBeLessThanOrEqual(100);
+    expect(data.budgetNote as string).toContain(sc.chars.toLocaleString());
+  });
+
+  test('--raw flag returns HTML string directly', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    await saveState(state);
+
+    const result = await handleRender(['ticker', '--raw']);
+    expect(result.ok).toBe(true);
+    expect(typeof result.data).toBe('string');
+    expect(result.data as string).toContain('attachShadow');
+  });
+
+  test('non-scene widgets carry an exact render-origin marker', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    await saveState(state);
+
+    const result = await handleRender(['ticker', '--raw']);
+    expect(result.ok).toBe(true);
+    expect(result.data as string).toMatch(/^<!-- TAG-RENDER:ticker:[0-9a-f]{8} -->\n/);
+  });
+});
+
+// ── Freshness gates ─────────────────────────────────────────────────
+
+describe('render freshness gates', () => {
+  function sceneReadyState() {
+    const state = createDefaultState();
+    state.visualStyle = 'station';
+    state.scene = 1;
+    state.currentRoom = 'bridge';
+    state.character = {
+      name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
+      level: 1, xp: 0, currency: 0, currencyName: 'credits',
+      stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+      modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+      proficiencyBonus: 2, proficiencies: [], abilities: [],
+      inventory: [], conditions: [],
+      equipment: { weapon: 'None', armour: 'None' },
+    };
+    state._modulesRead = [
+      'gm-checklist', 'prose-craft', 'core-systems',
+      'die-rolls', 'character-creation', 'save-codex',
+    ];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
+    state._compactionCount = 0;
+    return state;
+  }
+
+  test('scene render fails when prose-craft epoch is stale after compaction', async () => {
+    const state = sceneReadyState();
+    state._compactionCount = 3;
+    state._proseCraftEpoch = 1; // stale — behind compaction count
+    await saveState(state);
+
+    const result = await handleRender(['scene']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toMatch(/prose.craft/i);
+    expect(result.error!.corrective).toMatch(/tag module activate prose-craft/);
+  });
+
+  test('scene render fails when prose-craft epoch is undefined', async () => {
+    const state = sceneReadyState();
+    delete (state as any)._proseCraftEpoch;
+    await saveState(state);
+
+    const result = await handleRender(['scene']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toMatch(/prose.craft/i);
+  });
+
+  test('scene render fails when style read epoch is stale after compaction', async () => {
+    const state = sceneReadyState();
+    state._compactionCount = 2;
+    state._proseCraftEpoch = 2; // fresh — so prose-craft gate passes
+    state._styleReadEpoch = 0; // stale
+    await saveState(state);
+
+    const result = await handleRender(['scene']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toMatch(/style/i);
+    expect(result.error!.corrective).toMatch(/tag style activate/);
+  });
+
+  test('scene render fails when style read epoch is undefined', async () => {
+    const state = sceneReadyState();
+    state._proseCraftEpoch = 0; // fresh
+    delete (state as any)._styleReadEpoch;
+    await saveState(state);
+
+    const result = await handleRender(['scene']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toMatch(/style/i);
+  });
+
+  test('scene render succeeds when both epochs match compaction count', async () => {
+    const state = sceneReadyState();
+    state._compactionCount = 5;
+    state._proseCraftEpoch = 5;
+    state._styleReadEpoch = 5;
+    await saveState(state);
+
+    const result = await handleRender(['scene']);
+    // May still fail for other reasons (no HTML composition) but NOT for freshness
+    if (!result.ok) {
+      expect(result.error!.message).not.toMatch(/prose.craft/i);
+      expect(result.error!.message).not.toMatch(/style.*stale/i);
+    }
+  });
+
+  test('pre-game widgets are not affected by freshness gates', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'station';
+    delete (state as any)._proseCraftEpoch;
+    delete (state as any)._styleReadEpoch;
+    await saveState(state);
+
+    const result = await handleRender(['settings']);
+    // settings is pre-game — should not fail for freshness reasons
+    expect(result.ok).toBe(true);
+  });
+
+  test('non-scene in-game widgets are not affected by freshness gates', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'station';
+    delete (state as any)._proseCraftEpoch;
+    delete (state as any)._styleReadEpoch;
+    await saveState(state);
+
+    const result = await handleRender(['ticker']);
+    expect(result.ok).toBe(true);
+  });
+
+  test('hollow state gate blocks scene render when lore source set but roster empty', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'station';
+    state.seed = 'abc123';
+    state._loreSource = '/tmp/adventure.lore.md';
+    state.rosterMutations = [];
+    state.codexMutations = [];
+    state._modulesRead = ['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex'];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
+    state._compactionCount = 0;
+    await saveState(state);
+
+    const result = await handleRender(['scene', '--style', 'station']);
+    expect(result.ok).toBe(false);
+    expect(result.error?.message).toContain('hollow');
+  });
+
+  test('hollow state gate does not block when roster has entries but codex is empty', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'station';
+    state.seed = 'abc123';
+    state._loreSource = '/tmp/adventure.lore.md';
+    state.rosterMutations = [{ type: 'add', id: 'npc1', name: 'Mara', role: 'guide' }] as any;
+    state.codexMutations = [];
+    state._modulesRead = ['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex'];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
+    state._compactionCount = 0;
+    await saveState(state);
+
+    const result = await handleRender(['scene', '--style', 'station']);
+    const errorMsg = result.error?.message ?? '';
+    expect(errorMsg).not.toContain('hollow');
+  });
+
+  test('hollow state gate does not block when codex has entries but roster is empty', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'station';
+    state.seed = 'abc123';
+    state._loreSource = '/tmp/adventure.lore.md';
+    state.rosterMutations = [];
+    state.codexMutations = [{ type: 'add', id: 'loc1', name: 'The Reef' }] as any;
+    state._modulesRead = ['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex'];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
+    state._compactionCount = 0;
+    await saveState(state);
+
+    const result = await handleRender(['scene', '--style', 'station']);
+    const errorMsg = result.error?.message ?? '';
+    expect(errorMsg).not.toContain('hollow');
+  });
+
+  test('hollow state gate does not block when no _loreSource', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'station';
+    state.seed = 'abc123';
+    state.rosterMutations = [];
+    state.codexMutations = [];
+    state._modulesRead = ['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex'];
+    state._proseCraftEpoch = 0;
+    state._styleReadEpoch = 0;
+    state._compactionCount = 0;
+    await saveState(state);
+
+    const result = await handleRender(['scene', '--style', 'station']);
+    // Must not be blocked by the hollow gate — any other gate failure is fine
+    const errorMsg = result.error?.message ?? '';
+    expect(errorMsg).not.toContain('hollow');
+    expect(errorMsg).not.toContain('BLOCKED');
+  });
+});
+
+// ── pre-generated character injection ───────────────────────────────
+
+describe('render character-creation pre-gen injection', () => {
+  test('injects pre-gen characters when module is active', async () => {
+    const { generatePregenCharacters } = await import('../lib/pregen-generator');
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.theme = 'sci-fi';
+    state.seed = 'render-test';
+    state.modulesActive = ['pre-generated-characters'];
+    await saveState(state);
+
+    const result = await handleRender(['character-creation', '--raw', '--style', 'terminal']);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+
+    const expected = generatePregenCharacters({ theme: 'sci-fi', seed: 'render-test' });
+    expect(html).toContain(expected[0]!.name);
+    expect(html).toContain(expected[1]!.name);
+    expect(html).toContain(expected[2]!.name);
+  });
+
+  test('authored preGeneratedCharacters override generated ones', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.theme = 'sci-fi';
+    state.seed = 'render-test';
+    state.modulesActive = ['pre-generated-characters'];
+    await saveState(state);
+
+    const authored = [{ name: 'Captain Authored', class: 'Hero', hook: 'Handcrafted by the GM.' }];
+    const dataArg = JSON.stringify({ preGeneratedCharacters: authored });
+    const result = await handleRender(['character-creation', '--raw', '--style', 'terminal', '--data', dataArg]);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+    expect(html).toContain('Captain Authored');
+  });
+
+  test('injects pre-gen characters via --data.settings.modules when state is absent', async () => {
+    const { generatePregenCharacters } = await import('../lib/pregen-generator');
+    // No state saved — state will be null; module list comes from --data
+    const dataArg = JSON.stringify({
+      settings: { modules: ['pre-generated-characters'] },
+    });
+    const result = await handleRender(['character-creation', '--raw', '--style', 'terminal', '--data', dataArg]);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+
+    const expected = generatePregenCharacters({ theme: 'terminal' });
+    expect(html).toContain(expected[0]!.name);
+    expect(html).toContain(expected[1]!.name);
+    expect(html).toContain(expected[2]!.name);
+  });
+
+  test('pregenCharacters alias key is accepted as authored override', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.theme = 'sci-fi';
+    state.seed = 'render-test';
+    state.modulesActive = ['pre-generated-characters'];
+    await saveState(state);
+
+    const authored = [{ name: 'Rian Vale', class: 'Cartographer', hook: 'From the lore file.' }];
+    const dataArg = JSON.stringify({ pregenCharacters: authored });
+    const result = await handleRender(['character-creation', '--raw', '--style', 'terminal', '--data', dataArg]);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+    expect(html).toContain('Rian Vale');
+  });
+
+  test('uses _lorePregen from state when no --data characters provided', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.theme = 'sci-fi';
+    state.seed = 'render-test';
+    state.modulesActive = ['pre-generated-characters'];
+    (state as Record<string, unknown>)._lorePregen = [
+      { name: 'Suri Kade', class: 'Reef Diver', hook: 'From the lore pipeline.', pronouns: 'she/her',
+        stats: { STR: 12, DEX: 15, CON: 13, INT: 11, WIS: 13, CHA: 10 }, hp: 12, ac: 13,
+        proficiencies: ['Athletics', 'Stealth'], startingInventory: [], startingCurrency: 55 },
+    ];
+    await saveState(state);
+
+    const result = await handleRender(['character-creation', '--raw', '--style', 'terminal']);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+    expect(html).toContain('Suri Kade');
+  });
+
+  test('does not inject pre-gen characters when module is inactive', async () => {
+    const { generatePregenCharacters } = await import('../lib/pregen-generator');
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.theme = 'sci-fi';
+    state.seed = 'render-test';
+    state.modulesActive = [];
+    await saveState(state);
+
+    const result = await handleRender(['character-creation', '--raw', '--style', 'terminal']);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+
+    const notExpected = generatePregenCharacters({ theme: 'sci-fi', seed: 'render-test' });
+    expect(html).not.toContain(notExpected[0]!.name);
+  });
+});
+
+// ── --out flag ──────────────────────────────────────────────────────
+
+describe('render --out flag', () => {
+  const scenarioData = JSON.stringify({
+    scenarios: [
+      { title: 'Alpha', description: 'First.', genres: ['mystery'] },
+      { title: 'Beta', description: 'Second.', genres: ['horror'] },
+    ],
+  });
+
+  test('writes HTML to specified file path', async () => {
+    const outFile = join(tempDir, 'scenario.html');
+    const result = await handleRender(['scenario-select', '--data', scenarioData, '--out', outFile]);
+    expect(result.ok).toBe(true);
+    expect(existsSync(outFile)).toBe(true);
+    const fileContent = readFileSync(outFile, 'utf-8');
+    expect(fileContent).toContain('Alpha');
+    expect(fileContent).toContain('Beta');
+  });
+
+  test('outFile field is present in response when --out used', async () => {
+    const outFile = join(tempDir, 'scenario2.html');
+    const result = await handleRender(['scenario-select', '--data', scenarioData, '--out', outFile]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.outFile).toBe(outFile);
+  });
+
+  test('outFile field is absent when --out not used', async () => {
+    const result = await handleRender(['scenario-select', '--data', scenarioData]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.outFile).toBeUndefined();
+  });
+
+  test('--out works with --raw flag', async () => {
+    const outFile = join(tempDir, 'raw-scenario.html');
+    const result = await handleRender(['scenario-select', '--raw', '--data', scenarioData, '--out', outFile]);
+    expect(result.ok).toBe(true);
+    expect(existsSync(outFile)).toBe(true);
+    const fileContent = readFileSync(outFile, 'utf-8');
+    expect(fileContent).toContain('Alpha');
+    // Raw mode with --out returns { html, outFile } instead of bare string
+    const data = result.data as Record<string, unknown>;
+    expect(data.outFile).toBe(outFile);
+  });
+
+  test('html field is absent from response data when --out used', async () => {
+    const outFile = join(tempDir, 'match-test.html');
+    const result = await handleRender(['scenario-select', '--data', scenarioData, '--out', outFile]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.html).toBeUndefined();
+  });
+});

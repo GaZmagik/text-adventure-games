@@ -779,6 +779,7 @@ declared on `.root` so they scope to the widget iframe and do not bleed into
 any host page styles.
 
 ```css
+/* @extract */
 /* =====================================================================
    WEATHERED THEME — text-adventure engine visual style
    Distressed post-apocalyptic aesthetic. Rust, concrete, survival.
@@ -877,8 +878,25 @@ any host page styles.
   --ta-badge-crit-failure-border: var(--w-blood);
   --ta-color-credits:             var(--w-brass);
   --ta-color-tab-active:          var(--w-rust);
+  --ta-color-info:                #6B8EA6;
+  --ta-btn-primary-text:          #1a1a1a;
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.5s;
+
+  /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
+  --sta-text-primary:             var(--w-text-primary);
+  --sta-text-secondary:           var(--w-text-secondary);
+  --sta-text-tertiary:            var(--w-text-tertiary);
+  --sta-border-tertiary:          var(--w-border-light);
+  --sta-color-text-emphasis:      #1a1a1a;
+
+  /* --- Speaker colours (multi-dialogue) --- */
+  --speaker-color-0: #8b6f47;
+  --speaker-color-1: #6b8ea6;
+  --speaker-color-2: #a05050;
+  --speaker-color-3: #c4b89a;
+  --speaker-color-4: #6b7c5a;
+  --speaker-color-5: #b07040;
 }
 
 /* --- Dark mode token overrides --- */

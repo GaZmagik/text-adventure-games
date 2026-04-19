@@ -327,7 +327,7 @@ state changes are still communicated without motion.
 
 ```css
 /* Base transition durations — referenced by components */
-:root {
+:host {
   --ad-dur-fast:   0.15s;
   --ad-dur-normal: 0.25s;
   --ad-dur-slow:   0.45s;
@@ -335,7 +335,7 @@ state changes are still communicated without motion.
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :root {
+  :host {
     --ad-dur-fast:   0.01s;
     --ad-dur-normal: 0.01s;
     --ad-dur-slow:   0.01s;
@@ -553,6 +553,7 @@ Google Fonts with graceful fallback, declares all custom properties, and overrid
 every standard component class used by the text adventure engine.
 
 ```css
+/* @extract */
 /* ============================================================
    ART DECO THEME — Text Adventure Visual Style
    Inject into widget <style> block.
@@ -564,7 +565,7 @@ every standard component class used by the text adventure engine.
 
 /* ── Custom Properties ───────────────────────────────────── */
 
-:root {
+:host {
   /* Colour — light mode */
   --ad-bg-primary:       #F2E9D8;
   --ad-bg-secondary:     #E8DCCA;
@@ -606,11 +607,64 @@ every standard component class used by the text adventure engine.
   --ad-dur-normal: 0.25s;
   --ad-dur-slow:   0.45s;
   --ad-ease:       cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
+  --ta-font-heading:              var(--ad-font-heading);
+  --ta-font-body:                 var(--ad-font-mono);
+  --ta-font-serif:                var(--ad-font-heading);
+  --ta-color-accent:              var(--ad-gold);
+  --ta-color-accent-hover:        var(--ad-gold-light);
+  --ta-color-accent-bg:           rgba(196, 164, 80, 0.12);
+  --ta-color-accent-bg-hover:     rgba(196, 164, 80, 0.20);
+  --ta-color-success:             var(--ad-jade);
+  --ta-color-success-border:      color-mix(in srgb, var(--ad-jade) 70%, black);
+  --ta-color-danger:              var(--ad-crimson);
+  --ta-color-danger-border:       color-mix(in srgb, var(--ad-crimson) 70%, black);
+  --ta-color-danger-bg:           rgba(139, 34, 56, 0.12);
+  --ta-color-danger-bg-hover:     rgba(139, 34, 56, 0.20);
+  --ta-color-warning:             var(--ad-copper);
+  --ta-color-warning-border:      color-mix(in srgb, var(--ad-copper) 70%, black);
+  --ta-color-warning-bg:          rgba(180, 120, 60, 0.12);
+  --ta-color-xp:                  var(--ad-gold);
+  --ta-color-focus:               var(--ad-gold);
+  --ta-color-conviction:          #5B7A7A;
+  --ta-color-conviction-border:   #4A6868;
+  --ta-color-bg-secondary:        var(--ad-bg-secondary);
+  --ta-color-credits:             var(--ad-gold);
+  --ta-color-tab-active:          var(--ad-gold);
+  --ta-color-info:                var(--ad-copper);
+  --ta-btn-primary-text:          #ffffff;
+  --ta-color-xp-border:           color-mix(in srgb, var(--ad-gold) 50%, transparent);
+  --ta-badge-success-bg:          rgba(42, 127, 98, 0.12);
+  --ta-badge-success-text:        var(--ad-jade);
+  --ta-badge-partial-bg:          rgba(180, 120, 60, 0.12);
+  --ta-badge-partial-text:        var(--ad-copper);
+  --ta-badge-failure-bg:          rgba(139, 38, 54, 0.12);
+  --ta-badge-failure-text:        var(--ad-crimson);
+  --ta-badge-crit-success-border: var(--ad-jade);
+  --ta-badge-crit-failure-border: var(--ad-crimson);
+  --ta-border-style-poi:          1px dashed;
+  --ta-die-spin-duration:         0.5s;
+
+  /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
+  --sta-text-primary:             var(--ad-text-primary);
+  --sta-text-secondary:           var(--ad-text-secondary);
+  --sta-text-tertiary:            var(--ad-text-muted);
+  --sta-border-tertiary:          var(--ad-border-muted);
+  --sta-color-text-emphasis:      #ffffff;
+
+  /* --- Speaker colours (multi-dialogue) --- */
+  --speaker-color-0: #c9a84c;
+  --speaker-color-1: #1a472a;
+  --speaker-color-2: #8b1a1a;
+  --speaker-color-3: #4a4a6a;
+  --speaker-color-4: #b8860b;
+  --speaker-color-5: #c0c0c0;
 }
 
 /* Dark mode token overrides */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :host {
     --ad-bg-primary:       #0D1520;
     --ad-bg-secondary:     #152030;
     --ad-bg-panel:         #111C2A;
@@ -667,7 +721,7 @@ every standard component class used by the text adventure engine.
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  :root {
+  :host {
     --ad-dur-fast:   0.01s;
     --ad-dur-normal: 0.01s;
     --ad-dur-slow:   0.01s;

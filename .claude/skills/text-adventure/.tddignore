@@ -1,0 +1,27 @@
+# Pure type definitions — no runtime behaviour to test
+cli/types.ts
+
+# CLI entry point — tested via integration
+cli/tag.ts
+
+# Help text — string constants, no logic
+cli/help.ts
+
+# Render templates — tested via integration/e2e, not colocated specs
+cli/render/templates/*.ts
+
+# Render lib string constants — client-side JS embedded as template strings, no server-side logic
+cli/render/lib/soundscape.ts
+cli/render/lib/webgl-dice.ts
+cli/render/lib/scene-script.ts
+cli/render/lib/send-prompt.ts
+
+# Data constants — string arrays, no logic
+cli/data/prose-guidance.ts
+cli/data/prose-rules.ts
+
+# CLI manual — markdown documentation, not testable code
+cli/manual.md
+
+# Refactored extraction from verify.ts — tested via verify.spec.ts and verify-pregame.spec.ts
+cli/lib/verify-checks.ts

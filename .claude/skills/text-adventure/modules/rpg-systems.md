@@ -13,7 +13,7 @@ cards. Each card shows the system name, a one-line summary, the resolution mecha
 
 | System | Resolution | Best For |
 |--------|-----------|----------|
-| **d20 System** (default) | d20 + modifier vs DC. 4 stats, HP tracking. | Casual play, newcomers, fast sessions. |
+| **d20 System** (default) | d20 + modifier vs DC. 6 ability scores (STR, DEX, CON, INT, WIS, CHA), HP tracking. | Casual play, newcomers, fast sessions. |
 | **D&D 5e** | d20 + ability mod + proficiency vs DC. 6 ability scores, class features, spell slots. | Classic fantasy RPG, faithful to 5th Edition rules. |
 | **GURPS Lite** | 3d6 roll-under. Point-buy characters, advantages/disadvantages. | Realistic and simulationist play. |
 | **Pathfinder 2e Lite** | d20 + modifier + proficiency vs DC. Three-action economy, crit ranges. | Tactical combat-focused play. |
@@ -36,7 +36,7 @@ Store the active system in `gmState.settings.rulebook` using one of: `'d20_syste
 This is the built-in system from `core-systems.md` and `die-rolls.md`. No additional rules
 are needed — selecting this option activates the standard engine as documented in those files.
 
-**Summary:** 4 stats (STR, AGI, INT, CHA), d20 + modifier vs DC, HP tracking, conditions,
+**Summary:** 6 ability scores (STR, DEX, CON, INT, WIS, CHA), d20 + modifier vs DC, HP tracking, conditions,
 proficiency bonuses, six archetypes. See `core-systems.md` for full details.
 
 ---
@@ -199,12 +199,12 @@ Spellcasting ability depends on class: INT (Wizard), WIS (Cleric, Druid, Ranger)
 - **Short rest** = 1 hour of downtime. A character may spend one or more Hit Dice to recover HP. Roll each Hit Die + CON modifier; regain that many HP.
 - **Long rest** = 8 hours (at least 6 of which are sleep). Regain all lost HP. Regain spent Hit Dice up to half your total (minimum 1). Spell slots are restored. Most class features that recharge on a long rest are restored.
 
-### Die Roll Widget Adaptation
+### Die Roll Adaptation
 
-- **Declare:** Show modifier breakdown (ability mod + proficiency bonus + situational bonuses), target DC/AC, and a `[ ROLL 1d20 ]` button. If advantage or disadvantage applies, show `[ ROLL 2d20 ]` and indicate which applies.
-- **Animate:** Standard d20 spin (0.6s). If rolling 2d20, animate both with a slight stagger (0.1s offset).
-- **Resolve:** Show total vs DC/AC. Check for natural 20/1 on attack rolls. For critical hits, animate bonus damage dice. Badge: CRITICAL HIT / HIT / MISS / CRITICAL MISS (attacks) or SUCCESS / FAILURE (checks/saves).
-- **Continue:** Standard continue pattern.
+When adapting the die widget for D&D 5e, use the standard click-to-roll flow with the
+following reveal details:
+- **Declare:** Modifier breakdown (ability mod + proficiency bonus + situational bonuses), target DC/AC. Advantage/disadvantage shows 2d20.
+- **Resolve:** Total vs DC/AC. Natural 20/1 on attack rolls. Critical hits roll bonus damage dice. Badge: CRITICAL HIT / HIT / MISS / CRITICAL MISS (attacks) or SUCCESS / FAILURE (checks/saves).
 
 ---
 
@@ -232,8 +232,9 @@ Disadvantages give back 10–25 points (maximum −40 points from disadvantages)
 4. Spend remaining points on skills.
 5. GM calculates derived stats (HP, FP, Base Speed).
 
-Present a point-buy widget with increment/decrement controls for each characteristic, a
-running total of points spent, and selectable advantage/disadvantage cards.
+The character creation scene template presents a point-buy interface with increment/decrement
+controls for each characteristic, a running total of points spent, and selectable
+advantage/disadvantage cards.
 
 ### Core Mechanic — 3d6 Roll-Under
 
@@ -301,15 +302,12 @@ Each round: **1 action** (attack, defend, move, or use item).
 - **Injury:** Damage that penetrates DR is subtracted from HP.
 - **Incapacitation:** At HP 0, make HT rolls each round to stay conscious. At −HP, death.
 
-### Die Roll Widget Adaptation
+### Die Roll Adaptation
 
-The four-stage pattern (Declare → Animate → Resolve → Continue) adapts as follows:
-- **Declare:** Show effective skill (attribute + modifiers), difficulty modifier, and a
-  `[ ROLL 3d6 ]` button. Target number shown (roll-under, so the player knows the target).
-- **Animate:** Roll three dice with sequential animation (0.2s each).
-- **Resolve:** Show sum of 3d6, compare to effective skill. Display margin of success/failure.
-  Badge: CRITICAL SUCCESS / SUCCESS / FAILURE / CRITICAL FAILURE.
-- **Continue:** Standard continue pattern.
+When adapting the die widget for GURPS, use the click-to-roll flow with the following
+reveal details:
+- **Declare:** Effective skill (attribute + modifiers), difficulty modifier, target number (roll-under).
+- **Resolve:** Sum of 3d6 vs effective skill. Margin of success/failure displayed. Badge: CRITICAL SUCCESS / SUCCESS / FAILURE / CRITICAL FAILURE.
 
 ---
 
@@ -395,8 +393,8 @@ Each turn, a character receives **3 actions**. Possible actions:
 | **Aid** | 1 action | Help an ally's next check (+1 circumstance bonus). |
 | **Take Cover** | 1 action | +2 AC, +1 Reflex saves. |
 
-The three-action economy is the heart of PF2e. Present available actions as buttons with
-their action cost shown as pips (●○○ for 1 action, ●●○ for 2, ●●● for 3). Track remaining
+The three-action economy is the heart of PF2e. The scene template presents available actions
+as buttons with their action cost shown as pips (●○○ for 1 action, ●●○ for 2, ●●● for 3). Track remaining
 actions in the combat widget header.
 
 ### Skills (16)
@@ -420,14 +418,12 @@ HP = Ancestry HP bonus + (Class HP per level × level) + (CON modifier × level)
 - **Ranged damage** = weapon die + DEX modifier (finesse/ranged weapons).
 - **Saving throws:** Fortitude (CON), Reflex (DEX), Will (WIS). Each has its own proficiency tier.
 
-### Die Roll Widget Adaptation
+### Die Roll Adaptation
 
-- **Declare:** Show modifier breakdown (ability + proficiency tier + bonuses), action cost
-  in pips, and a `[ ROLL 1d20 ]` button.
-- **Animate:** Standard d20 spin (0.6s).
-- **Resolve:** Show total vs DC. Check for critical thresholds (±10 from DC). Apply natural
-  20/1 step adjustments. Badge: CRITICAL SUCCESS / SUCCESS / FAILURE / CRITICAL FAILURE.
-- **Continue:** Standard continue pattern.
+When adapting the die widget for PF2e, use the click-to-roll flow with the following
+reveal details:
+- **Declare:** Modifier breakdown (ability + proficiency tier + bonuses), action cost in pips.
+- **Resolve:** Total vs DC. Critical thresholds at +/-10 from DC. Natural 20/1 step adjustments. Badge: CRITICAL SUCCESS / SUCCESS / FAILURE / CRITICAL FAILURE.
 
 ---
 
@@ -483,8 +479,9 @@ Assign priorities A through E (each used once) to five categories:
 | Ork | +3 Body, +1 STR; low-light vision |
 | Troll | +4 Body, +1 STR; thermographic vision; natural armour (+1 DR); reach |
 
-Present the priority system as a drag-and-drop or selection grid widget. Each category shows
-what each priority tier provides. The player assigns letters and the GM calculates totals.
+The character creation scene template presents the priority system as a selection grid. Each
+category shows what each priority tier provides. The player assigns letters and the GM
+calculates totals.
 
 ### Core Mechanic — Dice Pool (d6s)
 
@@ -580,18 +577,12 @@ Available if Magic/Resonance priority is C or higher.
 - **Astral perception:** Mages can perceive the astral plane, seeing magical auras, spirits,
   and concealed magical effects. Useful for investigation and detecting ambushes.
 
-### Die Roll Widget Adaptation
+### Die Roll Adaptation
 
-- **Declare:** Show dice pool size (attribute + skill + modifiers), threshold, and a
-  `[ ROLL Xd6 ]` button (where X = pool size). If Edge is available, show a secondary
-  `[ PUSH THE LIMIT ]` button that adds Edge dice.
-- **Animate:** Roll all dice simultaneously with staggered animation (0.05s per die). Each
-  die lands and is colour-coded: green for hits (5–6), neutral for misses (2–4), red for
-  ones (1).
-- **Resolve:** Count hits, compare to threshold. Check for glitch/critical glitch conditions.
-  Badge: CRITICAL GLITCH / GLITCH / FAILURE / SUCCESS / EXCEPTIONAL SUCCESS (hits exceed
-  threshold by 3+).
-- **Continue:** Standard continue pattern.
+When adapting the dice UI for Shadowrun, use a click-to-roll pool presentation with the
+following reveal details:
+- **Declare:** Dice pool size (attribute + skill + modifiers), threshold. Edge option if available.
+- **Resolve:** Count hits (5-6), compare to threshold. Check glitch/critical glitch (half or more dice show 1s). Badge: CRITICAL GLITCH / GLITCH / FAILURE / SUCCESS / EXCEPTIONAL SUCCESS (hits exceed threshold by 3+).
 
 ---
 
@@ -671,15 +662,16 @@ green (7–10). No numeric label — the visual conveys the state.
 - Perfect for genres where combat is not the focus: political intrigue, horror, mystery,
   isekai, romance, slice-of-life, psychological thriller.
 
-### Character Creation Widget Adaptation
+### Character Creation Adaptation
 
-Replace the standard stat-block widget with a narrative identity widget:
-- **Concept:** single-line text input with placeholder ("Who are you, in one sentence?").
-- **Strengths:** three text inputs with placeholders ("What are you good at?").
-- **Flaws:** two text inputs with placeholders ("What gets you into trouble?").
-- **Bond:** one text input with placeholder ("Who matters to you, and why?").
+The character creation scene template replaces the standard stat-block interface with a
+narrative identity form:
+- **Concept:** single-line text input ("Who are you, in one sentence?").
+- **Strengths:** three text inputs ("What are you good at?").
+- **Flaws:** two text inputs ("What gets you into trouble?").
+- **Bond:** one text input ("Who matters to you, and why?").
 - **No archetype selector.** The concept replaces the archetype.
-- **Confirm button:** `sendPrompt('My character is ready. Begin the adventure.')`.
+- **Confirm button** triggers `sendPrompt` to begin the adventure.
 
 ---
 
@@ -878,12 +870,12 @@ Each character begins with a starting Obligation that ties them to the setting a
 
 **Step 4 — Spend XP:** Spend starting XP (determined by species) on increasing characteristics, purchasing skill ranks, or acquiring talents.
 
-### Die Roll Widget Adaptation
+### Die Roll Adaptation
 
-- **Declare:** Show the assembled dice pool as coloured dice icons (green, yellow, purple, red, blue, black). Display the skill and characteristic being rolled, the difficulty level, and any Boost/Setback sources. Show a `[ ROLL POOL ]` button.
-- **Animate:** Roll all dice simultaneously with staggered animation (0.05s per die). Each die lands showing its symbol results. Colour-code symbols: green for Success, blue for Advantage, gold for Triumph, red for Failure, orange for Threat, dark red for Despair.
-- **Resolve:** Cancel Success vs Failure, then cancel Advantage vs Threat. Display net results on both axes. Show Triumph and Despair separately (they cannot be cancelled). Badge: TRIUMPH / SUCCESS + ADVANTAGE / SUCCESS + THREAT / FAILURE + ADVANTAGE / FAILURE + THREAT / DESPAIR. Offer contextual spending options for net Advantage or Threat as selectable buttons.
-- **Continue:** Standard continue pattern.
+When adapting the dice UI for SWRPG narrative dice, use a click-to-roll pool presentation
+with the following reveal details:
+- **Declare:** Assembled dice pool as coloured dice icons (green, yellow, purple, red, blue, black). Skill, characteristic, difficulty, and Boost/Setback sources displayed.
+- **Resolve:** Cancel Success vs Failure, then Advantage vs Threat. Display net results on both axes. Triumph and Despair shown separately (cannot be cancelled). Badge: TRIUMPH / SUCCESS + ADVANTAGE / SUCCESS + THREAT / FAILURE + ADVANTAGE / FAILURE + THREAT / DESPAIR. Contextual spending options for net Advantage or Threat.
 
 ---
 
@@ -895,13 +887,13 @@ When a non-default system is selected, the following modules adapt their behavio
 
 | Active System | Resolution Display |
 |---------------|-------------------|
-| d20 System | d20 + modifier vs DC (standard four-stage pattern) |
-| D&D 5e | d20 + ability mod + proficiency vs DC/AC (four-stage, advantage/disadvantage shows 2d20) |
-| GURPS Lite | 3d6 roll-under vs effective skill (four-stage, target shown before roll) |
-| Pathfinder 2e Lite | d20 + modifier + proficiency vs DC (four-stage, crit range ±10) |
-| Shadowrun 5e Lite | Xd6 dice pool, count hits vs threshold (four-stage, colour-coded dice) |
+| d20 System | d20 + modifier vs DC (standard click-to-roll single-die flow) |
+| D&D 5e | d20 + ability mod + proficiency vs DC/AC (click-to-roll, advantage/disadvantage shows 2d20) |
+| GURPS Lite | 3d6 roll-under vs effective skill (click-to-roll, target shown before roll) |
+| Pathfinder 2e Lite | d20 + modifier + proficiency vs DC (click-to-roll, crit range ±10) |
+| Shadowrun 5e Lite | Xd6 dice pool, count hits vs threshold (click-to-roll pool, colour-coded dice) |
 | Narrative Engine | No dice widgets — pure prose resolution via Momentum track |
-| SWRPG Narrative Dice | Narrative dice pool with colour-coded symbol dice (four-stage, dual-axis resolution) |
+| SWRPG Narrative Dice | Narrative dice pool with colour-coded symbol dice (click-to-roll pool, dual-axis resolution) |
 
 ### Combat Widget
 
@@ -961,6 +953,7 @@ where they exist:
 
 When this module is active, the following fields are added or modified in `gmState`:
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 gmState.settings.rulebook = 'd20_system'; // or 'dnd_5e', 'gurps_lite', 'pf2e_lite', 'shadowrun_lite', 'narrative_engine', 'swrpg_narrative'
 

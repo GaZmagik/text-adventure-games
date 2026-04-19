@@ -177,8 +177,7 @@ All WCAG AA contrast ratios are calculated against `--sta-bg-primary` (`#1A1D2E`
 ### Dark Mode (default)
 
 ```css
-:root,
-[data-theme="station"] {
+:host {
 
   /* ── Surfaces ──────────────────────────────────────────────────── */
   --sta-bg-primary:      #1A1D2E;   /* deep navy — main background */
@@ -300,8 +299,18 @@ All WCAG AA contrast ratios are calculated against `--sta-bg-primary` (`#1A1D2E`
   --ta-badge-crit-failure-border: var(--sta-badge-crit-failure-border);
   --ta-color-credits:          var(--sta-color-currency);
   --ta-color-tab-active:       var(--sta-color-location);
+  --ta-color-info:             #4A9FD4;
+  --ta-btn-primary-text:       #ffffff;
   --ta-border-style-poi:       1px dashed;
   --ta-die-spin-duration:      0.5s;
+
+  /* --- Speaker colours (multi-dialogue) --- */
+  --speaker-color-0: #1b5e3b;
+  --speaker-color-1: #f5e6c8;
+  --speaker-color-2: #8b1a2d;
+  --speaker-color-3: #f5c518;
+  --speaker-color-4: #1c3a5e;
+  --speaker-color-5: #a0a0a0;
 }
 ```
 
@@ -309,8 +318,7 @@ All WCAG AA contrast ratios are calculated against `--sta-bg-primary` (`#1A1D2E`
 
 ```css
 @media (prefers-color-scheme: light) {
-  :root,
-  [data-theme="station"] {
+  :host {
     --sta-bg-primary:      #F8F9FC;
     --sta-bg-secondary:    #EDEEF5;
     --sta-bg-tertiary:     #E0E2EF;
@@ -569,7 +577,7 @@ Used for: points of interest, inspect, examine.
 .btn-poi:hover, .poi-btn:hover {
   border-style: solid;
   border-color: var(--sta-border-secondary);
-  background: var(--color-background-secondary, var(--sta-bg-secondary));
+  background: var(--sta-bg-secondary, #22263A);
   color: var(--sta-text-primary);
 }
 ```
@@ -1459,18 +1467,8 @@ The `@import` will silently no-op if Google Fonts is CSP-blocked — the fallbac
 handle that case independently.
 
 ```css
-/* =======================================================================
-   STATION THEME — text-adventure game engine
-   Space-station operations terminal — hybrid serif/mono visual style
-   Default style — playtested and battle-hardened
-   v1.0 — compatible with Claude.ai visualize:show_widget iframes
-   ======================================================================= */
-
-/* --- Google Fonts (CSP-blocked in Claude.ai sandbox; fallbacks below) --- */
-@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@600;700&display=swap');
-
-/* --- Custom Properties --- */
-:root {
+/* @extract:vars */
+:host {
   --sta-font-serif:   'Lora', 'Georgia', 'Times New Roman', 'Book Antiqua', serif;
   --sta-font-mono:    'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
   --sta-font-display: 'Syne', 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -1558,11 +1556,50 @@ handle that case independently.
   --sta-badge-failure-text:        #F08090;
   --sta-badge-crit-success-border: #2BA882;
   --sta-badge-crit-failure-border: #E84855;
+
+  /* Font aliases (referenced by widget templates) */
+  --ta-font-heading: var(--sta-font-display);
+  --ta-font-body:    var(--sta-font-mono);
+
+  /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
+  --ta-color-accent:           var(--sta-color-accent);
+  --ta-color-accent-hover:     var(--sta-color-accent-hover);
+  --ta-color-accent-bg:        var(--sta-color-accent-bg);
+  --ta-color-accent-bg-hover:  var(--sta-color-accent-bg-hover);
+  --ta-color-success:          var(--sta-color-success);
+  --ta-color-success-border:   var(--sta-color-success-border);
+  --ta-color-danger:           var(--sta-color-danger);
+  --ta-color-danger-border:    var(--sta-color-danger-border);
+  --ta-color-danger-bg:        var(--sta-color-danger-bg);
+  --ta-color-danger-bg-hover:  var(--sta-color-danger-bg-hover);
+  --ta-color-warning:          var(--sta-color-warning);
+  --ta-color-warning-border:   var(--sta-color-warning-border);
+  --ta-color-warning-bg:       var(--sta-color-warning-bg);
+  --ta-color-xp:               var(--sta-color-xp);
+  --ta-color-focus:            var(--sta-color-location);
+  --ta-color-conviction:       #7C6BF0;
+  --ta-color-conviction-border: #6B5CE0;
+  --ta-badge-success-bg:       var(--sta-badge-success-bg);
+  --ta-badge-success-text:     var(--sta-badge-success-text);
+  --ta-badge-partial-bg:       var(--sta-badge-partial-bg);
+  --ta-badge-partial-text:     var(--sta-badge-partial-text);
+  --ta-badge-failure-bg:       var(--sta-badge-failure-bg);
+  --ta-badge-failure-text:     var(--sta-badge-failure-text);
+  --ta-badge-crit-success-border: var(--sta-badge-crit-success-border);
+  --ta-badge-crit-failure-border: var(--sta-badge-crit-failure-border);
+  --ta-color-credits:          var(--sta-color-currency);
+  --ta-color-tab-active:       var(--sta-color-location);
+  --ta-color-info:             #4A9FD4;
+  --ta-btn-primary-text:       #ffffff;
+  --ta-border-style-poi:       1px dashed;
+  --ta-die-spin-duration:      0.5s;
+  --ta-die-bg:         #909AB4;   /* Steel — 5.06:1 against page bg */
+  --ta-die-text-color: #1E2030;   /* Dark text on steel — 5.72:1 */
 }
 
 /* --- Light Mode Override --- */
 @media (prefers-color-scheme: light) {
-  :root {
+  :host {
     --sta-bg-primary:      #F8F9FC;
     --sta-bg-secondary:    #EDEEF5;
     --sta-bg-tertiary:     #E0E2EF;
@@ -1590,6 +1627,7 @@ handle that case independently.
     --sta-badge-crit-success-border: #1B7A5C;
     --sta-badge-crit-failure-border: #C42030;
     --ta-color-accent:            var(--sta-color-accent);
+    --ta-color-accent-hover:      var(--sta-color-accent-hover);
     --ta-color-accent-bg:         var(--sta-color-accent-bg);
     --ta-color-accent-bg-hover:   var(--sta-color-accent-bg-hover);
     --ta-color-success:           var(--sta-color-success);
@@ -1615,8 +1653,24 @@ handle that case independently.
     --ta-badge-crit-failure-border: var(--sta-badge-crit-failure-border);
     --ta-color-credits:           var(--sta-color-currency);
     --ta-color-tab-active:        var(--sta-color-location);
+    --ta-color-info:              #4A9FD4;
+    --ta-btn-primary-text:        #ffffff;
+    --ta-die-bg:                  #424A60;   /* Steel — 8.44:1 against page bg */
+    --ta-die-text-color:          #F0F2FF;   /* Light text on steel — 7.92:1 */
   }
 }
+
+```
+
+```css
+/* @extract:full */
+/* =======================================================================
+   STATION THEME — text-adventure game engine
+   Space-station operations terminal — hybrid serif/mono visual style
+   Default style — playtested and battle-hardened
+   v1.0 — compatible with Claude.ai visualize:show_widget iframes
+   ======================================================================= */
+/* :host vars and light-mode override are in @extract:vars — not duplicated here */
 
 /* --- Reduced Motion Kill-switch --- */
 @media (prefers-reduced-motion: reduce) {
@@ -1785,10 +1839,11 @@ button:focus-visible, [data-prompt]:focus-visible {
 
 /* --- Footer Row & Button --- */
 .footer-row {
-  display: flex; justify-content: flex-start; gap: var(--sta-space-sm); flex-wrap: wrap;
+  display: flex; justify-content: space-between; gap: var(--sta-space-sm); flex-wrap: wrap;
   margin-top: var(--sta-space-md); padding-top: var(--sta-space-sm);
   border-top: var(--sta-border-width) solid var(--sta-border-tertiary);
 }
+.footer-left, .footer-right { display: flex; gap: var(--sta-space-sm); flex-wrap: wrap; align-items: center; }
 .footer-btn {
   font-family: var(--sta-font-mono); font-size: var(--sta-text-xs); letter-spacing: 0.1em; text-transform: uppercase;
   padding: var(--sta-space-sm) var(--sta-space-md);
@@ -1981,14 +2036,6 @@ button:focus-visible, [data-prompt]:focus-visible {
 .conviction-pips { display: flex; gap: 6px; align-items: center; }
 .conviction-pip { width: 10px; height: 10px; border-radius: 50%; border: 0.5px solid var(--ta-color-conviction, #7C6BF0); background: transparent; }
 .conviction-pip.filled { background: var(--ta-color-conviction, #7C6BF0); border-color: var(--ta-color-conviction-border, #6B5CE0); }
-
-/* --- Panel Overlay --- */
-#panel-overlay { display: none; padding: 0; }
-.panel-header { display: flex; align-items: baseline; justify-content: space-between; padding-bottom: var(--sta-space-sm); margin-bottom: var(--sta-space-md); border-bottom: var(--sta-border-width) solid var(--sta-border-tertiary); }
-.panel-title { font-family: var(--sta-font-display); font-size: var(--sta-text-lg); font-weight: 600; color: var(--sta-text-primary); border-left: var(--sta-location-bar-width) solid var(--sta-location-bar-color); padding-left: var(--sta-space-sm); }
-.panel-close-btn { font-family: var(--sta-font-mono); font-size: var(--sta-text-xs); letter-spacing: 0.1em; background: transparent; border: var(--sta-border-width) solid var(--sta-border-tertiary); border-radius: var(--sta-radius-md); padding: var(--sta-space-sm) var(--sta-space-md); min-height: var(--sta-touch-target); min-width: var(--sta-touch-target); box-sizing: border-box; color: var(--sta-text-tertiary); cursor: pointer; }
-.panel-close-btn:hover { border-color: var(--sta-border-secondary); color: var(--sta-text-secondary); }
-.panel-content { display: none; font-family: var(--sta-font-serif); font-size: 13px; line-height: 1.75; color: var(--sta-text-secondary); }
 
 /* --- Fallback Prompt --- */
 .fallback-text { font-family: var(--sta-font-mono); font-size: var(--sta-text-sm); color: var(--sta-text-tertiary); margin-top: var(--sta-space-sm); display: none; line-height: 1.6; }

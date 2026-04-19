@@ -13,6 +13,17 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: ai-npc, l
 
 ---
 
+## § CLI Commands
+
+| Action | Command | Tool |
+|--------|---------|------|
+| Render map | `tag render map --style <style>` | Run via Bash tool |
+| Set world state | `tag state set mapState.<path> <value>` | Run via Bash tool |
+
+> **All widget output must be produced by running the `tag` CLI via Bash tool.** Do not hand-code HTML, CSS, or JS for map or seed widgets — use the commands above.
+
+---
+
 ## Architecture Overview
 
 ```
@@ -44,6 +55,7 @@ player's progress flags. Regenerate the world on resume; reapply the flags.
 
 All randomness in the system flows through a single seeded PRNG. This guarantees determinism.
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 // Mulberry32 — fast, high-quality 32-bit seeded PRNG
 function mulberry32(seed) {
@@ -74,6 +86,7 @@ function createPRNG(seedStr) {
 
 **PRNG utility functions** — build these on top of the raw PRNG:
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 // Integer in range [min, max] inclusive
 function randInt(rng, min, max) {
@@ -137,6 +150,7 @@ pipeline without accounting for it.
 When generating a world for arc 2+, derive a new seed from the original to ensure
 deterministic but distinct world generation per arc:
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 function deriveArcSeed(originalSeed, arcNumber) {
   if (arcNumber <= 1) return originalSeed;
@@ -165,6 +179,7 @@ Seeds are human-readable strings. They can be:
 
 **Auto-generation** when no seed is given:
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const ADJECTIVES = [
   'iron','pale','dead','hollow','fractured','silent','burning','veiled',
@@ -183,7 +198,7 @@ function generateSeed(rng) {
 }
 ```
 
-Display the seed prominently in the first scene widget. The player must be able to copy it to
+Display the seed prominently in the first scene render. The player must be able to copy it to
 replay or share the run. Store it in `gmState.seed`.
 
 ---
@@ -194,6 +209,7 @@ Generates the room graph: nodes (rooms) and edges (connections/exits between the
 
 ### Room graph generation
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 function generateGeography(rng, config = {}) {
   const {
@@ -273,6 +289,7 @@ function generateGeography(rng, config = {}) {
 
 ### Room type assignment (atmosphere stage feeds from this)
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const ROOM_TYPES = {
   // sci-fi / space theme
@@ -316,6 +333,7 @@ Each room receives a descriptor bundle: lighting, smell, temperature, ambient so
 flag. These feed directly into scene widget prose generation — the GM pulls from them rather than
 inventing from scratch.
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const ATMOSPHERE_TABLES = {
   lighting: {
@@ -372,6 +390,7 @@ front-loads the scene and leaves nothing to discover.
 Generates 2–4 competing factions with names, ideologies, territory, and a relationship matrix.
 Faction tensions are the engine of quest hooks and NPC agendas.
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const FACTION_TEMPLATES = {
   space: [
@@ -448,6 +467,7 @@ personality profile. These profiles seed the ai-npc NPC definition objects.
 
 ### Name generation
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const NAME_PARTS = {
   space: {
@@ -472,6 +492,7 @@ function generateName(rng, theme) {
 
 ### Personality generation
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const PERSONALITY_TRAITS = [
   'paranoid','meticulous','reckless','pragmatic','idealistic',
@@ -546,6 +567,7 @@ function generateNPCProfile(rng, theme, faction) {
 
 ### Roster generation
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 function generateNPCRoster(rng, rooms, factions, theme) {
   const roomIds = Object.keys(rooms);
@@ -586,6 +608,7 @@ type and scenario.
 
 ### Item definitions
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const ITEM_TABLES = {
   space: {
@@ -668,6 +691,7 @@ function generateAllLoot(rng, rooms, theme) {
 Each room has a weighted encounter definition. Encounters are not inevitable — they are rolled
 against during play. The table gives the GM the enemy type, threat level, and narrative framing.
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const ENCOUNTER_TABLES = {
   space: [
@@ -723,6 +747,7 @@ the same room seed but with a tier modifier when the tier increases.
 Three hooks are generated: one main hook and two side hooks. All are derived from faction tensions
 so they feel embedded in the world rather than bolted on.
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const HOOK_FRAMES = {
   main: [
@@ -817,6 +842,7 @@ from the save-codex. This influences generation:
 If `carryForward` is null (arc 1 or fresh start), the pipeline runs without
 modifications — standard procedural generation from seed alone.
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 function generateWorld(seedStr, themeOverride) {
   const rng = createPRNG(seedStr);
@@ -877,160 +903,15 @@ function generateWorld(seedStr, themeOverride) {
 
 ## Seed Widget — Player-Facing Interface
 
-Render this before the first scene. The player enters a seed (or accepts a generated one) and
-sees a brief world preview before committing to begin.
+Render the seed entry widget before the first scene by running the `tag` CLI via Bash tool. The player enters a seed (or accepts a generated one) and sees a brief world preview before committing to begin.
 
-```html
-<!-- Seed entry widget — paste into visualize:show_widget -->
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@700&display=swap');
-  .seed-root { font-family: 'IBM Plex Mono', monospace; padding: 1.5rem 0; }
-  .seed-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; color: var(--color-text-primary); margin: 0 0 0.25rem; }
-  .seed-sub { font-size: 12px; color: var(--color-text-tertiary); margin: 0 0 1.5rem; }
-  .seed-row { display: flex; gap: 8px; margin-bottom: 1rem; }
-  .seed-input { flex: 1; font-family: 'IBM Plex Mono', monospace; font-size: 13px; padding: 8px 12px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); }
-  .seed-input:focus { outline: none; border-color: var(--color-border-primary); }
-  .roll-btn { padding: 8px 14px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.1em; background: transparent; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); color: var(--color-text-secondary); cursor: pointer; white-space: nowrap; }
-  .roll-btn:hover { background: var(--color-background-secondary); }
-  .preview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin: 1.25rem 0; }
-  .preview-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; }
-  .preview-label { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--color-text-tertiary); margin-bottom: 4px; }
-  .preview-val { font-size: 13px; color: var(--color-text-primary); font-weight: 500; }
-  .preview-sub { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; line-height: 1.4; }
-  .begin-btn { width: 100%; padding: 10px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.12em; background: transparent; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); color: var(--color-text-primary); cursor: pointer; transition: background 0.12s; margin-top: 0.5rem; }
-  .begin-btn:hover { background: var(--color-background-secondary); }
-  .theme-btns { display: flex; gap: 6px; margin-bottom: 1rem; flex-wrap: wrap; }
-  .theme-btn { padding: 5px 12px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; background: transparent; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); color: var(--color-text-secondary); cursor: pointer; transition: all 0.12s; }
-  .theme-btn.active { border-color: var(--color-border-info); background: var(--color-background-info); color: var(--color-text-info); }
-  .hook-block { border-left: 2px solid var(--color-border-tertiary); padding-left: 12px; margin: 0.75rem 0; font-size: 12px; color: var(--color-text-secondary); line-height: 1.7; font-style: italic; }
-</style>
+To render the seed widget, run this CLI command via Bash tool:
 
-<div class="seed-root">
-  <p class="seed-title">World Seed</p>
-  <p class="seed-sub">// enter a seed to generate your world — or roll one</p>
-
-  <div class="seed-row">
-    <input class="seed-input" id="seed-in" type="text" placeholder="e.g. pale-threshold-7" value="" />
-    <button class="roll-btn" onclick="rollSeed()">Roll &#8635;</button>
-  </div>
-
-  <div class="theme-btns">
-    <button class="theme-btn active" data-theme="space"   onclick="setTheme(this)">Space</button>
-    <button class="theme-btn"        data-theme="dungeon" onclick="setTheme(this)">Dungeon</button>
-    <button class="theme-btn"        data-theme="horror"  onclick="setTheme(this)">Horror</button>
-  </div>
-
-  <div class="preview-grid" id="preview-grid"></div>
-  <div class="hook-block" id="hook-preview"></div>
-  <button class="begin-btn" id="begin-btn" onclick="beginGame()">Begin — lock this seed &#8599;</button>
-</div>
-
-<script>
-/* ---- PRNG ---- */
-function mulberry32(seed) {
-  return function() {
-    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
-    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
-    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
-  };
-}
-function hashSeed(s) {
-  let h = 0xDEADBEEF;
-  for (let i = 0; i < s.length; i++) { h = Math.imul(h ^ s.charCodeAt(i), 0x9E3779B9); h ^= h >>> 16; }
-  return h >>> 0;
-}
-function rng(s) { return mulberry32(hashSeed(s)); }
-function pick(r, a) { return a[Math.floor(r() * a.length)]; }
-function pickN(r, a, n) { const c=[...a],res=[]; for(let i=0;i<Math.min(n,c.length);i++){const j=Math.floor(r()*(c.length-i));res.push(c.splice(j,1)[0]);}return res; }
-function ri(r,mn,mx){return Math.floor(r()*(mx-mn+1))+mn;}
-function rw(r,items,w){const t=w.reduce((a,b)=>a+b,0);let v=r()*t;for(let i=0;i<items.length;i++){v-=w[i];if(v<=0)return items[i];}return items[items.length-1];}
-
-const ADJ=['iron','pale','dead','hollow','fractured','silent','burning','veiled','amber','sunken','ashen','cold'];
-const NOUN=['threshold','cascade','frequency','meridian','signal','compact','covenant','relay','archive','vault'];
-const THEMES_META = {
-  space:   { label:'Deep space',   rooms:'Derelict vessel / station', tone:'Isolation, survival, unknown threat'   },
-  dungeon: { label:'Underground',  rooms:'Dungeon / fortress complex', tone:'Intrigue, danger, ancient secrets'    },
-  horror:  { label:'Isolated location', rooms:'House / compound', tone:'Dread, hidden truth, mounting threat'     },
-};
-const FACTIONS = {
-  space:   ['Meridian Corp','Surviving Crew','The Changed','VIGIL System'],
-  dungeon: ["King's Guard",'Broken Coin Guild','The Hollow Circle','Displaced Villagers'],
-  horror:  ['The Ashwood Family','The Congregation','Harrow County Sheriff','Other Victims'],
-};
-const HOOKS_MAIN = [
-  'The {fA} are about to do something irreversible. You are the only one positioned to stop them.',
-  'Something both the {fA} and {fB} want is here. Neither knows the other is looking.',
-  'A {fA} member has gone rogue. What they know could destroy everything.',
-  'The only exit requires the cooperation of {fA} and {fB}, who currently want each other dead.',
-];
-
-let currentSeed = '';
-let currentTheme = 'space';
-
-function rollSeed() {
-  const r = rng(String(Date.now() + Math.random()));
-  const seed = `${pick(r,ADJ)}-${pick(r,NOUN)}-${ri(r,1,99)}`;
-  document.getElementById('seed-in').value = seed;
-  previewWorld(seed);
-}
-
-function setTheme(el) {
-  document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  currentTheme = el.dataset.theme;
-  const s = document.getElementById('seed-in').value.trim();
-  if (s) previewWorld(s);
-}
-
-function previewWorld(seed) {
-  currentSeed = seed;
-  const r = rng(seed + currentTheme);
-  const meta = THEMES_META[currentTheme];
-  const fList = pickN(r, FACTIONS[currentTheme], ri(r, 2, 3));
-  const roomCount = ri(r, 8, 14);
-  const npcCount = Math.ceil(roomCount * 0.5);
-  const fA = fList[0], fB = fList[1] || fList[0];
-  const hook = pick(r, HOOKS_MAIN).replace('{fA}', fA).replace('{fB}', fB);
-
-  document.getElementById('preview-grid').innerHTML = `
-    <div class="preview-card">
-      <div class="preview-label">Setting</div>
-      <div class="preview-val">${meta.label}</div>
-      <div class="preview-sub">${meta.rooms}</div>
-    </div>
-    <div class="preview-card">
-      <div class="preview-label">Scale</div>
-      <div class="preview-val">${roomCount} locations</div>
-      <div class="preview-sub">${npcCount} named characters</div>
-    </div>
-    <div class="preview-card">
-      <div class="preview-label">Factions</div>
-      <div class="preview-val">${fList.length} active</div>
-      <div class="preview-sub">${fList.join(' &middot; ')}</div>
-    </div>
-    <div class="preview-card">
-      <div class="preview-label">Tone</div>
-      <div class="preview-val">${currentTheme}</div>
-      <div class="preview-sub">${meta.tone}</div>
-    </div>
-  `;
-  document.getElementById('hook-preview').textContent = '"' + hook + '"';
-}
-
-function beginGame() {
-  const seed = document.getElementById('seed-in').value.trim();
-  if (!seed) { rollSeed(); return; }
-  sendPrompt(`Begin the adventure. Seed: "${seed}". Theme: ${currentTheme}. Generate the world and render the first scene.`);
-}
-
-document.getElementById('seed-in').addEventListener('input', e => {
-  if (e.target.value.trim().length >= 3) previewWorld(e.target.value.trim());
-});
-
-rollSeed();
-</script>
 ```
+tag render scene --style seed-entry
+```
+
+The widget allows the player to enter or roll a seed, select a theme (space/dungeon/horror), preview the world parameters, and begin the adventure. The seed must be displayed prominently so the player can copy it to replay or share the run. Store it in `gmState.seed`.
 
 ---
 
@@ -1044,7 +925,7 @@ gmState.worldData = generateWorld(seed, theme);
 gmState.seed = seed;
 ```
 
-**Scene widget pulls from `worldData`:**
+**Scene rendering pulls from `worldData`:**
 ```js
 const room = gmState.worldData.rooms[gmState.currentRoom];
 // room.atmosphere → scene prose
@@ -1054,9 +935,10 @@ const room = gmState.worldData.rooms[gmState.currentRoom];
 // room.connections → exits listed in scene footer
 ```
 
-**Map widget uses `worldData.rooms`:**
+**Map rendering uses `worldData.rooms`:**
 The room graph (connections object) defines the map topology. Each room's `visited` and `revealed`
-flags drive the progressive disclosure logic defined in the orchestrator map rules.
+flags drive the progressive disclosure logic defined in the orchestrator map rules. Render the map
+by running `tag render map --style <style>` via Bash tool.
 
 **NPC profiles expand into ai-npc definitions:**
 ```js
@@ -1115,7 +997,8 @@ function resumeGame(saveCode) {
 ```
 
 The save code is a base64 string the player can copy from the scene footer and paste to resume.
-No server. No storage API. Pure client-side.
+No server. No storage API. Save and load operations are handled by running `tag save` and
+`tag state` commands via Bash tool.
 
 ---
 

@@ -9,6 +9,20 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: core-syst
 
 ---
 
+## § CLI Commands for This Module
+
+| Action | Command | Tool |
+|--------|---------|------|
+| Render single-die widget | `tag render dice --style <style>` | Run via Bash tool |
+| Render mixed dice pool | `tag render dice-pool --style <style> --data '<json>'` | Run via Bash tool |
+| Hidden contested roll | `tag compute contest <STAT> <npc_id>` | Run via Bash tool |
+| Hazard save | `tag compute hazard <ATTR> --dc <N>` | Run via Bash tool |
+| Random encounter | `tag compute encounter --escalation <N>` | Run via Bash tool |
+
+> **All die roll widgets are rendered via the `tag` CLI.** The GM must never hand-code HTML, CSS, or JS for dice — hand-coded dice invariably omit the WebGL renderer, quaternion-based landing animation, collision detection, and deterministic seeding that the CLI template provides; the result is a flat, non-interactive placeholder that the player cannot click to roll. Use `tag render dice` for one logical die and `tag render dice-pool` for grouped numeric rolls on one shared canvas.
+
+---
+
 ## The Hidden Attribute Rule
 
 **Never reveal which attribute a check will test in the action options.**
@@ -50,20 +64,19 @@ intimidate, pickpocket, sneak past, outwit, read intentions, arm wrestle, etc.
 
 ### How It Works
 
-The player's die roll widget works identically to a standard check — four stages, 3D
-dice, visible result. The difference is in **Stage 3 (Resolve)**:
+The player's single-die widget works like a standard click-to-roll check — idle pre-roll
+state, 3D die, hidden result, click-to-roll reveal, then locked final state. The
+difference is in the reveal:
 
-| Check Type | Stage 3 Display |
+| Check Type | Reveal |
 |------------|----------------|
-| Standard (vs DC) | Player total + "vs DC 15" + outcome badge |
-| Contested (vs NPC) | Player total + outcome badge + **narrative line only** |
+| Standard (vs DC) | Player total + DC line + outcome badge |
+| Contested (vs NPC) | Player total only; the NPC contest resolution remains GM-side |
 
 The player sees:
-- Stage 1: Their action, their attribute, their modifier
-- Stage 2: Their 3D die roll (animated as normal)
-- Stage 3: Their total — but instead of "vs DC 15", show ONLY the outcome badge
-  with a narrative description
-- Stage 4: Continue button as normal
+- The attribute/modifier context already established for the check
+- Their 3D die roll, triggered by their click
+- Their own roll breakdown after the die settles
 
 The player **NEVER** sees:
 - The NPC's roll value
@@ -81,6 +94,9 @@ The player **NEVER** sees:
 | NPC wins by 1-4 | Failure | "They see right through your opening gambit, but you notice a flicker of doubt." |
 | NPC wins by 5+ | Decisive failure | "Your attempt falls flat. They were expecting exactly this." |
 
+> **CLI:** For contested checks, use `tag compute contest <ATTR> <npc_id>` to ensure
+> the NPC's modifier is read from persisted state rather than improvised.
+
 ### GM Internal Resolution
 
 The GM resolves the NPC's check silently:
@@ -89,8 +105,8 @@ The GM resolves the NPC's check silently:
 2. Internally compute: `d20 + NPC modifier` (use a mental random number, do NOT show dice)
 3. Compare: `player_total` vs `npc_total`
 4. Determine margin and select outcome badge + narrative from the table above
-5. Render the outcome in the die roll widget as if it were a standard check — the player
-   cannot tell whether this was a contested or fixed-DC check
+5. Render the player-facing die widget normally, then apply the contested outcome in the
+   following narrative/widget flow without exposing the NPC math
 
 ### Contested Check Attribute Pairings
 
@@ -109,60 +125,41 @@ The GM resolves the NPC's check silently:
 
 ---
 
-## D&D 5e — Four Progressive Stages
+## Single-Die Widget Flow
 
-Never skip or combine stages. Each stage is revealed sequentially within a single widget.
+The current CLI single-die widget is a one-shot click-to-roll interaction. It starts in an
+idle pre-roll state, hides the result until the player clicks, then reveals the result and
+locks permanently.
 
-### Stage 1 — Declare
+### Pre-Roll
 
 Show:
-- The action the player chose (in narrative terms, not mechanical)
-- The relevant attribute (revealed now, after commitment)
-- The modifier value
-- A large `[ ROLL 1d20 ]` button
+- The check context (for example `Perception Check` or `Coin Flip`)
+- An idle 3D die, coin, or paired percentile dice
+- A click hint such as `CLICK THE DIE TO ROLL`
+- No visible result text
 
-Do **not** reveal the DC. The player knows what they are attempting and how good they are
-at it. They do not know how hard the task is.
+Do **not** reveal the visible outcome before the click. The widget must not show a
+pre-baked rolled face, total, or outcome badge. If the result is visible before the player clicks, the moment of uncertainty — the entire reason the widget exists — is removed, and the roll becomes a formality the player has no reason to engage with.
 
-### Stage 2 — Animate
+### Roll
 
-On button press:
-- CSS keyframe spin animation (0.6s duration)
-- Land on a random number 1–20
-- Display the raw roll prominently (36px, bold)
-- Brief pause (0.3s) before proceeding to resolve
+On player click:
+- Generate the result client-side at click time
+- Animate the die or dice to the rolled face
+- Keep the result hidden until the settle animation completes
 
 The roll must be triggered by explicit player click — never auto-roll.
 
-### Stage 3 — Resolve
+### Reveal and Lock
 
-Reveal in sequence:
-1. Modified total: `raw roll + modifier = total`. When the check involves a skill the
-   character is proficient in, display the proficiency bonus as a separate line item in
-   the breakdown — e.g., "Roll: 14 + AGI +2 + Proficiency +2 = 18 vs DC 15". When
-   unproficient, omit the proficiency line entirely.
-2. The DC (revealed now for the first time)
-3. Outcome badge:
+After the settle animation:
+1. Show the roll breakdown
+2. If a DC was supplied, reveal the DC and outcome badge now
+3. Lock the widget so the result cannot be rerolled
 
-| Result | Condition |
-|--------|-----------|
-| CRITICAL SUCCESS | Natural 20 |
-| SUCCESS | Total meets or exceeds DC |
-| PARTIAL SUCCESS | Missed DC by 1–3, or beat DC by exactly 1 |
-| FAILURE | Total below DC by 4+ |
-| CRITICAL FAILURE | Natural 1 |
-
-### Stage 4 — Continue
-
-A single continue prompt. No consequences described in the roll widget itself — the outcome
-widget handles narrative consequences separately.
-
-Use the `data-prompt` + `addEventListener` pattern:
-```html
-<button class="action-btn" data-prompt="Continue.">Continue</button>
-```
-
-Include a copyable fallback prompt visible below the button.
+No consequences are described in the die widget itself — outcome delivery must come after the roll, in the next scene or follow-up widget. If consequences appear inside the die widget, the player reads the narrative outcome before they have finished processing the number, collapsing the dramatic beat into a single glance and robbing the result of its weight. Continue the narrative in the next
+scene or follow-up widget.
 
 ---
 
@@ -261,84 +258,66 @@ Beyond the table, maintain tension through:
 - **Complication rolls** — checks where high rolls produce *complications* alongside success.
   You pick the lock, but the mechanism triggers an alarm. You persuade the captain, but she
   suspects your motives.
-- **Contested checks** — the enemy rolls too. A persuasion check against a suspicious NPC is
-  not DC 15; it is your CHA vs their WIS. Both rolls shown to the player.
+- **Contested checks** — the enemy rolls too. Use `tag compute contest <ATTR> <npc_id>` to
+  resolve. A persuasion check against a suspicious NPC is not DC 15; it is your CHA vs
+  their WIS.
 - **Stacking pressure** — never let modified totals routinely exceed 20. If they do, the
-  difficulty curve is broken. Introduce harder challenges, not bigger bonuses.
+  difficulty curve breaks: the DC table tops out at 25, so a player rolling 20+ before the die even lands will pass nearly every check automatically, rolls become meaningless confirmation clicks, and all tension drains from the adventure. Introduce harder challenges, not bigger bonuses.
 
 ---
 
-## sendPrompt Reliability
+## Follow-Up Interaction
 
-The `sendPrompt()` function in Claude.ai widget iframes is not always available due to timing
-and sandboxing. For die roll widgets:
+The current dice widgets do **not** include a built-in continue button or `sendPrompt`
+handoff. They end on a locked result state.
 
-- Display the roll result and a copyable prompt string alongside the sendPrompt button
-  (e.g., "I rolled 14 + 3 = 17. Continue.")
-- Show a clear "Copy and paste this to continue" instruction
-- Never rely solely on sendPrompt for progression — the player must always have a manual path
-- Use the `data-prompt` + `addEventListener` pattern, never inline `onclick`
-- Avoid contractions in prompt strings — "Let us" not "Let's"
+- Render the die widget first
+- Let the player click and see the result
+- Then continue play in the next scene/widget as needed
 
-### Fallback Pattern
-
-```html
-<button class="action-btn" data-prompt="I rolled 14 plus 3 equals 17. Continue.">
-  Continue
-</button>
-<p class="fallback-text" id="fallback" style="display:none; font-size:11px; color:var(--color-text-tertiary); margin-top:8px;">
-  If the button above does not work, copy this text and paste it into the chat:
-  <code id="fallback-prompt"></code>
-</p>
-<script>
-document.querySelectorAll('.action-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const prompt = btn.dataset.prompt;
-    if (typeof sendPrompt === 'function') {
-      sendPrompt(prompt);
-    } else {
-      const fb = document.getElementById('fallback');
-      const fp = document.getElementById('fallback-prompt');
-      if (fb && fp) {
-        fp.textContent = prompt;
-        fb.style.display = 'block';
-      }
-    }
-  });
-});
-</script>
-```
+Do not hand-code a second roll interaction into the dice widget itself. Embedding a second roll breaks the single-widget pattern the CLI enforces, doubles the inline JS payload (pushing toward the token budget ceiling), and creates an untested code path with no animation, seeding, or lock-after-reveal guarantee.
 
 ---
 
 ## Alternative Rulebook Systems
 
-This module defines the D&D 5e d20 resolution system. The text-adventure skill is
+This module defines the default d20 resolution system. The text-adventure skill is
 system-agnostic — specific game systems (such as Star Wars: Edge of the Empire) have their
 own dedicated skills with tailored dice mechanics.
 
 - **Custom rulebooks** — the player provides a PDF or markdown document. The GM reads and
-  applies the custom resolution mechanic. The four-stage widget pattern (Declare → Animate →
-  Resolve → Continue) adapts to any system.
+  applies the custom resolution mechanic. The click-to-roll widget flow adapts to any
+  system-specific breakdown the GM needs to present.
 
 ---
 
-## 3D Dice Rendering (Three.js)
+## 3D Dice Rendering (WebGL)
 
-The die roll widget renders proper 3D polyhedra using Three.js (loaded from CDN). Each die
-type uses its correct geometric shape with numbered faces, idle floating animation, and a
-tumble-and-settle roll animation. The rolled value is predetermined, then the die rotates
-to land with that face pointing at the camera.
+The die roll widget renders proper 3D polyhedra using an inline WebGL renderer (no external
+dependencies). Each die type uses its correct geometric shape with numbered faces, idle
+floating animation, and a tumble-and-settle roll animation. The visible result is chosen
+client-side on click, then the die rotates to land with that face pointing at the camera.
+The widget begins in a pre-roll state and locks after the reveal.
+
+The renderer is a hand-rolled WebGL implementation (~16KB inline) that uses a texture atlas
+for numbered faces and quaternion-based landing animation. No CDN loads, no external scripts.
+
+### DieType Union
+
+All die types are represented by the `DieType` union: `d2 | d4 | d6 | d8 | d10 | d12 | d20 | d100`.
 
 ### Die Shapes
 
 | Die | Geometry | Faces | Opposite sum |
 |-----|----------|-------|-------------|
-| d4 | TetrahedronGeometry | 4 triangles | N/A |
-| d6 | BoxGeometry | 6 squares (12 triangles) | 7 |
-| d8 | OctahedronGeometry | 8 triangles | 9 |
-| d12 | DodecahedronGeometry | 12 pentagons (36 triangles) | 13 |
-| d20 | IcosahedronGeometry | 20 triangles | 21 |
+| d2 | Coin (flat cylinder) | 2 | 3 |
+| d4 | Tetrahedron | 4 triangles | N/A |
+| d6 | Cube | 6 squares (12 triangles) | 7 |
+| d8 | Octahedron | 8 triangles | 9 |
+| d10 | Pentagonal trapezohedron | 10 kite faces | 11 |
+| d12 | Dodecahedron | 12 pentagons (36 triangles) | 13 |
+| d20 | Icosahedron | 20 triangles | 21 |
+| d100 | Two independent d10 canvases (Tens + Units) | 10 + 10 | N/A |
 
 ### Style-Aware Colouring
 
@@ -355,7 +334,7 @@ CSS custom properties on the widget root:
 ### Architecture
 
 The 3D die system uses:
-- **Three.js r128** via CDN (`https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js`)
+- **Hand-rolled WebGL** (~16KB inline, no external dependencies) — all geometry, shading, and animation are self-contained
 - **Texture atlas** — a single canvas texture with all face numbers in a grid, UV-mapped to each face
 - **Face clustering** — triangles grouped by normal direction (dot product > 0.93) to identify logical faces on compound shapes (d6 squares, d12 pentagons)
 - **Opposite-face pairing** — faces with opposing normals (dot product closest to -1) are paired and assigned values that sum to the traditional total
@@ -364,366 +343,42 @@ The 3D die system uses:
 ### Rendering a Single Die
 
 When the GM needs a die roll, render a single die of the appropriate type. The widget
-includes the narrative context, check breakdown, the 3D die, and the continue button.
-The die type is determined by the game system — d20 for D&D 5e, other types for
-alternative systems or damage rolls.
+includes the check context, the 3D die, and the post-roll breakdown. The die type is
+determined by the game system — d20 for D&D 5e, other types for alternative systems or
+damage rolls.
 
-### Complete 3D Die Widget
+### Rendering Dice
 
-The following HTML renders a complete 3D die tray with all standard polyhedrals.
-For a single-die check widget, extract only the relevant die type and embed it
-within the check panel layout (see style-reference.md Die Roll Widget Pattern).
+The single-die widget is rendered by `tag render dice --style <style>` via the Bash tool.
+The template handles WebGL setup, polyhedra geometry, numbered faces, tumble animation, and
+graceful degradation automatically.
 
-```html
-<style>
-:root { --ta-font-body: var(--font-sans); }
-.tray { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 1rem 0; }
-.die-card { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 12px; text-align: center; }
-.die-card canvas { cursor: pointer; display: block; margin: 0 auto; }
-.die-card-label { font-family: var(--ta-font-body); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text-tertiary); margin-top: 6px; }
-.die-card-val { font-family: var(--ta-font-body); font-size: 28px; font-weight: 500; color: var(--color-text-primary); min-height: 36px; line-height: 36px; }
-.die-card-hint { font-family: var(--ta-font-body); font-size: 11px; color: var(--color-text-tertiary); margin-top: 2px; min-height: 18px; }
-.reset-row { text-align: center; margin-top: 12px; }
-.reset-btn { font-family: var(--ta-font-body); font-size: 12px; color: var(--color-text-tertiary); background: transparent; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 6px 14px; cursor: pointer; min-height: 44px; min-width: 44px; box-sizing: border-box; }
-.reset-btn:hover { border-color: var(--color-border-secondary); color: var(--color-text-secondary); }
-</style>
+Supported die types: d2, d4, d6, d8, d10, d12, d20, d100. For a standard ability check, the CLI renders a single d20. For damage rolls or alternative systems, specify the die type via the `--data` flag:
 
-<div class="tray">
-  <div class="die-card"><canvas id="d4" width="160" height="160" role="button" aria-label="Roll d4" tabindex="0"></canvas><div class="die-card-label">d4</div><div class="die-card-val" id="d4-val" aria-live="polite"></div><div class="die-card-hint" id="d4-hint">Click to roll</div></div>
-  <div class="die-card"><canvas id="d6" width="160" height="160" role="button" aria-label="Roll d6" tabindex="0"></canvas><div class="die-card-label">d6</div><div class="die-card-val" id="d6-val" aria-live="polite"></div><div class="die-card-hint" id="d6-hint">Click to roll</div></div>
-  <div class="die-card"><canvas id="d8" width="160" height="160" role="button" aria-label="Roll d8" tabindex="0"></canvas><div class="die-card-label">d8</div><div class="die-card-val" id="d8-val" aria-live="polite"></div><div class="die-card-hint" id="d8-hint">Click to roll</div></div>
-  <div class="die-card"><canvas id="d12" width="160" height="160" role="button" aria-label="Roll d12" tabindex="0"></canvas><div class="die-card-label">d12</div><div class="die-card-val" id="d12-val" aria-live="polite"></div><div class="die-card-hint" id="d12-hint">Click to roll</div></div>
-</div>
-<div class="reset-row"><button class="reset-btn" id="resetAll">Reset all</button></div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"
-  onerror="document.querySelectorAll('.die-card canvas').forEach(function(c){c.style.display='none';c.parentElement.querySelector('.die-card-hint').textContent='3D dice unavailable — use CSS dice from style-reference.md';})"></script>
-<script>
-if (typeof THREE === 'undefined') { /* Three.js failed to load — fallback handled by onerror above */ }
-else (function(){
-  var isDk = matchMedia('(prefers-color-scheme:dark)').matches;
-  var root = document.documentElement;
-  var cs = getComputedStyle(root);
-  var FC = cs.getPropertyValue('--die-face-color').trim() || (isDk ? '#35353e' : '#f0efe7');
-  var NC = cs.getPropertyValue('--die-number-color').trim() || (isDk ? '#c8c8d0' : '#333340');
-  var EC = isDk ? 0x606070 : 0x9898a0;
-  var AL = isDk ? 0.5 : 0.7;
-  var DL = isDk ? 0.7 : 0.9;
-
-  var DEFS = [
-    {id:'d4', sides:4, r:1.5, geo:function(r){return new THREE.TetrahedronGeometry(r,0)}},
-    {id:'d6', sides:6, r:0.95, geo:function(r){return new THREE.BoxGeometry(r*1.55,r*1.55,r*1.55)}},
-    {id:'d8', sides:8, r:1.35, geo:function(r){return new THREE.OctahedronGeometry(r,0)}},
-    {id:'d12', sides:12, r:1.35, geo:function(r){return new THREE.DodecahedronGeometry(r,0)}}
-  ];
-
-  var allDice = [];
-
-  function makeDie(def) {
-    var cv = document.getElementById(def.id);
-    var W = 160, H = 160;
-    var ren = new THREE.WebGLRenderer({canvas:cv, antialias:true, alpha:true});
-    ren.setPixelRatio(Math.min(devicePixelRatio,2));
-    ren.setSize(W,H);
-
-    var sc = new THREE.Scene();
-    var cam = new THREE.PerspectiveCamera(28, 1, 0.1, 100);
-    cam.position.set(0, 1.5, 5.5);
-    cam.lookAt(0,0,0);
-    var cd = new THREE.Vector3(); cam.getWorldDirection(cd);
-
-    sc.add(new THREE.AmbientLight(0xffffff, AL));
-    var dl = new THREE.DirectionalLight(0xffffff, DL);
-    dl.position.set(3,5,4); sc.add(dl);
-
-    var grp = new THREE.Group(); sc.add(grp);
-
-    var baseGeo = def.geo(def.r);
-    var geo = baseGeo.toNonIndexed();
-    var pos = geo.attributes.position;
-    var tc = pos.count / 3;
-
-    // Compute per-triangle data
-    var td = [];
-    for (var t = 0; t < tc; t++) {
-      var a = new THREE.Vector3(pos.getX(t*3),pos.getY(t*3),pos.getZ(t*3));
-      var b = new THREE.Vector3(pos.getX(t*3+1),pos.getY(t*3+1),pos.getZ(t*3+1));
-      var c = new THREE.Vector3(pos.getX(t*3+2),pos.getY(t*3+2),pos.getZ(t*3+2));
-      var cen = a.clone().add(b).add(c).divideScalar(3);
-      var ab = b.clone().sub(a), ac = c.clone().sub(a);
-      var n = new THREE.Vector3().crossVectors(ab, ac).normalize();
-      if (n.dot(cen) < 0) n.negate();
-      td.push({a:a,b:b,c:c,cen:cen,n:n});
-    }
-
-    // Cluster triangles into logical faces by normal direction
-    var asgn = new Array(tc).fill(false);
-    var faces = [];
-    for (var t = 0; t < tc; t++) {
-      if (asgn[t]) continue;
-      var f = {tris:[t]}; asgn[t] = true;
-      for (var t2 = t+1; t2 < tc; t2++) {
-        if (!asgn[t2] && td[t].n.dot(td[t2].n) > 0.93) {
-          f.tris.push(t2); asgn[t2] = true;
-        }
-      }
-      var fc = new THREE.Vector3(), fn = new THREE.Vector3(), vc = 0;
-      for (var i = 0; i < f.tris.length; i++) {
-        var d = td[f.tris[i]];
-        fc.add(d.a).add(d.b).add(d.c); fn.add(d.n); vc += 3;
-      }
-      fc.divideScalar(vc); fn.normalize();
-      f.center = fc; f.normal = fn;
-      faces.push(f);
-    }
-
-    // Assign face values with proper opposite-face conventions
-    var targetSum = def.sides === 6 ? 7 : def.sides === 8 ? 9 : def.sides === 12 ? 13 : 0;
-    var fv = new Array(faces.length).fill(0);
-
-    if (targetSum > 0 && faces.length === def.sides) {
-      var paired = new Array(faces.length).fill(false);
-      var pairs = [];
-      for (var fi = 0; fi < faces.length; fi++) {
-        if (paired[fi]) continue;
-        var bestJ = -1, bestDot = -0.5;
-        for (var fj = fi+1; fj < faces.length; fj++) {
-          if (paired[fj]) continue;
-          var dp = faces[fi].normal.dot(faces[fj].normal);
-          if (dp < bestDot) { bestDot = dp; bestJ = fj; }
-        }
-        if (bestJ >= 0) {
-          pairs.push([fi, bestJ]);
-          paired[fi] = true; paired[bestJ] = true;
-        }
-      }
-      for (var s = pairs.length-1; s > 0; s--) {
-        var j = Math.floor(Math.random()*(s+1));
-        var tmp = pairs[s]; pairs[s] = pairs[j]; pairs[j] = tmp;
-      }
-      for (var pi = 0; pi < pairs.length; pi++) {
-        var lo = pi + 1, hi = targetSum - lo;
-        if (Math.random() < 0.5) {
-          fv[pairs[pi][0]] = lo; fv[pairs[pi][1]] = hi;
-        } else {
-          fv[pairs[pi][0]] = hi; fv[pairs[pi][1]] = lo;
-        }
-      }
-    } else {
-      var vals = [];
-      for (var i = 1; i <= def.sides; i++) vals.push(i);
-      for (var s = vals.length-1; s > 0; s--) {
-        var j = Math.floor(Math.random()*(s+1));
-        var tmp = vals[s]; vals[s] = vals[j]; vals[j] = tmp;
-      }
-      fv = vals.slice(0, faces.length);
-    }
-
-    // Build texture atlas
-    var cols = Math.ceil(Math.sqrt(def.sides));
-    var rows = Math.ceil(def.sides / cols);
-    var ATS = 512, cW = ATS/cols, cH = ATS/rows;
-    var ac2 = document.createElement('canvas');
-    ac2.width = ATS; ac2.height = ATS;
-    var ax = ac2.getContext('2d');
-    ax.fillStyle = FC; ax.fillRect(0,0,ATS,ATS);
-    var fs = def.sides <= 4 ? 72 : def.sides <= 6 ? 60 : def.sides <= 8 ? 50 : 38;
-    ax.font = '500 '+fs+'px sans-serif';
-    ax.textAlign = 'center'; ax.textBaseline = 'middle';
-    ax.fillStyle = NC;
-    for (var n = 0; n < def.sides; n++) {
-      var co = n % cols, ro = Math.floor(n / cols);
-      ax.fillText(String(n+1), co*cW+cW/2, ro*cH+cH/2);
-      if (n+1===6||n+1===9) ax.fillRect(co*cW+cW/2-14, ro*cH+cH/2+fs*0.38, 28, 2);
-    }
-    var tex = new THREE.CanvasTexture(ac2);
-    tex.minFilter = THREE.LinearFilter; tex.magFilter = THREE.LinearFilter;
-
-    // UV mapping — project face vertices onto atlas cells
-    var uvA = new Float32Array(pos.count * 2);
-    for (var fi = 0; fi < faces.length && fi < def.sides; fi++) {
-      var face = faces[fi], val = fv[fi], idx = val-1;
-      var co = idx % cols, ro = Math.floor(idx / cols);
-      var uC = (co+0.5)/cols, vC = 1-(ro+0.5)/rows;
-
-      var N = face.normal;
-      var up = Math.abs(N.y) < 0.99 ? new THREE.Vector3(0,1,0) : new THREE.Vector3(1,0,0);
-      var T = new THREE.Vector3().crossVectors(up, N).normalize();
-      var B = new THREE.Vector3().crossVectors(N, T).normalize();
-
-      var maxR = 0.001;
-      for (var ti = 0; ti < face.tris.length; ti++) {
-        var d2 = td[face.tris[ti]];
-        var verts = [d2.a, d2.b, d2.c];
-        for (var vi = 0; vi < 3; vi++) {
-          var dv = verts[vi].clone().sub(face.center);
-          var dt2 = dv.dot(T), db2 = dv.dot(B);
-          var ext = Math.sqrt(dt2*dt2 + db2*db2);
-          if (ext > maxR) maxR = ext;
-        }
-      }
-
-      var cScale = Math.min(1/cols, 1/rows);
-      var uvS = 0.38 * cScale / maxR;
-
-      for (var ti = 0; ti < face.tris.length; ti++) {
-        var triIdx = face.tris[ti];
-        var d3 = td[triIdx];
-        var verts2 = [d3.a, d3.b, d3.c];
-        for (var vi = 0; vi < 3; vi++) {
-          var dv2 = verts2[vi].clone().sub(face.center);
-          var ai = (triIdx*3+vi)*2;
-          uvA[ai] = uC + dv2.dot(T) * uvS;
-          uvA[ai+1] = vC + dv2.dot(B) * uvS;
-        }
-      }
-    }
-    geo.setAttribute('uv', new THREE.BufferAttribute(uvA, 2));
-
-    var mat = new THREE.MeshStandardMaterial({map:tex, flatShading:true, metalness:0.05, roughness:0.6, side:THREE.DoubleSide});
-    grp.add(new THREE.Mesh(geo, mat));
-    grp.add(new THREE.LineSegments(new THREE.EdgesGeometry(baseGeo), new THREE.LineBasicMaterial({color:EC})));
-
-    grp.rotation.x = 0.35; grp.rotation.z = 0.08;
-
-    return {
-      ren:ren, sc:sc, cam:cam, cd:cd, grp:grp,
-      faces:faces, fv:fv,
-      rolled:false, rolling:false, settled:false,
-      idle: Math.random()*6.28, rClk:0, rDur:2.0,
-      chaos:[], tgtQ:new THREE.Quaternion(), rawVal:0,
-      valEl: document.getElementById(def.id+'-val'),
-      hintEl: document.getElementById(def.id+'-hint'),
-      def:def, cv:cv
-    };
-  }
-
-  function easeOB(t) {
-    var c1=1.70158, c3=c1+1;
-    return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2);
-  }
-
-  function getQ(die, fi) {
-    var n = die.faces[fi].normal.clone();
-    var tgt = die.cd.clone().negate();
-    return new THREE.Quaternion().setFromUnitVectors(n, tgt);
-  }
-
-  function startRoll(die) {
-    if (die.rolled || die.rolling) return;
-    die.rawVal = Math.floor(Math.random()*die.def.sides)+1;
-    var fi = 0;
-    for (var i = 0; i < die.fv.length; i++) { if (die.fv[i]===die.rawVal){fi=i;break;} }
-    die.tgtQ = getQ(die, fi);
-    die.chaos = [die.grp.quaternion.clone()];
-    for (var i = 0; i < 8; i++) {
-      die.chaos.push(new THREE.Quaternion().setFromEuler(new THREE.Euler(
-        (Math.random()-0.5)*Math.PI*4,(Math.random()-0.5)*Math.PI*4,(Math.random()-0.5)*Math.PI*3
-      )));
-    }
-    die.rolling = true; die.rClk = 0;
-    die.hintEl.textContent = 'Rolling...';
-  }
-
-  function finishRoll(die) {
-    die.rolled = true; die.rolling = false; die.settled = true;
-    die.grp.scale.setScalar(1); die.grp.position.y = 0;
-    die.grp.quaternion.copy(die.tgtQ);
-    die.valEl.textContent = die.rawVal;
-    die.hintEl.textContent = 'Rolled: ' + die.rawVal;
-  }
-
-  // Animation loop
-  function tick() {
-    requestAnimationFrame(tick);
-    for (var i = 0; i < allDice.length; i++) {
-      var d = allDice[i];
-      if (!d.rolling && !d.settled) {
-        d.idle += 0.012;
-        d.grp.position.y = Math.sin(d.idle)*0.04;
-        d.grp.rotation.y += 0.003;
-      }
-      if (d.rolling) {
-        d.rClk += 1/60;
-        var p = Math.min(d.rClk/d.rDur, 1);
-        if (p < 0.5) {
-          var sp = p/0.5;
-          var ci = Math.min(Math.floor(sp*d.chaos.length), d.chaos.length-1);
-          var ni = Math.min(ci+1, d.chaos.length-1);
-          var lt = (sp*d.chaos.length)-ci;
-          var q = new THREE.Quaternion(); q.slerpQuaternions(d.chaos[ci], d.chaos[ni], lt);
-          d.grp.quaternion.copy(q);
-          d.grp.scale.setScalar(1+Math.sin(sp*Math.PI)*0.15);
-          d.grp.position.y = Math.sin(sp*Math.PI)*0.35;
-        } else {
-          var sp2 = (p-0.5)/0.5;
-          var e = easeOB(sp2);
-          var last = d.chaos[d.chaos.length-1];
-          var q2 = new THREE.Quaternion(); q2.slerpQuaternions(last, d.tgtQ, e);
-          d.grp.quaternion.copy(q2);
-          d.grp.scale.setScalar(1+(1-e)*0.04);
-          d.grp.position.y = (1-e)*0.08;
-        }
-        if (p >= 1) finishRoll(d);
-      }
-      d.ren.render(d.sc, d.cam);
-    }
-  }
-
-  for (var i = 0; i < DEFS.length; i++) {
-    var d = makeDie(DEFS[i]);
-    d.cv.addEventListener('click', (function(die){return function(){startRoll(die)}})(d));
-    allDice.push(d);
-  }
-  tick();
-
-  document.getElementById('resetAll').addEventListener('click', function() {
-    for (var i = 0; i < allDice.length; i++) {
-      var d = allDice[i];
-      d.rolled = false; d.settled = false; d.rolling = false; d.rawVal = 0;
-      d.idle = Math.random()*6.28;
-      d.grp.quaternion.set(0,0,0,1);
-      d.grp.rotation.set(0.35,0,0.08);
-      d.grp.scale.setScalar(1); d.grp.position.y = 0;
-      d.valEl.textContent = '';
-      d.hintEl.textContent = 'Click to roll';
-    }
-  });
-})();
-</script>
+```bash
+tag render dice --style terminal --data '{"dieType":"d6"}'
 ```
 
-### Adding d20 and d10
+For mixed or repeated numeric rolls on one shared canvas, use `tag render dice-pool`:
 
-To add a d20, add to the DEFS array:
-```js
-{id:'d20', sides:20, r:1.35, geo:function(r){return new THREE.IcosahedronGeometry(r,0)}}
+```bash
+tag render dice-pool --style terminal --data '{"label":"Storm Volley","pool":[{"dieType":"d6","count":2},{"dieType":"d8","count":2},{"dieType":"d10","count":3},{"dieType":"d20","count":1}],"modifier":4}'
 ```
-Opposite faces sum to 21. The face clustering and UV mapping work identically.
 
-The d10 (pentagonal trapezohedron) is not a built-in Three.js geometry. For d10/d100
-rolls, use the CSS die shapes from style-reference.md instead, or create custom geometry
-in a future iteration.
-
-### Single Die for Checks
-
-For a standard ability check, the GM renders only the relevant die (typically d20).
-Extract the single die definition from DEFS, render one canvas in the check panel,
-and wire the result to the sendPrompt continue button. The tray layout above is for
-reference and testing — in gameplay, only one die appears at a time.
+The GM must never hand-code WebGL, canvas elements, or dice HTML. Hand-coded dice consistently omit quaternion-based tumble animation, the texture atlas for numbered faces, opposite-face pairing, and the lock-after-reveal state machine — producing a bare geometric shape with no visible numbers that the player cannot meaningfully interact with. Always use the CLI command.
 
 ---
 
 ## Anti-Patterns
 
-- Never reveal which attribute a check will test before the player commits to an action.
-- Never auto-roll — the player must click the roll button.
-- Never describe consequences in the roll widget — use the outcome widget.
-- Never reveal the DC before the roll — only after, during the resolve stage.
-- Never skip the animation stage — the moment of uncertainty is part of the experience.
-- Never let the same attribute dominate the checks across an entire act.
-- Never use inline `onclick` with sendPrompt — use `data-prompt` + `addEventListener`.
-- Never use contractions (apostrophes) in sendPrompt strings.
-- Never omit the copyable fallback prompt from any widget with a sendPrompt button.
-- Never label action options with the attribute they test (e.g., "Persuade (CHA)").
-- Never let modified totals routinely exceed 20 without escalating DCs.
+- Never reveal which attribute a check will test before the player commits to an action. If the player knows which stat is being tested, they will always pick the option that targets their highest modifier — eliminating meaningful choice and turning every decision into arithmetic.
+- Never auto-roll — the player must click the roll button. An auto-rolled result robs the player of agency; they see a number they had no part in triggering, which feels like reading someone else's story rather than playing their own.
+- Never pre-fill the visible result or pre-determine the shown face before the click. If the face is visible before the click, the tumble animation is cosmetic theatre over a known outcome — the player notices immediately and disengages.
+- Never describe consequences in the roll widget — use the outcome widget. Embedding narrative consequences alongside the number collapses two distinct dramatic beats (the result and its meaning) into one, and the player skims past both.
+- Never reveal the DC before the roll — only after, during the resolve stage. If the player sees the DC first, they can calculate their odds before clicking; a roll they know they will probably pass (or certainly fail) carries no suspense.
+- Never skip the animation stage — the moment of uncertainty is part of the experience. Without the tumble-and-settle animation, the result appears instantly and the roll feels like a static label rather than a physical event the player participated in.
+- Never offer rerolls from the widget itself — the current dice widgets are one-shot and lock after reveal. A reroll button inside the widget bypasses the lock-after-reveal state machine, creates an untested second interaction path, and teaches the player that bad rolls are disposable rather than consequential.
+- Never let the same attribute dominate the checks across an entire act. If one attribute carries every check, players who dumped that stat face a wall of failures while those who invested in it breeze through — both outcomes flatten the drama and waste the other five attributes entirely.
+- Never hand-code HTML, CSS, or JS for dice widgets — use `tag render dice` or `tag render dice-pool` via the Bash tool. Hand-coded widgets omit the ~16KB WebGL renderer, numbered-face texture atlas, quaternion animation, and lock state machine; the player receives a non-functional or visually broken placeholder.
+- Never label action options with the attribute they test (e.g., "Persuade (CHA)"). Labelling turns narrative choices into stat optimisation — the player stops reading the fiction and starts scanning for the highest modifier, defeating the purpose of the hidden attribute rule.
+- Never let modified totals routinely exceed 20 without escalating DCs. When modifiers push totals past 20, the DC table (which caps at 25) can no longer create meaningful failure chances — every roll becomes a guaranteed success and the dice are reduced to a loading animation with no stakes.

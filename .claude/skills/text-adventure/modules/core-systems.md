@@ -53,6 +53,18 @@ in a space arc, a "fine longsword" in fantasy, or a "combat shotgun" in post-apo
 
 ---
 
+## § CLI Commands for This Module
+
+| Action | Command | Tool |
+|--------|---------|------|
+| Render scene (includes status bar) | `tag render scene --style <style>` | Run via Bash tool |
+| Render character panel | `tag render character --style <style>` | Run via Bash tool |
+| Render codex/quest panel | `tag render codex --style <style>` | Run via Bash tool |
+| Set game state | `tag state set <path> <value>` | Run via Bash tool |
+| Get game state | `tag state get <path>` | Run via Bash tool |
+
+---
+
 ## Inventory System
 
 Inventory has limited capacity: **8 slots** by default, expandable via bags or equipment.
@@ -67,7 +79,7 @@ slots — they are tracked separately and cannot be dropped or sold.
   skill check (INT, or a craft proficiency). Success produces the combined item; failure
   may consume one or both components.
 - **Encumbrance:** If inventory exceeds capacity, the player must choose what to drop before
-  any action. Present a widget with the full inventory and "Drop" buttons.
+  any action. Use `tag render character --style <style>` to present the inventory with "Drop" buttons.
 
 The character panel shows: item name, type badge (weapon/armour/consumable/key/misc),
 remaining uses (if consumable), and a "Use" or "Drop" button.
@@ -79,8 +91,8 @@ remaining uses (if consumable), and a "Use" or "Drop" button.
 ### Capacity
 
 Each character can carry items with total encumbrance up to **5 + STR modifier**. Exceeding
-capacity imposes **−1 to AGI checks per point over the limit**. The GM enforces this on every
-AGI-based roll — no silent ignoring of overencumbrance.
+capacity imposes **−1 to DEX checks per point over the limit**. The GM enforces this on every
+DEX-based roll — no silent ignoring of overencumbrance.
 
 ### Item Slots
 
@@ -141,7 +153,7 @@ setting (credits, gold, caps, denarii, etc.) — set in `gmState.character.curre
   enemy tier and narrative context.
 - **Quest rewards:** NPCs offer payment for completing objectives. Reward stated up front
   or discovered on completion.
-- **Selling items:** Via merchant widgets. Sell price = base x 0.5 (default), up to base x 0.75
+- **Selling items:** Via merchant interactions. Sell price = base x 0.5 (default), up to base x 0.75
   with a successful CHA barter check.
 - **Jobs and services:** The player may take on work — guard duty, courier runs, repairs —
   for payment. Payment scales with risk and time invested.
@@ -157,11 +169,13 @@ gold, caps, denarii, etc.). The GM chooses the currency name at scenario creatio
 
 - **Earning currency:** Quest rewards, looting, trading, work, gambling.
 - **Spending currency:** Repairs (station), supplies, equipment, information, bribes, passage.
-- **Shops:** Presented as NPC interactions. Show available goods with prices in a widget.
+- **Shops:** Presented as NPC interactions. Show available goods with prices in the scene render.
   Bartering uses a CHA check: success = discount, failure = markup, critical success = bonus
   item or significant discount, critical failure = offended shopkeeper (refused service).
 - **Loot value:** Items have a `value` field. Selling to shops yields 50–75% of value.
   Buying costs 100–150% depending on faction standing and location scarcity.
+
+> **Currency calculations:** Always use `echo "credits - cost" | bc` for transactions. Never compute mentally.
 
 ---
 
@@ -191,7 +205,7 @@ The GM maintains a quest log in `gmState.quests`. Each quest has:
 - `objectives` — sub-goals with completion state
 - `clues` — information gathered relevant to this quest
 
-The quest panel is toggled via the footer (pure JS, `togglePanel('quests')`). It shows:
+The quest panel is rendered via `tag render codex --style <style>`. It shows:
 - **Active quests** with objectives and progress
 - **Recently completed/failed** quests (last 3)
 - **Key clues** and leads
@@ -201,8 +215,10 @@ Side quests can be discovered through exploration, NPC dialogue, or codex entrie
 
 ### Footer button
 
-```html
-<button class="footer-btn" onclick="togglePanel('quests')">Quests</button>
+The quest panel is rendered via the CLI. Do not hand-code the footer button; use:
+
+```
+tag render codex --style <style>
 ```
 
 ---
@@ -219,7 +235,7 @@ No precise times unless the character possesses a sundial, hourglass, or equival
 
 **Calendar:** Track the actual date using the setting's calendar system (Roman, Gregorian,
 stardate, etc.). If the character would not know the date, track elapsed days instead.
-Display date and time period in the scene widget location bar alongside location name.
+Display date and time period in the scene location bar alongside location name (rendered by `tag render scene --style <style>`).
 
 Time advances through player actions: travel consumes hours/days (see geo-map), resting
 advances to the next period, specific actions consume defined amounts. The GM narrates
@@ -228,7 +244,7 @@ time passing — "The light has shifted. It is well past midday now."
 Never state time mechanically in prose — "it is dusk" not "it is 18:00" in a pre-clock setting.
 
 **Time pressure:** Some scenarios involve deadlines. Track these in `gmState.time.deadline`.
-The scene widget can show a deadline indicator. As the deadline approaches, the GM increases
+The scene render (`tag render scene`) can show a deadline indicator. As the deadline approaches, the GM increases
 tension in narration — but never displays a countdown timer. The player feels urgency through
 the world's reactions, not through a clock on screen.
 
@@ -236,7 +252,7 @@ the world's reactions, not through a clock on screen.
 
 ## Session Recap ("Previously On...")
 
-When resuming from a save, present a **recap widget** before the first scene:
+When resuming from a save, present a **recap** before the first scene (rendered via `tag render scene --style <style>`):
 - 2–3 sentence summary of the last session's key events (reconstructed from world flags,
   quest status, and recent roll history — not from memory).
 - Active quest status with current objectives.
@@ -320,14 +336,14 @@ time: {
 
 ### Level-Up Widget
 
-When XP threshold is reached, present a level-up widget:
+When XP threshold is reached, present a level-up panel (rendered via `tag render character --style <style>`):
 - Congratulations banner with new level number.
 - HP increase applied automatically.
 - Stat improvement: player chooses which attribute to increase (+1).
 - New abilities (levels 5, 8): present 2–3 options for player to choose.
 - Confirm button: `sendPrompt('Level up confirmed. Continue.')`.
 
-The status bar in scene widgets includes an XP progress bar showing current XP / next threshold.
+The status bar (rendered by `tag render scene`) includes an XP progress bar showing current XP / next threshold.
 
 ---
 
@@ -350,6 +366,8 @@ Healing restores HP but is deliberately limited to maintain tension.
 
 Never auto-heal the player. Healing always requires a deliberate player action via
 `sendPrompt('I use [item].')` or choosing to rest.
+
+> **HP calculations:** Always use `echo "currentHP - damage" | bc` for HP changes. Never compute mentally.
 
 ---
 
@@ -438,7 +456,7 @@ Display active conditions as badges in the status bar.
 | Stunned | Skip next action entirely. | 1 round | Automatic (wears off). |
 | Poisoned | Lose 1d4 HP at the start of each round. | 3 rounds or until cured | INT check (DC 14) as an action, or antidote item. |
 | Frightened | Disadvantage on all checks whilst the source is present. | Until source removed | Remove or defeat the source; Medic's Purify; Diplomat's Rally. |
-| Injured | −2 to all physical checks (STR, DEX, CON/AGI). | Until healed | Healing (any source) or rest at a safe location. |
+| Injured | −2 to all physical checks (STR, DEX, CON/DEX). | Until healed | Healing (any source) or rest at a safe location. |
 | Exhausted | −1 to all checks. Cumulative (stacks). | Until rested | Rest at a safe location removes all stacks. |
 
 **Applying conditions:** Conditions are applied by enemy attacks, environmental hazards,
@@ -448,9 +466,9 @@ blurs and your limbs feel heavy" not "You are now Poisoned."
 **Stacking:** Conditions do not stack with themselves except Exhausted. Reapplying a
 non-stackable condition resets its duration.
 
-**Display:** Show conditions as compact badges in the status bar:
-`<span class="condition-badge condition-[name]">[Name] ([rounds] left)</span>`.
-Permanent conditions (Injured, Exhausted) show no round count.
+**Display:** Conditions are rendered as compact badges in the status bar by the CLI.
+Use `tag render scene --style <style>` to render the scene, which includes
+condition badges automatically. Permanent conditions (Injured, Exhausted) show no round count.
 
 ---
 
@@ -469,11 +487,11 @@ them consistently.
 | Toxic atmosphere | STR | 14 | Poisoned condition; 1d6 damage per round without mask | Until clean air/mask |
 | Vacuum/decompression | STR | 16 | 2d6 damage per round; unconscious after 2 rounds | Until pressurised |
 | Radiation | INT | 14 | 1d4 damage per round; Injured condition after 3 rounds | Until shielded area |
-| Low gravity | AGI | 10 | Disadvantage on physical checks until acclimatised (3 rounds) | Ongoing |
+| Low gravity | DEX | 10 | Disadvantage on physical checks until acclimatised (3 rounds) | Ongoing |
 | High gravity | STR | 12 | −1 to all physical checks; encumbrance capacity halved | Ongoing |
 | Darkness | INT | 10 | Disadvantage on Perception; cannot target beyond short range | Until light source |
-| Unstable terrain | AGI | 12 | Fall prone; 1d6 damage on critical failure | Per movement |
-| Electrical hazard | AGI | 14 | 2d6 damage; Stunned on failure | One-time per source |
+| Unstable terrain | DEX | 12 | Fall prone; 1d6 damage on critical failure | Per movement |
+| Electrical hazard | DEX | 14 | 2d6 damage; Stunned on failure | One-time per source |
 
 ### Hazard Rules
 
@@ -497,7 +515,7 @@ adds a bonus to checks using that skill, reflecting competence beyond raw attrib
 | Attribute | Skills |
 |-----------|--------|
 | STR | Athletics, Intimidation |
-| AGI | Acrobatics, Stealth, Sleight of Hand |
+| DEX | Acrobatics, Stealth, Sleight of Hand |
 | INT | Investigation, Medicine, Mechanics |
 | CHA | Persuasion, Deception, Insight, Performance |
 
@@ -516,7 +534,7 @@ The proficiency bonus scales with character level:
 **Proficient:** d20 + stat modifier + proficiency bonus
 **Unproficient:** d20 + stat modifier only
 
-The roll breakdown widget must show the proficiency bonus as a separate line item when
+The roll breakdown display must show the proficiency bonus as a separate line item when
 applicable (see `die-rolls.md` for display format).
 
 ### Archetype Starting Proficiencies

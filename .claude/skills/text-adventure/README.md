@@ -1,399 +1,200 @@
-# Text Adventure Game System
+# Text Adventure Game — Operational Guide
 
-A comprehensive text adventure engine for Claude.ai, built entirely on `visualize:show_widget`.
-All gameplay, narrative, mechanics, and UI are rendered as interactive HTML widgets — no plain
-text output.
-
----
-
-## Architecture
-
-```
-SKILL.md (orchestrator)
-  Core game engine: session lifecycle, character creation, die rolls,
-  scene rendering, panel system, combat, maps, XP/levelling, visual rules.
-
-modules/
-  adventure-authoring.md  .lore.md file format for authored adventures
-  adventure-exporting.md  Export live game world as shareable .lore.md file
-  ai-npc.md               Live AI-powered NPC dialogue via Anthropic API
-  atmosphere.md           Visual atmosphere: particles, lighting, screen shake, UI degradation
-  audio.md                Procedural ambient soundscapes via Web Audio API
-  bestiary.md             Adversary templates, encounter building, threat tiers
-  character-creation.md   Archetypes, stats, equipment, theme-adapted names
-  core-systems.md         Inventory, economy, factions, quests, time, XP, session recap
-  crew-manifest.md        Living crew with morale, tensions, secrets
-  die-rolls.md            Progressive d20 resolution (declare → animate → resolve → continue)
-  genre-mechanics.md      Genre-specific mechanical additions
-  geo-map.md              On-world maps: settlements, wilderness, dungeons
-  gm-checklist.md         Mandatory quality gates, turn-start module loading, prose verification
-  lore-codex.md           Player-facing encyclopaedia with discovery states
-  procedural-world-gen.md Seed-based deterministic world generation (seeded NPC pronouns + stats)
-  prose-craft.md          Sentence-level prose quality: show-don't-tell, rhythm, dialogue craft
-  rpg-systems.md          Alternative systems: GURPS Lite, PF2e Lite, Shadowrun 5e Lite, Narrative
-  save-codex.md           Session persistence: character, world, story threads, ship, crew, map, time
-  scenarios.md            Starter scenarios and theme adaptation (space, fantasy, horror, etc.)
-  ship-systems.md         Vessel integrity, power allocation, damage, repair
-  star-chart.md           Sector navigation, jump routes, faction territory
-  story-architect.md      Plotline tracking, foreshadowing, consequence chains, dramatic pacing
-  world-history.md        Pre-adventure world building, epochs, power structures, cultural layer
-
-styles/
-  style-reference.md    Structural patterns: panel CSS, scene skeleton, loading messages,
-                        CSS custom property contract, worked examples.
-  *.md                  Visual style definitions (one per theme) providing colours,
-                        fonts, and decorative CSS as CSS custom properties.
-```
-
-The orchestrator (`SKILL.md`) is self-sufficient for running a basic text adventure. Modules
-add optional depth and are loaded based on scenario type and player settings.
-
----
+This document is the full reference for the text-adventure skill. The GM accesses
+this content via `tag help` commands — it does not need to read this file directly.
 
 ## Quick Start
 
-Ask Claude to play a text adventure. The skill triggers automatically on phrases like:
-- "Play a text adventure"
-- "Run a space RPG"
-- "I want to play a game"
-- "Start a sci-fi campaign"
-
-The game presents scenario selection, then game settings, then character creation, then play begins.
-
----
-
-## Game Settings
-
-Settings are presented as an interactive widget at game start. Players can adjust these before
-or during play.
-
-### Rulebook
-
-| System | Description | Mechanics |
-|--------|-------------|-----------|
-| **D&D 5e** (default) | Classic d20 system with six attributes | d20 + modifier vs DC threshold |
-| **Custom** | Player-provided rulebook | Supply a PDF or markdown file with mechanics |
-
-**D&D 5e** uses STR/DEX/INT/WIS/CON/CHA, modifiers from `floor((stat - 10) / 2)`, and the
-standard DC table (Trivial 5, Easy 8, Moderate 12, Hard 16, Very Hard 20, Near-impossible 25).
-
-**Custom rulebooks** must define: attributes, resolution mechanic, success/failure criteria,
-and character advancement. Provide the document at game start.
-
-> **Note:** This skill is system-agnostic. Specific game systems (such as Star Wars: Edge of
-> the Empire) have their own dedicated skills with tailored dice mechanics, character creation,
-> and adventures.
-
-### Difficulty
-
-| Level | Effect |
-|-------|--------|
-| Easy | All DCs reduced by 2. More generous loot. |
-| Normal | Standard DC table. Balanced resources. |
-| Hard | All DCs increased by 2. Scarcer resources. |
-| Brutal | All DCs increased by 4. Minimal healing. Permanent consequences. |
-
-### Pacing
-
-| Speed | Effect |
-|-------|--------|
-| Fast | Shorter scene descriptions. Quicker escalation. Fewer side encounters. |
-| Normal | Standard 3-act structure. Balanced exploration and action. |
-| Slow | Deeper world-building. More NPC interactions. Extended exploration phases. |
-
-### Active Modules
-
-Module checkboxes are pre-selected based on the chosen scenario (see Default Module Sets below).
-Players can enable or disable individual modules before play begins.
-
-### Text-to-Speech
-
-TTS defaults to **On** with a English voice (Google UK English preferred, falls back to any available English voice).
-When enabled, scene narrative is read aloud using the Web Speech API. TTS activates
-automatically on scene reveal and can be toggled via the footer button.
-
----
-
-## Modules
-
-### Ship Systems (`modules/ship-systems.md`)
-
-**Load when:** The player commands a vessel.
-
-Adds a seven-system integrity model: Hull, Engines, Power Core, Life Support, Weapons, Sensors,
-Shields. Each system has its own integrity track (0–100), power allocation, and failure mode.
-
-**Key features:**
-- Status thresholds: Operational → Degraded → Critical → Failing → Offline
-- DC modifiers from damaged systems (e.g., degraded engines impose −1 on jump rolls)
-- Cascade failures when systems go offline
-- Power allocation: fixed pool distributed across systems, player-controlled rebalancing
-- Field repairs (INT rolls + parts) and station repairs (credits, full restoration)
-- Four ship classes: heavy freighter, light corvette, salvage tug, research vessel
-- Ship status panel integrated into the scene widget
-
-### Crew Manifest (`modules/crew-manifest.md`)
-
-**Load when:** The player has a crew aboard their vessel.
-
-Models 3–6 crew members, each with a role, personal tension, and a secret. Morale is a shared
-resource that affects the entire ship.
-
-**Key features:**
-- Crew roles tied to ship systems (e.g., Engineer boosts repair rolls)
-- Morale track (0–100) with mechanical effects on DCs
-- Personal tensions that create story pressure
-- Secrets that may surface through play
-- Crew reactions to player decisions
-- Death, defection, and breakdown mechanics
-
-### Geo Map (`modules/geo-map.md`)
-
-**Load when:** The adventure involves on-world exploration.
-
-Handles three map types: settlement maps (towns, stations, outposts), wilderness/overland maps
-(terrain, travel, resource consumption), and dungeon/interior floor-plans (rooms, corridors,
-doors). All maps use progressive revelation — the player earns the map by exploring it.
-
-**Key features:**
-- Three map types with distinct visual styles and mechanics
-- Fog of war: unexplored zones hidden, revealed zones dimmed, visited zones fully rendered
-- Settlement zones with faction control, threat levels, and access restrictions
-- Wilderness terrain with travel time modifiers, encounter rolls, and supply consumption
-- Dungeon rooms with locked/hidden doors, traps, and room status tracking
-- Interactive SVG widgets with click-to-travel and zone inspection
-- MAP_EVENT protocol for zone entry, discovery, and status changes
-- Physical map items as loot (reveal entire regions at once)
-- Integration with lore-codex (auto-unlock location entries on visit)
-- Panel summary view (quick reference) + full standalone widget (interaction)
-
-### Star Chart (`modules/star-chart.md`)
-
-**Load when:** The adventure involves space travel between star systems.
-
-Generates a sector of star systems with jump routes, faction territories, and hazard zones.
-Seeded from the world PRNG for deterministic, reproducible sectors.
-
-**Key features:**
-- SVG starmap widget with interactive system inspection
-- Progressive system revelation (adjacent systems only)
-- Jump fuel economy
-- Faction territory overlay
-- Hazard zones with encounter tables
-- Travel time and route planning
-- Navigation panel integrated into the scene widget
-
-### Lore Codex (`modules/lore-codex.md`)
-
-**Load when:** Any adventure (recommended for all games).
-
-A player-facing encyclopaedia that unlocks entries as the player discovers lore. Entries are
-gated — the player only sees what their character has actually learned.
-
-**Key features:**
-- Entry states: Locked → Partial → Discovered → Redacted
-- Seven categories: Faction, Location, Character, Item, Event, Secret, Bestiary
-- Discovery stamps (how/where/when the player learned it)
-- Cross-reference links between entries
-- Search and category filtering
-- LORE_EVENT protocol for unlocking entries during play
-- Codex panel integrated into the scene widget
-- Toast notifications when new entries are discovered
-
-### AI NPC (`modules/ai-npc.md`)
-
-**Load when:** Named NPCs with narrative weight need live, freeform dialogue.
-
-Replaces the static dialogue widget with an AI-powered conversation engine. NPCs have genuine
-knowledge limits, agendas, secrets, and evolving dispositions. The player converses in freeform
-text; responses are generated via the Anthropic API.
-
-**Key features:**
-- NPC definition objects with voice, knowledge fences, lies, and agendas
-- Dynamic system prompt engineering from NPC state
-- Disposition engine (0–100 trust score mapped to six states)
-- Trigger-based trust deltas from player dialogue
-- World state propagation via GM_EVENT protocol
-- Multi-NPC support with isolated conversation histories
-- Five NPC archetypes: Gatekeeper, Reluctant Witness, True Believer, Broken Expert, Adversary with a Point
-
-**Note:** Requires API access. Each NPC exchange costs approximately 400–600 tokens.
-
-### Procedural World Gen (`modules/procedural-world-gen.md`)
-
-**Load when:** The scenario uses generated (not hand-authored) content.
-
-Generates deterministic game worlds from a seed string. Same seed always produces the same
-world — sessions are shareable and replayable.
-
-**Key features:**
-- Seeded PRNG (mulberry32) for reproducible generation
-- Room/area generation with typed layouts
-- NPC roster generation with personality traits and factions
-- Faction graph with relationships (allied, neutral, hostile, at war)
-- Loot tables with rarity tiers
-- Encounter tables with threat scaling
-- Quest hook generation (main + side threads)
-- Atmosphere generation (lighting, sound, smell, hazards)
-
-### Save Codex (`modules/save-codex.md`)
-
-**Load when:** The player wants to save progress or resume a prior session.
-
-Encodes the full session state into a copyable string. No servers, no localStorage — the
-save *is* the string.
-
-**Key features:**
-- Compact mode: for procedural worlds, stores seed + player deltas only (tweet-length saves)
-- Full mode: for hand-authored worlds, LZ-compressed serialised state
-- Versioned, checksummed payloads
-- Save widget with copy button
-- Resume flow with validation
-- Captures all module state (ship, crew, nav, codex)
-
----
-
-## Core Systems
-
-### Inventory
-8-slot capacity (expandable via equipment). Key items don't consume slots. Consumables have limited uses. Combining items requires a skill check. Encumbrance forces the player to drop items when over capacity.
-
-### Economy and Trading
-Setting-appropriate currency (credits, gold, denarii, etc.) earned through quests, loot, and work. Spent on repairs, supplies, equipment, and information. Shops are NPC interactions with bartering via CHA checks. Selling yields 50-75% of item value; buying costs 100-150% depending on faction standing.
-
-### Faction Reputation
-Faction standing tracked as -100 (hostile) to +100 (allied). Actions that help a faction increase standing; opposing actions decrease it. Affects prices, access, NPC attitudes, and available missions. Standing ranges: Hostile / Unfriendly / Neutral / Friendly / Allied.
-
-### Quest and Objective Tracking
-Active quest log with objectives, completion status, and gathered clues. Accessible via a footer panel toggle. Quests discovered through exploration, NPC dialogue, and codex entries. Never auto-completed — the GM marks objectives based on player actions.
-
-### Time and Calendar
-Time adapts to the setting's technology level. Pre-clock settings use natural periods (dawn, morning, midday, dusk, evening, night). Clock settings use hours. Calendar tracked using the setting's system (Roman, Gregorian, stardate) when known. Time pressure is narrative, never a real-time countdown. Displayed in the scene widget location bar.
-
-### Session Recap
-When resuming from a save, a recap widget shows: key events summary, active quest status, character snapshot, and current location/time. Answers "Where was I? What was I doing?" before play resumes.
-
----
-
-## Default Module Sets
-
-The orchestrator recommends module combinations based on scenario type:
-
-| Scenario | Modules |
-|----------|---------|
-| Ship-based (Generation Ship, Mining Barge) | ship-systems, crew-manifest, star-chart, lore-codex, save-codex |
-| Station-based (Trade Station) | geo-map, lore-codex, ai-npc, save-codex |
-| Exploration (planet, derelict) | geo-map, procedural-world-gen, lore-codex, save-codex |
-| Full sandbox | All modules |
-
-Players can override these defaults in the settings widget.
-
----
-
-## Character Archetypes
-
-Default archetypes for D&D 5e mode (names and flavour adapt to scenario theme):
-
-| Archetype | Primary Stats | HP | Flavour |
-|-----------|-------------|-----|---------|
-| Soldier | STR 16, CON 14 | 12 | Combat-trained, tactical instincts |
-| Scout | DEX 16, WIS 14 | 9 | Agile, perceptive, evasive |
-| Engineer | INT 16, DEX 12 | 8 | Improviser, systems expert |
-| Medic | WIS 16, INT 14 | 9 | Healer, calm under pressure |
-| Diplomat | CHA 16, INT 14 | 8 | Persuader, reads people |
-| Smuggler | DEX 16, CHA 14 | 10 | Slippery, charming, resourceful |
-
-For other game systems, dedicated skills provide their own archetype and career definitions.
-
----
-
-## XP and Levelling
-
-| Action | XP |
-|--------|----|
-| Scene with meaningful decision | 25 |
-| Combat victory | 50 |
-| Secret/hidden area discovered | 30 |
-| NPC interaction resolved favourably | 20 |
-| Critical success bonus | 10 |
-| Quest thread completed | 100 |
-| Near-death survival | 40 |
-
-| Level | XP Required | HP Bonus | Improvement |
-|-------|-------------|----------|-------------|
-| 1 | 0 | — | Starting stats |
-| 2 | 100 | +3 | +1 attribute |
-| 3 | 250 | +3 | New proficiency |
-| 4 | 500 | +4 | +1 attribute |
-| 5 | 800 | +4 | +1 attribute, new ability |
-| 6 | 1200 | +5 | New proficiency |
-| 7 | 1700 | +5 | +1 attribute |
-| 8 | 2300 | +6 | +1 attribute, new ability |
-
----
-
-## Starter Scenarios
-
-Four space-themed scenarios are offered by default:
-
-1. **Generation Ship Colonist** — Deep space survival and politics aboard a centuries-old vessel
-2. **Mining Barge Engineer** — Blue-collar mystery in the asteroid belt
-3. **Trade Station Bartender** — Social intrigue at a crossroads station
-4. **GM's Choice** — A fourth scenario generated to complement the above three
-
-Players select before character creation. The GM does not pull from memory for scenario content.
-
-**Note:** The space theme is the default, not a constraint. The system supports any genre —
-fantasy, horror, post-apocalyptic, and so on. If the player requests a different genre, scenarios,
-archetypes, and module selection adapt accordingly.
-
----
-
-## Widget Types
-
-| Widget | Purpose |
-|--------|---------|
-| Settings | Game configuration before play |
-| Scenario Select | Choose starting scenario |
-| Character Creation | Name, archetype, stat block |
-| Scene / Room | Primary gameplay — narrative, POIs, actions, panels |
-| Die Roll | Progressive d20 resolution (declare → animate → resolve → continue) |
-| Dialogue | NPC conversation with response options |
-| Combat | Turn-based encounters with initiative and actions |
-| Map | SVG spatial overview (floor-plan, region, or starmap) |
-| Outcome | Narrative consequence of rolls/decisions |
-| Level Up | Stat improvements and ability selection |
-| Quests | Active objectives, clues, and quest progress |
-| Save | Session persistence (save-codex module) |
-
----
-
-## Visual Standards
-
-- **Fonts and colours are defined by the active visual style.** Visual style files in
-  `styles/` provide CSS custom properties consumed by all widgets. The structural
-  reference (`styles/style-reference.md`) defines the contract that styles must fulfil.
-- **Visual styles** are selectable per session — one `.md` file per theme (e.g., Terminal,
-  Parchment, Neon, Stained Glass). The player chooses during game setup, or the GM auto-selects
-  based on the scenario.
-- **Dark mode:** All widgets use CSS variables; visual style files provide
-  `@media (prefers-color-scheme: dark)` overrides where needed.
-- **No emoji** — SVG icons and CSS shapes only
-- **No text outside widgets** — every output is a `visualize:show_widget` call
-
----
-
-## Adding Custom Mechanics
-
-To use a custom rulebook:
-
-1. Prepare a PDF or markdown document defining your mechanics
-2. At game start, select "Custom" as the rulebook in settings
-3. Provide the document when prompted
-4. The GM reads and applies the custom rules throughout the session
-
-Custom rulebooks must define at minimum:
-- **Attributes:** What stats characters have and their value ranges
-- **Resolution mechanic:** How uncertain actions are resolved (dice, cards, etc.)
-- **Success criteria:** What constitutes success, failure, partial success
-- **Character advancement:** How characters improve over time
+```bash
+cd .claude/skills/text-adventure && . ./setup.sh && tag state reset
+```
+
+Resume from save:
+```bash
+cd .claude/skills/text-adventure && . ./setup.sh && tag save load /mnt/user-data/uploads/<file>.save.md
+```
+
+## CLI Commands
+
+| Command | Purpose |
+|---------|---------|
+| `tag help` | Workflow guides: quickstart, new-game, scene |
+| `tag module` | Load module markdown into GM context and populate `_modulesRead` |
+| `tag state` | Game state CRUD, NPC creation, sync, context, schema |
+| `tag compute` | Hidden rolls: contest, hazard, encounter, levelup |
+| `tag render` | Deterministic HTML widget generation |
+| `tag save` | Generate, load, validate, migrate save files |
+| `tag quest` | Quest lifecycle: complete, add-objective, add-clue, status, list |
+| `tag batch` | Multiple commands in one call |
+| `tag rules` | Quick-reference cheat sheet with file/line refs |
+| `tag export` | World-sharing via .lore.md files |
+| `tag verify` | Validate composed HTML before show_widget |
+| `tag build-css` | Extract, minify, and hash CDN CSS from style sources |
+| `tag setup` | Apply settings + character payloads in one step |
+| `tag style` | Load visual style guidance into GM context |
+
+Run `tag <command> --help` for subcommand details.
+
+## Turn Loop
+
+Every scene follows this sequence. No exceptions.
+
+1. **Sync** — `tag state sync --apply --scene <N> --room <id>`
+2. **Load Modules** — Run `tag module activate-tier 1` before scene work. After compaction, use `tag state context` to see which active modules need reloading, then re-run `tag module activate-tier 1` plus any required Tier 2/3 activations.
+3. **Render** — `tag render scene --style <style>` — keep the Shadow DOM shell/runtime intact.
+4. **Compose** — Write narrative into `#narrative` or each `.scene-phase .narrative` block, and add actions/POIs only in the designated scene-content area. Follow `craftGuidance` from render output.
+5. **Verify** — `tag verify /tmp/scene.html` — blocks progression until all checks pass.
+6. **Post-Scene** — `tag state sync --apply --scene <N+1>` — update HP, XP, flags, quests.
+
+## New Game Setup
+
+1. **Setup** — `. ./setup.sh && tag state reset`
+2. **Scenario Select** — `tag render scenario-select --data '<json>'`
+3. **Verify Scenario** — `tag verify scenario /tmp/scenario.html` before `show_widget`
+4. **Game Settings** — `tag render settings --data '<json>'`
+5. **Verify Settings** — `tag verify rules /tmp/settings.html` before `show_widget`
+6. **Character Creation** — `tag render character-creation --style <style> --data '<json>'`
+7. **Verify Character** — `tag verify character /tmp/character.html` before `show_widget`
+8. **Apply Setup Payload** — `tag setup apply --settings '<json>' --character '<json>'`
+9. **Read Tier 1 Modules** — `tag module activate-tier 1`
+10. **Load Scenario Modules** — `tag module activate-tier 2` or targeted `tag module activate <name>` calls
+11. **Opening Scene** — `tag state sync --apply --scene 1 --room <starting_room>` then `tag render scene --style <style>`
+
+## Module Tiers
+
+### Tier 1 — MUST be active before rendering any widget
+- `gm-checklist` — Mandatory quality gates
+- `prose-craft` — Read EVERY turn. Sentence-level narrative quality
+- `core-systems` — HP, stats, inventory, economy, factions, quests, time, XP
+- `die-rolls` — Resolution mechanics, dice widgets, DC calibration
+- `character-creation` — Archetypes, stat generation, starting equipment
+- `save-codex` — Session persistence
+
+### Tier 2 — Load when scenario activates (before opening scene)
+`scenarios`, `bestiary`, `story-architect`, `ship-systems`, `crew-manifest`,
+`star-chart`, `geo-map`, `procedural-world-gen`, `world-history`, `lore-codex`,
+`rpg-systems`, `ai-npc`, `atmosphere`, `audio`, `pre-generated-characters`
+
+### Tier 3 — Load on demand when player triggers
+`adventure-exporting`, `adventure-authoring`, `arc-patterns`, `genre-mechanics`
+
+## Visual Styles
+
+| Style | Best for |
+|-------|----------|
+| Station (default) | Sci-fi, space opera, thriller, mystery |
+| Terminal | Cyberpunk, hacking, military sci-fi |
+| Parchment | Fantasy, gothic horror, historical |
+| Neon | Pulp adventure, action, cyberpunk |
+| Brutalist | Post-apocalyptic, horror, survival |
+| Art Deco | Noir, 1920s, political intrigue |
+| Ink Wash | Wuxia, meditation, literary fiction |
+| Blueprint | Engineering, military, heist |
+| Stained Glass | Dark fantasy, religious, medieval |
+| SvelteKit | Contemporary, urban, heist, comedy |
+| Weathered | Survival, dystopian, dieselpunk |
+| Holographic | Space opera, far-future, AI themes |
+
+## Widget Inventory
+
+| Widget | Command | When |
+|--------|---------|------|
+| Settings | `tag render settings --data '<json>'` | Game setup |
+| Scenario Select | `tag render scenario-select --data '<json>'` | Pre-game |
+| Character Creation | `tag render character-creation --style <s> --data '<json>'` | Pre-game |
+| Scene | `tag render scene --style <s>` | Every scene |
+| Dice | `tag render dice --style <s>` | Single die roll |
+| Dice Pool | `tag render dice-pool --style <s> --data '<json>'` | Mixed/repeated rolls |
+| Combat Turn | `tag render combat-turn --style <s>` | Combat outcome |
+| Dialogue | `tag render dialogue --style <s>` | NPC conversation |
+| Character | `tag render character --style <s>` | Character sheet |
+| Ship | `tag render ship --style <s>` | Ship status |
+| Crew | `tag render crew --style <s>` | Crew manifest |
+| Codex | `tag render codex --style <s>` | Lore codex |
+| Map | `tag render map --style <s>` | World map |
+| Star Chart | `tag render starchart --style <s>` | Navigation |
+| Ticker | `tag render ticker --style <s>` | Clock/time |
+| Footer | `tag render footer --style <s>` | Module-aware footer |
+| Level Up | `tag render levelup --style <s>` | Level-up celebration |
+| Recap | `tag render recap --style <s>` | Session summary |
+| Arc Complete | `tag render arc-complete --style <s>` | Act boundary / transition |
+| Save Div | `tag render save-div` | Save data container |
+
+## Verification
+
+- `tag verify scenario /tmp/scenario.html` for scenario select
+- `tag verify rules /tmp/settings.html` for settings
+- `tag verify character /tmp/character.html` for character creation
+- `tag verify /tmp/scene.html` for scenes
+- `tag verify <widget> /tmp/widget.html` for standalone/in-game widgets such as `dice`, `dice-pool`, `dialogue`, `combat-turn`, `levelup`, `recap`, `arc-complete`, `ticker`, `ship`, `crew`, `codex`, `map`, `starchart`, `footer`, and `save-div`
+
+Every widget should be verified before `show_widget`. Scene verification also gates the next render/sync cycle.
+
+## Scene Structure
+
+Every scene widget contains (inside `#reveal-full` > `#scene-content`):
+
+1. **Location bar** — location name + optional time/date
+2. **Atmosphere strip** — 3 sensory pills (at least one non-visual)
+3. **Narrative block(s)** — `#narrative` or `.scene-phase .narrative`, second person, present tense
+4. **Points of interest** — optional `data-poi` buttons that share the scene POI budget
+5. **Action buttons** — 2-5 choices via `data-prompt`, no right/wrong labels
+6. **Status bar** — HP pips, AC, and level when character state exists
+7. **Footer** — panel toggles (pure JS) + save/export/audio actions
+8. **Scene metadata** — hidden `#scene-meta` div with JSON
+
+## Session Lifecycle
+
+```
+[Scenario Select] → [Settings] → [Character Creation] → [Opening Scene]
+  → [Explore/Decide] → [Roll] → [Outcome] → [State Update]
+  → [Next Scene] → ... → [Level Up] → [Climax]
+  → [Arc Conclusion] → [Continue | Save | Export | New Game]
+  → [Arc Transition] → [New Arc Opening] → ...
+```
+
+## Arithmetic
+
+Never compute arithmetic in prose — use `echo "expression" | bc` via Bash tool.
+
+## Optional: Claude Code integration (LLM prose review)
+
+By default, `tag prose-check` runs in **manual mode** — the GM self-reviews against a checklist. For independent LLM review (harder gate, no conflict of interest), configure `tag` to use a live `claude -p` subprocess via the Claude Code MCP server.
+
+### One-time setup
+
+**Mac / Linux** — add to `~/.config/Claude/claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "claude-code": { "command": "claude", "args": ["mcp", "serve"] }
+  }
+}
+```
+
+**Windows (WSL)** — add to `%APPDATA%\Claude\claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "claude-code": { "command": "wsl", "args": ["bash", "-lc", "claude mcp serve"] }
+  }
+}
+```
+
+### Activation
+
+Once Claude Code MCP is connected, run once per campaign:
+```
+tag settings prose llm
+```
+
+Subsequent `tag prose-check` calls output a ready-to-run `claude -p` command. Execute it via `claude-code:Bash` (ignore "Tool execution failed" — it runs server-side). Then pass the result to `tag prose-gate --llm /tmp/prose-check-result.json`.
+
+### Degradation
+
+If Claude Code MCP is not connected, `tag settings prose manual` reverts to checklist mode. No game-breaking behaviour either way.
+
+## Bun Runtime
+
+The tag CLI requires Bun (`Bun.file()`, `import.meta.dir`). `setup.sh` installs it.
+Tests: `bun test`. Type check: `bun run typecheck`.

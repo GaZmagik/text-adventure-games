@@ -8,7 +8,19 @@ and a pace that never stalls or overwhelms.
 
 Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: all other modules (consumes
 quest data from core-systems, world flags from the orchestrator, NPC profiles from ai-npc and
-procedural-world-gen, and session state from save-codex).
+procedural-world-gen, and session state from save-codex). For multi-arc campaign structure,
+arc type selection, reversal variety, and downtime patterns, see `modules/arc-patterns.md`.
+
+---
+
+## § CLI Commands
+
+| Action | Command | Tool |
+|--------|---------|------|
+| Render scene | `tag render scene --style <style>` | Run via Bash tool |
+| Set story state | `tag state set storyArchitect.<path> <value>` | Run via Bash tool |
+
+> **All widget output must be produced by running the `tag` CLI via Bash tool.** Do not hand-code HTML, CSS, or JS for scene rendering — use the commands above.
 
 ---
 
@@ -29,7 +41,12 @@ into the next arc. This is the narrative bridge between adventures.
 
 ### Marking Threads for Cross-Arc Carry
 
-Add `crossArc: true` to any thread that should persist across arc boundaries:
+Add `crossArc: true` to any thread that should persist across arc boundaries.
+Threads without this flag are force-resolved in the arc epilogue — the Story
+Architect will close them with a generic wrap-up beat, which means open plotlines
+the player expected to continue (a simmering conspiracy, an unresolved rivalry)
+are abruptly shut down. The player experiences this as a broken promise: narrative
+threads they invested in simply vanish at the arc boundary with no payoff.
 
 ```js
 {

@@ -120,6 +120,7 @@ recommended-styles:
   visual: station
 
 seed: "pale-threshold-7"
+rulebook: d20_system
 
 calendar-system: "Station Standard (24h, 365-day cycle)"
 start-date: "2347-03-15"
@@ -823,6 +824,7 @@ overwritten by generated entries.
 
 The Adventure Authoring module adds the following fields to `gmState`:
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 gmState: {
   // ...existing fields...

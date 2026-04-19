@@ -64,7 +64,7 @@ through play.
 | Source | What is exported | Transformation |
 |--------|-----------------|----------------|
 | `gmState.worldHistory` | Epochs, power structures, past conflicts, cultural layer | Direct copy + new entries from resolved threads |
-| `gmState.npcProfiles` / ai-npc roster | All NPCs with current state | Dispositions, secrets (ALL — revealed and unrevealed), alive/dead status preserved |
+| `gmState.rosterMutations` / ai-npc roster | All NPCs with current state | Dispositions, secrets (ALL — revealed and unrevealed), alive/dead status preserved |
 | `gmState.mapState` / geo-map | All locations (discovered and undiscovered) | Current physical state preserved (damage, changes, items); discovery states reset to undiscovered |
 | `gmState.storyArchitect.storyThreads` | All story threads | Resolved -> world history events; Active/Escalating -> seeded threads; Dormant -> dormant; Abandoned -> removed |
 | `gmState.factions` | All faction standings | Current standings become the starting state for the new player |
@@ -135,6 +135,7 @@ Capture a frozen copy of the entire `gmState` at the moment of export. All subse
 operate on this snapshot, not on the live state — the game continues unaffected by the export
 process.
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const exportSnapshot = JSON.parse(JSON.stringify(gmState));
 ```
@@ -147,6 +148,7 @@ includes all epochs, power structures, past conflicts, and the cultural layer.
 If the original adventure resolved a major conflict (any story thread with `type: "main"` and
 `status: "resolved"`), create a new epoch entry:
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 const newEpoch = {
   id: generateEpochId(exportSnapshot),
@@ -154,7 +156,7 @@ const newEpoch = {
   timeframe: exportSnapshot.time.date + " (recent)",
   definingEvent: resolvedMainThread.resolution,
   consequences: deriveConsequences(exportSnapshot.worldFlags, resolvedMainThread),
-  survivors: deriveSurvivors(exportSnapshot.factions, exportSnapshot.npcProfiles),
+  survivors: deriveSurvivors(exportSnapshot.factions, exportSnapshot.rosterMutations),
   artifacts: deriveArtifacts(exportSnapshot.worldFlags),
   publicKnowledge: true,
   contested: false,
@@ -324,6 +326,7 @@ not available for conversation.
 NPCs who interacted significantly with the original player (trust >= 40 or trust <= -20)
 gain a reference in their profile:
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 npc.previousAdventurerRelationship = {
   knew: true,
@@ -385,6 +388,7 @@ exported: true
 exported-from: "Gareth Williams — Scene 12"
 exported-date: "2026-03-20T08:30:00Z"
 original-seed: "pale-threshold-7"
+rulebook: d20_system
 world-state: "post-act-1"
 previous-adventurer:
   name: "Gareth Williams"
@@ -444,322 +448,44 @@ module's section order:
 
 ### Step 11 — Export as `.lore.md`
 
-The export widget uses `sendPrompt()` to ask Claude to generate the `.lore.md` file as a
-downloadable conversation artifact. This bypasses the iframe sandbox restrictions that
-silently block Blob downloads in Claude.ai widgets.
+The export is triggered via `tag save generate --format lore`. The CLI computes the
+complete `.lore.md` content from the current `gmState` (Steps 2-10 above) and presents
+it as a downloadable artifact.
 
-When the player clicks the Export button, the widget fires:
-```js
-sendPrompt('Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format.');
-```
-
-Claude receives this prompt and must:
-1. Compute the complete `.lore.md` content from the current `gmState` (Steps 2-10 above).
-2. Present the `.lore.md` as a downloadable artifact in the response.
-
-If `sendPrompt()` is unavailable, the widget falls back to displaying the `.lore.md`
-content in a readonly textarea with a copy button.
+The scene template's export widget uses `sendPrompt()` to invoke the export flow. The
+GM does not hand-code the export widget — the scene template handles the preview,
+confirmation, and download mechanism automatically.
 
 ---
 
 ## The Export Widget
 
-The export widget is rendered via `visualize:show_widget` when the player requests an export
-or accepts the GM's offer. It provides a preview of what will be exported, a clear breakdown
-of what is included versus stripped, and the download mechanism.
+The export widget is rendered by the scene template when the player requests an export
+or accepts the GM's offer. The GM does not hand-code the export widget — the scene
+template handles the preview, included/stripped breakdown, Previous Adventurer preview,
+and download mechanism automatically.
 
-### Widget Structure
+The GM provides the export data via `tag state` fields:
 
-```html
-<style>
-  .export-root { font-family: var(--ta-font-body, 'IBM Plex Mono', monospace); padding: 1rem 0 1.5rem; }
+| Field | Source |
+|-------|--------|
+| `characterName` | `gmState.character.name` |
+| `characterClass` | `gmState.character.class` |
+| `scenesPlayed` | `gmState.scene` |
+| `locationCount` | `Object.keys(gmState.mapState?.rooms ?? {}).length` |
+| `npcCount` | `(gmState.rosterMutations ?? []).length` |
+| `threadCount` | `(gmState.storyArchitect?.storyThreads ?? []).length` |
+| `factionCount` | `Object.keys(gmState.factions ?? {}).length` |
+| `flagCount` | `Object.keys(gmState.worldFlags ?? {}).length` |
+| `worldState` | Derived: `"post-act-1"`, `"post-act-2"`, etc. |
+| `exportCount` | `gmState.exportState?.exportCount ?? 0` |
+| `originalSeed` | `gmState.seed ?? null` |
+| `adventurerFate` | Derived from character fate |
+| `loreFileContent` | Complete `.lore.md` string (Steps 2-10) |
 
-  .export-header { display: flex; align-items: baseline; justify-content: space-between;
-    margin-bottom: 1rem; flex-wrap: wrap; gap: 8px; }
-  .export-title { font-family: var(--ta-font-heading, 'Syne', sans-serif); font-size: 22px;
-    font-weight: 700; color: var(--color-text-primary); margin: 0; }
-  .export-sub { font-size: 11px; color: var(--color-text-tertiary); }
-
-  .export-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 8px; margin-bottom: 1rem; }
-  .summary-card { padding: 10px 12px; border: 0.5px solid var(--color-border-tertiary);
-    border-radius: var(--border-radius-md); background: var(--color-background-secondary); }
-  .summary-label { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--color-text-tertiary); margin: 0 0 4px; }
-  .summary-value { font-size: 16px; font-weight: 700; color: var(--color-text-primary); margin: 0; }
-
-  .export-section { margin-bottom: 1rem; padding: 0.75rem 1rem;
-    border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg);
-    background: var(--color-background-primary); }
-  .section-heading { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--color-text-tertiary); margin: 0 0 8px; }
-
-  .export-list { list-style: none; padding: 0; margin: 0; }
-  .export-list li { font-size: 12px; color: var(--color-text-secondary); padding: 3px 0;
-    display: flex; align-items: center; gap: 6px; }
-  .badge-included { font-size: 9px; padding: 2px 6px; border-radius: var(--border-radius-md);
-    background: var(--color-background-success); color: var(--color-text-success);
-    letter-spacing: 0.06em; }
-  .badge-stripped { font-size: 9px; padding: 2px 6px; border-radius: var(--border-radius-md);
-    background: var(--color-background-danger); color: var(--color-text-danger);
-    letter-spacing: 0.06em; }
-
-  .adventurer-preview { margin-bottom: 1rem; padding: 0.75rem 1rem;
-    border: 0.5px solid var(--color-border-info); border-radius: var(--border-radius-lg);
-    background: var(--color-background-info); }
-  .adventurer-name { font-size: 14px; font-weight: 700; color: var(--color-text-primary); margin: 0 0 4px; }
-  .adventurer-fate { font-size: 12px; color: var(--color-text-secondary); margin: 0; line-height: 1.6; }
-
-  .export-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-  .export-btn { padding: 8px 18px; font-family: var(--ta-font-body, 'IBM Plex Mono', monospace);
-    font-size: 11px; letter-spacing: 0.1em; border-radius: var(--border-radius-md);
-    cursor: pointer; transition: all 0.1s; }
-  .export-btn-primary { background: var(--color-background-info); border: 0.5px solid var(--color-border-info);
-    color: var(--color-text-info); }
-  .export-btn-primary:hover { filter: brightness(1.1); }
-  .export-btn-secondary { background: transparent; border: 0.5px solid var(--color-border-secondary);
-    color: var(--color-text-secondary); }
-  .export-btn-secondary:hover { background: var(--color-background-secondary); }
-
-  .export-footer { display: flex; justify-content: space-between; align-items: center;
-    margin-top: 1rem; padding-top: 0.75rem; border-top: 0.5px solid var(--color-border-tertiary); }
-  .export-meta { font-size: 10px; color: var(--color-text-tertiary); }
-</style>
-
-<div class="export-root">
-  <div class="export-header">
-    <p class="export-title">Export World</p>
-    <span class="export-sub">Share this world as a .lore.md file</span>
-  </div>
-
-  <!-- World summary -->
-  <div class="export-summary" id="export-summary">
-    <!-- Populated by JS -->
-  </div>
-
-  <!-- What gets exported vs stripped -->
-  <div class="export-section">
-    <p class="section-heading">Included in export</p>
-    <ul class="export-list" id="included-list">
-      <!-- Populated by JS -->
-    </ul>
-  </div>
-
-  <div class="export-section">
-    <p class="section-heading">Stripped from export</p>
-    <ul class="export-list" id="stripped-list">
-      <!-- Populated by JS -->
-    </ul>
-  </div>
-
-  <!-- Previous Adventurer preview -->
-  <div class="adventurer-preview" id="adventurer-preview">
-    <p class="section-heading">Your character becomes world history</p>
-    <p class="adventurer-name" id="adventurer-name"></p>
-    <p class="adventurer-fate" id="adventurer-fate"></p>
-  </div>
-
-  <!-- Actions -->
-  <div class="export-actions">
-    <button class="export-btn export-btn-primary" id="export-btn" data-prompt="Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format.">Export .lore.md ↗</button>
-    <button class="export-btn export-btn-secondary" id="copy-btn">Copy to clipboard</button>
-    <button class="export-btn export-btn-secondary" data-prompt="Cancel the export. Continue the adventure.">Cancel ↗</button>
-  </div>
-
-  <!-- Inline fallback display (hidden by default) -->
-  <div id="inline-export-display" style="display:none;margin-top:0.75rem;padding:0.75rem 1rem;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);background:var(--color-background-secondary);">
-    <p style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-text-tertiary);margin:0 0 6px;">Export content — copy and share as a .lore.md file</p>
-    <textarea id="inline-export-textarea" readonly rows="8" style="width:100%;box-sizing:border-box;padding:8px 10px;font-family:monospace;font-size:11px;line-height:1.5;background:var(--color-background-tertiary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);color:var(--color-text-secondary);word-break:break-all;resize:vertical;"></textarea>
-  </div>
-
-  <div class="export-footer">
-    <span class="export-meta" id="export-meta"></span>
-  </div>
-</div>
-
-<script>
-// ── INJECT EXPORT DATA HERE ───────────────────────────────────────────────
-const EXPORT_DATA = /* INJECT_EXPORT_DATA_JSON */ {};
-// ──────────────────────────────────────────────────────────────────────────
-
-// ── Populate summary cards ────────────────────────────────────────────────
-function renderSummary() {
-  var d = EXPORT_DATA;
-  var cards = [
-    { label: 'Locations', value: d.locationCount || 0 },
-    { label: 'NPCs', value: d.npcCount || 0 },
-    { label: 'Story threads', value: d.threadCount || 0 },
-    { label: 'Factions', value: d.factionCount || 0 },
-    { label: 'World flags', value: d.flagCount || 0 },
-    { label: 'Scenes played', value: d.scenesPlayed || 0 },
-  ];
-  var grid = document.getElementById('export-summary');
-  grid.textContent = '';
-  cards.forEach(function(c) {
-    var card = document.createElement('div');
-    card.className = 'summary-card';
-    var label = document.createElement('p');
-    label.className = 'summary-label';
-    label.textContent = c.label;
-    var value = document.createElement('p');
-    value.className = 'summary-value';
-    value.textContent = c.value;
-    card.appendChild(label);
-    card.appendChild(value);
-    grid.appendChild(card);
-  });
-}
-
-// ── Populate included/stripped lists ──────────────────────────────────────
-function renderLists() {
-  var included = [
-    'World history (all epochs, power structures, past conflicts)',
-    'NPC roster (' + (EXPORT_DATA.npcCount || 0) + ' NPCs with full secrets)',
-    'Location atlas (' + (EXPORT_DATA.locationCount || 0) + ' locations, discovery reset)',
-    'Story threads (converted to seeds and history)',
-    'Faction dynamics (current standings as starting state)',
-    'Encounter tables (generated from current bestiary)',
-    'World flags (' + (EXPORT_DATA.flagCount || 0) + ' permanent consequences)',
-    'Calendar and date (export date as new start date)',
-  ];
-  var stripped = [
-    'Your character (name, stats, class, background)',
-    'Your inventory and equipment',
-    'Your quest log (resolved to history, active to threads)',
-    'Your exploration progress (fog of war resets)',
-    'Your roll history',
-    'Your codex discoveries (all entries reset to locked)',
-  ];
-
-  function populateList(listId, items, badgeClass, badgeText) {
-    var ul = document.getElementById(listId);
-    ul.textContent = '';
-    items.forEach(function(item) {
-      var li = document.createElement('li');
-      var badge = document.createElement('span');
-      badge.className = badgeClass;
-      badge.textContent = badgeText;
-      li.appendChild(badge);
-      li.appendChild(document.createTextNode(item));
-      ul.appendChild(li);
-    });
-  }
-
-  populateList('included-list', included, 'badge-included', 'INCLUDED');
-  populateList('stripped-list', stripped, 'badge-stripped', 'STRIPPED');
-}
-
-// ── Previous Adventurer preview ──────────────────────────────────────────
-function renderAdventurerPreview() {
-  var d = EXPORT_DATA;
-  document.getElementById('adventurer-name').textContent =
-    (d.characterName || 'Unknown') + ' \u2014 ' + (d.characterClass || 'Adventurer');
-  document.getElementById('adventurer-fate').textContent =
-    d.adventurerFate || 'Their story becomes part of this world.';
-}
-
-// ── Export via sendPrompt (primary) or inline fallback ────────────────────
-function showInlineExport() {
-  var content = EXPORT_DATA.loreFileContent || '';
-  if (!content) return;
-  var container = document.getElementById('inline-export-display');
-  var ta = document.getElementById('inline-export-textarea');
-  if (container && ta) {
-    ta.value = content;
-    container.style.display = 'block';
-  }
-}
-
-// ── Copy to clipboard ────────────────────────────────────────────────────
-function copyExport() {
-  var content = EXPORT_DATA.loreFileContent || '';
-  if (!content) return;
-  navigator.clipboard.writeText(content).then(function() {
-    var btn = document.getElementById('copy-btn');
-    btn.textContent = 'Copied!';
-    setTimeout(function() { btn.textContent = 'Copy to clipboard'; }, 2200);
-  }).catch(function() {
-    var ta = document.createElement('textarea');
-    ta.value = content;
-    ta.style.position = 'fixed';
-    ta.style.left = '-9999px';
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    ta.remove();
-    var btn = document.getElementById('copy-btn');
-    btn.textContent = 'Copied!';
-    setTimeout(function() { btn.textContent = 'Copy to clipboard'; }, 2200);
-  });
-}
-
-// ── Meta line ────────────────────────────────────────────────────────────
-function renderMeta() {
-  var d = EXPORT_DATA;
-  var parts = [];
-  if (d.worldState) parts.push(d.worldState);
-  if (d.exportCount !== undefined) parts.push('Export #' + (d.exportCount + 1));
-  if (d.originalSeed) parts.push('Seed: ' + d.originalSeed);
-  document.getElementById('export-meta').textContent = parts.join(' \u00B7 ') || 'Ready to export';
-}
-
-// ── Init ─────────────────────────────────────────────────────────────────
-renderSummary();
-renderLists();
-renderAdventurerPreview();
-renderMeta();
-
-// ── Wire buttons (addEventListener pattern — never inline onclick) ───────
-document.getElementById('export-btn').addEventListener('click', function() {
-  var prompt = this.dataset.prompt;
-  if (typeof sendPrompt === 'function') {
-    sendPrompt(prompt);
-    this.textContent = 'Generating...';
-    this.disabled = true;
-  } else {
-    // Fallback: display .lore.md content inline as copyable text
-    showInlineExport();
-    this.textContent = 'Shown below';
-    var self = this;
-    setTimeout(function() { self.textContent = 'Export .lore.md \u2197'; }, 2000);
-  }
-});
-document.getElementById('copy-btn').addEventListener('click', copyExport);
-document.querySelectorAll('[data-prompt]').forEach(function(btn) {
-  if (btn.id === 'export-btn') return; // already wired above
-  btn.addEventListener('click', function() {
-    var prompt = this.dataset.prompt;
-    if (typeof sendPrompt === 'function') { sendPrompt(prompt); }
-  });
-});
-</script>
-```
-
-### GM Instruction — Building EXPORT_DATA
-
-The GM builds the `EXPORT_DATA` object at render time from `gmState`:
-
-```js
-const EXPORT_DATA = {
-  characterName: gmState.character.name,
-  characterClass: gmState.character.class,
-  scenesPlayed: gmState.scene,
-  locationCount: Object.keys(gmState.mapState?.rooms || {}).length,
-  npcCount: (gmState.npcProfiles || []).length,
-  threadCount: (gmState.storyArchitect?.storyThreads || []).length,
-  factionCount: Object.keys(gmState.factions || {}).length,
-  flagCount: Object.keys(gmState.worldFlags || {}).length,
-  worldState: deriveWorldState(gmState),  // "post-act-1", "post-act-2", etc.
-  exportCount: gmState.exportState?.exportCount || 0,
-  originalSeed: gmState.seed || null,
-  adventurerFate: deriveAdventurerFate(gmState),
-  loreFileContent: buildLoreFileContent(gmState),  // the complete .lore.md string
-};
-```
-
-The `buildLoreFileContent(gmState)` function executes Steps 2-10 of the export process and
-returns the complete `.lore.md` file as a string. This string is what gets downloaded or
-copied.
+The export button uses `sendPrompt()` to ask Claude to generate the `.lore.md` as a
+downloadable artifact. If `sendPrompt()` is unavailable, the widget falls back to
+displaying the content in a readonly textarea with a copy button.
 
 ---
 
@@ -767,6 +493,7 @@ copied.
 
 The Adventure Exporting module adds a single key to `gmState`:
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 gmState.exportState = {
   available: true,          // whether export is currently possible
@@ -844,6 +571,7 @@ exported: true
 exported-from: "Gareth Williams — Scene 12"
 exported-date: "2026-03-20T08:30:00Z"
 original-seed: "pale-threshold-7"
+rulebook: d20_system
 world-state: "post-act-1"
 previous-adventurer:
   name: "Gareth Williams"
@@ -1239,13 +967,13 @@ decisions and the world the previous adventurer left behind.
   present in the world mid-adventure). They are a historical figure — referenced, remembered,
   but not available for conversation. The new player's story is their own.
 - **Never export without showing the preview widget.** The player must see what is being
-  exported and what is being stripped before confirming the download.
+  exported and what is being stripped before confirming the download. The scene template
+  handles the preview widget automatically.
 - **Never auto-export.** The export is always player-triggered or player-accepted. The GM may
   offer, but never performs the export without confirmation.
-- **Always use `sendPrompt()` for the export button.** Claude.ai iframe sandboxing silently
-  blocks Blob downloads. The export button uses `sendPrompt()` to ask Claude to generate the
-  `.lore.md` as a downloadable artifact. The cancel button also uses `sendPrompt()` to return
-  to play. If `sendPrompt()` is unavailable, fall back to inline copyable text display.
+- **Never hand-code the export widget.** The scene template renders the export preview,
+  confirmation, and download mechanism. Use `tag save generate --format lore` for the
+  data pipeline.
 - **Never embed save data in an exported `.lore.md`.** The export is a world template, not a
   session record. Save data belongs in `.save.md` files. The two formats are complementary.
 - **Never use contractions in `sendPrompt()` strings.** Apostrophes in prompt strings can

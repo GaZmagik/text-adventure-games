@@ -8,7 +8,7 @@ A modular text adventure engine for Claude, built entirely as Claude skills. Wor
 
 | File | Description |
 |------|-------------|
-| `text-adventure.zip` | Core text adventure engine — orchestrator with 24 modular expansions covering character creation, combat, ship systems, crew management, navigation, procedural world generation, prose craft, atmosphere, audio, and more. Supports multiple rule systems (d20, GURPS Lite, Pathfinder 2e Lite, Shadowrun 5e Lite, Narrative Engine). Full save persistence for story threads, ship damage, crew morale, map state, and time tracking. |
+| `text-adventure.zip` | Core text adventure engine — orchestrator with 24 modular expansions and 20 widget types covering character creation, combat, ship systems, crew management, navigation, procedural world generation, prose craft, atmosphere, audio, and more. Supports multiple rule systems (d20, GURPS Lite, Pathfinder 2e Lite, Shadowrun Lite, Narrative Engine, Custom). Full save persistence for story threads, ship damage, crew morale, map state, and time tracking. |
 
 ### Output Styles
 
@@ -65,6 +65,16 @@ The game engine selects a visual style during setup based on the genre, or the p
 4. Under **Skills**, click **Add Skill**.
 5. Drag and drop the `.zip` file onto the skill upload area, or click to browse and select it.
 
+### Building from Source
+
+To build the `text-adventure.zip` file yourself:
+
+1. Clone the repository.
+2. Ensure you have [Bun](https://bun.sh/) installed.
+3. Run `./scripts/zip.sh` from the project root.
+   - Append `--release <branch>` to force the CDN assets to point to a specific branch (defaults to the current branch).
+   - Append `--user <username>` to point the CDN to your own GitHub username if you have forked the repository.
+
 ### Upgrading to a New Version
 
 If you already have an older version of the skill installed:
@@ -81,7 +91,7 @@ If you already have an older version of the skill installed:
    "Resume my adventure from this save file." Your character, world, and progress
    will be restored.
 
-> **Note:** Saves are forward-compatible. A save from any earlier version will load in v1.2.0 —
+> **Note:** Saves are forward-compatible. A save from any earlier version will load in v1.3.0 —
 > new features (arcs, NPC pronouns/stats, story threads, ship state, crew morale, map state,
 > time tracking) will activate automatically with sensible defaults.
 
@@ -113,6 +123,7 @@ The engine will guide you through settings, character creation, and into the adv
 The project uses an **orchestrator + modules** pattern:
 
 - **`text-adventure`** is the orchestrator skill — it handles the session lifecycle, widget rendering, core rules, and loads expansion modules on demand.
+- **`tag` CLI** (v1.3.0+) is the rendering engine — a TypeScript/Bun tool that produces deterministic HTML widgets from game state. Fourteen commands: `help`, `module`, `state`, `compute`, `render`, `save`, `quest`, `batch`, `rules`, `export`, `verify`, `build-css`, `setup`, `style`. 20 widget types. Zero npm dependencies.
 - **Output styles** are independent rendering layers — they change the narrative voice, pacing, and prose craft without touching game logic or mechanics.
 
 All game output is rendered inside `visualize:show_widget` panels. No plain text output — everything is styled, interactive, and widget-based.

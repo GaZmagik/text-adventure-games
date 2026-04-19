@@ -127,7 +127,7 @@ settings where internal energy and martial discipline are central.
 
 ### Chi Pool
 
-Equal to WIL x 2 (or WIS x 2 if the rulebook uses WIS instead of WIL). Recovers 1d4 per
+Equal to WIS x 2. Recovers 1d4 per
 round of meditation (requires an action). Full recovery on rest.
 
 ### Martial Techniques
@@ -148,7 +148,7 @@ round of meditation (requires an action). Full recovery on rest.
 ### Using Techniques
 
 Using a technique requires an action. Each technique costs 1–3 chi depending on its power.
-Roll d20 + relevant stat (STR for Strikes, AGI for Flow, INT for Pressure Points, WIL for
+Roll d20 + relevant stat (STR for Strikes, DEX for Flow, INT for Pressure Points, WIS for
 Inner/External Force). Success = technique takes effect.
 
 **Chaining:** If a technique succeeds, the character may immediately attempt a second
@@ -254,7 +254,7 @@ where characters possess extraordinary abilities beyond normal human capability.
 
 | Tier | Usage | Cost | Examples |
 |------|-------|------|----------|
-| Minor | At-will (no limit) | None | Enhanced Reflexes (+2 to AGI checks, passive) |
+| Minor | At-will (no limit) | None | Enhanced Reflexes (+2 to DEX checks, passive) |
 | Standard | 1 per encounter | None | Force Blast (ranged attack, 3d6 damage, knockback) |
 | Major | 1 per session | None | Time Stop (take 3 consecutive actions, usable once per session) |
 
@@ -406,7 +406,7 @@ may take **one intrigue action:**
 | Gather intelligence | INT | Learn a faction's current plans, alliances, or vulnerabilities. DC based on faction secrecy. |
 | Spread rumour | CHA | Shift one faction's view of another faction by one step (positive or negative). DC 14. |
 | Form alliance | CHA | Attempt to upgrade a faction's disposition toward the character by one step. DC based on current disposition (Hostile: 18, Unfriendly: 15, Neutral: 12, Friendly: 10). |
-| Sabotage | AGI | Undermine a faction's plans without being caught. DC based on faction vigilance. |
+| Sabotage | DEX | Undermine a faction's plans without being caught. DC based on faction vigilance. |
 
 ### Discovery
 
@@ -445,6 +445,7 @@ A scenario may activate 1–2 overlays to create hybrid genres. Examples:
 
 Genre overlays add the following optional fields to `gmState`:
 
+<!-- CLI implementation detail — do not hand-code -->
 ```js
 // Magic System
 genreMagic: {
@@ -464,7 +465,7 @@ genreSanity: {
 
 // Chi/Ki System
 genreChi: {
-  chi: 0,              // current chi (WIL x 2 max)
+  chi: 0,              // current chi (WIS x 2 max)
   maxChi: 0,
   techniques: [],      // { name, type, chiCost, description }
   honour: 5,           // 0–10 scale

@@ -512,6 +512,7 @@ The following block is the complete injectable stylesheet. Paste into any widget
 tag after the base engine styles. It uses the CSS cascade — only override what diverges.
 
 ```css
+/* @extract */
 /* ================================================================
    PARCHMENT THEME — text-adventure engine visual override
    Version 1.0 | Works inside visualize:show_widget iframes
@@ -522,7 +523,7 @@ tag after the base engine styles. It uses the CSS cascade — only override what
 @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap');
 
 /* ── Custom Properties: Light (default) ─────────────────────────── */
-:root {
+:host {
   --pt-bg-page:             #F5F0E8;
   --pt-bg-surface:          #EDE6D6;
   --pt-bg-inset:            #E4DACA;
@@ -595,13 +596,30 @@ tag after the base engine styles. It uses the CSS cascade — only override what
   --ta-badge-crit-failure-border: var(--pt-accent-burgundy);
   --ta-color-credits:             var(--pt-accent-gold);
   --ta-color-tab-active:          var(--pt-accent-burgundy);
+  --ta-color-info:                #2B5A8A;
+  --ta-btn-primary-text:          #1a1a1a;
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.5s;
+
+  /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
+  --sta-text-primary:             var(--pt-text-primary);
+  --sta-text-secondary:           var(--pt-text-secondary);
+  --sta-text-tertiary:            var(--pt-text-tertiary);
+  --sta-border-tertiary:          var(--pt-border-soft);
+  --sta-color-text-emphasis:      #1a1a1a;
+
+  /* --- Speaker colours (multi-dialogue) --- */
+  --speaker-color-0: #6b3a2a;
+  --speaker-color-1: #2d5a27;
+  --speaker-color-2: #7a1a1a;
+  --speaker-color-3: #1a3a5c;
+  --speaker-color-4: #8b4513;
+  --speaker-color-5: #8b7a2a;
 }
 
 /* ── Custom Properties: Dark ─────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :host {
     --pt-bg-page:             #1C1410;
     --pt-bg-surface:          #261C16;
     --pt-bg-inset:            #150F0B;
@@ -663,6 +681,8 @@ tag after the base engine styles. It uses the CSS cascade — only override what
   --ta-badge-crit-failure-border: var(--pt-accent-burgundy);
   --ta-color-credits:             var(--pt-accent-gold);
   --ta-color-tab-active:          var(--pt-accent-burgundy);
+  --ta-color-info:                #2B5A8A;
+  --ta-btn-primary-text:          #1a1a1a;
   --ta-border-style-poi:          1px dashed;
   --ta-die-spin-duration:         0.5s;
   }
