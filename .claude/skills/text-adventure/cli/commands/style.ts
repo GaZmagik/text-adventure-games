@@ -59,10 +59,11 @@ export async function handleStyle(args: string[]): Promise<CommandResult> {
 
   return ok({
     style: styleName,
-    styleContent,
-    referenceContent,
+    stylePath,
+    referencePath,
     styleChars: styleContent.length,
     referenceChars: referenceContent.length,
+    instruction: `To read the style guides, use 'cat ${stylePath}' and 'cat ${referencePath}'.`
   }, 'style');
 }
 

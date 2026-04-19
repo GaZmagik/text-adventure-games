@@ -860,7 +860,7 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     {
       widget: widgetType,
       style: resolvedStyle,
-      html,
+      ...(outPath ? {} : { html }),
       budgetNote,
       sizeCheck,
       craftGuidance,

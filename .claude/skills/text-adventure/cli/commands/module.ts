@@ -64,12 +64,14 @@ async function activateOne(name: string): Promise<CommandResult> {
 
   await saveState(state);
 
+  const modulePath = join(MODULE_DIR, `${name}.md`);
   return ok({
     module: name,
-    content,
+    modulePath,
     chars: content.length,
     addedToActive,
     addedToRead,
+    instruction: `To read this module, use 'cat ${modulePath}'`
   }, 'module');
 }
 
@@ -88,7 +90,7 @@ async function activateTier(tierStr: string): Promise<CommandResult> {
   if (!state) return noState();
 
   const read = ensureModulesRead(state);
-  const results: { name: string; content: string; chars: number }[] = [];
+  const results: { name: string; modulePath: string; chars: number }[] = [];
 
   const activeSet = new Set(state.modulesActive);
   const skipped: string[] = [];
@@ -112,7 +114,8 @@ async function activateTier(tierStr: string): Promise<CommandResult> {
       state._proseCraftEpoch = state._compactionCount ?? 0;
     }
 
-    results.push({ name, content, chars: content.length });
+    const modulePath = join(MODULE_DIR, `${name}.md`);
+    results.push({ name, modulePath, chars: content.length });
   }
 
   await saveState(state);
@@ -122,6 +125,7 @@ async function activateTier(tierStr: string): Promise<CommandResult> {
     modules: results,
     totalChars: results.reduce((sum, m) => sum + m.chars, 0),
     count: results.length,
+    instruction: `To read these modules, use 'cat' with the provided modulePaths.`,
     ...(skipped.length > 0 ? { skipped, skippedNote: `${skipped.length} tier ${tier} module(s) not loaded — not in modulesActive.` } : {}),
   }, 'module');
 }
