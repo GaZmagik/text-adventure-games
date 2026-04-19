@@ -91,6 +91,18 @@ describe('handleHelp', () => {
       expect(applyStep!.command).toContain('tag setup apply');
     });
 
+    test('opening scene step description explains sync-before-render order', async () => {
+      const result = await handleHelp(['new-game']);
+      const data = result.data as {
+        steps: { name: string; description: string; command: string }[];
+      };
+      const openingStep = data.steps.find(s => s.name.includes('Opening Scene'));
+      expect(openingStep).toBeDefined();
+      expect(openingStep!.command).toContain('tag state sync --apply --scene 1');
+      expect(openingStep!.description).toContain('sync');
+      expect(openingStep!.description).toContain('render');
+    });
+
     test('includes module tier list', async () => {
       const result = await handleHelp(['new-game']);
       const data = result.data as {

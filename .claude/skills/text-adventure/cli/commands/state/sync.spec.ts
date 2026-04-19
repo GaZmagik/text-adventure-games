@@ -922,4 +922,32 @@ describe('state/sync edge cases', () => {
       expect(density.transition).toContain('1');
     });
   });
+
+  describe('unknown flag rejection', () => {
+    test('--force is rejected with a message pointing to --apply', async () => {
+      await handleState(['reset']);
+      const result = await handleSync(['--force']);
+      expect(result.ok).toBe(false);
+      expect(result.error!.message).toContain('--force');
+      expect(result.error!.message).toContain('--apply');
+    });
+
+    test('unknown boolean flag is rejected with known flags listed', async () => {
+      await handleState(['reset']);
+      const result = await handleSync(['--yolo']);
+      expect(result.ok).toBe(false);
+      expect(result.error!.message).toContain('--yolo');
+    });
+
+    test('valid --apply flag is accepted', async () => {
+      await handleState(['reset']);
+      await handleState(['set', 'modulesActive', JSON.stringify([
+        'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
+        'character-creation', 'save-codex',
+      ])]);
+      await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
+      const result = await handleSync(['--apply']);
+      expect(result.ok).toBe(true);
+    });
+  });
 });

@@ -111,7 +111,9 @@ function newGame(): CommandResult {
         step: 11,
         name: 'Opening Scene',
         command: 'tag state sync --apply --scene 1 --room <starting_room> && tag render scene --style <style>',
-        description: 'Act opener: 6-10 paragraphs, short story density. World-building, character establishment, sensory grounding, NPC introduction, tension, hook.',
+        description: 'sync MUST come before render — sync writes the marker that render requires. '
+          + 'State is at scene 0 after setup, so the verify gate is skipped; this is safe to run before any scene exists. '
+          + 'Act opener: 6-10 paragraphs, short story density. World-building, character establishment, sensory grounding, NPC introduction, tension, hook.',
       },
     ],
     moduleTiers: [

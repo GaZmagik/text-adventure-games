@@ -300,6 +300,9 @@ function checkRollRatio(state: GmState, warnings: string[]): void {
   }
 }
 
+const KNOWN_BOOLEAN_FLAGS = new Set(['apply']);
+const KNOWN_VALUE_FLAGS = new Set(['scene', 'room', 'time']);
+
 export async function handleSync(args: string[]): Promise<CommandResult> {
   const state = await tryLoadState();
   if (!state) return noState();
@@ -307,6 +310,24 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
   const parsed = parseArgs(args, ['apply']);
   const apply = parsed.booleans.has('apply');
   const flags = parsed.flags;
+
+  for (const flag of parsed.booleans) {
+    if (!KNOWN_BOOLEAN_FLAGS.has(flag)) {
+      const hint = flag === 'force'
+        ? 'Did you mean `--apply`? Use `tag state sync --apply` to commit the sync.'
+        : `Valid flags: --apply, --scene <N>, --room <id>, --time <json>.`;
+      return fail(`Unknown flag --${flag}. ${hint}`, 'Run `tag state sync --apply` to commit changes.', 'state sync');
+    }
+  }
+  for (const flag of Object.keys(flags)) {
+    if (!KNOWN_VALUE_FLAGS.has(flag)) {
+      return fail(
+        `Unknown flag --${flag}. Valid flags: --apply, --scene <N>, --room <id>, --time <json>.`,
+        'Run `tag state sync --apply` to commit changes.',
+        'state sync',
+      );
+    }
+  }
 
   const warnings: string[] = [];
   const { diff, nextScene, parsedTime, earlyReturn } = buildSyncDiff(state, flags, warnings);

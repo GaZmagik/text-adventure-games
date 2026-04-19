@@ -530,9 +530,14 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     // Scene 1 bootstrap: no prior scene exists to sync from — allow initial render
     const isFirstSceneBootstrap = state.scene === 1 && lastSyncScene < 0;
     if (!isFirstSceneBootstrap && lastSyncScene < state.scene) {
+      const lastSyncLabel = lastSyncScene < 0 ? 'never' : `scene ${lastSyncScene}`;
+      const corrective = state.scene === 1
+        ? 'Run `tag state sync --apply --scene 1 --room <starting_room>` before rendering. '
+          + 'Scene 0 skips the verify gate, so this is safe to run before any scene exists.'
+        : 'Run `tag state sync --apply` before rendering.';
       return fail(
-        `State sync required before rendering scene ${state.scene}. Last sync: ${lastSyncScene < 0 ? 'never' : `scene ${lastSyncScene}`}.`,
-        'Run `tag state sync --apply` before rendering.',
+        `State sync required before rendering scene ${state.scene}. Last sync: ${lastSyncLabel}.`,
+        corrective,
         'render',
       );
     }

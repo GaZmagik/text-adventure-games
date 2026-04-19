@@ -331,7 +331,9 @@ function checkTagRenderOrigin(html: string, failures: string[]): void {
     failures.push(
       'Missing CDN script reference (tag-scene.js). '
       + 'This widget was hand-coded instead of using tag render scene output. '
-      + 'Hand-coded JS lacks panel wiring, sendPrompt fallback, POI budget, and audio support.',
+      + 'Hand-coded JS lacks panel wiring, sendPrompt fallback, POI budget, and audio support. '
+      + 'Recovery: discard this HTML. Run `tag render scene --style <style> > /tmp/scene.html`, '
+      + 'fill in the <!-- [NARRATIVE] --> and <!-- [BRIEF] --> placeholders, then re-verify.',
     );
   }
 }
@@ -536,6 +538,33 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
       checks: result.checks,
       frontmatter: result.frontmatter,
     }, 'verify lore');
+  }
+
+  // Prose-only dry run — no structural gates, no state side-effects, no markers written
+  if (first === 'prose') {
+    const filePath = args[1];
+    if (!filePath) {
+      return fail(
+        'No file path provided for prose verification.',
+        'Usage: tag verify prose /tmp/scene.html',
+        'verify prose',
+      );
+    }
+    const htmlOrError = readHtmlFile(filePath);
+    if (typeof htmlOrError !== 'string') return htmlOrError;
+
+    const text = extractNarrativeText(htmlOrError) ?? '';
+    const proseFailures: string[] = [];
+    const r = checkProseContentFromText(text, proseFailures);
+    return ok({
+      failures: proseFailures,
+      warnings: r.warnings,
+      metrics: r.metrics,
+      checks: proseFailures.length + r.warnings.length,
+      message: proseFailures.length === 0
+        ? 'Prose checks passed. No structural gates were applied — run `tag verify /tmp/scene.html` for full verification.'
+        : `${proseFailures.length} prose issue(s) found. Fix before running full \`tag verify\`.`,
+    }, 'verify prose');
   }
 
   // Detect widget type from first argument

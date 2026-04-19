@@ -257,6 +257,34 @@ describe('render state requirement', () => {
     expect(result.ok).toBe(false);
     expect(result.error!.message).toContain('State sync required');
   });
+
+  test('sync gate error for scene 1 names the exact opening scene command', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.scene = 1;
+    await saveState(state);
+    // Write a stale sync marker (scene 0) to block the render
+    const { signMarker } = require('./verify');
+    writeFileSync(join(tempDir, '.last-sync'), signMarker(0), 'utf-8');
+
+    const result = await handleRender(['ticker']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.corrective).toContain('--scene 1');
+    expect(result.error!.corrective).toContain('--room');
+  });
+
+  test('sync gate error for scene 3 names generic --apply command', async () => {
+    const state = createDefaultState();
+    state.visualStyle = 'terminal';
+    state.scene = 3;
+    await saveState(state);
+    writeFileSync(join(tempDir, '.last-sync'), '1', 'utf-8'); // plain text — invalid signature
+
+    const result = await handleRender(['ticker']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.corrective).toContain('--apply');
+    expect(result.error!.corrective).not.toContain('--scene 1');
+  });
 });
 
 // ── Style resolution ─────────────────────────────────────────────────

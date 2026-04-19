@@ -816,3 +816,54 @@ describe('scene verification edge cases', () => {
     expect(failures.some(f => f.includes('minimum is 2'))).toBe(true);
   });
 });
+
+describe('tag verify prose', () => {
+  test('returns ok:true for prose subcommand', async () => {
+    const html = '<div id="narrative">The door opens. Light floods in.</div>';
+    const filePath = join(tempDir, 'prose-test.html');
+    writeFileSync(filePath, html, 'utf-8');
+
+    const result = await handleVerify(['prose', filePath]);
+    expect(result.ok).toBe(true);
+    expect(result.command).toBe('verify prose');
+  });
+
+  test('reports prose failures without structural gates', async () => {
+    const html = '<div id="narrative">She felt afraid. She was scared. She heard a noise.</div>';
+    const filePath = join(tempDir, 'prose-fail.html');
+    writeFileSync(filePath, html, 'utf-8');
+
+    const result = await handleVerify(['prose', filePath]);
+    expect(result.ok).toBe(true);
+    const data = result.data as { failures: string[]; warnings: string[] };
+    expect(data.failures.some(f => f.includes('filter-words') || f.includes('telling-not-showing'))).toBe(true);
+  });
+
+  test('does not check structural elements (no CDN script failure)', async () => {
+    const html = '<div id="narrative">She felt afraid.</div>';
+    const filePath = join(tempDir, 'prose-no-cdn.html');
+    writeFileSync(filePath, html, 'utf-8');
+
+    const result = await handleVerify(['prose', filePath]);
+    expect(result.ok).toBe(true);
+    const data = result.data as { failures: string[] };
+    expect(data.failures.some(f => f.includes('tag-scene.js') || f.includes('hand-coded'))).toBe(false);
+  });
+
+  test('returns error when no file path provided', async () => {
+    const result = await handleVerify(['prose']);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('file path');
+  });
+
+  test('returns clean result for clean prose', async () => {
+    const html = '<div id="narrative">The bulkhead groans. Rust flakes drift down. A single light flickers.</div>';
+    const filePath = join(tempDir, 'prose-clean.html');
+    writeFileSync(filePath, html, 'utf-8');
+
+    const result = await handleVerify(['prose', filePath]);
+    expect(result.ok).toBe(true);
+    const data = result.data as { failures: string[] };
+    expect(data.failures.length).toBe(0);
+  });
+});

@@ -52,6 +52,18 @@ All operational guides, checklists, and rules are delivered via CLI commands:
    3. **Read:** `cat /tmp/<widget>.html` — read the ENTIRE file. Not `head`. Not `tail`. Not a partial read. The complete file.
    4. **Show:** Pass the COMPLETE `cat` output as `widget_code` to `show_widget`. Copy it verbatim — do NOT reconstruct from memory, do NOT paraphrase, do NOT abbreviate.
    - If you cannot recall the full `cat` output, run `cat` again. Never guess what the HTML looked like.
+
+   **Scene pipeline — 5 mandatory steps in this exact order:**
+   1. **Sync:** `tag state sync --apply --scene <N> --room <id>` — writes the marker that render requires. For scene 1, use `--scene 1`; state is at scene 0 so the verify gate is skipped. **Do NOT skip this step or render will block.**
+   2. **Render:** `tag render scene --style <style> --out /tmp/scene.html` — produces a skeleton with `<!-- [NARRATIVE] -->` and `<!-- [BRIEF] -->` placeholders.
+   3. **Fill prose placeholders:** Edit ONLY the placeholder comments. Do NOT alter any structural HTML, CSS, or JS. If you find yourself writing `<div>`, `<script>`, or `<style>` tags from scratch, you are doing this wrong — stop and re-render.
+   4. **Verify:** `tag verify /tmp/scene.html` — must return `verified: true`. If it detects hand-coded HTML, **discard the file and restart from step 2** — do not attempt to patch hand-coded output.
+   5. **Read + Show:** `cat /tmp/scene.html` → `show_widget`.
+
+   **Failure modes:**
+   - Render blocked by "State sync required" → run step 1 first, then retry step 2.
+   - Verify detects "hand-coded" → discard the HTML. Re-run `tag render scene` and compose into the skeleton.
+   - Verify fails on prose → run `tag verify prose /tmp/scene.html` to check prose in isolation and iterate before re-running full verify.
 4. **Never auto-resolve player decisions** — die rolls and choices wait for input.
 5. **Never advance story without player input** — every scene ends with a choice, roll, or action prompt.
 6. **Run `tag state sync` before EVERY scene** — sync returns the prose checklist and key rules inline.
