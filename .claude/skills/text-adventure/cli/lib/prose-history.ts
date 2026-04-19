@@ -162,7 +162,7 @@ export function loadProseHistory(stateDir: string): ProseHistory | null {
       (parsed as Record<string, unknown>).version === 1 &&
       Array.isArray((parsed as Record<string, unknown>).scenes)
     ) {
-      if (!(parsed as Record<string, unknown>).scenes.every(isProseFingerprint)) return null;
+      if (!((parsed as Record<string, unknown>).scenes as unknown[]).every(isProseFingerprint)) return null;
       return parsed as ProseHistory;
     }
     return null;

@@ -16,10 +16,10 @@ describe('tag style activate', () => {
     const result = await handleStyle(['activate']);
     expect(result.ok).toBe(true);
     expect(result.data).toHaveProperty('style', 'station');
-    expect(result.data).toHaveProperty('styleContent');
-    expect(result.data).toHaveProperty('referenceContent');
-    expect((result.data as { styleContent: string }).styleContent.length).toBeGreaterThan(100);
-    expect((result.data as { referenceContent: string }).referenceContent.length).toBeGreaterThan(100);
+    expect(result.data).toHaveProperty('stylePath');
+    expect(result.data).toHaveProperty('referencePath');
+    expect(typeof (result.data as { stylePath: string }).stylePath).toBe('string');
+    expect(typeof (result.data as { referencePath: string }).referencePath).toBe('string');
   });
 
   test('stamps _styleReadEpoch with current _compactionCount', async () => {

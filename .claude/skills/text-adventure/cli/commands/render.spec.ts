@@ -233,7 +233,7 @@ describe('render state requirement', () => {
     state.scene = 1;
     state._modulesRead = [...require('../lib/constants').TIER1_MODULES];
     state._proseCraftEpoch = 0;
-    state._styleDocEpoch = 0;
+    state._styleReadEpoch = 0;
     await saveState(state);
     // Remove the sync marker written by beforeEach — simulate fresh game start
     const syncPath = join(tempDir, '.last-sync');
@@ -740,12 +740,11 @@ describe('render --out flag', () => {
     expect(data.outFile).toBe(outFile);
   });
 
-  test('file content matches html in response data', async () => {
+  test('html field is absent from response data when --out used', async () => {
     const outFile = join(tempDir, 'match-test.html');
     const result = await handleRender(['scenario-select', '--data', scenarioData, '--out', outFile]);
     expect(result.ok).toBe(true);
     const data = result.data as Record<string, unknown>;
-    const fileContent = readFileSync(outFile, 'utf-8');
-    expect(fileContent).toBe(data.html);
+    expect(data.html).toBeUndefined();
   });
 });

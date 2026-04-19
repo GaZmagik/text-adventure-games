@@ -25,10 +25,9 @@ describe('tag module activate', () => {
     await handleState(['reset']);
     const result = await handleModule(['activate', 'prose-craft']);
     expect(result.ok).toBe(true);
-    const data = result.data as { module: string; content: string; addedToActive: boolean; addedToRead: boolean };
+    const data = result.data as { module: string; modulePath: string; addedToActive: boolean; addedToRead: boolean };
     expect(data.module).toBe('prose-craft');
-    expect(data.content).toContain('Prose Craft');
-    expect(data.content.length).toBeGreaterThan(100);
+    expect(data.modulePath).toContain('prose-craft');
   });
 
   test('adds module to modulesActive if not present', async () => {
@@ -72,11 +71,11 @@ describe('tag module activate-tier', () => {
     await handleState(['reset']);
     const result = await handleModule(['activate-tier', '1']);
     expect(result.ok).toBe(true);
-    const data = result.data as { tier: number; modules: { name: string; content: string }[] };
+    const data = result.data as { tier: number; modules: { name: string; modulePath: string }[] };
     expect(data.tier).toBe(1);
     expect(data.modules.length).toBeGreaterThanOrEqual(6);
     expect(data.modules.some(m => m.name === 'prose-craft')).toBe(true);
-    expect(data.modules.every(m => m.content.length > 50)).toBe(true);
+    expect(data.modules.every(m => m.modulePath.length > 0)).toBe(true);
   });
 
   test('adds all tier modules to _modulesRead', async () => {
