@@ -790,7 +790,7 @@ export const TA_COMPONENTS_CODE = String.raw`
         var selections = JSON.parse(JSON.stringify(defaults));
         var selectedModules = [];
 
-        var html = cssLinks + '<style>:host{display:block;background:var(--sta-bg-primary,#1A1D2E);color:var(--sta-text-primary,#E8E6E3);font-family:var(--sta-font-mono,monospace)}.root{background:inherit;color:inherit}.module-card{display:flex;align-items:center;gap:8px}.module-check{width:16px;height:16px;border:1.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:3px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;color:transparent}.module-check.checked{background:var(--ta-color-accent,#4ECDC4);border-color:var(--ta-color-accent,#4ECDC4);color:#fff}.module-check.checked::after{content:"\\u2713"}</style>';
+        var html = cssLinks + '<style>:host{display:block;background:var(--sta-bg-primary,#1A1D2E);color:var(--sta-text-primary,#E8E6E3);font-family:var(--sta-font-mono,monospace)}.root{background:inherit;color:inherit}.module-card{display:flex;align-items:center;gap:8px}.module-check{width:16px;height:16px;border:1.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:3px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;color:transparent}.module-check.checked{background:var(--ta-color-accent,#4ECDC4);border-color:var(--ta-color-accent,#4ECDC4);color:#fff}.module-check.checked::after{content:"\\2713"}</style>';
         html += '<div class="root"><div class="widget-settings">';
         html += '<header class="pd-hero"><h1 class="pd-hero-heading">Game Settings</h1><p class="pd-hero-copy">Configure your adventure before beginning.</p></header>';
 
