@@ -1109,6 +1109,164 @@
     }
   }
 
+  /** ta-dice-pool component */
+  class TaDicePool extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); }
+    connectedCallback() {
+      const data = this.getAttribute('data-config');
+      if (!data) return;
+      try {
+        const config = JSON.parse(data);
+        const shadow = this.shadowRoot;
+        const label = config.label || 'Dice Pool';
+        const expression = config.expression || '';
+        const canvasW = config.canvasW || 440;
+        const canvasH = config.canvasH || 440;
+        const displayW = config.displayW || 440;
+        const modifier = config.modifier || 0;
+        const pool = config.pool || [];
+        const configMap = config.configMap || {};
+        const fontMap = config.fontMap || {};
+        const maxDice = config.maxDice || 24;
+        const truncationNote = config.truncationNote || '';
+
+        var html = '<style>' +
+          ':host { display: block; font-family: var(--ta-font-body); }' +
+          '.widget-dice-pool { padding: 20px 16px; text-align: center; max-width: 920px; margin: 0 auto; background: var(--sta-bg-primary, #1A1D2E); border-radius: 12px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); }' +
+          '.dice-pool-label { font-family: var(--ta-font-heading); font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ta-color-accent); margin-bottom: 6px; }' +
+          '.dice-pool-expression { font-size: 11px; color: var(--sta-text-tertiary, #545880); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 14px; }' +
+          '.dice-pool-clickzone { width: min(100%, ' + displayW + 'px); margin: 0 auto; cursor: pointer; }' +
+          '.dice-pool-canvas-wrap { width: 100%; margin: 0 auto 10px; }' +
+          '.dice-pool-canvas-wrap canvas { width: 100%; height: auto; display: block; }' +
+          '.dice-pool-hint { font-size: 10px; color: var(--sta-text-tertiary, #545880); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px; min-height: 1.4em; transition: opacity 0.3s; }' +
+          '.dice-pool-hint.is-hidden { opacity: 0; }' +
+          '.dice-pool-note { font-size: 10px; color: var(--sta-text-secondary, #9AA0C0); margin-bottom: 10px; }' +
+          '.dice-pool-result { opacity: 0; transition: opacity 0.4s; max-width: 760px; margin: 0 auto; display: none; }' +
+          '.dice-pool-result.is-visible { opacity: 1; display: block; }' +
+          '.dice-pool-total { font-size: 42px; line-height: 1; font-weight: 700; color: var(--ta-color-accent); margin-bottom: 6px; }' +
+          '.dice-pool-modifier { font-size: 13px; color: var(--sta-text-secondary, #9AA0C0); margin-bottom: 14px; }' +
+          '.dice-pool-groups { display: grid; gap: 8px; }' +
+          '.dice-pool-group { display: grid; grid-template-columns: minmax(72px, auto) 1fr; gap: 10px; align-items: baseline; justify-content: center; padding: 8px 12px; border: 1px solid rgba(128, 128, 128, 0.2); border-radius: 12px; background: rgba(42, 42, 58, 0.18); }' +
+          '.dice-pool-group-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sta-text-tertiary, #545880); text-align: right; }' +
+          '.dice-pool-group-values { font-size: 16px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); text-align: left; }' +
+          '</style>';
+
+        html += '<div class="widget-dice-pool">' +
+          '<div class="dice-pool-label">' + label + '</div>' +
+          '<div class="dice-pool-expression">' + expression + '</div>' +
+          '<div class="dice-pool-clickzone" id="dice-pool-target">' +
+            '<div class="dice-pool-canvas-wrap">' +
+              '<canvas id="dice-pool-canvas" width="' + canvasW + '" height="' + canvasH + '" role="img" aria-label="' + label + '. Click to roll the dice pool."></canvas>' +
+            '</div>' +
+          '</div>' +
+          '<div class="dice-pool-hint" id="dice-pool-hint">CLICK THE POOL TO ROLL</div>' +
+          (truncationNote ? '<div class="dice-pool-note">' + truncationNote + '</div>' : '') +
+          '<div class="dice-pool-result" id="dice-pool-result">' +
+            '<div class="dice-pool-total" id="dice-pool-total"></div>' +
+            '<div class="dice-pool-modifier" id="dice-pool-modifier"></div>' +
+            '<div class="dice-pool-groups" id="dice-pool-groups"></div>' +
+          '</div>' +
+        '</div>';
+
+        shadow.innerHTML = html;
+
+        const canvas = shadow.getElementById('dice-pool-canvas');
+        const target = shadow.getElementById('dice-pool-target');
+        const hint = shadow.getElementById('dice-pool-hint');
+        const resultArea = shadow.getElementById('dice-pool-result');
+        const totalEl = shadow.getElementById('dice-pool-total');
+        const modEl = shadow.getElementById('dice-pool-modifier');
+        const groupsEl = shadow.getElementById('dice-pool-groups');
+
+        var POOL_LABEL = label, POOL_GROUPS = pool, POOL_MODIFIER = modifier, POOL_CONFIG_MAP = configMap, POOL_FONT_MAP = fontMap, POOL_MAX_DICE = maxDice;
+
+        (function(){
+          var gl=canvas.getContext('webgl')||canvas.getContext('experimental-webgl');
+          if(!gl)return;
+          gl.enable(gl.DEPTH_TEST);gl.clearColor(0,0,0,0);gl.enable(gl.CULL_FACE);
+          
+          var VS='attribute vec3 aP,aN;attribute vec2 aU;uniform mat4 uMVP,uM;varying vec3 vN;varying vec2 vU;void main(){gl_Position=uMVP*vec4(aP,1.0);vN=mat3(uM)*aN;vU=aU;}';
+          var FS='precision mediump float;varying vec3 vN;varying vec2 vU;uniform sampler2D uT;uniform vec3 uL;void main(){vec3 n=normalize(vN);float d=max(dot(n,uL),0.0);gl_FragColor=vec4(texture2D(uT,vU).rgb*(vec3(0.3)+0.9*d),1.0);}';
+          function mkSh(src,type){var s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);return s}
+          var prog=gl.createProgram(),vsh=mkSh(VS,gl.VERTEX_SHADER),fsh=mkSh(FS,gl.FRAGMENT_SHADER);
+          gl.attachShader(prog,vsh);gl.attachShader(prog,fsh);gl.linkProgram(prog);gl.useProgram(prog);
+          var uMVP=gl.getUniformLocation(prog,'uMVP'),uM=gl.getUniformLocation(prog,'uM');
+          gl.uniform3f(gl.getUniformLocation(prog,'uL'),0.485,0.728,0.485);
+
+          var ASSETS={};
+          function mkBuf(data,attr,size){var b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);var loc=gl.getAttribLocation(prog,attr);gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,0,0)}
+          function bindBuf(buf,attr,size){gl.bindBuffer(gl.ARRAY_BUFFER,buf);var loc=gl.getAttribLocation(prog,attr);gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,0,0)}
+          function mkTex(img){var t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,img);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);return t}
+
+          function getAsset(dieType){
+            if(ASSETS[dieType])return ASSETS[dieType];
+            var cfg=POOL_CONFIG_MAP[dieType],mesh=buildMesh(cfg.customVertices,cfg.customFaces,cfg.faceCount,cfg.trianglesPerFace);
+            var atlas=createAtlas(cfg.faceCount,cfg.numberRange,POOL_FONT_MAP[dieType]||0.6,'#e8e8f0','#2a2a3a',cfg.assign?function(i){return String(cfg.assign[i])}:null,!!(cfg.trianglesPerFace%2),0);
+            var bp=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,bp);gl.bufferData(gl.ARRAY_BUFFER,mesh.pos,gl.STATIC_DRAW);
+            var bn=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,bn);gl.bufferData(gl.ARRAY_BUFFER,mesh.nrm,gl.STATIC_DRAW);
+            var bu=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,bu);gl.bufferData(gl.ARRAY_BUFFER,mesh.uv,gl.STATIC_DRAW);
+            var tx=mkTex(atlas);
+            return ASSETS[dieType]={
+              bp:bp,bn:bn,bu:bu,tx:tx,count:mesh.count,fNorms:mesh.fNorms,range:cfg.numberRange,assign:cfg.assign,
+              roll:function(){var r=cfg.numberRange;return Math.floor(Math.random()*(r[1]-r[0]+1))+r[0]},
+              target:function(roll){
+                var idx=0;if(cfg.assign){for(var i=0;i<cfg.assign.length;i++)if(cfg.assign[i]===roll){idx=i;break}}else idx=roll-cfg.numberRange[0];
+                return qAl(mesh.fNorms[idx]||mesh.fNorms[0],[0,0,1]);
+              }
+            };
+          }
+
+          var dice=[],layout=poolLayout(POOL_GROUPS.reduce(function(s,g){return s+g.count},0));
+          for(var gi=0;gi<POOL_GROUPS.length;gi++){
+            var g=POOL_GROUPS[gi],ast=getAsset(g.dieType);
+            for(var k=0;k<g.count;k++)dice.push({index:dice.length,gi:gi,dieType:g.dieType,ast:ast,q:idleQ(Math.random()*10),roll:0});
+          }
+
+          function render(){
+            gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+            dice.forEach(function(d){
+              var ast=d.ast,off=slotOffset(d.index,layout),md=m4m(m4tr(off),m4m(m4q(d.q),m4s(layout.scale))),vw=m4i();vw[14]=-layout.viewOff;
+              gl.uniformMatrix4fv(uMVP,false,m4m(m4p(50*Math.PI/180,canvas.width/canvas.height,0.1,100),m4m(vw,md)));
+              gl.uniformMatrix4fv(uM,false,md);
+              bindBuf(ast.bp,'aP',3);bindBuf(ast.bn,'aN',3);bindBuf(ast.bu,'aU',2);gl.bindTexture(gl.TEXTURE_2D,ast.tx);
+              gl.drawArrays(gl.TRIANGLES,0,ast.count);
+            });
+          }
+
+          var locked=false;
+          function anim(){if(!locked){dice.forEach(function(d,i){d.q=idleQ(Date.now()*0.001+i)});render();requestAnimationFrame(anim)}}
+          anim();
+
+          target.onclick=function(){
+            if(locked)return;locked=true;hint.classList.add('is-hidden');
+            var results=[],sub=0;
+            POOL_GROUPS.forEach(function(g){results.push({dieType:g.dieType,count:g.count,rolls:[]})});
+            dice.forEach(function(d){
+              var r=d.ast.roll();d.roll=r;results[d.gi].rolls.push(r);sub+=r;
+              var sQ=d.q,tQ=d.ast.target(r),total=60,frame=0;
+              (function step(){
+                d.q=qsl(sQ,tQ,frame/total);render();frame++;
+                if(frame<=total)requestAnimationFrame(step);
+                else if(d.index===dice.length-1){
+                  totalEl.textContent=sub+POOL_MODIFIER;
+                  modEl.textContent=POOL_MODIFIER?'Subtotal '+sub+' '+(POOL_MODIFIER>0?'+':'-')+' '+Math.abs(POOL_MODIFIER)+' = '+(sub+POOL_MODIFIER):'Subtotal '+sub;
+                  groupsEl.innerHTML='';
+                  results.forEach(function(res){
+                    var row=document.createElement('div');row.className='dice-pool-group';
+                    row.innerHTML='<div class="dice-pool-group-label">'+res.count+res.dieType+'</div><div class="dice-pool-group-values">'+res.rolls.join(', ')+(res.rolls.length>1?' = '+res.rolls.reduce(function(a,b){return a+b},0):'')+'</div>';
+                    groupsEl.appendChild(row);
+                  });
+                  resultArea.classList.add('is-visible');
+                }
+              })();
+            });
+          };
+        })();
+
+      } catch (e) { console.error('ta-dice-pool error:', e); }
+    }
+  }
+
   // TaScene — wraps scene content in Shadow DOM with CDN CSS
   class TaScene extends HTMLElement {
     constructor() { super(); this.attachShadow({ mode: 'open' }); }
@@ -1511,5 +1669,6 @@
   if (!customElements.get('ta-ship')) customElements.define('ta-ship', TaShip);
   if (!customElements.get('ta-map')) customElements.define('ta-map', TaMap);
   if (!customElements.get('ta-starchart')) customElements.define('ta-starchart', TaStarchart);
+  if (!customElements.get('ta-dice-pool')) customElements.define('ta-dice-pool', TaDicePool);
 
 })();

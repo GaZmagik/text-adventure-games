@@ -251,6 +251,9 @@ const VERIFY_RENDER_TYPE_MAP: Record<string, string> = {
 const CUSTOM_ELEMENT_WIDGETS = new Set([
   'dialogue', 'levelup', 'ticker', 'footer',
   'scenario-select', 'settings', 'character-creation',
+  'recap', 'arc-complete', 'combat-turn', 'dice',
+  'character', 'crew', 'codex', 'ship', 'map', 'starchart',
+  'dice-pool', 'scene',
 ]);
 
 export function checkShadowRenderOrigin(widgetType: string, html: string, failures: string[]): void {
@@ -581,13 +584,13 @@ export function checkCharacterWidget(html: string, failures: string[], state?: {
 // ��─ In-game (non-scene) widget checks ────────────────────────────────
 
 export const IN_GAME_WIDGET_MARKERS: Record<string, string[]> = {
-  dice: ['widget-dice', 'id="ra"'],
-  'dice-pool': ['widget-dice-pool', 'id="dice-pool-canvas"', 'id="dice-pool-result"'],
+  dice: ['ta-dice'],
+  'dice-pool': ['ta-dice-pool'],
   dialogue: ['ta-dialogue'],
   levelup: ['ta-levelup'],
-  recap: ['widget-recap', 'recap-title'],
-  'arc-complete': ['widget-arc-complete', 'arc-actions'],
-  'combat-turn': ['widget-combat', 'combat-roll'],
+  recap: ['ta-recap'],
+  'arc-complete': ['ta-arc-complete'],
+  'combat-turn': ['ta-combat-turn'],
   ticker: ['ta-ticker'],
   character: ['ta-character'],
   ship: ['ta-ship'],
@@ -616,22 +619,12 @@ export function checkInGameWidget(widgetType: string, html: string, failures: st
     }
   }
 
-  if (widgetType === 'dice' && !html.includes('id="cv"') && !html.includes('id="rollArea"')) {
-    failures.push('Dice widget missing roll surface (#cv or #rollArea) — widget cannot be interacted with.');
+  if (widgetType === 'dice' && !html.includes('<ta-dice')) {
+    failures.push('Dice widget missing <ta-dice> custom element.');
   }
 
-  if (widgetType === 'dice') {
-    const hasContinue = extractPromptElements(html).some(el => el.classes.includes('dice-continue'));
-    if (!hasContinue) {
-      failures.push('Dice widget missing continue button (data-prompt .dice-continue) — roll result cannot be relayed to the conversation. Regenerate with `tag render dice`.');
-    }
-  }
-
-  if (widgetType === 'arc-complete') {
-    const actionButtons = extractPromptElements(html).filter(el => el.classes.includes('arc-action-btn')).length;
-    if (actionButtons < 3) {
-      failures.push(`Arc-complete widget has ${actionButtons} action button(s) — expected Save, Export, and Continue.`);
-    }
+  if (widgetType === 'arc-complete' && !html.includes('<ta-arc-complete')) {
+    failures.push('Arc-complete widget missing <ta-arc-complete> custom element.');
   }
 }
 

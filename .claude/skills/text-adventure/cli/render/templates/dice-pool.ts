@@ -1,18 +1,8 @@
 import type { GmState, DieType } from '../../types';
-import { esc, serialiseInlineScriptData } from '../../lib/html';
-import { DIE_CONFIGS, type DieConfig } from '../lib/die-geometries';
+import { esc } from '../../lib/html';
+import { DIE_CONFIGS } from '../lib/die-geometries';
 import { FONT_SCALE } from '../lib/die-textures';
-import { WEBGL_DICE_POOL_CODE } from '../lib/webgl-dice-pool';
 import { wrapInShadowDom } from '../lib/shadow-wrapper';
-
-/** Adapt WebGL pool code for Shadow DOM — replace document.getElementById/querySelector
- *  with shadow equivalents, but keep document.createElement as-is. */
-function shadowAdaptPoolCode(code: string): string {
-  return code
-    .replace(/document\.getElementById\(/g, 'shadow.getElementById(')
-    .replace(/document\.querySelector\(/g, 'shadow.querySelector(')
-    .replace(/document\.querySelectorAll\(/g, 'shadow.querySelectorAll(');
-}
 
 type PoolGroup = {
   dieType: DieType;
@@ -79,7 +69,7 @@ function normalisePool(raw: unknown): {
   return capPool(groups);
 }
 
-function serialiseConfig(config: DieConfig) {
+function serialiseConfig(config: any) {
   return {
     faceCount: config.faceCount,
     numberRange: [...config.numberRange],
@@ -117,50 +107,22 @@ export function renderDicePool(_state: GmState | null, styleName: string, option
   }));
   const fontMap = Object.fromEntries(uniqueTypes.map(dieType => [dieType, FONT_SCALE[dieType] ?? FONT_SCALE.d20]));
 
-  return wrapInShadowDom({
-    styleName,
-    inlineCss: `.widget-dice-pool { font-family: var(--ta-font-body); padding: 20px 16px; text-align: center; max-width: 920px; margin: 0 auto; }
-.dice-pool-label { font-family: var(--ta-font-heading); font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ta-color-accent); margin-bottom: 6px; }
-.dice-pool-expression { font-size: 11px; color: var(--sta-text-tertiary, #545880); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 14px; }
-.dice-pool-clickzone { width: min(100%, ${displayW}px); margin: 0 auto; cursor: pointer; }
-.dice-pool-canvas-wrap { width: 100%; margin: 0 auto 10px; }
-.dice-pool-canvas-wrap canvas { width: 100%; height: auto; display: block; }
-.dice-pool-hint { font-size: 10px; color: var(--sta-text-tertiary, #545880); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px; min-height: 1.4em; transition: opacity 0.3s; }
-.dice-pool-hint.is-hidden { opacity: 0; }
-.dice-pool-note { font-size: 10px; color: var(--sta-text-secondary, #9AA0C0); margin-bottom: 10px; }
-.dice-pool-result { opacity: 0; transition: opacity 0.4s; max-width: 760px; margin: 0 auto; }
-.dice-pool-result.is-visible { opacity: 1; }
-.dice-pool-total { font-size: 42px; line-height: 1; font-weight: 700; color: var(--ta-color-accent); margin-bottom: 6px; }
-.dice-pool-modifier { font-size: 13px; color: var(--sta-text-secondary, #9AA0C0); margin-bottom: 14px; }
-.dice-pool-groups { display: grid; gap: 8px; }
-.dice-pool-group { display: grid; grid-template-columns: minmax(72px, auto) 1fr; gap: 10px; align-items: baseline; justify-content: center; padding: 8px 12px; border: 1px solid rgba(128, 128, 128, 0.2); border: 1px solid color-mix(in srgb, var(--ta-color-accent) 20%, transparent); border-radius: 12px; background: rgba(42, 42, 58, 0.18); background: color-mix(in srgb, var(--ta-die-bg, #2a2a3a) 18%, transparent); }
-.dice-pool-group-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sta-text-tertiary, #545880); text-align: right; }
-.dice-pool-group-values { font-size: 16px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); text-align: left; }
-@media (prefers-reduced-motion: reduce) {
-  * { transition-duration: 0s !important; animation-duration: 0s !important; }
-}`,
-    html: `<div class="widget-dice-pool">
-  <div class="dice-pool-label">${esc(label)}</div>
-  <div class="dice-pool-expression">${esc(expression)}</div>
-  <div class="dice-pool-clickzone" id="dice-pool-target">
-    <div class="dice-pool-canvas-wrap">
-      <canvas id="dice-pool-canvas" width="${canvasW}" height="${canvasH}" role="img" aria-label="${esc(label)}. Click to roll the dice pool."></canvas>
-    </div>
-  </div>
-  <div class="dice-pool-hint" id="dice-pool-hint">CLICK THE POOL TO ROLL</div>
-  ${truncationNote ? `<div class="dice-pool-note">${esc(truncationNote)}</div>` : ''}
-  <div class="dice-pool-result" id="dice-pool-result">
-    <div class="dice-pool-total" id="dice-pool-total"></div>
-    <div class="dice-pool-modifier" id="dice-pool-modifier"></div>
-    <div class="dice-pool-groups" id="dice-pool-groups"></div>
-  </div>
-</div>`,
-    script: `var POOL_LABEL=${serialiseInlineScriptData(label)};
-var POOL_GROUPS=${serialiseInlineScriptData(pool)};
-var POOL_MODIFIER=${modifier};
-var POOL_CONFIG_MAP=${serialiseInlineScriptData(configMap)};
-var POOL_FONT_MAP=${serialiseInlineScriptData(fontMap)};
-var POOL_MAX_DICE=${MAX_DICE_POOL_TOTAL};
-${shadowAdaptPoolCode(WEBGL_DICE_POOL_CODE)}`,
-  });
+  const config = {
+    label,
+    expression,
+    canvasW,
+    canvasH,
+    displayW,
+    modifier,
+    pool,
+    configMap,
+    fontMap,
+    maxDice: MAX_DICE_POOL_TOTAL,
+    truncationNote
+  };
+
+  const html = `<ta-dice-pool data-config="${esc(JSON.stringify(config))}"></ta-dice-pool>`;
+
+  if (!styleName) return html;
+  return wrapInShadowDom({ styleName, html });
 }
