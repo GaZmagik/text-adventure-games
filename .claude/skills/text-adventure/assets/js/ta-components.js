@@ -491,7 +491,413 @@
     }
   }
 
+  // TaScenarioSelect
+  class TaScenarioSelect extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); }
+    connectedCallback() {
+      try {
+        var scenarios = JSON.parse(this.getAttribute('data-scenarios') || '[]');
+        var urls = (this.getAttribute('data-css-urls') || '').split(',').filter(Boolean);
+        var cssLinks = urls.map(function(u) { return '<link rel="stylesheet" href="' + u + '">'; }).join('');
+        
+        var html = cssLinks + '<style>:host{display:block;background:var(--sta-bg-primary,#1A1D2E);color:var(--sta-text-primary,#E8E6E3);font-family:var(--sta-font-mono,monospace)}.root{background:inherit;color:inherit}</style>';
+        html += '<div class="root">';
+
+        if (scenarios.length === 0) {
+          html += '<div class="widget-scenario-select"><div class="widget-title">Choose Your Scenario</div><div class="widget-subtitle">Select an adventure to begin</div><div class="empty-scenarios"><p>No scenarios provided.</p></div></div>';
+        } else {
+          var selIdx = 0;
+          for (var i=0; i<scenarios.length; i++) { if (scenarios[i].featured) { selIdx = i; break; } }
+          var selScenario = scenarios[selIdx];
+
+          // Hero
+          html += '<div class="widget-scenario-select"><header class="pd-hero"><h1 class="pd-hero-heading">Choose Your Scenario</h1><p class="pd-hero-copy">Select an adventure to begin. Each scenario offers a different tone, premise, and set of branching choices.</p></header>';
+          
+          // Control Deck
+          html += '<div class="pd-control-deck"><div class="pd-deck-inner"><div class="pd-deck-content"><p class="pd-kicker">Current selection</p><h2 class="pd-deck-heading">Scenario</h2><p class="pd-selection-title" id="pd-sel-title">' + (selScenario.title||'') + '</p>';
+          var selDesc = selScenario.description || selScenario.hook || selScenario.preamble || '';
+          if (selDesc) html += '<p class="pd-selection-preamble" id="pd-sel-preamble">' + selDesc + '</p>';
+          html += '<p class="pd-selection-status" id="pd-sel-status" aria-live="polite"></p></div><div class="pd-deck-actions"></div></div></div>';
+
+          // Cards
+          html += '<div class="scenario-grid">';
+          scenarios.forEach(function(s, idx) {
+            var desc = s.description || s.hook || s.preamble || '';
+            var isSel = idx === selIdx;
+            var genres = s.genres || s.genre || s.tags || [];
+            if (!Array.isArray(genres)) genres = [genres];
+            var gPills = genres.map(function(g) { return '<span class="genre-pill">' + g + '</span>'; }).join(' ');
+            
+            var featAttr = s.featured ? ' data-featured="true"' : '';
+            var idAttr = s.id ? ' data-scenario-id="' + s.id + '"' : '';
+            var prompt = 'I choose scenario: ' + s.title;
+
+            var styleParts = [];
+            if (s.accent) {
+              styleParts.push('--ta-card-accent: ' + s.accent);
+              var c = s.accent.replace('#','');
+              if (c.length===3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+              if (c.length===6) {
+                var r=parseInt(c.slice(0,2),16), g=parseInt(c.slice(2,4),16), b=parseInt(c.slice(4,6),16);
+                if (!isNaN(r)&&!isNaN(g)&&!isNaN(b)) styleParts.push('--ta-card-accent-rgb: '+r+','+g+','+b);
+              }
+            }
+
+            var hasBoth = s.coverFront && s.coverBack;
+            var coverAttr = s.coverFront ? ' data-has-cover="true"' : '';
+            if (!hasBoth && s.coverFront) {
+              styleParts.push('background-image: linear-gradient(to top, rgba(10,10,18,0.95) 35%, rgba(10,10,18,0.4) 70%, transparent 100%), url(' + s.coverFront + ')');
+              styleParts.push('background-size: cover; background-position: center top');
+            }
+
+            var safeSvg = null;
+            if (s.svgLogo) {
+              var t = s.svgLogo.trim();
+              if (/^<svg/i.test(t) && /</svg>$/i.test(t) && !/<(?:script|foreignObject|iframe|object|embed)/i.test(t) && !/onw+s*=/i.test(t)) {
+                safeSvg = t;
+              }
+            }
+            var logoHtml = safeSvg ? '<div class="scenario-logo">' + safeSvg + '</div>' : '';
+
+            var styleAttr = styleParts.length ? ' style="' + styleParts.join('; ') + '"' : '';
+
+            html += '<div class="scenario-card"' + idAttr + featAttr + coverAttr + styleAttr + ' role="button" tabindex="0" aria-pressed="' + isSel + '" data-desc="' + desc.replace(/"/g, '&quot;') + '" data-idx="' + idx + '">';
+            if (hasBoth) {
+              html += '<div class="cover-spread"><img class="cover-front" src="' + s.coverFront + '" loading="lazy"><img class="cover-back" src="' + s.coverBack + '" loading="lazy"></div>';
+            }
+            html += logoHtml;
+            html += '<div class="scenario-card-content"><div class="scenario-title">' + (s.title||'') + '</div>';
+            if (!hasBoth) html += '<div class="scenario-desc">' + desc + '</div>';
+            if (gPills) html += '<div class="scenario-genres">' + gPills + '</div>';
+            html += '<div class="scenario-meta">';
+            if (s.difficulty) html += '<span class="scenario-diff">Difficulty: ' + s.difficulty + '</span>';
+            if (s.players) html += '<span class="scenario-players">' + s.players + ' players</span>';
+            html += '</div><button class="scenario-select-btn" data-prompt="' + prompt + '" title="' + prompt + '">Select</button></div></div>';
+          });
+          html += '</div></div>';
+        }
+
+        html += '</div>';
+        this.shadowRoot.innerHTML = html;
+
+        var shadow = this.shadowRoot;
+        shadow.querySelectorAll('.scenario-select-btn[data-prompt]').forEach(function(btn) {
+          btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            window.tag.sendOrCopyPrompt(this, this.getAttribute('data-prompt'));
+          });
+        });
+        shadow.querySelectorAll('.scenario-card').forEach(function(card) {
+          card.addEventListener('click', function() {
+            shadow.querySelectorAll('.scenario-card').forEach(function(c) { c.setAttribute('aria-pressed', 'false'); });
+            this.setAttribute('aria-pressed', 'true');
+            var t = this.querySelector('.scenario-title');
+            var d = this.getAttribute('data-desc') || '';
+            var tEl = shadow.getElementById('pd-sel-title'), pEl = shadow.getElementById('pd-sel-preamble'), sEl = shadow.getElementById('pd-sel-status');
+            if (tEl && t) tEl.textContent = t.textContent;
+            if (pEl) pEl.textContent = d;
+            if (sEl) sEl.textContent = 'Scenario selected: ' + (t ? t.textContent : '');
+          });
+          card.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.click(); }
+          });
+        });
+
+      } catch (e) {
+        this.innerHTML = '<div>Error rendering ta-scenario-select</div>';
+      }
+    }
+  }
+
+  // TaSettings
+  class TaSettings extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); }
+    connectedCallback() {
+      try {
+        var cfg = JSON.parse(this.getAttribute('data-config') || '{}');
+        var urls = (this.getAttribute('data-css-urls') || '').split(',').filter(Boolean);
+        var cssLinks = urls.map(function(u) { return '<link rel="stylesheet" href="' + u + '">'; }).join('');
+        var tier1 = cfg.tier1Modules || [];
+        var defaults = cfg.defaults || {};
+        var selections = JSON.parse(JSON.stringify(defaults));
+        var selectedModules = [];
+
+        var html = cssLinks + '<style>:host{display:block;background:var(--sta-bg-primary,#1A1D2E);color:var(--sta-text-primary,#E8E6E3);font-family:var(--sta-font-mono,monospace)}.root{background:inherit;color:inherit}.module-card{display:flex;align-items:center;gap:8px}.module-check{width:16px;height:16px;border:1.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:3px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;color:transparent}.module-check.checked{background:var(--ta-color-accent,#4ECDC4);border-color:var(--ta-color-accent,#4ECDC4);color:#fff}.module-check.checked::after{content:"\2713"}</style>';
+        html += '<div class="root"><div class="widget-settings">';
+        html += '<header class="pd-hero"><h1 class="pd-hero-heading">Game Settings</h1><p class="pd-hero-copy">Configure your adventure before beginning.</p></header>';
+
+        var summaryTitle = defaults.rulebook ? defaults.rulebook.replace(/_/g,' ') : 'Unconfigured';
+        html += '<section class="pd-control-deck"><div class="pd-deck-inner"><div class="pd-deck-content"><p class="pd-kicker">Active profile</p><h2 class="pd-deck-heading">Configuration</h2><p class="pd-selection-title" id="pd-sel-title">' + summaryTitle + '</p><p class="pd-selection-status" id="pd-sel-status" aria-live="polite"></p></div><div class="pd-deck-actions"><div class="pd-summary-list"></div></div></div></section>';
+
+        function optionGrid(group, items) {
+          return '<div class="option-grid" data-group="' + group + '">' + items.map(function(v) {
+            var sel = defaults[group] === v;
+            return '<button class="option-card' + (sel?' selected':'') + '" data-group="' + group + '" data-value="' + v + '" aria-pressed="' + sel + '">' + v.replace(/_/g,' ') + '</button>';
+          }).join('') + '</div>';
+        }
+
+        var groups = [
+          {kicker:'Core system',title:'Rulebook',group:'rulebook',items:cfg.rulebooks||[]},
+          {kicker:'Challenge',title:'Difficulty',group:'difficulty',items:cfg.difficulties||[]},
+          {kicker:'Tempo',title:'Pacing',group:'pacing',items:cfg.pacingOptions||[]},
+          {kicker:'Presentation',title:'Visual Style',group:'visualStyle',items:cfg.visualStyles||[]}
+        ];
+        groups.forEach(function(g) {
+          html += '<section class="pd-subpanel"><p class="pd-kicker">' + g.kicker + '</p><h3 class="pd-subpanel-title">' + g.title + '</h3>' + optionGrid(g.group, g.items) + '</section>';
+        });
+
+        // Modules
+        html += '<section class="pd-subpanel"><p class="pd-kicker">Extensions</p><h3 class="pd-subpanel-title">Optional Modules</h3><p class="pd-subpanel-copy">Tier 1 modules are always active.</p><div class="option-grid" data-group="modules">';
+        (cfg.modules||[]).forEach(function(m) {
+          var isT1 = tier1.indexOf(m) >= 0;
+          if (isT1) {
+            html += '<button class="option-card module-card selected" data-group="modules" data-value="' + m + '" aria-pressed="true" disabled style="opacity:0.7;cursor:default"><span class="module-check checked"></span>' + m + ' (required)</button>';
+          } else {
+            html += '<button class="option-card module-card" data-group="modules" data-value="' + m + '" aria-pressed="false"><span class="module-check"></span>' + m + '</button>';
+          }
+        });
+        html += '</div></section>';
+        html += '<button class="confirm-btn" id="settings-confirm" title="Begin adventure with the selected settings">Begin Adventure</button>';
+        html += '</div></div>';
+        this.shadowRoot.innerHTML = html;
+
+        var shadow = this.shadowRoot;
+        shadow.querySelectorAll('.option-card:not(.module-card)').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var group = this.getAttribute('data-group');
+            var value = this.getAttribute('data-value');
+            selections[group] = value;
+            shadow.querySelectorAll('.option-card[data-group="' + group + '"]').forEach(function(b) {
+              b.classList.remove('selected'); b.setAttribute('aria-pressed','false');
+            });
+            this.classList.add('selected'); this.setAttribute('aria-pressed','true');
+            var selTitle = shadow.getElementById('pd-sel-title');
+            if (selTitle) {
+              var parts = [];
+              if (selections.rulebook) parts.push(selections.rulebook.replace(/_/g,' '));
+              if (selections.difficulty) parts.push(selections.difficulty);
+              selTitle.textContent = parts.length > 0 ? parts.join(' / ') : 'Unconfigured';
+            }
+          });
+        });
+
+        shadow.querySelectorAll('.module-card:not([disabled])').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var value = this.getAttribute('data-value');
+            var check = this.querySelector('.module-check');
+            var idx = selectedModules.indexOf(value);
+            if (idx >= 0) { selectedModules.splice(idx,1); check.classList.remove('checked'); this.classList.remove('selected'); }
+            else { selectedModules.push(value); check.classList.add('checked'); this.classList.add('selected'); }
+            this.setAttribute('aria-pressed', this.classList.contains('selected') ? 'true' : 'false');
+          });
+        });
+
+        shadow.getElementById('settings-confirm').addEventListener('click', function() {
+          var allMods = tier1.slice();
+          selectedModules.forEach(function(m) { if (allMods.indexOf(m) < 0) allMods.push(m); });
+          selections.modules = allMods;
+          var cmds = ['state set visualStyle ' + (selections.visualStyle || 'station')];
+          if (selections.rulebook) cmds.push('state set worldFlags.rulebook ' + selections.rulebook);
+          cmds.push('state set modulesActive ' + JSON.stringify(allMods));
+          var prompt = 'Begin adventure with settings: ' + JSON.stringify(selections) + '\nRequired: tag batch --commands "' + cmds.join('; ') + '"';
+          window.tag.sendOrCopyPrompt(this, prompt);
+        });
+      } catch (e) { this.innerHTML = '<div>Error rendering ta-settings</div>'; }
+    }
+  }
+
+  // TaCharacterCreation
+  class TaCharacterCreation extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); }
+    connectedCallback() {
+      try {
+        var cfg = JSON.parse(this.getAttribute('data-config') || '{}');
+        var urls = (this.getAttribute('data-css-urls') || '').split(',').filter(Boolean);
+        var cssLinks = urls.map(function(u) { return '<link rel="stylesheet" href="' + u + '">'; }).join('');
+        var archetypes = cfg.archetypes || [];
+        var pregens = cfg.preGeneratedCharacters || [];
+        var allowCustom = cfg.allowCustom !== false;
+        var proficiencies = cfg.proficiencies || [];
+        var defaultName = cfg.defaultName || '';
+        var namePool = cfg.namePool || {given:[],surname:[]};
+        var selectedMode = pregens.length > 0 && !allowCustom ? 'preset' : 'custom';
+        var selectedPreset = pregens.length > 0 && !allowCustom ? 0 : -1;
+        var selectedArchetype = -1;
+        var selectedProfs = [];
+        var lockedProfs = [];
+        var selectedPronouns = '';
+        var customNameCache = defaultName;
+
+        var html = cssLinks + '<style>:host{display:block;background:var(--sta-bg-primary,#1A1D2E);color:var(--sta-text-primary,#E8E6E3);font-family:var(--sta-font-mono,monospace)}.root{background:inherit;color:inherit}.is-hidden{display:none!important}.selection-grid,.archetype-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}.preset-card,.custom-entry-card,.archetype-card{padding:14px;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:8px;cursor:pointer;transition:all 0.2s;background:transparent}.preset-card:hover,.custom-entry-card:hover,.archetype-card:hover{border-color:var(--ta-color-accent)}.preset-card.selected,.custom-entry-card.selected,.archetype-card.selected{border-color:var(--ta-color-accent);background:var(--ta-color-accent-bg)}.arch-name{font-family:var(--ta-font-heading);font-size:15px;font-weight:700;color:var(--sta-text-primary,#EEF0FF);margin-bottom:4px}.arch-desc{font-size:11px;color:var(--sta-text-secondary,#9AA0C0);line-height:1.4;margin-bottom:6px}.arch-stat{display:inline-block;padding:1px 6px;font-size:10px;border-radius:4px;background:var(--sta-border-tertiary,rgba(84,88,128,0.4));color:var(--sta-text-primary,#EEF0FF);margin-right:4px;font-weight:600}.name-input{width:100%;padding:10px 14px;font-family:var(--ta-font-body);font-size:14px;background:transparent;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:6px;color:var(--sta-text-primary,#EEF0FF);box-sizing:border-box}.name-error{color:var(--ta-color-danger);font-size:11px;margin-top:4px;display:block}.prof-grid{display:flex;flex-wrap:wrap;gap:6px}.prof-option{padding:8px 12px;font-size:11px;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:12px;background:transparent;color:var(--sta-text-secondary,#9AA0C0);cursor:pointer;transition:all 0.2s;min-height:44px}.prof-option.selected{border-color:var(--ta-color-accent);background:var(--ta-color-accent-bg);color:var(--ta-color-accent);font-weight:600}</style>';
+        html += '<div class="root"><div class="widget-char-creation">';
+        var subtitle = pregens.length > 0 ? 'Choose a ready-made character or create your own' : 'Choose an archetype, name your character, and select proficiencies';
+        html += '<header class="pd-hero"><h1 class="pd-hero-heading">Create Your Character</h1><p class="pd-hero-copy">' + subtitle + '</p></header>';
+        html += '<section class="pd-control-deck"><div class="pd-deck-inner"><div class="pd-deck-content"><p class="pd-kicker">Current dossier</p><h2 class="pd-deck-heading">Character Build</h2><p class="pd-selection-title" id="pd-sel-title">' + (defaultName || 'Unnamed') + '</p><p class="pd-selection-status" id="pd-sel-status" aria-live="polite"></p></div><div class="pd-deck-actions"><div class="pd-summary-list"></div></div></div></section>';
+
+        if (pregens.length > 0) {
+          html += '<section class="pd-subpanel"><p class="pd-kicker">Starting character</p><h3 class="pd-subpanel-title">Character Selection</h3><div class="selection-grid">';
+          pregens.forEach(function(p, i) {
+            var desc = p.hook || p.background || '';
+            html += '<button class="preset-card" data-preset-index="' + i + '" aria-pressed="false"><div class="arch-name">' + (p.name||'') + '</div>' + (desc ? '<div class="arch-desc">' + desc + '</div>' : '') + '</button>';
+          });
+          if (allowCustom) html += '<button class="custom-entry-card selected" id="custom-entry-card" aria-pressed="true"><div class="arch-name">Create Your Own</div><div class="arch-desc">Build a custom character.</div></button>';
+          html += '</div></section>';
+          html += '<div class="is-hidden" id="preset-summary-wrap"><div class="preset-summary" id="preset-summary"></div></div>';
+        }
+
+        // Pronouns
+        html += '<section class="pd-subpanel"><p class="pd-kicker">Identity</p><h3 class="pd-subpanel-title">Pronouns</h3><div class="option-grid" id="pronoun-grid"><button class="option-card" data-pronouns="she/her" aria-pressed="false">she/her</button><button class="option-card" data-pronouns="he/him" aria-pressed="false">he/him</button><button class="option-card" data-pronouns="they/them" aria-pressed="false">they/them</button><button class="option-card" data-pronouns="custom" aria-pressed="false">Custom</button></div><div id="custom-pronouns" class="is-hidden" style="display:flex;margin-top:8px;gap:8px;align-items:center"><select id="pronoun-subject" class="name-input" style="width:auto;padding:8px 12px;font-size:12px"><option value="he">he</option><option value="she">she</option><option value="they">they</option></select><span style="font-size:12px;color:var(--sta-text-tertiary)">/</span><select id="pronoun-object" class="name-input" style="width:auto;padding:8px 12px;font-size:12px"><option value="him">him</option><option value="her">her</option><option value="them">them</option></select></div></section>';
+
+        // Custom fields
+        html += '<div id="custom-character-fields">';
+        html += '<section class="pd-subpanel"><p class="pd-kicker">Identity</p><h3 class="pd-subpanel-title">Name</h3><div style="display:flex;gap:8px;align-items:center"><input class="name-input" id="char-name-input" type="text" placeholder="Enter character name..." value="' + defaultName + '" maxlength="80" style="flex:1"><button class="option-card" id="randomise-name" type="button" style="white-space:nowrap;flex-shrink:0">Randomise</button></div><span id="name-error" class="name-error is-hidden" role="alert"></span></section>';
+
+        if (archetypes.length > 0) {
+          html += '<section class="pd-subpanel"><p class="pd-kicker">Role</p><h3 class="pd-subpanel-title">Archetype</h3><div class="archetype-grid">';
+          archetypes.forEach(function(a, i) {
+            var desc = a.description || a.flavour || '';
+            var statMap = a.stats || a.baseStats || {};
+            var stats = Object.entries(statMap).map(function(e) { return '<span class="arch-stat">' + e[0] + ' ' + (Number(e[1])||0) + '</span>'; }).join(' ');
+            html += '<button class="archetype-card" data-index="' + i + '" aria-pressed="false"><div class="arch-name">' + (a.name||'') + '</div>' + (desc?'<div class="arch-desc">'+desc+'</div>':'') + (stats?'<div class="arch-stats">'+stats+'</div>':'') + '</button>';
+          });
+          html += '</div></section>';
+        }
+
+        html += '<section class="pd-subpanel"><p class="pd-kicker">Skills</p><h3 class="pd-subpanel-title">Proficiencies</h3><p class="pd-subpanel-copy">Choose 2 additional proficiencies.</p><div class="prof-grid">';
+        proficiencies.forEach(function(p) { html += '<button class="prof-option" data-prof="' + p + '" aria-pressed="false">' + p + '</button>'; });
+        html += '</div></section></div>';
+        html += '<button class="confirm-btn" id="creation-confirm" title="Create character">Create Character</button>';
+        html += '</div></div>';
+        this.shadowRoot.innerHTML = html;
+
+        var shadow = this.shadowRoot;
+        var archetypeProfs = archetypes.map(function(a) { return a.fixedProficiencies || []; });
+        var archetypeMechanics = archetypes.map(function(a) { return { stats: a.stats||a.baseStats||{}, hp: a.hp||0, ac: a.ac||0, abilities: a.abilities||[], equipment: a.equipment||[] }; });
+
+        function updateSelectionCards() {
+          shadow.querySelectorAll('.preset-card').forEach(function(c) {
+            var idx = parseInt(c.getAttribute('data-preset-index'),10);
+            var sel = selectedMode==='preset' && idx===selectedPreset;
+            c.classList.toggle('selected',sel); c.setAttribute('aria-pressed',sel?'true':'false');
+          });
+          var cc = shadow.getElementById('custom-entry-card');
+          if (cc) { var cs = selectedMode==='custom'; cc.classList.toggle('selected',cs); cc.setAttribute('aria-pressed',cs?'true':'false'); }
+        }
+        function setCustomMode() {
+          selectedMode='custom'; selectedPreset=-1;
+          var cf=shadow.getElementById('custom-character-fields'); if(cf) cf.classList.remove('is-hidden');
+          var sw=shadow.getElementById('preset-summary-wrap'); if(sw) sw.classList.add('is-hidden');
+          var ni=shadow.getElementById('char-name-input'); if(ni){ni.disabled=false;if(!ni.value)ni.value=customNameCache||'';}
+          var rn=shadow.getElementById('randomise-name'); if(rn) rn.disabled=false;
+          var st=shadow.getElementById('pd-sel-title'); if(st) st.textContent=customNameCache||'Unnamed';
+          updateSelectionCards();
+        }
+        function setPresetMode(index) {
+          if(index<0||index>=pregens.length)return;
+          selectedMode='preset'; selectedPreset=index; var preset=pregens[index];
+          var cf=shadow.getElementById('custom-character-fields'); if(cf) cf.classList.add('is-hidden');
+          var sw=shadow.getElementById('preset-summary-wrap'); var sm=shadow.getElementById('preset-summary');
+          if(sw&&sm){sw.classList.remove('is-hidden');sm.textContent=preset.name||'';}
+          var ni=shadow.getElementById('char-name-input'); if(ni){customNameCache=ni.value;ni.value=preset.name||'';ni.disabled=true;}
+          var rn=shadow.getElementById('randomise-name'); if(rn) rn.disabled=true;
+          var st=shadow.getElementById('pd-sel-title'); if(st) st.textContent=preset.name||'Unnamed';
+          updateSelectionCards();
+        }
+
+        shadow.querySelectorAll('.preset-card').forEach(function(c) { c.addEventListener('click',function(){ setPresetMode(parseInt(this.getAttribute('data-preset-index'),10)); }); });
+        var cec=shadow.getElementById('custom-entry-card'); if(cec) cec.addEventListener('click',function(){ setCustomMode(); });
+
+        shadow.querySelectorAll('.archetype-card').forEach(function(c) {
+          c.addEventListener('click',function(){
+            shadow.querySelectorAll('.archetype-card').forEach(function(x){x.classList.remove('selected');x.setAttribute('aria-pressed','false');});
+            this.classList.add('selected'); this.setAttribute('aria-pressed','true');
+            selectedArchetype=parseInt(this.getAttribute('data-index'),10);
+            selectedProfs=[]; lockedProfs=archetypeProfs[selectedArchetype]||[];
+            shadow.querySelectorAll('.prof-option').forEach(function(b){
+              var p=b.getAttribute('data-prof'); b.classList.remove('selected'); b.setAttribute('aria-pressed','false'); b.disabled=false;
+              if(lockedProfs.indexOf(p)>=0){b.classList.add('selected');b.setAttribute('aria-pressed','true');b.disabled=true;b.style.opacity='0.7';}
+            });
+          });
+        });
+
+        shadow.querySelectorAll('.prof-option').forEach(function(b) {
+          b.addEventListener('click',function(){
+            if(lockedProfs.indexOf(this.getAttribute('data-prof'))>=0)return;
+            var p=this.getAttribute('data-prof'), idx=selectedProfs.indexOf(p);
+            if(idx>=0){selectedProfs.splice(idx,1);this.classList.remove('selected');this.setAttribute('aria-pressed','false');}
+            else if(selectedProfs.length<2){selectedProfs.push(p);this.classList.add('selected');this.setAttribute('aria-pressed','true');}
+          });
+        });
+
+        shadow.querySelectorAll('#pronoun-grid .option-card').forEach(function(b) {
+          b.addEventListener('click',function(){
+            shadow.querySelectorAll('#pronoun-grid .option-card').forEach(function(x){x.classList.remove('selected');x.setAttribute('aria-pressed','false');});
+            this.classList.add('selected'); this.setAttribute('aria-pressed','true');
+            var v=this.getAttribute('data-pronouns'), cd=shadow.getElementById('custom-pronouns');
+            if(v==='custom'){cd.classList.remove('is-hidden');selectedPronouns=shadow.getElementById('pronoun-subject').value+'/'+shadow.getElementById('pronoun-object').value;}
+            else{cd.classList.add('is-hidden');selectedPronouns=v;}
+          });
+        });
+        var ps=shadow.getElementById('pronoun-subject'); if(ps) ps.addEventListener('change',function(){selectedPronouns=this.value+'/'+shadow.getElementById('pronoun-object').value;});
+        var po=shadow.getElementById('pronoun-object'); if(po) po.addEventListener('change',function(){selectedPronouns=shadow.getElementById('pronoun-subject').value+'/'+this.value;});
+
+        shadow.getElementById('randomise-name').addEventListener('click',function(){
+          if(namePool.given.length>0&&namePool.surname.length>0){
+            var g=namePool.given[Math.floor(Math.random()*namePool.given.length)];
+            var s=namePool.surname[Math.floor(Math.random()*namePool.surname.length)];
+            shadow.getElementById('char-name-input').value=g+' '+s; customNameCache=shadow.getElementById('char-name-input').value;
+          }
+          shadow.getElementById('name-error').classList.add('is-hidden');
+          var st=shadow.getElementById('pd-sel-title'); if(st) st.textContent=shadow.getElementById('char-name-input').value||'Unnamed';
+        });
+        shadow.getElementById('char-name-input').addEventListener('input',function(){
+          customNameCache=this.value; shadow.getElementById('name-error').classList.add('is-hidden');
+          var st=shadow.getElementById('pd-sel-title'); if(st&&selectedMode==='custom') st.textContent=this.value.trim()||'Unnamed';
+        });
+
+        shadow.getElementById('creation-confirm').addEventListener('click',function(){
+          if(selectedMode==='preset'&&selectedPreset>=0){
+            var pr=pregens[selectedPreset]||{};
+            var payload={name:pr.name||'Unnamed',class:pr.class||pr.name||'Adventurer',archetypeLabel:pr.class||pr.name||'Adventurer',characterOrigin:'pregen',openingLens:pr.openingLens||'',prologueVariant:pr.prologueVariant||'',proficiencies:Array.isArray(pr.proficiencies)?pr.proficiencies:[],pronouns:selectedPronouns||pr.pronouns||'they/them',stats:pr.stats||{},hp:pr.hp||0,ac:pr.ac||0,abilities:Array.isArray(pr.abilities)?pr.abilities:[],equipment:Array.isArray(pr.startingInventory)?pr.startingInventory:(Array.isArray(pr.equipment)?pr.equipment:[]),currency:pr.startingCurrency||pr.currency||0};
+            window.tag.sendOrCopyPrompt(this,'Create character: '+JSON.stringify(payload)); return;
+          }
+          var name=shadow.getElementById('char-name-input').value.trim();
+          if(!name){shadow.getElementById('name-error').textContent='Please enter a character name.';shadow.getElementById('name-error').classList.remove('is-hidden');return;}
+          var allProfs=lockedProfs.slice(); selectedProfs.forEach(function(p){if(allProfs.indexOf(p)<0)allProfs.push(p);});
+          var mech=selectedArchetype>=0?archetypeMechanics[selectedArchetype]:{};
+          var an=selectedArchetype>=0?shadow.querySelector('.archetype-card[data-index="'+selectedArchetype+'"] .arch-name'):null;
+          var payload={name:name,archetypeIndex:selectedArchetype,archetypeLabel:an?an.textContent:'',characterOrigin:'custom',proficiencies:allProfs,pronouns:selectedPronouns||'they/them',stats:mech.stats||{},hp:mech.hp||0,ac:mech.ac||0,abilities:mech.abilities||[],equipment:mech.equipment||[]};
+          window.tag.sendOrCopyPrompt(this,'Create character: '+JSON.stringify(payload));
+        });
+
+        if(pregens.length>0&&!allowCustom){setPresetMode(0);}else{setCustomMode();}
+      } catch (e) { this.innerHTML = '<div>Error rendering ta-character-creation</div>'; }
+    }
+  }
+
+  // TaScene — wraps scene content in Shadow DOM with CDN CSS
+  class TaScene extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); }
+    connectedCallback() {
+      try {
+        var urls = (this.getAttribute('data-css-urls') || '').split(',').filter(Boolean);
+        var cssLinks = urls.map(function(u) { return '<link rel="stylesheet" href="' + u + '">'; }).join('');
+        var hostCss = ':host{display:block;background:var(--sta-bg-primary,#1A1D2E);color:var(--sta-text-primary,#E8E6E3);font-family:var(--sta-font-mono,monospace)}.root{background:inherit;color:inherit}';
+        var panelCss = '#panel-overlay{display:none;padding:0}.panel-header{display:flex;align-items:baseline;justify-content:space-between;padding-bottom:10px;margin-bottom:12px;border-bottom:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4))}.panel-title{font-family:var(--sta-font-display,system-ui,sans-serif);font-size:18px;font-weight:600;color:var(--sta-text-primary,#EEF0FF)}.panel-close-btn{font-family:var(--sta-font-mono,monospace);font-size:11px;letter-spacing:0.08em;background:transparent;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:var(--sta-radius-md,6px);padding:8px 14px;min-height:44px;min-width:44px;box-sizing:border-box;color:var(--sta-text-tertiary,#545880);cursor:pointer}.panel-close-btn:hover{border-color:var(--sta-border-secondary,rgba(154,160,192,0.35));color:var(--sta-text-secondary,#9AA0C0)}.panel-content{display:none;font-family:var(--ta-font-body,var(--sta-font-sans,system-ui,-apple-system,sans-serif))}.narrative,.brief-text{font-family:var(--sta-font-serif,Georgia,serif);font-size:var(--sta-text-base,15px);line-height:1.7}.atmo-strip{display:flex;gap:var(--sta-space-sm,8px);flex-wrap:wrap;margin-bottom:var(--sta-space-md,14px)}.atmo-pill{font-family:var(--sta-font-mono,monospace);font-size:var(--sta-text-xs,10px);letter-spacing:0.06em;padding:3px 10px;border-radius:var(--sta-radius-pill,999px);border:var(--sta-border-width,0.5px) solid var(--sta-border-tertiary,rgba(84,88,128,0.4));color:var(--sta-text-tertiary,#545880)}';
+        var content = this.innerHTML;
+        this.innerHTML = '';
+        this.shadowRoot.innerHTML = cssLinks + '<style>' + hostCss + panelCss + '</style>' + content;
+      } catch (e) {
+        this.shadowRoot.innerHTML = '<div>Error rendering ta-scene</div>';
+      }
+    }
+  }
+
   // Register components
+  if (!customElements.get('ta-scene')) customElements.define('ta-scene', TaScene);
+  if (!customElements.get('ta-settings')) customElements.define('ta-settings', TaSettings);
+  if (!customElements.get('ta-character-creation')) customElements.define('ta-character-creation', TaCharacterCreation);
+  if (!customElements.get('ta-scenario-select')) customElements.define('ta-scenario-select', TaScenarioSelect);
   if (!customElements.get('ta-tts')) customElements.define('ta-tts', TaTts);
   if (!customElements.get('ta-ticker')) customElements.define('ta-ticker', TaTicker);
   if (!customElements.get('ta-footer')) customElements.define('ta-footer', TaFooter);

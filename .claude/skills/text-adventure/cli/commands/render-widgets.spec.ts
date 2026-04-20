@@ -301,13 +301,13 @@ describe('render widget smoke tests', () => {
 // ── Pre-game widgets ─────────────────────────────────────────────────
 
 describe('render pre-game widgets', () => {
-  test('settings widget contains radiogroup and option-card', async () => {
+  test('settings widget emits ta-settings custom element', async () => {
     const data = JSON.stringify({ options: ['easy', 'hard'] });
     const result = await handleRender(['settings', '--style', 'terminal', '--data', data, '--raw']);
     expect(result.ok).toBe(true);
     const html = result.data as string;
-    expect(html).toContain('aria-pressed=');
-    expect(html).toContain('class="option-card');
+    expect(html).toContain('<ta-settings');
+    expect(html).toContain('data-config=');
   });
 
   test('scenario-select widget works with --data and no state', async () => {
@@ -315,17 +315,17 @@ describe('render pre-game widgets', () => {
     const result = await handleRender(['scenario-select', '--style', 'terminal', '--data', data, '--raw']);
     expect(result.ok).toBe(true);
     const html = result.data as string;
+    expect(html).toContain('<ta-scenario-select');
     expect(html).toContain('Test');
     expect(html).toContain('A test scenario');
-    expect(html).toContain('scenario-select-btn');
   });
 
-  test('character-creation widget contains archetype-card and aria-pressed', async () => {
+  test('character-creation widget emits ta-character-creation custom element', async () => {
     const data = JSON.stringify({ archetypes: [{ name: 'Warrior', stats: {} }] });
     const result = await handleRender(['character-creation', '--style', 'terminal', '--data', data, '--raw']);
     expect(result.ok).toBe(true);
     const html = result.data as string;
-    expect(html).toContain('class="archetype-card"');
-    expect(html).toContain('aria-pressed');
+    expect(html).toContain('<ta-character-creation');
+    expect(html).toContain('Warrior');
   });
 });

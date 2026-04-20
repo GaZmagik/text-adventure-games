@@ -1,202 +1,100 @@
 import { describe, test, expect } from 'bun:test';
 import { renderCharacterCreation } from './character-creation';
 
-// ── Existing contract ─────────────────────────────────────────────
+const ARCHETYPES = [
+  { name: 'Vanguard', description: 'Front-line fighter.', stats: { STR: 16, DEX: 12 }, hp: 12, ac: 16, fixedProficiencies: ['Athletics'] },
+  { name: 'Operative', flavour: 'Stealth specialist.', baseStats: { DEX: 16, INT: 14 }, abilities: ['Sneak Attack'], equipment: ['Lockpicks'] },
+];
 
-describe('renderCharacterCreation pronouns and name randomiser', () => {
-  test('renders pronoun radio options', () => {
-    const html = renderCharacterCreation(null, '');
-    expect(html).toContain('data-pronouns="she/her"');
-    expect(html).toContain('data-pronouns="he/him"');
-    expect(html).toContain('data-pronouns="they/them"');
-    expect(html).toContain('data-pronouns="custom"');
+const PREGENS = [
+  { name: 'Kael Voss', class: 'Marine', hook: 'A grizzled vet.', stats: { STR: 14 }, hp: 10, ac: 14, proficiencies: ['Athletics'], openingLens: 'duty' },
+  { name: 'Lyra Chen', class: 'Engineer', background: 'Ship mechanic.', stats: { INT: 16 }, hp: 8, ac: 12 },
+];
+
+describe('renderCharacterCreation', () => {
+  test('emits a <ta-character-creation> custom element', () => {
+    const html = renderCharacterCreation(null, 'station', { data: {} });
+    expect(html).toContain('<ta-character-creation');
+    expect(html).toContain('</ta-character-creation>');
   });
 
-  test('custom pronouns shows subject and object dropdowns', () => {
-    const html = renderCharacterCreation(null, '');
-    expect(html).toContain('id="pronoun-subject"');
-    expect(html).toContain('id="pronoun-object"');
-    // Dropdowns should have he/she/they and him/her/them options
-    expect(html).toMatch(/<option[^>]*>he<\/option>/);
-    expect(html).toMatch(/<option[^>]*>she<\/option>/);
-    expect(html).toMatch(/<option[^>]*>they<\/option>/);
-    expect(html).toMatch(/<option[^>]*>him<\/option>/);
-    expect(html).toMatch(/<option[^>]*>her<\/option>/);
-    expect(html).toMatch(/<option[^>]*>them<\/option>/);
+  test('includes data-config attribute with JSON payload', () => {
+    const html = renderCharacterCreation(null, 'station', { data: {} });
+    expect(html).toContain('data-config="');
   });
 
-  test('renders randomise name button', () => {
-    const html = renderCharacterCreation(null, '');
-    expect(html).toContain('id="randomise-name"');
+  test('includes CDN script tag for ta-components.js', () => {
+    const html = renderCharacterCreation(null, 'station', { data: {} });
+    expect(html).toContain('ta-components.js');
+    expect(html).toContain('<script src="');
   });
 
-  test('renders pre-generated characters alongside a custom option', () => {
-    const html = renderCharacterCreation(null, '', {
-      data: {
-        preGeneratedCharacters: [
-          { name: 'Rian Vale', class: 'Cartographer', openingLens: 'rian', prologueVariant: 'pregen_rian' },
-        ],
-      },
+  test('includes CSS URLs', () => {
+    const html = renderCharacterCreation(null, 'station', { data: {} });
+    expect(html).toContain('station.css');
+    expect(html).toContain('common-widget.css');
+    expect(html).toContain('pregame-design.css');
+  });
+});
+
+describe('character-creation config serialisation', () => {
+  test('serialises archetypes into config', () => {
+    const html = renderCharacterCreation(null, 'station', { data: { archetypes: ARCHETYPES } });
+    expect(html).toContain('Vanguard');
+    expect(html).toContain('Operative');
+  });
+
+  test('serialises pre-generated characters into config', () => {
+    const html = renderCharacterCreation(null, 'station', { data: { preGeneratedCharacters: PREGENS } });
+    expect(html).toContain('Kael Voss');
+    expect(html).toContain('Lyra Chen');
+  });
+
+  test('serialises default proficiencies when none provided', () => {
+    const html = renderCharacterCreation(null, 'station', { data: {} });
+    expect(html).toContain('Athletics');
+    expect(html).toContain('Stealth');
+    expect(html).toContain('Perception');
+  });
+
+  test('serialises custom proficiencies when provided', () => {
+    const html = renderCharacterCreation(null, 'station', {
+      data: { proficiencies: ['Hacking', 'Piloting'] },
     });
-    expect(html).toContain('Rian Vale');
-    expect(html).toContain('Create Your Own');
-    expect(html).toContain('pregen_rian');
+    expect(html).toContain('Hacking');
+    expect(html).toContain('Piloting');
   });
 
-  test('embeds name pools when provided via options', () => {
-    const html = renderCharacterCreation(null, '', {
+  test('serialises defaultName when provided', () => {
+    const html = renderCharacterCreation(null, 'station', {
+      data: { defaultName: 'Test Hero' },
+    });
+    expect(html).toContain('Test Hero');
+  });
+
+  test('serialises name pool when provided', () => {
+    const html = renderCharacterCreation(null, 'station', {
       data: {},
-      namePool: { given: ['Kira', 'Jin'], surname: ['Vasquez', 'Chen'] },
+      namePool: { given: ['Aria'], surname: ['Storm'] },
     });
-    expect(html).toContain('Kira');
-    expect(html).toContain('Vasquez');
+    expect(html).toContain('Aria');
+    expect(html).toContain('Storm');
   });
 
-  test('sendPrompt script includes pronouns in payload', () => {
-    const html = renderCharacterCreation(null, '');
-    expect(html).toContain('pronouns');
-    expect(html).toContain('selectedPronouns');
-  });
-
-  test('confirm script copies synthesized prompt when sendPrompt is unavailable', () => {
-    const html = renderCharacterCreation(null, '');
-    expect(html).toContain("document.execCommand('copy')");
-    expect(html).toContain("btn.textContent = copied ? 'Copied! Paste as your reply.' : 'Copy the prompt from the tooltip.';");
-    expect(html).toContain("btn.setAttribute('title', prompt)");
+  test('preserves allowCustom=false in config', () => {
+    const html = renderCharacterCreation(null, 'station', {
+      data: { allowCustom: false, preGeneratedCharacters: PREGENS },
+    });
+    const match = html.match(/data-config="([^"]*)"/);
+    const raw = match![1]!.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;/g, "'");
+    const parsed = JSON.parse(raw);
+    expect(parsed.allowCustom).toBe(false);
   });
 });
 
-// ── Hero section ───────────────────────────────────────────────────
-
-describe('character-creation hero', () => {
-  test('renders hero section', () => {
-    const html = renderCharacterCreation(null, '');
-    expect(html).toContain('pd-hero');
-    expect(html).toContain('pd-hero-heading');
-  });
-
-  test('hero appears before subpanels', () => {
-    const html = renderCharacterCreation(null, '');
-    const heroIdx = html.indexOf('<header class="pd-hero"');
-    const subpanelIdx = html.indexOf('<article class="pd-subpanel">');
-    expect(heroIdx).toBeGreaterThan(-1);
-    expect(heroIdx).toBeLessThan(subpanelIdx);
-  });
-});
-
-// ── Control deck ───────────────────────────────────────────────────
-
-describe('character-creation control deck', () => {
-  test('renders control deck with build summary', () => {
-    const html = renderCharacterCreation(null, '');
-    expect(html).toContain('pd-control-deck');
-    expect(html).toContain('pd-selection-title');
-  });
-
-  test('control deck has aria-live status region', () => {
-    const html = renderCharacterCreation(null, '');
-    expect(html).toContain('aria-live="polite"');
-  });
-
-  test('control deck shows summary rows for build state', () => {
-    const html = renderCharacterCreation(null, '');
-    expect(html).toContain('pd-summary-row');
-  });
-
-  test('control deck appears between hero and subpanels', () => {
-    const html = renderCharacterCreation(null, '');
-    const heroIdx = html.indexOf('<header class="pd-hero"');
-    const deckIdx = html.indexOf('<section class="pd-control-deck"');
-    const subpanelIdx = html.indexOf('<article class="pd-subpanel">');
-    expect(heroIdx).toBeLessThan(deckIdx);
-    expect(deckIdx).toBeLessThan(subpanelIdx);
-  });
-});
-
-// ── Subpanel grouping ──────────────────────────────────────────────
-
-describe('character-creation subpanels', () => {
-  test('wraps sections in subpanels (at least pronouns, name, proficiencies)', () => {
-    const html = renderCharacterCreation(null, '');
-    expect(html).toContain('pd-subpanel');
-    const count = (html.match(/<article class="pd-subpanel">/g) ?? []).length;
-    expect(count).toBeGreaterThanOrEqual(3);
-  });
-
-  test('subpanels have titles', () => {
-    const html = renderCharacterCreation(null, '');
-    expect(html).toContain('pd-subpanel-title');
-  });
-
-  test('archetype section adds a subpanel when archetypes provided', () => {
-    const html = renderCharacterCreation(null, '', {
-      data: {
-        archetypes: [
-          { name: 'Soldier', description: 'A fighter', stats: { STR: 16 } },
-        ],
-      },
-    });
-    const count = (html.match(/<article class="pd-subpanel">/g) ?? []).length;
-    expect(count).toBeGreaterThanOrEqual(4);
-  });
-
-  test('pre-gen section adds a subpanel when pregens provided', () => {
-    const html = renderCharacterCreation(null, '', {
-      data: {
-        preGeneratedCharacters: [
-          { name: 'Kael Voss', class: 'Scout' },
-        ],
-      },
-    });
-    const count = (html.match(/<article class="pd-subpanel">/g) ?? []).length;
-    expect(count).toBeGreaterThanOrEqual(4);
-  });
-});
-
-// ── Verify safety ──────────────────────────────────────────────────
-
-describe('character-creation verify safety', () => {
-  test('retains creation-confirm button', () => {
-    const html = renderCharacterCreation(null, '');
-    expect(html).toContain('creation-confirm');
-  });
-
-  test('retains widget-char-creation class', () => {
-    const html = renderCharacterCreation(null, '');
-    expect(html).toContain('widget-char-creation');
-  });
-});
-
-// ── Script interaction ─────────────────────────────────────────────
-
-describe('character-creation script interaction', () => {
-  test('script updates control deck title on build changes', () => {
-    const html = renderCharacterCreation(null, '');
-    expect(html).toContain('pd-sel-title');
-  });
-
-  test('preset/custom mode switching preserved', () => {
-    const html = renderCharacterCreation(null, '', {
-      data: {
-        preGeneratedCharacters: [
-          { name: 'Test Char', class: 'Warrior' },
-        ],
-      },
-    });
-    expect(html).toContain('setPresetMode');
-    expect(html).toContain('setCustomMode');
-  });
-
-  test('preset summary uses DOM construction not textContent with HTML', () => {
-    const html = renderCharacterCreation(null, '', {
-      data: {
-        preGeneratedCharacters: [
-          { name: 'Riley Chen', class: 'Scout', hook: 'Promised someone.' },
-        ],
-      },
-    });
-    // Must use buildPresetSummary (DOM nodes), not summarisePreset (HTML string via textContent)
-    expect(html).toContain('buildPresetSummary');
-    expect(html).not.toContain('summarisePreset');
+describe('character-creation data-style', () => {
+  test('includes data-style attribute', () => {
+    const html = renderCharacterCreation(null, 'neon', { data: {} });
+    expect(html).toContain('data-style="neon"');
   });
 });

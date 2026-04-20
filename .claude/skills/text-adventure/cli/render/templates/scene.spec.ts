@@ -1,194 +1,191 @@
 import { describe, test, expect } from 'bun:test';
 import { renderScene } from './scene';
-import { createDefaultState } from '../../lib/state-store';
-import { MODULE_PANEL_MAP } from '../../lib/module-panel-map';
+
+const BASE_STATE = {
+  currentRoom: 'Bridge',
+  scene: 5,
+  arc: 1,
+  theme: 'sci-fi',
+  modulesActive: ['core-systems', 'lore-codex'],
+  character: {
+    name: 'Kael', class: 'Marine', hp: 8, maxHp: 10, ac: 14, level: 3, poiMax: 2,
+    xp: 500, proficiencyBonus: 2, currency: 50, currencyName: 'Credits',
+    stats: { STR: 10, DEX: 14, CON: 12, INT: 16, WIS: 10, CHA: 8 },
+    modifiers: { STR: 0, DEX: 2, CON: 1, INT: 3, WIS: 0, CHA: -1 },
+    proficiencies: ['Athletics', 'Perception'],
+    abilities: ['Second Wind'],
+    equipment: { weapon: 'Pulse Rifle', armour: 'Tactical Vest' },
+    inventory: [{ name: 'Medkit', qty: 2 }],
+    conditions: [],
+  },
+  time: { period: 'evening', date: 'Day 3', elapsed: 3, hour: 19 },
+} as any;
+
+// ── Custom element output ──────────────────────────────────────────
+
+describe('renderScene custom element', () => {
+  test('emits a <ta-scene> custom element', () => {
+    const html = renderScene(BASE_STATE, 'station');
+    expect(html).toContain('<ta-scene');
+    expect(html).toContain('</ta-scene>');
+  });
+
+  test('includes data-room attribute', () => {
+    const html = renderScene(BASE_STATE, 'station');
+    expect(html).toContain('data-room="Bridge"');
+  });
+
+  test('includes data-scene attribute', () => {
+    const html = renderScene(BASE_STATE, 'station');
+    expect(html).toContain('data-scene="5"');
+  });
+
+  test('includes CDN script tags', () => {
+    const html = renderScene(BASE_STATE, 'station');
+    expect(html).toContain('ta-components.js');
+    expect(html).toContain('tag-scene.js');
+  });
+
+  test('includes CSS URLs for style and scene-design', () => {
+    const html = renderScene(BASE_STATE, 'station');
+    expect(html).toContain('station.css');
+    expect(html).toContain('scene-design.css');
+  });
+});
+
+// ── Panel pre-population ───────────────────────────────────────────
 
 describe('renderScene panel pre-population', () => {
-  test('character panel contains character data when character exists', () => {
-    const state = createDefaultState();
-    state.character = {
-      name: 'Kira', class: 'Pilot', hp: 18, maxHp: 24, ac: 14,
-      level: 4, xp: 3200, currency: 150, currencyName: 'credits',
-      stats: { STR: 10, DEX: 16, CON: 12, INT: 14, WIS: 11, CHA: 13 },
-      modifiers: { STR: 0, DEX: 3, CON: 1, INT: 2, WIS: 0, CHA: 1 },
-      proficiencyBonus: 2, proficiencies: ['Piloting'],
-      abilities: ['Quick Draw'],
-      inventory: [{ name: 'Blaster', type: 'weapon', slots: 1 }],
-      conditions: [],
-      equipment: { weapon: 'Blaster Pistol', armour: 'Flight Suit' },
-    };
-    const html = renderScene(state, '');
-    // Character panel should contain the character's name, not be empty
+  test('renders character panel div', () => {
+    const html = renderScene(BASE_STATE, 'station');
     expect(html).toContain('data-panel="character"');
-    expect(html).toMatch(/data-panel="character"[^>]*>[\s\S]*?Kira/);
   });
 
-  test('codex panel contains entries when codex module active', () => {
-    const state = createDefaultState();
-    state.modulesActive = ['lore-codex'];
-    state.codexMutations = [
-      { id: 'ancient-signal', state: 'discovered', discoveredAt: 1, via: 'sensor sweep', secrets: [] },
-    ];
-    const html = renderScene(state, '');
+  test('renders codex panel when lore-codex module active', () => {
+    const state = { ...BASE_STATE, modulesActive: ['lore-codex'], codexMutations: [{ key: 'test', label: 'Test' }] };
+    const html = renderScene(state, 'station');
     expect(html).toContain('data-panel="codex"');
-    expect(html).toMatch(/data-panel="codex"[^>]*>[\s\S]*?ancient-signal/);
   });
 
-  test('quests panel contains quest data when core-systems active', () => {
-    const state = createDefaultState();
-    state.modulesActive = ['core-systems'];
-    state.quests = [{
-      id: 'find-beacon', title: 'Find the Beacon', status: 'active',
-      objectives: [{ id: 'locate', description: 'Locate the signal source', completed: false }],
-      clues: ['Signal originates from sector 7'],
-    }];
-    const html = renderScene(state, '');
-    expect(html).toContain('data-panel="quests"');
-    expect(html).toMatch(/data-panel="quests"[^>]*>[\s\S]*?Find the Beacon/);
-  });
-
-  test('map panel contains zone data when geo-map active', () => {
-    const state = createDefaultState();
-    state.modulesActive = ['geo-map'];
-    state.mapState = {
-      currentZone: 'Cargo Bay',
-      visitedZones: ['Cargo Bay', 'Airlock'],
-      revealedZones: ['Cargo Bay', 'Airlock', 'Bridge'],
-      doorStates: {},
-      supplies: null,
+  test('renders quests panel when core-systems active', () => {
+    const state = {
+      ...BASE_STATE,
+      modulesActive: ['core-systems'],
+      quests: [{ title: 'Find the key', objectives: [{ description: 'Search the room', completed: false }] }],
     };
-    const html = renderScene(state, '');
-    expect(html).toContain('data-panel="map"');
-    expect(html).toMatch(/data-panel="map"[^>]*>[\s\S]*?Cargo Bay/);
+    const html = renderScene(state, 'station');
+    expect(html).toContain('data-panel="quests"');
+    expect(html).toContain('Find the key');
   });
 
-  test('empty character panel shows fallback when no character', () => {
-    const state = createDefaultState();
-    const html = renderScene(state, '');
-    expect(html).toContain('data-panel="character"');
-    expect(html).toMatch(/data-panel="character"[^>]*>[\s\S]*?No character data/);
-  });
-
-  test('module with no renderer and not quests produces empty panel div', () => {
-    // Temporarily add a fake module→panel mapping with no renderer
-    MODULE_PANEL_MAP['test-module'] = 'test-panel';
-    try {
-      const state = createDefaultState();
-      state.modulesActive = ['test-module'];
-      const html = renderScene(state, '');
-      // The fallback branch produces an empty panel-content div
-      expect(html).toContain('data-panel="test-panel"');
-      // It should be an empty div — no content inside
-      expect(html).toMatch(/data-panel="test-panel"><\/div>/);
-    } finally {
-      delete MODULE_PANEL_MAP['test-module'];
-    }
+  test('includes levelup panel when pending', () => {
+    const state = { ...BASE_STATE, _levelupPending: true };
+    const html = renderScene(state, 'station');
+    expect(html).toContain('data-panel="levelup"');
   });
 });
 
-describe('renderScene font-family fallback', () => {
-  test('panel-content has inline font-family to prevent monospace flash', () => {
-    const state = createDefaultState();
-    const html = renderScene(state, '');
-    expect(html).toMatch(/\.panel-content[^}]*font-family:/);
-    expect(html).toMatch(/\.panel-content[^}]*sans-serif/);
+// ── Inner HTML content ─────────────────────────────────────────────
+
+describe('renderScene inner content', () => {
+  test('includes progressive reveal structure', () => {
+    const html = renderScene(BASE_STATE, 'station');
+    expect(html).toContain('id="reveal-brief"');
+    expect(html).toContain('id="reveal-full"');
+    expect(html).toContain('continue-reveal-btn');
+  });
+
+  test('includes location bar with room name', () => {
+    const html = renderScene(BASE_STATE, 'station');
+    expect(html).toContain('loc-bar');
+    expect(html).toContain('Bridge');
+  });
+
+  test('includes ta-tts element', () => {
+    const html = renderScene(BASE_STATE, 'station');
+    expect(html).toContain('<ta-tts>');
+  });
+
+  test('includes scene-meta div', () => {
+    const html = renderScene(BASE_STATE, 'station');
+    expect(html).toContain('id="scene-meta"');
+    expect(html).toContain('data-meta=');
+  });
+
+  test('includes footer element', () => {
+    const html = renderScene(BASE_STATE, 'station');
+    expect(html).toContain('ta-footer');
+  });
+
+  test('includes HP pips when character present', () => {
+    const html = renderScene(BASE_STATE, 'station');
+    expect(html).toContain('status-bar');
+    expect(html).toContain('AC 14');
   });
 });
+
+// ── Multi-phase reveal ─────────────────────────────────────────────
 
 describe('renderScene multi-phase reveal', () => {
-  test('default (no phases option) has no scene-phase wrappers', () => {
-    const state = createDefaultState();
-    const html = renderScene(state, '');
-    expect(html).not.toContain('scene-phase');
-    expect(html).not.toContain('phase-continue');
+  test('single phase renders single narrative div', () => {
+    const html = renderScene(BASE_STATE, '');
+    expect(html).toContain('id="narrative"');
+    expect(html).not.toContain('data-phase=');
   });
 
-  test('phases: 1 has no scene-phase wrappers (backward compat)', () => {
-    const state = createDefaultState();
-    const html = renderScene(state, '', { phases: 1 });
-    expect(html).not.toContain('scene-phase');
+  test('phases=1 renders single narrative div', () => {
+    const html = renderScene(BASE_STATE, '', { phases: 1 });
+    expect(html).toContain('id="narrative"');
   });
 
-  test('phases: 2 renders two phase divs', () => {
-    const state = createDefaultState();
-    const html = renderScene(state, '', { phases: 2 });
+  test('phases=2 renders two phase divs', () => {
+    const html = renderScene(BASE_STATE, '', { phases: 2 });
     expect(html).toContain('data-phase="1"');
     expect(html).toContain('data-phase="2"');
-    expect(html).not.toContain('data-phase="3"');
   });
 
-  test('phases: 3 renders three phase divs', () => {
-    const state = createDefaultState();
-    const html = renderScene(state, '', { phases: 3 });
+  test('phases=3 renders three phase divs', () => {
+    const html = renderScene(BASE_STATE, '', { phases: 3 });
     expect(html).toContain('data-phase="1"');
     expect(html).toContain('data-phase="2"');
     expect(html).toContain('data-phase="3"');
   });
 
-  test('phase 1 is visible, subsequent phases are hidden', () => {
-    const state = createDefaultState();
-    const html = renderScene(state, '', { phases: 2 });
-    expect(html).toMatch(/data-phase="1">/);
-    expect(html).toMatch(/data-phase="2"[^>]*style="display:none"/);
+  test('multi-phase has continue buttons between phases', () => {
+    const html = renderScene(BASE_STATE, '', { phases: 2 });
+    expect(html).toContain('phase-continue');
+    expect(html).toContain('data-reveal-phase="2"');
   });
 
-  test('non-final phases have Continue buttons with data-reveal-phase', () => {
-    const state = createDefaultState();
-    const html = renderScene(state, '', { phases: 3 });
-    expect(html).toContain('data-reveal-phase="2"');
-    expect(html).toContain('data-reveal-phase="3"');
-    // Final phase has no Continue
+  test('last phase has no continue button', () => {
+    const html = renderScene(BASE_STATE, '', { phases: 3 });
     expect(html).not.toContain('data-reveal-phase="4"');
   });
 
-  test('each phase has a narrative placeholder', () => {
-    const state = createDefaultState();
-    const html = renderScene(state, '', { phases: 2 });
-    expect(html).toContain('<!-- [NARRATIVE: Phase 1');
-    expect(html).toContain('<!-- [NARRATIVE: Phase 2');
+  test('subsequent phases are hidden by default', () => {
+    const html = renderScene(BASE_STATE, '', { phases: 2 });
+    // Phase 2 should be hidden — check the element containing data-phase="2"
+    const phase2Start = html.indexOf('data-phase="2"');
+    // Look at the element opening tag surrounding this attribute
+    const tagStart = html.lastIndexOf('<div', phase2Start);
+    const tagEnd = html.indexOf('>', phase2Start);
+    const tag = html.slice(tagStart, tagEnd + 1);
+    expect(tag).toContain('display:none');
   });
 });
 
-describe('renderScene scene design CSS', () => {
-  test('includes scene design vocabulary in output', () => {
-    const state = createDefaultState();
-    const html = renderScene(state, '');
-    expect(html).toContain('.sc-chapter-header');
-    expect(html).toContain('.sc-meta-strip');
-    expect(html).toContain('.sc-choice-stage');
-    expect(html).toContain('.sc-roll-metric');
-    expect(html).toContain('.sc-roll-result');
-    expect(html).toContain('.sc-quote');
-  });
-});
+// ── Audio module ───────────────────────────────────────────────────
 
-describe('renderScene ta-tts element', () => {
-  test('includes ta-tts element before narrative', () => {
-    const state = createDefaultState();
-    const html = renderScene(state, '');
-    expect(html).toContain('<ta-tts>');
-    const ttsIdx = html.indexOf('<ta-tts>');
-    const narIdx = html.indexOf('id="narrative"');
-    expect(ttsIdx).toBeGreaterThan(-1);
-    expect(narIdx).toBeGreaterThan(-1);
-    expect(ttsIdx).toBeLessThan(narIdx);
-  });
-});
-
-describe('renderScene script loading', () => {
-  test('does not load soundscape runtime when audio module is inactive', () => {
-    const state = createDefaultState();
-    state.modulesActive = ['core-systems'];
-    const html = renderScene(state, '');
-    expect(html).toContain('tag-scene.js');
-    expect(html).not.toContain('tag-soundscape.js');
-  });
-
-  test('loads soundscape runtime when audio module is active', () => {
-    const state = createDefaultState();
-    state.modulesActive = ['audio'];
-    const html = renderScene(state, '');
-    expect(html).toContain('tag-scene.js');
+describe('renderScene audio module', () => {
+  test('includes soundscape script when audio module active', () => {
+    const state = { ...BASE_STATE, modulesActive: ['audio'] };
+    const html = renderScene(state, 'station');
     expect(html).toContain('tag-soundscape.js');
+  });
+
+  test('omits soundscape script when audio module inactive', () => {
+    const state = { ...BASE_STATE, modulesActive: [] };
+    const html = renderScene(state, 'station');
+    expect(html).not.toContain('tag-soundscape.js');
   });
 });

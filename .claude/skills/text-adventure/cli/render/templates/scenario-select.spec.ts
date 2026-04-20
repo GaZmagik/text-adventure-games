@@ -16,84 +16,63 @@ const FEATURED_SCENARIOS = {
   ],
 };
 
-// ── Existing contract ──────────────────────────────────────────────
+// ── Custom element output ──────────────────────────────────────────
 
 describe('renderScenarioSelect', () => {
-  test('renders scenario cards from data', () => {
-    const html = renderScenarioSelect(null, '', { data: TWO_SCENARIOS });
+  test('emits a <ta-scenario-select> custom element', () => {
+    const html = renderScenarioSelect(null, 'station', { data: TWO_SCENARIOS });
+    expect(html).toContain('<ta-scenario-select');
+    expect(html).toContain('</ta-scenario-select>');
+  });
+
+  test('includes data-scenarios attribute with JSON payload', () => {
+    const html = renderScenarioSelect(null, 'station', { data: TWO_SCENARIOS });
+    expect(html).toContain('data-scenarios="');
+    // The JSON should contain our scenario titles (HTML-escaped)
     expect(html).toContain('Cold Freight');
-    expect(html).toContain('data-prompt="I choose scenario: Cold Freight"');
+    expect(html).toContain('Dust Anvil');
   });
 
-  test('selection script copies prompts when sendPrompt is unavailable', () => {
-    const html = renderScenarioSelect(null, '', { data: TWO_SCENARIOS });
-    // Clipboard API is preferred; execCommand textarea is the legacy fallback
-    expect(html).toContain('navigator.clipboard');
-    expect(html).toContain('navigator.clipboard.writeText');
-    // Legacy fallback is still present for environments without Clipboard API
-    expect(html).toContain("document.execCommand('copy')");
-    expect(html).toContain("'Copied! Paste as your reply.'");
-    expect(html).toContain("'Copy the prompt from the tooltip.'");
-  });
-});
-
-// ── Hero section ───────────────────────────────────────────────────
-
-describe('scenario-select hero', () => {
-  test('renders hero section with heading', () => {
-    const html = renderScenarioSelect(null, '', { data: TWO_SCENARIOS });
-    expect(html).toContain('pd-hero');
-    expect(html).toContain('pd-hero-heading');
+  test('includes CDN script tag for ta-components.js', () => {
+    const html = renderScenarioSelect(null, 'station', { data: TWO_SCENARIOS });
+    expect(html).toContain('ta-components.js');
+    expect(html).toContain('<script src="');
   });
 
-  test('hero appears before the scenario grid', () => {
-    const html = renderScenarioSelect(null, '', { data: TWO_SCENARIOS });
-    const heroIdx = html.indexOf('pd-hero');
-    const gridIdx = html.indexOf('scenario-grid');
-    expect(heroIdx).toBeLessThan(gridIdx);
+  test('includes CSS URLs for style, common-widget, and pregame-design', () => {
+    const html = renderScenarioSelect(null, 'station', { data: TWO_SCENARIOS });
+    expect(html).toContain('data-css-urls="');
+    expect(html).toContain('station.css');
+    expect(html).toContain('common-widget.css');
+    expect(html).toContain('pregame-design.css');
   });
 });
 
-// ── Control deck ───────────────────────────────────────────────────
+// ── Data serialisation ─────────────────────────────────────────────
 
-describe('scenario-select control deck', () => {
-  test('renders control deck with first scenario selected by default', () => {
-    const html = renderScenarioSelect(null, '', { data: TWO_SCENARIOS });
-    expect(html).toContain('pd-control-deck');
-    expect(html).toContain('pd-selection-title');
-    // First scenario is the default selection
-    expect(html).toContain('Cold Freight');
+describe('scenario-select data serialisation', () => {
+  test('serialises scenario titles into data-scenarios JSON', () => {
+    const html = renderScenarioSelect(null, 'station', { data: TWO_SCENARIOS });
+    // Extract the data-scenarios value
+    const match = html.match(/data-scenarios="([^"]*)"/);
+    expect(match).not.toBeNull();
+    // The value is HTML-escaped JSON — unescape &quot; back to "
+    const raw = match![1]!.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;/g, "'");
+    const parsed = JSON.parse(raw);
+    expect(Array.isArray(parsed)).toBe(true);
+    expect(parsed.length).toBe(2);
+    expect(parsed[0].title).toBe('Cold Freight');
+    expect(parsed[1].title).toBe('Dust Anvil');
   });
 
-  test('renders control deck with featured scenario selected by default', () => {
-    const html = renderScenarioSelect(null, '', { data: FEATURED_SCENARIOS });
-    // Find the actual HTML element, not the CSS selector
-    const deckStart = html.indexOf('<section class="pd-control-deck"');
-    const deckEnd = html.indexOf('</section>', deckStart);
-    const deck = html.slice(deckStart, deckEnd);
-    expect(deck).toContain('Crown of the Eventide');
+  test('preserves description aliases (hook, preamble)', () => {
+    const html = renderScenarioSelect(null, 'station', { data: TWO_SCENARIOS });
+    expect(html).toContain('Your deck has gone quiet.');
+    expect(html).toContain('The drill hit something.');
   });
 
-  test('control deck has aria-live status region', () => {
-    const html = renderScenarioSelect(null, '', { data: TWO_SCENARIOS });
-    expect(html).toContain('aria-live="polite"');
-  });
-
-  test('control deck appears between hero and grid', () => {
-    const html = renderScenarioSelect(null, '', { data: TWO_SCENARIOS });
-    const heroIdx = html.indexOf('pd-hero');
-    const deckIdx = html.indexOf('pd-control-deck');
-    const gridIdx = html.indexOf('scenario-grid');
-    expect(heroIdx).toBeLessThan(deckIdx);
-    expect(deckIdx).toBeLessThan(gridIdx);
-  });
-});
-
-// ── Extended data shape ────────────────────────────────────────────
-
-describe('scenario-select extended data', () => {
-  test('preamble works as description alias', () => {
-    const html = renderScenarioSelect(null, '', {
+  test('preserves preamble alias', () => {
+    const html = renderScenarioSelect(null, 'station', {
       data: {
         scenarios: [
           { title: 'A', preamble: 'Preamble text here.' },
@@ -105,14 +84,14 @@ describe('scenario-select extended data', () => {
     expect(html).toContain('Hook text.');
   });
 
-  test('renders data-scenario-id when id is provided', () => {
-    const html = renderScenarioSelect(null, '', { data: FEATURED_SCENARIOS });
-    expect(html).toContain('data-scenario-id="cold-freight"');
-    expect(html).toContain('data-scenario-id="crown"');
+  test('preserves scenario id', () => {
+    const html = renderScenarioSelect(null, 'station', { data: FEATURED_SCENARIOS });
+    expect(html).toContain('cold-freight');
+    expect(html).toContain('crown');
   });
 
-  test('renders difficulty and players metadata', () => {
-    const html = renderScenarioSelect(null, '', {
+  test('preserves difficulty and players', () => {
+    const html = renderScenarioSelect(null, 'station', {
       data: {
         scenarios: [
           { title: 'A', difficulty: 'hard', players: '1-4' },
@@ -125,60 +104,34 @@ describe('scenario-select extended data', () => {
   });
 });
 
-// ── Featured card treatment ────────────────────────────────────────
+// ── Featured scenario ──────────────────────────────────────────────
 
 describe('scenario-select featured', () => {
-  test('marks featured card with data-featured attribute', () => {
-    const html = renderScenarioSelect(null, '', { data: FEATURED_SCENARIOS });
-    expect(html).toContain('data-featured="true"');
-  });
-
-  test('non-featured cards do not get data-featured="true"', () => {
-    const html = renderScenarioSelect(null, '', { data: FEATURED_SCENARIOS });
-    // Match HTML attributes only (preceded by whitespace), not CSS selectors
-    const featuredCount = (html.match(/\sdata-featured="true"/g) ?? []).length;
-    expect(featuredCount).toBe(1);
+  test('featured flag is preserved in serialised data', () => {
+    const html = renderScenarioSelect(null, 'station', { data: FEATURED_SCENARIOS });
+    const match = html.match(/data-scenarios="([^"]*)"/);
+    const raw = match![1]!.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;/g, "'");
+    const parsed = JSON.parse(raw);
+    const featured = parsed.filter((s: Record<string, unknown>) => s.featured);
+    expect(featured.length).toBe(1);
+    expect(featured[0].title).toBe('Crown of the Eventide');
   });
 });
 
 // ── Accent colour ──────────────────────────────────────────────────
 
 describe('scenario-select accent', () => {
-  test('sets --ta-card-accent-rgb CSS variable from hex accent', () => {
-    const html = renderScenarioSelect(null, '', { data: FEATURED_SCENARIOS });
-    // #78e4ff → 120, 228, 255
-    expect(html).toContain('--ta-card-accent-rgb: 120, 228, 255');
-    // #9e8fff → 158, 143, 255
-    expect(html).toContain('--ta-card-accent-rgb: 158, 143, 255');
+  test('accent hex values are preserved in serialised data', () => {
+    const html = renderScenarioSelect(null, 'station', { data: FEATURED_SCENARIOS });
+    expect(html).toContain('#78e4ff');
+    expect(html).toContain('#9e8fff');
   });
 
-  test('omits accent variable when no accent provided', () => {
-    const html = renderScenarioSelect(null, '', {
+  test('omits accent when not provided', () => {
+    const html = renderScenarioSelect(null, 'station', {
       data: { scenarios: [{ title: 'A' }, { title: 'B' }] },
     });
-    expect(html).not.toContain('--ta-card-accent-rgb');
-  });
-});
-
-// ── aria-pressed selection state ───────────────────────────────────
-
-describe('scenario-select aria state', () => {
-  test('first card has aria-pressed="true" when no featured', () => {
-    const html = renderScenarioSelect(null, '', { data: TWO_SCENARIOS });
-    // Match HTML attributes only (preceded by whitespace), not CSS selectors
-    const presses = [...html.matchAll(/\saria-pressed="(true|false)"/g)].map(m => m[1]);
-    expect(presses.length).toBeGreaterThanOrEqual(2);
-    expect(presses[0]).toBe('true');
-    expect(presses[1]).toBe('false');
-  });
-
-  test('featured card has aria-pressed="true" when featured exists', () => {
-    const html = renderScenarioSelect(null, '', { data: FEATURED_SCENARIOS });
-    // Crown is featured (index 1 in input, but should be pressed)
-    // Find the card containing "Crown" and check its aria-pressed
-    const crownCardStart = html.indexOf('data-scenario-id="crown"');
-    const nearbyPressed = html.slice(crownCardStart - 200, crownCardStart + 200);
-    expect(nearbyPressed).toContain('aria-pressed="true"');
+    expect(html).not.toContain('#78e4ff');
   });
 });
 
@@ -186,21 +139,21 @@ describe('scenario-select aria state', () => {
 
 describe('scenario-select backward compat', () => {
   test('hook still works as description alias', () => {
-    const html = renderScenarioSelect(null, '', {
+    const html = renderScenarioSelect(null, 'station', {
       data: { scenarios: [{ title: 'A', hook: 'Hook text.' }, { title: 'B' }] },
     });
     expect(html).toContain('Hook text.');
   });
 
   test('genre (singular) still works', () => {
-    const html = renderScenarioSelect(null, '', {
+    const html = renderScenarioSelect(null, 'station', {
       data: { scenarios: [{ title: 'A', genre: ['mystery'] }, { title: 'B' }] },
     });
     expect(html).toContain('mystery');
   });
 
   test('tags works as genre alias', () => {
-    const html = renderScenarioSelect(null, '', {
+    const html = renderScenarioSelect(null, 'station', {
       data: { scenarios: [{ title: 'A', tags: ['survival', 'horror'] }, { title: 'B' }] },
     });
     expect(html).toContain('survival');
@@ -208,35 +161,7 @@ describe('scenario-select backward compat', () => {
   });
 });
 
-// ── Verify-safe structure ──────────────────────────────────────────
-
-describe('scenario-select verify safety', () => {
-  test('each card has scenario-select-btn with data-prompt', () => {
-    const html = renderScenarioSelect(null, '', { data: FEATURED_SCENARIOS });
-    // Match class attribute only, not CSS selector references
-    const btnCount = (html.match(/class="scenario-select-btn"/g) ?? []).length;
-    expect(btnCount).toBe(3);
-    const promptCount = (html.match(/data-prompt="I choose scenario:/g) ?? []).length;
-    expect(promptCount).toBe(3);
-  });
-
-  test('each button has title fallback', () => {
-    const html = renderScenarioSelect(null, '', { data: FEATURED_SCENARIOS });
-    const buttons = [...html.matchAll(/class="scenario-select-btn"[^>]*title="([^"]*)"/g)];
-    expect(buttons.length).toBe(3);
-    for (const btn of buttons) {
-      expect(btn[1]!.length).toBeGreaterThan(0);
-    }
-  });
-
-  test('cards use scenario-card class', () => {
-    const html = renderScenarioSelect(null, '', { data: TWO_SCENARIOS });
-    const cardCount = (html.match(/class="scenario-card"/g) ?? []).length;
-    expect(cardCount).toBe(2);
-  });
-});
-
-// ── Cover art hero card ───────────────────────────────────────────
+// ── Cover art ─────────────────────────────────────────────────────
 
 describe('scenario-select cover art', () => {
   const COVER_SCENARIOS = {
@@ -256,141 +181,47 @@ describe('scenario-select cover art', () => {
     ],
   };
 
-  test('featured card with coverFront gets data-has-cover attribute', () => {
-    const html = renderScenarioSelect(null, '', { data: COVER_SCENARIOS });
-    expect(html).toContain('data-has-cover="true"');
-  });
-
-  test('featured card with both covers renders front and back as img elements', () => {
-    const html = renderScenarioSelect(null, '', { data: COVER_SCENARIOS });
-    expect(html).toContain('<img');
+  test('cover URLs are preserved in serialised data', () => {
+    const html = renderScenarioSelect(null, 'station', { data: COVER_SCENARIOS });
     expect(html).toContain('the-glass-reef-atlas-front-cover.png');
     expect(html).toContain('the-glass-reef-atlas-back-cover.png');
-  });
-
-  test('featured card with both covers omits description text', () => {
-    const html = renderScenarioSelect(null, '', { data: COVER_SCENARIOS });
-    // Find the cover card HTML element (not CSS selectors)
-    const cardOpen = html.indexOf('<div class="scenario-card"');
-    const coverCardStart = html.indexOf('data-has-cover="true"', cardOpen);
-    // Find the next card div after this one
-    const nextCard = html.indexOf('<div class="scenario-card"', coverCardStart);
-    const coverCard = html.slice(coverCardStart, nextCard > 0 ? nextCard : undefined);
-    // The card should not contain a scenario-desc div
-    expect(coverCard).not.toContain('scenario-desc');
-  });
-
-  test('non-cover cards do not get data-has-cover', () => {
-    const html = renderScenarioSelect(null, '', { data: COVER_SCENARIOS });
-    // Only 1 card should have the cover attribute (match HTML attrs, not CSS selectors)
-    const coverCount = (html.match(/\sdata-has-cover="true"/g) ?? []).length;
-    expect(coverCount).toBe(1);
-  });
-
-  test('cover card uses cover-spread layout class', () => {
-    const html = renderScenarioSelect(null, '', { data: COVER_SCENARIOS });
-    expect(html).toContain('cover-spread');
-  });
-
-  test('cover card still has scenario-select-btn for verify safety', () => {
-    const html = renderScenarioSelect(null, '', { data: COVER_SCENARIOS });
-    // The cover card must still have a select button
-    const btnCount = (html.match(/class="scenario-select-btn"/g) ?? []).length;
-    expect(btnCount).toBe(2);
   });
 });
 
 // ── SVG logo ──────────────────────────────────────────────────────
 
-const SVG_FIXTURE = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/></svg>';
-
 describe('scenario-select svgLogo', () => {
-  test('renders .scenario-logo div when svgLogo is a valid <svg> string', () => {
-    const html = renderScenarioSelect(null, '', {
-      data: { scenarios: [{ title: 'A', svgLogo: SVG_FIXTURE }, { title: 'B' }] },
-    });
-    expect(html).toContain('scenario-logo');
-  });
+  const SVG_FIXTURE = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/></svg>';
 
-  test('injects the raw SVG markup inside .scenario-logo', () => {
-    const html = renderScenarioSelect(null, '', {
+  test('svgLogo is preserved in serialised data', () => {
+    const html = renderScenarioSelect(null, 'station', {
       data: { scenarios: [{ title: 'A', svgLogo: SVG_FIXTURE }] },
     });
-    expect(html).toContain(SVG_FIXTURE);
+    // The SVG content should be inside the JSON payload (HTML-escaped)
+    expect(html).toContain('svgLogo');
   });
 
-  test('omits .scenario-logo when svgLogo is absent', () => {
-    const html = renderScenarioSelect(null, '', { data: TWO_SCENARIOS });
-    expect(html).not.toContain('class="scenario-logo"');
-  });
-
-  test('omits .scenario-logo when svgLogo is not a valid <svg> root (security)', () => {
-    const html = renderScenarioSelect(null, '', {
-      data: { scenarios: [{ title: 'A', svgLogo: '<script>alert(1)</script>' }] },
-    });
-    expect(html).not.toContain('class="scenario-logo"');
-    expect(html).not.toContain('<script>alert');
-  });
-
-  test('renders .scenario-logo only on cards that have svgLogo', () => {
-    const html = renderScenarioSelect(null, '', {
-      data: {
-        scenarios: [
-          { title: 'A', svgLogo: SVG_FIXTURE },
-          { title: 'B', svgLogo: SVG_FIXTURE },
-          { title: 'C' },
-        ],
-      },
-    });
-    const logoCount = (html.match(/class="scenario-logo"/g) ?? []).length;
-    expect(logoCount).toBe(2);
-  });
-});
-
-// ── Per-card accent hex ────────────────────────────────────────────
-
-describe('scenario-select per-card accent hex', () => {
-  test('sets --ta-card-accent inline style with full hex when accent provided', () => {
-    const html = renderScenarioSelect(null, '', { data: FEATURED_SCENARIOS });
-    expect(html).toContain('--ta-card-accent: #78e4ff');
-    expect(html).toContain('--ta-card-accent: #9e8fff');
-  });
-
-  test('omits --ta-card-accent when accent is absent', () => {
-    const html = renderScenarioSelect(null, '', {
-      data: { scenarios: [{ title: 'A' }, { title: 'B' }] },
-    });
-    expect(html).not.toContain('--ta-card-accent:');
+  test('omits svgLogo key when absent', () => {
+    const html = renderScenarioSelect(null, 'station', { data: TWO_SCENARIOS });
+    expect(html).not.toContain('svgLogo');
   });
 });
 
 // ── Empty state ────────────────────────────────────────────────────
 
 describe('scenario-select empty state', () => {
-  test('shows usage hint when no scenarios', () => {
-    const html = renderScenarioSelect(null, '', { data: {} });
-    expect(html).toContain('tag render scenario-select');
-  });
-
-  test('omits hero and control deck when empty', () => {
-    const html = renderScenarioSelect(null, '', { data: {} });
-    expect(html).not.toContain('pd-hero');
-    expect(html).not.toContain('pd-control-deck');
+  test('emits custom element with empty array when no scenarios', () => {
+    const html = renderScenarioSelect(null, 'station', { data: {} });
+    expect(html).toContain('<ta-scenario-select');
+    expect(html).toContain('data-scenarios="[]"');
   });
 });
 
-// ── Selection script ───────────────────────────────────────────────
+// ── Style attribute ────────────────────────────────────────────────
 
-describe('scenario-select interaction script', () => {
-  test('script updates aria-pressed on card click', () => {
-    const html = renderScenarioSelect(null, '', { data: TWO_SCENARIOS });
-    expect(html).toContain('aria-pressed');
-    // Script should contain selection update logic
-    expect(html).toContain('setAttribute');
-  });
-
-  test('script updates control deck title on selection', () => {
-    const html = renderScenarioSelect(null, '', { data: TWO_SCENARIOS });
-    expect(html).toContain('pd-sel-title');
+describe('scenario-select data-style', () => {
+  test('includes data-style attribute', () => {
+    const html = renderScenarioSelect(null, 'neon', { data: TWO_SCENARIOS });
+    expect(html).toContain('data-style="neon"');
   });
 });

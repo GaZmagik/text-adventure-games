@@ -93,7 +93,7 @@ describe('tag verify scenario', () => {
     const result = await handleVerify(['scenario', path]);
     const d = result.data as { verified: boolean; failures: string[] };
     expect(d.verified).toBe(false);
-    expect(d.failures.some(f => f.includes('exactly 5'))).toBe(true);
+    expect(d.failures.some(f => f.includes('scenario card') && f.includes('exactly 5'))).toBe(true);
   });
 
   test('fails when no featured card present', async () => {
@@ -111,7 +111,7 @@ describe('tag verify scenario', () => {
     const result = await handleVerify(['scenario', path]);
     const d = result.data as { verified: boolean; failures: string[] };
     expect(d.verified).toBe(false);
-    expect(d.failures.some(f => f.includes('exactly 1 featured'))).toBe(true);
+    expect(d.failures.some(f => f.includes('exactly 1 featured scenario'))).toBe(true);
   });
 
   test('fails when multiple featured cards present', async () => {
@@ -129,7 +129,7 @@ describe('tag verify scenario', () => {
     const result = await handleVerify(['scenario', path]);
     const d = result.data as { verified: boolean; failures: string[] };
     expect(d.verified).toBe(false);
-    expect(d.failures.some(f => f.includes('exactly 1 featured'))).toBe(true);
+    expect(d.failures.some(f => f.includes('exactly 1 featured scenario'))).toBe(true);
   });
 
   test('fails when no scenario cards present', async () => {
@@ -185,7 +185,7 @@ describe('tag verify scenario', () => {
     const result = await handleVerify(['scenario', path]);
     const d = result.data as { verified: boolean; failures: string[] };
     expect(d.verified).toBe(false);
-    expect(d.failures.some(f => f.includes('Shadow DOM bootstrap'))).toBe(true);
+    expect(d.failures.some(f => f.includes('render-origin marker'))).toBe(true);
   });
 });
 
@@ -226,7 +226,7 @@ describe('tag verify rules', () => {
     await setupState();
     const path = await renderToFile(['settings'], 'single-quoted-settings.html');
     const html = readFileSync(path, 'utf-8')
-      .replace(/data-group=\"([^\"]+)\"/g, "data-group='$1'");
+      .replace(/data-config=\"([^\"]+)\"/g, "data-config='$1'");
     writeFileSync(path, html, 'utf-8');
     const result = await handleVerify(['rules', path]);
     const d = result.data as { verified: boolean; failures: string[] };

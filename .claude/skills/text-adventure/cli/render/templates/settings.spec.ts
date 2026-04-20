@@ -1,165 +1,125 @@
 import { describe, test, expect } from 'bun:test';
 import { renderSettings } from './settings';
 
-// ── Existing backfill contract ─────────────────────────────────────
-
-describe('renderSettings default backfill', () => {
-  test('appends missing modules when GM provides a subset', () => {
-    const html = renderSettings(null, '', {
-      data: { modules: ['save-codex', 'bestiary'] },
-    });
-    expect(html).toContain('data-value="save-codex"');
-    expect(html).toContain('data-value="bestiary"');
-    expect(html).toContain('data-value="ship-systems"');
-    expect(html).toContain('data-value="adventure-exporting"');
-    expect(html).toContain('data-value="star-chart"');
+describe('renderSettings', () => {
+  test('emits a <ta-settings> custom element', () => {
+    const html = renderSettings(null, 'station', { data: {} });
+    expect(html).toContain('<ta-settings');
+    expect(html).toContain('</ta-settings>');
   });
 
-  test('appends missing rulebooks when GM provides a subset', () => {
-    const html = renderSettings(null, '', {
-      data: { rulebooks: ['d20_system'] },
-    });
-    expect(html).toContain('data-value="d20_system"');
-    expect(html).toContain('data-value="narrative_engine"');
-    expect(html).toContain('data-value="pf2e_lite"');
+  test('includes data-config attribute with JSON payload', () => {
+    const html = renderSettings(null, 'station', { data: {} });
+    expect(html).toContain('data-config="');
   });
 
-  test('appends missing visual styles when GM provides a subset', () => {
-    const html = renderSettings(null, '', {
-      data: { visualStyles: ['terminal', 'neon'] },
-    });
-    expect(html).toContain('data-value="terminal"');
-    expect(html).toContain('data-value="neon"');
-    expect(html).toContain('data-value="parchment"');
-    expect(html).toContain('data-value="holographic"');
+  test('includes CDN script tag for ta-components.js', () => {
+    const html = renderSettings(null, 'station', { data: {} });
+    expect(html).toContain('ta-components.js');
+    expect(html).toContain('<script src="');
   });
 
-  test('shows full defaults when GM provides nothing', () => {
-    const html = renderSettings(null, '', {});
-    expect(html).toContain('data-value="d20_system"');
-    expect(html).toContain('data-value="narrative_engine"');
-    expect(html).toContain('data-value="ship-systems"');
-    expect(html).toContain('data-value="adventure-exporting"');
-    expect(html).toContain('data-value="holographic"');
-  });
-
-  test('does not duplicate items already in GM list', () => {
-    const html = renderSettings(null, '', {
-      data: { modules: ['save-codex', 'bestiary', 'ship-systems'] },
-    });
-    const matches = html.match(/data-value="ship-systems"/g);
-    expect(matches).toHaveLength(1);
-  });
-
-  test('confirm script copies synthesized prompt when sendPrompt is unavailable', () => {
-    const html = renderSettings(null, '', {});
-    expect(html).toContain("document.execCommand('copy')");
-    expect(html).toContain("btn.textContent = copied ? 'Copied! Paste as your reply.' : 'Copy the prompt from the tooltip.';");
-    expect(html).toContain("btn.setAttribute('title', prompt)");
+  test('includes CSS URLs for style, common-widget, and pregame-design', () => {
+    const html = renderSettings(null, 'station', { data: {} });
+    expect(html).toContain('station.css');
+    expect(html).toContain('common-widget.css');
+    expect(html).toContain('pregame-design.css');
   });
 });
 
-// ── Hero section ───────────────────────────────────────────────────
-
-describe('settings hero', () => {
-  test('renders hero section', () => {
-    const html = renderSettings(null, '', {});
-    expect(html).toContain('pd-hero');
-    expect(html).toContain('pd-hero-heading');
+describe('settings config serialisation', () => {
+  test('serialises default rulebooks into config', () => {
+    const html = renderSettings(null, 'station', { data: {} });
+    expect(html).toContain('d20_system');
+    expect(html).toContain('dnd_5e');
   });
 
-  test('hero appears before option groups', () => {
-    const html = renderSettings(null, '', {});
-    const heroIdx = html.indexOf('pd-hero');
-    const groupIdx = html.indexOf('data-group=');
-    expect(heroIdx).toBeLessThan(groupIdx);
-  });
-});
-
-// ── Control deck ───────────────────────────────────────────────────
-
-describe('settings control deck', () => {
-  test('renders control deck with summary', () => {
-    const html = renderSettings(null, '', {});
-    expect(html).toContain('pd-control-deck');
-    expect(html).toContain('pd-selection-title');
+  test('serialises default difficulties into config', () => {
+    const html = renderSettings(null, 'station', { data: {} });
+    expect(html).toContain('easy');
+    expect(html).toContain('normal');
+    expect(html).toContain('hard');
+    expect(html).toContain('brutal');
   });
 
-  test('control deck has aria-live status region', () => {
-    const html = renderSettings(null, '', {});
-    expect(html).toContain('aria-live="polite"');
+  test('serialises default visual styles into config', () => {
+    const html = renderSettings(null, 'station', { data: {} });
+    expect(html).toContain('station');
+    expect(html).toContain('terminal');
+    expect(html).toContain('parchment');
   });
 
-  test('control deck appears between hero and subpanels', () => {
-    const html = renderSettings(null, '', {});
-    const heroIdx = html.indexOf('<header class="pd-hero"');
-    const deckIdx = html.indexOf('<section class="pd-control-deck"');
-    const subpanelIdx = html.indexOf('<article class="pd-subpanel">');
-    expect(heroIdx).toBeLessThan(deckIdx);
-    expect(deckIdx).toBeLessThan(subpanelIdx);
-  });
-
-  test('shows default selections when defaults provided', () => {
-    const html = renderSettings(null, '', {
-      data: { defaults: { rulebook: 'd20_system', difficulty: 'normal' } },
+  test('merges provided options with defaults', () => {
+    const html = renderSettings(null, 'station', {
+      data: { rulebooks: ['homebrew'] },
     });
-    const deckStart = html.indexOf('<section class="pd-control-deck"');
-    const deckEnd = html.indexOf('</section>', deckStart);
-    const deck = html.slice(deckStart, deckEnd);
-    expect(deck).toContain('pd-summary-row');
+    expect(html).toContain('homebrew');
+    expect(html).toContain('d20_system');
+  });
+
+  test('includes tier1Modules in config', () => {
+    const html = renderSettings(null, 'station', { data: {} });
+    expect(html).toContain('gm-checklist');
+    expect(html).toContain('prose-craft');
+    expect(html).toContain('core-systems');
+  });
+
+  test('preserves defaults in config when provided', () => {
+    const html = renderSettings(null, 'station', {
+      data: { defaults: { rulebook: 'dnd_5e', difficulty: 'hard' } },
+    });
+    const match = html.match(/data-config="([^"]*)"/);
+    expect(match).not.toBeNull();
+    const raw = match![1]!.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;/g, "'");
+    const parsed = JSON.parse(raw);
+    expect(parsed.defaults.rulebook).toBe('dnd_5e');
+    expect(parsed.defaults.difficulty).toBe('hard');
   });
 });
 
-// ── Subpanel grouping ──────────────────────────────────────────────
-
-describe('settings subpanels', () => {
-  test('wraps option groups in subpanels', () => {
-    const html = renderSettings(null, '', {});
-    expect(html).toContain('pd-subpanel');
-    // At least rulebook, difficulty, pacing, visual style, modules = 5 groups
-    const subpanelCount = (html.match(/<article class="pd-subpanel">/g) ?? []).length;
-    expect(subpanelCount).toBeGreaterThanOrEqual(5);
-  });
-
-  test('subpanels have titles for each group', () => {
-    const html = renderSettings(null, '', {});
-    expect(html).toContain('pd-subpanel-title');
+describe('settings data-style', () => {
+  test('includes data-style attribute', () => {
+    const html = renderSettings(null, 'neon', { data: {} });
+    expect(html).toContain('data-style="neon"');
   });
 });
 
-// ── Verify-safe structure ──────────────────────────────────────────
-
-describe('settings verify safety', () => {
-  test('retains settings-confirm button', () => {
-    const html = renderSettings(null, '', {});
-    expect(html).toContain('settings-confirm');
+describe('settings backward compat', () => {
+  test('rules works as alias for rulebooks', () => {
+    const html = renderSettings(null, 'station', {
+      data: { rules: ['custom_rules'] },
+    });
+    expect(html).toContain('custom_rules');
   });
 
-  test('retains data-group attributes for at least 2 groups', () => {
-    const html = renderSettings(null, '', {});
-    const groups = [...html.matchAll(/data-group="([^"]+)"/g)].map(m => m[1]);
-    const unique = new Set(groups);
-    expect(unique.size).toBeGreaterThanOrEqual(2);
+  test('difficulty works as alias for difficulties', () => {
+    const html = renderSettings(null, 'station', {
+      data: { difficulty: ['nightmare'] },
+    });
+    expect(html).toContain('nightmare');
   });
 
-  test('retains widget-settings class', () => {
-    const html = renderSettings(null, '', {});
-    expect(html).toContain('widget-settings');
+  test('styles works as alias for visualStyles', () => {
+    const html = renderSettings(null, 'station', {
+      data: { styles: ['custom_style'] },
+    });
+    expect(html).toContain('custom_style');
   });
 });
 
-// ── Script interaction ─────────────────────────────────────────────
-
-describe('settings script interaction', () => {
-  test('script updates summary on selection change', () => {
-    const html = renderSettings(null, '', {});
-    // Script should reference the summary row update IDs
-    expect(html).toContain('pd-sel-title');
+describe('settings modules', () => {
+  test('includes default modules in config', () => {
+    const html = renderSettings(null, 'station', { data: {} });
+    expect(html).toContain('bestiary');
+    expect(html).toContain('audio');
+    expect(html).toContain('adventure-exporting');
   });
 
-  test('module toggle script preserved', () => {
-    const html = renderSettings(null, '', {});
-    expect(html).toContain('module-check');
-    expect(html).toContain('selectedModules');
+  test('merges provided modules with defaults', () => {
+    const html = renderSettings(null, 'station', {
+      data: { modules: ['custom-module'] },
+    });
+    expect(html).toContain('custom-module');
+    expect(html).toContain('bestiary');
   });
 });

@@ -7,6 +7,7 @@
  */
 
 import { CDN_BASE, CSS_MANIFEST, JS_MANIFEST } from '../../../assets/cdn-manifest.ts';
+import { esc } from '../../lib/html';
 
 export type ShadowWrapperOptions = {
   /** Style name matching a key in CSS_MANIFEST (e.g. 'station'). */
@@ -114,4 +115,47 @@ ${scriptSrcBlock}
 ${inlineScriptBlock}
 })();
 </script>`;
+}
+
+export type RootCustomElementOptions = {
+  /** The tag name (e.g., 'ta-scenario-select') */
+  tag: string;
+  /** Inner HTML content */
+  html?: string;
+  /** Attributes to apply to the element */
+  attrs?: Record<string, string>;
+  /** CSS files to load from CDN (e.g., ['station', 'common-widget', 'pregame-design']) */
+  cssUrls?: string[];
+  /** JS files to load from CDN (e.g., ['ta-components']) */
+  jsUrls?: string[];
+}
+
+/**
+ * Emits a root custom element with its required CDN scripts and CSS URLs.
+ * Replaces wrapInShadowDom for top-level widgets.
+ */
+export function emitRootCustomElement(opts: RootCustomElementOptions): string {
+  // Build fully resolved CDN URLs with hashes
+  const resolvedCss = (opts.cssUrls || []).map(name => {
+    const hash = CSS_MANIFEST[name];
+    return hash ? `${CDN_BASE}/css/${name}.css?v=${hash}` : `${CDN_BASE}/css/${name}.css`;
+  });
+  
+  const resolvedJs = (opts.jsUrls || []).map(name => {
+    const hash = JS_MANIFEST[name + '.js'];
+    return hash ? `${CDN_BASE}/js/${name}.js?v=${hash}` : `${CDN_BASE}/js/${name}.js`;
+  });
+
+  const attrs = { ...(opts.attrs || {}) };
+  if (resolvedCss.length > 0) {
+    attrs['data-css-urls'] = resolvedCss.join(',');
+  }
+
+  const attrStr = Object.entries(attrs).map(([k, v]) => ` ${k}="${esc(v)}"`).join('');
+  
+  const html = `<${opts.tag}${attrStr}>${opts.html || ''}</${opts.tag}>`;
+  
+  const scripts = resolvedJs.map(url => `<script src="${url}"></script>`).join('\n');
+  
+  return scripts ? `${html}\n${scripts}` : html;
 }

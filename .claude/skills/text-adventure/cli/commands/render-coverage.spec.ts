@@ -197,11 +197,11 @@ describe('render unknown style name produces warning in Shadow DOM output', () =
     state._styleReadEpoch = 0;
     await saveState(state);
 
-    // Shadow DOM renders with a warning comment when style is not in CSS_MANIFEST
+    // Custom element renders with the style name in the CSS URL even when not in manifest
     const result = await handleRender(['scene', '--raw']);
     expect(result.ok).toBe(true);
-    expect(result.data as string).toContain('WARNING');
-    expect(result.data as string).toContain('empty-nocss');
+    expect(result.data as string).toContain('empty-nocss.css');
+    expect(result.data as string).toContain('<ta-scene');
   });
 });
 
@@ -233,7 +233,7 @@ describe('render atmosphere effects scoping', () => {
     expect(result.ok).toBe(true);
     const html = result.data as string;
     expect(html.length).toBeGreaterThan(100);
-    expect(html).toContain('attachShadow');
+    expect(html).toContain('<ta-scene');
     expect(html).toContain('<div');
   });
 });

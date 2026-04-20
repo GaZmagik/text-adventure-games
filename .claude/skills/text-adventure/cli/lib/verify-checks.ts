@@ -43,6 +43,16 @@ export function extractAttr(markup: string, name: string): string | null {
   return match?.[2] ?? null;
 }
 
+function unesc(s: string | null): string {
+  if (s == null) return '';
+  return s
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
+}
+
 /** True when a value looks like a JS concatenation artifact, e.g. `' + group + '` from querySelector strings. */
 function isJsArtifact(value: string): boolean {
   return /['"+]/.test(value);
@@ -240,6 +250,7 @@ const VERIFY_RENDER_TYPE_MAP: Record<string, string> = {
 // the ta-components.js runtime handles Shadow DOM construction internally.
 const CUSTOM_ELEMENT_WIDGETS = new Set([
   'dialogue', 'levelup', 'ticker', 'footer',
+  'scenario-select', 'settings', 'character-creation',
 ]);
 
 export function checkShadowRenderOrigin(widgetType: string, html: string, failures: string[]): void {
@@ -251,7 +262,7 @@ export function checkShadowRenderOrigin(widgetType: string, html: string, failur
     );
   }
   // Custom elements self-bootstrap — no shadow-host / attachShadow expected
-  if (CUSTOM_ELEMENT_WIDGETS.has(widgetType)) return;
+  if (CUSTOM_ELEMENT_WIDGETS.has(renderWidgetType)) return;
   const hasShadowHost = html.includes('id="shadow-host"') || html.includes("id='shadow-host'");
   const hasAttachShadow = /attachShadow\(\{\s*mode\s*:\s*['"]open['"]\s*\}\)/.test(html);
   if (!hasShadowHost || !hasAttachShadow) {
@@ -300,6 +311,40 @@ export function checkScenarioWidget(html: string, failures: string[]): void {
   checkCssVariables(html, failures);
   checkInlineOnclick(html, failures);
 
+  // Custom element awareness
+  const tagMatch = /<ta-scenario-select\b([^>]*)>/i.exec(html);
+  if (tagMatch) {
+    const attrStr = tagMatch[1]!;
+    const scenariosAttr = extractAttr(attrStr, 'data-scenarios');
+    if (!scenariosAttr) {
+      failures.push('Scenario-select widget missing data-scenarios attribute.');
+      return;
+    }
+    let scenarios: any[] = [];
+    try {
+      scenarios = JSON.parse(unesc(scenariosAttr));
+    } catch {
+      failures.push('Scenario-select widget contains invalid JSON in data-scenarios attribute.');
+      return;
+    }
+
+    if (!Array.isArray(scenarios) || scenarios.length !== 5) {
+      failures.push(`Found ${scenarios.length} scenario card(s) in data-scenarios — expected exactly 5 (1 featured + 4 standard).`);
+    }
+
+    const featuredCount = scenarios.filter(s => s.featured).length;
+    if (featuredCount !== 1) {
+      failures.push(`Found ${featuredCount} featured scenario(s) — expected exactly 1 featured scenario.`);
+    }
+
+    const missingTitle = scenarios.filter(s => !s.title || s.title.trim().length === 0);
+    if (missingTitle.length > 0) {
+      failures.push(`Found ${missingTitle.length} scenario(s) with missing or empty titles.`);
+    }
+    return;
+  }
+
+  // Legacy fallback (should not be reached by current engine output)
   const cards = countClassOccurrences(html, 'scenario-card');
   if (cards !== 5) failures.push(`Found ${cards} scenario card(s) — expected exactly 5 (1 featured + 4 standard).`);
 
@@ -397,6 +442,33 @@ export function checkRulesWidget(html: string, failures: string[]): void {
   checkCssVariables(html, failures);
   checkInlineOnclick(html, failures);
 
+  // Custom element awareness
+  const tagMatch = /<ta-settings\b([^>]*)>/i.exec(html);
+  if (tagMatch) {
+    const attrStr = tagMatch[1]!;
+    const configAttr = extractAttr(attrStr, 'data-config');
+    if (!configAttr) {
+      failures.push('Settings widget missing data-config attribute.');
+      return;
+    }
+    let config: any = {};
+    try {
+      config = JSON.parse(unesc(configAttr));
+    } catch {
+      failures.push('Settings widget contains invalid JSON in data-config attribute.');
+      return;
+    }
+
+    const required = ['rulebooks', 'visualStyles', 'modules'];
+    for (const key of required) {
+      if (!config[key] || !Array.isArray(config[key]) || config[key].length === 0) {
+        failures.push(`Settings config missing required option group: "${key}".`);
+      }
+    }
+    return;
+  }
+
+  // Legacy fallback
   if (!html.includes('settings-confirm') && !html.includes('confirm-btn')) {
     failures.push('Settings widget missing confirm button (id="settings-confirm" or class="confirm-btn").');
   }
@@ -427,6 +499,48 @@ export function checkCharacterWidget(html: string, failures: string[], state?: {
   checkCssVariables(html, failures);
   checkInlineOnclick(html, failures);
 
+  // Custom element awareness
+  const tagMatch = /<ta-character-creation\b([^>]*)>/i.exec(html);
+  if (tagMatch) {
+    const attrStr = tagMatch[1]!;
+    const configAttr = extractAttr(attrStr, 'data-config');
+    
+    if (!configAttr) {
+      failures.push('Character creation widget missing data-config attribute.');
+      return;
+    }
+    
+    let config: any = {};
+    try {
+      config = JSON.parse(unesc(configAttr));
+    } catch {
+      failures.push('Character creation widget contains invalid JSON in data-config attribute.');
+      return;
+    }
+
+    const archetypes = Array.isArray(config.archetypes) ? config.archetypes : [];
+    const pregens = Array.isArray(config.preGeneratedCharacters) ? config.preGeneratedCharacters : [];
+
+    const totalCharCards = archetypes.length + pregens.length;
+    if (totalCharCards < 2) failures.push(`Found ${totalCharCards} character card(s) (archetype + preset) — expected at least 2.`);
+
+    if (state?.modulesActive?.includes('pre-generated-characters')) {
+      if (pregens.length === 0) {
+        failures.push('pre-generated-characters module is active but no preset-card elements found (pre-generated-characters in config is empty).');
+      }
+    }
+
+    if (Array.isArray(state?._lorePregen) && state!._lorePregen.length > 0
+        && !state?.modulesActive?.includes('pre-generated-characters')) {
+      failures.push(
+        `State contains ${state!._lorePregen.length} pre-generated character(s) from _lorePregen but the pre-generated-characters module is not active. `
+        + 'Run `tag module activate pre-generated-characters` before rendering the character-creation widget.',
+      );
+    }
+    return;
+  }
+
+  // Legacy fallback
   if (extractPromptElements(html).length === 0 && !html.includes('sendPrompt')) {
     failures.push('Character creation widget missing confirm mechanism (data-prompt or sendPrompt handler).');
   }

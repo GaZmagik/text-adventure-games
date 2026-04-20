@@ -697,7 +697,7 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
 
   // Render the template
   const renderedHtml = templateFn(state, resolvedStyle, options);
-  const html = widgetType === 'scene' ? renderedHtml : stampRenderOrigin(widgetType, renderedHtml);
+  const html = stampRenderOrigin(widgetType, renderedHtml);
 
   // Catch broken serialisation — [object Object] means --data contained objects where strings were expected
   if (html.includes('[object Object]')) {

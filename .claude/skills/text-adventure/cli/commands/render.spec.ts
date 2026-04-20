@@ -177,7 +177,7 @@ describe('render state requirement', () => {
     expect(result.error!.message).toContain('archetypes[0].name');
   });
 
-  test('settings safely serialises hostile defaults inside inline scripts', async () => {
+  test('settings safely serialises hostile defaults inside data-config attribute', async () => {
     const hostileDefaults = JSON.stringify({
       defaults: {
         rulebook: '</script><script>alert(1)</script>',
@@ -186,8 +186,8 @@ describe('render state requirement', () => {
     const result = await handleRender(['settings', '--raw', '--style', 'terminal', '--data', hostileDefaults]);
     expect(result.ok).toBe(true);
     const html = result.data as string;
-    expect((html.match(/<script>/g) ?? [])).toHaveLength(1);
-    expect(html).toContain('\\u003c/script\\u003e\\u003cscript\\u003ealert(1)\\u003c/script\\u003e');
+    // It should be escaped in the data-config attribute
+    expect(html).toContain('&lt;/script&gt;&lt;script&gt;alert(1)&lt;/script&gt;');
   });
 
   test('dice-pool caps total logical dice and canvas size deterministically', async () => {
@@ -330,14 +330,14 @@ describe('render style resolution', () => {
     expect(result.error!.message).toContain('invalid characters');
   });
 
-  test('CSS scope mapping removal does not affect Shadow DOM rendering', async () => {
+  test('CSS scope mapping removal does not affect custom element rendering', async () => {
     const original = WIDGET_CSS_SCOPES.settings!;
     delete (WIDGET_CSS_SCOPES as Record<string, readonly string[]>).settings;
     try {
-      // Shadow DOM bypasses CSS scope mapping — templates receive styleName directly
+      // Custom element bypasses CSS scope mapping — templates receive styleName directly
       const result = await handleRender(['settings', '--style', 'terminal', '--raw']);
       expect(result.ok).toBe(true);
-      expect(result.data as string).toContain('attachShadow');
+      expect(result.data as string).toContain('<ta-settings');
     } finally {
       (WIDGET_CSS_SCOPES as Record<string, readonly string[]>).settings = original;
     }
