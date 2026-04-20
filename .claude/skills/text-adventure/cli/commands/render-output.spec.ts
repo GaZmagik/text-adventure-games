@@ -6,6 +6,7 @@ import { handleRender } from './render';
 import { saveState, loadState, createDefaultState } from '../lib/state-store';
 import type { GmState } from '../types';
 import { TIER1_MODULES } from '../lib/constants';
+import { extractJsonTagAttr } from '../tests/support/rendered-widget';
 
 let tempDir: string;
 const originalEnv = process.env.TAG_STATE_DIR;
@@ -342,17 +343,16 @@ describe('render template output', () => {
   test('dice widget starts in pre-roll state', async () => {
     const result = await handleRender(['dice', '--raw']);
     const html = result.data as string;
-    expect(html).toContain('STR');
-    expect(html).toContain('id="hi"');
-    expect(html).toContain('CLICK THE DIE TO ROLL');
-    expect(html).toContain('id="ra"');
-    expect(html).toContain('class="tt"');
-    expect(html).toContain('id="cv"');
-    expect(html).toContain('var MOD=3,DC=15,rolling=false,locked=false;');
-    expect(html).not.toContain('id="dice-result"');
-    expect(html).not.toContain('aria-label=');
-    expect(html).not.toContain('<span class="rv">14</span>');
-    expect(html).not.toContain('rolled 14+3 = 17');
+    const config = extractJsonTagAttr<{ dieType: string; stat: string; modifier: number; dc?: number }>(
+      html,
+      'ta-dice',
+      'data-config',
+    );
+    expect(html).toContain('<ta-dice');
+    expect(config.dieType).toBe('d20');
+    expect(config.stat).toBe('STR');
+    expect(config.modifier).toBe(3);
+    expect(config.dc).toBe(15);
   });
 
   test('dice-pool widget renders grouped pre-roll state', async () => {
@@ -363,13 +363,16 @@ describe('render template output', () => {
       '{"label":"Boss Damage","pool":[{"dieType":"d6","count":2},{"dieType":"d8","count":2},{"dieType":"d10","count":3},{"dieType":"d20","count":1}],"modifier":4}',
     ]);
     const html = result.data as string;
-    expect(html).toContain('Boss Damage');
-    expect(html).toContain('2d6 + 2d8 + 3d10 + 1d20');
-    expect(html).toContain('id="dice-pool-hint"');
-    expect(html).toContain('CLICK THE POOL TO ROLL');
-    expect(html).toContain('id="dice-pool-result"');
-    expect(html).toContain('var POOL_MODIFIER=4;');
-    expect(html).toContain('aria-label="Boss Damage. Click to roll the dice pool."');
+    const config = extractJsonTagAttr<{ label: string; expression: string; modifier: number; pool: Array<{ dieType: string; count: number }> }>(
+      html,
+      'ta-dice-pool',
+      'data-config',
+    );
+    expect(html).toContain('<ta-dice-pool');
+    expect(config.label).toBe('Boss Damage');
+    expect(config.expression).toBe('2d6 + 2d8 + 3d10 + 1d20');
+    expect(config.modifier).toBe(4);
+    expect(config.pool).toHaveLength(4);
   });
 
   test('ticker widget shows time data', async () => {
@@ -389,8 +392,15 @@ describe('render template output', () => {
   test('recap widget contains session summary elements', async () => {
     const result = await handleRender(['recap', '--raw']);
     const html = result.data as string;
-    expect(html).toContain('Aldric');
-    expect(html).toContain('widget-recap');
+    const recap = extractJsonTagAttr<{ char: { name: string }; time: { period: string; date: string } }>(
+      html,
+      'ta-recap',
+      'data-recap',
+    );
+    expect(html).toContain('<ta-recap');
+    expect(recap.char.name).toBe('Aldric');
+    expect(recap.time.period).toBe('evening');
+    expect(recap.time.date).toBe('Day 5');
   });
 
   test('save-div widget contains hidden save data with valid JSON payload', async () => {
@@ -498,9 +508,10 @@ describe('render pending roll persistence', () => {
 
     const result = await handleRender(['recap', '--raw']);
     const html = result.data as string;
-    expect(html).toContain('CHA');
-    expect(html).toContain('Sil Vey');
-    expect(html).not.toContain('contested_roll');
-    expect(html).not.toContain('vs DC 0');
+    const recap = extractJsonTagAttr<{ rolls: Array<Record<string, unknown>> }>(html, 'ta-recap', 'data-recap');
+    const roll = recap.rolls[0]!;
+    expect(String(roll.stat)).toBe('CHA');
+    expect(String(roll.npcId)).toBe('broker_01');
+    expect(roll.dc).toBeUndefined();
   });
 });

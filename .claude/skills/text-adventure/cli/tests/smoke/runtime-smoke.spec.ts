@@ -1,23 +1,14 @@
-import { describe, expect, spyOn, test } from 'bun:test';
-import { createDefaultState } from '../../lib/state-store';
+import { describe, expect, test } from 'bun:test';
 import { renderDice } from '../../render/templates/dice';
 import { renderDicePool } from '../../render/templates/dice-pool';
 import { SCENE_SCRIPT_CODE } from '../../render/lib/scene-script';
-import { renderScene } from '../../render/templates/scene';
 import {
   append,
   createRenderRuntime,
-  executeGeneratedCode,
   FakeElement,
   makeElement,
 } from '../support/runtime-harness';
-
-function extractInlineScript(html: string): string {
-  const normalised = html.replace(/<\\\/script>/g, '</script>');
-  const match = normalised.match(/<script>([\s\S]*?)<\/script>/);
-  if (!match) throw new Error('Expected an inline script block.');
-  return match[1]!;
-}
+import { extractJsonTagAttr } from '../support/rendered-widget';
 
 function createSmokeRuntime(options: { reducedMotion?: boolean } = {}) {
   const env = createRenderRuntime(options);
@@ -28,10 +19,6 @@ function createSmokeRuntime(options: { reducedMotion?: boolean } = {}) {
       if (prompt) prompts.push(prompt);
     },
   };
-
-  // Register shadow-host element — Shadow DOM IIFE calls document.getElementById('shadow-host')
-  const shadowHost = makeElement(env.document, 'div', { id: 'shadow-host' });
-  append(env.document.body, shadowHost, env.document);
 
   return {
     ...env,
@@ -62,160 +49,54 @@ function compileSceneRuntime(env: ReturnType<typeof createSmokeRuntime>): (shado
   ) as (shadow: FakeElement) => void;
 }
 
-function executeInlineScript(script: string, env: ReturnType<typeof createSmokeRuntime>): void {
-  executeGeneratedCode(script, env, { sendPrompt: env.sendPrompt, initTagScene: compileSceneRuntime(env) });
-}
-
-function mountStandardDice(env: ReturnType<typeof createSmokeRuntime>) {
-  const root = append(
-    env.document.body,
-    makeElement(env.document, 'div', { classes: ['widget-dice'] }),
-    env.document,
-  );
-  const clickZone = append(root, makeElement(env.document, 'div', { id: 'cz' }), env.document);
-  append(clickZone, makeElement(env.document, 'canvas', { id: 'cv' }), env.document);
-  const hint = append(root, makeElement(env.document, 'div', { id: 'hi' }), env.document);
-  const result = append(root, makeElement(env.document, 'div', { id: 'ra' }), env.document);
-  append(result, makeElement(env.document, 'div', { id: 'xv' }), env.document);
-  append(result, makeElement(env.document, 'div', { id: 'xm' }), env.document);
-  const total = append(result, makeElement(env.document, 'div', { id: 'xt' }), env.document);
-  const dc = append(result, makeElement(env.document, 'div', { id: 'xd' }), env.document);
-  const outcome = append(result, makeElement(env.document, 'div', { id: 'xo' }), env.document);
-  const margin = append(result, makeElement(env.document, 'div', { id: 'xg' }), env.document);
-
-  return { clickZone, hint, result, total, dc, outcome, margin };
-}
-
-function mountD100Dice(env: ReturnType<typeof createSmokeRuntime>) {
-  const root = append(
-    env.document.body,
-    makeElement(env.document, 'div', { classes: ['widget-dice', 'widget-dice-d100'] }),
-    env.document,
-  );
-  const rollArea = append(root, makeElement(env.document, 'div', { id: 'rollArea' }), env.document);
-  const dw1 = append(rollArea, makeElement(env.document, 'div', { classes: ['dw'] }), env.document);
-  const cz1 = append(dw1, makeElement(env.document, 'div', { classes: ['cz'] }), env.document);
-  append(cz1, makeElement(env.document, 'canvas', { id: 'cvT' }), env.document);
-  const dw2 = append(rollArea, makeElement(env.document, 'div', { classes: ['dw'] }), env.document);
-  const cz2 = append(dw2, makeElement(env.document, 'div', { classes: ['cz'] }), env.document);
-  append(cz2, makeElement(env.document, 'canvas', { id: 'cvU' }), env.document);
-  const hint = append(root, makeElement(env.document, 'div', { id: 'hi' }), env.document);
-  const result = append(root, makeElement(env.document, 'div', { id: 'ra' }), env.document);
-  const tens = append(result, makeElement(env.document, 'div', { id: 'xvT' }), env.document);
-  const units = append(result, makeElement(env.document, 'div', { id: 'xvU' }), env.document);
-  const total = append(result, makeElement(env.document, 'div', { id: 'xt' }), env.document);
-
-  return { rollArea, hint, result, tens, units, total };
-}
-
-function mountDicePool(env: ReturnType<typeof createSmokeRuntime>) {
-  const root = append(env.document.body, makeElement(env.document, 'div', { id: 'dice-pool-target' }), env.document);
-  const canvas = append(root, makeElement(env.document, 'canvas', { id: 'dice-pool-canvas' }), env.document);
-  const hint = append(env.document.body, makeElement(env.document, 'div', { id: 'dice-pool-hint' }), env.document);
-  const result = append(env.document.body, makeElement(env.document, 'div', { id: 'dice-pool-result' }), env.document);
-  const total = append(result, makeElement(env.document, 'div', { id: 'dice-pool-total' }), env.document);
-  const modifier = append(result, makeElement(env.document, 'div', { id: 'dice-pool-modifier' }), env.document);
-  const groups = append(result, makeElement(env.document, 'div', { id: 'dice-pool-groups' }), env.document);
-
-  return { root, canvas, hint, result, total, modifier, groups };
-}
-
 describe('widget runtime smoke', () => {
-  test('dice widget mounts and resolves a click without throwing', () => {
+  test('dice widget emits a d20 payload with check metadata', () => {
     const html = renderDice(null, '', {
       data: { dieType: 'd20', stat: 'WIS', modifier: 3, dc: 14 },
     });
-    expect(html).toContain('id="cv"');
-
-    const env = createSmokeRuntime();
-    const { clickZone, hint, result, total } = mountStandardDice(env);
-
-    executeInlineScript(extractInlineScript(html), env);
-    clickZone.dispatch('click');
-
-    expect(hint.classList.contains('hd')).toBe(true);
-    expect(result.classList.contains('v')).toBe(true);
-    expect(total.textContent).not.toBe('');
+    const config = extractJsonTagAttr<{ dieType: string; stat: string; modifier: number; dc: number; faceCount: number }>(
+      html,
+      'ta-dice',
+      'data-config',
+    );
+    expect(html).toContain('<ta-dice');
+    expect(config.dieType).toBe('d20');
+    expect(config.stat).toBe('WIS');
+    expect(config.modifier).toBe(3);
+    expect(config.dc).toBe(14);
+    expect(config.faceCount).toBe(20);
   });
 
-  test('d100 widget resolves 00 + 0 to 100 in reduced-motion mode', () => {
+  test('d100 widget emits the d100 geometry payload', () => {
     const html = renderDice(null, '', {
       data: { dieType: 'd100' },
     });
-    expect(html).toContain('id="xvT"');
-
-    const env = createSmokeRuntime();
-    const { rollArea, hint, result, tens, units, total } = mountD100Dice(env);
-
-    executeInlineScript(extractInlineScript(html), env);
-
-    const randomSpy = spyOn(Math, 'random')
-      .mockReturnValueOnce(0)
-      .mockReturnValueOnce(0);
-    try {
-      rollArea.dispatch('click');
-    } finally {
-      randomSpy.mockRestore();
-    }
-
-    expect(hint.classList.contains('hd')).toBe(true);
-    expect(result.classList.contains('v')).toBe(true);
-    expect(tens.textContent).toBe('00');
-    expect(units.textContent).toBe('0');
-    expect(total.textContent).toBe('100');
+    const config = extractJsonTagAttr<{ dieType: string; faceCount: number; numberRange: [number, number] }>(
+      html,
+      'ta-dice',
+      'data-config',
+    );
+    expect(config.dieType).toBe('d100');
+    expect(config.faceCount).toBe(10);
+    expect(config.numberRange).toEqual([0, 9]);
   });
 
-  test('d12 widget uses the specialised outcome ladder in reduced-motion mode', () => {
+  test('d12 widget uses the specialised geometry payload', () => {
     const html = renderDice(null, '', {
       data: { dieType: 'd12', stat: 'INT', modifier: 1, dc: 10 },
     });
-    expect(html).toContain('id="xo"');
-
-    const env = createSmokeRuntime();
-    const { clickZone, result, total, dc, outcome, margin } = mountStandardDice(env);
-
-    executeInlineScript(extractInlineScript(html), env);
-
-    const randomSpy = spyOn(Math, 'random').mockReturnValue(0);
-    try {
-      clickZone.dispatch('click');
-    } finally {
-      randomSpy.mockRestore();
-    }
-
-    expect(result.classList.contains('v')).toBe(true);
-    expect(total.textContent).toBe('2');
-    expect(dc.textContent).toBe('DC 10');
-    expect(outcome.textContent).toBe('CRIT FAILURE');
-    expect(margin.textContent).toBe('Failed by 8');
-    expect(margin.style.display).toBe('block');
+    const config = extractJsonTagAttr<{ dieType: string; faceCount: number; dc: number; modifier: number }>(
+      html,
+      'ta-dice',
+      'data-config',
+    );
+    expect(config.dieType).toBe('d12');
+    expect(config.faceCount).toBe(12);
+    expect(config.modifier).toBe(1);
+    expect(config.dc).toBe(10);
   });
 
-  test('dice widget settles through the animated path when reduced motion is off', () => {
-    const html = renderDice(null, '', {
-      data: { dieType: 'd20', stat: 'WIS', modifier: 3, dc: 14 },
-    });
-
-    const env = createSmokeRuntime({ reducedMotion: false });
-    const { clickZone, result, total, outcome, margin } = mountStandardDice(env);
-
-    const randomSpy = spyOn(Math, 'random').mockReturnValue(0);
-    try {
-      executeInlineScript(extractInlineScript(html), env);
-      clickZone.dispatch('click');
-      expect(result.classList.contains('v')).toBe(false);
-      env.flushAnimationFrames();
-    } finally {
-      randomSpy.mockRestore();
-    }
-
-    expect(result.classList.contains('v')).toBe(true);
-    expect(total.textContent).toBe('4');
-    expect(outcome.textContent).toBe('CRITICAL FAILURE');
-    expect(margin.textContent).toBe('Failed by 10');
-  });
-
-  test('dice-pool widget mounts and renders results on click', () => {
+  test('dice-pool widget emits grouped pool config', () => {
     const html = renderDicePool(null, '', {
       data: {
         label: 'Volley',
@@ -223,64 +104,28 @@ describe('widget runtime smoke', () => {
         modifier: 2,
       },
     });
-    expect(html).toContain('id="dice-pool-canvas"');
-
-    const env = createSmokeRuntime();
-    const { root, canvas, hint, result, total, modifier, groups } = mountDicePool(env);
-
-    executeInlineScript(extractInlineScript(html), env);
-    root.dispatch('click');
-
-    expect(hint.classList.contains('is-hidden')).toBe(true);
-    expect(result.classList.contains('is-visible')).toBe(true);
-    expect(total.textContent).not.toBe('');
-    expect(modifier.textContent).toContain('Subtotal');
-    expect(groups.children.length).toBeGreaterThan(0);
-    expect(canvas.getAttribute('aria-label')).toContain('total');
+    const config = extractJsonTagAttr<{
+      label: string;
+      expression: string;
+      modifier: number;
+      pool: Array<{ dieType: string; count: number }>;
+    }>(html, 'ta-dice-pool', 'data-config');
+    expect(html).toContain('<ta-dice-pool');
+    expect(config.label).toBe('Volley');
+    expect(config.expression).toBe('2d6 + 1d8');
+    expect(config.modifier).toBe(2);
+    expect(config.pool).toEqual([
+      { dieType: 'd6', count: 2 },
+      { dieType: 'd8', count: 1 },
+    ]);
   });
 
-  test('dice-pool widget settles through the animated path when reduced motion is off', () => {
-    const html = renderDicePool(null, '', {
-      data: {
-        label: 'Volley',
-        pool: [{ dieType: 'd6', count: 2 }, { dieType: 'd8', count: 1 }],
-        modifier: 2,
-      },
-    });
-
-    const env = createSmokeRuntime({ reducedMotion: false });
-    const { root, result, total, modifier, groups } = mountDicePool(env);
-
-    const randomSpy = spyOn(Math, 'random').mockReturnValue(0);
-    try {
-      executeInlineScript(extractInlineScript(html), env);
-      root.dispatch('click');
-      expect(result.classList.contains('is-visible')).toBe(false);
-      env.flushAnimationFrames();
-    } finally {
-      randomSpy.mockRestore();
-    }
-
-    expect(result.classList.contains('is-visible')).toBe(true);
-    expect(total.textContent).toBe('5');
-    expect(modifier.textContent).toBe('Subtotal 3 + 2 = 5');
-    expect(groups.children.length).toBe(2);
-    expect(groups.children[0]!.children[1]!.textContent).toBe('1, 1 = 2');
-  });
-
-  test('scene/footer script wires reveal, panel toggle, and save prompt actions', () => {
-    const state = createDefaultState();
-    state.scene = 2;
-    state.currentRoom = 'Bridge';
-    state.visualStyle = 'terminal';
-
-    const html = renderScene(state, '', {});
-    expect(html).toContain('continue-reveal-btn');
-    expect(html).toContain('data-panel="character"');
-
+  test('scene runtime wires reveal, panel toggle, and save prompt actions', () => {
     const env = createSmokeRuntime();
-    const revealBrief = append(env.document.body, makeElement(env.document, 'div', { id: 'reveal-brief' }), env.document);
-    const revealFull = append(env.document.body, makeElement(env.document, 'div', { id: 'reveal-full' }), env.document);
+    const shadow = append(env.document.body, makeElement(env.document, 'div'), env.document);
+    const root = append(shadow, makeElement(env.document, 'div', { classes: ['root'] }), env.document);
+    const revealBrief = append(root, makeElement(env.document, 'div', { id: 'reveal-brief' }), env.document);
+    const revealFull = append(root, makeElement(env.document, 'div', { id: 'reveal-full' }), env.document);
     const continueBtn = append(revealBrief, makeElement(env.document, 'button', { id: 'continue-reveal-btn' }), env.document);
     const sceneContent = append(revealFull, makeElement(env.document, 'div', { id: 'scene-content' }), env.document);
     const overlay = append(revealFull, makeElement(env.document, 'div', { id: 'panel-overlay' }), env.document);
@@ -290,19 +135,19 @@ describe('widget runtime smoke', () => {
       classes: ['panel-content'],
       attrs: { 'data-panel': 'character' },
     }), env.document);
-    const footerCharacter = append(env.document.body, makeElement(env.document, 'button', {
+    const footerCharacter = append(root, makeElement(env.document, 'button', {
       classes: ['footer-btn'],
       attrs: { 'data-panel': 'character', 'aria-expanded': 'false' },
     }), env.document);
-    const footerSave = append(env.document.body, makeElement(env.document, 'button', {
+    const footerSave = append(root, makeElement(env.document, 'button', {
       classes: ['footer-btn'],
-      attrs: { 'data-prompt': 'save-now' },
+      attrs: { 'data-prompt': 'save-now', title: 'save-now' },
     }), env.document);
 
     revealFull.style.display = 'none';
     overlay.style.display = 'none';
 
-    executeInlineScript(extractInlineScript(html), env);
+    compileSceneRuntime(env)(shadow);
 
     continueBtn.dispatch('click');
     expect(revealBrief.style.display).toBe('none');

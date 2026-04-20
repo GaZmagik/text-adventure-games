@@ -11,11 +11,15 @@ import { isAllowedPath } from './lib/path-security';
 import { errorMessage } from './lib/errors';
 import { isCompactionBlocked, writeCompactionBlock } from './lib/workflow-markers';
 
-// Only render is hard-blocked during compaction — it produces degraded
-// player-facing output without module specs. All other commands pass through
-// so the GM can diagnose state, run recovery steps, and reload modules.
+/**
+ * Commands that are strictly prohibited when transcript compaction has occurred.
+ * Rendering is blocked because it relies on module context that is evicted during compaction.
+ */
 const COMPACTION_HARD_BLOCKED = new Set(['render']);
 
+/** 
+ * Data structure for reporting compaction status and recovery requirements.
+ */
 type CompactionAlert = {
   detected: boolean;
   recovered: boolean;
@@ -23,6 +27,14 @@ type CompactionAlert = {
   modulesRequired?: string[];
 };
 
+/**
+ * Checks if new transcript compactions have occurred since the last state sync.
+ * @returns {Promise<CompactionAlert | null>} - Alert if compaction is detected, otherwise null.
+ * @remarks
+ * This is a critical preflight check. If compactions are detected, the system
+ * triggers a 'compaction block' to prevent inconsistent rendering.
+ * See gotcha-compaction-preflight-must-not-diverge-from-sync-state.md.
+ */
 async function checkCompactionPreflight(): Promise<CompactionAlert | null> {
   const transcriptsDir = process.env.TAG_TRANSCRIPTS_DIR || '/mnt/transcripts';
   const resolved = resolve(transcriptsDir);
@@ -62,7 +74,6 @@ async function checkCompactionPreflight(): Promise<CompactionAlert | null> {
         }
       } catch { /* recovery failed — fall back to warning */ }
 
-      const moduleList = modulesRequired?.join(', ') ?? '(run `tag state context` for list)';
       const reason = `COMPACTION DETECTED — ${newCompactions} new compaction${newCompactions > 1 ? 's' : ''}. `
         + `Module specs evicted from context. Run \`tag compact restore\` to reload lore and modules.`;
       writeCompactionBlock(reason);
@@ -84,6 +95,12 @@ async function checkCompactionPreflight(): Promise<CompactionAlert | null> {
   return null;
 }
 
+/**
+ * Standardised output handler for all CLI results.
+ * Wraps the result in JSON and injects compaction alerts if necessary.
+ * @param {CommandResult} result - The result object from the command handler.
+ * @param {boolean} [skipCompaction=false] - Whether to skip the compaction preflight check.
+ */
 async function output(result: CommandResult, skipCompaction = false): Promise<void> {
   if (!skipCompaction) {
     const alert = await checkCompactionPreflight();
@@ -94,6 +111,7 @@ async function output(result: CommandResult, skipCompaction = false): Promise<vo
   console.log(JSON.stringify(result));
 }
 
+/** Returns the current CLI and engine version info. */
 function version(): CommandResult {
   return {
     ok: true,
@@ -106,6 +124,7 @@ function version(): CommandResult {
   };
 }
 
+/** Generic handler for invalid command names. */
 function unknownCommand(cmd: string): CommandResult {
   return {
     ok: false,
@@ -117,6 +136,10 @@ function unknownCommand(cmd: string): CommandResult {
   };
 }
 
+/**
+ * CLI Entry Point.
+ * Orchestrates command routing, help generation, and the compaction safety gate.
+ */
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
 

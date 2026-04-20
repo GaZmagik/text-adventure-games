@@ -1,7 +1,18 @@
 import type { GmState } from '../../types';
-import { esc } from '../../lib/html';
-import { wrapInShadowDom } from '../lib/shadow-wrapper';
+import { wrapInShadowDom, emitStandaloneCustomElement } from '../lib/shadow-wrapper';
 
+/**
+ * Renders the ship systems widget.
+ * 
+ * @param {GmState | null} state - Current game state.
+ * @param {string} styleName - Visual style.
+ * @param {Record<string, unknown>} [_options] - Unused.
+ * @returns {string} - The HTML wrapped in a <ta-ship> custom element.
+ * 
+ * @remarks
+ * Displays the status of ship systems, including integrity, 
+ * power allocations, and available repair parts.
+ */
 export function renderShip(state: GmState | null, styleName: string, _options?: Record<string, unknown>): string {
   const ship = state?.shipState;
 
@@ -27,8 +38,9 @@ export function renderShip(state: GmState | null, styleName: string, _options?: 
     powerAllocations: ship.powerAllocations
   };
 
-  const html = `<ta-ship data-ship="${esc(JSON.stringify(config))}"></ta-ship>`;
-
-  if (!styleName) return html;
-  return wrapInShadowDom({ styleName, html });
+  return emitStandaloneCustomElement({
+    tag: 'ta-ship',
+    styleName,
+    attrs: { 'data-ship': JSON.stringify(config) },
+  });
 }

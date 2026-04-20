@@ -1,0 +1,402 @@
+# Documentation Inventory Report
+Generated: 2026-04-20T16:22:34.687Z
+
+## /.claude/skills/text-adventure/assets/cdn-manifest.ts
+- **Covered**: 0
+- **Missing**: 3
+- **Missing Items**: `CDN_BASE`, `CSS_MANIFEST`, `JS_MANIFEST`
+
+## /.claude/skills/text-adventure/cli/metadata.ts
+- **Covered**: 6
+- **Missing**: 8
+- **Missing Items**: `SubcommandHelp`, `CommandHelp`, `MUTATING_COMMANDS`, `WIDGET_TYPE_NAMES`, `PRE_GAME_WIDGETS`, `PRE_CONFIG_WIDGETS`, `WIDGET_STYLE_SCOPES`, `WIDGET_CSS_SCOPES`
+
+## /.claude/skills/text-adventure/cli/lib/module-panel-map.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `MODULE_PANEL_MAP`
+
+## /.claude/skills/text-adventure/cli/lib/errors.ts
+- **Covered**: 0
+- **Missing**: 6
+- **Missing Items**: `errorMessage`, `ok`, `fail`, `noState`, `npcNotFound`, `styleNotSet`
+
+## /.claude/skills/text-adventure/cli/lib/validator.ts
+- **Covered**: 1
+- **Missing**: 1
+- **Missing Items**: `ValidationResult`
+
+## /.claude/skills/text-adventure/cli/lib/workflow-markers.ts
+- **Covered**: 0
+- **Missing**: 4
+- **Missing Items**: `clearWorkflowMarkers`, `writeCompactionBlock`, `clearCompactionBlock`, `isCompactionBlocked`
+
+## /.claude/skills/text-adventure/cli/lib/dice.ts
+- **Covered**: 0
+- **Missing**: 9
+- **Missing Items**: `rollDie`, `rollD4`, `rollD6`, `rollD8`, `rollD10`, `rollD12`, `rollD20`, `rollD100`, `rollDice`
+
+## /.claude/skills/text-adventure/cli/lib/lore-serialiser.ts
+- **Covered**: 0
+- **Missing**: 8
+- **Missing Items**: `unknown`, `PreviousAdventurer`, `LoreMechanicalData`, `extractMechanicalData`, `encodeLorePayload`, `extractLorePayload`, `extractFrontmatterField`, `buildLoreMarkdown`
+
+## /.claude/skills/text-adventure/cli/lib/path-security.ts
+- **Covered**: 4
+- **Missing**: 0
+
+## /.claude/skills/text-adventure/cli/lib/pregen-generator.ts
+- **Covered**: 0
+- **Missing**: 2
+- **Missing Items**: `PregenInput`, `generatePregenCharacters`
+
+## /.claude/skills/text-adventure/cli/lib/lore-frontmatter.ts
+- **Covered**: 0
+- **Missing**: 3
+- **Missing Items**: `LoreFrontmatter`, `buildLoreFrontmatter`, `parseLoreFrontmatter`
+
+## /.claude/skills/text-adventure/cli/lib/fnv32.ts
+- **Covered**: 0
+- **Missing**: 4
+- **Missing Items**: `fnv32`, `attachChecksum`, `DecodeResult`, `validateAndDecode`
+
+## /.claude/skills/text-adventure/cli/lib/verify-checks.ts
+- **Covered**: 22
+- **Missing**: 7
+- **Missing Items**: `checkSettingsGroups`, `checkSettingsValues`, `IN_GAME_WIDGET_MARKERS`, `checkSvgViewBox`, `checkPendingLevelUp`, `checkScenarioCardMeta`, `checkTtsComponent`
+
+## /.claude/skills/text-adventure/cli/lib/state-store.ts
+- **Covered**: 0
+- **Missing**: 5
+- **Missing Items**: `STATE_STORE_RUNTIME`, `getStateDir`, `getStatePath`, `getSyncMarkerPath`, `createDefaultState`
+
+## /.claude/skills/text-adventure/cli/lib/verify-lore.ts
+- **Covered**: 0
+- **Missing**: 9
+- **Missing Items**: `checkLoreFrontmatterPresent`, `checkLoreFrontmatterFields`, `checkLoreFrontmatterValues`, `checkLoreExportFields`, `checkLorePregenCharacters`, `checkLoreBodySections`, `checkLorePayload`, `LoreVerifyResult`, `verifyLoreFile`
+
+## /.claude/skills/text-adventure/cli/lib/prose-checks.ts
+- **Covered**: 2
+- **Missing**: 8
+- **Missing Items**: `extractNarrativeText`, `countSyllables`, `countWords`, `evaluatePatternRules`, `evaluateHeuristicRules`, `computeProseMetrics`, `checkProseContentFromText`, `checkProseContent`
+
+## /.claude/skills/text-adventure/cli/lib/panel-checks.ts
+- **Covered**: 0
+- **Missing**: 6
+- **Missing Items**: `checkCodexEntryCount`, `checkShipPanelContent`, `checkCrewPanelContent`, `checkQuestPanelIntegrity`, `checkMapPanelContent`, `checkLevelUpIntegrity`
+
+## /.claude/skills/text-adventure/cli/lib/html.ts
+- **Covered**: 0
+- **Missing**: 4
+- **Missing Items**: `esc`, `serialiseInlineScriptData`, `formatModifier`, `emitCustomElement`
+
+## /.claude/skills/text-adventure/cli/lib/text-utils.ts
+- **Covered**: 0
+- **Missing**: 2
+- **Missing Items**: `splitSentences`, `splitParagraphs`
+
+## /.claude/skills/text-adventure/cli/lib/security.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `containsForbiddenKeys`
+
+## /.claude/skills/text-adventure/cli/lib/prose-history.ts
+- **Covered**: 0
+- **Missing**: 10
+- **Missing Items**: `ParagraphStructure`, `ProseFingerprint`, `ProseHistory`, `classifyOpeningStructure`, `extractOpeningWord`, `buildProseFingerprint`, `loadProseHistory`, `saveProseHistory`, `appendFingerprint`, `checkCrossSceneProse`
+
+## /.claude/skills/text-adventure/cli/lib/render-origin.ts
+- **Covered**: 0
+- **Missing**: 2
+- **Missing Items**: `stampRenderOrigin`, `hasValidRenderOrigin`
+
+## /.claude/skills/text-adventure/cli/lib/state-schema.ts
+- **Covered**: 0
+- **Missing**: 6
+- **Missing Items**: `GM_STATE_SHAPE`, `isRecord`, `collectUnexpectedStatePaths`, `stripUnknownStateKeys`, `describeStateShape`, `validateStatePath`
+
+## /.claude/skills/text-adventure/cli/lib/args.ts
+- **Covered**: 0
+- **Missing**: 2
+- **Missing Items**: `ParsedArgs`, `parseArgs`
+
+## /.claude/skills/text-adventure/cli/lib/version.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `VERSION`
+
+## /.claude/skills/text-adventure/cli/lib/modifier.ts
+- **Covered**: 1
+- **Missing**: 2
+- **Missing Items**: `abilityModifier`, `proficiencyBonus`
+
+## /.claude/skills/text-adventure/cli/lib/constants.ts
+- **Covered**: 0
+- **Missing**: 18
+- **Missing Items**: `STAT_NAMES`, `VALID_TIERS`, `VALID_PRONOUNS`, `VALID_CODEX_STATES`, `VALID_CREW_STATUSES`, `DEFAULT_SHIP_SYSTEMS`, `MAX_ROLL_HISTORY`, `MAX_STATE_HISTORY`, `MAX_DICE_COUNT`, `MAX_FILE_SIZE_BYTES`, `FORBIDDEN_KEYS`, `VALID_TOP_KEYS`, `SCHEMA_VERSION`, `KNOWN_MODULES`, `TIER1_MODULES`, `PROSE_GATE_FILE`, `PROSE_MANUAL_CLEARANCE`, `PROSE_LLM_CLEARANCE`
+
+## /.claude/skills/text-adventure/cli/lib/pending-rolls.ts
+- **Covered**: 0
+- **Missing**: 4
+- **Missing Items**: `PENDING_TO_ROLL_TYPE`, `resolvePendingRolls`, `selectPendingRollForResolution`, `buildPendingRollCommand`
+
+## /.claude/skills/text-adventure/cli/commands/verify.ts
+- **Covered**: 0
+- **Missing**: 7
+- **Missing Items**: `signMarker`, `readSignedMarker`, `clearStateDirCache`, `getVerifyMarkerPath`, `getNeedsVerifyPath`, `hasPreGameVerifyMarker`, `PRE_GAME_GATE`
+
+## /.claude/skills/text-adventure/cli/commands/state/sync.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `JOURNAL_FILENAME`
+
+## /.claude/skills/text-adventure/cli/commands/state/index.ts
+- **Covered**: 0
+- **Missing**: 2
+- **Missing Items**: `__stateTestInternals`, `recordHistory`
+
+## /.claude/skills/text-adventure/cli/commands/render.ts
+- **Covered**: 2
+- **Missing**: 1
+- **Missing Items**: `TEMPLATE_KEYS`
+
+## /.claude/skills/text-adventure/cli/commands/batch.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `BATCH_COMMAND_HANDLERS`
+
+## /.claude/skills/text-adventure/cli/data/names.ts
+- **Covered**: 0
+- **Missing**: 3
+- **Missing Items**: `NamePool`, `SCI_FI_THEMES`, `loadNames`
+
+## /.claude/skills/text-adventure/cli/data/faction-thresholds.ts
+- **Covered**: 2
+- **Missing**: 1
+- **Missing Items**: `FactionStanding`
+
+## /.claude/skills/text-adventure/cli/data/rules.ts
+- **Covered**: 0
+- **Missing**: 4
+- **Missing Items**: `Rule`, `CATEGORIES`, `Category`, `RULES`
+
+## /.claude/skills/text-adventure/cli/data/contested-pairings.ts
+- **Covered**: 0
+- **Missing**: 3
+- **Missing Items**: `ContestedPairing`, `CONTESTED_PAIRINGS`, `getOpposingAttribute`
+
+## /.claude/skills/text-adventure/cli/data/bestiary-tiers.ts
+- **Covered**: 2
+- **Missing**: 1
+- **Missing Items**: `TierConfig`
+
+## /.claude/skills/text-adventure/cli/data/prose-guidance.ts
+- **Covered**: 0
+- **Missing**: 4
+- **Missing Items**: `PROSE_CHECKLIST`, `RENDERING_RULES`, `SCENE_STRUCTURE`, `DENSITY_GUIDANCE`
+
+## /.claude/skills/text-adventure/cli/data/dc-tables.ts
+- **Covered**: 0
+- **Missing**: 6
+- **Missing Items**: `BaseDcDifficulty`, `BASE_DC`, `LevelDcRow`, `DC_BY_LEVEL`, `DIFFICULTY_MODIFIERS`, `getDcForLevel`
+
+## /.claude/skills/text-adventure/cli/data/xp-tables.ts
+- **Covered**: 2
+- **Missing**: 2
+- **Missing Items**: `XpThreshold`, `LevelReward`
+
+## /.claude/skills/text-adventure/cli/data/archetypes.ts
+- **Covered**: 1
+- **Missing**: 1
+- **Missing Items**: `ArchetypeConfig`
+
+## /.claude/skills/text-adventure/cli/data/module-digests.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `MODULE_DIGESTS`
+
+## /.claude/skills/text-adventure/cli/data/prose-rules.ts
+- **Covered**: 0
+- **Missing**: 14
+- **Missing Items**: `RuleSeverity`, `PatternRule`, `HeuristicRule`, `ProseViolation`, `ProseMetrics`, `NON_ADVERBS`, `STOPWORDS`, `NUMBER_WORDS`, `FAILURE_CONTEXT`, `EMOTION_WORDS`, `TELLING_ADJECTIVES`, `SENSE_WORDS_RE`, `PATTERN_RULES`, `HEURISTIC_RULES`
+
+## /.claude/skills/text-adventure/cli/render/lib/webgl-dice-pool.ts
+- **Covered**: 0
+- **Missing**: 2
+- **Missing Items**: `WEBGL_DICE_POOL_CODE`, `generateWebGLDicePoolCode`
+
+## /.claude/skills/text-adventure/cli/render/lib/scene-design.ts
+- **Covered**: 0
+- **Missing**: 11
+- **Missing Items**: `SceneChapterOpts`, `SceneMetaCard`, `ChoiceStageOpts`, `renderSceneChapterHeader`, `renderSceneMetaStrip`, `renderSceneDivider`, `renderSceneQuote`, `renderChoiceStage`, `renderRollMetric`, `renderRollResultBanner`, `SCENE_DESIGN_CSS`
+
+## /.claude/skills/text-adventure/cli/render/lib/common-css.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `COMMON_WIDGET_CSS`
+
+## /.claude/skills/text-adventure/cli/render/lib/outcome-badge.ts
+- **Covered**: 0
+- **Missing**: 2
+- **Missing Items**: `BadgeStyle`, `outcomeBadgeStyle`
+
+## /.claude/skills/text-adventure/cli/render/lib/ta-components.ts
+- **Covered**: 1
+- **Missing**: 0
+
+## /.claude/skills/text-adventure/cli/render/lib/dialogue.ts
+- **Covered**: 0
+- **Missing**: 5
+- **Missing Items**: `DialogueSpeaker`, `DialogueBlock`, `DialogueChoice`, `MultiDialogueOptions`, `renderMultiDialogue`
+
+## /.claude/skills/text-adventure/cli/render/lib/soundscape.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `SOUNDSCAPE_ENGINE_CODE`
+
+## /.claude/skills/text-adventure/cli/render/lib/send-prompt.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `SEND_OR_COPY_PROMPT_JS`
+
+## /.claude/skills/text-adventure/cli/render/lib/die-geometries.ts
+- **Covered**: 0
+- **Missing**: 2
+- **Missing Items**: `DieConfig`, `DIE_CONFIGS`
+
+## /.claude/skills/text-adventure/cli/render/lib/pregame-design.ts
+- **Covered**: 0
+- **Missing**: 12
+- **Missing Items**: `HeroOpts`, `ControlDeckOpts`, `StageHeaderOpts`, `renderHero`, `renderControlDeck`, `renderStageHeader`, `renderStatusChip`, `renderBadge`, `SubpanelOpts`, `renderSubpanel`, `renderSummaryRow`, `PREGAME_DESIGN_CSS`
+
+## /.claude/skills/text-adventure/cli/render/lib/shadow-wrapper.ts
+- **Covered**: 3
+- **Missing**: 3
+- **Missing Items**: `ShadowWrapperOptions`, `RootCustomElementOptions`, `StandaloneCustomElementOptions`
+
+## /.claude/skills/text-adventure/cli/render/lib/die-textures.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `FONT_SCALE`
+
+## /.claude/skills/text-adventure/cli/render/lib/scene-script.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `SCENE_SCRIPT_CODE`
+
+## /.claude/skills/text-adventure/cli/render/lib/svg-pips.ts
+- **Covered**: 2
+- **Missing**: 0
+
+## /.claude/skills/text-adventure/cli/render/lib/webgl-dice.ts
+- **Covered**: 0
+- **Missing**: 2
+- **Missing Items**: `WebGLDiceCodeOptions`, `generateWebGLDiceCode`
+
+## /.claude/skills/text-adventure/cli/render/templates/combat-turn.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `renderCombatTurn`
+
+## /.claude/skills/text-adventure/cli/render/templates/save-div.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `renderSaveDiv`
+
+## /.claude/skills/text-adventure/cli/render/templates/dice-pool.ts
+- **Covered**: 0
+- **Missing**: 4
+- **Missing Items**: `MAX_DICE_POOL_TOTAL`, `MAX_DICE_POOL_CANVAS_WIDTH`, `MAX_DICE_POOL_CANVAS_HEIGHT`, `renderDicePool`
+
+## /.claude/skills/text-adventure/cli/render/templates/dice.ts
+- **Covered**: 1
+- **Missing**: 0
+
+## /.claude/skills/text-adventure/cli/render/templates/map.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `renderMap`
+
+## /.claude/skills/text-adventure/cli/render/templates/levelup.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `renderLevelup`
+
+## /.claude/skills/text-adventure/cli/render/templates/dialogue.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `renderDialogue`
+
+## /.claude/skills/text-adventure/cli/render/templates/settings.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `renderSettings`
+
+## /.claude/skills/text-adventure/cli/render/templates/codex.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `renderCodex`
+
+## /.claude/skills/text-adventure/cli/render/templates/recap.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `renderRecap`
+
+## /.claude/skills/text-adventure/cli/render/templates/ticker.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `renderTicker`
+
+## /.claude/skills/text-adventure/cli/render/templates/ship.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `renderShip`
+
+## /.claude/skills/text-adventure/cli/render/templates/character-creation.ts
+- **Covered**: 1
+- **Missing**: 0
+
+## /.claude/skills/text-adventure/cli/render/templates/footer.ts
+- **Covered**: 1
+- **Missing**: 0
+
+## /.claude/skills/text-adventure/cli/render/templates/scenario-select.ts
+- **Covered**: 1
+- **Missing**: 0
+
+## /.claude/skills/text-adventure/cli/render/templates/crew.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `renderCrew`
+
+## /.claude/skills/text-adventure/cli/render/templates/character.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `renderCharacter`
+
+## /.claude/skills/text-adventure/cli/render/templates/arc-complete.ts
+- **Covered**: 0
+- **Missing**: 1
+- **Missing Items**: `renderArcComplete`
+
+## /.claude/skills/text-adventure/cli/render/templates/scene.ts
+- **Covered**: 1
+- **Missing**: 0
+
+## /.claude/skills/text-adventure/cli/render/templates/starchart.ts
+- **Covered**: 1
+- **Missing**: 0
+
+## /.claude/skills/text-adventure/cli/render/css-extractor.ts
+- **Covered**: 1
+- **Missing**: 3
+- **Missing Items**: `extractCssFromContent`, `FilterResult`, `clearCssCache`
+
+## /.claude/skills/text-adventure/cli/help.ts
+- **Covered**: 2
+- **Missing**: 0
+
+## /.claude/skills/text-adventure/cli/types.ts
+- **Covered**: 36
+- **Missing**: 0
+

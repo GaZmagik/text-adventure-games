@@ -1,11 +1,27 @@
 import type { GmState, DieType } from '../../types';
-import { esc } from '../../lib/html';
 import { DIE_CONFIGS } from '../lib/die-geometries';
 import { FONT_SCALE } from '../lib/die-textures';
+import { emitStandaloneCustomElement } from '../lib/shadow-wrapper';
 
 const VALID_DIE_TYPES = new Set(Object.keys(DIE_CONFIGS));
 
-export function renderDice(state: GmState | null, _styleName: string, options?: Record<string, unknown>): string {
+/**
+ * Renders the interactive 3D dice widget.
+ * 
+ * @param {GmState | null} state - Current game state (used to extract the last roll).
+ * @param {string} styleName - Visual style.
+ * @param {Record<string, unknown>} [options] - Configuration data (used for manual overrides).
+ * @returns {string} - The HTML wrapped in a <ta-dice> custom element.
+ * 
+ * @remarks
+ * This widget provides a high-fidelity 3D dice roll experience.
+ * It automatically attempts to resolve the roll context (stat, modifier, DC) 
+ * from the most recent computation in `state._lastComputation`.
+ * 
+ * The `data-config` attribute contains the full geometry and texture 
+ * mapping required by the WebGL renderer in `ta-components.js`.
+ */
+export function renderDice(state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
   const comp = state?._lastComputation;
   const data = options?.data as Record<string, unknown> | undefined;
   const rollComp = comp && comp.type !== 'levelup_result' ? comp : undefined;
@@ -43,5 +59,9 @@ export function renderDice(state: GmState | null, _styleName: string, options?: 
     numberRange: range,
   };
 
-  return `<ta-dice data-config="${esc(JSON.stringify(diceConfig))}"></ta-dice>`;
+  return emitStandaloneCustomElement({
+    tag: 'ta-dice',
+    styleName,
+    attrs: { 'data-config': JSON.stringify(diceConfig) },
+  });
 }

@@ -23,7 +23,14 @@ const WIDGET_BUDGET_CHARS = 128 * 1024;
 /** Scene widgets that get a skeleton — data-driven widgets do not. */
 const SCENE_WIDGET = 'scene';
 
-/** Build the list of DOM elements that MUST be present in the rendered output. */
+/** 
+ * Build the list of DOM elements that MUST be present in the rendered output. 
+ * Used by `tag verify` to ensure structural integrity of the composed widget.
+ * @param {string} widgetType - The type of widget being verified.
+ * @param {GmState | null} state - Current game state.
+ * @param {Set<string>} [moduleSet] - Set of active modules.
+ * @returns {string[]} - Array of descriptions for required elements.
+ */
 export function buildRequiredElements(widgetType: string, state: GmState | null, moduleSet?: Set<string>): string[] {
   const modules = moduleSet ?? new Set(state?.modulesActive ?? []);
   const elements: string[] = [];
@@ -52,7 +59,14 @@ export function buildRequiredElements(widgetType: string, state: GmState | null,
   return elements;
 }
 
-/** Build a semantic HTML skeleton for scene renders with placeholder markers. */
+/** 
+ * Build a semantic HTML skeleton for scene renders with placeholder markers. 
+ * This skeleton is provided to the GM to guide manual composition.
+ * @param {string} widgetType - The type of widget.
+ * @param {GmState | null} state - Current game state.
+ * @param {Set<string>} [moduleSet] - Set of active modules.
+ * @returns {string | null} - The HTML skeleton string, or null if not a scene widget.
+ */
 export function buildSkeleton(widgetType: string, state: GmState | null, moduleSet?: Set<string>): string | null {
   if (widgetType !== SCENE_WIDGET) return null;
 
@@ -457,6 +471,19 @@ function validateDataShape(widgetType: string, data: Record<string, unknown>): s
 
 // ── Main handler ─────────────────────────────────────────────────────
 
+/**
+ * Handler for the `tag render` command.
+ * Generates deterministic HTML widgets based on game state and visual styles.
+ * 
+ * @param {string[]} args - CLI arguments (e.g., scene --style station --data '...').
+ * @returns {Promise<CommandResult>} - Result containing the rendered HTML or error info.
+ * @remarks
+ * This command implements multiple safety gates:
+ * 1. **Verification Gate**: Re-rendering a scene blocks until the previous version is verified.
+ * 2. **Sync Gate**: In-game widgets require a fresh state sync marker.
+ * 3. **Freshness Gates**: Prose and Style docs must be re-read after compaction.
+ * 4. **Hollow State Gate**: Refuses render if critical lore data is missing.
+ */
 export async function handleRender(args: string[]): Promise<CommandResult> {
   const parsed = parseArgs(args, ['raw']);
   const widgetType = parsed.positional[0] || '';
@@ -798,35 +825,38 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
       '8. Dialogue: each NPC voice distinct from every other',
       '9. No cliché clusters — max one per scene, only if subverted',
       '10. No summarising tic — final sentence advances, does not recap',
-      '11. Scene density matches context — act opener 6-10¶ (short story), standard 2-4¶',
     ],
-    densityGuidance: isActOpener
-      ? 'ACT OPENER (6-10¶, SHORT STORY DENSITY): Write this like the opening chapter of a novel. '
-        + 'World-building paragraph (the place has history — architecture, scars, atmosphere). '
-        + 'Sensory grounding paragraph (at least 3 senses, anchored in specific physical detail). '
-        + 'Character establishment paragraph (the protagonist through action and environment, not summary). '
-        + 'NPC/interactable introduction (who is here, what are they doing — observed, not announced). '
-        + 'Tension paragraph (the thing that is wrong, the pressure, the question hanging in the air). '
-        + 'Hook paragraph (the event that forces a choice). '
-        + 'You have 65K+ chars of budget headroom — USE IT. A thin act opener is a critical failure. '
-        + 'This scene sets the entire tone. Write it like it matters.'
-      : `Standard scene ${sceneNum} (2-4¶): one sensory beat, one plot beat, one choice.`,
-    compositionNotes: {
-      htmlEscaping: 'The html field is inside a JS template literal (backticks). Use regular " for HTML attributes — do NOT escape as \\". Apostrophes in prose are fine as-is. Only backticks (`) and ${} need escaping inside template literals.',
-      actionButtonPattern: '<button class="action-card" data-prompt="I edge along the gantry and inspect the cracked relay." title="I edge along the gantry and inspect the cracked relay.">Inspect the relay<span class="act-desc">Close enough to notice heat shimmer and loose cabling.</span></button>',
-      poiButtonPattern: '<button class="action-card" data-poi data-prompt="I examine the thing." title="I examine the thing.">Examine the thing</button>',
-      poiBudget: `POI buttons MUST have data-poi attribute. Include 3+ POIs per scene opening. Player has ${state?.character?.poiMax ?? 2} POI points — client JS auto-dims remaining POIs after budget spent. Use dashed border to distinguish POIs from action cards.`,
-      commonMistake: 'Do NOT use \\\\", &quot;, or escaped quotes in data-prompt or title attributes. Plain " works. The template literal handles it. If your string replacement tool adds backslashes, the buttons will not render and verify will report 0 data-prompt elements.',
-      narrativeClasses: 'Use these inline classes to semantically highlight prose: <span class="nar-item">item/tech</span> (cyan), <span class="nar-npc">NPC name</span> (green), <span class="nar-dlg">dialogue line</span> (blue italic), <span class="nar-sfx">SOUND EFFECT</span> (amber uppercase), <span class="nar-danger">threat/warning</span> (red), <span class="nar-lore">lore term</span> (purple). These classes use --ta-* contract variables and render correctly across all visual styles.',
-    },
-    contextVerification: {
-      instruction: 'BEFORE composing narrative: if you cannot recall reading prose-craft.md and the modules below in THIS conversation, re-read them now. Context compaction may have removed them.',
-      requiredFiles: modulesRequired,
-      ...(isActOpener ? { criticalReminder: 'ACT OPENER — 6-10 paragraphs, short story density. World-building, character, senses, tension, hook. You have the budget. A brief scene here is a critical failure.' } : {}),
+    renderingRules: [
+      '1. Root structure: div.root > #reveal-brief + #reveal-full',
+      '2. Progressive reveal: #reveal-brief must have .continue-btn',
+      '3. Narrative: div#narrative.narrative (serif forced)',
+      '4. Interaction: 2-5 buttons with [data-prompt]',
+      '5. Identity: div#scene-meta[data-meta] (hidden JSON)',
+      '6. Accessibility: aria-modal/aria-labelledby on #panel-overlay',
+    ],
+    sceneStructure: [
+      '1. [BRIEF]: High-tension atmospheric hook (1-2 sentences)',
+      '2. [FULL]: Root layout container',
+      '3. [LOC-BAR]: Location + Time metadata',
+      '4. [ATMOSPHERE]: 3-5 sensory pills',
+      '5. [NARRATIVE]: The core story prose',
+      '6. [ACTIONS]: Player choice action-cards',
+      '7. [STATUS]: HP/AC/Level persistence',
+    ],
+    densityGuidance: {
+      narrative: '400-800 characters (approx 2-3 paragraphs)',
+      atmosphere: '100-200 characters (3-5 sensory pills)',
+      actions: '2-5 distinct choices, 50-100 characters each',
     },
   };
 
-  // SVG guidance — when budget headroom exceeds 50%, suggest inline SVG diagrams
+  /**
+   * Generates SVG composition guidance for the GM when there is significant 
+   * budget headroom. 
+   * @param {typeof sizeCheck} size - Current render size metrics.
+   * @param {Set<string>} modules - Set of active modules.
+   * @returns {Record<string, unknown>} - Guidance object with suggestions.
+   */
   function buildSvgGuidance(size: typeof sizeCheck, modules: Set<string>) {
     const remaining = size.budgetChars - size.chars;
     const remainingK = Math.round(remaining / 1024);
@@ -876,6 +906,7 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
         consequence: 'tag state sync --apply will REFUSE to advance to the next scene if verify has not been run. The verify marker is a signed workflow gate — writing the marker file manually is unsupported and will fail validation.',
         command: 'tag verify /tmp/scene_final.html',
       },
+      isActOpener,
     },
     'render',
   );

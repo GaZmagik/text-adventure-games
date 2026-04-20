@@ -19,7 +19,9 @@ import type {
 /*  Text extraction                                                    */
 /* ------------------------------------------------------------------ */
 
-/** Strip HTML preserving block-level boundaries as double newlines. */
+/** 
+ * Strip HTML tags while preserving block-level boundaries as double newlines. 
+ */
 function htmlToProseText(raw: string): string {
   return raw
     .replace(/<!--[\s\S]*?-->/g, '')
@@ -32,7 +34,18 @@ function htmlToProseText(raw: string): string {
     .trim();
 }
 
-/** Extract and concatenate narrative text from scene HTML, preserving paragraph breaks. */
+/** 
+ * Extracts and concatenates narrative text from scene HTML, preserving paragraph breaks. 
+ * 
+ * @param {string} html - Raw HTML source of the scene.
+ * @returns {string | null} - Extracted prose text, or null if no narrative block is found.
+ * 
+ * @remarks
+ * This function specifically targets `div#narrative` or `div.narrative` blocks.
+ * It uses a nesting-aware parser to extract the inner content of these blocks 
+ * without requiring a full DOM implementation (standard `replace` is insufficient 
+ * for nested divs).
+ */
 export function extractNarrativeText(html: string): string | null {
   const blocks: string[] = [];
   const startRegex = /<div\b[^>]*(?:id\s*=\s*(['"])narrative\1|class\s*=\s*(['"])[^'"]*\bnarrative\b[^'"]*\2)[^>]*>/gi;
@@ -78,7 +91,12 @@ export function extractNarrativeText(html: string): string | null {
 /*  Syllable counting                                                  */
 /* ------------------------------------------------------------------ */
 
-/** Vowel-group heuristic syllable counter (~90% accuracy for common English). */
+/** 
+ * Vowel-group heuristic syllable counter (~90% accuracy for common English). 
+ * 
+ * @param {string} word - The word to analyze.
+ * @returns {number} - Estimated syllable count.
+ */
 export function countSyllables(word: string): number {
   const cleaned = word.toLowerCase().replace(/[^a-z]/g, '');
   if (cleaned.length === 0) return 0;
@@ -104,6 +122,7 @@ export function countSyllables(word: string): number {
 /*  Splitting utilities                                                */
 /* ------------------------------------------------------------------ */
 
+/** Counts the number of whitespace-separated words in a string. */
 export function countWords(text: string): number {
   const trimmed = text.trim();
   if (!trimmed) return 0;
@@ -119,6 +138,13 @@ const COMPILED_PATTERN_RULES = new Map<string, RegExp>(
   PATTERN_RULES.map(rule => [rule.id, new RegExp(rule.pattern.source, rule.pattern.flags)]),
 );
 
+/**
+ * Tier 1: Evaluates "hard" regex-based prose rules.
+ * 
+ * @param {string} text - The prose text to analyze.
+ * @param {readonly PatternRule[]} rules - The set of pattern rules to apply.
+ * @returns {ProseViolation[]} - List of identified violations.
+ */
 export function evaluatePatternRules(
   text: string,
   rules: readonly PatternRule[] = PATTERN_RULES,
@@ -150,6 +176,13 @@ export function evaluatePatternRules(
 /*  Tier 2: Heuristic rule evaluation                                  */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Tier 2: Evaluates "soft" heuristic-based prose rules.
+ * 
+ * @param {string} text - The prose text to analyze.
+ * @param {readonly HeuristicRule[]} rules - The set of heuristic rules to apply.
+ * @returns {ProseViolation[]} - List of identified violations.
+ */
 export function evaluateHeuristicRules(
   text: string,
   rules: readonly HeuristicRule[] = HEURISTIC_RULES,
@@ -176,6 +209,19 @@ export function evaluateHeuristicRules(
 /*  Tier 3: Prose metrics                                              */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Tier 3: Computes quantitative prose metrics and readability scores.
+ * 
+ * @param {string} text - The prose text to analyze.
+ * @returns {ProseMetrics} - Object containing word counts, ratios, and scores.
+ * 
+ * @remarks
+ * Includes:
+ * - Flesch-Kincaid Reading Ease
+ * - Unique Word Ratio (Vocabulary variety)
+ * - Dialogue vs Narration ratio
+ * - Sentence length variation (Standard Deviation)
+ */
 export function computeProseMetrics(text: string): ProseMetrics {
   const words = text.trim() ? text.trim().toLowerCase().split(/\s+/) : [];
   const wordCount = words.length;
@@ -242,9 +288,10 @@ const PRE_ATTR_RE = new RegExp(
   'g',
 );
 
-/** Parse attribution patterns and return utterance word-count arrays per speaker.
- *  Matches: "...utterance..." Name said/asked/...
- *  and:     Name said/asked "...utterance..."
+/** 
+ * Parse attribution patterns and return utterance word-count arrays per speaker.
+ * Matches: "...utterance..." Name said/asked/...
+ * and:     Name said/asked "...utterance..."
  */
 export function extractSpeakerUtterances(text: string): Map<string, number[]> {
   const speakers = new Map<string, number[]>();
@@ -271,8 +318,9 @@ export function extractSpeakerUtterances(text: string): Map<string, number[]> {
   return speakers;
 }
 
-/** Warn when all identified speakers (≥2 utterances each) have near-identical utterance
- *  length averages (within 25% of each other). Pushes to warnings array; never throws.
+/** 
+ * Warn when all identified speakers have near-identical utterance lengths. 
+ * Prevents "Same-Voice Syndrome" where all characters talk in identical rhythms.
  */
 export function checkVoiceDifferentiation(text: string, warnings: string[]): void {
   const utterances = extractSpeakerUtterances(text);
@@ -299,9 +347,13 @@ export function checkVoiceDifferentiation(text: string, warnings: string[]): voi
 /*  Shared prose evaluation logic (operates on pre-extracted text)     */
 /* ------------------------------------------------------------------ */
 
-/** Run all prose checks against already-extracted narrative text.
- *  Avoids double `extractNarrativeText` when the caller already holds the text.
- *  Used by prose-check.ts; verify.ts uses `checkProseContent` (HTML entry point). */
+/**
+ * Runs all prose checks against already-extracted narrative text.
+ * 
+ * @param {string} text - Pre-extracted prose text.
+ * @param {string[]} failures - Array to push blocking errors into.
+ * @returns {{ warnings: string[]; metrics: ProseMetrics }} - Warnings and metrics.
+ */
 export function checkProseContentFromText(
   text: string,
   failures: string[],
@@ -347,6 +399,9 @@ export function checkProseContentFromText(
 /*  Entry point — called from verify.ts scene check chain              */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Primary entry point for prose verification from HTML content.
+ */
 export function checkProseContent(
   html: string,
   failures: string[],

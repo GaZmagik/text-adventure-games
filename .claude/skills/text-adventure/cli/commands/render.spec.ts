@@ -6,6 +6,7 @@ import { handleRender } from './render';
 import { saveState, createDefaultState } from '../lib/state-store';
 import { clearStateDirCache } from './verify';
 import { WIDGET_CSS_SCOPES } from '../metadata';
+import { extractJsonTagAttr, extractScriptSrcs } from '../tests/support/rendered-widget';
 import {
   MAX_DICE_POOL_CANVAS_HEIGHT,
   MAX_DICE_POOL_TOTAL,
@@ -71,9 +72,10 @@ describe('render state requirement', () => {
     ]);
     expect(result.ok).toBe(true);
     const html = result.data as string;
+    const config = extractJsonTagAttr<{ label: string; expression: string }>(html, 'ta-dice-pool', 'data-config');
     expect(html).toContain('Volley');
-    expect(html).toContain('2d6 + 1d8');
-    expect(html).toContain('id="dice-pool-canvas"');
+    expect(config.expression).toBe('2d6 + 1d8');
+    expect(extractScriptSrcs(html)).toHaveLength(1);
   });
 
   test('dice-pool safely serialises hostile inline-script payloads', async () => {
@@ -85,9 +87,10 @@ describe('render state requirement', () => {
     ]);
     expect(result.ok).toBe(true);
     const html = result.data as string;
-    expect((html.match(/<script>/g) ?? [])).toHaveLength(1);
+    const config = extractJsonTagAttr<{ label: string }>(html, 'ta-dice-pool', 'data-config');
+    expect(extractScriptSrcs(html)).toHaveLength(1);
     expect(html).not.toContain('</script><script>alert(1)</script>');
-    expect(html).toContain('\\u003c/script\\u003e\\u003cscript\\u003ealert(1)\\u003c/script\\u003e');
+    expect(config.label).toBe('</script><script>alert(1)</script>');
   });
 
   test('rejects dice widget --data missing required dieType', async () => {
@@ -199,10 +202,15 @@ describe('render state requirement', () => {
     ]);
     expect(result.ok).toBe(true);
     const html = result.data as string;
-    const canvasHeight = Number(html.match(/height="(\d+)"/)?.[1] ?? '0');
-    expect(html).toContain(`Displaying ${MAX_DICE_POOL_TOTAL} of 48 dice`);
-    expect(canvasHeight).toBeLessThanOrEqual(MAX_DICE_POOL_CANVAS_HEIGHT);
-    expect(html).toContain(`var POOL_MAX_DICE=${MAX_DICE_POOL_TOTAL}`);
+    const config = extractJsonTagAttr<{ canvasH: number; maxDice: number; truncationNote: string; expression: string }>(
+      html,
+      'ta-dice-pool',
+      'data-config',
+    );
+    expect(config.truncationNote).toBe(`Displaying ${MAX_DICE_POOL_TOTAL} of 48 dice for stability.`);
+    expect(config.canvasH).toBeLessThanOrEqual(MAX_DICE_POOL_CANVAS_HEIGHT);
+    expect(config.maxDice).toBe(MAX_DICE_POOL_TOTAL);
+    expect(config.expression).toBe('24d6');
   });
 
   test('returns style error when state has no visualStyle', async () => {

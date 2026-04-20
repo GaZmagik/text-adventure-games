@@ -34,9 +34,9 @@ function detectGitRef(): string {
 }
 
 function buildCdnBase(ref: string, user: string): string {
-  // Preserve slashes for branch names, as jsDelivr natively supports them.
-  // We only encode characters that are truly unsafe in a URL path.
-  const safeRef = ref.replace(/[^a-zA-Z0-9.\-_/]/g, c => encodeURIComponent(c));
+  // Encode the git ref conservatively so branch names like feature/foo
+  // are emitted as a single ref token rather than a path segment.
+  const safeRef = encodeURIComponent(ref);
   return `https://cdn.jsdelivr.net/gh/${user}/text-adventure-games@${safeRef}${CDN_ASSET_PATH}`;
 }
 

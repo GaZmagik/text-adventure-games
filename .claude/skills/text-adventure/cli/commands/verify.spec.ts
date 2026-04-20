@@ -458,7 +458,9 @@ describe('tag verify', () => {
 
     const result = await handleVerify([filePath]);
     const failures = (result.data as Record<string, unknown>).failures as string[];
-    expect(failures.some(f => f.includes('Unexpected footer') && f.includes('ship'))).toBe(true);
+    expect(
+      failures.some(f => (f.includes('Unexpected footer') || f.includes('Footer module contract mismatch')) && f.includes('ship')),
+    ).toBe(true);
   });
 
   test('fails when action cards use editorial guidance labels', async () => {
@@ -676,16 +678,13 @@ describe('verify file path validation', () => {
   test('flags invalid CSS variable prefixes (--color-* instead of --sta-*)', async () => {
     await setupState();
     const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
-    // Inject narrative + replace a valid var with an invalid one
+    // Inject narrative + add an explicitly invalid CSS variable usage to the scene HTML.
     let html = (renderResult.data as string)
       .replace(
         '<p><!-- Narrative content rendered by the GM --></p>',
         '<p class="narrative">The bridge hums with tension.</p><p class="narrative">Something moves.</p>',
       )
-      .replace(
-        /var\(--sta-text-primary/,
-        'var(--color-text-primary',
-      );
+      .replace('</ta-scene>', '<div style="color:var(--color-text-primary)">Injected invalid var</div></ta-scene>');
     const htmlPath = join(tempDir, 'bad-vars.html');
     writeFileSync(htmlPath, html, 'utf-8');
 

@@ -20,6 +20,21 @@ import { renderHpPips } from '../lib/svg-pips';
 import { LEVEL_REWARDS } from '../../data/xp-tables';
 import { proficiencyBonus } from '../../lib/modifier';
 
+/**
+ * Renders the main exploration scene widget.
+ * 
+ * @param {GmState | null} state - The current game state.
+ * @param {string} styleName - The name of the visual style to apply (e.g., 'station').
+ * @param {Record<string, unknown>} [options] - Optional rendering configuration.
+ * @returns {string} - The complete HTML for the scene widget, wrapped in a Shadow DOM bootstrap.
+ * 
+ * @remarks
+ * This is the engine's primary output. It implements:
+ * 1. **Progressive Reveal**: A two-stage display (brief atmospheric hook -> full scene).
+ * 2. **Narrative Phases**: Support for multi-page narrative content within a single scene.
+ * 3. **Panel System**: Dynamic injection of module-specific overlays (Character, Codex, Ship, etc.).
+ * 4. **Interaction**: Placeholders for POI buttons and action cards.
+ */
 export function renderScene(state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
   const char = state?.character;
   const room = state?.currentRoom ?? 'Unknown Location';
@@ -148,7 +163,9 @@ function buildPanelDivs(modules: string[], state: GmState | null): string {
     .join('\n      ');
 }
 
-/** Inline quests panel — no standalone template exists for this panel type. */
+/** 
+ * Inline quests panel — no standalone template exists for this panel type. 
+ */
 function renderQuestsPanel(state: GmState | null): string {
   const quests = state?.quests ?? [];
   if (quests.length === 0) {
@@ -174,9 +191,9 @@ function renderQuestsPanel(state: GmState | null): string {
     + rows + '</div>';
 }
 
-
-
-/** Build narrative section — single div for phases≤1, wrapped phase divs for multi-phase. */
+/** 
+ * Build narrative section — single div for phases≤1, wrapped phase divs for multi-phase. 
+ */
 function buildNarrativePhases(options?: Record<string, unknown>): string {
   const phases = Number(options?.phases) || 1;
   if (phases <= 1) {

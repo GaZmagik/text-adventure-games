@@ -1,16 +1,29 @@
-/** Web Components bundle for Text Adventure widgets. Served via CDN. */
+/** 
+ * Web Components bundle for Text Adventure widgets. 
+ * This string contains the self-executing bundle that registers all 'ta-*' custom elements.
+ * It is served via CDN and injected into scenes to provide interactive functionality.
+ * 
+ * @remarks
+ * Uses Shadow DOM for style isolation and `String.raw` to preserve CSS backslashes.
+ * All components expect configuration via the `data-config` attribute.
+ */
 export const TA_COMPONENTS_CODE = String.raw`
 (function() {
   if (typeof window === 'undefined' || typeof HTMLElement === 'undefined') return;
 
   window.tag = window.tag || {};
 
-  // Shared WebGL / Dice Helpers
+  /** 
+   * Shared WebGL / Dice Helpers 
+   * Compact math utilities for 3D dice rendering.
+   */
   function v3n(v){var l=Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2])||1;return[v[0]/l,v[1]/l,v[2]/l]}
   function v3s(a,b){return[a[0]-b[0],a[1]-b[1],a[2]-b[2]]}
   function v3x(a,b){return[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]]}
   function v3d(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]}
   function qnm(q){var l=Math.sqrt(q[0]*q[0]+q[1]*q[1]+q[2]*q[2]+q[3]*q[3])||1;return[q[0]/l,q[1]/l,q[2]/l,q[3]/l]}
+  
+  /** Spherical linear interpolation for rotation. */
   function qsl(a,b,t){
     var d=a[0]*b[0]+a[1]*b[1]+a[2]*b[2]+a[3]*b[3];
     if(d<0){b=[-b[0],-b[1],-b[2],-b[3]];d=-d}
@@ -18,6 +31,8 @@ export const TA_COMPONENTS_CODE = String.raw`
     var th=Math.acos(Math.min(d,1)),sn=Math.sin(th),s0=Math.sin((1-t)*th)/sn,s1=Math.sin(t*th)/sn;
     return[a[0]*s0+b[0]*s1,a[1]*s0+b[1]*s1,a[2]*s0+b[2]*s1,a[3]*s0+b[3]*s1];
   }
+
+  /** Calculate rotation to align 'from' vector with 'to' vector. */
   function qAl(from,to){
     var d=v3d(from,to);
     if(d>0.9999)return[0,0,0,1];
@@ -30,6 +45,7 @@ export const TA_COMPONENTS_CODE = String.raw`
     var ax=v3n(v3x(from,to)),ang=Math.acos(Math.min(Math.max(d,-1),1)),ha=ang/2;
     return[ax[0]*Math.sin(ha),ax[1]*Math.sin(ha),ax[2]*Math.sin(ha),Math.cos(ha)];
   }
+
   function m4(){return new Float32Array(16)}
   function m4i(){var m=m4();m[0]=m[5]=m[10]=m[15]=1;return m}
   function m4m(a,b){var o=m4();for(var j=0;j<4;j++)for(var i=0;i<4;i++){var s=0;for(var k=0;k<4;k++)s+=a[i+k*4]*b[k+j*4];o[i+j*4]=s}return o}
@@ -43,6 +59,10 @@ export const TA_COMPONENTS_CODE = String.raw`
   function eOB(t){var k=1.70158;return 1+(k+1)*Math.pow(t-1,3)+k*Math.pow(t-1,2)}
   function idleQuat(a){return qnm([Math.sin(a)*0.28,Math.cos(a)*0.35,Math.sin(a*0.63)*0.22,1])}
 
+  /**
+   * Generates a 3D polyhedral mesh with UVs for texture mapping.
+   * Used to build d4 through d20 geometries dynamically.
+   */
   function buildMesh(verts,faces,faceCount,tpf){
     var pos=[],nrm=[],uv=[],fNorms=[];
     var cols=Math.ceil(Math.sqrt(faceCount)),rows=Math.ceil(faceCount/cols);
@@ -74,6 +94,10 @@ export const TA_COMPONENTS_CODE = String.raw`
     return{pos:new Float32Array(pos),nrm:new Float32Array(nrm),uv:new Float32Array(uv),count:pos.length/3,fNorms:fNorms};
   }
 
+  /**
+   * Creates a dynamic canvas texture atlas for dice faces.
+   * Renders numbers/labels onto a grid for WebGL sampling.
+   */
   function createTextAtlas(labels,fontScale,fg,bg,mirror,offY,underline69){
     var faceCount=labels.length,cols=Math.ceil(Math.sqrt(faceCount)),rows=Math.ceil(faceCount/cols),cw=128,ch=128;
     var atl=document.createElement('canvas');
@@ -95,6 +119,10 @@ export const TA_COMPONENTS_CODE = String.raw`
     return atl;
   }
 
+  /** 
+   * Handles interactive prompt dispatching. 
+   * In Claude environments, this copies the prompt to the clipboard as a fallback.
+   */
   function sendOrCopyPrompt(btn, prompt) {
     if (!prompt) return;
     btn.setAttribute('title', prompt);
@@ -126,6 +154,53 @@ export const TA_COMPONENTS_CODE = String.raw`
   }
 
   window.tag.sendOrCopyPrompt = sendOrCopyPrompt;
+
+  function escHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function safeUrl(value) {
+    var raw = String(value == null ? '' : value).trim();
+    if (!raw) return '';
+    if (!/^(https?:|data:image\/|\/|\.\/|\.\.\/)/i.test(raw)) return '';
+    return escHtml(raw);
+  }
+
+  function safeCssUrl(value) {
+    var raw = String(value == null ? '' : value).trim();
+    if (!raw) return '';
+    if (!/^(https?:|data:image\/|\/|\.\/|\.\.\/)/i.test(raw)) return '';
+    return raw
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"')
+      .replace(/\(/g, '\\(')
+      .replace(/\)/g, '\\)')
+      .replace(/\r/g, '')
+      .replace(/\n/g, '');
+  }
+
+  function safeHexColor(value) {
+    var raw = String(value == null ? '' : value).trim();
+    if (!raw) return '';
+    if (!/^#?(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(raw)) return '';
+    return raw.charAt(0) === '#' ? raw : '#' + raw;
+  }
+
+  function cssLinksFromAttr(value) {
+    return String(value == null ? '' : value)
+      .split(',')
+      .filter(Boolean)
+      .map(function(u) {
+        var safe = safeUrl(u);
+        return safe ? '<link rel="stylesheet" href="' + safe + '">' : '';
+      })
+      .join('');
+  }
 
   // TaTts
   class TaTts extends HTMLElement {
@@ -374,6 +449,8 @@ export const TA_COMPONENTS_CODE = String.raw`
         var hasAudio = this.getAttribute('data-has-audio') === 'true';
         var levelupPending = this.getAttribute('data-levelup-pending') === 'true';
         var dimPanels = (this.getAttribute('data-dim-panels') || '').split(' ').filter(Boolean);
+        var savePrompt = this.getAttribute('data-save-prompt') || 'Run \`tag save generate\` via the Bash tool to produce my save payload. The CLI generates the checksummed SF2 string — never hand-code save encoding, checksums, or base64. Present the result as a downloadable .save.md file with YAML frontmatter.';
+        var exportPrompt = this.getAttribute('data-export-prompt') || 'Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format.';
 
         var modMap = {
           'lore-codex': { panel: 'codex', label: 'Codex' },
@@ -401,12 +478,10 @@ export const TA_COMPONENTS_CODE = String.raw`
           leftHtml += '<button class="footer-btn" id="audio-btn" data-sound="ship-engine" data-duration="25">\u266b Play</button>';
         }
 
-        var savePrompt = 'Run \`tag save generate\` via the Bash tool to produce my save payload. The CLI generates the checksummed SF2 string — never hand-code save encoding, checksums, or base64. Present the result as a downloadable .save.md file with YAML frontmatter.';
-        var rightHtml = '<button class="footer-btn" id="save-btn" data-prompt="' + savePrompt + '" title="' + savePrompt + '">Save \u2197</button>';
+        var rightHtml = '<button class="footer-btn" id="save-btn" data-prompt="' + escHtml(savePrompt) + '" title="' + escHtml(savePrompt) + '">Save \u2197</button>';
 
         if (hasExport) {
-          var exportPrompt = 'Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format.';
-          rightHtml += '<button class="footer-btn" id="export-btn" data-prompt="' + exportPrompt + '" title="' + exportPrompt + '">Export \u2197</button>';
+          rightHtml += '<button class="footer-btn" id="export-btn" data-prompt="' + escHtml(exportPrompt) + '" title="' + escHtml(exportPrompt) + '">Export \u2197</button>';
         }
 
         var html = '<style>' +
@@ -485,7 +560,7 @@ export const TA_COMPONENTS_CODE = String.raw`
 
         html += '<div class="widget-levelup">';
         html += '<div class="levelup-banner" role="status" aria-live="assertive">Level Up!</div>';
-        html += '<div class="levelup-subtitle">' + charName + ' has reached level ' + level + '</div>';
+        html += '<div class="levelup-subtitle">' + escHtml(charName) + ' has reached level ' + level + '</div>';
 
         html += '<div class="levelup-stats">';
         html += '<div class="levelup-stat"><span class="levelup-stat-label">Level</span><span class="levelup-stat-value">' + level + '</span></div>';
@@ -500,7 +575,7 @@ export const TA_COMPONENTS_CODE = String.raw`
         if (abilities.length > 0) {
           html += '<div class="ability-options"><div style="font-size:11px;color:var(--sta-text-tertiary, #545880);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Choose an ability</div>';
           abilities.forEach(function(a) {
-            html += '<button class="ability-card" data-prompt="I choose the ' + a + ' ability" title="I choose the ' + a + ' ability" aria-pressed="false">' + a + '</button>';
+            html += '<button class="ability-card" data-prompt="' + escHtml('I choose the ' + a + ' ability') + '" title="' + escHtml('I choose the ' + a + ' ability') + '" aria-pressed="false">' + escHtml(a) + '</button>';
           });
           html += '</div>';
         }
@@ -552,15 +627,15 @@ export const TA_COMPONENTS_CODE = String.raw`
           '</style>';
 
         html += '<div class="widget-dialogue">';
-        html += '<div class="dlg-speaker">' + speaker + '</div>';
+        html += '<div class="dlg-speaker">' + escHtml(speaker) + '</div>';
         if (text) {
-          html += '<div class="dlg-text">' + text + '</div>';
+          html += '<div class="dlg-text">' + escHtml(text) + '</div>';
         }
         
         if (choices.length > 0) {
           html += '<div class="dlg-choices">';
           choices.forEach(function(c) {
-            html += '<button class="dlg-choice-btn" data-prompt="' + c.prompt + '" title="' + c.prompt + '">' + c.label + '</button>';
+            html += '<button class="dlg-choice-btn" data-prompt="' + escHtml(c.prompt) + '" title="' + escHtml(c.prompt) + '">' + escHtml(c.label) + '</button>';
           });
           html += '</div>';
         }
@@ -587,8 +662,7 @@ export const TA_COMPONENTS_CODE = String.raw`
     connectedCallback() {
       try {
         var scenarios = JSON.parse(this.getAttribute('data-scenarios') || '[]');
-        var urls = (this.getAttribute('data-css-urls') || '').split(',').filter(Boolean);
-        var cssLinks = urls.map(function(u) { return '<link rel="stylesheet" href="' + u + '">'; }).join('');
+        var cssLinks = cssLinksFromAttr(this.getAttribute('data-css-urls'));
         
         var html = cssLinks + '<style>:host{display:block;background:var(--sta-bg-primary,#1A1D2E);color:var(--sta-text-primary,#E8E6E3);font-family:var(--sta-font-mono,monospace)}.root{background:inherit;color:inherit}</style>';
         html += '<div class="root">';
@@ -604,9 +678,9 @@ export const TA_COMPONENTS_CODE = String.raw`
           html += '<div class="widget-scenario-select"><header class="pd-hero"><h1 class="pd-hero-heading">Choose Your Scenario</h1><p class="pd-hero-copy">Select an adventure to begin. Each scenario offers a different tone, premise, and set of branching choices.</p></header>';
           
           // Control Deck
-          html += '<div class="pd-control-deck"><div class="pd-deck-inner"><div class="pd-deck-content"><p class="pd-kicker">Current selection</p><h2 class="pd-deck-heading">Scenario</h2><p class="pd-selection-title" id="pd-sel-title">' + (selScenario.title||'') + '</p>';
+          html += '<div class="pd-control-deck"><div class="pd-deck-inner"><div class="pd-deck-content"><p class="pd-kicker">Current selection</p><h2 class="pd-deck-heading">Scenario</h2><p class="pd-selection-title" id="pd-sel-title">' + escHtml(selScenario.title||'') + '</p>';
           var selDesc = selScenario.description || selScenario.hook || selScenario.preamble || '';
-          if (selDesc) html += '<p class="pd-selection-preamble" id="pd-sel-preamble">' + selDesc + '</p>';
+          if (selDesc) html += '<p class="pd-selection-preamble" id="pd-sel-preamble">' + escHtml(selDesc) + '</p>';
           html += '<p class="pd-selection-status" id="pd-sel-status" aria-live="polite"></p></div><div class="pd-deck-actions"></div></div></div>';
 
           // Cards
@@ -616,34 +690,39 @@ export const TA_COMPONENTS_CODE = String.raw`
             var isSel = idx === selIdx;
             var genres = s.genres || s.genre || s.tags || [];
             if (!Array.isArray(genres)) genres = [genres];
-            var gPills = genres.map(function(g) { return '<span class="genre-pill">' + g + '</span>'; }).join(' ');
+            var gPills = genres.map(function(g) { return '<span class="genre-pill">' + escHtml(g) + '</span>'; }).join(' ');
             
             var featAttr = s.featured ? ' data-featured="true"' : '';
-            var idAttr = s.id ? ' data-scenario-id="' + s.id + '"' : '';
+            var idAttr = s.id ? ' data-scenario-id="' + escHtml(s.id) + '"' : '';
             var prompt = 'I choose scenario: ' + s.title;
 
             var styleParts = [];
             if (s.accent) {
-              styleParts.push('--ta-card-accent: ' + s.accent);
-              var c = s.accent.replace('#','');
+              var accent = safeHexColor(s.accent);
+              if (accent) {
+                styleParts.push('--ta-card-accent: ' + accent);
+                var c = accent.replace('#','');
               if (c.length===3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
               if (c.length===6) {
                 var r=parseInt(c.slice(0,2),16), g=parseInt(c.slice(2,4),16), b=parseInt(c.slice(4,6),16);
                 if (!isNaN(r)&&!isNaN(g)&&!isNaN(b)) styleParts.push('--ta-card-accent-rgb: '+r+','+g+','+b);
               }
+              }
             }
 
-            var hasBoth = s.coverFront && s.coverBack;
-            var coverAttr = s.coverFront ? ' data-has-cover="true"' : '';
-            if (!hasBoth && s.coverFront) {
-              styleParts.push('background-image: linear-gradient(to top, rgba(10,10,18,0.95) 35%, rgba(10,10,18,0.4) 70%, transparent 100%), url(' + s.coverFront + ')');
+            var safeFront = safeUrl(s.coverFront);
+            var safeBack = safeUrl(s.coverBack);
+            var hasBoth = safeFront && safeBack;
+            var coverAttr = safeFront ? ' data-has-cover="true"' : '';
+            if (!hasBoth && safeFront) {
+              styleParts.push('background-image: linear-gradient(to top, rgba(10,10,18,0.95) 35%, rgba(10,10,18,0.4) 70%, transparent 100%), url("' + safeCssUrl(s.coverFront) + '")');
               styleParts.push('background-size: cover; background-position: center top');
             }
 
             var safeSvg = null;
             if (s.svgLogo) {
               var t = s.svgLogo.trim();
-              if (/^<svg\b/i.test(t) && /<\/svg>$/i.test(t) && !/<(?:script|foreignObject|iframe|object|embed)\b/i.test(t) && !/\bon\w+\s*=/i.test(t)) {
+              if (/^<svg\b/i.test(t) && /<\/svg>$/i.test(t) && !/<(?:script|foreignObject|iframe|object|embed)\b/i.test(t) && !/\bon\w+\s*=/i.test(t) && !/\b(?:href|xlink:href)\s*=\s*(['"])\s*javascript:/i.test(t)) {
                 safeSvg = t;
               }
             }
@@ -651,18 +730,18 @@ export const TA_COMPONENTS_CODE = String.raw`
 
             var styleAttr = styleParts.length ? ' style="' + styleParts.join('; ') + '"' : '';
 
-            html += '<div class="scenario-card"' + idAttr + featAttr + coverAttr + styleAttr + ' role="button" tabindex="0" aria-pressed="' + isSel + '" data-desc="' + desc.replace(/"/g, '&quot;') + '" data-idx="' + idx + '">';
+            html += '<div class="scenario-card"' + idAttr + featAttr + coverAttr + styleAttr + ' role="button" tabindex="0" aria-pressed="' + isSel + '" data-desc="' + escHtml(desc) + '" data-idx="' + idx + '">';
             if (hasBoth) {
-              html += '<div class="cover-spread"><img class="cover-front" src="' + s.coverFront + '" loading="lazy"><img class="cover-back" src="' + s.coverBack + '" loading="lazy"></div>';
+              html += '<div class="cover-spread"><img class="cover-front" src="' + safeFront + '" loading="lazy"><img class="cover-back" src="' + safeBack + '" loading="lazy"></div>';
             }
             html += logoHtml;
-            html += '<div class="scenario-card-content"><div class="scenario-title">' + (s.title||'') + '</div>';
-            if (!hasBoth) html += '<div class="scenario-desc">' + desc + '</div>';
+            html += '<div class="scenario-card-content"><div class="scenario-title">' + escHtml(s.title||'') + '</div>';
+            if (!hasBoth) html += '<div class="scenario-desc">' + escHtml(desc) + '</div>';
             if (gPills) html += '<div class="scenario-genres">' + gPills + '</div>';
             html += '<div class="scenario-meta">';
-            if (s.difficulty) html += '<span class="scenario-diff">Difficulty: ' + s.difficulty + '</span>';
-            if (s.players) html += '<span class="scenario-players">' + s.players + ' players</span>';
-            html += '</div><button class="scenario-select-btn" data-prompt="' + prompt + '" title="' + prompt + '">Select</button></div></div>';
+            if (s.difficulty) html += '<span class="scenario-diff">Difficulty: ' + escHtml(s.difficulty) + '</span>';
+            if (s.players) html += '<span class="scenario-players">' + escHtml(s.players) + ' players</span>';
+            html += '</div><button class="scenario-select-btn" data-prompt="' + escHtml(prompt) + '" title="' + escHtml(prompt) + '">Select</button></div></div>';
           });
           html += '</div></div>';
         }
@@ -705,8 +784,7 @@ export const TA_COMPONENTS_CODE = String.raw`
     connectedCallback() {
       try {
         var cfg = JSON.parse(this.getAttribute('data-config') || '{}');
-        var urls = (this.getAttribute('data-css-urls') || '').split(',').filter(Boolean);
-        var cssLinks = urls.map(function(u) { return '<link rel="stylesheet" href="' + u + '">'; }).join('');
+        var cssLinks = cssLinksFromAttr(this.getAttribute('data-css-urls'));
         var tier1 = cfg.tier1Modules || [];
         var defaults = cfg.defaults || {};
         var selections = JSON.parse(JSON.stringify(defaults));
@@ -717,12 +795,13 @@ export const TA_COMPONENTS_CODE = String.raw`
         html += '<header class="pd-hero"><h1 class="pd-hero-heading">Game Settings</h1><p class="pd-hero-copy">Configure your adventure before beginning.</p></header>';
 
         var summaryTitle = defaults.rulebook ? defaults.rulebook.replace(/_/g,' ') : 'Unconfigured';
-        html += '<section class="pd-control-deck"><div class="pd-deck-inner"><div class="pd-deck-content"><p class="pd-kicker">Active profile</p><h2 class="pd-deck-heading">Configuration</h2><p class="pd-selection-title" id="pd-sel-title">' + summaryTitle + '</p><p class="pd-selection-status" id="pd-sel-status" aria-live="polite"></p></div><div class="pd-deck-actions"><div class="pd-summary-list"></div></div></div></section>';
+        html += '<section class="pd-control-deck"><div class="pd-deck-inner"><div class="pd-deck-content"><p class="pd-kicker">Active profile</p><h2 class="pd-deck-heading">Configuration</h2><p class="pd-selection-title" id="pd-sel-title">' + escHtml(summaryTitle) + '</p><p class="pd-selection-status" id="pd-sel-status" aria-live="polite"></p></div><div class="pd-deck-actions"><div class="pd-summary-list"></div></div></div></section>';
 
         function optionGrid(group, items) {
           return '<div class="option-grid" data-group="' + group + '">' + items.map(function(v) {
             var sel = defaults[group] === v;
-            return '<button class="option-card' + (sel?' selected':'') + '" data-group="' + group + '" data-value="' + v + '" aria-pressed="' + sel + '">' + v.replace(/_/g,' ') + '</button>';
+            var value = String(v == null ? '' : v);
+            return '<button class="option-card' + (sel?' selected':'') + '" data-group="' + escHtml(group) + '" data-value="' + escHtml(value) + '" aria-pressed="' + sel + '">' + escHtml(value.replace(/_/g,' ')) + '</button>';
           }).join('') + '</div>';
         }
 
@@ -739,11 +818,12 @@ export const TA_COMPONENTS_CODE = String.raw`
         // Modules
         html += '<section class="pd-subpanel"><p class="pd-kicker">Extensions</p><h3 class="pd-subpanel-title">Optional Modules</h3><p class="pd-subpanel-copy">Tier 1 modules are always active.</p><div class="option-grid" data-group="modules">';
         (cfg.modules||[]).forEach(function(m) {
+          var moduleName = String(m == null ? '' : m);
           var isT1 = tier1.indexOf(m) >= 0;
           if (isT1) {
-            html += '<button class="option-card module-card selected" data-group="modules" data-value="' + m + '" aria-pressed="true" disabled style="opacity:0.7;cursor:default"><span class="module-check checked"></span>' + m + ' (required)</button>';
+            html += '<button class="option-card module-card selected" data-group="modules" data-value="' + escHtml(moduleName) + '" aria-pressed="true" disabled style="opacity:0.7;cursor:default"><span class="module-check checked"></span>' + escHtml(moduleName) + ' (required)</button>';
           } else {
-            html += '<button class="option-card module-card" data-group="modules" data-value="' + m + '" aria-pressed="false"><span class="module-check"></span>' + m + '</button>';
+            html += '<button class="option-card module-card" data-group="modules" data-value="' + escHtml(moduleName) + '" aria-pressed="false"><span class="module-check"></span>' + escHtml(moduleName) + '</button>';
           }
         });
         html += '</div></section>';
@@ -802,8 +882,7 @@ export const TA_COMPONENTS_CODE = String.raw`
     connectedCallback() {
       try {
         var cfg = JSON.parse(this.getAttribute('data-config') || '{}');
-        var urls = (this.getAttribute('data-css-urls') || '').split(',').filter(Boolean);
-        var cssLinks = urls.map(function(u) { return '<link rel="stylesheet" href="' + u + '">'; }).join('');
+        var cssLinks = cssLinksFromAttr(this.getAttribute('data-css-urls'));
         var archetypes = cfg.archetypes || [];
         var pregens = cfg.preGeneratedCharacters || [];
         var allowCustom = cfg.allowCustom !== false;
@@ -821,14 +900,14 @@ export const TA_COMPONENTS_CODE = String.raw`
         var html = cssLinks + '<style>:host{display:block;background:var(--sta-bg-primary,#1A1D2E);color:var(--sta-text-primary,#E8E6E3);font-family:var(--sta-font-mono,monospace)}.root{background:inherit;color:inherit}.is-hidden{display:none!important}.selection-grid,.archetype-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}.preset-card,.custom-entry-card,.archetype-card{padding:14px;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:8px;cursor:pointer;transition:all 0.2s;background:transparent}.preset-card:hover,.custom-entry-card:hover,.archetype-card:hover{border-color:var(--ta-color-accent)}.preset-card.selected,.custom-entry-card.selected,.archetype-card.selected{border-color:var(--ta-color-accent);background:var(--ta-color-accent-bg)}.arch-name{font-family:var(--ta-font-heading);font-size:15px;font-weight:700;color:var(--sta-text-primary,#EEF0FF);margin-bottom:4px}.arch-desc{font-size:11px;color:var(--sta-text-secondary,#9AA0C0);line-height:1.4;margin-bottom:6px}.arch-stat{display:inline-block;padding:1px 6px;font-size:10px;border-radius:4px;background:var(--sta-border-tertiary,rgba(84,88,128,0.4));color:var(--sta-text-primary,#EEF0FF);margin-right:4px;font-weight:600}.name-input{width:100%;padding:10px 14px;font-family:var(--ta-font-body);font-size:14px;background:transparent;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:6px;color:var(--sta-text-primary,#EEF0FF);box-sizing:border-box}.name-error{color:var(--ta-color-danger);font-size:11px;margin-top:4px;display:block}.prof-grid{display:flex;flex-wrap:wrap;gap:6px}.prof-option{padding:8px 12px;font-size:11px;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:12px;background:transparent;color:var(--sta-text-secondary,#9AA0C0);cursor:pointer;transition:all 0.2s;min-height:44px}.prof-option.selected{border-color:var(--ta-color-accent);background:var(--ta-color-accent-bg);color:var(--ta-color-accent);font-weight:600}</style>';
         html += '<div class="root"><div class="widget-char-creation">';
         var subtitle = pregens.length > 0 ? 'Choose a ready-made character or create your own' : 'Choose an archetype, name your character, and select proficiencies';
-        html += '<header class="pd-hero"><h1 class="pd-hero-heading">Create Your Character</h1><p class="pd-hero-copy">' + subtitle + '</p></header>';
-        html += '<section class="pd-control-deck"><div class="pd-deck-inner"><div class="pd-deck-content"><p class="pd-kicker">Current dossier</p><h2 class="pd-deck-heading">Character Build</h2><p class="pd-selection-title" id="pd-sel-title">' + (defaultName || 'Unnamed') + '</p><p class="pd-selection-status" id="pd-sel-status" aria-live="polite"></p></div><div class="pd-deck-actions"><div class="pd-summary-list"></div></div></div></section>';
+        html += '<header class="pd-hero"><h1 class="pd-hero-heading">Create Your Character</h1><p class="pd-hero-copy">' + escHtml(subtitle) + '</p></header>';
+        html += '<section class="pd-control-deck"><div class="pd-deck-inner"><div class="pd-deck-content"><p class="pd-kicker">Current dossier</p><h2 class="pd-deck-heading">Character Build</h2><p class="pd-selection-title" id="pd-sel-title">' + escHtml(defaultName || 'Unnamed') + '</p><p class="pd-selection-status" id="pd-sel-status" aria-live="polite"></p></div><div class="pd-deck-actions"><div class="pd-summary-list"></div></div></div></section>';
 
         if (pregens.length > 0) {
           html += '<section class="pd-subpanel"><p class="pd-kicker">Starting character</p><h3 class="pd-subpanel-title">Character Selection</h3><div class="selection-grid">';
           pregens.forEach(function(p, i) {
             var desc = p.hook || p.background || '';
-            html += '<button class="preset-card" data-preset-index="' + i + '" aria-pressed="false"><div class="arch-name">' + (p.name||'') + '</div>' + (desc ? '<div class="arch-desc">' + desc + '</div>' : '') + '</button>';
+            html += '<button class="preset-card" data-preset-index="' + i + '" aria-pressed="false"><div class="arch-name">' + escHtml(p.name||'') + '</div>' + (desc ? '<div class="arch-desc">' + escHtml(desc) + '</div>' : '') + '</button>';
           });
           if (allowCustom) html += '<button class="custom-entry-card selected" id="custom-entry-card" aria-pressed="true"><div class="arch-name">Create Your Own</div><div class="arch-desc">Build a custom character.</div></button>';
           html += '</div></section>';
@@ -840,21 +919,21 @@ export const TA_COMPONENTS_CODE = String.raw`
 
         // Custom fields
         html += '<div id="custom-character-fields">';
-        html += '<section class="pd-subpanel"><p class="pd-kicker">Identity</p><h3 class="pd-subpanel-title">Name</h3><div style="display:flex;gap:8px;align-items:center"><input class="name-input" id="char-name-input" type="text" placeholder="Enter character name..." value="' + defaultName + '" maxlength="80" style="flex:1"><button class="option-card" id="randomise-name" type="button" style="white-space:nowrap;flex-shrink:0">Randomise</button></div><span id="name-error" class="name-error is-hidden" role="alert"></span></section>';
+        html += '<section class="pd-subpanel"><p class="pd-kicker">Identity</p><h3 class="pd-subpanel-title">Name</h3><div style="display:flex;gap:8px;align-items:center"><input class="name-input" id="char-name-input" type="text" placeholder="Enter character name..." value="' + escHtml(defaultName) + '" maxlength="80" style="flex:1"><button class="option-card" id="randomise-name" type="button" style="white-space:nowrap;flex-shrink:0">Randomise</button></div><span id="name-error" class="name-error is-hidden" role="alert"></span></section>';
 
         if (archetypes.length > 0) {
           html += '<section class="pd-subpanel"><p class="pd-kicker">Role</p><h3 class="pd-subpanel-title">Archetype</h3><div class="archetype-grid">';
           archetypes.forEach(function(a, i) {
             var desc = a.description || a.flavour || '';
             var statMap = a.stats || a.baseStats || {};
-            var stats = Object.entries(statMap).map(function(e) { return '<span class="arch-stat">' + e[0] + ' ' + (Number(e[1])||0) + '</span>'; }).join(' ');
-            html += '<button class="archetype-card" data-index="' + i + '" aria-pressed="false"><div class="arch-name">' + (a.name||'') + '</div>' + (desc?'<div class="arch-desc">'+desc+'</div>':'') + (stats?'<div class="arch-stats">'+stats+'</div>':'') + '</button>';
+            var stats = Object.entries(statMap).map(function(e) { return '<span class="arch-stat">' + escHtml(e[0]) + ' ' + (Number(e[1])||0) + '</span>'; }).join(' ');
+            html += '<button class="archetype-card" data-index="' + i + '" aria-pressed="false"><div class="arch-name">' + escHtml(a.name||'') + '</div>' + (desc?'<div class="arch-desc">'+escHtml(desc)+'</div>':'') + (stats?'<div class="arch-stats">'+stats+'</div>':'') + '</button>';
           });
           html += '</div></section>';
         }
 
         html += '<section class="pd-subpanel"><p class="pd-kicker">Skills</p><h3 class="pd-subpanel-title">Proficiencies</h3><p class="pd-subpanel-copy">Choose 2 additional proficiencies.</p><div class="prof-grid">';
-        proficiencies.forEach(function(p) { html += '<button class="prof-option" data-prof="' + p + '" aria-pressed="false">' + p + '</button>'; });
+        proficiencies.forEach(function(p) { html += '<button class="prof-option" data-prof="' + escHtml(p) + '" aria-pressed="false">' + escHtml(p) + '</button>'; });
         html += '</div></section></div>';
         html += '<button class="confirm-btn" id="creation-confirm" title="Create character">Create Character</button>';
         html += '</div></div>';
@@ -991,18 +1070,18 @@ export const TA_COMPONENTS_CODE = String.raw`
         }
 
         var h = '<style>:host{display:block}.widget-character{font-family:var(--ta-font-body);padding:16px}.char-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px}.char-name{font-family:var(--ta-font-heading);font-size:20px;font-weight:700;color:var(--sta-text-primary,#EEF0FF)}.char-class{font-size:12px;color:var(--sta-text-tertiary,#545880);text-transform:uppercase;letter-spacing:0.08em}.stat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:12px 0;text-align:center}.stat-cell{padding:8px 4px;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:6px}.stat-label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--sta-text-tertiary,#545880)}.stat-value{display:block;font-size:18px;font-weight:700;color:var(--sta-text-primary,#EEF0FF)}.stat-mod{display:block;font-size:11px;color:var(--ta-color-accent)}.section-title{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--sta-text-tertiary,#545880);margin:14px 0 6px}.inv-item{display:flex;justify-content:space-between;padding:4px 0;border-bottom:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));font-size:12px}.condition-badge{display:inline-block;padding:2px 8px;font-size:10px;border-radius:10px;background:var(--ta-color-warning-bg);color:var(--ta-color-warning);margin-right:4px}</style>';
-        h += '<div class="widget-character"><div class="char-header"><span class="char-name">' + (cfg.name||'???') + '</span><span class="char-class">' + (cfg.class||'Adventurer') + ' · Lv ' + lv + '</span></div>';
+        h += '<div class="widget-character"><div class="char-header"><span class="char-name">' + escHtml(cfg.name||'???') + '</span><span class="char-class">' + escHtml(cfg.class||'Adventurer') + ' · Lv ' + lv + '</span></div>';
         h += hpP(hp, mhp);
-        h += '<div style="margin:8px 0;font-size:11px;color:var(--sta-text-secondary)">AC ' + ac + ' · Prof. +' + (cfg.proficiencyBonus||0) + ' · ' + (cfg.currencyName||'Credits') + ' ' + (cfg.currency||0) + '</div>';
+        h += '<div style="margin:8px 0;font-size:11px;color:var(--sta-text-secondary)">AC ' + ac + ' · Prof. +' + (cfg.proficiencyBonus||0) + ' · ' + escHtml(cfg.currencyName||'Credits') + ' ' + (cfg.currency||0) + '</div>';
         h += '<div class="stat-grid">';
         ['STR','DEX','CON','INT','WIS','CHA'].forEach(function(s){
           var m = mds[s]||0; h += '<div class="stat-cell"><span class="stat-label">' + s + '</span><span class="stat-value">' + (sts[s]||0) + '</span><span class="stat-mod">' + (m>=0?'+'+m:m) + '</span></div>';
         });
-        h += '</div><div class="section-title">Equipment</div><div style="font-size:12px">Weapon: ' + (eq.weapon||'None') + '<br>Armour: ' + (eq.armour||'None') + '</div>';
+        h += '</div><div class="section-title">Equipment</div><div style="font-size:12px">Weapon: ' + escHtml(eq.weapon||'None') + '<br>Armour: ' + escHtml(eq.armour||'None') + '</div>';
         h += '<div class="section-title">Inventory (' + inv.length + ')</div>';
-        inv.forEach(function(item){ h += '<div class="inv-item"><span>' + item.name + '</span> <span style="color:#545880;font-size:10px">' + item.type + '</span></div>'; });
+        inv.forEach(function(item){ h += '<div class="inv-item"><span>' + escHtml(item.name) + '</span> <span style="color:#545880;font-size:10px">' + escHtml(item.type) + '</span></div>'; });
         h += '<div class="section-title">Conditions</div>';
-        cds.forEach(function(c){ h += '<span class="condition-badge">' + c + '</span>'; });
+        cds.forEach(function(c){ h += '<span class="condition-badge">' + escHtml(c) + '</span>'; });
         if(!cds.length) h += '<span style="font-size:11px;color:#545880">None</span>';
         h += '<div style="margin-top:12px">' + xpT(xp, xpn) + '</div></div>';
         this.shadowRoot.innerHTML = h;
@@ -1018,7 +1097,7 @@ export const TA_COMPONENTS_CODE = String.raw`
         var crew = JSON.parse(this.getAttribute('data-crew') || '[]');
         var h = '<style>.widget-crew{font-family:var(--ta-font-body);padding:16px}.crew-title{font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:var(--ta-color-accent);margin-bottom:12px}.crew-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}.crew-card{padding:10px;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:8px;background:rgba(84,88,128,0.06)}.crew-name{font-weight:700;font-size:13px;color:var(--sta-text-primary,#EEF0FF);display:block}.crew-role{font-size:10px;color:var(--sta-text-tertiary,#545880);text-transform:uppercase}</style>';
         h += '<div class="widget-crew"><div class="crew-title">Crew Manifest</div><div class="crew-grid">';
-        crew.forEach(function(c){ h += '<div class="crew-card"><span class="crew-name">' + c.name + '</span><span class="crew-role">' + (c.role||'Crew') + '</span><div style="font-size:11px;color:#9AA0C0;margin-top:4px">HP ' + (c.hp||'?') + '/' + (c.maxHp||'?') + '</div></div>'; });
+        crew.forEach(function(c){ h += '<div class="crew-card"><span class="crew-name">' + escHtml(c.name) + '</span><span class="crew-role">' + escHtml(c.role||'Crew') + '</span><div style="font-size:11px;color:#9AA0C0;margin-top:4px">HP ' + (c.hp||'?') + '/' + (c.maxHp||'?') + '</div></div>'; });
         if(!crew.length) h += '<p style="font-size:12px;color:#545880">No crew registered.</p>';
         h += '</div></div>';
         this.shadowRoot.innerHTML = h;
@@ -1038,9 +1117,9 @@ export const TA_COMPONENTS_CODE = String.raw`
         entries.forEach(function(e) {
           if(!e.discovered) return;
           var c = e.category==='faction' ? '#E84855' : (e.category==='location' ? '#4ECDC4' : '#9AA0C0');
-          h += '<div class="codex-entry"><div class="codex-header"><span class="codex-id">' + e.id + '</span><span class="codex-badge" style="background:'+c+';color:#fff">' + (e.category||'item') + '</span></div>';
-          h += '<div style="font-size:10px;color:#545880;margin-top:2px">' + (e.discoveredAt||'') + '</div>';
-          if(e.secrets) e.secrets.forEach(function(s){ h += '<span class="codex-secret">' + s + '</span>'; });
+          h += '<div class="codex-entry"><div class="codex-header"><span class="codex-id">' + escHtml(e.id) + '</span><span class="codex-badge" style="background:'+c+';color:#fff">' + escHtml(e.category||'item') + '</span></div>';
+          h += '<div style="font-size:10px;color:#545880;margin-top:2px">' + escHtml(e.discoveredAt||'') + '</div>';
+          if(e.secrets) e.secrets.forEach(function(s){ h += '<span class="codex-secret">' + escHtml(s) + '</span>'; });
           h += '</div>';
         });
         h += '</div>';
@@ -1056,12 +1135,12 @@ export const TA_COMPONENTS_CODE = String.raw`
       try {
         var s = JSON.parse(this.getAttribute('data-ship') || '{}');
         var h = '<style>.widget-ship{font-family:var(--ta-font-body);padding:16px}.ship-title{font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:var(--ta-color-accent);margin-bottom:12px}.sys-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.sys-card{padding:10px;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:8px;background:rgba(84,88,128,0.06)}.sys-name{font-weight:700;font-size:13px;color:#EEF0FF;display:block}.sys-status{font-size:10px;text-transform:uppercase;letter-spacing:0.05em}</style>';
-        h += '<div class="widget-ship"><div class="ship-title">' + (s.name||'Unknown Vessel') + '</div>';
+        h += '<div class="widget-ship"><div class="ship-title">' + escHtml(s.name||'Unknown Vessel') + '</div>';
         h += '<div style="font-size:11px;color:#545880;margin-bottom:16px">Repair parts: ' + (s.repairParts||0) + ' · Scenes since repair: ' + (s.scenesSinceRepair||0) + '</div>';
         h += '<div class="sys-grid">';
         (s.systems||[]).forEach(function(sys){
           var col = sys.status==='operational' ? '#2BA882' : (sys.status==='degraded' ? '#F0A500' : '#E84855');
-          h += '<div class="sys-card"><span class="sys-name">' + sys.name + '</span><span class="sys-status" style="color:'+col+'">' + sys.status + '</span><div style="font-size:10px;color:#545880;margin-top:4px">' + (sys.integrity||0) + '% integrity</div></div>';
+          h += '<div class="sys-card"><span class="sys-name">' + escHtml(sys.name) + '</span><span class="sys-status" style="color:'+col+'">' + escHtml(sys.status) + '</span><div style="font-size:10px;color:#545880;margin-top:4px">' + (sys.integrity||0) + '% integrity</div></div>';
         });
         h += '</div></div>';
         this.shadowRoot.innerHTML = h;
@@ -1081,7 +1160,7 @@ export const TA_COMPONENTS_CODE = String.raw`
         (m.nodes||[]).forEach(function(n){
           var isC = n.id === m.current;
           h += '<circle cx="' + n.x + '" cy="' + n.y + '" r="' + (isC?8:5) + '" fill="' + (isC?'#4ECDC4':'#545880') + '" />';
-          h += '<text x="' + n.x + '" y="' + (n.y+15) + '" font-size="8" fill="#EEF0FF" text-anchor="middle">' + n.id + '</text>';
+          h += '<text x="' + n.x + '" y="' + (n.y+15) + '" font-size="8" fill="#EEF0FF" text-anchor="middle">' + escHtml(n.id) + '</text>';
         });
         h += '</svg></div>';
         this.shadowRoot.innerHTML = h;
@@ -1096,12 +1175,12 @@ export const TA_COMPONENTS_CODE = String.raw`
       try {
         var d = JSON.parse(this.getAttribute('data-chart') || '{}');
         var h = '<style>.widget-starchart{font-family:var(--ta-font-body);padding:16px}.sc-canvas{width:100%;height:auto;background:radial-gradient(circle at 50% 25%,rgba(98,175,255,0.1),#040810);border-radius:14px;border:1px solid rgba(84,88,128,0.3)}</style>';
-        h += '<div class="widget-starchart"><div style="font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:#EEF0FF">Star Chart</div><div style="font-size:13px;color:#4ECDC4;margin-bottom:12px">' + (d.current||'???') + '</div>';
+        h += '<div class="widget-starchart"><div style="font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:#EEF0FF">Star Chart</div><div style="font-size:13px;color:#4ECDC4;margin-bottom:12px">' + escHtml(d.current||'???') + '</div>';
         h += '<svg class="sc-canvas" viewBox="0 0 280 180">';
         (d.systems||[]).forEach(function(s){
           var isC = s.name === d.current;
           h += '<circle cx="' + s.x + '" cy="' + s.y + '" r="' + (isC?10:6) + '" fill="' + (isC?'rgba(84,182,255,0.3)':'rgba(84,88,128,0.2)') + '" stroke="' + (isC?'#4ECDC4':'#545880') + '" />';
-          h += '<text x="' + s.x + '" y="' + (s.y+20) + '" font-size="9" fill="#EEF0FF" text-anchor="middle">' + s.name + '</text>';
+          h += '<text x="' + s.x + '" y="' + (s.y+20) + '" font-size="9" fill="#EEF0FF" text-anchor="middle">' + escHtml(s.name) + '</text>';
         });
         h += '</svg></div>';
         this.shadowRoot.innerHTML = h;
@@ -1152,15 +1231,15 @@ export const TA_COMPONENTS_CODE = String.raw`
           '</style>';
 
         html += '<div class="widget-dice-pool">' +
-          '<div class="dice-pool-label">' + label + '</div>' +
-          '<div class="dice-pool-expression">' + expression + '</div>' +
+          '<div class="dice-pool-label">' + escHtml(label) + '</div>' +
+          '<div class="dice-pool-expression">' + escHtml(expression) + '</div>' +
           '<div class="dice-pool-clickzone" id="dice-pool-target">' +
             '<div class="dice-pool-canvas-wrap">' +
-              '<canvas id="dice-pool-canvas" width="' + canvasW + '" height="' + canvasH + '" role="img" aria-label="' + label + '. Click to roll the dice pool."></canvas>' +
+              '<canvas id="dice-pool-canvas" width="' + canvasW + '" height="' + canvasH + '" role="img" aria-label="' + escHtml(label + '. Click to roll the dice pool.') + '"></canvas>' +
             '</div>' +
           '</div>' +
           '<div class="dice-pool-hint" id="dice-pool-hint">CLICK THE POOL TO ROLL</div>' +
-          (truncationNote ? '<div class="dice-pool-note">' + truncationNote + '</div>' : '') +
+          (truncationNote ? '<div class="dice-pool-note">' + escHtml(truncationNote) + '</div>' : '') +
           '<div class="dice-pool-result" id="dice-pool-result">' +
             '<div class="dice-pool-total" id="dice-pool-total"></div>' +
             '<div class="dice-pool-modifier" id="dice-pool-modifier"></div>' +
@@ -1253,7 +1332,7 @@ export const TA_COMPONENTS_CODE = String.raw`
                   groupsEl.innerHTML='';
                   results.forEach(function(res){
                     var row=document.createElement('div');row.className='dice-pool-group';
-                    row.innerHTML='<div class="dice-pool-group-label">'+res.count+res.dieType+'</div><div class="dice-pool-group-values">'+res.rolls.join(', ')+(res.rolls.length>1?' = '+res.rolls.reduce(function(a,b){return a+b},0):'')+'</div>';
+                    row.innerHTML='<div class="dice-pool-group-label">'+escHtml(res.count+res.dieType)+'</div><div class="dice-pool-group-values">'+escHtml(res.rolls.join(', ')+(res.rolls.length>1?' = '+res.rolls.reduce(function(a,b){return a+b},0):''))+'</div>';
                     groupsEl.appendChild(row);
                   });
                   resultArea.classList.add('is-visible');
@@ -1272,8 +1351,7 @@ export const TA_COMPONENTS_CODE = String.raw`
     constructor() { super(); this.attachShadow({ mode: 'open' }); }
     connectedCallback() {
       try {
-        var urls = (this.getAttribute('data-css-urls') || '').split(',').filter(Boolean);
-        var cssLinks = urls.map(function(u) { return '<link rel="stylesheet" href="' + u + '">'; }).join('');
+        var cssLinks = cssLinksFromAttr(this.getAttribute('data-css-urls'));
         var hostCss = ':host{display:block;background:var(--sta-bg-primary,#1A1D2E);color:var(--sta-text-primary,#E8E6E3);font-family:var(--sta-font-mono,monospace)}.root{background:inherit;color:inherit}';
         var panelCss = '#panel-overlay{display:none;padding:0}.panel-header{display:flex;align-items:baseline;justify-content:space-between;padding-bottom:10px;margin-bottom:12px;border-bottom:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4))}.panel-title{font-family:var(--sta-font-display,system-ui,sans-serif);font-size:18px;font-weight:600;color:var(--sta-text-primary,#EEF0FF)}.panel-close-btn{font-family:var(--sta-font-mono,monospace);font-size:11px;letter-spacing:0.08em;background:transparent;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:var(--sta-radius-md,6px);padding:8px 14px;min-height:44px;min-width:44px;box-sizing:border-box;color:var(--sta-text-tertiary,#545880);cursor:pointer}.panel-close-btn:hover{border-color:var(--sta-border-secondary,rgba(154,160,192,0.35));color:var(--sta-text-secondary,#9AA0C0)}.panel-content{display:none;font-family:var(--ta-font-body,var(--sta-font-sans,system-ui,-apple-system,sans-serif))}.narrative,.brief-text{font-family:var(--sta-font-serif,Georgia,serif);font-size:var(--sta-text-base,15px);line-height:1.7}.atmo-strip{display:flex;gap:var(--sta-space-sm,8px);flex-wrap:wrap;margin-bottom:var(--sta-space-md,14px)}.atmo-pill{font-family:var(--sta-font-mono,monospace);font-size:var(--sta-text-xs,10px);letter-spacing:0.06em;padding:3px 10px;border-radius:var(--sta-radius-pill,999px);border:var(--sta-border-width,0.5px) solid var(--sta-border-tertiary,rgba(84,88,128,0.4));color:var(--sta-text-tertiary,#545880)}';
         var content = this.innerHTML;
@@ -1299,8 +1377,8 @@ export const TA_COMPONENTS_CODE = String.raw`
 
         const formatRollLabel = function(r) {
           if (r.type === 'encounter_roll') return '<span class="roll-stat">Encounter</span>';
-          if (r.type === 'contested_roll') return '<span class="roll-stat">' + (r.stat || '') + '</span> Check';
-          return '<span class="roll-stat">' + (r.stat || '') + '</span> Hazard Save';
+          if (r.type === 'contested_roll') return '<span class="roll-stat">' + escHtml(r.stat || '') + '</span> Check';
+          return '<span class="roll-stat">' + escHtml(r.stat || '') + '</span> Hazard Save';
         };
 
         const formatRollBreakdown = function(r) {
@@ -1309,9 +1387,9 @@ export const TA_COMPONENTS_CODE = String.raw`
           const tot = Number(r.total) || 0;
           const isSuccess = ['success', 'narrow_success', 'critical_success', 'decisive_success'].indexOf(r.outcome) !== -1;
           const cls = isSuccess ? 'roll-outcome-success' : 'roll-outcome-failure';
-          if (r.type === 'encounter_roll') return 'Roll: ' + rollValue + ' \u2192 <span class="' + cls + '">' + r.outcome + '</span>';
-          if (r.type === 'contested_roll') return rollValue + (mod >= 0 ? '+' : '') + mod + '=' + tot + ' <span class="' + cls + '">' + r.outcome + '</span>';
-          return rollValue + (mod >= 0 ? '+' : '') + mod + '=' + tot + ' vs DC ' + (Number(r.dc) || 0) + ' <span class="' + cls + '">' + r.outcome + '</span>';
+          if (r.type === 'encounter_roll') return 'Roll: ' + rollValue + ' \u2192 <span class="' + cls + '">' + escHtml(r.outcome) + '</span>';
+          if (r.type === 'contested_roll') return rollValue + (mod >= 0 ? '+' : '') + mod + '=' + tot + ' <span class="' + cls + '">' + escHtml(r.outcome) + '</span>';
+          return rollValue + (mod >= 0 ? '+' : '') + mod + '=' + tot + ' vs DC ' + (Number(r.dc) || 0) + ' <span class="' + cls + '">' + escHtml(r.outcome) + '</span>';
         };
 
         var html = '<style>' +
@@ -1339,20 +1417,20 @@ export const TA_COMPONENTS_CODE = String.raw`
         html += '<div class="subtitle">Session recap \u2014 Scene ' + (config.scene || 0) + '</div>';
         
         html += '<div class="section"><div class="label">Character</div><div class="char">';
-        html += '<span class="char-name">' + (config.char?.name || 'Unknown') + '</span>';
-        html += '<span class="char-meta">' + (config.char?.class || '') + ' \u00B7 Lv ' + (config.char?.level || 0) + ' \u00B7 HP ' + (config.char?.hp || 0) + '/' + (config.char?.maxHp || 0) + '</span>';
+        html += '<span class="char-name">' + escHtml(config.char?.name || 'Unknown') + '</span>';
+        html += '<span class="char-meta">' + escHtml(config.char?.class || '') + ' \u00B7 Lv ' + (config.char?.level || 0) + ' \u00B7 HP ' + (config.char?.hp || 0) + '/' + (config.char?.maxHp || 0) + '</span>';
         html += '</div></div>';
 
-        html += '<div class="section"><div class="label">Location</div><div class="location">' + (config.room || 'Unknown') + '</div>';
+        html += '<div class="section"><div class="label">Location</div><div class="location">' + escHtml(config.room || 'Unknown') + '</div>';
         if (config.time) {
-          html += '<div style="font-size:11px;color:var(--sta-text-tertiary, #545880)">' + config.time.period + ' \u2014 ' + config.time.date + '</div>';
+          html += '<div style="font-size:11px;color:var(--sta-text-tertiary, #545880)">' + escHtml(config.time.period) + ' \u2014 ' + escHtml(config.time.date) + '</div>';
         }
         html += '</div>';
 
         if (activeQuests.length) {
           html += '<div class="section"><div class="label">Active Quests (' + activeQuests.length + ')</div>';
           activeQuests.forEach(function(q) {
-            html += '<div class="quest-item"><span class="quest-title">' + q.title + '</span><span class="quest-status quest-active">' + (q.objectives || []).filter(function(o) { return o.completed; }).length + '/' + (q.objectives || []).length + ' objectives</span></div>';
+            html += '<div class="quest-item"><span class="quest-title">' + escHtml(q.title) + '</span><span class="quest-status quest-active">' + (q.objectives || []).filter(function(o) { return o.completed; }).length + '/' + (q.objectives || []).length + ' objectives</span></div>';
           });
           html += '</div>';
         }
@@ -1360,7 +1438,7 @@ export const TA_COMPONENTS_CODE = String.raw`
         if (completedQuests.length) {
           html += '<div class="section"><div class="label">Completed Quests (' + completedQuests.length + ')</div>';
           completedQuests.forEach(function(q) {
-            html += '<div class="quest-item"><span class="quest-title">' + q.title + '</span><span class="quest-status quest-completed">Complete</span></div>';
+            html += '<div class="quest-item"><span class="quest-title">' + escHtml(q.title) + '</span><span class="quest-status quest-completed">Complete</span></div>';
           });
           html += '</div>';
         }
@@ -1402,8 +1480,8 @@ export const TA_COMPONENTS_CODE = String.raw`
           '</style>';
 
         html += '<div class="heading">Act ' + (config.arc || 1) + ' Complete</div>';
-        html += '<div class="subtitle">' + (config.charName || '') + ' \u00B7 Level ' + (config.charLevel || 1) + ' \u00B7 ' + (config.sceneCount || 0) + ' scenes</div>';
-        if (config.summary) html += '<div class="summary">' + config.summary + '</div>';
+        html += '<div class="subtitle">' + escHtml(config.charName || '') + ' \u00B7 Level ' + (config.charLevel || 1) + ' \u00B7 ' + (config.sceneCount || 0) + ' scenes</div>';
+        if (config.summary) html += '<div class="summary">' + escHtml(config.summary) + '</div>';
         html += '<div class="stats">';
         html += '<div class="stat-card"><span class="stat-value">' + (config.sceneCount || 0) + '</span><span class="stat-label">Scenes</span></div>';
         html += '<div class="stat-card"><span class="stat-value">' + (config.questsCompleted || 0) + '/' + (config.questsTotal || 0) + '</span><span class="stat-label">Quests</span></div>';
@@ -1476,13 +1554,13 @@ export const TA_COMPONENTS_CODE = String.raw`
 
         html += '<div class="title">Combat</div>';
         html += '<div class="participants">';
-        html += '<div class="combatant"><div class="name">' + (char.name || 'Player') + '</div><div class="hp">HP ' + (char.hp || 0) + '/' + (char.maxHp || 0) + '</div></div>';
+        html += '<div class="combatant"><div class="name">' + escHtml(char.name || 'Player') + '</div><div class="hp">HP ' + (char.hp || 0) + '/' + (char.maxHp || 0) + '</div></div>';
         html += '<div class="vs">vs</div>';
-        html += '<div class="combatant"><div class="name">' + (npc?.name || 'Enemy') + '</div><div class="hp">HP ' + (npc?.hp || 0) + '/' + (npc?.maxHp || 0) + '</div></div>';
+        html += '<div class="combatant"><div class="name">' + escHtml(npc?.name || 'Enemy') + '</div><div class="hp">HP ' + (npc?.hp || 0) + '/' + (npc?.maxHp || 0) + '</div></div>';
         html += '</div>';
 
         html += '<div class="roll">';
-        html += '<div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--sta-text-tertiary, #545880);margin-bottom:4px">' + (comp.stat || 'STR') + ' Attack</div>';
+        html += '<div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--sta-text-tertiary, #545880);margin-bottom:4px">' + escHtml(comp.stat || 'STR') + ' Attack</div>';
         html += '<div class="breakdown">';
         html += '<span class="val">' + (comp.roll || 0) + '</span>';
         html += '<span class="mod">' + (comp.modifier >= 0 ? '+' : '') + (comp.modifier || 0) + '</span>';
@@ -1497,9 +1575,9 @@ export const TA_COMPONENTS_CODE = String.raw`
         if (isHit && comp.context?.damage) {
           html += '<div class="damage">';
           html += '<div class="dmg-val">' + (isCrit ? comp.context.damage * 2 : comp.context.damage) + ' damage' + (isCrit ? ' (critical)' : '') + '</div>';
-          if (comp.context.damageType) html += '<div class="dmg-type">' + comp.context.damageType + '</div>';
+          if (comp.context.damageType) html += '<div class="dmg-type">' + escHtml(comp.context.damageType) + '</div>';
           if (npc) {
-            html += '<div style="font-size:12px;color:var(--sta-text-secondary, #9AA0C0);margin-top:6px">' + npc.name + ': ' + npc.hp + '/' + npc.maxHp + ' HP</div>';
+            html += '<div style="font-size:12px;color:var(--sta-text-secondary, #9AA0C0);margin-top:6px">' + escHtml(npc.name) + ': ' + npc.hp + '/' + npc.maxHp + ' HP</div>';
             html += '<div class="bar"><div class="fill" style="width:' + (npc.maxHp > 0 ? Math.max(0, Math.round((npc.hp / npc.maxHp) * 100)) : 0) + '%"></div></div>';
           }
           html += '</div>';

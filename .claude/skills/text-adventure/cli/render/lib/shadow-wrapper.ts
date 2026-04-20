@@ -7,7 +7,7 @@
  */
 
 import { CDN_BASE, CSS_MANIFEST, JS_MANIFEST } from '../../../assets/cdn-manifest.ts';
-import { esc } from '../../lib/html';
+import { esc, emitCustomElement } from '../../lib/html';
 
 export type ShadowWrapperOptions = {
   /** Style name matching a key in CSS_MANIFEST (e.g. 'station'). */
@@ -123,7 +123,7 @@ export type RootCustomElementOptions = {
   /** Inner HTML content */
   html?: string;
   /** Attributes to apply to the element */
-  attrs?: Record<string, string>;
+  attrs?: Record<string, unknown>;
   /** CSS files to load from CDN (e.g., ['station', 'common-widget', 'pregame-design']) */
   cssUrls?: string[];
   /** JS files to load from CDN (e.g., ['ta-components']) */
@@ -151,7 +151,13 @@ export function emitRootCustomElement(opts: RootCustomElementOptions): string {
     attrs['data-css-urls'] = resolvedCss.join(',');
   }
 
-  const attrStr = Object.entries(attrs).map(([k, v]) => ` ${k}="${esc(v)}"`).join('');
+  const attrStr = Object.entries(attrs)
+    .filter(([, v]) => v != null && v !== '')
+    .map(([k, v]) => {
+      const strVal = typeof v === 'object' ? JSON.stringify(v) : String(v);
+      return ` ${k}="${esc(strVal)}"`;
+    })
+    .join('');
   
   const fallback = opts.html || `<div style="padding: 20px; font-family: monospace; opacity: 0.6;">Loading ${opts.tag}...</div>`;
   const html = `<${opts.tag}${attrStr}>${fallback}</${opts.tag}>`;
@@ -159,4 +165,38 @@ export function emitRootCustomElement(opts: RootCustomElementOptions): string {
   const scripts = resolvedJs.map(url => `<script src="${url}"></script>`).join('\n');
   
   return scripts ? `${html}\n${scripts}` : html;
+}
+
+export type StandaloneCustomElementOptions = {
+  /** The tag name (e.g., 'ta-dice') */
+  tag: string;
+  /** Active style for standalone renders. Falsy means nested/custom inline usage. */
+  styleName?: string | null;
+  /** Attributes to apply to the custom element. */
+  attrs?: Record<string, unknown>;
+  /** Optional fallback light-DOM HTML shown before the runtime upgrades the element. */
+  html?: string;
+  /** Extra CSS assets beyond the active theme CSS. */
+  cssUrls?: string[];
+  /** JS assets required to hydrate the custom element. Defaults to ta-components. */
+  jsUrls?: string[];
+}
+
+/**
+ * Emit a custom element that works both standalone and nested inside another widget.
+ * Standalone renders include CDN CSS/JS; nested renders return a bare element.
+ */
+export function emitStandaloneCustomElement(opts: StandaloneCustomElementOptions): string {
+  const { tag, styleName, attrs, html, cssUrls, jsUrls } = opts;
+  if (!styleName) {
+    return emitCustomElement(tag, attrs ?? {}, html ?? '');
+  }
+  const rootOpts: RootCustomElementOptions = {
+    tag,
+    cssUrls: [styleName, ...(cssUrls ?? [])],
+    jsUrls: jsUrls ?? ['ta-components'],
+  };
+  if (attrs !== undefined) rootOpts.attrs = attrs;
+  if (html !== undefined) rootOpts.html = html;
+  return emitRootCustomElement(rootOpts);
 }

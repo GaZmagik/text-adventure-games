@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { handleVerify } from './verify';
@@ -86,35 +86,33 @@ describe('tag verify in-game widgets', () => {
     expect(data.failures).toEqual([]);
   });
 
-  test('fails dice verify when continue button is missing', async () => {
+  test('fails dice verify when the ta-dice payload attribute is missing', async () => {
     await setupState();
-    const path = join(tempDir, 'bad-dice.html');
-    writeFileSync(path, `<div class="widget-dice">
-  <div class="cz" id="cz"><canvas id="cv" width="440" height="440"></canvas></div>
-  <div class="ra" id="ra">
-    <div class="rv" id="xv"></div>
-  </div>
-</div>`, 'utf-8');
+    await handleState(['set', '_lastComputation', JSON.stringify({
+      type: 'hazard_save', stat: 'CON', roll: 15, modifier: 2,
+      total: 17, dc: 14, outcome: 'success', margin: 3,
+    })]);
+    const goodPath = await renderToFile(['dice', '--style', 'station'], 'bad-dice.html');
+    const broken = readFileSync(goodPath, 'utf-8').replace(/\sdata-config="[^"]*"/, '');
+    writeFileSync(goodPath, broken, 'utf-8');
+    const path = goodPath;
     const result = await handleVerify(['dice', path]);
     expect(result.ok).toBe(true);
     const data = result.data as { verified: boolean; failures: string[] };
     expect(data.verified).toBe(false);
-    expect(data.failures.some(f => f.includes('dice-continue'))).toBe(true);
+    expect(data.failures.some(f => f.includes('data-config'))).toBe(true);
   });
 
-  test('fails arc-complete verify when one of the expected action prompts is missing', async () => {
+  test('fails arc-complete verify when the ta-arc-complete payload attribute is missing', async () => {
     await setupState();
-    const path = join(tempDir, 'bad-arc-complete.html');
-    writeFileSync(path, `<div class="widget-arc-complete">
-  <div class="arc-actions">
-    <button class="arc-action-btn" data-prompt="Save" title="Save">Save</button>
-    <button class="arc-action-btn" data-prompt="Continue" title="Continue">Continue</button>
-  </div>
-</div>`, 'utf-8');
+    const goodPath = await renderToFile(['arc-complete', '--style', 'station'], 'bad-arc-complete.html');
+    const broken = readFileSync(goodPath, 'utf-8').replace(/\sdata-arc="[^"]*"/, '');
+    writeFileSync(goodPath, broken, 'utf-8');
+    const path = goodPath;
     const result = await handleVerify(['arc-complete', path]);
     expect(result.ok).toBe(true);
     const data = result.data as { verified: boolean; failures: string[] };
     expect(data.verified).toBe(false);
-    expect(data.failures.some(f => f.includes('expected Save, Export, and Continue'))).toBe(true);
+    expect(data.failures.some(f => f.includes('data-arc'))).toBe(true);
   });
 });

@@ -59,6 +59,11 @@ describe('emitCustomElement', () => {
     expect(emitCustomElement('ta-test', {})).toBe('<ta-test></ta-test>');
   });
 
+  test('renders fallback inner HTML when provided', () => {
+    expect(emitCustomElement('ta-test', {}, '<span>Loading</span>'))
+      .toBe('<ta-test><span>Loading</span></ta-test>');
+  });
+
   test('renders attributes properly escaped', () => {
     expect(emitCustomElement('ta-test', { 'data-foo': 'bar "baz"', 'data-x': 42 }))
       .toBe('<ta-test data-foo="bar &quot;baz&quot;" data-x="42"></ta-test>');

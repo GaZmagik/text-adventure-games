@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { handleRender } from '../../commands/render';
 import { createDefaultState, saveState } from '../../lib/state-store';
 import type { GmState } from '../../types';
+import { extractJsonTagAttr } from '../support/rendered-widget';
 
 let tempDir: string;
 const originalEnv = process.env.TAG_STATE_DIR;
@@ -68,10 +69,18 @@ describe('render template smoke via handleRender', () => {
     });
 
     const html = await renderRaw(['character']);
-    expect(html).toContain('inv-item');
-    expect(html).toContain('condition-badge');
-    expect(html).toContain('stat-cell proficient');
-    expect(html).toContain('Quick Draw');
+    const config = extractJsonTagAttr<{
+      name: string;
+      proficiencies: string[];
+      inventory: Array<{ name: string }>;
+      conditions: string[];
+      abilities: string[];
+    }>(html, 'ta-character', 'data-config');
+    expect(config.name).toBe('Kira');
+    expect(config.inventory[0]!.name).toBe('Blaster');
+    expect(config.conditions).toContain('Inspired');
+    expect(config.proficiencies).toContain('Piloting');
+    expect(config.abilities).toContain('Quick Draw');
   });
 
   test('codex widget renders discovery metadata and secret chips', async () => {
@@ -86,10 +95,15 @@ describe('render template smoke via handleRender', () => {
     });
 
     const html = await renderRaw(['codex']);
-    expect(html).toContain('Scene 4');
-    expect(html).toContain('via salvage');
-    expect(html).toContain('codex-secret');
-    expect(html).toContain('Phase Key');
+    const entries = extractJsonTagAttr<Array<{ id: string; discoveredAt?: number; via?: string; secrets?: string[] }>>(
+      html,
+      'ta-codex',
+      'data-entries',
+    );
+    expect(entries[0]!.id).toBe('ancient_beacon');
+    expect(entries[0]!.discoveredAt).toBe(4);
+    expect(entries[0]!.via).toBe('salvage');
+    expect(entries[0]!.secrets).toContain('Phase Key');
   });
 
   test('combat-turn widget accepts top-level data options and renders damage context', async () => {
@@ -149,10 +163,14 @@ describe('render template smoke via handleRender', () => {
     });
 
     const html = await renderRaw(['combat-turn', '--data', '{"combatantCount":3}']);
-    expect(html).toContain('Combat (3 combatants)');
-    expect(html).toContain('Raider');
-    expect(html).toContain('damage (critical)');
-    expect(html).toContain('fire');
+    const combat = extractJsonTagAttr<{
+      computation: { context?: { damage?: number; damageType?: string }; npcId?: string };
+      roster: Array<{ name: string }>;
+    }>(html, 'ta-combat-turn', 'data-combat');
+    expect(combat.roster[0]!.name).toBe('Raider');
+    expect(combat.computation.context?.damage).toBe(5);
+    expect(combat.computation.context?.damageType).toBe('fire');
+    expect(combat.computation.npcId).toBe('raider_1');
   });
 
   test('dialogue widget accepts npcId via --data and renders explicit choices', async () => {
@@ -233,9 +251,15 @@ describe('render template smoke via handleRender', () => {
     });
 
     const html = await renderRaw(['map']);
-    expect(html).toContain('Supplies');
-    expect(html).toContain('Rations');
-    expect(html).not.toContain('<div class="map-section-label">Doors</div>');
+    const map = extractJsonTagAttr<{
+      current: string;
+      supplies: { rations: number; water: number };
+      doorStates: Record<string, string>;
+    }>(html, 'ta-map', 'data-map');
+    expect(map.current).toBe('Docking Bay');
+    expect(map.supplies.rations).toBe(3);
+    expect(map.supplies.water).toBe(5);
+    expect(map.doorStates).toEqual({});
   });
 
   test('recap widget renders active quests, completed quests, and mixed roll types', async () => {
@@ -291,15 +315,17 @@ describe('render template smoke via handleRender', () => {
     });
 
     const html = await renderRaw(['recap']);
-    expect(html).toContain('Active Quests (1)');
-    expect(html).toContain('Completed Quests (1)');
-    expect(html).toContain('Encounter');
-    expect(html).toContain('Warden Sile');
-    expect(html).toContain('12+3=15 vs DC 14');
-    expect(html).not.toContain('contested_roll');
-    expect(html).not.toContain('vs DC 0');
-    expect(html).toContain('roll-outcome-success');
-    expect(html).toContain('roll-outcome-failure');
+    const recap = extractJsonTagAttr<{
+      room: string;
+      quests: Array<{ title: string; status: string }>;
+      rolls: Array<Record<string, unknown>>;
+    }>(html, 'ta-recap', 'data-recap');
+    expect(recap.room).toBe('Bridge');
+    expect(recap.quests.filter(quest => quest.status === 'active')).toHaveLength(1);
+    expect(recap.quests.filter(quest => quest.status === 'completed')).toHaveLength(1);
+    expect(recap.rolls).toHaveLength(3);
+    expect(recap.rolls.some(roll => roll.npcId === 'warden_01')).toBe(true);
+    expect(recap.rolls.some(roll => roll.dc === 14)).toBe(true);
   });
 
   test('settings widget supports aliases and extracts ids, labels, and names from option objects', async () => {
@@ -310,10 +336,16 @@ describe('render template smoke via handleRender', () => {
       '--data',
       '{"rules":["core",{"id":"narrative_engine"}],"difficulty":["easy",{"label":"story"}],"pacing":["fast"],"styles":["terminal"],"activeModules":["audio",{"name":"crew-manifest"}],"defaults":{"difficulty":"easy"}}',
     ]);
-    expect(html).toContain('data-value="narrative_engine"');
-    expect(html).toContain('data-value="story"');
-    expect(html).toContain('data-value="crew-manifest"');
-    expect(html).toContain('var selections = {"difficulty":"easy"}');
+    const config = extractJsonTagAttr<{
+      rulebooks: string[];
+      difficulties: string[];
+      modules: string[];
+      defaults: { difficulty: string };
+    }>(html, 'ta-settings', 'data-config');
+    expect(config.rulebooks).toContain('narrative_engine');
+    expect(config.difficulties).toContain('story');
+    expect(config.modules).toContain('crew-manifest');
+    expect(config.defaults.difficulty).toBe('easy');
   });
 
   test('starchart widget renders plotted course steps', async () => {
@@ -324,48 +356,63 @@ describe('render template smoke via handleRender', () => {
     });
 
     const html = await renderRaw(['starchart']);
-    expect(html).toContain('course-list');
-    expect(html).toContain('Barnards Star');
-    expect(html).toContain('step-current');
+    const chart = extractJsonTagAttr<{
+      current: string;
+      systems: Array<{ name: string }>;
+      plottedCourse: string[];
+    }>(html, 'ta-starchart', 'data-chart');
+    expect(chart.current).toBe('Sol');
+    expect(chart.systems.some(system => system.name === 'Barnards Star')).toBe(true);
+    expect(chart.plottedCourse).toEqual(['Sol', 'Barnards Star', 'Sirius']);
   });
 
   test('character-creation widget supports alias fields and default names', async () => {
     const empty = await renderRaw(['character-creation']);
-    expect(empty).toContain('Create Your Character');
-    expect(empty).not.toContain('<button class="archetype-card"');
-    expect(empty).toContain('Athletics');
-    expect(empty).toContain('Stealth');
-    expect(empty).toContain('confirm-btn');
+    const emptyConfig = extractJsonTagAttr<{
+      archetypes: unknown[];
+      proficiencies: string[];
+      defaultName: string;
+    }>(empty, 'ta-character-creation', 'data-config');
+    expect(empty).toContain('<ta-character-creation');
+    expect(emptyConfig.archetypes).toEqual([]);
+    expect(emptyConfig.proficiencies).toContain('Athletics');
+    expect(emptyConfig.proficiencies).toContain('Stealth');
+    expect(emptyConfig.defaultName).toBe('');
 
     const html = await renderRaw([
       'character-creation',
       '--data',
       '{"defaultName":"Nova","archetypes":[{"name":"Saboteur","flavour":"Covert specialist","baseStats":{"DEX":16,"INT":14},"equipment":["Wire kit"],"fixedProficiencies":["Stealth"],"hp":8,"ac":13}],"proficiencies":["Stealth","Hacking"]}',
     ]);
-    expect(html).toContain('value="Nova"');
-    expect(html).toContain('Covert specialist');
-    expect(html).toContain('DEX 16');
-    expect(html).toContain('Wire kit');
-    expect(html).toContain('Proficiencies: Stealth');
+    const config = extractJsonTagAttr<{
+      defaultName: string;
+      archetypes: Array<Record<string, unknown>>;
+      proficiencies: string[];
+    }>(html, 'ta-character-creation', 'data-config');
+    expect(config.defaultName).toBe('Nova');
+    expect(config.archetypes[0]!.name).toBe('Saboteur');
+    expect(config.archetypes[0]!.flavour).toBe('Covert specialist');
+    expect((config.archetypes[0]!.baseStats as Record<string, number>).DEX).toBe(16);
+    expect(config.proficiencies).toEqual(['Stealth', 'Hacking']);
   });
 
   test('scenario-select widget covers empty state, hook fallback, and prompt wiring', async () => {
     const empty = await renderRaw(['scenario-select']);
-    expect(empty).toContain('empty-scenarios');
-    expect(empty).toContain('No scenarios provided');
-    expect(empty).toContain('--data');
+    const emptyScenarios = extractJsonTagAttr<unknown[]>(empty, 'ta-scenario-select', 'data-scenarios');
+    expect(empty).toContain('<ta-scenario-select');
+    expect(emptyScenarios).toEqual([]);
 
     const html = await renderRaw([
       'scenario-select',
       '--data',
       '{"scenarios":[{"title":"Cold Freight","description":"A chilling mystery","genre":["survival","mystery"],"difficulty":"normal"},{"title":"The Grit Anvil","hook":"Something is not rock","genres":["horror"],"players":"1-3"},{"title":"Hook Test","hook":"Hook text here"}]}',
     ]);
-    expect(html).toContain('Cold Freight');
-    expect(html).toContain('The Grit Anvil');
-    expect(html).toContain('genre-pill');
-    expect(html).toContain('survival');
-    expect(html).toContain('Hook text here');
-    expect(html).toContain('I choose scenario: The Grit Anvil');
+    const scenarios = extractJsonTagAttr<Array<Record<string, unknown>>>(html, 'ta-scenario-select', 'data-scenarios');
+    expect(scenarios.map(scenario => scenario.title)).toEqual(['Cold Freight', 'The Grit Anvil', 'Hook Test']);
+    expect(scenarios[0]!.genre).toEqual(['survival', 'mystery']);
+    expect(scenarios[1]!.hook).toBe('Something is not rock');
+    expect(scenarios[1]!.players).toBe('1-3');
+    expect(scenarios[2]!.hook).toBe('Hook text here');
   });
 
   test('crew widget renders idle, injured, and dead states with clamped bars', async () => {
@@ -397,10 +444,16 @@ describe('render template smoke via handleRender', () => {
     });
 
     const html = await renderRaw(['crew']);
-    expect(html).toContain('Idle');
-    expect(html).toContain('badge-warn');
-    expect(html).toContain('badge-danger');
-    expect(html).toContain('Morale: 100%');
-    expect(html).toContain('Stress: 0%');
+    const crew = extractJsonTagAttr<Array<{ name: string; morale: number; stress: number; status: string }>>(
+      html,
+      'ta-crew',
+      'data-crew',
+    );
+    expect(crew).toHaveLength(2);
+    expect(crew[0]!.name).toBe('Mara');
+    expect(crew[0]!.morale).toBe(140);
+    expect(crew[0]!.stress).toBe(-5);
+    expect(crew[0]!.status).toBe('injured');
+    expect(crew[1]!.status).toBe('dead');
   });
 });

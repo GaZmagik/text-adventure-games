@@ -34,6 +34,9 @@ const OPTIONAL_SECTIONS = ['Encounter Tables', 'Loot and Rewards', 'Faction Dyna
 
 // ── Check 1: Frontmatter presence ───────────────────────────────────
 
+/**
+ * Check 1: Verifies that the file begins with a YAML frontmatter block.
+ */
 export function checkLoreFrontmatterPresent(content: string, failures: string[]): boolean {
   const hasFm = /^---\n[\s\S]*?\n---/.test(content);
   if (!hasFm) {
@@ -45,6 +48,9 @@ export function checkLoreFrontmatterPresent(content: string, failures: string[])
 
 // ── Check 2: Required frontmatter fields ────────────────────────────
 
+/**
+ * Check 2: Verifies that all mandatory frontmatter fields are present.
+ */
 export function checkLoreFrontmatterFields(fm: LoreFrontmatter, failures: string[]): void {
   for (const field of REQUIRED_FIELDS) {
     const value = fm[field];
@@ -56,6 +62,9 @@ export function checkLoreFrontmatterFields(fm: LoreFrontmatter, failures: string
 
 // ── Check 3: Frontmatter value validation ───────────────────────────
 
+/**
+ * Check 3: Validates the format, version, rulebook, and style values.
+ */
 export function checkLoreFrontmatterValues(fm: LoreFrontmatter, failures: string[]): void {
   if (fm.format !== undefined && fm.format !== 'text-adventure-lore') {
     failures.push(`Invalid format: "${fm.format}" — expected "text-adventure-lore".`);
@@ -102,6 +111,9 @@ export function checkLoreFrontmatterValues(fm: LoreFrontmatter, failures: string
 
 // ── Check 4: Export-specific fields ─────────────────────────────────
 
+/**
+ * Check 4: Verifies metadata consistency for lore files exported from live sessions.
+ */
 export function checkLoreExportFields(fm: LoreFrontmatter, failures: string[]): void {
   if (!fm.exported) return;
 
@@ -115,6 +127,9 @@ export function checkLoreExportFields(fm: LoreFrontmatter, failures: string[]): 
 
 // ── Check 5: Pre-generated characters ───────────────────────────────
 
+/**
+ * Check 5: Validates the schema of any pre-generated character options.
+ */
 export function checkLorePregenCharacters(fm: LoreFrontmatter, failures: string[]): void {
   if (!fm.preGeneratedCharacters || !Array.isArray(fm.preGeneratedCharacters) || fm.preGeneratedCharacters.length === 0) {
     return;
@@ -159,6 +174,12 @@ function extractSectionContent(content: string, sectionName: string): string | n
   return sectionText;
 }
 
+/**
+ * Check 6: Verifies the presence and content of required markdown headings.
+ * @remarks
+ * If a Base64 LORE payload is present, body sections are optional as 
+ * the engine will prioritise the encoded data.
+ */
 export function checkLoreBodySections(
   content: string,
   fm: LoreFrontmatter,
@@ -196,6 +217,9 @@ export function checkLoreBodySections(
 
 // ── Check 7: Embedded LORE payload ──────────────────────────────────
 
+/**
+ * Check 7: Locates and validates the embedded Base64 LORE payload comment.
+ */
 export function checkLorePayload(
   content: string,
   failures: string[],
@@ -215,13 +239,27 @@ export function checkLorePayload(
 
 // ── Orchestrator ────────────────────────────────────────────────────
 
+/** Result of a comprehensive lore file verification. */
 export type LoreVerifyResult = {
   failures: string[];
   warnings: string[];
+  /** Total number of check phases completed. */
   checks: number;
+  /** The parsed frontmatter, if available. */
   frontmatter: LoreFrontmatter | null;
 };
 
+/**
+ * Runs a full suite of structural and semantic checks on a .lore.md file.
+ * 
+ * @param {string} content - Raw Markdown content of the lore file.
+ * @returns {LoreVerifyResult} - Aggregated failures and warnings.
+ * 
+ * @remarks
+ * This is the primary entry point for world-file validation.
+ * It enforces the "Text Adventure Lore" standard, ensuring that shared 
+ * worlds are both human-readable and machine-parsable.
+ */
 export function verifyLoreFile(content: string): LoreVerifyResult {
   const failures: string[] = [];
   const warnings: string[] = [];

@@ -11,12 +11,23 @@ export type { LoreFrontmatter } from './lore-frontmatter';
 
 // ── Types ────────────────────────────────────────────────────────────
 
+/** 
+ * Summary of the player character that was active at the time of export. 
+ */
 export type PreviousAdventurer = {
   name: string;
   class: string;
   level: number;
 } | null;
 
+/** 
+ * The mechanical data payload embedded in a .lore.md file. 
+ * 
+ * @remarks
+ * This object is serialised to Base64 and embedded in an HTML comment 
+ * (LF1 format) at the end of the exported file. It contains the minimum 
+ * state required to reconstruct the world for a new player.
+ */
 export type LoreMechanicalData = {
   _loreVersion: 1;
   _schemaVersion: string;
@@ -52,7 +63,9 @@ export type LoreMechanicalData = {
 
 // ── YAML escaping ───────────────────────────────────────────────────
 
-/** Escape a value for safe YAML frontmatter interpolation. */
+/** 
+ * Escape a value for safe YAML frontmatter interpolation. 
+ */
 function yamlSafe(value: string): string {
   if (/^[a-zA-Z0-9._\-]+$/.test(value)) return value;
   return '"' + value.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n') + '"';
@@ -60,6 +73,9 @@ function yamlSafe(value: string): string {
 
 // ── Faction label thresholds ─────────────────────────────────────────
 
+/**
+ * Maps a numeric faction standing to a human-readable label.
+ */
 function factionLabel(standing: number): string {
   if (standing < -50) return 'hostile';
   if (standing < -20) return 'unfriendly';
@@ -70,6 +86,19 @@ function factionLabel(standing: number): string {
 
 // ── extractMechanicalData ────────────────────────────────────────────
 
+/**
+ * Extracts the world-sharing data from a live GmState.
+ * 
+ * @param {GmState} state - The current game state.
+ * @returns {LoreMechanicalData} - The stripped world data.
+ * 
+ * @remarks
+ * This function handles the "World Export" logic:
+ * 1. Captures character info as `previousAdventurer`.
+ * 2. Resets all codex entries to `locked` (for discovery by the new player).
+ * 3. Resets map visibility (`visitedZones`).
+ * 4. Preserves NPCs, Factions, Quests, and World Flags.
+ */
 export function extractMechanicalData(state: GmState): LoreMechanicalData {
   const previousAdventurer: PreviousAdventurer = state.character
     ? { name: state.character.name, class: state.character.class, level: state.character.level }
@@ -124,14 +153,21 @@ export function extractMechanicalData(state: GmState): LoreMechanicalData {
 
 // ── encodeLorePayload ────────────────────────────────────────────────
 
+/**
+ * Encodes mechanical data into a Base64-packed LF1 string.
+ */
 export function encodeLorePayload(data: LoreMechanicalData): string {
   return 'LF1:' + Buffer.from(JSON.stringify(data), 'utf-8').toString('base64');
 }
 
 // ── extractLorePayload ───────────────────────────────────────────────
 
+/** Regular expression for finding the embedded lore comment. */
 const RE_LORE_PAYLOAD = /<!--\s*LORE:([\da-fA-F]{8}\.LF\d+:[\S]+)\s*-->/;
 
+/**
+ * Extracts the raw LF1 payload string from a markdown file's comments.
+ */
 export function extractLorePayload(content: string): string | null {
   const match = content.match(RE_LORE_PAYLOAD);
   return match ? match[1]! : null;
@@ -139,6 +175,9 @@ export function extractLorePayload(content: string): string | null {
 
 // ── extractFrontmatterField ──────────────────────────────────────────
 
+/**
+ * Naively extracts a single field value from YAML frontmatter.
+ */
 export function extractFrontmatterField(content: string, field: string): string | null {
   const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
   if (!fmMatch) return null;
@@ -156,6 +195,7 @@ export function extractFrontmatterField(content: string, field: string): string 
 
 // ── buildLoreMarkdown ────────────────────────────────────────────────
 
+/** Builds the YAML frontmatter for the lore export. */
 function buildFrontmatter(state: GmState): string {
   const now = new Date().toISOString();
   const title = state.theme
@@ -201,6 +241,7 @@ function buildFrontmatter(state: GmState): string {
   return lines.join('\n');
 }
 
+/** Builds the 'Previous Adventurer' section. */
 function buildPreviousAdventurer(state: GmState): string {
   const lines = ['## Previous Adventurer', ''];
   if (state.character) {
@@ -212,6 +253,7 @@ function buildPreviousAdventurer(state: GmState): string {
   return lines.join('\n');
 }
 
+/** Builds the 'Location Atlas' section from map state. */
 function buildLocationAtlas(state: GmState): string {
   const lines = ['## Location Atlas', ''];
   if (state.mapState) {
@@ -229,6 +271,7 @@ function buildLocationAtlas(state: GmState): string {
   return lines.join('\n');
 }
 
+/** Builds the 'NPC Roster' section. */
 function buildNpcRoster(state: GmState): string {
   const lines = ['## NPC Roster', ''];
   if (state.rosterMutations.length === 0) {
@@ -261,6 +304,7 @@ function buildNpcRoster(state: GmState): string {
   return lines.join('\n');
 }
 
+/** Builds the 'Story Spine' section from quest data. */
 function buildStorySpine(state: GmState): string {
   const lines = ['## Story Spine', ''];
   if (state.quests.length === 0) {
@@ -288,6 +332,7 @@ function buildStorySpine(state: GmState): string {
   return lines.join('\n');
 }
 
+/** Builds the 'Faction Dynamics' section. */
 function buildFactionDynamics(state: GmState): string {
   const lines = ['## Faction Dynamics', ''];
   const entries = Object.entries(state.factions);
@@ -304,6 +349,7 @@ function buildFactionDynamics(state: GmState): string {
   return lines.join('\n');
 }
 
+/** Builds the 'Codex Entries' section. */
 function buildCodexEntries(state: GmState): string {
   const lines = ['## Codex Entries', ''];
   if (state.codexMutations.length === 0) {
@@ -319,6 +365,12 @@ function buildCodexEntries(state: GmState): string {
   return lines.join('\n');
 }
 
+/**
+ * Builds the complete human-readable .lore.md content.
+ * 
+ * @param {GmState} state - The game state to export.
+ * @returns {string} - Full Markdown content with YAML frontmatter.
+ */
 export function buildLoreMarkdown(state: GmState): string {
   const sections = [
     buildFrontmatter(state),

@@ -5,8 +5,11 @@
 import { hasValidRenderOrigin } from './render-origin';
 import type { GmState } from '../types';
 
-// ── Types ────────────────���───────────────────────────────────────────
+// ── Types ────────────────────────────────────────────────────────────
 
+/** 
+ * Represents a DOM element with a `data-prompt` attribute. 
+ */
 export type PromptElement = {
   markup: string;
   prompt: string;
@@ -15,6 +18,9 @@ export type PromptElement = {
   classes: string[];
 };
 
+/** 
+ * Represents a `<button>` element with associated metadata. 
+ */
 export type ButtonElement = {
   markup: string;
   text: string;
@@ -29,6 +35,11 @@ export type ButtonElement = {
 
 /** Cache for single-match (i flag) attribute regexes used by extractAttr. */
 const _attrRegexCache = new Map<string, RegExp>();
+
+/**
+ * Returns a cached regular expression for matching a specific HTML attribute.
+ * @param {string} name - Attribute name.
+ */
 function getAttrRegex(name: string): RegExp {
   let re = _attrRegexCache.get(name);
   if (!re) {
@@ -38,11 +49,20 @@ function getAttrRegex(name: string): RegExp {
   return re;
 }
 
+/**
+ * Extracts a single attribute value from an HTML tag string.
+ * @param {string} markup - The HTML tag string.
+ * @param {string} name - The attribute name.
+ * @returns {string | null} - The attribute value, or null if not found.
+ */
 export function extractAttr(markup: string, name: string): string | null {
   const match = getAttrRegex(name).exec(markup);
   return match?.[2] ?? null;
 }
 
+/**
+ * Unescapes HTML entities in a string.
+ */
 function unesc(s: string | null): string {
   if (s == null) return '';
   return s
@@ -58,6 +78,11 @@ function isJsArtifact(value: string): boolean {
   return /['"+]/.test(value);
 }
 
+/**
+ * Extracts all values of a specific attribute from an HTML string.
+ * @param {string} html - The HTML string.
+ * @param {string} name - The attribute name.
+ */
 export function extractAttributeValues(html: string, name: string): string[] {
   const values: string[] = [];
   const pattern = new RegExp(`\\b${name}\\s*=\\s*(['"])(.*?)\\1`, 'gi');
@@ -68,6 +93,11 @@ export function extractAttributeValues(html: string, name: string): string[] {
   return values;
 }
 
+/**
+ * Extracts the full content of a `div` block by its `id`, handling nested divs.
+ * @param {string} html - The HTML string.
+ * @param {string} id - The ID to search for.
+ */
 export function extractDivBlockById(html: string, id: string): string | null {
   const opener = new RegExp(`<div\\b[^>]*\\bid\\s*=\\s*(['"])${id}\\1[^>]*>`, 'i').exec(html);
   if (!opener || opener.index === undefined) return null;
@@ -86,6 +116,9 @@ export function extractDivBlockById(html: string, id: string): string | null {
   return null;
 }
 
+/**
+ * Extracts the first `div` block matching a class name, handling nested divs.
+ */
 export function extractDivBlockByClass(html: string, className: string): string | null {
   const escaped = className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const opener = new RegExp(`<div\\b[^>]*\\bclass\\s*=\\s*(['"])[^'"]*\\b${escaped}\\b[^'"]*\\1[^>]*>`, 'i').exec(html);
@@ -105,6 +138,9 @@ export function extractDivBlockByClass(html: string, className: string): string 
   return null;
 }
 
+/**
+ * Extracts a `div` block that has a specific `data-panel` attribute.
+ */
 export function extractPanelContent(html: string, panelName: string): string | null {
   const escaped = panelName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const opener = new RegExp(`<div\\b[^>]*\\bdata-panel\\s*=\\s*(['"])${escaped}\\1[^>]*>`, 'i').exec(html);
@@ -124,6 +160,9 @@ export function extractPanelContent(html: string, panelName: string): string | n
   return null;
 }
 
+/**
+ * Strips HTML tags and comments from a string, returning plain text.
+ */
 export function stripHtml(raw: string): string {
   return raw
     .replace(/<!--[\s\S]*?-->/g, ' ')
@@ -132,11 +171,17 @@ export function stripHtml(raw: string): string {
     .trim();
 }
 
+/**
+ * Counts occurrences of a specific class name in an HTML string.
+ */
 export function countClassOccurrences(html: string, className: string): number {
   const pattern = new RegExp(`class\\s*=\\s*(['"])[^'"]*\\b${className}\\b(?!-)[^'"]*\\1`, 'gi');
   return [...html.matchAll(pattern)].length;
 }
 
+/**
+ * Extracts all `<button>` elements and their metadata from an HTML string.
+ */
 export function extractButtonElements(html: string): ButtonElement[] {
   const buttons: ButtonElement[] = [];
   const pattern = /<button\b[^>]*>[\s\S]*?<\/button>/gi;
@@ -157,6 +202,9 @@ export function extractButtonElements(html: string): ButtonElement[] {
   return buttons;
 }
 
+/**
+ * Extracts all elements carrying a `data-prompt` attribute.
+ */
 export function extractPromptElements(html: string): PromptElement[] {
   const promptElements: PromptElement[] = [];
   const pattern = /<[a-zA-Z][\w:-]*\b[^>]*\bdata-prompt\s*=\s*(['"])(.*?)\1[^>]*>/g;
@@ -175,12 +223,20 @@ export function extractPromptElements(html: string): PromptElement[] {
   return promptElements;
 }
 
+/**
+ * Extracts only buttons that have the `action-card` class.
+ */
 export function extractActionButtons(html: string): ButtonElement[] {
   return extractButtonElements(html).filter(button => button.classes.includes('action-card'));
 }
 
-// ── Shared check functions ─────────────��─────────────────────────────
+// ── Shared check functions ───────────────────────────────────────────
 
+/** 
+ * Detects common JS serialisation failures in the HTML. 
+ * @remarks
+ * See gotcha-object-object-serialisation-failure.md.
+ */
 export function checkBrokenSerialisation(html: string, failures: string[]): void {
   const count = (html.match(/\[object Object\]/g) ?? []).length;
   if (count > 0) {
@@ -194,6 +250,9 @@ export function checkBrokenSerialisation(html: string, failures: string[]): void
 
 const VALID_VAR_PREFIXES = ['--sta-', '--ta-'];
 
+/** 
+ * Enforces use of the engine's standard CSS variable prefixes. 
+ */
 export function checkCssVariables(html: string, failures: string[]): void {
   const hits = html.matchAll(/var\(\s*(--[a-zA-Z][\w-]*)/g);
   const locallyDefined = new Set(
@@ -216,6 +275,11 @@ export function checkCssVariables(html: string, failures: string[]): void {
   }
 }
 
+/** 
+ * Disallows inline `onclick` handlers, enforcing the `data-prompt` pattern. 
+ * @remarks
+ * Inline handlers break on special characters and are prohibited by the security policy.
+ */
 export function checkInlineOnclick(html: string, failures: string[]): void {
   const onclickCount = (html.match(/\bonclick\s*=\s*['"]/gi) ?? []).length;
   if (onclickCount > 0) {
@@ -226,6 +290,9 @@ export function checkInlineOnclick(html: string, failures: string[]): void {
   }
 }
 
+/** 
+ * Ensures all `data-prompt` buttons have a `title` attribute for manual fallback. 
+ */
 export function checkSendPromptFallback(html: string, failures: string[]): void {
   const promptButtons = extractPromptElements(html);
   const missingFallback = promptButtons.filter(btn => (btn.title?.length ?? 0) < 10);
@@ -245,9 +312,10 @@ const VERIFY_RENDER_TYPE_MAP: Record<string, string> = {
   character: 'character-creation',
 };
 
-// Widget types that are emitted as self-bootstrapping custom elements (<ta-*>).
-// These widgets don't contain an explicit shadow-host + attachShadow script;
-// the ta-components.js runtime handles Shadow DOM construction internally.
+/** 
+ * Widget types that are emitted as self-bootstrapping custom elements (<ta-*>).
+ * These widgets don't contain an explicit shadow-host + attachShadow script.
+ */
 const CUSTOM_ELEMENT_WIDGETS = new Set([
   'dialogue', 'levelup', 'ticker', 'footer',
   'scenario-select', 'settings', 'character-creation',
@@ -256,6 +324,12 @@ const CUSTOM_ELEMENT_WIDGETS = new Set([
   'dice-pool', 'scene',
 ]);
 
+/**
+ * Verifies that the widget was produced by the official rendering engine.
+ * @remarks
+ * Every widget must carry a signed `render-origin` comment.
+ * This prevents GMs from bypassing validation gates with hand-coded HTML.
+ */
 export function checkShadowRenderOrigin(widgetType: string, html: string, failures: string[]): void {
   const renderWidgetType = VERIFY_RENDER_TYPE_MAP[widgetType] ?? widgetType;
   if (!hasValidRenderOrigin(renderWidgetType, html)) {
@@ -278,6 +352,9 @@ export function checkShadowRenderOrigin(widgetType: string, html: string, failur
 
 // ── Pre-game widget checks ──────────────────────────────────────────
 
+/** 
+ * Generic checks for pre-game configuration widgets (Settings, Scenario, CharCreate). 
+ */
 export function checkPreGameWidget(html: string, failures: string[]): void {
   const isSettings = html.includes('widget-settings') || html.includes('settings-confirm');
   const isScenario = html.includes('scenario-card') || html.includes('scenario-select');
@@ -308,6 +385,9 @@ export function checkPreGameWidget(html: string, failures: string[]): void {
   }
 }
 
+/** 
+ * Specific verification for the scenario selection widget. 
+ */
 export function checkScenarioWidget(html: string, failures: string[]): void {
   checkShadowRenderOrigin('scenario', html, failures);
   checkBrokenSerialisation(html, failures);
@@ -439,6 +519,9 @@ export function checkSettingsValues(html: string, failures: string[]): void {
   }
 }
 
+/** 
+ * Specific verification for the settings configuration widget. 
+ */
 export function checkRulesWidget(html: string, failures: string[]): void {
   checkShadowRenderOrigin('rules', html, failures);
   checkBrokenSerialisation(html, failures);
@@ -496,6 +579,9 @@ export function checkRulesWidget(html: string, failures: string[]): void {
   checkSettingsValues(html, failures);
 }
 
+/** 
+ * Specific verification for the character creation widget. 
+ */
 export function checkCharacterWidget(html: string, failures: string[], state?: { modulesActive?: string[]; _loreSource?: string; _lorePregen?: unknown[] } | null): void {
   checkShadowRenderOrigin('character', html, failures);
   checkBrokenSerialisation(html, failures);
@@ -581,7 +667,7 @@ export function checkCharacterWidget(html: string, failures: string[], state?: {
   }
 }
 
-// ��─ In-game (non-scene) widget checks ────────────────────────────────
+// ── In-game (non-scene) widget checks ────────────────────────────────
 
 export const IN_GAME_WIDGET_MARKERS: Record<string, string[]> = {
   dice: ['ta-dice'],
@@ -602,6 +688,27 @@ export const IN_GAME_WIDGET_MARKERS: Record<string, string[]> = {
   'save-div': ['id="save-data"', 'data-payload='],
 };
 
+const IN_GAME_WIDGET_REQUIRED_ATTRS: Record<string, string[]> = {
+  dice: ['data-config'],
+  'dice-pool': ['data-config'],
+  dialogue: ['data-speaker'],
+  levelup: ['data-char-name', 'data-level'],
+  recap: ['data-recap'],
+  'arc-complete': ['data-arc'],
+  'combat-turn': ['data-combat'],
+  ticker: ['data-period', 'data-date'],
+  character: ['data-config'],
+  ship: ['data-ship'],
+  crew: ['data-crew'],
+  codex: ['data-entries'],
+  map: ['data-map'],
+  starchart: ['data-chart'],
+  footer: ['data-modules', 'data-save-prompt'],
+};
+
+/** 
+ * Verification logic for simple in-game data widgets (Dice, Ticker, etc.). 
+ */
 export function checkInGameWidget(widgetType: string, html: string, failures: string[]): void {
   checkShadowRenderOrigin(widgetType, html, failures);
   checkBrokenSerialisation(html, failures);
@@ -619,6 +726,13 @@ export function checkInGameWidget(widgetType: string, html: string, failures: st
     }
   }
 
+  const requiredAttrs = IN_GAME_WIDGET_REQUIRED_ATTRS[widgetType] ?? [];
+  for (const attr of requiredAttrs) {
+    if (!html.includes(attr + '=')) {
+      failures.push(`Missing ${widgetType} data attribute "${attr}" — widget output looks incomplete or hand-modified.`);
+    }
+  }
+
   if (widgetType === 'dice' && !html.includes('<ta-dice')) {
     failures.push('Dice widget missing <ta-dice> custom element.');
   }
@@ -630,6 +744,7 @@ export function checkInGameWidget(widgetType: string, html: string, failures: st
 
 // ── Scene-level structural checks ────────────────────────────────────
 
+/** Ensures all SVGs have a viewBox for cross-device scaling. */
 export function checkSvgViewBox(html: string, failures: string[]): void {
   const svgTags = [...html.matchAll(/<svg\b([^>]*)>/gi)];
   const missing = svgTags.filter(m => {
@@ -646,6 +761,7 @@ export function checkSvgViewBox(html: string, failures: string[]): void {
   }
 }
 
+/** Ensures level-up choices are present in the HTML when a level-up is pending. */
 export function checkPendingLevelUp(html: string, failures: string[], state: GmState): void {
   if (!state._levelupPending) return;
   const hasLevelUpChoice =
@@ -659,6 +775,7 @@ export function checkPendingLevelUp(html: string, failures: string[], state: GmS
   }
 }
 
+/** Checks for scenario cards missing visual identity assets (accents/logos). */
 export function checkScenarioCardMeta(html: string, failures: string[]): void {
   const cardCount = countClassOccurrences(html, 'scenario-card');
   if (cardCount === 0) return;
@@ -683,6 +800,7 @@ export function checkScenarioCardMeta(html: string, failures: string[]): void {
   }
 }
 
+/** Verifies the presence of the TTS component when the audio module is active. */
 export function checkTtsComponent(html: string, failures: string[], state: GmState): void {
   if (!state.modulesActive?.includes('audio')) return;
   if (!/<ta-tts\b/i.test(html)) {

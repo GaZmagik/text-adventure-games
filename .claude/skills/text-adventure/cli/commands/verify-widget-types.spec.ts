@@ -250,7 +250,7 @@ describe('verify: broken serialisation still caught for non-scene widgets', () =
     const data = result.data as Record<string, unknown>;
     expect(data.verified).toBe(false);
     const failures = data.failures as string[];
-    expect(failures.some(f => f.includes('id="ra"'))).toBe(true);
+    expect(failures.some(f => f.includes('<ta-dice> custom element'))).toBe(true);
   });
 
   test('save-div widget fails when payload container is missing', async () => {

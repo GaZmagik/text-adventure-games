@@ -14,6 +14,7 @@ import { TIER1_MODULES } from '../lib/constants';
 import {
   extractDivBlockById,
   extractDivBlockByClass,
+  extractAttr,
   extractButtonElements,
   extractPromptElements,
   extractActionButtons,
@@ -105,25 +106,56 @@ export function getNeedsVerifyPath(): string {
 }
 
 function checkFooter(html: string, state: GmState, failures: string[]): void {
-  const footerMatch = /<ta-footer\b([^>]*)>/i.exec(html);
+  const footerMatch = /<ta-footer\b([^>]*)>([\s\S]*?)<\/ta-footer>/i.exec(html);
   if (!footerMatch) {
     failures.push('Missing footer (<ta-footer>) — required for panel, save, and export controls.');
     return;
   }
 
   const attrStr = footerMatch[1] ?? '';
+  const footerInner = footerMatch[2] ?? '';
+  const footerButtons = extractButtonElements(footerInner);
+  const panelButtons = footerButtons.filter(button => button.dataPanel !== null);
+  if (footerButtons.length === 0) {
+    failures.push('Footer fallback markup is missing button controls — ta-footer must include inspectable buttons for verify and no-JS mode.');
+  }
 
   const modulesMatch = /\bdata-modules\s*=\s*(['"])(.*?)\1/i.exec(attrStr);
   const dataModulesStr = modulesMatch?.[2] ?? '';
   const dataModules = dataModulesStr.split(/\s+/).filter(Boolean);
-  
+  const declaredPanels = new Set<string>();
+  for (const mod of dataModules) {
+    const panel = MODULE_PANEL_MAP[mod];
+    if (panel) declaredPanels.add(panel);
+  }
+
   const actualPanels = new Set<string>();
-  for (const m of dataModules) {
-    if (MODULE_PANEL_MAP[m]) {
-      actualPanels.add(MODULE_PANEL_MAP[m]!);
+  if (panelButtons.length > 0) {
+    for (const button of panelButtons) {
+      if (button.dataPanel) actualPanels.add(button.dataPanel);
+    }
+  } else {
+    for (const m of dataModules) {
+      if (MODULE_PANEL_MAP[m]) {
+        actualPanels.add(MODULE_PANEL_MAP[m]!);
+      }
     }
   }
-  actualPanels.add('character'); // Implicit
+
+  for (const panel of declaredPanels) {
+    if (panel === 'character' || actualPanels.has(panel)) continue;
+    failures.push(
+      `Footer module contract mismatch: data-modules declares "${panel}" but the fallback footer markup does not include a matching panel button.`,
+    );
+  }
+  for (const panel of actualPanels) {
+    if (panel === 'character' || declaredPanels.has(panel)) continue;
+    failures.push(
+      `Footer module contract mismatch: fallback footer markup includes "${panel}" but data-modules does not declare the owning module.`,
+    );
+  }
+
+  const effectivePanels = new Set<string>([...actualPanels, ...declaredPanels]);
 
   const allowedPanels = new Set<string>(['character']);
   for (const mod of state.modulesActive) {
@@ -133,7 +165,7 @@ function checkFooter(html: string, state: GmState, failures: string[]): void {
   if (state._levelupPending) allowedPanels.add('levelup');
 
   for (const panel of allowedPanels) {
-    if (panel === 'character' || actualPanels.has(panel)) continue;
+    if (panel === 'character' || effectivePanels.has(panel)) continue;
     const mod = PANEL_MODULE_MAP[panel];
     if (mod) {
       failures.push(`Missing footer button: ${panel} panel — required by active module "${mod}".`);
@@ -142,7 +174,7 @@ function checkFooter(html: string, state: GmState, failures: string[]): void {
     }
   }
 
-  for (const panel of actualPanels) {
+  for (const panel of effectivePanels) {
     if (allowedPanels.has(panel)) continue;
     const mod = PANEL_MODULE_MAP[panel];
     failures.push(
@@ -152,12 +184,33 @@ function checkFooter(html: string, state: GmState, failures: string[]): void {
     );
   }
 
+  const savePrompt = extractAttr(attrStr, 'data-save-prompt');
+  if ((savePrompt?.length ?? 0) < 10) {
+    failures.push('Missing footer save prompt (data-save-prompt) — save flow must remain copyable when the runtime is unavailable.');
+  }
+
+  if (footerButtons.length > 0) {
+    const footerIds = new Set(footerButtons.map(button => button.id).filter((id): id is string => id !== null));
+    if (!footerIds.has('save-btn')) {
+      failures.push('Missing footer button: Save action (id="save-btn") — scene footer must always include Save ↗.');
+    }
+
+    const missingAriaExpanded = panelButtons.filter(button => !/\baria-expanded\s*=\s*(['"])(true|false)\1/i.test(button.markup));
+    if (missingAriaExpanded.length > 0) {
+      failures.push('Footer panel buttons must declare aria-expanded="true|false" so overlay state changes are announced accessibly.');
+    }
+  }
+
   const hasExport = /\bdata-has-export\s*=\s*(['"])true\1/i.test(attrStr);
   const hasAudio = /\bdata-has-audio\s*=\s*(['"])true\1/i.test(attrStr);
+  const exportPrompt = extractAttr(attrStr, 'data-export-prompt');
 
   if (state.modulesActive.includes('adventure-exporting')) {
     if (!hasExport) {
       failures.push('Missing footer button: Export action (data-has-export="true") — required by active module "adventure-exporting".');
+    }
+    if ((exportPrompt?.length ?? 0) < 10) {
+      failures.push('Missing footer export prompt (data-export-prompt) — export flow must remain copyable when the runtime is unavailable.');
     }
   } else if (hasExport) {
     failures.push('Unexpected footer button: Export action (data-has-export="true") — module "adventure-exporting" is not active.');
@@ -201,6 +254,18 @@ function checkNarrative(html: string, failures: string[]): void {
 }
 
 function checkCss(html: string, failures: string[]): void {
+  const sceneMatch = /<ta-scene\b([^>]*)>/i.exec(html);
+  if (sceneMatch) {
+    const cssAttr = extractAttr(sceneMatch[1] ?? '', 'data-css-urls');
+    const cssUrls = (cssAttr ?? '').split(',').filter(Boolean);
+    if (cssUrls.length < 2) {
+      failures.push(
+        'Scene is missing required CDN CSS links in data-css-urls — expected the active theme CSS plus scene-design.css.',
+      );
+    }
+    return;
+  }
+
   // Shadow DOM: CSS is loaded via CDN <link> and inline widgetStyle.textContent
   // rather than literal <style> tags. Detect Shadow DOM and count inline CSS.
   if (html.includes('attachShadow')) {

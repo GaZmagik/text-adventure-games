@@ -34,8 +34,8 @@ export function formatModifier(n: number): string {
   return n >= 0 ? `+${n}` : `${n}`;
 }
 
-/** Emit a custom element with data attributes. */
-export function emitCustomElement(tag: string, attributes: Record<string, unknown>): string {
+/** Emit a custom element with data attributes and optional fallback inner HTML. */
+export function emitCustomElement(tag: string, attributes: Record<string, unknown>, innerHtml = ''): string {
   const parts = [`<${tag}`];
   for (const [k, v] of Object.entries(attributes)) {
     if (v == null || v === '') continue;
@@ -43,5 +43,5 @@ export function emitCustomElement(tag: string, attributes: Record<string, unknow
     const strVal = typeof v === 'object' ? JSON.stringify(v) : String(v);
     parts.push(`${k}="${esc(strVal)}"`);
   }
-  return parts.join(' ') + `></${tag}>`;
+  return parts.join(' ') + `>${innerHtml}</${tag}>`;
 }

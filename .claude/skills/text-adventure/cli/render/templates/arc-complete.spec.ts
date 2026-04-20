@@ -1,9 +1,25 @@
 import { describe, test, expect } from 'bun:test';
 import { renderArcComplete } from './arc-complete';
 import { createDefaultState } from '../../lib/state-store';
+import { extractJsonTagAttr } from '../../tests/support/rendered-widget';
+
+type ArcConfig = {
+  arc: number;
+  charName: string;
+  charLevel: number;
+  questsCompleted: number;
+  questsTotal: number;
+  rollCount: number;
+  sceneCount: number;
+  summary: string;
+};
+
+function readConfig(html: string): ArcConfig {
+  return extractJsonTagAttr<ArcConfig>(html, 'ta-arc-complete', 'data-arc');
+}
 
 describe('renderArcComplete', () => {
-  test('renders arc summary with character name', () => {
+  test('renders arc summary payload with character identity', () => {
     const state = createDefaultState();
     state.arc = 1;
     state.character = {
@@ -16,48 +32,37 @@ describe('renderArcComplete', () => {
       equipment: { weapon: 'Blaster', armour: 'Flight Suit' },
     };
     const html = renderArcComplete(state, '');
-    expect(html).toContain('Kira');
-    expect(html).toContain('Act 1');
+    const config = readConfig(html);
+    expect(html).toContain('<ta-arc-complete');
+    expect(config.arc).toBe(1);
+    expect(config.charName).toBe('Kira');
+    expect(config.charLevel).toBe(4);
   });
 
-  test('renders save, export, and continue buttons', () => {
-    const state = createDefaultState();
-    state.arc = 2;
-    const html = renderArcComplete(state, '');
-    expect(html).toContain('data-prompt');
-    expect(html).toMatch(/save/i);
-    expect(html).toMatch(/export/i);
-    expect(html).toMatch(/continue/i);
-  });
-
-  test('shows quest completion stats', () => {
+  test('summarises quest completion counts and roll history', () => {
     const state = createDefaultState();
     state.quests = [
-      { id: 'q1', title: 'Main Quest', status: 'completed',
-        objectives: [{ id: 'o1', description: 'Do thing', completed: true }], clues: [] },
-      { id: 'q2', title: 'Side Quest', status: 'active',
-        objectives: [{ id: 'o2', description: 'Other thing', completed: false }], clues: [] },
+      { id: 'q1', title: 'Main Quest', status: 'completed', objectives: [{ id: 'o1', description: 'Do thing', completed: true }], clues: [] },
+      { id: 'q2', title: 'Side Quest', status: 'active', objectives: [{ id: 'o2', description: 'Other thing', completed: false }], clues: [] },
     ];
-    const html = renderArcComplete(state, '');
-    expect(html).toContain('1'); // 1 completed
-    expect(html).toContain('2'); // 2 total
+    state.rollHistory = [{ scene: 1, type: 'encounter_roll', roll: 7, outcome: 'hostile' }];
+    const config = readConfig(renderArcComplete(state, ''));
+    expect(config.questsCompleted).toBe(1);
+    expect(config.questsTotal).toBe(2);
+    expect(config.rollCount).toBe(1);
   });
 
-  test('renders without state (fallback)', () => {
-    const html = renderArcComplete(null, '');
-    expect(html).toContain('Act');
-    expect(html).toContain('data-prompt');
+  test('renders a stable fallback payload without state', () => {
+    const config = readConfig(renderArcComplete(null, ''));
+    expect(config.arc).toBe(1);
+    expect(config.charName).toBe('Adventurer');
+    expect(config.charLevel).toBe(1);
+    expect(config.summary).toBe('');
   });
 
   test('includes --data summary text when provided', () => {
     const state = createDefaultState();
-    const html = renderArcComplete(state, '', { data: { summary: 'The station fell silent.' } });
-    expect(html).toContain('The station fell silent.');
-  });
-
-  test('action script copies prompts when sendPrompt is unavailable', () => {
-    const html = renderArcComplete(null, '');
-    expect(html).toContain("document.execCommand('copy')");
-    expect(html).toContain("btn.textContent = copied ? 'Copied! Paste as your reply.' : 'Copy the prompt from the tooltip.';");
+    const config = readConfig(renderArcComplete(state, '', { data: { summary: 'The station fell silent.' } }));
+    expect(config.summary).toBe('The station fell silent.');
   });
 });

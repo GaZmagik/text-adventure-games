@@ -1,7 +1,19 @@
 import type { GmState } from '../../types';
-import { esc } from '../../lib/html';
-import { wrapInShadowDom } from '../lib/shadow-wrapper';
+import { wrapInShadowDom, emitStandaloneCustomElement } from '../lib/shadow-wrapper';
 
+/**
+ * Renders the exploration map widget.
+ * 
+ * @param {GmState | null} state - Current game state.
+ * @param {string} styleName - Visual style.
+ * @param {Record<string, unknown>} [_options] - Unused.
+ * @returns {string} - The HTML wrapped in a <ta-map> custom element.
+ * 
+ * @remarks
+ * Displays the revealed zones, the player's current location, 
+ * and door states (locked/open). It uses a simple orbital layout 
+ * for nodes when pre-calculating positions.
+ */
 export function renderMap(state: GmState | null, styleName: string, _options?: Record<string, unknown>): string {
   const mapState = state?.mapState;
 
@@ -32,8 +44,9 @@ export function renderMap(state: GmState | null, styleName: string, _options?: R
     supplies: mapState.supplies
   };
 
-  const html = `<ta-map data-map="${esc(JSON.stringify(config))}"></ta-map>`;
-
-  if (!styleName) return html;
-  return wrapInShadowDom({ styleName, html });
+  return emitStandaloneCustomElement({
+    tag: 'ta-map',
+    styleName,
+    attrs: { 'data-map': JSON.stringify(config) },
+  });
 }

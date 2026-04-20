@@ -1,0 +1,100 @@
+bun test v1.3.11 (af24e281)
+
+render/css-extractor.spec.ts:
+
+# Unhandled error between tests
+-------------------------------
+59 |   const regex = /```css\s*\n([\s\S]*?)```/g;
+                         ^
+error: Unexpected escape sequence
+    at /home/gareth/.vs/text-adventure-games/.claude/skills/text-adventure/cli/render/css-extractor.ts:59:21
+-------------------------------
+
+
+commands/render.spec.ts:
+(pass) render argument validation > returns error when no widget type specified [2.00ms]
+(pass) render argument validation > returns error for unknown widget type [1.00ms]
+(pass) render state requirement > returns error when no state exists for in-game widget [1.00ms]
+(pass) render state requirement > data-driven dice-pool widget renders without state [2.00ms]
+(pass) render state requirement > dice-pool safely serialises hostile inline-script payloads [1.00ms]
+(pass) render state requirement > rejects dice widget --data missing required dieType [1.00ms]
+(pass) render state requirement > rejects dice widget --data with wrong dieType type
+(pass) render state requirement > rejects render data with forbidden keys [1.00ms]
+(pass) render state requirement > rejects non-object --data payloads
+(pass) render state requirement > rejects scenario-select data with malformed scenario entries [1.00ms]
+(pass) render state requirement > rejects dialogue choices without label/prompt strings
+(pass) render state requirement > rejects character-creation archetypes without names [1.00ms]
+(pass) render state requirement > settings safely serialises hostile defaults inside data-config attribute [1.00ms]
+(pass) render state requirement > dice-pool caps total logical dice and canvas size deterministically [1.00ms]
+(pass) render state requirement > returns style error when state has no visualStyle [3.00ms]
+(pass) render state requirement > requires state sync before rendering in-game widgets [1.00ms]
+
+⚠️  VERIFY REQUIRED (scene 1, turn 0):
+   tag verify /tmp/scene.html
+   BEFORE passing to show_widget. Next render will BLOCK without it.
+
+(pass) render state requirement > scene 1 bootstrap: allows render when no sync marker exists [11.00ms]
+(pass) render state requirement > scene 2+ still requires sync even with no marker [1.00ms]
+(pass) render state requirement > sync gate error for scene 1 names the exact opening scene command [2.00ms]
+(pass) render state requirement > sync gate error for scene 3 names generic --apply command [1.00ms]
+(pass) render style resolution > --style flag overrides state visualStyle
+(pass) render style resolution > falls back to state visualStyle when no --style flag
+(pass) render style resolution > unknown style name produces output with warning comment [1.00ms]
+(pass) render style resolution > rejects style names with invalid characters [1.00ms]
+(pass) render style resolution > CSS scope mapping removal does not affect custom element rendering
+(pass) render output modes > returns JSON-wrapped output by default [1.00ms]
+(pass) render output modes > non-raw response includes sizeCheck with budget info [1.00ms]
+(pass) render output modes > --raw flag returns HTML string directly [1.00ms]
+(pass) render output modes > non-scene widgets carry an exact render-origin marker
+(pass) render freshness gates > scene render fails when prose-craft epoch is stale after compaction [2.00ms]
+(pass) render freshness gates > scene render fails when prose-craft epoch is undefined
+(pass) render freshness gates > scene render fails when style read epoch is stale after compaction [1.00ms]
+(pass) render freshness gates > scene render fails when style read epoch is undefined [1.00ms]
+
+⚠️  VERIFY REQUIRED (scene 1, turn 0):
+   tag verify /tmp/scene.html
+   BEFORE passing to show_widget. Next render will BLOCK without it.
+
+(pass) render freshness gates > scene render succeeds when both epochs match compaction count [2.00ms]
+(pass) render freshness gates > pre-game widgets are not affected by freshness gates
+(pass) render freshness gates > non-scene in-game widgets are not affected by freshness gates [1.00ms]
+(pass) render freshness gates > hollow state gate blocks scene render when lore source set but roster empty [1.00ms]
+Warning: state.json failed validation: Unexpected state key "rosterMutations.0.type".; rosterMutations[0].pronouns must be one of: she/her, he/him, they/them, it/its.; rosterMutations[0].tier must be one of: minion, rival, nemesis.; rosterMutations[0].stats must be an object.
+
+⚠️  VERIFY REQUIRED (scene 0, turn 0):
+   tag verify /tmp/scene.html
+   BEFORE passing to show_widget. Next render will BLOCK without it.
+
+(pass) render freshness gates > hollow state gate does not block when roster has entries but codex is empty [3.00ms]
+Warning: state.json failed validation: Unexpected state key "codexMutations.0.type".; Unexpected state key "codexMutations.0.name".
+
+⚠️  VERIFY REQUIRED (scene 0, turn 0):
+   tag verify /tmp/scene.html
+   BEFORE passing to show_widget. Next render will BLOCK without it.
+
+(pass) render freshness gates > hollow state gate does not block when codex has entries but roster is empty [1.00ms]
+
+⚠️  VERIFY REQUIRED (scene 0, turn 0):
+   tag verify /tmp/scene.html
+   BEFORE passing to show_widget. Next render will BLOCK without it.
+
+(pass) render freshness gates > hollow state gate does not block when no _loreSource [8.00ms]
+(pass) render character-creation pre-gen injection > injects pre-gen characters when module is active [5.00ms]
+(pass) render character-creation pre-gen injection > authored preGeneratedCharacters override generated ones [3.00ms]
+(pass) render character-creation pre-gen injection > injects pre-gen characters via --data.settings.modules when state is absent [2.00ms]
+(pass) render character-creation pre-gen injection > pregenCharacters alias key is accepted as authored override [1.00ms]
+(pass) render character-creation pre-gen injection > uses _lorePregen from state when no --data characters provided [1.00ms]
+(pass) render character-creation pre-gen injection > does not inject pre-gen characters when module is inactive [2.00ms]
+(pass) render --out flag > writes HTML to specified file path [1.00ms]
+(pass) render --out flag > outFile field is present in response when --out used [1.00ms]
+(pass) render --out flag > outFile field is absent when --out not used [1.00ms]
+(pass) render --out flag > --out works with --raw flag
+(pass) render --out flag > html field is absent from response data when --out used [1.00ms]
+
+1 tests failed:
+
+ 51 pass
+ 1 fail
+ 1 error
+ 124 expect() calls
+Ran 52 tests across 2 files. [118.00ms]

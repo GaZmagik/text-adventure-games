@@ -1,6 +1,9 @@
 import type { GmState } from './types';
 import { MODULE_DIGESTS } from './data/module-digests';
 
+/**
+ * Valid top-level command names for the tag CLI.
+ */
 export type TopLevelCommandName =
   | 'help'
   | 'module'
@@ -23,6 +26,7 @@ export type TopLevelCommandName =
   | 'prose-check'
   | 'prose-gate';
 
+/** Help information for a CLI subcommand. */
 export type SubcommandHelp = {
   name: string;
   usage: string;
@@ -30,12 +34,17 @@ export type SubcommandHelp = {
   example: string;
 };
 
+/** Documentation structure for a top-level CLI command. */
 export type CommandHelp = {
   command: string;
   description: string;
   subcommands: SubcommandHelp[];
 };
 
+/** 
+ * Ordered list of top-level commands.
+ * Used for generating global help and command discovery.
+ */
 export const TOP_LEVEL_COMMANDS = [
   'help',
   'module',
@@ -59,6 +68,11 @@ export const TOP_LEVEL_COMMANDS = [
   'prose-gate',
 ] as const satisfies readonly TopLevelCommandName[];
 
+/**
+ * Master help registry for all CLI commands.
+ * @remarks
+ * This data is used by the `tag help` command to provide contextual usage instructions.
+ */
 export const COMMAND_HELP: Record<TopLevelCommandName, CommandHelp> = {
   help: {
     command: 'tag help',
@@ -236,6 +250,7 @@ export const COMMAND_HELP: Record<TopLevelCommandName, CommandHelp> = {
   },
 };
 
+/** Set of commands that modify the underlying game state. */
 export const MUTATING_COMMANDS = new Set<string>([
   'state',
   'save',
@@ -251,12 +266,14 @@ export const MUTATING_COMMANDS = new Set<string>([
   'prose-gate',
 ]);
 
+/** List of valid custom element tags (without the 'ta-' prefix). */
 export const WIDGET_TYPE_NAMES = [
   'scene', 'ticker', 'character', 'dice', 'dice-pool', 'ship', 'crew', 'codex', 'map',
   'starchart', 'footer', 'save-div', 'levelup', 'recap', 'combat-turn',
   'dialogue', 'settings', 'scenario-select', 'character-creation', 'arc-complete',
 ] as const;
 
+/** Widgets that are rendered during the pre-game setup phase (before a scene exists). */
 export const PRE_GAME_WIDGETS = new Set<string>([
   'settings',
   'scenario-select',
@@ -267,6 +284,7 @@ export const PRE_GAME_WIDGETS = new Set<string>([
 /** Alias — pre-config widgets are the same set as pre-game widgets. */
 export const PRE_CONFIG_WIDGETS: Set<string> = PRE_GAME_WIDGETS;
 
+/** CSS variable scopes required for specific widget types. */
 export const WIDGET_STYLE_SCOPES: Record<string, readonly string[] | undefined> = {
   scene: ['vars'],
   dice: ['vars'],
@@ -274,8 +292,10 @@ export const WIDGET_STYLE_SCOPES: Record<string, readonly string[] | undefined> 
   recap: ['vars'],
 };
 
-/** CSS selectors each widget type needs from the full theme block.
- *  Used by filterCssBySelectors to tree-shake unused rules. */
+/** 
+ * CSS selectors each widget type needs from the full theme block.
+ * Used by filterCssBySelectors to tree-shake unused rules and minimize payload size. 
+ */
 export const WIDGET_CSS_SELECTORS: Record<string, readonly string[]> = {
   scene: [
     // Widget root + progressive reveal
@@ -318,6 +338,7 @@ export const WIDGET_CSS_SELECTORS: Record<string, readonly string[]> = {
   ],
 };
 
+/** CSS file scopes (shared, scene, etc.) required for each widget type. */
 export const WIDGET_CSS_SCOPES: Record<string, readonly string[]> = {
   scene: ['shared', 'scene', 'atmosphere'],
   dice: ['dice'],
@@ -343,6 +364,13 @@ export const WIDGET_CSS_SCOPES: Record<string, readonly string[]> = {
 
 const PROSE_CRAFT_PATH = 'modules/prose-craft.md';
 
+/**
+ * Builds the list of module file paths required for the current game state.
+ * @param {GmState | null} state - Current game state.
+ * @returns {string[]} - Array of relative file paths to required modules.
+ * @remarks
+ * Prose-craft is always required for context.
+ */
 export function buildModulesRequired(state: GmState | null): string[] {
   const active = state?.modulesActive ?? [];
   const hasProseCraft = active.includes('prose-craft');
@@ -351,6 +379,12 @@ export function buildModulesRequired(state: GmState | null): string[] {
     : [PROSE_CRAFT_PATH, ...active.map(moduleName => `modules/${moduleName}.md`)];
 }
 
+/**
+ * Builds a human-readable checklist of required module features.
+ * Used during state sync to remind the GM of active mechanical obligations.
+ * @param {GmState | null} state - Current game state.
+ * @returns {string[]} - Array of checklist items.
+ */
 export function buildFeatureChecklist(state: GmState | null): string[] {
   const active = state?.modulesActive ?? [];
   const items: string[] = [];

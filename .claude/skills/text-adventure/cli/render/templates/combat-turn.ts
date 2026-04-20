@@ -2,9 +2,21 @@
 // hit/miss result, NPC HP change. Parameterised for combatant count via options.
 
 import type { GmState } from '../../types';
-import { esc } from '../../lib/html';
+import { emitStandaloneCustomElement } from '../lib/shadow-wrapper';
 
-export function renderCombatTurn(state: GmState | null, _styleName: string, _options?: Record<string, unknown>): string {
+/**
+ * Renders the combat turn outcome widget.
+ * 
+ * @param {GmState | null} state - Current game state.
+ * @param {string} styleName - Visual style.
+ * @param {Record<string, unknown>} [_options] - Unused.
+ * @returns {string} - The HTML wrapped in a <ta-combat-turn> custom element.
+ * 
+ * @remarks
+ * Displays the results of an attack or damage roll, including 
+ * hit/miss status and the resulting HP changes for the participants.
+ */
+export function renderCombatTurn(state: GmState | null, styleName: string, _options?: Record<string, unknown>): string {
   const combatData = {
     computation: state?._lastComputation,
     char: state?.character ? {
@@ -15,5 +27,9 @@ export function renderCombatTurn(state: GmState | null, _styleName: string, _opt
     roster: state?.rosterMutations ?? [],
   };
 
-  return `<ta-combat-turn data-combat="${esc(JSON.stringify(combatData))}"></ta-combat-turn>`;
+  return emitStandaloneCustomElement({
+    tag: 'ta-combat-turn',
+    styleName,
+    attrs: { 'data-combat': JSON.stringify(combatData) },
+  });
 }

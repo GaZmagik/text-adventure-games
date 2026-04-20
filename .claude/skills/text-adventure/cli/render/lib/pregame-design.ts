@@ -6,36 +6,57 @@ import { esc } from '../../lib/html';
 
 // ── Types ──────────────────────────────────────────────────────────
 
+/** Options for rendering a large Hero section (e.g., Scenario Intro). */
 export type HeroOpts = {
+  /** Optional kicker text. */
   kicker?: string;
+  /** Main heading. */
   heading: string;
+  /** Primary description. */
   copy?: string;
+  /** Optional status labels to display as chips. */
   badges?: string[];
 };
 
+/** Options for rendering the primary interaction deck. */
 export type ControlDeckOpts = {
+  /** Optional kicker text. */
   kicker?: string;
+  /** Optional section heading. */
   heading?: string;
+  /** The name of the currently selected item. */
   selectedTitle: string;
+  /** Narrative description of the selected item. */
   selectedPreamble?: string | undefined;
+  /** Unique ID for the status message area. */
   statusId?: string;
+  /** Raw HTML content containing action buttons. */
   actionHtml: string;
 };
 
+/** Options for rendering a sub-stage heading within a pre-game widget. */
 export type StageHeaderOpts = {
+  /** Optional kicker text. */
   kicker?: string;
+  /** Primary heading. */
   heading: string;
+  /** Optional secondary description. */
   copy?: string;
 };
 
 // ── Helpers ────────────────────────────────────────────────────────
 
+/** Renders a standard pre-game kicker. */
 function kickerEl(text: string): string {
   return `<p class="pd-kicker">${esc(text)}</p>`;
 }
 
 // ── Builders ───────────────────────────────────────────────────────
 
+/**
+ * Renders a high-fidelity Hero header for pre-game dashboards.
+ * @remarks Uses `.pd-hero` vocabulary.
+ */
 export function renderHero(opts: HeroOpts): string {
   const parts: string[] = [];
   if (opts.kicker) parts.push(kickerEl(opts.kicker));
@@ -48,6 +69,10 @@ export function renderHero(opts: HeroOpts): string {
   return `<header class="pd-hero">${parts.join('\n')}</header>`;
 }
 
+/**
+ * Renders a 'Control Deck' — the primary interaction area for selection widgets.
+ * @remarks Uses `.pd-control-deck` vocabulary.
+ */
 export function renderControlDeck(opts: ControlDeckOpts): string {
   const copyParts: string[] = [];
   if (opts.kicker) copyParts.push(kickerEl(opts.kicker));
@@ -65,6 +90,9 @@ export function renderControlDeck(opts: ControlDeckOpts): string {
 </section>`;
 }
 
+/**
+ * Renders a structured header for a secondary stage or wizard step.
+ */
 export function renderStageHeader(opts: StageHeaderOpts): string {
   const parts: string[] = [];
   if (opts.kicker) parts.push(kickerEl(opts.kicker));
@@ -73,10 +101,12 @@ export function renderStageHeader(opts: StageHeaderOpts): string {
   return `<div class="pd-stage-header">${parts.join('\n')}</div>`;
 }
 
+/** Renders a standard status chip. */
 export function renderStatusChip(text: string): string {
   return `<span class="pd-status-chip">${esc(text)}</span>`;
 }
 
+/** Renders a pill-style badge with optional visual variants. */
 export function renderBadge(text: string, variant?: 'default' | 'featured' | 'accent'): string {
   const modifier = variant && variant !== 'default' ? ` pd-badge--${variant}` : '';
   return `<span class="pd-badge${modifier}">${esc(text)}</span>`;
@@ -84,6 +114,7 @@ export function renderBadge(text: string, variant?: 'default' | 'featured' | 'ac
 
 // ── Subpanel ───────────────────────────────────────────────────────
 
+/** Options for a sub-panel card. */
 export type SubpanelOpts = {
   kicker?: string;
   title: string;
@@ -91,6 +122,10 @@ export type SubpanelOpts = {
   contentHtml: string;
 };
 
+/**
+ * Renders a sub-panel card, typically used in grids (e.g., character selection).
+ * @remarks Uses `.pd-subpanel` vocabulary.
+ */
 export function renderSubpanel(opts: SubpanelOpts): string {
   const headerParts: string[] = [];
   if (opts.kicker) headerParts.push(kickerEl(opts.kicker));
@@ -104,12 +139,21 @@ export function renderSubpanel(opts: SubpanelOpts): string {
 
 // ── Summary Row ────────────────────────────────────────────────────
 
+/** Renders a clean key-value summary row. */
 export function renderSummaryRow(label: string, value?: string): string {
   return `<div class="pd-summary-row"><span class="pd-summary-label">${esc(label)}</span><strong class="pd-summary-value">${value ? esc(value) : ''}</strong></div>`;
 }
 
 // ── CSS ────────────────────────────────────────────────────────────
 
+/**
+ * Base structural CSS for the Pregame Design System.
+ * 
+ * @remarks
+ * This CSS provides the layout, padding, and grid structures for the 
+ * pre-game dashboards. It relies on CSS variables for theme-specific 
+ * skinning.
+ */
 export const PREGAME_DESIGN_CSS = `
 /* ── Hero ─────────────────────────────────────────────── */
 .pd-hero {

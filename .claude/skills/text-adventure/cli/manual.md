@@ -217,9 +217,11 @@ Generates `assets/cdn-manifest.ts` with FNV32 content hashes for cache-busting.
 Also writes CDN JS assets to `assets/js/` from the TypeScript scene/audio runtime
 sources and records their hashes separately in `JS_MANIFEST`.
 
-Widget templates call `wrapInShadowDom()` which bootstraps a Shadow DOM root with a `<link>`
-to the CDN-hosted CSS file for the active style. This eliminates inline CSS from widget output,
-reducing token cost by ~95%.
+Standalone widget templates now emit root custom elements such as `<ta-dice>`,
+`<ta-character>`, or `<ta-scene>` via `emitRootCustomElement()` /
+`emitStandaloneCustomElement()`. Those helpers attach CDN CSS URLs through
+`data-css-urls` and load the shared `ta-components.js` runtime. `wrapInShadowDom()`
+remains only for legacy fallback/empty-state cases that still ship literal light-DOM HTML.
 
 The CDN base is generated into `assets/cdn-manifest.ts` and points at jsDelivr:
 `https://cdn.jsdelivr.net/gh/GaZmagik/text-adventure-games@<ref>/.claude/skills/text-adventure/assets`.

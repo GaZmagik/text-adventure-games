@@ -1,25 +1,31 @@
 import type { GmState, DieType } from '../../types';
-import { esc } from '../../lib/html';
 import { DIE_CONFIGS } from '../lib/die-geometries';
 import { FONT_SCALE } from '../lib/die-textures';
-import { wrapInShadowDom } from '../lib/shadow-wrapper';
+import { emitStandaloneCustomElement } from '../lib/shadow-wrapper';
 
+/** A group of identical dice in a pool. */
 type PoolGroup = {
   dieType: DieType;
   count: number;
 };
 
 const VALID_DIE_TYPES = new Set(Object.keys(DIE_CONFIGS));
+/** Maximum number of physical dice allowed in a single WebGL rendering context. */
 export const MAX_DICE_POOL_TOTAL = 24;
 export const MAX_DICE_POOL_CANVAS_WIDTH = 900;
 export const MAX_DICE_POOL_CANVAS_HEIGHT = 1320;
 
+/** Clamps a die count to the valid range [1, 24]. */
 function clampCount(value: unknown): number {
   const n = Math.floor(Number(value));
   if (!Number.isFinite(n) || n < 1) return 1;
   return Math.min(n, 24);
 }
 
+/** 
+ * Caps the total number of dice in a pool to prevent WebGL context exhaustion or 
+ * performance degradation.
+ */
 function capPool(groups: PoolGroup[]): {
   groups: PoolGroup[];
   omittedDice: number;
@@ -47,6 +53,9 @@ function capPool(groups: PoolGroup[]): {
   };
 }
 
+/**
+ * Normalises raw input into a validated Dice Pool structure.
+ */
 function normalisePool(raw: unknown): {
   groups: PoolGroup[];
   omittedDice: number;
@@ -69,6 +78,7 @@ function normalisePool(raw: unknown): {
   return capPool(groups);
 }
 
+/** Prepares a die geometry configuration for JSON serialisation. */
 function serialiseConfig(config: any) {
   return {
     faceCount: config.faceCount,
@@ -83,6 +93,20 @@ function serialiseConfig(config: any) {
   };
 }
 
+/**
+ * Renders a multi-die pool widget.
+ * 
+ * @param {GmState | null} _state - Current game state (unused).
+ * @param {string} styleName - Visual style.
+ * @param {Record<string, unknown>} [options] - Pool configuration (groups, modifier, label).
+ * @returns {string} - The HTML wrapped in a <ta-dice-pool> custom element.
+ * 
+ * @remarks
+ * This is the most complex dice widget, supporting up to 24 simultaneous 
+ * WebGL-rendered dice across multiple types (d4, d6, d8, d10, d12, d20).
+ * It automatically truncates the pool if it exceeds the `MAX_DICE_POOL_TOTAL` 
+ * for stability.
+ */
 export function renderDicePool(_state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
   const data = options?.data as Record<string, unknown> | undefined;
   const { groups: pool, omittedDice, originalTotal } = normalisePool(data?.pool);
@@ -121,8 +145,9 @@ export function renderDicePool(_state: GmState | null, styleName: string, option
     truncationNote
   };
 
-  const html = `<ta-dice-pool data-config="${esc(JSON.stringify(config))}"></ta-dice-pool>`;
-
-  if (!styleName) return html;
-  return wrapInShadowDom({ styleName, html });
+  return emitStandaloneCustomElement({
+    tag: 'ta-dice-pool',
+    styleName,
+    attrs: { 'data-config': JSON.stringify(config) },
+  });
 }

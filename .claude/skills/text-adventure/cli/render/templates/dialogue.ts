@@ -2,8 +2,21 @@
 // dialogue option buttons with data-prompt.
 
 import type { GmState } from '../../types';
-import { emitCustomElement } from '../../lib/html';
+import { emitStandaloneCustomElement } from '../lib/shadow-wrapper';
 
+/**
+ * Renders the NPC dialogue widget.
+ * 
+ * @param {GmState | null} state - Current game state.
+ * @param {string} styleName - Visual style.
+ * @param {Record<string, unknown>} [options] - Dialogue content (text, speaker, choices).
+ * @returns {string} - The HTML wrapped in a <ta-dialogue> custom element.
+ * 
+ * @remarks
+ * Facilitates interactive conversations with NPCs. It supports multiple 
+ * choice responses, each linked to a specific prompt that the GM 
+ * can use to determine the next stage of the conversation.
+ */
 export function renderDialogue(state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
   // NPC can be specified via options or we pick the first present NPC
   const npcId = options?.npcId as string | undefined;
@@ -18,9 +31,13 @@ export function renderDialogue(state: GmState | null, styleName: string, options
   const dialogueText = typeof dataRaw.text === 'string' ? dataRaw.text : '';
   const choices: { label: string; prompt: string }[] = Array.isArray(dataRaw.choices) ? dataRaw.choices as { label: string; prompt: string }[] : [];
 
-  return emitCustomElement('ta-dialogue', {
-    'data-speaker': npcName,
-    'data-text': dialogueText || null,
-    'data-choices': choices.length > 0 ? JSON.stringify(choices) : null,
+  return emitStandaloneCustomElement({
+    tag: 'ta-dialogue',
+    styleName,
+    attrs: {
+      'data-speaker': npcName,
+      'data-text': dialogueText || null,
+      'data-choices': choices.length > 0 ? JSON.stringify(choices) : null,
+    },
   });
 }

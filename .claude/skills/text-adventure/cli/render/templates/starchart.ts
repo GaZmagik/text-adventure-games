@@ -1,7 +1,19 @@
 import type { GmState } from '../../types';
-import { esc } from '../../lib/html';
-import { wrapInShadowDom } from '../lib/shadow-wrapper';
+import { wrapInShadowDom, emitStandaloneCustomElement } from '../lib/shadow-wrapper';
 
+/**
+ * Renders the navigational star chart widget.
+ * 
+ * @param {GmState | null} state - Current game state.
+ * @param {string} styleName - Visual style.
+ * @param {Record<string, unknown>} [_options] - Unused.
+ * @returns {string} - The HTML wrapped in a <ta-starchart> custom element.
+ * 
+ * @remarks
+ * This widget provides a procedural map of visited and plotted systems.
+ * It calculates a deterministic grid layout based on system names to 
+ * ensure the map remains consistent between renders.
+ */
 export function renderStarchart(state: GmState | null, styleName: string, _options?: Record<string, unknown>): string {
   if (!state?.visitedRooms?.length) {
     const html = `<div class="empty-state"><p>No star systems charted yet.</p></div>`;
@@ -36,8 +48,9 @@ export function renderStarchart(state: GmState | null, styleName: string, _optio
     plottedCourse: plottedCourse
   };
 
-  const html = `<ta-starchart data-chart="${esc(JSON.stringify(config))}"></ta-starchart>`;
-
-  if (!styleName) return html;
-  return wrapInShadowDom({ styleName, html });
+  return emitStandaloneCustomElement({
+    tag: 'ta-starchart',
+    styleName,
+    attrs: { 'data-chart': JSON.stringify(config) },
+  });
 }

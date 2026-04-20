@@ -129,16 +129,17 @@ produces correct HTML with real CSS from the active style file. The structural r
 ### Canonical Scene Footer
 
 The scene footer is defined once here and must not be redefined in module files.
-Every scene widget includes this footer outside the progressive reveal wrapper.
+Every scene widget includes a `<ta-footer>` custom element outside the progressive
+reveal wrapper. That element carries the runtime contract in attributes and also
+ships inspectable fallback buttons inside its light DOM for verify/no-JS mode.
 
-**Structure:**
-- **Left side:** Panel toggle buttons — one per loaded module panel. Only render
-  buttons for modules active in the current session. Use `data-panel` attributes + `addEventListener`.
-- **Right side:** Save and Export buttons using `data-prompt` + `addEventListener` pattern.
-  - `Save ↗` (`id="save-btn"`) — uses `sendPrompt()` to ask Claude to generate the `.save.md` file
-    as a downloadable artifact; falls back to inline copyable text display if `sendPrompt()` is unavailable.
-  - `Export ↗` (`id="export-btn"`) — uses `sendPrompt()` to ask Claude to generate a `.lore.md` file
-    that shares the world for other players. Only rendered when adventure-exporting module is active.
+**`<ta-footer>` contract:**
+- `data-modules="<space separated modules>"` declares which module-driven panel buttons the runtime must render.
+- `data-save-prompt="..."` is always required so Save remains copyable if the runtime fails.
+- `data-export-prompt="..."` is required when `adventure-exporting` is active.
+- `data-has-export="true"` and `data-has-audio="true"` declare optional Export / audio controls.
+- Fallback panel buttons still use `data-panel` plus `aria-expanded="false|true"`.
+- Fallback Save / Export buttons still use `id="save-btn"` / `id="export-btn"` plus `data-prompt` and `title`.
 
 ### § Module Footer Button Table
 
@@ -147,7 +148,7 @@ the button and panel-content div for every matching row. Character and Save are 
 included regardless of `modules_active`. Export is included only when `adventure-exporting`
 appears in `modules_active`. **Do NOT guess or improvise — use this table.**
 
-| `modules_active` value | Footer button HTML | Panel-content div |
+| `modules_active` value | `<ta-footer>` fallback button HTML | Panel-content div |
 |---|---|---|
 | *(always)* | `<button class="footer-btn" data-panel="character" aria-expanded="false">Character</button>` | `<div class="panel-content" data-panel="character"></div>` |
 | `lore-codex` | `<button class="footer-btn" data-panel="codex" aria-expanded="false">Codex</button>` | `<div class="panel-content" data-panel="codex"></div>` |
@@ -156,8 +157,8 @@ appears in `modules_active`. **Do NOT guess or improvise — use this table.**
 | `star-chart` | `<button class="footer-btn" data-panel="nav" aria-expanded="false">Nav chart</button>` | `<div class="panel-content" data-panel="nav"></div>` |
 | `geo-map` | `<button class="footer-btn" data-panel="map" aria-expanded="false">Map</button>` | `<div class="panel-content" data-panel="map"></div>` |
 | `core-systems` | `<button class="footer-btn" data-panel="quests" aria-expanded="false">Quests</button>` | `<div class="panel-content" data-panel="quests"></div>` |
-| *(always)* | `<button class="footer-btn" id="save-btn" data-prompt="Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md. Use YAML frontmatter plus an encoded SC1: or SF1: payload string. Never write game state as human-readable markdown.">Save ↗</button>` | *(none)* |
-| `adventure-exporting` | `<button class="footer-btn" id="export-btn" data-prompt="Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format.">Export ↗</button>` | *(none)* |
+| *(always)* | `<button class="footer-btn" id="save-btn" data-prompt="Run \`tag save generate\` via the Bash tool to produce my save payload. The CLI generates the checksummed SF2 string — never hand-code save encoding, checksums, or base64. Present the result as a downloadable .save.md file with YAML frontmatter." title="Run \`tag save generate\` via the Bash tool to produce my save payload. The CLI generates the checksummed SF2 string — never hand-code save encoding, checksums, or base64. Present the result as a downloadable .save.md file with YAML frontmatter.">Save ↗</button>` | *(none)* |
+| `adventure-exporting` | `<button class="footer-btn" id="export-btn" data-prompt="Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format." title="Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format.">Export ↗</button>` | *(none)* |
 
 **Algorithm (every scene widget):**
 1. Start with Character button (always present).

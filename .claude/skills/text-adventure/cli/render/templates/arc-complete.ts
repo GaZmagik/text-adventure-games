@@ -2,9 +2,22 @@
 // save/export/continue action buttons.
 
 import type { GmState } from '../../types';
-import { esc } from '../../lib/html';
+import { emitStandaloneCustomElement } from '../lib/shadow-wrapper';
 
-export function renderArcComplete(state: GmState | null, _styleName: string, options?: Record<string, unknown>): string {
+/**
+ * Renders the arc completion summary widget.
+ * 
+ * @param {GmState | null} state - Current game state.
+ * @param {string} styleName - Visual style.
+ * @param {Record<string, unknown>} [options] - Optional data containing the arc summary text.
+ * @returns {string} - The HTML wrapped in a <ta-arc-complete> custom element.
+ * 
+ * @remarks
+ * This widget is displayed at the end of a campaign arc (act). 
+ * It provides a performance summary (quests completed, rolls made, 
+ * level reached) and provides the 'Export Lore' and 'Continue' actions.
+ */
+export function renderArcComplete(state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
   const quests = state?.quests ?? [];
   const rawData = options?.data;
   const dataSummary = (rawData !== null && typeof rawData === 'object' && !Array.isArray(rawData))
@@ -23,5 +36,9 @@ export function renderArcComplete(state: GmState | null, _styleName: string, opt
     summary: typeof dataSummary === 'string' ? dataSummary : '',
   };
 
-  return `<ta-arc-complete data-arc="${esc(JSON.stringify(arcData))}"></ta-arc-complete>`;
+  return emitStandaloneCustomElement({
+    tag: 'ta-arc-complete',
+    styleName,
+    attrs: { 'data-arc': JSON.stringify(arcData) },
+  });
 }

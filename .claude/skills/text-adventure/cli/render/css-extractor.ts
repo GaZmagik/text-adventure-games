@@ -32,7 +32,17 @@ function cssReplacer(match: string): string {
 // Cache is process-scoped — fine for single CLI invocations. Does not invalidate on file change.
 const cssCache = new Map<string, string>();
 
-/** Extract and sanitise CSS from already-loaded markdown content, optionally filtered by scope. */
+/** 
+ * Extract and sanitise CSS from already-loaded markdown content, optionally filtered by scope. 
+ * 
+ * @param {string} content - Markdown source containing CSS blocks.
+ * @param {readonly string[]} [scopes] - Optional list of scope IDs (e.g., 'atmosphere') to filter by.
+ * @returns {string} - The aggregated and sanitised CSS string.
+ * 
+ * @remarks
+ * If any CSS block contains the `@extract` marker, only marked blocks are returned.
+ * If no blocks are marked, all CSS blocks are returned (legacy fallback).
+ */
 export function extractCssFromContent(content: string, scopes?: readonly string[]): string {
   const markedBlocks: string[] = [];
   const allBlocks: string[] = [];
@@ -81,6 +91,9 @@ export async function extractAllCss(filePath: string, scopes?: readonly string[]
 
 // ── Selector-based CSS filtering (tree-shaking) ─────────────────────
 
+/** 
+ * Result of a CSS filtering operation. 
+ */
 export type FilterResult = {
   css: string;
   included: string[];
@@ -283,7 +296,9 @@ function filterMediaContent(
   return kept.join('\n');
 }
 
-/** @internal — test-only cache reset */
+/** 
+ * @internal — test-only cache reset 
+ */
 export function clearCssCache(): void {
   cssCache.clear();
 }

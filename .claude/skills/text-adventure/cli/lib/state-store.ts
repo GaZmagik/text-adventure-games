@@ -6,13 +6,21 @@ import type { GmState } from '../types';
 import { MAX_ROLL_HISTORY, MAX_FILE_SIZE_BYTES, SCHEMA_VERSION } from './constants';
 import { validateState } from './validator';
 
+/** 
+ * Internal context for the State Store, used to batch writes and track activity. 
+ */
 type StateStoreContext = {
+  /** The current state held in memory for this context. */
   state: GmState | null | undefined;
+  /** True if the in-memory state has diverged from the disk state. */
   dirty: boolean;
+  /** Count of `saveState` calls made within this context. */
   virtualWrites: number;
+  /** Count of actual `saveStateToDisk` calls made within this context. */
   diskWrites: number;
 };
 
+/** Statistics returned after a context execution. */
 type StateStoreContextStats = {
   dirty: boolean;
   virtualWrites: number;
@@ -21,6 +29,9 @@ type StateStoreContextStats = {
 
 let activeStateStoreContext: StateStoreContext | null = null;
 
+/** 
+ * DI container for state persistence functions to facilitate testing. 
+ */
 export const STATE_STORE_RUNTIME = {
   homedir,
   tmpdir,
@@ -35,6 +46,12 @@ function isPlausibleGmState(raw: unknown): raw is Record<string, unknown> {
   return typeof raw === 'object' && raw !== null && !Array.isArray(raw);
 }
 
+/**
+ * Returns the canonical directory for engine state storage.
+ * @remarks
+ * Default is `~/.tag`. Can be overridden with `TAG_STATE_DIR`.
+ * Validates that the directory is within the user's home or temp directory.
+ */
 export function getStateDir(): string {
   const dir = process.env.TAG_STATE_DIR || join(STATE_STORE_RUNTIME.homedir(), '.tag');
   const resolved = resolve(dir);
@@ -53,22 +70,31 @@ export function getStateDir(): string {
   } catch { /* dir doesn't exist yet — return unresolved */ }
   return resolved;
 }
+
+/** Returns the path to the `state.json` file. */
 export function getStatePath(): string {
   return join(getStateDir(), 'state.json');
 }
+
+/** Returns the path to the `.last-sync` marker file. */
 export function getSyncMarkerPath(): string {
   return join(getStateDir(), '.last-sync');
 }
 
+/** Creates a deep clone of the state object. */
 function cloneState(state: GmState | null): GmState | null {
   return state ? structuredClone(state) : null;
 }
 
-/** Type predicate that validates raw JSON and narrows it to GmState without an unsafe cast. */
+/** Type predicate that validates raw JSON and narrows it to GmState. */
 function isValidGmState(raw: unknown): raw is GmState {
   return validateState(raw).valid;
 }
 
+/** 
+ * Low-level loader that reads state directly from disk. 
+ * @throws {Error} if state is missing, corrupted, or structurally invalid.
+ */
 async function loadStateFromDisk(): Promise<GmState> {
   const path = getStatePath();
   const file = Bun.file(path);
@@ -87,6 +113,9 @@ async function loadStateFromDisk(): Promise<GmState> {
   return raw;
 }
 
+/** 
+ * Attempt to load state, returning null on common failure modes (missing file, etc.). 
+ */
 async function tryLoadStateFromDisk(): Promise<Record<string, unknown> | null> {
   try {
     const statePath = getStatePath();
@@ -109,6 +138,12 @@ async function tryLoadStateFromDisk(): Promise<Record<string, unknown> | null> {
   }
 }
 
+/** 
+ * Low-level saver that writes state to disk with atomic rename semantics. 
+ * @remarks
+ * Uses a `.tmp` file and `renameSync` to ensure that a crash during writing 
+ * does not corrupt the primary `state.json`.
+ */
 function saveStateToDisk(state: GmState): void {
   const dir = getStateDir();
   STATE_STORE_RUNTIME.mkdirSync(dir, { recursive: true, mode: 0o700 });
@@ -127,6 +162,21 @@ function saveStateToDisk(state: GmState): void {
   }
 }
 
+/**
+ * Runs a block of code within a transactional state context.
+ * 
+ * @param {() => Promise<T>} fn - The block of code to execute.
+ * @returns {Promise<{ result: T; stats: StateStoreContextStats }>} - Execution result and stats.
+ * 
+ * @remarks
+ * This is the primary entry point for commands that interact with the state.
+ * It ensures that multiple calls to `loadState` and `saveState` within the 
+ * block share the same in-memory state and that any "dirty" state is 
+ * identified. 
+ * 
+ * **Warning**: If the block exits with a "dirty" state (unsaved changes), 
+ * a warning is logged as it implies an unexpected exception prevented a flush.
+ */
 export async function withStateStoreContext<T>(
   fn: () => Promise<T>,
 ): Promise<{ result: T; stats: StateStoreContextStats }> {
@@ -164,6 +214,9 @@ export async function withStateStoreContext<T>(
   }
 }
 
+/** 
+ * Persists any pending changes in the current context to disk. 
+ */
 export async function flushStateStoreContext(): Promise<GmState | null> {
   if (!activeStateStoreContext) {
     throw new Error('No active state-store context to flush.');
@@ -176,7 +229,10 @@ export async function flushStateStoreContext(): Promise<GmState | null> {
   return cloneState(activeStateStoreContext.state ?? null);
 }
 
-/** @internal — test-only; prefer tryLoadState() in production code */
+/** 
+ * Loads the game state, preferring the current context's memory if available. 
+ * @internal — test-only; prefer tryLoadState() in production code 
+ */
 export async function loadState(): Promise<GmState> {
   if (activeStateStoreContext) {
     if (activeStateStoreContext.state === undefined) {
@@ -188,9 +244,14 @@ export async function loadState(): Promise<GmState> {
   return loadStateFromDisk();
 }
 
-// async signature retained for caller compatibility — the body intentionally uses
-// synchronous writeFileSync + renameSync for atomic rename semantics (Bun.write is
-// async with no fsync guarantee, so sync I/O is the deliberate choice here).
+/**
+ * Saves the provided state, either to the current context or directly to disk.
+ * 
+ * @param {GmState} state - The new state to persist.
+ * @remarks
+ * In a context, this performs a "Virtual Write"—updating the memory but not 
+ * the disk until `flushStateStoreContext` is called. 
+ */
 export async function saveState(state: GmState): Promise<void> {
   if (activeStateStoreContext) {
     const validation = validateState(state);
@@ -205,11 +266,10 @@ export async function saveState(state: GmState): Promise<void> {
   saveStateToDisk(state);
 }
 
-// tryLoadState returns GmState | null. The underlying tryLoadStateFromDisk returns
-// Record<string, unknown> | null, so we validate and warn but still return the state.
-// Commands that mutate state run validateState at their own level before persisting.
-// Returning even invalid state is intentional — commands like `state validate`,
-// `save generate`, and `export generate` need to inspect and strip/fix the state.
+/** 
+ * Safe state loader that handles common I/O failures gracefully. 
+ * @returns {Promise<GmState | null>} - The state, or null if missing/unreadable.
+ */
 export async function tryLoadState(): Promise<GmState | null> {
   if (activeStateStoreContext) {
     if (activeStateStoreContext.state === undefined) {
@@ -242,8 +302,10 @@ export async function tryLoadState(): Promise<GmState | null> {
   return raw;
 }
 
-/** Back up current state.json to .state-backup.json before destructive operations.
- *  Overwrites any existing backup — this is a single-slot safety net. */
+/** 
+ * Back up current state.json to .state-backup.json before destructive operations.
+ * Overwrites any existing backup — this is a single-slot safety net. 
+ */
 export async function backupState(): Promise<boolean> {
   try {
     const statePath = getStatePath();
@@ -273,6 +335,9 @@ export async function restoreBackup(): Promise<GmState | null> {
   }
 }
 
+/** 
+ * Factory for creating a blank, valid initial game state. 
+ */
 export function createDefaultState(): GmState {
   return {
     _version: 1,

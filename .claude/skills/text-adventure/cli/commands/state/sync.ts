@@ -22,6 +22,12 @@ const VALID_TIME_KEYS = new Set<string>([
 ]);
 const NPC_WORLDFLAG_PATTERN = /^npc_([a-z0-9_-]+)_/;
 
+/**
+ * Calculates the difference between current state and proposed sync changes.
+ * @param {GmState} state - Current game state.
+ * @param {Record<string, string>} flags - Proposed changes from CLI flags.
+ * @param {string[]} warnings - Array to collect validation warnings.
+ */
 function buildSyncDiff(
   state: GmState,
   flags: Record<string, string>,
@@ -83,6 +89,9 @@ function buildSyncDiff(
   return { diff, nextScene, parsedTime, earlyReturn: null };
 }
 
+/** 
+ * Verifies that the most recent computation results are recorded in rollHistory. 
+ */
 function checkPendingComputation(state: GmState, warnings: string[]): void {
   if (state._lastComputation && state._lastComputation.type !== 'levelup_result') {
     const lastType = state._lastComputation.type;
@@ -93,6 +102,9 @@ function checkPendingComputation(state: GmState, warnings: string[]): void {
   }
 }
 
+/** 
+ * Ensures mandatory Tier 1 modules are active in the context. 
+ */
 function checkMissingModules(activeSet: Set<string>, warnings: string[]): void {
   const missingTier1 = TIER1_MODULES.filter(moduleName => !activeSet.has(moduleName));
   if (missingTier1.length > 0) {
@@ -100,6 +112,9 @@ function checkMissingModules(activeSet: Set<string>, warnings: string[]): void {
   }
 }
 
+/** 
+ * Synchronizes quest objective completion with canonical worldFlags. 
+ */
 function checkQuestWorldFlagSync(state: GmState, warnings: string[]): void {
   for (const quest of state.quests) {
     if (quest.objectives.length === 0) {
@@ -134,6 +149,11 @@ function checkQuestWorldFlagSync(state: GmState, warnings: string[]): void {
   }
 }
 
+/** 
+ * Checks if the character has reached the XP threshold for a level-up. 
+ * @remarks
+ * See decision-campaign-arcs-use-full-levelxp-carry-forward-with-selective-reset.md.
+ */
 function checkLevelUpEligibility(state: GmState, warnings: string[]): void {
   if (state.character) {
     const { level, xp } = state.character;
@@ -163,6 +183,7 @@ function checkLevelUpEligibility(state: GmState, warnings: string[]): void {
   }
 }
 
+/** Verifies that worldFlags referencing NPCs point to valid roster IDs. */
 function checkNpcReferenceGaps(state: GmState, npcIds: Set<string>, warnings: string[]): void {
   for (const key of Object.keys(state.worldFlags)) {
     const match = NPC_WORLDFLAG_PATTERN.exec(key);
@@ -177,6 +198,12 @@ function checkNpcReferenceGaps(state: GmState, npcIds: Set<string>, warnings: st
 
 export const JOURNAL_FILENAME = 'journal.txt';
 
+/** 
+ * In-depth compaction check during state sync.
+ * @remarks
+ * If compaction is detected, it blocks scene generation until modules are reloaded.
+ * See gotcha-compaction-preflight-must-not-diverge-from-sync-state.md.
+ */
 function checkCompaction(
   state: GmState,
   warnings: string[],
@@ -239,6 +266,7 @@ const ROLLLESS_BLOCK_THRESHOLD = 5;
 /** Rulebooks exempt from roll ratio enforcement. */
 const NARRATIVE_RULEBOOKS = new Set(['narrative_engine']);
 
+/** Ensures all pending rolls declared in previous scenes have been resolved. */
 function checkPendingRolls(state: GmState, warnings: string[]): void {
   const { unresolved } = resolvePendingRolls(state._pendingRolls, state.rollHistory, state.scene);
   for (const pending of unresolved) {
@@ -249,6 +277,7 @@ function checkPendingRolls(state: GmState, warnings: string[]): void {
   }
 }
 
+/** Ensures a rulebook is active to enable mechanical enforcement. */
 function checkRulebookSet(state: GmState, warnings: string[]): void {
   if (state.scene < 1) return;
   const rulebook = state.worldFlags.rulebook;
@@ -275,6 +304,7 @@ function checkStatCompleteness(state: GmState, warnings: string[]): void {
   }
 }
 
+/** Enforces a minimum ratio of dice rolls to narrative scenes. */
 function checkRollRatio(state: GmState, warnings: string[]): void {
   const rulebook = state.worldFlags.rulebook;
   if (typeof rulebook !== 'string' || NARRATIVE_RULEBOOKS.has(rulebook)) return;
@@ -303,6 +333,19 @@ function checkRollRatio(state: GmState, warnings: string[]): void {
 const KNOWN_BOOLEAN_FLAGS = new Set(['apply']);
 const KNOWN_VALUE_FLAGS = new Set(['scene', 'room', 'time']);
 
+/**
+ * Handler for the `tag state sync` command.
+ * Performs a comprehensive audit of the game state before allowing advancement.
+ * 
+ * @param {string[]} args - CLI arguments (e.g., --apply, --scene 5, --room bridge).
+ * @returns {Promise<CommandResult>} - Result of the sync audit.
+ * @remarks
+ * This is the 'Master Gate' of the engine. It blocks advancement if:
+ * 1. The previous scene was not verified (`tag verify`).
+ * 2. Compaction occurred without a module reload.
+ * 3. Pending rolls are unresolved.
+ * 4. Critical stats are missing for the configured rulebook.
+ */
 export async function handleSync(args: string[]): Promise<CommandResult> {
   const state = await tryLoadState();
   if (!state) return noState();
@@ -405,7 +448,7 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
         + `First: action ${first.action} (${first.type} ${first.stat}).`,
         `Run \`${buildPendingRollCommand(first)}\` first.`,
         'state sync',
-      );
+        );
     }
 
     if (diff.scene) state.scene = nextScene;

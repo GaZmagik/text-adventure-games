@@ -2,9 +2,22 @@
 // recent quest status, last few rolls.
 
 import type { GmState } from '../../types';
-import { esc } from '../../lib/html';
+import { emitStandaloneCustomElement } from '../lib/shadow-wrapper';
 
-export function renderRecap(state: GmState | null, _styleName: string, _options?: Record<string, unknown>): string {
+/**
+ * Renders the session recap widget.
+ * 
+ * @param {GmState | null} state - Current game state.
+ * @param {string} styleName - Visual style.
+ * @param {Record<string, unknown>} [_options] - Unused.
+ * @returns {string} - The HTML wrapped in a <ta-recap> custom element.
+ * 
+ * @remarks
+ * Provides a "Previously on..." summary to orient the player at the 
+ * start of a session. Includes character vitals, current location, 
+ * time, and active quest status.
+ */
+export function renderRecap(state: GmState | null, styleName: string, _options?: Record<string, unknown>): string {
   const recapData = {
     scene: Number(state?.scene) || 0,
     char: state?.character ? {
@@ -20,5 +33,9 @@ export function renderRecap(state: GmState | null, _styleName: string, _options?
     rolls: state?.rollHistory ?? [],
   };
 
-  return `<ta-recap data-recap="${esc(JSON.stringify(recapData))}"></ta-recap>`;
+  return emitStandaloneCustomElement({
+    tag: 'ta-recap',
+    styleName,
+    attrs: { 'data-recap': JSON.stringify(recapData) },
+  });
 }

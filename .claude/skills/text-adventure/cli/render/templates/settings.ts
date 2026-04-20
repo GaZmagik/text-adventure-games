@@ -6,6 +6,7 @@
 import type { GmState } from '../../types';
 import { emitRootCustomElement } from '../lib/shadow-wrapper';
 
+/** Structured data for the settings panel. */
 type SettingsData = {
   rulebooks?: string[] | undefined;
   difficulties?: string[] | undefined;
@@ -19,12 +20,28 @@ const DEFAULT_RULEBOOKS = ['d20_system', 'dnd_5e', 'gurps_lite', 'pf2e_lite', 's
 const DEFAULT_DIFFICULTIES = ['easy', 'normal', 'hard', 'brutal'];
 const DEFAULT_PACING = ['fast', 'normal', 'slow'];
 const DEFAULT_STYLES = ['station', 'terminal', 'parchment', 'neon', 'brutalist', 'art-deco', 'ink-wash', 'blueprint', 'stained-glass', 'sveltekit', 'weathered', 'holographic'];
+/** Core engine modules that should always be prioritised or visible. */
 const TIER1_MODULES = ['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex', 'arc-patterns'];
 const DEFAULT_MODULES = [...TIER1_MODULES, 'bestiary', 'story-architect', 'ship-systems', 'crew-manifest', 'star-chart', 'geo-map', 'procedural-world-gen', 'world-history', 'lore-codex', 'rpg-systems', 'ai-npc', 'atmosphere', 'audio', 'adventure-exporting', 'pre-generated-characters', 'genre-mechanics', 'scenarios', 'adventure-authoring'];
 
+/**
+ * Renders the pre-game settings configuration panel.
+ * 
+ * @param {GmState | null} _state - Current game state (unused).
+ * @param {string} styleName - Initial visual style.
+ * @param {Record<string, unknown>} [options] - GM-provided configuration options.
+ * @returns {string} - The HTML wrapped in a <ta-settings> custom element.
+ * 
+ * @remarks
+ * This is the primary entry point for a new game session. 
+ * It maps diverse GM inputs (from the `--data` flag) into a strict 
+ * internal model, merges them with engine defaults, and renders 
+ * a multi-step configuration wizard.
+ */
 export function renderSettings(_state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
   const raw = (options?.data ?? {}) as Record<string, unknown>;
 
+  /** Coerces mixed GM input (strings, objects with labels) into a flat string array. */
   const toStringArray = (v: unknown): string[] | undefined => {
     if (!Array.isArray(v)) return undefined;
     return v.map((el: unknown) => {
@@ -47,6 +64,7 @@ export function renderSettings(_state: GmState | null, styleName: string, option
       : {},
   };
 
+  /** Merges user-provided options with engine defaults, maintaining user order. */
   const merge = (provided: string[] | undefined, defaults: string[]): string[] => {
     if (!provided) return defaults;
     const seen = new Set(provided);

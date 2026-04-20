@@ -6,33 +6,51 @@ import { esc } from '../../lib/html';
 
 // ── Types ──────────────────────────────────────────────────────────
 
+/** Options for rendering a chapter-style header. */
 export type SceneChapterOpts = {
+  /** Optional small text above the title (e.g., 'Chapter 1'). */
   kicker?: string;
+  /** Primary heading text. */
   title: string;
+  /** Optional italicised descriptive text below the title. */
   dek?: string;
 };
 
+/** Data for a single metadata card in a strip. */
 export type SceneMetaCard = {
+  /** Small uppercase label (e.g., 'Location'). */
   label: string;
+  /** Bold primary value (e.g., 'Hyperion Station'). */
   value: string;
 };
 
+/** Options for rendering a choice or interaction stage. */
 export type ChoiceStageOpts = {
+  /** Optional kicker text. */
   kicker?: string;
+  /** Primary stage heading (e.g., 'What do you do?'). */
   heading: string;
+  /** Optional lead-in copy. */
   copy?: string;
+  /** Raw HTML content containing buttons or interaction elements. */
   contentHtml: string;
+  /** Unique ID for the status message area (default: 'sc-choice-status'). */
   statusId?: string;
 };
 
 // ── Helpers ────────────────────────────────────────────────────────
 
+/** Renders a standard kicker paragraph. */
 function kickerEl(text: string): string {
   return `<p class="sc-kicker">${esc(text)}</p>`;
 }
 
 // ── Builders ───────────────────────────────────────────────────────
 
+/**
+ * Renders a high-fidelity chapter header.
+ * @remarks Uses `.sc-chapter-header` vocabulary.
+ */
 export function renderSceneChapterHeader(opts: SceneChapterOpts): string {
   const parts: string[] = [];
   if (opts.kicker) parts.push(kickerEl(opts.kicker));
@@ -41,6 +59,10 @@ export function renderSceneChapterHeader(opts: SceneChapterOpts): string {
   return `<div class="sc-chapter-header">${parts.join('\n')}</div>`;
 }
 
+/**
+ * Renders a horizontal strip of metadata cards.
+ * @remarks Uses `.sc-meta-strip` vocabulary.
+ */
 export function renderSceneMetaStrip(cards: SceneMetaCard[]): string {
   const cardHtml = cards.map(c =>
     `<div class="sc-meta-card"><span class="sc-meta-label">${esc(c.label)}</span><strong class="sc-meta-value">${esc(c.value)}</strong></div>`,
@@ -48,6 +70,10 @@ export function renderSceneMetaStrip(cards: SceneMetaCard[]): string {
   return `<div class="sc-meta-strip">${cardHtml}</div>`;
 }
 
+/**
+ * Renders a decorative SVG divider with central node.
+ * @remarks Uses `.sc-divider` vocabulary.
+ */
 export function renderSceneDivider(): string {
   return `<div class="sc-divider" aria-hidden="true">
   <svg class="sc-divider-mark" viewBox="0 0 520 48" focusable="false">
@@ -60,10 +86,18 @@ export function renderSceneDivider(): string {
 </div>`;
 }
 
+/**
+ * Renders a thematic blockquote.
+ * @remarks Uses `.sc-quote` vocabulary.
+ */
 export function renderSceneQuote(text: string): string {
   return `<blockquote class="sc-quote">${esc(text)}</blockquote>`;
 }
 
+/**
+ * Renders a self-contained section for player choices or dice rolls.
+ * @remarks Uses `.sc-choice-stage` vocabulary.
+ */
 export function renderChoiceStage(opts: ChoiceStageOpts): string {
   const headerParts: string[] = [];
   if (opts.kicker) headerParts.push(kickerEl(opts.kicker));
@@ -77,16 +111,32 @@ export function renderChoiceStage(opts: ChoiceStageOpts): string {
 </section>`;
 }
 
+/**
+ * Renders a key-value metric line, typically for dice roll breakdowns.
+ */
 export function renderRollMetric(label: string, value: string): string {
   return `<div class="sc-roll-metric"><span class="sc-roll-metric-label">${esc(label)}</span><strong class="sc-roll-metric-value">${esc(value)}</strong></div>`;
 }
 
+/**
+ * Renders a full-width banner announcing a roll result.
+ * @param {string} state - The outcome state ('success', 'failure', 'critical').
+ * @param {string} text - The display message.
+ */
 export function renderRollResultBanner(state: string, text: string): string {
   return `<div class="sc-roll-result" data-state="${esc(state)}" aria-live="polite">${esc(text)}</div>`;
 }
 
 // ── CSS ────────────────────────────────────────────────────────────
 
+/**
+ * Base structural CSS for the Scene Design System.
+ * 
+ * @remarks
+ * This CSS provides the layout, padding, and positioning for all `sc-*` elements.
+ * It is theme-agnostic and relies on CSS variables (e.g., `--ta-color-accent`, 
+ * `--sta-text-primary`) for colors and typography.
+ */
 export const SCENE_DESIGN_CSS = `
 /* ── Scene Chapter Header ────────────────────────────── */
 .sc-chapter-header {

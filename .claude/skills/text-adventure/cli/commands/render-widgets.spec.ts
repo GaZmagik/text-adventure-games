@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { handleRender } from './render';
 import { saveState, createDefaultState } from '../lib/state-store';
 import type { GmState } from '../types';
+import { extractJsonTagAttr } from '../tests/support/rendered-widget';
 
 let tempDir: string;
 const originalEnv = process.env.TAG_STATE_DIR;
@@ -89,12 +90,17 @@ describe('render widget smoke tests', () => {
     const result = await handleRender(['ship', '--raw']);
     expect(result.ok).toBe(true);
     const html = result.data as string;
-    expect(html).toContain('widget-ship');
-    expect(html).toContain('Astral Wanderer');
-    expect(html).toContain('ship-schematic');
-    expect(html).toContain('system-card');
-    expect(html).toContain('Power Allocation');
-    expect(html).toContain('engines');
+    const ship = extractJsonTagAttr<{
+      name: string;
+      repairParts: number;
+      systems: Array<{ name: string; status: string; integrity: number }>;
+      powerAllocations: Record<string, number>;
+    }>(html, 'ta-ship', 'data-ship');
+    expect(html).toContain('<ta-ship');
+    expect(ship.name).toBe('Astral Wanderer');
+    expect(ship.repairParts).toBe(5);
+    expect(ship.systems.map(system => system.name)).toEqual(['engines', 'shields']);
+    expect(ship.powerAllocations.engines).toBe(3);
   });
 
   test('ship widget renders empty-state when no shipState', async () => {
@@ -124,18 +130,21 @@ describe('render widget smoke tests', () => {
     const result = await handleRender(['crew', '--raw']);
     expect(result.ok).toBe(true);
     const html = result.data as string;
-    expect(html).toContain('widget-crew');
-    expect(html).toContain('crew-table');
-    expect(html).toContain('Mara Voss');
-    expect(html).toContain('engineer');
+    const crew = extractJsonTagAttr<Array<{ name: string; role: string; task: string }>>(html, 'ta-crew', 'data-crew');
+    expect(html).toContain('<ta-crew');
+    expect(crew).toHaveLength(1);
+    expect(crew[0]!.name).toBe('Mara Voss');
+    expect(crew[0]!.role).toBe('engineer');
+    expect(crew[0]!.task).toBe('Repairing shields');
   });
 
   test('crew widget renders empty-state when no crew', async () => {
     const result = await handleRender(['crew', '--raw']);
     expect(result.ok).toBe(true);
     const html = result.data as string;
-    expect(html).toContain('widget-crew');
-    expect(html).toContain('empty-state');
+    const crew = extractJsonTagAttr<unknown[]>(html, 'ta-crew', 'data-crew');
+    expect(html).toContain('<ta-crew');
+    expect(crew).toEqual([]);
   });
 
   test('codex widget renders entries with state badges', async () => {
@@ -147,19 +156,20 @@ describe('render widget smoke tests', () => {
     const result = await handleRender(['codex', '--raw']);
     expect(result.ok).toBe(true);
     const html = result.data as string;
-    expect(html).toContain('widget-codex');
-    expect(html).toContain('codex-entry');
-    expect(html).toContain('ancient_beacon');
-    expect(html).toContain('dark_signal');
-    expect(html).toContain('codex-badge');
+    const entries = extractJsonTagAttr<Array<{ id: string; state: string; discoveredAt?: number }>>(html, 'ta-codex', 'data-entries');
+    expect(html).toContain('<ta-codex');
+    expect(entries.map(entry => entry.id)).toEqual(['ancient_beacon', 'dark_signal']);
+    expect(entries[0]!.state).toBe('discovered');
+    expect(entries[0]!.discoveredAt).toBe(3);
   });
 
   test('codex widget renders empty-state when no entries', async () => {
     const result = await handleRender(['codex', '--raw']);
     expect(result.ok).toBe(true);
     const html = result.data as string;
-    expect(html).toContain('widget-codex');
-    expect(html).toContain('empty-state');
+    const entries = extractJsonTagAttr<unknown[]>(html, 'ta-codex', 'data-entries');
+    expect(html).toContain('<ta-codex');
+    expect(entries).toEqual([]);
   });
 
   test('map widget renders zone list with current zone', async () => {
@@ -173,11 +183,15 @@ describe('render widget smoke tests', () => {
     const result = await handleRender(['map', '--raw']);
     expect(result.ok).toBe(true);
     const html = result.data as string;
-    expect(html).toContain('widget-map');
-    expect(html).toContain('Docking Bay 7');
-    expect(html).toContain('map-schematic');
-    expect(html).toContain('zone-current');
-    expect(html).toContain('zone-list');
+    const map = extractJsonTagAttr<{
+      current: string;
+      nodes: Array<{ id: string }>;
+      doorStates: Record<string, string>;
+    }>(html, 'ta-map', 'data-map');
+    expect(html).toContain('<ta-map');
+    expect(map.current).toBe('Docking Bay 7');
+    expect(map.nodes.some(node => node.id === 'Bridge')).toBe(true);
+    expect(map.doorStates['bay-door']).toBe('locked');
   });
 
   test('map widget renders empty-state when no mapState', async () => {
@@ -195,12 +209,15 @@ describe('render widget smoke tests', () => {
     const result = await handleRender(['starchart', '--raw']);
     expect(result.ok).toBe(true);
     const html = result.data as string;
-    expect(html).toContain('widget-starchart');
-    expect(html).toContain('Sol System');
-    expect(html).toContain('starchart-canvas');
-    expect(html).toContain('system-current');
-    expect(html).toContain('system-list');
-    expect(html).toContain('Alpha Centauri');
+    const chart = extractJsonTagAttr<{
+      current: string;
+      systems: Array<{ name: string }>;
+      plottedCourse: string[] | null;
+    }>(html, 'ta-starchart', 'data-chart');
+    expect(html).toContain('<ta-starchart');
+    expect(chart.current).toBe('Sol System');
+    expect(chart.systems.some(system => system.name === 'Alpha Centauri')).toBe(true);
+    expect(chart.plottedCourse).toBeNull();
   });
 
   test('starchart widget shows empty state when no rooms visited', async () => {
@@ -228,7 +245,8 @@ describe('render widget smoke tests', () => {
     const result = await handleRender(['combat-turn', '--style', 'terminal']);
     expect(result.ok).toBe(true);
     const html = (result.data as { html: string }).html;
-    expect(html).toContain('8'); // damage value
+    const combat = extractJsonTagAttr<{ computation: { context?: { damage?: number } } }>(html, 'ta-combat-turn', 'data-combat');
+    expect(combat.computation.context?.damage).toBe(8);
   });
 
   test('levelup widget renders ta-levelup element with ability options from --data', async () => {
@@ -252,11 +270,13 @@ describe('render widget smoke tests', () => {
     const result = await handleRender(['combat-turn', '--raw']);
     expect(result.ok).toBe(true);
     const html = result.data as string;
-    expect(html).toContain('widget-combat');
-    expect(html).toContain('combat-roll');
-    expect(html).toContain('combat-outcome');
-    expect(html).toContain('DEX');
-    expect(html).toContain('15'); // total
+    const combat = extractJsonTagAttr<{
+      computation: { stat: string; total: number; outcome: string };
+    }>(html, 'ta-combat-turn', 'data-combat');
+    expect(html).toContain('<ta-combat-turn');
+    expect(combat.computation.stat).toBe('DEX');
+    expect(combat.computation.total).toBe(15);
+    expect(combat.computation.outcome).toBe('success');
   });
 
   test('dialogue widget renders ta-dialogue element with NPC name from rosterMutations', async () => {
