@@ -22,19 +22,19 @@ const DEFAULT_OUTPUT_DIR = join(SKILL_DIR, 'assets');
 
 const CDN_ASSET_PATH = '/.claude/skills/text-adventure/assets';
 
-/** Detect current git branch for CDN ref. Falls back to 'main'. */
+/** Detect the current HEAD commit for an immutable CDN ref. Falls back to 'main'. */
 function detectGitRef(): string {
   try {
-    const result = Bun.spawnSync(['git', 'branch', '--show-current']);
-    const branch = result.stdout.toString().trim();
-    return branch || 'main';
+    const result = Bun.spawnSync(['git', 'rev-parse', '--short', 'HEAD']);
+    const commit = result.stdout.toString().trim();
+    return commit || 'main';
   } catch {
     return 'main';
   }
 }
 
 function buildCdnBase(ref: string, user: string): string {
-  // Encode the git ref conservatively so branch names like feature/foo
+  // Encode the git ref conservatively so tags/branches like feature/foo
   // are emitted as a single ref token rather than a path segment.
   const safeRef = encodeURIComponent(ref);
   return `https://cdn.jsdelivr.net/gh/${user}/text-adventure-games@${safeRef}${CDN_ASSET_PATH}`;

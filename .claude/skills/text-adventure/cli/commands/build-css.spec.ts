@@ -23,6 +23,11 @@ const expectedStyleNames = readdirSync(STYLES_DIR)
 const STRUCTURAL_CSS = ['common-widget', 'pregame-design', 'scene-design'];
 const allCssNames = [...expectedStyleNames, ...STRUCTURAL_CSS].sort();
 
+function currentGitShortRef(): string {
+  const result = Bun.spawnSync(['git', 'rev-parse', '--short', 'HEAD']);
+  return result.stdout.toString().trim();
+}
+
 beforeAll(async () => {
   tmpDir = mkdtempSync(join(tmpdir(), 'tag-build-css-'));
   result = await handleBuildCss(['--output-dir', tmpDir]);
@@ -247,7 +252,7 @@ describe('--release flag', () => {
   it('manifest CDN_BASE uses release tag instead of branch ref', () => {
     const manifest = readFileSync(join(releaseTmpDir, 'cdn-manifest.ts'), 'utf-8');
     expect(manifest).toContain('@v1.4.0/');
-    expect(manifest).not.toContain('@feature/');
+    expect(manifest).not.toContain(`@${currentGitShortRef()}/`);
   });
 
   it('CSS output is identical regardless of --release flag', () => {
@@ -283,14 +288,12 @@ describe('--release flag', () => {
 // ── Default CDN_BASE auto-detection ─────────────────────────────────
 
 describe('default CDN_BASE (no --release)', () => {
-  it('auto-detects current git branch in CDN_BASE', () => {
+  it('auto-detects current git commit in CDN_BASE', () => {
     const manifest = readFileSync(join(tmpDir, 'cdn-manifest.ts'), 'utf-8');
-    // Must contain an @ ref (branch or tag) followed by the asset path
-    expect(manifest).toMatch(/@[a-zA-Z0-9%\-_.]+\/.claude\/skills/);
+    expect(manifest).toContain(`@${currentGitShortRef()}/`);
   });
 
   it('does not contain a hardcoded branch name in source', async () => {
-    // The build-css.ts source should not hardcode a specific branch
     const source = await Bun.file(join(import.meta.dir, 'build-css.ts')).text();
     expect(source).not.toContain('@feature/tag-cli-');
   });

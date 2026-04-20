@@ -225,9 +225,11 @@ remains only for legacy fallback/empty-state cases that still ship literal light
 
 The CDN base is generated into `assets/cdn-manifest.ts` and points at jsDelivr:
 `https://cdn.jsdelivr.net/gh/GaZmagik/text-adventure-games@<ref>/.claude/skills/text-adventure/assets`.
-Feature branches use the current branch ref for testing; the final release cut swaps that ref to
-the immutable release tag. The `assets/` directory is excluded from the skill zip because those
-files are served from the CDN, not bundled into the delivery archive.
+Default builds now use the current HEAD commit hash so exported widgets always point at immutable
+CDN assets instead of a mutable branch cache. The final release cut can still pass `--release <tag>`
+to swap that ref to a semantic release tag. Run `tag build-css` after pushing the target commit so
+jsDelivr can resolve the commit URL. The `assets/` directory is excluded from the skill zip because
+those files are served from the CDN, not bundled into the delivery archive.
 
 Run automatically by `scripts/zip.sh` before building the skill zip.
 

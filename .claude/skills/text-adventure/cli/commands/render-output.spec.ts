@@ -78,24 +78,20 @@ describe('render modulesRequired and featureChecklist', () => {
     state._styleReadEpoch = 0;
   });
 
-  test('craftGuidance.compositionNotes includes narrativeClasses vocabulary', async () => {
+  test('craftGuidance includes prose and rendering guidance', async () => {
     state.modulesActive = ['core-systems'];
     await saveState(state);
     const result = await handleRender(['ticker']);
     expect(result.ok).toBe(true);
     const data = result.data as Record<string, unknown>;
     const guidance = data.craftGuidance as {
-      compositionNotes: {
-        narrativeClasses: string;
-      };
+      proseChecklist: string[];
+      renderingRules: string[];
     };
-    expect(guidance.compositionNotes.narrativeClasses).toBeDefined();
-    expect(guidance.compositionNotes.narrativeClasses).toContain('nar-item');
-    expect(guidance.compositionNotes.narrativeClasses).toContain('nar-npc');
-    expect(guidance.compositionNotes.narrativeClasses).toContain('nar-dlg');
-    expect(guidance.compositionNotes.narrativeClasses).toContain('nar-sfx');
-    expect(guidance.compositionNotes.narrativeClasses).toContain('nar-danger');
-    expect(guidance.compositionNotes.narrativeClasses).toContain('nar-lore');
+    expect(Array.isArray(guidance.proseChecklist)).toBe(true);
+    expect(Array.isArray(guidance.renderingRules)).toBe(true);
+    expect(guidance.proseChecklist.some(item => item.includes('Zero meta-commentary'))).toBe(true);
+    expect(guidance.renderingRules.some(item => item.includes('div#scene-meta[data-meta]'))).toBe(true);
   });
 
   test('modulesRequired is present in render output', async () => {
