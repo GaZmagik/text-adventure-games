@@ -231,25 +231,21 @@ describe('render widget smoke tests', () => {
     expect(html).toContain('8'); // damage value
   });
 
-  test('levelup widget renders level-up banner with ability options from --data', async () => {
+  test('levelup widget renders ta-levelup element with ability options from --data', async () => {
     const data = JSON.stringify({ abilities: ['Power Strike', 'Shield Bash'] });
     const result = await handleRender(['levelup', '--raw', '--data', data]);
     expect(result.ok).toBe(true);
     const html = result.data as string;
-    expect(html).toContain('widget-levelup');
-    expect(html).toContain('levelup-banner');
+    expect(html).toContain('<ta-levelup');
     expect(html).toContain('Power Strike');
     expect(html).toContain('Shield Bash');
-    expect(html).toContain('ability-card');
   });
 
   test('levelup widget renders without --data (no ability options)', async () => {
     const result = await handleRender(['levelup', '--raw']);
     expect(result.ok).toBe(true);
     const html = result.data as string;
-    expect(html).toContain('widget-levelup');
-    expect(html).toContain('levelup-banner');
-    expect(html).toContain('Level Up!');
+    expect(html).toContain('<ta-levelup');
   });
 
   test('combat-turn widget renders roll breakdown and outcome badge', async () => {
@@ -263,7 +259,7 @@ describe('render widget smoke tests', () => {
     expect(html).toContain('15'); // total
   });
 
-  test('dialogue widget renders NPC name and disposition badge from rosterMutations', async () => {
+  test('dialogue widget renders ta-dialogue element with NPC name from rosterMutations', async () => {
     state.rosterMutations = [
       {
         id: 'trader_01',
@@ -290,19 +286,15 @@ describe('render widget smoke tests', () => {
     const result = await handleRender(['dialogue', '--raw']);
     expect(result.ok).toBe(true);
     const html = result.data as string;
-    expect(html).toContain('widget-dialogue');
-    expect(html).toContain('dialogue-header');
+    expect(html).toContain('<ta-dialogue');
     expect(html).toContain('Jax Renner');
-    expect(html).toContain('dialogue-disposition');
   });
 
   test('dialogue widget renders with no NPCs in roster', async () => {
-    // rosterMutations is empty by default — renders with fallback NPC name
     const result = await handleRender(['dialogue', '--raw']);
     expect(result.ok).toBe(true);
     const html = result.data as string;
-    expect(html).toContain('widget-dialogue');
-    expect(html).toContain('dialogue-header');
+    expect(html).toContain('<ta-dialogue');
   });
 });
 

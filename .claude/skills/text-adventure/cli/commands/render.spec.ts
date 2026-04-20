@@ -319,9 +319,9 @@ describe('render style resolution', () => {
     await saveState(state);
 
     const result = await handleRender(['ticker', '--raw']);
-    // Shadow DOM renders with a warning comment when style is not in CDN manifest
+    // Custom elements emit a compact tag — no visible warning comment for unknown styles
     expect(result.ok).toBe(true);
-    expect(result.data as string).toContain('WARNING');
+    expect(result.data as string).toContain('<ta-ticker');
   });
 
   test('rejects style names with invalid characters', async () => {
@@ -358,7 +358,7 @@ describe('render output modes', () => {
     expect(data.widget).toBe('ticker');
     expect(data.style).toBe('terminal');
     expect(typeof data.html).toBe('string');
-    expect(data.html).toContain('attachShadow');
+    expect(data.html).toContain('<ta-ticker');
   });
 
   test('non-raw response includes sizeCheck with budget info', async () => {
@@ -374,7 +374,7 @@ describe('render output modes', () => {
     expect(sc.chars).toBe((data.html as string).length);
     expect(sc.budgetChars).toBe(128 * 1024);
     expect(sc.withinBudget).toBe(true);
-    expect(sc.percentUsed).toBeGreaterThan(0);
+    expect(sc.percentUsed).toBeGreaterThanOrEqual(0);
     expect(sc.percentUsed).toBeLessThanOrEqual(100);
     expect(data.budgetNote as string).toContain(sc.chars.toLocaleString());
   });
@@ -387,7 +387,7 @@ describe('render output modes', () => {
     const result = await handleRender(['ticker', '--raw']);
     expect(result.ok).toBe(true);
     expect(typeof result.data).toBe('string');
-    expect(result.data as string).toContain('attachShadow');
+    expect(result.data as string).toContain('<ta-ticker');
   });
 
   test('non-scene widgets carry an exact render-origin marker', async () => {

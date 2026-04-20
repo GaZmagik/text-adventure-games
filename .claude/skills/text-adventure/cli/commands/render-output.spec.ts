@@ -327,7 +327,7 @@ describe('render template output', () => {
     expect(html).toContain('id="scene-content"');
     expect(html).toContain('id="panel-overlay"');
     expect(html).toContain('id="scene-meta"');
-    expect(html).toContain('footer-row');
+    expect(html).toContain('<ta-footer');
   });
 
   test('character widget shows stats and inventory', async () => {
@@ -379,12 +379,11 @@ describe('render template output', () => {
     expect(html).toContain('Day 5');
   });
 
-  test('footer widget includes Character and Save buttons', async () => {
+  test('footer widget emits ta-footer element', async () => {
     const result = await handleRender(['footer', '--raw']);
     const html = result.data as string;
-    expect(html).toContain('data-panel="character"');
-    expect(html).toContain('id="save-btn"');
-    expect(html).toContain('data-panel="quests"'); // core-systems is active
+    expect(html).toContain('<ta-footer');
+    expect(html).toContain('data-dim-panels="quests"');
   });
 
   test('recap widget contains session summary elements', async () => {

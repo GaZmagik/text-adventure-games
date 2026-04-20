@@ -146,37 +146,6 @@ function initTagScene(root) {
   window.tag.showToast = showToast;
   window.tag.showXpToast = showXpToast;
 
-  function sendOrCopyPrompt(btn, prompt) {
-    if (!prompt) return;
-    btn.setAttribute('title', prompt);
-    if (typeof sendPrompt === 'function') {
-      sendPrompt(prompt);
-      return;
-    }
-    var orig = btn.textContent;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(prompt).then(function() {
-        btn.textContent = 'Copied! Paste as your reply.';
-        setTimeout(function() { btn.textContent = orig; }, 3000);
-      }).catch(function() {
-        btn.textContent = 'Copy the prompt from the tooltip.';
-        setTimeout(function() { btn.textContent = orig; }, 3000);
-      });
-      return;
-    }
-    // Legacy fallback for browsers without Clipboard API
-    var ta = document.createElement('textarea');
-    var copied = false;
-    ta.value = prompt;
-    ta.style.cssText = 'position:fixed;opacity:0';
-    document.body.appendChild(ta);
-    ta.select();
-    try { copied = !!document.execCommand('copy'); } catch (_err) {}
-    document.body.removeChild(ta);
-    btn.textContent = copied ? 'Copied! Paste as your reply.' : 'Copy the prompt from the tooltip.';
-    setTimeout(function() { btn.textContent = orig; }, 3000);
-  }
-
   root.querySelectorAll('.atmo-redacted.revealable').forEach(function(el) {
     el.addEventListener('click', function() {
       el.classList.add('revealed');
@@ -195,7 +164,7 @@ function initTagScene(root) {
     btn.addEventListener('click', function() {
       if (this.getAttribute('aria-disabled') === 'true' || this.getAttribute('disabled') !== null) return;
       var prompt = this.getAttribute('data-prompt');
-      sendOrCopyPrompt(this, prompt);
+      window.tag.sendOrCopyPrompt(this, prompt);
     });
   });
 
@@ -243,7 +212,7 @@ function initTagScene(root) {
     levelupConfirm.addEventListener('click', function() {
       var basePrompt = this.getAttribute('data-prompt') || 'Confirm level up.';
       var prompt = basePrompt + (chosenStat ? ' Attribute: ' + chosenStat + ' +1.' : '');
-      sendOrCopyPrompt(this, prompt);
+      window.tag.sendOrCopyPrompt(this, prompt);
       var glowBtn = root.querySelector('.footer-btn-levelup');
       if (glowBtn) {
         glowBtn.classList.remove('footer-btn-levelup');
@@ -340,196 +309,3 @@ function initTagScene(root) {
     document.addEventListener('keydown', _playSceneAudio, { once: true });
   }
 }
-
-(function() {
-  if (typeof HTMLElement === 'undefined') return;
-  class TaTts extends HTMLElement {
-    constructor() {
-      super();
-      this._synth = window.speechSynthesis || null;
-      this._idx = 0;
-      this._els = [];
-      this._playing = false;
-      this._voice = null;
-      this._rate = 1;
-      this._voicesChangedHandler = null;
-      this.attachShadow({ mode: 'open' });
-      this._render();
-      if (this._synth) {
-        this._loadVoices();
-        if (typeof this._synth.onvoiceschanged !== 'undefined') {
-          this._voicesChangedHandler = this._loadVoices.bind(this);
-          this._synth.onvoiceschanged = this._voicesChangedHandler;
-        }
-      }
-    }
-
-    connectedCallback() {
-      this._collectEls();
-      this._wireControls();
-    }
-
-    _collectEls() {
-      var rawSel = this.getAttribute('nar-selector') || '.narrative p, .prose p, .dlg p, .flash';
-      // Allow only safe CSS selectors: classes, tags, combinators, pseudo-classes — no attribute selectors or URLs
-      var selector = /^[a-zA-Z0-9 .#,-_>+~:*]+$/.test(rawSel) ? rawSel : '.narrative p, .prose p, .dlg p, .flash';
-      var scope = this.closest('.root, [data-scene]') || document;
-      var all = Array.from(scope.querySelectorAll(selector));
-      this._els = all.filter(function(el) { return !el.closest('.sp'); });
-    }
-
-    _loadVoices() {
-      var voices = this._synth.getVoices();
-      if (!voices.length) return;
-      var preferred = ['Google UK English Male', 'Google UK English'];
-      var found = null;
-      for (var i = 0; i < preferred.length && !found; i++) {
-        for (var j = 0; j < voices.length; j++) {
-          if (voices[j].name === preferred[i]) { found = voices[j]; break; }
-        }
-      }
-      if (!found) {
-        for (var k = 0; k < voices.length; k++) {
-          if (voices[k].lang === 'en-GB') { found = voices[k]; break; }
-        }
-      }
-      if (!found) {
-        for (var m = 0; m < voices.length; m++) {
-          if (voices[m].lang && voices[m].lang.slice(0, 2) === 'en') { found = voices[m]; break; }
-        }
-      }
-      if (!found && voices.length) found = voices[0];
-      this._voice = found;
-      var label = found ? found.name.replace(/Google |Microsoft |Apple /g, '') : '';
-      var voiceEl = this.shadowRoot.querySelector('.tts-voice-label');
-      if (voiceEl) voiceEl.textContent = label;
-    }
-
-    _render() {
-      this.shadowRoot.innerHTML =
-        '<style>' +
-        ':host { display: block; }' +
-        '.tts-bar { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.75rem;' +
-        ' background: var(--ta-color-surface, #1a1a2e); border: 1px solid var(--ta-color-border, #333);' +
-        ' border-radius: 6px; }' +
-        'button { background: none; border: none; cursor: pointer; color: var(--ta-color-fg, #eee);' +
-        ' padding: 0.25rem 0.5rem; }' +
-        'button:hover { color: var(--ta-color-accent, #9bf); }' +
-        '.tts-voice-label { font-size: 0.75em; opacity: 0.7; flex: 1; overflow: hidden;' +
-        ' text-overflow: ellipsis; white-space: nowrap; }' +
-        'select { background: var(--ta-color-surface, #1a1a2e); color: var(--ta-color-fg, #eee);' +
-        ' border: 1px solid var(--ta-color-border, #333); border-radius: 4px; font-size: 0.8em; }' +
-        '</style>' +
-        '<div class="tts-bar">' +
-        '<button class="tts-play-btn" aria-label="Play narration">&#9654;</button>' +
-        '<span class="tts-voice-label"></span>' +
-        '<select class="tts-speed" aria-label="Speed">' +
-        '<option value="0.85">0.85x</option>' +
-        '<option value="1" selected>1x</option>' +
-        '<option value="1.15">1.15x</option>' +
-        '<option value="1.5">1.5x</option>' +
-        '</select>' +
-        '</div>';
-    }
-
-    _wireControls() {
-      var self = this;
-      var playBtn = this.shadowRoot.querySelector('.tts-play-btn');
-      var speedSel = this.shadowRoot.querySelector('.tts-speed');
-      if (playBtn) {
-        playBtn.addEventListener('click', function() {
-          if (!self._synth) return;
-          if (self._playing) { self._pause(); } else { self._resume(); }
-        });
-      }
-      if (speedSel) {
-        speedSel.addEventListener('change', function() {
-          self._rate = parseFloat(this.value);
-          if (self._playing) { self._synth.cancel(); self._speak(self._idx); }
-        });
-      }
-    }
-
-    _speak(idx) {
-      if (!this._synth) return;
-      if (!this._els.length) this._collectEls();
-      if (idx >= this._els.length) { this._stop(); return; }
-      this._idx = idx;
-      this._setActive(idx);
-      var el = this._els[idx];
-      var utter = new SpeechSynthesisUtterance(el.textContent || '');
-      if (this._voice) utter.voice = this._voice;
-      utter.rate = this._rate;
-      var self = this;
-      utter.onend = function() { self._speak(self._idx + 1); };
-      utter.onerror = function() { self._stop(); };
-      this._synth.speak(utter);
-      this._playing = true;
-      this._updatePlayBtn();
-    }
-
-    _pause() {
-      if (!this._synth) return;
-      this._synth.pause();
-      this._playing = false;
-      this._updatePlayBtn();
-    }
-
-    _resume() {
-      if (!this._synth) return;
-      if (!this._synth.speaking && !this._synth.paused) { this._speak(this._idx || 0); return; }
-      this._synth.resume();
-      // Firefox guard: pause() silently cancels; detect via speaking flag and re-seek
-      var self = this;
-      setTimeout(function() {
-        if (!self._synth.speaking) { self._speak(self._idx); }
-      }, 50);
-      this._playing = true;
-      this._updatePlayBtn();
-    }
-
-    _stop() {
-      if (this._synth) this._synth.cancel();
-      this._playing = false;
-      this._idx = 0;
-      this._clearActive();
-      this._updatePlayBtn();
-    }
-
-    _setActive(idx) {
-      this._els.forEach(function(el, i) { el.classList.toggle('tts-active', i === idx); });
-      var activeEl = this._els[idx];
-      if (activeEl && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
-
-    _clearActive() {
-      this._els.forEach(function(el) { el.classList.remove('tts-active'); });
-    }
-
-    _updatePlayBtn() {
-      var btn = this.shadowRoot.querySelector('.tts-play-btn');
-      if (!btn) return;
-      if (this._playing) {
-        btn.setAttribute('aria-label', 'Pause narration');
-        btn.innerHTML = '&#9646;&#9646;';
-      } else {
-        btn.setAttribute('aria-label', 'Play narration');
-        btn.innerHTML = '&#9654;';
-      }
-    }
-
-    disconnectedCallback() {
-      this._stop();
-      if (this._synth && this._voicesChangedHandler) {
-        this._synth.onvoiceschanged = null;
-        this._voicesChangedHandler = null;
-      }
-    }
-  }
-
-  if (typeof customElements !== 'undefined' && !customElements.get('ta-tts')) {
-    customElements.define('ta-tts', TaTts);
-  }
-})();

@@ -23,6 +23,12 @@ function createSmokeRuntime(options: { reducedMotion?: boolean } = {}) {
   const env = createRenderRuntime(options);
   const prompts: string[] = [];
 
+  env.window.tag = {
+    sendOrCopyPrompt: (_btn: unknown, prompt: string) => {
+      if (prompt) prompts.push(prompt);
+    },
+  };
+
   // Register shadow-host element — Shadow DOM IIFE calls document.getElementById('shadow-host')
   const shadowHost = makeElement(env.document, 'div', { id: 'shadow-host' });
   append(env.document.body, shadowHost, env.document);

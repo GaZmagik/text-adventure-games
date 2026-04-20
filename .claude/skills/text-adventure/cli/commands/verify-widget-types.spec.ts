@@ -126,7 +126,7 @@ describe('verify: dialogue widget type', () => {
     expect(data.widgetType).toBe('dialogue');
   });
 
-  test('dialogue widget fails when the Shadow DOM bootstrap is missing', async () => {
+  test('dialogue widget fails when the ta-dialogue element is missing', async () => {
     await setupState();
     const path = join(tempDir, 'dialogue-handcoded.html');
     writeFileSync(path, '<div class="widget-dialogue"><div class="dialogue-area">Hi</div></div>', 'utf-8');
@@ -136,7 +136,7 @@ describe('verify: dialogue widget type', () => {
     const data = result.data as Record<string, unknown>;
     expect(data.verified).toBe(false);
     const failures = data.failures as string[];
-    expect(failures.some(f => f.includes('Shadow DOM bootstrap'))).toBe(true);
+    expect(failures.some(f => f.includes('render-origin marker') || f.includes('ta-dialogue'))).toBe(true);
   });
 
   test('dialogue widget fails when bootstrap markers are forged without a valid render-origin marker', async () => {

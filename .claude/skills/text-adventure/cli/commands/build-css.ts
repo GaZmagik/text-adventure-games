@@ -6,6 +6,10 @@ import { extractCssFromContent } from '../render/css-extractor';
 import { fnv32 } from '../lib/fnv32';
 import { SCENE_SCRIPT_CODE } from '../render/lib/scene-script';
 import { SOUNDSCAPE_ENGINE_CODE } from '../render/lib/soundscape';
+import { TA_COMPONENTS_CODE } from '../render/lib/ta-components';
+import { PREGAME_DESIGN_CSS } from '../render/lib/pregame-design';
+import { SCENE_DESIGN_CSS } from '../render/lib/scene-design';
+import { COMMON_WIDGET_CSS } from '../render/lib/common-css';
 
 const COMMAND = 'build-css';
 
@@ -181,7 +185,29 @@ export async function handleBuildCss(args: string[]): Promise<CommandResult> {
     entries.push({ name, hash, bytes, path: outPath });
   }
 
+  // Write the structural CSS files
+  const structuralCss = [
+    { name: 'pregame-design', content: PREGAME_DESIGN_CSS },
+    { name: 'scene-design', content: SCENE_DESIGN_CSS },
+    { name: 'common-widget', content: COMMON_WIDGET_CSS }
+  ];
+
+  for (const style of structuralCss) {
+    const minified = minifyCss(style.content);
+    const hash = fnv32(minified);
+    const outPath = join(cssDir, `${style.name}.css`);
+    await Bun.write(outPath, minified);
+    const bytes = Buffer.byteLength(minified, 'utf-8');
+    totalBytes += bytes;
+    entries.push({ name: style.name, hash, bytes, path: outPath });
+  }
+
   const scriptAssets = [
+    {
+      fileName: 'ta-components.js',
+      sourcePath: 'cli/render/lib/ta-components.ts',
+      content: `${TA_COMPONENTS_CODE}\n`,
+    },
     {
       fileName: 'tag-scene.js',
       sourcePath: 'cli/render/lib/scene-script.ts',

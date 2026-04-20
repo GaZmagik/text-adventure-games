@@ -2,8 +2,7 @@
 // Shows current period and date from game state.
 
 import type { GmState } from '../../types';
-import { esc } from '../../lib/html';
-import { wrapInShadowDom } from '../lib/shadow-wrapper';
+import { emitCustomElement } from '../../lib/html';
 
 export function renderTicker(state: GmState | null, styleName: string, _options?: Record<string, unknown>): string {
   const time = state?.time;
@@ -16,29 +15,11 @@ export function renderTicker(state: GmState | null, styleName: string, _options?
   const showTime = time?.playerKnowsTime !== false;
   const showDate = time?.playerKnowsDate !== false;
 
-  return wrapInShadowDom({
-    styleName,
-    inlineCss: `.widget-ticker {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 16px;
-  font-family: var(--ta-font-body);
-  font-size: 12px; letter-spacing: 0.06em;
-  border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
-  color: var(--sta-text-secondary, #9AA0C0);
-}
-.ticker-period {
-  text-transform: uppercase; font-weight: 600;
-  color: var(--ta-color-accent);
-}
-.ticker-date { color: var(--sta-text-tertiary, #545880); }
-.ticker-deadline {
-  color: var(--ta-color-warning);
-  font-weight: 600;
-}`,
-    html: `<div class="widget-ticker">
-  ${showTime ? `<span class="ticker-period">${esc(period)}${hour ? ` (${String(hour).padStart(2, '0')}:00)` : ''}</span>` : '<span class="ticker-period">???</span>'}
-  ${showDate ? `<span class="ticker-date">${esc(date)}</span>` : '<span class="ticker-date">Date unknown</span>'}
-  ${deadline ? `<span class="ticker-deadline" aria-live="polite">${esc(deadline.label)} — ${Number(deadline.remainingScenes) || 0} scene${Number(deadline.remainingScenes) !== 1 ? 's' : ''} remaining</span>` : ''}
-</div>`,
+  return emitCustomElement('ta-ticker', {
+    'data-period': showTime ? period : 'unknown',
+    'data-date': showDate ? date : 'Date unknown',
+    'data-hour': showTime && hour ? String(hour).padStart(2, '0') : null,
+    'data-deadline-label': deadline ? deadline.label : null,
+    'data-deadline-remaining': deadline ? String(Number(deadline.remainingScenes) || 0) : null,
   });
 }

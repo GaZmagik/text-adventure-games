@@ -19,6 +19,10 @@ const expectedStyleNames = readdirSync(STYLES_DIR)
   .map(f => f.replace(/\.md$/, ''))
   .sort();
 
+// Structural CSS files generated alongside visual styles
+const STRUCTURAL_CSS = ['common-widget', 'pregame-design', 'scene-design'];
+const allCssNames = [...expectedStyleNames, ...STRUCTURAL_CSS].sort();
+
 beforeAll(async () => {
   tmpDir = mkdtempSync(join(tmpdir(), 'tag-build-css-'));
   result = await handleBuildCss(['--output-dir', tmpDir]);
@@ -62,7 +66,7 @@ describe('handleBuildCss()', () => {
 describe('style entries', () => {
   it('has one entry per style file (excluding style-reference.md)', () => {
     const data = result.data as { styles: unknown[] };
-    expect(data.styles.length).toBe(expectedStyleNames.length);
+    expect(data.styles.length).toBe(allCssNames.length);
   });
 
   it('each entry has name, hash (8 hex chars), bytes (> 0), path (string)', () => {
@@ -85,7 +89,7 @@ describe('style entries', () => {
   it('style names match filenames in styles/ (excluding style-reference.md)', () => {
     const data = result.data as { styles: Array<{ name: string }> };
     const actualNames = data.styles.map(s => s.name).sort();
-    expect(actualNames).toEqual(expectedStyleNames);
+    expect(actualNames).toEqual(allCssNames);
   });
 });
 
@@ -100,7 +104,7 @@ describe('CSS output files', () => {
     const cssFiles = readdirSync(join(tmpDir, 'css'))
       .filter(f => f.endsWith('.css'))
       .sort();
-    const expectedFiles = expectedStyleNames.map(n => `${n}.css`).sort();
+    const expectedFiles = allCssNames.map(n => `${n}.css`).sort();
     expect(cssFiles).toEqual(expectedFiles);
   });
 
@@ -179,7 +183,7 @@ describe('JS output files', () => {
 
   it('writes the generated scene and soundscape runtime files', () => {
     const jsFiles = readdirSync(join(tmpDir, 'js')).sort();
-    expect(jsFiles).toEqual(['tag-scene.js', 'tag-soundscape.js']);
+    expect(jsFiles).toEqual(['ta-components.js', 'tag-scene.js', 'tag-soundscape.js']);
   });
 
   it('generated scene runtime includes the source-of-truth scene code', () => {

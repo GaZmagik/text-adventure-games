@@ -3,7 +3,7 @@ import { renderLevelup } from './levelup';
 import { createDefaultState } from '../../lib/state-store';
 
 describe('renderLevelup', () => {
-  test('renders ability options with prompt attributes', () => {
+  test('renders ability options as data attributes', () => {
     const state = createDefaultState();
     state.character = {
       name: 'Kira', class: 'Pilot', hp: 18, maxHp: 24, ac: 14,
@@ -14,14 +14,8 @@ describe('renderLevelup', () => {
       abilities: [], inventory: [], conditions: [],
       equipment: { weapon: 'Blaster', armour: 'Flight Suit' },
     };
-    const html = renderLevelup(state, '', { data: { abilities: ['Quick Draw'] } });
-    expect(html).toContain('Quick Draw');
-    expect(html).toContain('data-prompt="I choose the Quick Draw ability"');
-  });
-
-  test('ability script copies prompts when sendPrompt is unavailable', () => {
-    const html = renderLevelup(createDefaultState(), '', { data: { abilities: ['Quick Draw'] } });
-    expect(html).toContain("document.execCommand('copy')");
-    expect(html).toContain("btn.textContent = copied ? 'Copied! Paste as your reply.' : 'Copy the prompt from the tooltip.';");
+    const html = renderLevelup(state, '', { data: { abilities: ['Quick Draw', 'Fast Talk'] } });
+    expect(html).toContain('data-abilities="Quick Draw,Fast Talk"');
   });
 });
+

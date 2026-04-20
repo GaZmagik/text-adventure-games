@@ -123,12 +123,12 @@ describe('tag verify', () => {
     const result = await handleVerify([filePath]);
     expect(result.ok).toBe(true);
     const failures = (result.data as Record<string, unknown>).failures as string[];
-    expect(failures.some(f => f.includes('footer'))).toBe(true);
+    expect(failures.some(f => f.includes('Missing footer (<ta-footer>)'))).toBe(true);
   });
 
   test('fails when scene-meta is missing', async () => {
     await setupState();
-    const html = '<div class="root"><div class="footer-row"><button class="footer-btn" data-panel="character">Char</button></div></div>';
+    const html = '<div class="root"><ta-footer></ta-footer></div>';
     const filePath = join(tempDir, 'nometa.html');
     writeFileSync(filePath, html, 'utf-8');
 
@@ -140,7 +140,7 @@ describe('tag verify', () => {
 
   test('fails when narrative is empty', async () => {
     await setupState();
-    const html = '<style>' + 'x'.repeat(10000) + '</style><div id="scene-meta" data-meta="{}"></div><div class="footer-row"><button class="footer-btn" data-panel="character">Char</button></div><div id="narrative"><!-- empty --></div>';
+    const html = '<style>' + 'x'.repeat(10000) + '</style><div id="scene-meta" data-meta="{}"></div><ta-footer></ta-footer><div id="narrative"><!-- empty --></div>';
     const filePath = join(tempDir, 'empty-narrative.html');
     writeFileSync(filePath, html, 'utf-8');
 
@@ -152,7 +152,7 @@ describe('tag verify', () => {
 
   test('fails when CSS is below minimum threshold', async () => {
     await setupState();
-    const html = '<style>.tiny{}</style><div id="scene-meta" data-meta="{}"></div><div class="footer-row"><button class="footer-btn" data-panel="character">Char</button></div><div id="narrative"><p>Story</p></div>';
+    const html = '<style>.tiny{}</style><div id="scene-meta" data-meta="{}"></div><ta-footer></ta-footer><div id="narrative"><p>Story</p></div>';
     const filePath = join(tempDir, 'thin-css.html');
     writeFileSync(filePath, html, 'utf-8');
 
@@ -252,7 +252,7 @@ describe('tag verify', () => {
     const html = '<style>' + 'x'.repeat(10000) + '</style>'
       + '<div id="scene-meta" data-meta="{}"></div>'
       + '<div id="panel-overlay"></div>'
-      + '<div class="footer-row"><button class="footer-btn" data-panel="character">Char</button></div>'
+      + '<ta-footer></ta-footer>'
       + '<div class="status-bar"><span class="hp-display">HP 10/10</span></div>'
       + '<div id="narrative"><p class="narrative">The bridge hums with tension and the air smells of recycled nothing.</p></div>'
       + '<button class="action-card" data-prompt="Do the thing"><strong class="btn-title">Do thing</strong></button>'
@@ -317,7 +317,7 @@ describe('tag verify', () => {
     const html = '<style>' + 'x'.repeat(10000) + '</style>'
       + '<div id="scene-meta" data-meta="{}"></div>'
       + '<div id="panel-overlay"></div>'
-      + '<div class="footer-row"><button class="footer-btn" data-panel="character">Char</button></div>'
+      + '<ta-footer></ta-footer>'
       + '<div id="narrative"><p class="narrative">A sufficiently long narrative paragraph for the check.</p></div>'
       + '<button class="action-card" data-prompt="Act 1"><strong class="btn-title">Act</strong></button>'
       + '<button class="action-card" data-prompt="Act 2"><strong class="btn-title">Act 2</strong></button>';
@@ -334,7 +334,7 @@ describe('tag verify', () => {
     const html = '<style>' + 'x'.repeat(10000) + '</style>'
       + '<div id="scene-meta" data-meta="{}"></div>'
       + '<div id="panel-overlay"></div>'
-      + '<div class="footer-row"><button class="footer-btn" data-panel="character">Char</button></div>'
+      + '<ta-footer></ta-footer>'
       + '<div class="status-bar"><span class="hp-display">HP 10/10</span></div>'
       + '<div id="narrative"><p class="narrative">The guard swings and you need to dodge urgently now.</p></div>'
       + '<canvas id="dice-canvas" width="200" height="200"></canvas>'
@@ -383,7 +383,7 @@ describe('tag verify', () => {
     const html = '<style>' + 'x'.repeat(10000) + '</style>'
       + '<div id="scene-meta" data-meta="{}"></div>'
       + '<div id="panel-overlay"></div>'
-      + '<div class="footer-row"><button class="footer-btn" data-panel="character">Char</button></div>'
+      + '<ta-footer></ta-footer>'
       + '<div id="narrative"><p class="narrative">The air recyclers drone in the corridor ahead of you.</p></div>'
       + '<button class="action-card" data-prompt="Advance" title="Advance down the corridor"><strong class="btn-title">Advance</strong></button>'
       + '<button class="action-card" data-prompt="Listen" title="Listen carefully"><strong class="btn-title">Listen</strong></button>';
@@ -406,7 +406,7 @@ describe('tag verify', () => {
     const html = '<style>' + 'x'.repeat(10000) + '</style>'
       + '<div id="scene-meta" data-meta="{}"></div>'
       + '<div id="panel-overlay"></div>'
-      + '<div class="footer-row"><button class="footer-btn" data-panel="character">Char</button></div>'
+      + '<ta-footer></ta-footer>'
       + '<div id="narrative"><p class="narrative">Ancient glyphs cover the walls of the abandoned station module.</p></div>'
       + '<button class="action-card" data-prompt="Examine glyphs" title="Examine the ancient glyphs"><strong class="btn-title">Examine</strong></button>'
       + '<button class="action-card" data-prompt="Move on" title="Continue through the corridor"><strong class="btn-title">Move on</strong></button>';
@@ -421,13 +421,13 @@ describe('tag verify', () => {
   test('fails when save button is missing from an otherwise valid footer', async () => {
     await setupState();
     let html = await renderComposedScene();
-    html = html.replace(/<button class="footer-btn" id="save-btn"[^>]*>Save ↗<\/button>/, '');
+    html = html.replace(/<ta-footer[^>]*>/, '');
     const filePath = join(tempDir, 'missing-save.html');
     writeFileSync(filePath, html, 'utf-8');
 
     const result = await handleVerify([filePath]);
     const failures = (result.data as Record<string, unknown>).failures as string[];
-    expect(failures.some(f => f.includes('save-btn'))).toBe(true);
+    expect(failures.some(f => f.includes('<ta-footer>'))).toBe(true);
   });
 
   test('fails when export button is missing while adventure-exporting is active', async () => {
@@ -437,28 +437,28 @@ describe('tag verify', () => {
       'character-creation', 'save-codex', 'adventure-exporting',
     ])]);
     let html = await renderComposedScene();
-    html = html.replace(/<button class="footer-btn" id="export-btn"[^>]*>Export ↗<\/button>/, '');
+    html = html.replace(/data-has-export="true"/, '');
     const filePath = join(tempDir, 'missing-export.html');
     writeFileSync(filePath, html, 'utf-8');
 
     const result = await handleVerify([filePath]);
     const failures = (result.data as Record<string, unknown>).failures as string[];
-    expect(failures.some(f => f.includes('export-btn'))).toBe(true);
+    expect(failures.some(f => f.includes('Export action'))).toBe(true);
   });
 
   test('fails when an inactive module footer button is present', async () => {
     await setupState();
     let html = await renderComposedScene();
     html = html.replace(
-      '</div>\n</div>`;shadow.appendChild(content);',
-      '  <button class="footer-btn" data-panel="ship" aria-expanded="false">Ship</button>\n</div>\n</div>`;shadow.appendChild(content);',
+      'data-modules="gm-checklist prose-craft core-systems die-rolls character-creation save-codex"',
+      'data-modules="gm-checklist prose-craft core-systems die-rolls character-creation save-codex ship-systems"',
     );
     const filePath = join(tempDir, 'unexpected-footer-button.html');
     writeFileSync(filePath, html, 'utf-8');
 
     const result = await handleVerify([filePath]);
     const failures = (result.data as Record<string, unknown>).failures as string[];
-    expect(failures.some(f => f.includes('Unexpected footer button') && f.includes('ship'))).toBe(true);
+    expect(failures.some(f => f.includes('Unexpected footer') && f.includes('ship'))).toBe(true);
   });
 
   test('fails when action cards use editorial guidance labels', async () => {
@@ -596,7 +596,7 @@ describe('verify audio module check', () => {
     const html = '<style>' + 'x'.repeat(10000) + '</style>'
       + '<div id="scene-meta" data-meta="{}"></div>'
       + '<div id="panel-overlay"></div>'
-      + '<div class="footer-row"><button class="footer-btn" data-panel="character">Char</button></div>'
+      + '<ta-footer data-has-audio="false"></ta-footer>'
       + '<div id="narrative"><p class="narrative">The hum of distant generators reverberates through the corridor walls.</p></div>'
       + '<button class="action-card" data-prompt="Listen" title="Listen to the source"><strong class="btn-title">Listen</strong></button>'
       + '<button class="action-card" data-prompt="Move on" title="Continue past"><strong class="btn-title">Move on</strong></button>';
@@ -605,7 +605,7 @@ describe('verify audio module check', () => {
 
     const result = await handleVerify([filePath]);
     const failures = (result.data as Record<string, unknown>).failures as string[];
-    expect(failures.some(f => f.includes('audio') && f.includes('audio-btn'))).toBe(true);
+    expect(failures.some(f => f.includes('audio') && f.includes('data-has-audio'))).toBe(true);
   });
 });
 

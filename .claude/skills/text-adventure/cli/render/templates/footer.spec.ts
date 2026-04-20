@@ -19,8 +19,8 @@ describe('footer button dimming', () => {
   test('codex button is dimmed when codexMutations is empty', () => {
     const state = makeState({ codexMutations: [] });
     const html = renderFooter(state, '');
-    expect(html).toContain('data-panel="codex"');
-    expect(html).toMatch(/footer-btn-dim[^>]*data-panel="codex"/);
+    expect(html).toContain('data-dim-panels');
+    expect(html).toMatch(/data-dim-panels="[^"]*codex[^"]*"/);
   });
 
   test('codex button is not dimmed when codexMutations has entries', () => {
@@ -28,15 +28,13 @@ describe('footer button dimming', () => {
       codexMutations: [{ id: 'loc1', state: 'discovered' }],
     } as Partial<GmState>);
     const html = renderFooter(state, '');
-    expect(html).toContain('data-panel="codex"');
-    expect(html).not.toMatch(/footer-btn-dim[^>]*data-panel="codex"/);
+    expect(html).not.toMatch(/data-dim-panels="[^"]*codex[^"]*"/);
   });
 
   test('ship button is dimmed when shipState is null', () => {
     const state = makeState();
     const html = renderFooter(state, '');
-    expect(html).toContain('data-panel="ship"');
-    expect(html).toMatch(/footer-btn-dim[^>]*data-panel="ship"/);
+    expect(html).toMatch(/data-dim-panels="[^"]*ship[^"]*"/);
   });
 
   test('ship button is not dimmed when shipState exists', () => {
@@ -44,42 +42,36 @@ describe('footer button dimming', () => {
       shipState: { name: 'Erebus', systems: {}, powerAllocations: {}, repairParts: 5, scenesSinceRepair: 0 },
     });
     const html = renderFooter(state, '');
-    expect(html).toContain('data-panel="ship"');
-    expect(html).not.toMatch(/footer-btn-dim[^>]*data-panel="ship"/);
+    expect(html).not.toMatch(/data-dim-panels="[^"]*ship[^"]*"/);
   });
 
   test('crew button is dimmed when crewMutations is empty', () => {
     const state = makeState({ crewMutations: [] });
     const html = renderFooter(state, '');
-    expect(html).toContain('data-panel="crew"');
-    expect(html).toMatch(/footer-btn-dim[^>]*data-panel="crew"/);
+    expect(html).toMatch(/data-dim-panels="[^"]*crew[^"]*"/);
   });
 
   test('map button is dimmed when mapState is null', () => {
     const state = makeState();
     const html = renderFooter(state, '');
-    expect(html).toContain('data-panel="map"');
-    expect(html).toMatch(/footer-btn-dim[^>]*data-panel="map"/);
+    expect(html).toMatch(/data-dim-panels="[^"]*map[^"]*"/);
   });
 
   test('quests button is dimmed when quests is empty', () => {
     const state = makeState({ quests: [] });
     const html = renderFooter(state, '');
-    expect(html).toContain('data-panel="quests"');
-    expect(html).toMatch(/footer-btn-dim[^>]*data-panel="quests"/);
+    expect(html).toMatch(/data-dim-panels="[^"]*quests[^"]*"/);
   });
 
   test('nav button is dimmed when no navigation data', () => {
     const state = makeState({ visitedRooms: [], navPlottedCourse: null });
     const html = renderFooter(state, '');
-    expect(html).toContain('data-panel="nav"');
-    expect(html).toMatch(/footer-btn-dim[^>]*data-panel="nav"/);
+    expect(html).toMatch(/data-dim-panels="[^"]*nav[^"]*"/);
   });
 
   test('character button is never dimmed', () => {
     const state = makeState({ character: null });
     const html = renderFooter(state, '');
-    expect(html).toContain('data-panel="character"');
-    expect(html).not.toMatch(/footer-btn-dim[^>]*data-panel="character"/);
+    expect(html).not.toMatch(/data-dim-panels="[^"]*character[^"]*"/);
   });
 });

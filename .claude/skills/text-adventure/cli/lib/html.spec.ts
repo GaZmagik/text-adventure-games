@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'bun:test';
-import { esc, formatModifier, serialiseInlineScriptData } from './html';
+import { esc, formatModifier, serialiseInlineScriptData, emitCustomElement } from './html';
 
 describe('esc', () => {
   test('escapes &, <, >, "', () => {
@@ -51,5 +51,26 @@ describe('serialiseInlineScriptData', () => {
     const serialised = serialiseInlineScriptData('a\u2028b\u2029c');
     expect(serialised).toContain('\\u2028');
     expect(serialised).toContain('\\u2029');
+  });
+});
+
+describe('emitCustomElement', () => {
+  test('renders a basic element with no attributes', () => {
+    expect(emitCustomElement('ta-test', {})).toBe('<ta-test></ta-test>');
+  });
+
+  test('renders attributes properly escaped', () => {
+    expect(emitCustomElement('ta-test', { 'data-foo': 'bar "baz"', 'data-x': 42 }))
+      .toBe('<ta-test data-foo="bar &quot;baz&quot;" data-x="42"></ta-test>');
+  });
+
+  test('skips null, undefined, or empty string values', () => {
+    expect(emitCustomElement('ta-test', { a: '1', b: null, c: undefined, d: '', e: '2' }))
+      .toBe('<ta-test a="1" e="2"></ta-test>');
+  });
+
+  test('serialises objects and arrays as JSON', () => {
+    expect(emitCustomElement('ta-test', { 'data-arr': [1, 2], 'data-obj': { a: 1 } }))
+      .toBe('<ta-test data-arr="[1,2]" data-obj="{&quot;a&quot;:1}"></ta-test>');
   });
 });

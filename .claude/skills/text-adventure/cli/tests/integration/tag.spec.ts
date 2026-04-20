@@ -100,7 +100,7 @@ describe('tag CLI black-box', () => {
     await expectOk(['state', 'set', 'visualStyle', 'terminal']);
     await expectOk(['state', 'sync', '--apply']);
     const result = await expectOk(['render', 'footer', '--raw']);
-    expect(result.data).toEqual(expect.stringContaining('footer-row'));
+    expect(result.data).toEqual(expect.stringContaining('<ta-footer'));
   });
 
   test('render failure enforces the sync gate', async () => {

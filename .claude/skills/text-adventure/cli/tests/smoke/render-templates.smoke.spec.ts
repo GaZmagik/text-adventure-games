@@ -185,9 +185,8 @@ describe('render template smoke via handleRender', () => {
       '{"npcId":"broker_1","text":"The broker leans in.","choices":[{"label":"Ask about the cargo","prompt":"Tell me about the cargo; now."}]}',
     ]);
     expect(html).toContain('The broker leans in.');
-    expect(html).toContain('dialogue-choice');
-    expect(html).toContain('data-prompt="Tell me about the cargo; now."');
-    expect(html).toContain('sendPrompt');
+    expect(html).toContain('<ta-dialogue');
+    expect(html).toContain('Tell me about the cargo');
   });
 
   test('dice-pool widget falls back to default pools when data is missing or invalid', async () => {
@@ -215,12 +214,11 @@ describe('render template smoke via handleRender', () => {
     });
 
     const html = await renderRaw(['footer']);
-    expect(html).toContain('Codex');
-    expect(html).toContain('Nav chart');
-    expect(html).toContain('Map');
-    expect(html).toContain('Quests');
-    expect(html).toContain('id="audio-btn"');
-    expect(html).toContain('id="export-btn"');
+    expect(html).toContain('<ta-footer');
+    expect(html).toContain('data-modules=');
+    expect(html).toContain('lore-codex');
+    expect(html).toContain('data-has-export="true"');
+    expect(html).toContain('data-has-audio="true"');
   });
 
   test('map widget renders supplies without a doors section when no doors exist', async () => {

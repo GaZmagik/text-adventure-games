@@ -33,3 +33,15 @@ export function serialiseInlineScriptData(value: unknown): string {
 export function formatModifier(n: number): string {
   return n >= 0 ? `+${n}` : `${n}`;
 }
+
+/** Emit a custom element with data attributes. */
+export function emitCustomElement(tag: string, attributes: Record<string, unknown>): string {
+  const parts = [`<${tag}`];
+  for (const [k, v] of Object.entries(attributes)) {
+    if (v == null || v === '') continue;
+    // For arrays or objects, JSON.stringify them so they can be parsed by the component
+    const strVal = typeof v === 'object' ? JSON.stringify(v) : String(v);
+    parts.push(`${k}="${esc(strVal)}"`);
+  }
+  return parts.join(' ') + `></${tag}>`;
+}

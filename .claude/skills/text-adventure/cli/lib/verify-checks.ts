@@ -235,6 +235,13 @@ const VERIFY_RENDER_TYPE_MAP: Record<string, string> = {
   character: 'character-creation',
 };
 
+// Widget types that are emitted as self-bootstrapping custom elements (<ta-*>).
+// These widgets don't contain an explicit shadow-host + attachShadow script;
+// the ta-components.js runtime handles Shadow DOM construction internally.
+const CUSTOM_ELEMENT_WIDGETS = new Set([
+  'dialogue', 'levelup', 'ticker', 'footer',
+]);
+
 export function checkShadowRenderOrigin(widgetType: string, html: string, failures: string[]): void {
   const renderWidgetType = VERIFY_RENDER_TYPE_MAP[widgetType] ?? widgetType;
   if (!hasValidRenderOrigin(renderWidgetType, html)) {
@@ -243,6 +250,8 @@ export function checkShadowRenderOrigin(widgetType: string, html: string, failur
       + 'Standalone widgets must use the unmodified html returned by tag render, not a hand-coded or edited copy.',
     );
   }
+  // Custom elements self-bootstrap — no shadow-host / attachShadow expected
+  if (CUSTOM_ELEMENT_WIDGETS.has(widgetType)) return;
   const hasShadowHost = html.includes('id="shadow-host"') || html.includes("id='shadow-host'");
   const hasAttachShadow = /attachShadow\(\{\s*mode\s*:\s*['"]open['"]\s*\}\)/.test(html);
   if (!hasShadowHost || !hasAttachShadow) {
@@ -460,18 +469,18 @@ export function checkCharacterWidget(html: string, failures: string[], state?: {
 export const IN_GAME_WIDGET_MARKERS: Record<string, string[]> = {
   dice: ['widget-dice', 'id="ra"'],
   'dice-pool': ['widget-dice-pool', 'id="dice-pool-canvas"', 'id="dice-pool-result"'],
-  dialogue: ['widget-dialogue', 'dialogue-area'],
-  levelup: ['widget-levelup', 'levelup-banner'],
+  dialogue: ['ta-dialogue'],
+  levelup: ['ta-levelup'],
   recap: ['widget-recap', 'recap-title'],
   'arc-complete': ['widget-arc-complete', 'arc-actions'],
   'combat-turn': ['widget-combat', 'combat-roll'],
-  ticker: ['widget-ticker'],
+  ticker: ['ta-ticker'],
   ship: ['widget-ship'],
   crew: ['widget-crew'],
   codex: ['widget-codex'],
   map: ['widget-map'],
   starchart: ['widget-starchart'],
-  footer: ['footer-row'],
+  footer: ['ta-footer'],
   'save-div': ['id="save-data"', 'data-payload='],
 };
 

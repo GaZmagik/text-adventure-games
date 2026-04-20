@@ -5,6 +5,7 @@ import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
 import { VERSION } from '../../lib/version';
 import { renderFooter } from './footer';
+import { renderLevelup } from './levelup';
 import { renderCharacter } from './character';
 import { renderCodex } from './codex';
 import { renderShip } from './ship';
@@ -52,7 +53,7 @@ export function renderScene(state: GmState | null, styleName: string, options?: 
 
   // Compose the footer (without its own <style> — we include CSS once at the top)
   const footerHtml = renderFooter(state, '', options);
-  const scriptSrc = [CDN_BASE + '/js/tag-scene.js'];
+  const scriptSrc = [CDN_BASE + '/js/ta-components.js', CDN_BASE + '/js/tag-scene.js'];
   if (modules.includes('audio')) {
     scriptSrc.unshift(CDN_BASE + '/js/tag-soundscape.js');
   }
@@ -171,7 +172,7 @@ export function renderScene(state: GmState | null, styleName: string, options?: 
         <button class="panel-close-btn" id="panel-close-btn" aria-label="Close panel">Close</button>
       </div>
       <div class="panel-content" data-panel="character">${renderCharacter(state, '')}</div>
-      ${state?._levelupPending ? `<div class="panel-content" data-panel="levelup">${buildLevelupPanel(state)}</div>` : ''}
+      ${state?._levelupPending ? `<div class="panel-content" data-panel="levelup">${renderLevelup(state, '')}</div>` : ''}
       ${panelDivs}
     </div>
   </div>
@@ -239,45 +240,7 @@ function renderQuestsPanel(state: GmState | null): string {
     + rows + '</div>';
 }
 
-/** Build level-up panel content for the panel overlay. */
-function buildLevelupPanel(state: GmState | null): string {
-  const char = state?.character;
-  if (!char) return '<div class="empty-state">No character data.</div>';
 
-  const currentLevel = Number(char.level) || 1;
-  const newLevel = currentLevel + 1;
-  const reward = LEVEL_REWARDS[newLevel];
-  if (!reward) return '<div class="empty-state">Maximum level reached.</div>';
-
-  const oldProf = proficiencyBonus(currentLevel);
-  const newProf = proficiencyBonus(newLevel);
-  const profChanged = newProf > oldProf;
-  const improvement = reward.improvement;
-
-  const hasAbilityChoice = improvement.includes('new ability');
-  const hasStatChoice = improvement.includes('+1 attribute');
-  const hasProfChoice = improvement.includes('New proficiency');
-
-  const statOptions = hasStatChoice
-    ? ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].map(s =>
-      `<button class="levelup-choice" data-levelup-stat="${s}" aria-pressed="false">${s} (${Number(char.stats[s as keyof typeof char.stats]) || 0} → ${(Number(char.stats[s as keyof typeof char.stats]) || 0) + 1})</button>`).join('\n      ')
-    : '';
-
-  return `<div class="levelup-panel">
-  <div class="levelup-heading">Level Up!</div>
-  <div class="levelup-subtitle">${esc(char.name)} → Level ${newLevel}</div>
-  <div class="levelup-stats">
-    <div class="levelup-stat"><span class="levelup-stat-label">HP Gain</span><span class="levelup-stat-value">+${reward.hpGain}</span></div>
-    <div class="levelup-stat"><span class="levelup-stat-label">Prof.</span><span class="levelup-stat-value">+${newProf}</span></div>
-  </div>
-  ${profChanged ? `<div class="levelup-prof-change">Proficiency bonus: +${oldProf} → +${newProf}</div>` : ''}
-  <div class="levelup-reward">Reward: ${esc(improvement)}</div>
-  ${hasStatChoice ? `<div class="levelup-choice-block"><div class="levelup-choice-intro">Choose attribute to increase</div><div class="levelup-choice-grid">${statOptions}</div></div>` : ''}
-  ${hasAbilityChoice ? `<div class="levelup-note">The GM will offer ability choices after you confirm.</div>` : ''}
-  ${hasProfChoice ? `<div class="levelup-note">The GM will offer a new proficiency after you confirm.</div>` : ''}
-  <button class="confirm-btn levelup-confirm" id="levelup-confirm" data-prompt="Confirm level up to ${newLevel}. HP +${reward.hpGain}.${profChanged ? ` Prof bonus +${oldProf} → +${newProf}.` : ''}" title="Confirm level up">Confirm Level Up</button>
-</div>`;
-}
 
 /** Build narrative section — single div for phases≤1, wrapped phase divs for multi-phase. */
 function buildNarrativePhases(options?: Record<string, unknown>): string {

@@ -105,34 +105,40 @@ export function getNeedsVerifyPath(): string {
 }
 
 function checkFooter(html: string, state: GmState, failures: string[]): void {
-  const footer = extractDivBlockByClass(html, 'footer-row');
-  if (!footer) {
-    failures.push('Missing footer row (.footer-row) — required for panel, save, and export controls.');
+  const footerMatch = /<ta-footer\b([^>]*)>/i.exec(html);
+  if (!footerMatch) {
+    failures.push('Missing footer (<ta-footer>) — required for panel, save, and export controls.');
     return;
   }
 
-  const footerButtons = extractButtonElements(footer);
-  const panelButtons = footerButtons.filter(button => button.dataPanel !== null);
-  const actualPanels = new Set(panelButtons.map(button => button.dataPanel!));
-  const allowedPanels = new Set<string>(['character']);
+  const attrStr = footerMatch[1] ?? '';
 
+  const modulesMatch = /\bdata-modules\s*=\s*(['"])(.*?)\1/i.exec(attrStr);
+  const dataModulesStr = modulesMatch?.[2] ?? '';
+  const dataModules = dataModulesStr.split(/\s+/).filter(Boolean);
+  
+  const actualPanels = new Set<string>();
+  for (const m of dataModules) {
+    if (MODULE_PANEL_MAP[m]) {
+      actualPanels.add(MODULE_PANEL_MAP[m]!);
+    }
+  }
+  actualPanels.add('character'); // Implicit
+
+  const allowedPanels = new Set<string>(['character']);
   for (const mod of state.modulesActive) {
     const panel = MODULE_PANEL_MAP[mod];
     if (panel) allowedPanels.add(panel);
   }
   if (state._levelupPending) allowedPanels.add('levelup');
 
-  if (!actualPanels.has('character')) {
-    failures.push('Missing footer button: Character panel (data-panel="character") — always required.');
-  }
-
   for (const panel of allowedPanels) {
     if (panel === 'character' || actualPanels.has(panel)) continue;
     const mod = PANEL_MODULE_MAP[panel];
     if (mod) {
-      failures.push(`Missing footer button: ${panel} panel (data-panel="${panel}") — required by active module "${mod}".`);
+      failures.push(`Missing footer button: ${panel} panel — required by active module "${mod}".`);
     } else {
-      failures.push(`Missing footer button: ${panel} panel (data-panel="${panel}") — required by the active scene state.`);
+      failures.push(`Missing footer button: ${panel} panel — required by the active scene state.`);
     }
   }
 
@@ -141,35 +147,28 @@ function checkFooter(html: string, state: GmState, failures: string[]): void {
     const mod = PANEL_MODULE_MAP[panel];
     failures.push(
       mod
-        ? `Unexpected footer button: ${panel} panel (data-panel="${panel}") — module "${mod}" is not active.`
-        : `Unexpected footer button: ${panel} panel (data-panel="${panel}") — this panel is not allowed in the current scene.`,
+        ? `Unexpected footer button: ${panel} panel — module "${mod}" is not active.`
+        : `Unexpected footer button: ${panel} panel — this panel is not allowed in the current scene.`,
     );
   }
 
-  const footerIds = new Set(footerButtons.map(button => button.id).filter((id): id is string => id !== null));
-  if (!footerIds.has('save-btn')) {
-    failures.push('Missing footer button: Save action (id="save-btn") — scene footer must always include Save ↗.');
-  }
+  const hasExport = /\bdata-has-export\s*=\s*(['"])true\1/i.test(attrStr);
+  const hasAudio = /\bdata-has-audio\s*=\s*(['"])true\1/i.test(attrStr);
 
   if (state.modulesActive.includes('adventure-exporting')) {
-    if (!footerIds.has('export-btn')) {
-      failures.push('Missing footer button: Export action (id="export-btn") — required by active module "adventure-exporting".');
+    if (!hasExport) {
+      failures.push('Missing footer button: Export action (data-has-export="true") — required by active module "adventure-exporting".');
     }
-  } else if (footerIds.has('export-btn')) {
-    failures.push('Unexpected footer button: Export action (id="export-btn") — module "adventure-exporting" is not active.');
+  } else if (hasExport) {
+    failures.push('Unexpected footer button: Export action (data-has-export="true") — module "adventure-exporting" is not active.');
   }
 
   if (state.modulesActive.includes('audio')) {
-    if (!footerIds.has('audio-btn')) {
-      failures.push('Missing audio button (id="audio-btn") — required by active audio module.');
+    if (!hasAudio) {
+      failures.push('Missing audio button (data-has-audio="true") — required by active audio module.');
     }
-  } else if (footerIds.has('audio-btn')) {
-    failures.push('Unexpected audio button (id="audio-btn") — audio module is not active.');
-  }
-
-  const missingAriaExpanded = panelButtons.filter(button => !/\baria-expanded\s*=\s*(['"])(true|false)\1/i.test(button.markup));
-  if (missingAriaExpanded.length > 0) {
-    failures.push('Footer panel buttons must declare aria-expanded="true|false" so overlay state changes are announced accessibly.');
+  } else if (hasAudio) {
+    failures.push('Unexpected audio button (data-has-audio="true") — audio module is not active.');
   }
 }
 
