@@ -1,5 +1,5 @@
 /** Web Components bundle for Text Adventure widgets. Served via CDN. */
-export const TA_COMPONENTS_CODE = `
+export const TA_COMPONENTS_CODE = String.raw`
 (function() {
   if (typeof window === 'undefined' || typeof HTMLElement === 'undefined') return;
 

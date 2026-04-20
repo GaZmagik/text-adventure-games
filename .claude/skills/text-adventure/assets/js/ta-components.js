@@ -156,7 +156,7 @@
 
     _collectEls() {
       var rawSel = this.getAttribute('nar-selector') || '.narrative p, .prose p, .dlg p, .flash';
-      var selector = /^[a-zA-Z0-9 .#,-_>+~:*]+$/.test(rawSel) ? rawSel : '.narrative p, .prose p, .dlg p, .flash';
+      var selector = /^[a-zA-Z0-9 .#,\-_>+~:*]+$/.test(rawSel) ? rawSel : '.narrative p, .prose p, .dlg p, .flash';
       var scope = this.closest('.root, [data-scene]') || document;
       var all = Array.from(scope.querySelectorAll(selector));
       this._els = all.filter(function(el) { return !el.closest('.sp'); });
@@ -394,19 +394,19 @@
         });
 
         if (levelupPending) {
-          leftHtml += '<button class="footer-btn footer-btn-levelup" data-panel="levelup" aria-expanded="false">✦ Level Up</button>';
+          leftHtml += '<button class="footer-btn footer-btn-levelup" data-panel="levelup" aria-expanded="false">\u2726 Level Up</button>';
         }
 
         if (hasAudio) {
-          leftHtml += '<button class="footer-btn" id="audio-btn" data-sound="ship-engine" data-duration="25">♫ Play</button>';
+          leftHtml += '<button class="footer-btn" id="audio-btn" data-sound="ship-engine" data-duration="25">\u266b Play</button>';
         }
 
-        var savePrompt = 'Run `tag save generate` via the Bash tool to produce my save payload. The CLI generates the checksummed SF2 string — never hand-code save encoding, checksums, or base64. Present the result as a downloadable .save.md file with YAML frontmatter.';
-        var rightHtml = '<button class="footer-btn" id="save-btn" data-prompt="' + savePrompt + '" title="' + savePrompt + '">Save ↗</button>';
+        var savePrompt = 'Run \`tag save generate\` via the Bash tool to produce my save payload. The CLI generates the checksummed SF2 string \u2014 never hand-code save encoding, checksums, or base64. Present the result as a downloadable .save.md file with YAML frontmatter.';
+        var rightHtml = '<button class="footer-btn" id="save-btn" data-prompt="' + savePrompt + '" title="' + savePrompt + '">Save \u2197</button>';
 
         if (hasExport) {
           var exportPrompt = 'Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format.';
-          rightHtml += '<button class="footer-btn" id="export-btn" data-prompt="' + exportPrompt + '" title="' + exportPrompt + '">Export ↗</button>';
+          rightHtml += '<button class="footer-btn" id="export-btn" data-prompt="' + exportPrompt + '" title="' + exportPrompt + '">Export \u2197</button>';
         }
 
         var html = '<style>' +
@@ -643,7 +643,7 @@
             var safeSvg = null;
             if (s.svgLogo) {
               var t = s.svgLogo.trim();
-              if (/^<svg/i.test(t) && /</svg>$/i.test(t) && !/<(?:script|foreignObject|iframe|object|embed)/i.test(t) && !/onw+s*=/i.test(t)) {
+              if (/^<svg\b/i.test(t) && /<\/svg>$/i.test(t) && !/<(?:script|foreignObject|iframe|object|embed)\b/i.test(t) && !/\bon\w+\s*=/i.test(t)) {
                 safeSvg = t;
               }
             }
@@ -712,7 +712,7 @@
         var selections = JSON.parse(JSON.stringify(defaults));
         var selectedModules = [];
 
-        var html = cssLinks + '<style>:host{display:block;background:var(--sta-bg-primary,#1A1D2E);color:var(--sta-text-primary,#E8E6E3);font-family:var(--sta-font-mono,monospace)}.root{background:inherit;color:inherit}.module-card{display:flex;align-items:center;gap:8px}.module-check{width:16px;height:16px;border:1.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:3px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;color:transparent}.module-check.checked{background:var(--ta-color-accent,#4ECDC4);border-color:var(--ta-color-accent,#4ECDC4);color:#fff}.module-check.checked::after{content:"\u2713"}</style>';
+        var html = cssLinks + '<style>:host{display:block;background:var(--sta-bg-primary,#1A1D2E);color:var(--sta-text-primary,#E8E6E3);font-family:var(--sta-font-mono,monospace)}.root{background:inherit;color:inherit}.module-card{display:flex;align-items:center;gap:8px}.module-check{width:16px;height:16px;border:1.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:3px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;color:transparent}.module-check.checked{background:var(--ta-color-accent,#4ECDC4);border-color:var(--ta-color-accent,#4ECDC4);color:#fff}.module-check.checked::after{content:"\\u2713"}</style>';
         html += '<div class="root"><div class="widget-settings">';
         html += '<header class="pd-hero"><h1 class="pd-hero-heading">Game Settings</h1><p class="pd-hero-copy">Configure your adventure before beginning.</p></header>';
 
@@ -789,7 +789,7 @@
           var cmds = ['state set visualStyle ' + (selections.visualStyle || 'station')];
           if (selections.rulebook) cmds.push('state set worldFlags.rulebook ' + selections.rulebook);
           cmds.push('state set modulesActive ' + JSON.stringify(allMods));
-          var prompt = 'Begin adventure with settings: ' + JSON.stringify(selections) + '\nRequired: tag batch --commands "' + cmds.join('; ') + '"';
+          var prompt = 'Begin adventure with settings: ' + JSON.stringify(selections) + '\\nRequired: tag batch --commands "' + cmds.join('; ') + '"';
           window.tag.sendOrCopyPrompt(this, prompt);
         });
       } catch (e) { this.shadowRoot.innerHTML = '<div>Error rendering ta-settings</div>'; }
@@ -991,9 +991,9 @@
         }
 
         var h = '<style>:host{display:block}.widget-character{font-family:var(--ta-font-body);padding:16px}.char-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px}.char-name{font-family:var(--ta-font-heading);font-size:20px;font-weight:700;color:var(--sta-text-primary,#EEF0FF)}.char-class{font-size:12px;color:var(--sta-text-tertiary,#545880);text-transform:uppercase;letter-spacing:0.08em}.stat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:12px 0;text-align:center}.stat-cell{padding:8px 4px;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:6px}.stat-label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--sta-text-tertiary,#545880)}.stat-value{display:block;font-size:18px;font-weight:700;color:var(--sta-text-primary,#EEF0FF)}.stat-mod{display:block;font-size:11px;color:var(--ta-color-accent)}.section-title{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--sta-text-tertiary,#545880);margin:14px 0 6px}.inv-item{display:flex;justify-content:space-between;padding:4px 0;border-bottom:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));font-size:12px}.condition-badge{display:inline-block;padding:2px 8px;font-size:10px;border-radius:10px;background:var(--ta-color-warning-bg);color:var(--ta-color-warning);margin-right:4px}</style>';
-        h += '<div class="widget-character"><div class="char-header"><span class="char-name">' + (cfg.name||'???') + '</span><span class="char-class">' + (cfg.class||'Adventurer') + ' · Lv ' + lv + '</span></div>';
+        h += '<div class="widget-character"><div class="char-header"><span class="char-name">' + (cfg.name||'???') + '</span><span class="char-class">' + (cfg.class||'Adventurer') + ' \u00B7 Lv ' + lv + '</span></div>';
         h += hpP(hp, mhp);
-        h += '<div style="margin:8px 0;font-size:11px;color:var(--sta-text-secondary)">AC ' + ac + ' · Prof. +' + (cfg.proficiencyBonus||0) + ' · ' + (cfg.currencyName||'Credits') + ' ' + (cfg.currency||0) + '</div>';
+        h += '<div style="margin:8px 0;font-size:11px;color:var(--sta-text-secondary)">AC ' + ac + ' \u00B7 Prof. +' + (cfg.proficiencyBonus||0) + ' \u00B7 ' + (cfg.currencyName||'Credits') + ' ' + (cfg.currency||0) + '</div>';
         h += '<div class="stat-grid">';
         ['STR','DEX','CON','INT','WIS','CHA'].forEach(function(s){
           var m = mds[s]||0; h += '<div class="stat-cell"><span class="stat-label">' + s + '</span><span class="stat-value">' + (sts[s]||0) + '</span><span class="stat-mod">' + (m>=0?'+'+m:m) + '</span></div>';
@@ -1057,7 +1057,7 @@
         var s = JSON.parse(this.getAttribute('data-ship') || '{}');
         var h = '<style>.widget-ship{font-family:var(--ta-font-body);padding:16px}.ship-title{font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:var(--ta-color-accent);margin-bottom:12px}.sys-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.sys-card{padding:10px;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:8px;background:rgba(84,88,128,0.06)}.sys-name{font-weight:700;font-size:13px;color:#EEF0FF;display:block}.sys-status{font-size:10px;text-transform:uppercase;letter-spacing:0.05em}</style>';
         h += '<div class="widget-ship"><div class="ship-title">' + (s.name||'Unknown Vessel') + '</div>';
-        h += '<div style="font-size:11px;color:#545880;margin-bottom:16px">Repair parts: ' + (s.repairParts||0) + ' · Scenes since repair: ' + (s.scenesSinceRepair||0) + '</div>';
+        h += '<div style="font-size:11px;color:#545880;margin-bottom:16px">Repair parts: ' + (s.repairParts||0) + ' \u00B7 Scenes since repair: ' + (s.scenesSinceRepair||0) + '</div>';
         h += '<div class="sys-grid">';
         (s.systems||[]).forEach(function(sys){
           var col = sys.status==='operational' ? '#2BA882' : (sys.status==='degraded' ? '#F0A500' : '#E84855');
@@ -1267,7 +1267,7 @@
     }
   }
 
-  // TaScene — wraps scene content in Shadow DOM with CDN CSS
+  // TaScene \u2014 wraps scene content in Shadow DOM with CDN CSS
   class TaScene extends HTMLElement {
     constructor() { super(); this.attachShadow({ mode: 'open' }); }
     connectedCallback() {
@@ -1309,7 +1309,7 @@
           const tot = Number(r.total) || 0;
           const isSuccess = ['success', 'narrow_success', 'critical_success', 'decisive_success'].indexOf(r.outcome) !== -1;
           const cls = isSuccess ? 'roll-outcome-success' : 'roll-outcome-failure';
-          if (r.type === 'encounter_roll') return 'Roll: ' + rollValue + ' → <span class="' + cls + '">' + r.outcome + '</span>';
+          if (r.type === 'encounter_roll') return 'Roll: ' + rollValue + ' \u2192 <span class="' + cls + '">' + r.outcome + '</span>';
           if (r.type === 'contested_roll') return rollValue + (mod >= 0 ? '+' : '') + mod + '=' + tot + ' <span class="' + cls + '">' + r.outcome + '</span>';
           return rollValue + (mod >= 0 ? '+' : '') + mod + '=' + tot + ' vs DC ' + (Number(r.dc) || 0) + ' <span class="' + cls + '">' + r.outcome + '</span>';
         };
@@ -1336,16 +1336,16 @@
           '</style>';
 
         html += '<div class="title">Previously on...</div>';
-        html += '<div class="subtitle">Session recap — Scene ' + (config.scene || 0) + '</div>';
+        html += '<div class="subtitle">Session recap \u2014 Scene ' + (config.scene || 0) + '</div>';
         
         html += '<div class="section"><div class="label">Character</div><div class="char">';
         html += '<span class="char-name">' + (config.char?.name || 'Unknown') + '</span>';
-        html += '<span class="char-meta">' + (config.char?.class || '') + ' · Lv ' + (config.char?.level || 0) + ' · HP ' + (config.char?.hp || 0) + '/' + (config.char?.maxHp || 0) + '</span>';
+        html += '<span class="char-meta">' + (config.char?.class || '') + ' \u00B7 Lv ' + (config.char?.level || 0) + ' \u00B7 HP ' + (config.char?.hp || 0) + '/' + (config.char?.maxHp || 0) + '</span>';
         html += '</div></div>';
 
         html += '<div class="section"><div class="label">Location</div><div class="location">' + (config.room || 'Unknown') + '</div>';
         if (config.time) {
-          html += '<div style="font-size:11px;color:var(--sta-text-tertiary, #545880)">' + config.time.period + ' — ' + config.time.date + '</div>';
+          html += '<div style="font-size:11px;color:var(--sta-text-tertiary, #545880)">' + config.time.period + ' \u2014 ' + config.time.date + '</div>';
         }
         html += '</div>';
 
@@ -1402,7 +1402,7 @@
           '</style>';
 
         html += '<div class="heading">Act ' + (config.arc || 1) + ' Complete</div>';
-        html += '<div class="subtitle">' + (config.charName || '') + ' · Level ' + (config.charLevel || 1) + ' · ' + (config.sceneCount || 0) + ' scenes</div>';
+        html += '<div class="subtitle">' + (config.charName || '') + ' \u00B7 Level ' + (config.charLevel || 1) + ' \u00B7 ' + (config.sceneCount || 0) + ' scenes</div>';
         if (config.summary) html += '<div class="summary">' + config.summary + '</div>';
         html += '<div class="stats">';
         html += '<div class="stat-card"><span class="stat-value">' + (config.sceneCount || 0) + '</span><span class="stat-label">Scenes</span></div>';

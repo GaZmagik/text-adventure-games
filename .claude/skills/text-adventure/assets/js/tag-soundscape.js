@@ -34,9 +34,9 @@ SoundscapeEngine.prototype.stop = function() {
   this.nodes.forEach(function(n) { try { n.stop(); } catch(e) {} try { n.disconnect(); } catch(e) {} });
   this.nodes = []; this.playing = false;
   if (this.timeout) { clearTimeout(this.timeout); this.timeout = null; }
-  // ctx stays open for reuse — closing permanently destroys it (browser limit: ~6 per origin)
+  // ctx stays open for reuse \u2014 closing permanently destroys it (browser limit: ~6 per origin)
   var btn = this.root.getElementById('audio-btn');
-  if (btn) btn.textContent = '\u266b Play';
+  if (btn) btn.textContent = '\\u266b Play';
 };
 SoundscapeEngine.prototype.genDrone = function(freq, vol, dur) {
   var osc = this.ctx.createOscillator(); var gain = this.ctx.createGain();

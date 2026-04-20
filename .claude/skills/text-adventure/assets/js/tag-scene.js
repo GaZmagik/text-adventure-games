@@ -12,7 +12,7 @@ function initTagScene(root) {
   root.querySelectorAll('.phase-continue').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var nextPhase = this.getAttribute('data-reveal-phase');
-      if (!nextPhase || !/^[w-]+$/.test(nextPhase)) return;
+      if (!nextPhase || !/^[\w-]+$/.test(nextPhase)) return;
       var target = root.querySelector('[data-phase="' + nextPhase + '"]');
       if (target) {
         target.style.display = 'block';
@@ -232,7 +232,7 @@ function initTagScene(root) {
         soundscape.stop();
       } else {
         soundscape.play(soundType, soundDuration);
-        audioBtn.textContent = '\u25a0 Stop';
+        audioBtn.textContent = '\\u25a0 Stop';
         setTimeout(function() {
           if (!soundscape.playing) return;
           soundscape.stop();
@@ -241,7 +241,7 @@ function initTagScene(root) {
     });
   }
 
-  // ── Recipe-based scene audio ─────────────────────────────────────
+  // \u2500\u2500 Recipe-based scene audio \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
   // Opt-in: add data-audio-recipe="tension|wonder|dread|calm|action|mystery"
   // to the scene root element. No audio plays if attribute is absent.
 

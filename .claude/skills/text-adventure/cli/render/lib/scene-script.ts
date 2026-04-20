@@ -1,5 +1,5 @@
 /** Scene CDN/runtime source of truth — shadow-DOM-aware and shared with asset generation. */
-export const SCENE_SCRIPT_CODE = `
+export const SCENE_SCRIPT_CODE = String.raw`
 function initTagScene(root) {
   var continueBtn = root.getElementById('continue-reveal-btn');
   if (continueBtn) {

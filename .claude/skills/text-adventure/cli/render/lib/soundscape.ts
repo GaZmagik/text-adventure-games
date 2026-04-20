@@ -1,7 +1,7 @@
 // SoundscapeEngine — CDN/runtime source of truth for the audio widget path.
 // Root-aware so the shipped asset can target a widget's shadow tree cleanly.
 
-export const SOUNDSCAPE_ENGINE_CODE: string = `
+export const SOUNDSCAPE_ENGINE_CODE: string = String.raw`
 var SoundscapeEngine = function(root) {
   this.root = root || document;
   this.ctx = null; this.nodes = []; this.playing = false; this.timeout = null;
