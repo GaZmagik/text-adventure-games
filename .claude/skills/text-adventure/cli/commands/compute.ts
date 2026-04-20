@@ -278,11 +278,40 @@ export async function handleCompute(args: string[]): Promise<CommandResult> {
     case 'hazard': return hazard(args.slice(1));
     case 'encounter': return encounter(args.slice(1));
     case 'levelup': return levelup();
+    case 'pregen': return pregen(args.slice(1));
     default:
       return fail(
-        `Unknown compute subcommand: ${sub ?? '(none)'}. Available: contest, hazard, encounter, levelup`,
-        'tag compute contest CHA merchant_01',
+        `Unknown compute subcommand: ${sub ?? '(none)'}. Available: contest, hazard, encounter, levelup, pregen`,
+        'tag compute pregen --theme space --rulebook d20_system',
         'compute',
       );
   }
+}
+
+async function pregen(args: string[]): Promise<CommandResult> {
+  const flags = parseArgs(args).flags;
+  const theme = flags.theme || 'space';
+  const rulebook = flags.rulebook || 'd20_system';
+  
+  // This command provides a structured template/hint for the AI GM 
+  // to follow when generating pre-generated character payloads.
+  // It ensures the GM uses the correct schema for ta-character-creation.
+  return ok({
+    type: 'pregen_template',
+    theme,
+    rulebook,
+    schema: {
+      name: "Character Name",
+      class: "Archetype/Role",
+      hook: "Narrative hook (1-2 sentences)",
+      stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+      hp: 10,
+      ac: 10,
+      proficiencies: ["Skill 1", "Skill 2"],
+      startingInventory: [
+        { name: "Item Name", type: "equipment|weapon|consumable|key_item", description: "..." }
+      ]
+    },
+    guidance: `Generate 3 character objects for the "${theme}" theme. Use high-fidelity narrative hooks and specific starting equipment. Return ONLY the JSON array of character objects.`
+  }, 'compute pregen');
 }
