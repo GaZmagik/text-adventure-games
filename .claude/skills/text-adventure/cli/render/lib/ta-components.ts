@@ -875,6 +875,150 @@ export const TA_COMPONENTS_CODE = `
     }
   }
 
+  // TaCharacter
+  class TaCharacter extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); }
+    connectedCallback() {
+      try {
+        var cfg = JSON.parse(this.getAttribute('data-config') || '{}');
+        var hp = Number(cfg.hp) || 0, mhp = Number(cfg.maxHp) || 0, ac = Number(cfg.ac) || 0;
+        var lv = Number(cfg.level) || 0, xp = Number(cfg.xp) || 0, xpn = Number(cfg.xpNext) || 0;
+        var sts = cfg.stats || {}, mds = cfg.modifiers || {}, prs = cfg.proficiencies || [];
+        var inv = cfg.inventory || [], cds = cfg.conditions || [], eq = cfg.equipment || {};
+
+        function hpP(h, m) {
+          var p = m > 0 ? Math.min(100, Math.round((h/m)*100)) : 0;
+          var c = p <= 25 ? '#E84855' : (p <= 50 ? '#F0A500' : '#2BA882');
+          if (m <= 20) {
+            var s = ''; for (var i=0; i<m; i++) s += '<circle cx="' + (3 + i*10) + '" cy="6" r="3" fill="' + (i<h?c:'rgba(84,88,128,0.2)') + '"/>';
+            return '<svg width="' + (m*10 + 40) + '" height="12">' + s + '<text x="' + (m*10 + 4) + '" y="10" font-size="10" fill="#545880">' + h + '/' + m + '</text></svg>';
+          }
+          return '<svg width="150" height="12"><rect width="100" height="8" rx="4" fill="rgba(84,88,128,0.2)"/><rect width="' + p + '" height="8" rx="4" fill="' + c + '"/><text x="104" y="8" font-size="10" fill="#545880">' + h + '/' + m + '</text></svg>';
+        }
+        function xpT(x, n) {
+          var p = n > 0 ? Math.min(100, Math.round((x/n)*100)) : 0;
+          return '<svg width="150" height="12"><rect width="100" height="8" rx="4" fill="rgba(84,88,128,0.2)"/><rect width="' + p + '" height="8" rx="4" fill="#4ECDC4"/><text x="104" y="8" font-size="10" fill="#545880">' + x + '/' + n + '</text></svg>';
+        }
+
+        var h = '<style>:host{display:block}.widget-character{font-family:var(--ta-font-body);padding:16px}.char-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px}.char-name{font-family:var(--ta-font-heading);font-size:20px;font-weight:700;color:var(--sta-text-primary,#EEF0FF)}.char-class{font-size:12px;color:var(--sta-text-tertiary,#545880);text-transform:uppercase;letter-spacing:0.08em}.stat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:12px 0;text-align:center}.stat-cell{padding:8px 4px;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:6px}.stat-label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--sta-text-tertiary,#545880)}.stat-value{display:block;font-size:18px;font-weight:700;color:var(--sta-text-primary,#EEF0FF)}.stat-mod{display:block;font-size:11px;color:var(--ta-color-accent)}.section-title{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--sta-text-tertiary,#545880);margin:14px 0 6px}.inv-item{display:flex;justify-content:space-between;padding:4px 0;border-bottom:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));font-size:12px}.condition-badge{display:inline-block;padding:2px 8px;font-size:10px;border-radius:10px;background:var(--ta-color-warning-bg);color:var(--ta-color-warning);margin-right:4px}</style>';
+        h += '<div class="widget-character"><div class="char-header"><span class="char-name">' + (cfg.name||'???') + '</span><span class="char-class">' + (cfg.class||'Adventurer') + ' · Lv ' + lv + '</span></div>';
+        h += hpP(hp, mhp);
+        h += '<div style="margin:8px 0;font-size:11px;color:var(--sta-text-secondary)">AC ' + ac + ' · Prof. +' + (cfg.proficiencyBonus||0) + ' · ' + (cfg.currencyName||'Credits') + ' ' + (cfg.currency||0) + '</div>';
+        h += '<div class="stat-grid">';
+        ['STR','DEX','CON','INT','WIS','CHA'].forEach(function(s){
+          var m = mds[s]||0; h += '<div class="stat-cell"><span class="stat-label">' + s + '</span><span class="stat-value">' + (sts[s]||0) + '</span><span class="stat-mod">' + (m>=0?'+'+m:m) + '</span></div>';
+        });
+        h += '</div><div class="section-title">Equipment</div><div style="font-size:12px">Weapon: ' + (eq.weapon||'None') + '<br>Armour: ' + (eq.armour||'None') + '</div>';
+        h += '<div class="section-title">Inventory (' + inv.length + ')</div>';
+        inv.forEach(function(item){ h += '<div class="inv-item"><span>' + item.name + '</span> <span style="color:#545880;font-size:10px">' + item.type + '</span></div>'; });
+        h += '<div class="section-title">Conditions</div>';
+        cds.forEach(function(c){ h += '<span class="condition-badge">' + c + '</span>'; });
+        if(!cds.length) h += '<span style="font-size:11px;color:#545880">None</span>';
+        h += '<div style="margin-top:12px">' + xpT(xp, xpn) + '</div></div>';
+        this.shadowRoot.innerHTML = h;
+      } catch (e) { this.shadowRoot.innerHTML = '<div>Error rendering ta-character</div>'; }
+    }
+  }
+
+  // TaCrew
+  class TaCrew extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); }
+    connectedCallback() {
+      try {
+        var crew = JSON.parse(this.getAttribute('data-crew') || '[]');
+        var h = '<style>.widget-crew{font-family:var(--ta-font-body);padding:16px}.crew-title{font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:var(--ta-color-accent);margin-bottom:12px}.crew-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}.crew-card{padding:10px;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:8px;background:rgba(84,88,128,0.06)}.crew-name{font-weight:700;font-size:13px;color:var(--sta-text-primary,#EEF0FF);display:block}.crew-role{font-size:10px;color:var(--sta-text-tertiary,#545880);text-transform:uppercase}</style>';
+        h += '<div class="widget-crew"><div class="crew-title">Crew Manifest</div><div class="crew-grid">';
+        crew.forEach(function(c){ h += '<div class="crew-card"><span class="crew-name">' + c.name + '</span><span class="crew-role">' + (c.role||'Crew') + '</span><div style="font-size:11px;color:#9AA0C0;margin-top:4px">HP ' + (c.hp||'?') + '/' + (c.maxHp||'?') + '</div></div>'; });
+        if(!crew.length) h += '<p style="font-size:12px;color:#545880">No crew registered.</p>';
+        h += '</div></div>';
+        this.shadowRoot.innerHTML = h;
+      } catch (e) { this.shadowRoot.innerHTML = '<div>Error rendering ta-crew</div>'; }
+    }
+  }
+
+  // TaCodex
+  class TaCodex extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); }
+    connectedCallback() {
+      try {
+        var entries = JSON.parse(this.getAttribute('data-entries') || '[]');
+        var h = '<style>.widget-codex{font-family:var(--ta-font-body);padding:16px}.codex-title{font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:var(--ta-color-accent);margin-bottom:4px}.codex-summary{font-size:11px;color:var(--sta-text-tertiary,#545880);margin-bottom:16px}.codex-entry{margin-bottom:12px;padding:10px;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:8px}.codex-header{display:flex;justify-content:space-between;align-items:baseline}.codex-id{font-weight:700;font-size:14px;color:var(--sta-text-primary,#EEF0FF)}.codex-badge{font-size:9px;padding:1px 6px;border-radius:4px;text-transform:uppercase}.codex-secret{display:inline-block;padding:2px 6px;font-size:10px;border-radius:4px;background:rgba(78,205,196,0.1);color:#4ECDC4;margin-right:4px;margin-top:4px}</style>';
+        var d = entries.filter(function(e){return e.discovered;}).length;
+        h += '<div class="widget-codex"><div class="codex-title">Lore Codex</div><div class="codex-summary">' + d + ' of ' + entries.length + ' entries discovered</div>';
+        entries.forEach(function(e) {
+          if(!e.discovered) return;
+          var c = e.category==='faction' ? '#E84855' : (e.category==='location' ? '#4ECDC4' : '#9AA0C0');
+          h += '<div class="codex-entry"><div class="codex-header"><span class="codex-id">' + e.id + '</span><span class="codex-badge" style="background:'+c+';color:#fff">' + (e.category||'item') + '</span></div>';
+          h += '<div style="font-size:10px;color:#545880;margin-top:2px">' + (e.discoveredAt||'') + '</div>';
+          if(e.secrets) e.secrets.forEach(function(s){ h += '<span class="codex-secret">' + s + '</span>'; });
+          h += '</div>';
+        });
+        h += '</div>';
+        this.shadowRoot.innerHTML = h;
+      } catch (e) { this.shadowRoot.innerHTML = '<div>Error rendering ta-codex</div>'; }
+    }
+  }
+
+  // TaShip
+  class TaShip extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); }
+    connectedCallback() {
+      try {
+        var s = JSON.parse(this.getAttribute('data-ship') || '{}');
+        var h = '<style>.widget-ship{font-family:var(--ta-font-body);padding:16px}.ship-title{font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:var(--ta-color-accent);margin-bottom:12px}.sys-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.sys-card{padding:10px;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:8px;background:rgba(84,88,128,0.06)}.sys-name{font-weight:700;font-size:13px;color:#EEF0FF;display:block}.sys-status{font-size:10px;text-transform:uppercase;letter-spacing:0.05em}</style>';
+        h += '<div class="widget-ship"><div class="ship-title">' + (s.name||'Unknown Vessel') + '</div>';
+        h += '<div style="font-size:11px;color:#545880;margin-bottom:16px">Repair parts: ' + (s.repairParts||0) + ' · Scenes since repair: ' + (s.scenesSinceRepair||0) + '</div>';
+        h += '<div class="sys-grid">';
+        (s.systems||[]).forEach(function(sys){
+          var col = sys.status==='operational' ? '#2BA882' : (sys.status==='degraded' ? '#F0A500' : '#E84855');
+          h += '<div class="sys-card"><span class="sys-name">' + sys.name + '</span><span class="sys-status" style="color:'+col+'">' + sys.status + '</span><div style="font-size:10px;color:#545880;margin-top:4px">' + (sys.integrity||0) + '% integrity</div></div>';
+        });
+        h += '</div></div>';
+        this.shadowRoot.innerHTML = h;
+      } catch (e) { this.shadowRoot.innerHTML = '<div>Error rendering ta-ship</div>'; }
+    }
+  }
+
+  // TaMap
+  class TaMap extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); }
+    connectedCallback() {
+      try {
+        var m = JSON.parse(this.getAttribute('data-map') || '{}');
+        var h = '<style>.widget-map{font-family:var(--ta-font-body);padding:16px}.map-canvas{width:100%;height:auto;background:#040810;border-radius:12px;border:1px solid rgba(84,88,128,0.3)}</style>';
+        h += '<div class="widget-map"><div style="font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:#EEF0FF;margin-bottom:12px">Tactical Map</div>';
+        h += '<svg class="map-canvas" viewBox="0 0 280 180">';
+        (m.nodes||[]).forEach(function(n){
+          var isC = n.id === m.current;
+          h += '<circle cx="' + n.x + '" cy="' + n.y + '" r="' + (isC?8:5) + '" fill="' + (isC?'#4ECDC4':'#545880') + '" />';
+          h += '<text x="' + n.x + '" y="' + (n.y+15) + '" font-size="8" fill="#EEF0FF" text-anchor="middle">' + n.id + '</text>';
+        });
+        h += '</svg></div>';
+        this.shadowRoot.innerHTML = h;
+      } catch (e) { this.shadowRoot.innerHTML = '<div>Error rendering ta-map</div>'; }
+    }
+  }
+
+  // TaStarchart
+  class TaStarchart extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); }
+    connectedCallback() {
+      try {
+        var d = JSON.parse(this.getAttribute('data-chart') || '{}');
+        var h = '<style>.widget-starchart{font-family:var(--ta-font-body);padding:16px}.sc-canvas{width:100%;height:auto;background:radial-gradient(circle at 50% 25%,rgba(98,175,255,0.1),#040810);border-radius:14px;border:1px solid rgba(84,88,128,0.3)}</style>';
+        h += '<div class="widget-starchart"><div style="font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:#EEF0FF">Star Chart</div><div style="font-size:13px;color:#4ECDC4;margin-bottom:12px">' + (d.current||'???') + '</div>';
+        h += '<svg class="sc-canvas" viewBox="0 0 280 180">';
+        (d.systems||[]).forEach(function(s){
+          var isC = s.name === d.current;
+          h += '<circle cx="' + s.x + '" cy="' + s.y + '" r="' + (isC?10:6) + '" fill="' + (isC?'rgba(84,182,255,0.3)':'rgba(84,88,128,0.2)') + '" stroke="' + (isC?'#4ECDC4':'#545880') + '" />';
+          h += '<text x="' + s.x + '" y="' + (s.y+20) + '" font-size="9" fill="#EEF0FF" text-anchor="middle">' + s.name + '</text>';
+        });
+        h += '</svg></div>';
+        this.shadowRoot.innerHTML = h;
+      } catch (e) { this.shadowRoot.innerHTML = '<div>Error rendering ta-starchart</div>'; }
+    }
+  }
+
   // TaScene — wraps scene content in Shadow DOM with CDN CSS
   class TaScene extends HTMLElement {
     constructor() { super(); this.attachShadow({ mode: 'open' }); }
@@ -903,6 +1047,12 @@ export const TA_COMPONENTS_CODE = `
   if (!customElements.get('ta-footer')) customElements.define('ta-footer', TaFooter);
   if (!customElements.get('ta-levelup')) customElements.define('ta-levelup', TaLevelup);
   if (!customElements.get('ta-dialogue')) customElements.define('ta-dialogue', TaDialogue);
+  if (!customElements.get('ta-character')) customElements.define('ta-character', TaCharacter);
+  if (!customElements.get('ta-crew')) customElements.define('ta-crew', TaCrew);
+  if (!customElements.get('ta-codex')) customElements.define('ta-codex', TaCodex);
+  if (!customElements.get('ta-ship')) customElements.define('ta-ship', TaShip);
+  if (!customElements.get('ta-map')) customElements.define('ta-map', TaMap);
+  if (!customElements.get('ta-starchart')) customElements.define('ta-starchart', TaStarchart);
 
 })();
 `.trim();
