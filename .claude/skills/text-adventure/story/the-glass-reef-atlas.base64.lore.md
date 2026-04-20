@@ -1,7 +1,7 @@
 ---
 format: text-adventure-lore
 version: 1
-skill-version: "1.4.0"
+skill-version: "1.3.0" # Keep at v1.3.0
 
 title: "The Glass Reef Atlas"
 subtitle: "A Salvage-Mystery on the Shattersea Frontier"
