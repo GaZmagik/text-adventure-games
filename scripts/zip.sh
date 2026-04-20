@@ -29,14 +29,37 @@ fi
 # Remove old zip to ensure a clean build (zip -r updates in-place)
 rm -f "$OUTPUT"
 
-# Pre-build: regenerate CDN CSS assets + manifest
-if [ $# -gt 0 ]; then
-	echo "Running tag build-css $*..."
+# Detect version for CDN ref
+SKILL_VERSION=$(grep -m 1 "version: " "$SKILL_DIR/SKILL.md" | sed 's/.*version: //; s/["'\'']//g')
+if [ -z "$SKILL_VERSION" ]; then
+	echo "Warning: Could not detect version from SKILL.md, falling back to commit hash."
+	CURRENT_REF=$(git rev-parse --short HEAD 2>/dev/null || echo "main")
 else
-	echo "Running tag build-css..."
+	CURRENT_REF="v${SKILL_VERSION}"
 fi
+
+# Check for explicit --release override
+for arg in "$@"; do
+	if [[ "$arg" == "v"* ]]; then
+		CURRENT_REF="$arg"
+	fi
+done
+
+# If --release is passed without a value in the command line, 
+# build-css.ts handles the fallback, but we want to show it here too.
+if [[ "$*" == *"--release"* ]] && [[ "$*" != *"--release v"* ]]; then
+	ARGS=("--release" "$CURRENT_REF" "${@/--release/}")
+else
+	ARGS=("$@")
+	# If no --release flag at all, default to the version tag for stability
+	if [[ "$*" != *"--release"* ]]; then
+		ARGS=("--release" "$CURRENT_REF" "$@")
+	fi
+fi
+
+echo "Building CDN assets (immutable ref: $CURRENT_REF)..."
 cd "$SKILL_DIR/cli"
-bun run tag.ts build-css "$@" >/dev/null
+bun run tag.ts build-css "${ARGS[@]}" >/dev/null
 cd "$SKILL_DIR"
 
 # Sanity check: CDN assets exist
@@ -61,6 +84,7 @@ zip -r "$OUTPUT" . \
 	-x "cli/tests/*" \
 	-x "assets/css/*" \
 	-x "assets/js/*" \
+	-x "scratch/*" \
 	-x "coverage/*" \
 	-x "*.lore.md"
 
