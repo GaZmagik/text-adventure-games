@@ -266,7 +266,7 @@ export const TA_COMPONENTS_CODE = `
 
         this.shadowRoot.innerHTML = html;
       } catch (e) {
-        this.innerHTML = '<div>Error rendering ta-ticker</div>';
+        this.shadowRoot.innerHTML = '<div>Error rendering ta-ticker</div>';
       }
     }
   }
@@ -355,7 +355,7 @@ export const TA_COMPONENTS_CODE = `
           });
         });
       } catch (e) {
-        this.innerHTML = '<div>Error rendering ta-footer</div>';
+        this.shadowRoot.innerHTML = '<div>Error rendering ta-footer</div>';
       }
     }
   }
@@ -428,7 +428,7 @@ export const TA_COMPONENTS_CODE = `
           });
         });
       } catch (e) {
-        this.innerHTML = '<div>Error rendering ta-levelup</div>';
+        this.shadowRoot.innerHTML = '<div>Error rendering ta-levelup</div>';
       }
     }
   }
@@ -486,7 +486,7 @@ export const TA_COMPONENTS_CODE = `
           });
         });
       } catch (e) {
-        this.innerHTML = '<div>Error rendering ta-dialogue</div>';
+        this.shadowRoot.innerHTML = '<div>Error rendering ta-dialogue</div>';
       }
     }
   }
@@ -604,7 +604,7 @@ export const TA_COMPONENTS_CODE = `
         });
 
       } catch (e) {
-        this.innerHTML = '<div>Error rendering ta-scenario-select</div>';
+        this.shadowRoot.innerHTML = '<div>Error rendering ta-scenario-select</div>';
       }
     }
   }
@@ -702,7 +702,7 @@ export const TA_COMPONENTS_CODE = `
           var prompt = 'Begin adventure with settings: ' + JSON.stringify(selections) + '\\nRequired: tag batch --commands "' + cmds.join('; ') + '"';
           window.tag.sendOrCopyPrompt(this, prompt);
         });
-      } catch (e) { this.innerHTML = '<div>Error rendering ta-settings</div>'; }
+      } catch (e) { this.shadowRoot.innerHTML = '<div>Error rendering ta-settings</div>'; }
     }
   }
 
@@ -871,7 +871,7 @@ export const TA_COMPONENTS_CODE = `
         });
 
         if(pregens.length>0&&!allowCustom){setPresetMode(0);}else{setCustomMode();}
-      } catch (e) { this.innerHTML = '<div>Error rendering ta-character-creation</div>'; }
+      } catch (e) { this.shadowRoot.innerHTML = '<div>Error rendering ta-character-creation</div>'; }
     }
   }
 

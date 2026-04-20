@@ -153,7 +153,8 @@ export function emitRootCustomElement(opts: RootCustomElementOptions): string {
 
   const attrStr = Object.entries(attrs).map(([k, v]) => ` ${k}="${esc(v)}"`).join('');
   
-  const html = `<${opts.tag}${attrStr}>${opts.html || ''}</${opts.tag}>`;
+  const fallback = opts.html || `<div style="padding: 20px; font-family: monospace; opacity: 0.6;">Loading ${opts.tag}...</div>`;
+  const html = `<${opts.tag}${attrStr}>${fallback}</${opts.tag}>`;
   
   const scripts = resolvedJs.map(url => `<script src="${url}"></script>`).join('\n');
   

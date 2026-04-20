@@ -34,7 +34,10 @@ function detectGitRef(): string {
 }
 
 function buildCdnBase(ref: string, user: string): string {
-  return `https://cdn.jsdelivr.net/gh/${user}/text-adventure-games@${encodeURIComponent(ref)}${CDN_ASSET_PATH}`;
+  // Preserve slashes for branch names, as jsDelivr natively supports them.
+  // We only encode characters that are truly unsafe in a URL path.
+  const safeRef = ref.replace(/[^a-zA-Z0-9.\-_/]/g, c => encodeURIComponent(c));
+  return `https://cdn.jsdelivr.net/gh/${user}/text-adventure-games@${safeRef}${CDN_ASSET_PATH}`;
 }
 
 // ── Minification ─────────────────────────────────────────────────────
