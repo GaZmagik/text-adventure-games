@@ -98,7 +98,7 @@ describe('getCommandHelp', () => {
     expect(result.command).toBe('help');
   });
 
-  test('state help includes current v1.3.0 subcommands', () => {
+  test('state help includes current v1.4.0 subcommands', () => {
     const result = getCommandHelp('state');
     const data = result.data as { subcommands: { name: string }[] };
     const names = data.subcommands.map(s => s.name);

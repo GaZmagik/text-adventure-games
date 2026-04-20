@@ -19,7 +19,7 @@ import { attachChecksum } from './fnv32';
 const MINIMAL_VALID_LORE = `---
 format: text-adventure-lore
 version: 1
-skill-version: "1.3.0"
+skill-version: "1.4.0"
 title: "Test World"
 theme: space
 tone: mystery
@@ -52,7 +52,7 @@ The hero discovers a mystery.
 function makeValidPayload(): string {
   const data = {
     _loreVersion: 1,
-    _schemaVersion: '1.3.0',
+    _schemaVersion: '1.4.0',
     rosterMutations: [],
     factions: {},
     quests: [],
@@ -167,7 +167,7 @@ describe('checkLoreFrontmatterValues', () => {
     const fm: LoreFrontmatter = {
       format: 'text-adventure-lore',
       version: 1,
-      skillVersion: '1.3.0',
+      skillVersion: '1.4.0',
       rulebook: 'd20_system',
       recommendedStyles: { visual: 'station' },
       requiredModules: ['prose-craft', 'die-rolls'],

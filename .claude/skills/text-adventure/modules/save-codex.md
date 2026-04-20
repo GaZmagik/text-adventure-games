@@ -5,7 +5,7 @@ The Save Codex encodes everything needed to resume a text adventure session into
 string. That string can be pasted into a new conversation, shared with another player, posted to a
 forum, or stored in a notes app. No accounts. No servers. No localStorage. The save *is* the string.
 
-Current CLI behaviour in v1.3.0:
+Current CLI behaviour in v1.4.0:
 
 - `tag save generate` emits a checksummed `SF2:` payload containing full game state as raw base64 JSON.
 - Save and export payloads are generated on demand from the footer `Save ↗` / `Export ↗` actions.
@@ -89,7 +89,7 @@ machine-parseable (the payload string).
 ---
 format: text-adventure-save
 version: 1
-skill-version: "1.3.0"
+skill-version: "1.4.0"
 character: "Gareth Williams"
 class: "Bartender"
 level: 2
@@ -510,7 +510,7 @@ const newSeed = originalSeed + '_arc' + newArcNumber;
 ---
 
 > **Historical note:** The implementation sketches below document earlier compact/full save
-> strategies retained for migration context. They are not the live v1.3.0 generation path,
+> strategies retained for migration context. They are not the live v1.4.0 generation path,
 > which always emits checksummed `SF2:` payloads from `tag save generate`.
 
 **What is never stored in the save payload:**

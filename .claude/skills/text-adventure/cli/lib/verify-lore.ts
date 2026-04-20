@@ -66,7 +66,7 @@ export function checkLoreFrontmatterValues(fm: LoreFrontmatter, failures: string
   }
 
   if (fm.skillVersion !== undefined && !RE_SEMVER.test(fm.skillVersion)) {
-    failures.push(`Invalid skill-version: "${fm.skillVersion}" — must match semver (e.g. "1.3.0").`);
+    failures.push(`Invalid skill-version: "${fm.skillVersion}" — must match semver (e.g. "1.4.0").`);
   }
 
   if (fm.rulebook !== undefined && !VALID_RULEBOOKS.has(fm.rulebook)) {

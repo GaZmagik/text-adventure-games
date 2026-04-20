@@ -42,7 +42,7 @@ type _AssertExhaustive = keyof GmState extends (typeof VALID_TOP_KEYS_ARRAY)[num
 const _exhaustiveCheck: _AssertExhaustive = true; void _exhaustiveCheck;
 export const VALID_TOP_KEYS = new Set<string>(VALID_TOP_KEYS_ARRAY);
 
-export const SCHEMA_VERSION = '1.3.0' as const;
+export const SCHEMA_VERSION = '1.4.0' as const;
 
 /** All known module filenames (without .md extension), matching modulesActive format. */
 export const KNOWN_MODULES = [

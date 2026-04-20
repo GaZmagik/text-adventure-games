@@ -145,7 +145,7 @@ NEW GAME CHECKLIST
       produces a character the player feels no ownership over.
 □ 11. Parse the confirmed settings + character payloads and apply them with:
      `tag setup apply --settings '<json>' --character '<json>'`
-     This is the canonical v1.3.0 setup handoff. It replaces the old manual
+     This is the canonical v1.4.0 setup handoff. It replaces the old manual
      `tag state set character ...` / `tag state set visualStyle ...` sequence,
      computes modifiers, stores pronouns, applies modules, and persists the style/rulebook.
 □ 12. Load Tier 1 modules into `_modulesRead`: run `tag module activate-tier 1`.
@@ -243,7 +243,7 @@ RESUME FROM SAVE CHECKLIST
 □ 14. Render the resume scene as a widget using the active visual style
 □ 15. Include: footer with panel buttons + Save ↗ + Export ↗ (if module active)
 □ 16. Do NOT embed save/export payloads inside the scene HTML. Save ↗ / Export ↗ footer actions
-     are the canonical artefact path in v1.3.0; `save-div` is a standalone utility widget.
+     are the canonical artefact path in v1.4.0; `save-div` is a standalone utility widget.
 □ 17. Verify: is ALL game content inside the widget? No prose outside?
 ```
 

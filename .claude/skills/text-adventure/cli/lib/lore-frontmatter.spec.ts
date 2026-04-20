@@ -65,7 +65,7 @@ describe('parseLoreFrontmatter', () => {
   test('maps kebab-case keys to camelCase', () => {
     const content = [
       '---',
-      'skill-version: "1.3.0"',
+      'skill-version: "1.4.0"',
       'calendar-system: "Anchorage Drift Reckoning"',
       'start-date: "Cycle 403.19"',
       'start-time: "21:00"',
@@ -74,7 +74,7 @@ describe('parseLoreFrontmatter', () => {
       '---',
     ].join('\n');
     const result = parseLoreFrontmatter(content);
-    expect(result.skillVersion).toBe('1.3.0');
+    expect(result.skillVersion).toBe('1.4.0');
     expect(result.calendarSystem).toBe('Anchorage Drift Reckoning');
     expect(result.startDate).toBe('Cycle 403.19');
     expect(result.startTime).toBe('21:00');
@@ -304,7 +304,7 @@ describe('parseLoreFrontmatter', () => {
       '---',
       'format: text-adventure-lore',
       'version: 1',
-      'skill-version: "1.3.0"',
+      'skill-version: "1.4.0"',
       '',
       'title: "The Glass Reef Atlas"',
       'subtitle: "A Salvage-Mystery on the Shattersea Frontier"',
@@ -384,7 +384,7 @@ describe('parseLoreFrontmatter', () => {
     // Scalars
     expect(result.format).toBe('text-adventure-lore');
     expect(result.version).toBe(1);
-    expect(result.skillVersion).toBe('1.3.0');
+    expect(result.skillVersion).toBe('1.4.0');
     expect(result.title).toBe('The Glass Reef Atlas');
     expect(result.theme).toBe('space');
     expect(result.tone).toBe('mystery');
@@ -454,7 +454,7 @@ describe('buildLoreFrontmatter', () => {
 
   test('maps camelCase keys to kebab-case', () => {
     const out = buildLoreFrontmatter({
-      skillVersion: '1.3.0',
+      skillVersion: '1.4.0',
       calendarSystem: 'ADR',
       startDate: 'Cycle 403',
       estimatedScenes: '96-128',
@@ -569,7 +569,7 @@ describe('buildLoreFrontmatter', () => {
     const data: LoreFrontmatter = {
       format: 'text-adventure-lore',
       version: 1,
-      skillVersion: '1.3.0',
+      skillVersion: '1.4.0',
       title: 'The Glass Reef Atlas',
       edited: true,
       recommendedStyles: { output: 'Sci-Fi-Narrator', visual: 'holographic' },
@@ -578,7 +578,7 @@ describe('buildLoreFrontmatter', () => {
     };
     const built = buildLoreFrontmatter(data);
     const parsed = parseLoreFrontmatter(built);
-    expect(parsed.skillVersion).toBe('1.3.0');
+    expect(parsed.skillVersion).toBe('1.4.0');
     expect(parsed.recommendedStyles).toEqual({ output: 'Sci-Fi-Narrator', visual: 'holographic' });
     expect(parsed.requiredModules).toEqual(['core-systems', 'bestiary', 'ship-systems']);
     expect(parsed.optionalModules).toEqual(['star-chart', 'audio']);

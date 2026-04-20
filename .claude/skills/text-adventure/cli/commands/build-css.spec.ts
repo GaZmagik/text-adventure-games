@@ -233,7 +233,7 @@ describe('--release flag', () => {
 
   beforeAll(async () => {
     releaseTmpDir = mkdtempSync(join(tmpdir(), 'tag-build-css-release-'));
-    releaseResult = await handleBuildCss(['--output-dir', releaseTmpDir, '--release', 'v1.3.0']);
+    releaseResult = await handleBuildCss(['--output-dir', releaseTmpDir, '--release', 'v1.4.0']);
   });
 
   afterAll(() => {
@@ -246,7 +246,7 @@ describe('--release flag', () => {
 
   it('manifest CDN_BASE uses release tag instead of branch ref', () => {
     const manifest = readFileSync(join(releaseTmpDir, 'cdn-manifest.ts'), 'utf-8');
-    expect(manifest).toContain('@v1.3.0/');
+    expect(manifest).toContain('@v1.4.0/');
     expect(manifest).not.toContain('@feature/');
   });
 
@@ -268,12 +268,12 @@ describe('--release flag', () => {
         '--output-dir',
         encodedTmpDir,
         '--release',
-        'feature/tag-cli-v1.3.0',
+        'feature/tag-cli-v1.4.0',
       ]);
       expect(encodedResult.ok).toBe(true);
       const manifest = readFileSync(join(encodedTmpDir, 'cdn-manifest.ts'), 'utf-8');
-      expect(manifest).toContain('@feature%2Ftag-cli-v1.3.0/');
-      expect(manifest).not.toContain('@feature/tag-cli-v1.3.0/');
+      expect(manifest).toContain('@feature%2Ftag-cli-v1.4.0/');
+      expect(manifest).not.toContain('@feature/tag-cli-v1.4.0/');
     } finally {
       rmSync(encodedTmpDir, { recursive: true, force: true });
     }
