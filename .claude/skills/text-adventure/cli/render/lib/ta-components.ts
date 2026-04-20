@@ -5,6 +5,96 @@ export const TA_COMPONENTS_CODE = `
 
   window.tag = window.tag || {};
 
+  // Shared WebGL / Dice Helpers
+  function v3n(v){var l=Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2])||1;return[v[0]/l,v[1]/l,v[2]/l]}
+  function v3s(a,b){return[a[0]-b[0],a[1]-b[1],a[2]-b[2]]}
+  function v3x(a,b){return[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]]}
+  function v3d(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]}
+  function qnm(q){var l=Math.sqrt(q[0]*q[0]+q[1]*q[1]+q[2]*q[2]+q[3]*q[3])||1;return[q[0]/l,q[1]/l,q[2]/l,q[3]/l]}
+  function qsl(a,b,t){
+    var d=a[0]*b[0]+a[1]*b[1]+a[2]*b[2]+a[3]*b[3];
+    if(d<0){b=[-b[0],-b[1],-b[2],-b[3]];d=-d}
+    if(d>0.9995)return qnm([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t,a[3]+(b[3]-a[3])*t]);
+    var th=Math.acos(Math.min(d,1)),sn=Math.sin(th),s0=Math.sin((1-t)*th)/sn,s1=Math.sin(t*th)/sn;
+    return[a[0]*s0+b[0]*s1,a[1]*s0+b[1]*s1,a[2]*s0+b[2]*s1,a[3]*s0+b[3]*s1];
+  }
+  function qAl(from,to){
+    var d=v3d(from,to);
+    if(d>0.9999)return[0,0,0,1];
+    if(d<-0.9999){
+      var ax=v3n(v3x([1,0,0],from));
+      if(Math.sqrt(ax[0]*ax[0]+ax[1]*ax[1]+ax[2]*ax[2])<0.01)ax=v3n(v3x([0,1,0],from));
+      var ha=Math.PI/2;
+      return[ax[0]*Math.sin(ha),ax[1]*Math.sin(ha),ax[2]*Math.sin(ha),Math.cos(ha)];
+    }
+    var ax=v3n(v3x(from,to)),ang=Math.acos(Math.min(Math.max(d,-1),1)),ha=ang/2;
+    return[ax[0]*Math.sin(ha),ax[1]*Math.sin(ha),ax[2]*Math.sin(ha),Math.cos(ha)];
+  }
+  function m4(){return new Float32Array(16)}
+  function m4i(){var m=m4();m[0]=m[5]=m[10]=m[15]=1;return m}
+  function m4m(a,b){var o=m4();for(var j=0;j<4;j++)for(var i=0;i<4;i++){var s=0;for(var k=0;k<4;k++)s+=a[i+k*4]*b[k+j*4];o[i+j*4]=s}return o}
+  function m4p(fov,asp,n,f){var o=m4(),ft=1/Math.tan(fov/2),nf=1/(n-f);o[0]=ft/asp;o[5]=ft;o[10]=(f+n)*nf;o[11]=-1;o[14]=2*f*n*nf;return o}
+  function m4q(q){
+    var o=m4(),x=q[0],y=q[1],z=q[2],w=q[3],x2=x+x,y2=y+y,z2=z+z;
+    var xx=x*x2,xy=x*y2,xz=x*z2,yy=y*y2,yz=y*z2,zz=z*z2,wx=w*x2,wy=w*y2,wz=w*z2;
+    o[0]=1-yy-zz;o[1]=xy+wz;o[2]=xz-wy;o[4]=xy-wz;o[5]=1-xx-zz;o[6]=yz+wx;
+    o[8]=xz+wy;o[9]=yz-wx;o[10]=1-xx-yy;o[15]=1;return o;
+  }
+  function eOB(t){var k=1.70158;return 1+(k+1)*Math.pow(t-1,3)+k*Math.pow(t-1,2)}
+  function idleQuat(a){return qnm([Math.sin(a)*0.28,Math.cos(a)*0.35,Math.sin(a*0.63)*0.22,1])}
+
+  function buildMesh(verts,faces,faceCount,tpf){
+    var pos=[],nrm=[],uv=[],fNorms=[];
+    var cols=Math.ceil(Math.sqrt(faceCount)),rows=Math.ceil(faceCount/cols);
+    for(var fi=0;fi<faceCount;fi++){
+      var col=fi%cols,row=Math.floor(fi/cols),cu0=col/cols,cu1=(col+1)/cols,cv0=1-(row+1)/rows,cv1=1-row/rows;
+      var allV=[],fn=null;
+      for(var t=0;t<tpf;t++){
+        var tri=faces[fi*tpf+t],a=verts[tri[0]],b=verts[tri[1]],c=verts[tri[2]];
+        allV.push(a,b,c);
+        if(t===0)fn=v3n(v3x(v3s(b,a),v3s(c,a)));
+      }
+      fNorms.push(fn);
+      var cen=[0,0,0];
+      for(var i=0;i<allV.length;i++){cen[0]+=allV[i][0];cen[1]+=allV[i][1];cen[2]+=allV[i][2]}
+      cen[0]/=allV.length;cen[1]/=allV.length;cen[2]/=allV.length;
+      var tang=v3n(v3s(allV[1],allV[0])),bitan=v3n(v3x(fn,tang)),us=[],vs=[];
+      for(var i=0;i<allV.length;i++){var r=v3s(allV[i],cen);us.push(v3d(r,tang));vs.push(v3d(r,bitan))}
+      var umin=Math.min.apply(null,us),umax=Math.max.apply(null,us),vmin=Math.min.apply(null,vs),vmax=Math.max.apply(null,vs),ur=umax-umin||1,vr=vmax-vmin||1;
+      for(var t=0;t<tpf;t++){
+        var tri=faces[fi*tpf+t];
+        for(var vi=0;vi<3;vi++){
+          var v=verts[tri[vi]],idx=t*3+vi;
+          pos.push(v[0],v[1],v[2]);
+          nrm.push(fn[0],fn[1],fn[2]);
+          uv.push(cu0+(0.05+0.9*(us[idx]-umin)/ur)*(cu1-cu0),cv0+(0.05+0.9*(vs[idx]-vmin)/vr)*(cv1-cv0));
+        }
+      }
+    }
+    return{pos:new Float32Array(pos),nrm:new Float32Array(nrm),uv:new Float32Array(uv),count:pos.length/3,fNorms:fNorms};
+  }
+
+  function createTextAtlas(labels,fontScale,fg,bg,mirror,offY,underline69){
+    var faceCount=labels.length,cols=Math.ceil(Math.sqrt(faceCount)),rows=Math.ceil(faceCount/cols),cw=128,ch=128;
+    var atl=document.createElement('canvas');
+    atl.width=cols*cw;atl.height=rows*ch;
+    var ctx=atl.getContext('2d');
+    if(!ctx)return atl;
+    ctx.fillStyle=bg;ctx.fillRect(0,0,atl.width,atl.height);
+    ctx.fillStyle=fg;ctx.textAlign='center';ctx.textBaseline='middle';
+    for(var i=0;i<faceCount;i++){
+      var lbl=labels[i],fs=Math.round(cw*fontScale*(lbl.length>1?0.82:1));
+      ctx.font='bold '+fs+'px sans-serif';
+      var cx=(i%cols)*cw+cw/2,cy=Math.floor(i/cols)*ch+ch/2;
+      ctx.save();ctx.translate(cx,cy);
+      if(mirror)ctx.scale(-1,-1);
+      ctx.fillText(lbl,0,offY);
+      if(underline69&&(lbl==='6'||lbl==='9')){var tw=ctx.measureText(lbl).width;ctx.fillRect(-tw/2,(mirror?offY:0)+Math.round(fs*0.55),tw,2)}
+      ctx.restore();
+    }
+    return atl;
+  }
+
   function sendOrCopyPrompt(btn, prompt) {
     if (!prompt) return;
     btn.setAttribute('title', prompt);
@@ -1037,6 +1127,370 @@ export const TA_COMPONENTS_CODE = `
     }
   }
 
+  /** ta-recap component */
+  class TaRecap extends HTMLElement {
+    connectedCallback() {
+      const data = this.getAttribute('data-recap');
+      if (!data) return;
+      try {
+        const config = JSON.parse(data);
+        const shadow = this.attachShadow({ mode: 'open' });
+        const recentRolls = (config.rolls || []).slice(-5).reverse();
+        const activeQuests = (config.quests || []).filter(function(q) { return q.status === 'active'; });
+        const completedQuests = (config.quests || []).filter(function(q) { return q.status === 'completed'; });
+
+        const formatRollLabel = function(r) {
+          if (r.type === 'encounter_roll') return '<span class="roll-stat">Encounter</span>';
+          if (r.type === 'contested_roll') return '<span class="roll-stat">' + (r.stat || '') + '</span> Check';
+          return '<span class="roll-stat">' + (r.stat || '') + '</span> Hazard Save';
+        };
+
+        const formatRollBreakdown = function(r) {
+          const rollValue = Number(r.roll) || 0;
+          const mod = Number(r.modifier) || 0;
+          const tot = Number(r.total) || 0;
+          const isSuccess = ['success', 'narrow_success', 'critical_success', 'decisive_success'].indexOf(r.outcome) !== -1;
+          const cls = isSuccess ? 'roll-outcome-success' : 'roll-outcome-failure';
+          if (r.type === 'encounter_roll') return 'Roll: ' + rollValue + ' \u2192 <span class="' + cls + '">' + r.outcome + '</span>';
+          if (r.type === 'contested_roll') return rollValue + (mod >= 0 ? '+' : '') + mod + '=' + tot + ' <span class="' + cls + '">' + r.outcome + '</span>';
+          return rollValue + (mod >= 0 ? '+' : '') + mod + '=' + tot + ' vs DC ' + (Number(r.dc) || 0) + ' <span class="' + cls + '">' + r.outcome + '</span>';
+        };
+
+        var html = '<style>' +
+          ':host { display: block; font-family: var(--ta-font-body); padding: 16px; }' +
+          '.title { font-family: var(--ta-font-heading); font-size: 20px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); margin-bottom: 4px; }' +
+          '.subtitle { font-size: 12px; color: var(--sta-text-tertiary, #545880); font-style: italic; margin-bottom: 16px; }' +
+          '.section { margin-bottom: 14px; }' +
+          '.label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--sta-text-tertiary, #545880); margin-bottom: 6px; }' +
+          '.char { display: flex; align-items: baseline; gap: 12px; font-size: 13px; color: var(--sta-text-primary, #EEF0FF); }' +
+          '.char-name { font-weight: 700; }' +
+          '.char-meta { font-size: 11px; color: var(--sta-text-tertiary, #545880); }' +
+          '.location { font-size: 13px; color: var(--ta-color-accent); }' +
+          '.quest-item { padding: 4px 0; border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); font-size: 12px; }' +
+          '.quest-title { color: var(--sta-text-primary, #EEF0FF); font-weight: 600; }' +
+          '.quest-status { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; margin-left: 8px; }' +
+          '.quest-active { color: var(--ta-color-accent); }' +
+          '.quest-completed { color: var(--ta-color-success); }' +
+          '.roll-item { display: flex; justify-content: space-between; padding: 3px 0; font-size: 11px; color: var(--sta-text-secondary, #9AA0C0); border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); }' +
+          '.roll-stat { font-weight: 600; color: var(--sta-text-primary, #EEF0FF); }' +
+          '.roll-outcome-success { color: var(--ta-color-success); }' +
+          '.roll-outcome-failure { color: var(--ta-color-danger); }' +
+          '</style>';
+
+        html += '<div class="title">Previously on...</div>';
+        html += '<div class="subtitle">Session recap \u2014 Scene ' + (config.scene || 0) + '</div>';
+        
+        html += '<div class="section"><div class="label">Character</div><div class="char">';
+        html += '<span class="char-name">' + (config.char?.name || 'Unknown') + '</span>';
+        html += '<span class="char-meta">' + (config.char?.class || '') + ' \u00B7 Lv ' + (config.char?.level || 0) + ' \u00B7 HP ' + (config.char?.hp || 0) + '/' + (config.char?.maxHp || 0) + '</span>';
+        html += '</div></div>';
+
+        html += '<div class="section"><div class="label">Location</div><div class="location">' + (config.room || 'Unknown') + '</div>';
+        if (config.time) {
+          html += '<div style="font-size:11px;color:var(--sta-text-tertiary, #545880)">' + config.time.period + ' \u2014 ' + config.time.date + '</div>';
+        }
+        html += '</div>';
+
+        if (activeQuests.length) {
+          html += '<div class="section"><div class="label">Active Quests (' + activeQuests.length + ')</div>';
+          activeQuests.forEach(function(q) {
+            html += '<div class="quest-item"><span class="quest-title">' + q.title + '</span><span class="quest-status quest-active">' + (q.objectives || []).filter(function(o) { return o.completed; }).length + '/' + (q.objectives || []).length + ' objectives</span></div>';
+          });
+          html += '</div>';
+        }
+
+        if (completedQuests.length) {
+          html += '<div class="section"><div class="label">Completed Quests (' + completedQuests.length + ')</div>';
+          completedQuests.forEach(function(q) {
+            html += '<div class="quest-item"><span class="quest-title">' + q.title + '</span><span class="quest-status quest-completed">Complete</span></div>';
+          });
+          html += '</div>';
+        }
+
+        if (recentRolls.length) {
+          html += '<div class="section"><div class="label">Recent Rolls</div>';
+          recentRolls.forEach(function(r) {
+            html += '<div class="roll-item"><span>' + formatRollLabel(r) + '</span><span>' + formatRollBreakdown(r) + '</span></div>';
+          });
+          html += '</div>';
+        }
+
+        shadow.innerHTML = html;
+      } catch (e) { console.error('ta-recap error:', e); }
+    }
+  }
+
+  /** ta-arc-complete component */
+  class TaArcComplete extends HTMLElement {
+    connectedCallback() {
+      const data = this.getAttribute('data-arc');
+      if (!data) return;
+      try {
+        const config = JSON.parse(data);
+        const shadow = this.attachShadow({ mode: 'open' });
+        var html = '<style>' +
+          ':host { display: block; font-family: var(--ta-font-body); padding: 24px; text-align: center; }' +
+          '.heading { font-family: var(--ta-font-heading); font-size: 24px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); margin-bottom: 8px; }' +
+          '.subtitle { font-size: 13px; color: var(--sta-text-tertiary, #545880); margin-bottom: 20px; }' +
+          '.summary { font-family: var(--sta-font-serif, Georgia, serif); font-size: 14px; color: var(--sta-text-secondary, #9AA0C0); line-height: 1.6; margin-bottom: 24px; font-style: italic; max-width: 480px; margin-left: auto; margin-right: auto; }' +
+          '.stats { display: flex; justify-content: center; gap: 24px; margin-bottom: 28px; flex-wrap: wrap; }' +
+          '.stat-card { padding: 12px 16px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); border-radius: 8px; min-width: 80px; }' +
+          '.stat-value { font-size: 22px; font-weight: 700; color: var(--ta-color-accent); display: block; }' +
+          '.stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--sta-text-tertiary, #545880); }' +
+          '.actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }' +
+          '.btn { padding: 12px 24px; font-size: 13px; font-weight: 600; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); border-radius: 8px; background: transparent; color: var(--sta-text-primary, #EEF0FF); cursor: pointer; transition: all 0.2s; min-height: 44px; }' +
+          '.btn:hover { border-color: var(--ta-color-accent); background: var(--ta-color-accent-bg); }' +
+          '.btn-primary { border-color: var(--ta-color-accent); color: var(--ta-color-accent); }' +
+          '</style>';
+
+        html += '<div class="heading">Act ' + (config.arc || 1) + ' Complete</div>';
+        html += '<div class="subtitle">' + (config.charName || '') + ' \u00B7 Level ' + (config.charLevel || 1) + ' \u00B7 ' + (config.sceneCount || 0) + ' scenes</div>';
+        if (config.summary) html += '<div class="summary">' + config.summary + '</div>';
+        html += '<div class="stats">';
+        html += '<div class="stat-card"><span class="stat-value">' + (config.sceneCount || 0) + '</span><span class="stat-label">Scenes</span></div>';
+        html += '<div class="stat-card"><span class="stat-value">' + (config.questsCompleted || 0) + '/' + (config.questsTotal || 0) + '</span><span class="stat-label">Quests</span></div>';
+        html += '<div class="stat-card"><span class="stat-value">' + (config.rollCount || 0) + '</span><span class="stat-label">Rolls</span></div>';
+        html += '</div>';
+        html += '<div class="actions">';
+        html += '<button class="btn" data-prompt="Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md.">Save Game</button>';
+        html += '<button class="btn" data-prompt="Generate a .lore.md world export using tag export generate. Include all NPCs, factions, quests, and world state.">Export World</button>';
+        html += '<button class="btn btn-primary" data-prompt="Begin Act ' + (Number(config.arc || 1) + 1) + '. Carry forward character progression, faction standings, and world consequences. Run tag state set arc ' + (Number(config.arc || 1) + 1) + ' then render the next act opener.">Continue to Act ' + (Number(config.arc || 1) + 1) + '</button>';
+        html += '</div>';
+
+        shadow.innerHTML = html;
+        shadow.querySelectorAll('.btn').forEach(function(btn) {
+          btn.onclick = function() {
+            const p = btn.getAttribute('data-prompt');
+            if (window.tag && window.tag.sendOrCopyPrompt) window.tag.sendOrCopyPrompt(btn, p);
+          };
+        });
+      } catch (e) { console.error('ta-arc-complete error:', e); }
+    }
+  }
+
+  /** ta-combat-turn component */
+  class TaCombatTurn extends HTMLElement {
+    connectedCallback() {
+      const data = this.getAttribute('data-combat');
+      if (!data) return;
+      try {
+        const config = JSON.parse(data);
+        const shadow = this.attachShadow({ mode: 'open' });
+        const comp = config.computation || {};
+        const char = config.char || {};
+        const roster = config.roster || [];
+        const npc = comp.npcId ? roster.find(function(n) { return n.id === comp.npcId; }) : null;
+        const isHit = ['success', 'critical_success'].indexOf(comp.outcome) !== -1;
+        const isCrit = ['critical_success', 'critical_failure'].indexOf(comp.outcome) !== -1;
+        const outcomeLabel = isHit ? (isCrit ? 'Critical Hit!' : 'Hit') : (isCrit ? 'Critical Miss' : 'Miss');
+
+        const getBadge = function(o) {
+          let bg = 'var(--ta-badge-partial-bg)', fg = 'var(--ta-badge-partial-text)', bd = 'transparent';
+          if (['critical_success', 'decisive_success'].indexOf(o) !== -1) { bg = 'var(--ta-badge-success-bg)'; fg = 'var(--ta-badge-success-text)'; bd = 'var(--ta-badge-crit-success-border)'; }
+          else if (['success', 'narrow_success', 'partial_success'].indexOf(o) !== -1) { bg = 'var(--ta-badge-success-bg)'; fg = 'var(--ta-badge-success-text)'; }
+          else if (['failure', 'narrow_failure'].indexOf(o) !== -1) { bg = 'var(--ta-badge-failure-bg)'; fg = 'var(--ta-badge-failure-text)'; }
+          else if (['critical_failure', 'decisive_failure'].indexOf(o) !== -1) { bg = 'var(--ta-badge-failure-bg)'; fg = 'var(--ta-badge-failure-text)'; bd = 'var(--ta-badge-crit-failure-border)'; }
+          return { bg: bg, fg: fg, bd: bd };
+        };
+        const badge = getBadge(comp.outcome);
+
+        var html = '<style>' +
+          ':host { display: block; font-family: var(--ta-font-body); padding: 16px; }' +
+          '.title { font-family: var(--ta-font-heading); font-size: 16px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); margin-bottom: 12px; text-align: center; }' +
+          '.participants { display: flex; justify-content: space-around; align-items: center; margin-bottom: 16px; }' +
+          '.combatant { text-align: center; }' +
+          '.name { font-size: 13px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); }' +
+          '.hp { font-size: 11px; color: var(--sta-text-tertiary, #545880); margin-top: 2px; }' +
+          '.vs { font-size: 18px; font-weight: 700; color: var(--sta-text-tertiary, #545880); }' +
+          '.roll { text-align: center; margin: 12px 0; }' +
+          '.breakdown { font-size: 20px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); }' +
+          '.val { color: var(--ta-color-accent); }' +
+          '.mod { font-size: 14px; color: var(--sta-text-secondary, #9AA0C0); }' +
+          '.total { font-size: 24px; }' +
+          '.dc { font-size: 11px; color: var(--sta-text-tertiary, #545880); margin-top: 4px; }' +
+          '.outcome { display: inline-block; padding: 6px 18px; border-radius: 12px; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin: 8px 0; border: 1.5px solid ' + badge.bd + '; background: ' + badge.bg + '; color: ' + badge.fg + '; }' +
+          '.damage { text-align: center; margin-top: 12px; padding: 10px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); border-radius: 6px; }' +
+          '.dmg-val { font-size: 22px; font-weight: 700; color: var(--ta-color-danger); }' +
+          '.dmg-type { font-size: 11px; color: var(--sta-text-tertiary, #545880); text-transform: capitalize; }' +
+          '.bar { width: 100%; height: 8px; background: var(--sta-border-tertiary, rgba(84,88,128,0.4)); border-radius: 4px; overflow: hidden; margin-top: 4px; }' +
+          '.fill { height: 100%; background: var(--ta-color-danger); border-radius: 4px; transition: width 0.3s; }' +
+          '</style>';
+
+        html += '<div class="title">Combat</div>';
+        html += '<div class="participants">';
+        html += '<div class="combatant"><div class="name">' + (char.name || 'Player') + '</div><div class="hp">HP ' + (char.hp || 0) + '/' + (char.maxHp || 0) + '</div></div>';
+        html += '<div class="vs">vs</div>';
+        html += '<div class="combatant"><div class="name">' + (npc?.name || 'Enemy') + '</div><div class="hp">HP ' + (npc?.hp || 0) + '/' + (npc?.maxHp || 0) + '</div></div>';
+        html += '</div>';
+
+        html += '<div class="roll">';
+        html += '<div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--sta-text-tertiary, #545880);margin-bottom:4px">' + (comp.stat || 'STR') + ' Attack</div>';
+        html += '<div class="breakdown">';
+        html += '<span class="val">' + (comp.roll || 0) + '</span>';
+        html += '<span class="mod">' + (comp.modifier >= 0 ? '+' : '') + (comp.modifier || 0) + '</span>';
+        html += '<span style="color:var(--sta-text-tertiary, #545880)">=</span>';
+        html += '<span class="total">' + (comp.total || 0) + '</span>';
+        html += '</div>';
+        if (comp.dc) html += '<div class="dc">vs AC ' + comp.dc + '</div>';
+        html += '</div>';
+
+        html += '<div style="text-align:center"><div class="outcome">' + outcomeLabel + '</div></div>';
+        
+        if (isHit && comp.context?.damage) {
+          html += '<div class="damage">';
+          html += '<div class="dmg-val">' + (isCrit ? comp.context.damage * 2 : comp.context.damage) + ' damage' + (isCrit ? ' (critical)' : '') + '</div>';
+          if (comp.context.damageType) html += '<div class="dmg-type">' + comp.context.damageType + '</div>';
+          if (npc) {
+            html += '<div style="font-size:12px;color:var(--sta-text-secondary, #9AA0C0);margin-top:6px">' + npc.name + ': ' + npc.hp + '/' + npc.maxHp + ' HP</div>';
+            html += '<div class="bar"><div class="fill" style="width:' + (npc.maxHp > 0 ? Math.max(0, Math.round((npc.hp / npc.maxHp) * 100)) : 0) + '%"></div></div>';
+          }
+          html += '</div>';
+        } else if (!isHit) {
+          html += '<div style="text-align:center;font-size:12px;color:var(--sta-text-tertiary, #545880);margin-top:8px;font-style:italic">The attack goes wide.</div>';
+        }
+
+        shadow.innerHTML = html;
+      } catch (e) { console.error('ta-combat-turn error:', e); }
+    }
+  }
+
+  /** ta-dice component */
+  class TaDice extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); this._gl = null; this._pr = null; }
+    connectedCallback() {
+      const data = this.getAttribute('data-config');
+      if (!data) return;
+      try {
+        const config = JSON.parse(data);
+        const shadow = this.shadowRoot;
+        const dieType = config.dieType || 'd20';
+        const range = config.numberRange || [1, 20];
+        const result = config.roll || range[0];
+        const modifier = config.modifier || 0;
+        const dc = config.dc;
+
+        var html = '<style>' +
+          ':host { display: block; font-family: var(--ta-font-body); }' +
+          '.widget-dice { padding: 16px; text-align: center; background: var(--sta-bg-primary, #1A1D2E); border-radius: 12px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4)); --dbg: #2a2a3a; --dfg: #e8e8f0; }' +
+          '.canvas-area { position: relative; width: 100%; max-width: 280px; aspect-ratio: 1; margin: 0 auto; cursor: pointer; }' +
+          'canvas { width: 100%; height: 100%; }' +
+          '.hint { font-size: 10px; color: var(--sta-text-tertiary, #545880); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }' +
+          '.res-area { margin-top: 12px; opacity: 0; transition: opacity 0.3s; }' +
+          '.res-area.v { opacity: 1; }' +
+          '.res-label { font-size: 11px; color: var(--sta-text-tertiary, #545880); margin-bottom: 4px; }' +
+          '.res-vals { display: flex; justify-content: center; align-items: baseline; gap: 4px; font-family: var(--ta-font-heading); }' +
+          '.res-val { font-size: 24px; font-weight: 700; color: var(--ta-color-accent); }' +
+          '.res-mod { font-size: 14px; color: var(--sta-text-secondary, #9AA0C0); }' +
+          '.res-total { font-size: 32px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF); margin-left: 8px; }' +
+          '.outcome { display: inline-block; padding: 4px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-top: 8px; }' +
+          '.is-hidden { display: none; }' +
+          '</style>';
+
+        html += '<div class="widget-dice">';
+        html += '<div class="hint" id="hi">Tap to Roll ' + dieType.toUpperCase() + '</div>';
+        html += '<div class="canvas-area" id="cz"><canvas id="cv" width="400" height="400"></canvas></div>';
+        html += '<div class="res-area" id="ra">';
+        html += '<div class="res-label" id="xd">Result</div>';
+        html += '<div class="res-vals">';
+        html += '<span class="res-val" id="xv"></span>';
+        html += '<span class="res-mod" id="xm"></span>';
+        html += '<span style="color:var(--sta-text-tertiary, #545880)">=</span>';
+        html += '<span class="res-total" id="xt"></span>';
+        html += '</div>';
+        html += '<div class="outcome" id="xo"></div>';
+        html += '<div style="font-size:11px;color:var(--sta-text-secondary, #9AA0C0);margin-top:4px" id="xg"></div>';
+        html += '</div></div>';
+
+        shadow.innerHTML = html;
+
+        // WebGL Init
+        const cv = shadow.getElementById('cv');
+        const gl = cv.getContext('webgl', { antialias: true });
+        if (!gl) return;
+        this._gl = gl;
+
+        gl.enable(gl.DEPTH_TEST); gl.clearColor(0,0,0,0); gl.enable(gl.CULL_FACE);
+        
+        const VS = 'attribute vec3 aP,aN;attribute vec2 aU;uniform mat4 uMVP,uM;varying vec3 vN;varying vec2 vU;void main(){gl_Position=uMVP*vec4(aP,1.0);vN=mat3(uM)*aN;vU=aU;}';
+        const FS = 'precision mediump float;varying vec3 vN;varying vec2 vU;uniform sampler2D uT;uniform vec3 uL;void main(){vec3 n=normalize(vN);float d=max(dot(n,uL),0.0);gl_FragColor=texture2D(uT,vU);gl_FragColor.rgb*=(0.28+0.72*d);}';
+        
+        function mkS(s,t){var sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return gl.getShaderParameter(sh,gl.COMPILE_STATUS)?sh:null}
+        const pr = gl.createProgram();
+        const vsh = mkS(VS, gl.VERTEX_SHADER);
+        const fsh = mkS(FS, gl.FRAGMENT_SHADER);
+        gl.attachShader(pr,vsh); gl.attachShader(pr,fsh); gl.linkProgram(pr);
+        gl.useProgram(pr); this._pr = pr;
+
+        const uMVP = gl.getUniformLocation(pr, 'uMVP'), uM = gl.getUniformLocation(pr, 'uM');
+        gl.uniform3f(gl.getUniformLocation(pr, 'uL'), 0.485, 0.728, 0.485);
+
+        const mesh = buildMesh(config.verts, config.faces, config.faceCount, config.tpf);
+        function mkB(d,at,sz){var b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,d,gl.STATIC_DRAW);var l=gl.getAttribLocation(pr,at);if(l>=0){gl.enableVertexAttribArray(l);gl.vertexAttribPointer(l,sz,gl.FLOAT,false,0,0)}}
+        mkB(mesh.pos, 'aP', 3); mkB(mesh.nrm, 'aN', 3); mkB(mesh.uv, 'aU', 2);
+
+        const labels = config.labels || [];
+        const atlas = createTextAtlas(labels, config.fontScale || 0.6, '#e8e8f0', '#2a2a3a', !!config.mirror, config.offY || 0, dieType !== 'd10');
+        const tx = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tx);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, atlas);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+        const pM = m4p(50 * Math.PI / 180, 1, 0.1, 100);
+        function draw(q) {
+          var md = m4q(q), vw = m4i(); vw[14] = -3.5;
+          gl.uniformMatrix4fv(uMVP, false, m4m(pM, m4m(vw, md)));
+          gl.uniformMatrix4fv(uM, false, md);
+          gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+          gl.drawArrays(gl.TRIANGLES, 0, mesh.count);
+        }
+
+        let curQ = [0,0,0,1], ia = 0, rolling = false;
+        const stepIdle = () => { if (rolling) return; ia += 0.004; curQ = idleQuat(ia); draw(curQ); requestAnimationFrame(stepIdle); };
+        stepIdle();
+
+        const showRes = (r) => {
+          const tot = r + modifier;
+          shadow.getElementById('xv').textContent = r;
+          shadow.getElementById('xm').textContent = (modifier >= 0 ? '+' : '') + modifier;
+          shadow.getElementById('xt').textContent = tot;
+          if (dc !== undefined) {
+            const margin = tot - dc;
+            let lbl = margin >= 0 ? 'Success' : 'Failure', bg = margin >= 0 ? 'rgba(43,168,130,0.15)' : 'rgba(232,72,85,0.15)', fg = margin >= 0 ? '#2BA882' : '#E84855';
+            if (r === range[1]) { lbl = 'Critical Success'; bg = 'rgba(43,168,130,0.3)'; }
+            else if (r === range[0]) { lbl = 'Critical Failure'; bg = 'rgba(232,72,85,0.3)'; }
+            const oe = shadow.getElementById('xo'); oe.textContent = lbl; oe.style.background = bg; oe.style.color = fg;
+            const ge = shadow.getElementById('xg'); ge.textContent = (margin >= 0 ? 'Passed' : 'Failed') + ' by ' + Math.abs(margin);
+          }
+          shadow.getElementById('ra').classList.add('v');
+        };
+
+        shadow.getElementById('cz').onclick = () => {
+          if (rolling) return; rolling = true;
+          shadow.getElementById('hi').classList.add('is-hidden');
+          shadow.getElementById('ra').classList.remove('v');
+          const r = range[0] + Math.floor(Math.random() * (range[1] - range[0] + 1));
+          const faceIdx = (config.assign || []).indexOf(r);
+          const tgtQ = qAl(mesh.fNorms[faceIdx >= 0 ? faceIdx : 0], [0, 0, 1]);
+          
+          const total = 60, spinEnd = 45; let frame = 0;
+          const sQ = qnm([Math.random() - .5, Math.random() - .5, Math.random() - .5, Math.random()]);
+          let eQ = null;
+          const animate = () => {
+            let q;
+            if (frame < spinEnd) { q = qsl(sQ, tgtQ, 1 - Math.pow(1 - (frame / spinEnd), 2)); }
+            else { if (!eQ) eQ = qsl(sQ, tgtQ, 0.93); q = qsl(eQ, tgtQ, Math.min(eOB((frame - spinEnd) / (total - spinEnd)), 1)); }
+            draw(q); frame++;
+            if (frame <= total) requestAnimationFrame(animate);
+            else { rolling = false; curQ = q; showRes(r); }
+          };
+          animate();
+        };
+
+      } catch (e) { console.error('ta-dice error:', e); }
+    }
+  }
+
   // Register components
   if (!customElements.get('ta-scene')) customElements.define('ta-scene', TaScene);
   if (!customElements.get('ta-settings')) customElements.define('ta-settings', TaSettings);
@@ -1047,6 +1501,10 @@ export const TA_COMPONENTS_CODE = `
   if (!customElements.get('ta-footer')) customElements.define('ta-footer', TaFooter);
   if (!customElements.get('ta-levelup')) customElements.define('ta-levelup', TaLevelup);
   if (!customElements.get('ta-dialogue')) customElements.define('ta-dialogue', TaDialogue);
+  if (!customElements.get('ta-recap')) customElements.define('ta-recap', TaRecap);
+  if (!customElements.get('ta-arc-complete')) customElements.define('ta-arc-complete', TaArcComplete);
+  if (!customElements.get('ta-combat-turn')) customElements.define('ta-combat-turn', TaCombatTurn);
+  if (!customElements.get('ta-dice')) customElements.define('ta-dice', TaDice);
   if (!customElements.get('ta-character')) customElements.define('ta-character', TaCharacter);
   if (!customElements.get('ta-crew')) customElements.define('ta-crew', TaCrew);
   if (!customElements.get('ta-codex')) customElements.define('ta-codex', TaCodex);

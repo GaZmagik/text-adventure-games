@@ -21,7 +21,7 @@ export const CSS_MANIFEST: Record<string, string> = {
 };
 
 export const JS_MANIFEST: Record<string, string> = {
-  'ta-components.js': '81926fa2',
+  'ta-components.js': 'd3e48ace',
   'tag-scene.js': '98f5c298',
   'tag-soundscape.js': 'af6d06f0',
 };
