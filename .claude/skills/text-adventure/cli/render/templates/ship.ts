@@ -1,5 +1,19 @@
 import type { GmState } from '../../types';
-import { wrapInShadowDom, emitStandaloneCustomElement } from '../lib/shadow-wrapper';
+import { esc } from '../../lib/html';
+import { emitStandaloneCustomElement } from '../lib/shadow-wrapper';
+
+/**
+ * Builds the plain HTML fallback for the ship status.
+ */
+function buildShipFallback(config: any): string {
+  let html = `<div class="widget-ship"><div class="widget-title">${esc(config.name)}</div>`;
+  html += '<ul class="ship-systems">';
+  config.systems.forEach((sys: any) => {
+    html += `<li class="system-card"><strong>${esc(sys.name)}</strong>: ${esc(sys.status)} (${esc(sys.integrity)}%)</li>`;
+  });
+  html += '</ul></div>';
+  return html;
+}
 
 /**
  * Renders the ship systems widget.
@@ -18,8 +32,7 @@ export function renderShip(state: GmState | null, styleName: string, _options?: 
 
   if (!ship) {
     const html = `<div class="widget-ship"><p class="empty-state">No ship data available.</p></div>`;
-    if (!styleName) return html;
-    return wrapInShadowDom({ styleName, html });
+    return emitStandaloneCustomElement({ tag: 'ta-ship', styleName, html });
   }
 
   // Map system objects to a flatter array for the component
@@ -41,6 +54,7 @@ export function renderShip(state: GmState | null, styleName: string, _options?: 
   return emitStandaloneCustomElement({
     tag: 'ta-ship',
     styleName,
+    html: buildShipFallback(config),
     attrs: { 'data-ship': JSON.stringify(config) },
   });
 }

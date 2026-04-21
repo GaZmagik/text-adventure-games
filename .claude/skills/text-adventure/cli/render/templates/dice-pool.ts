@@ -12,7 +12,7 @@ type PoolGroup = {
 const VALID_DIE_TYPES = new Set(Object.keys(DIE_CONFIGS));
 /** Maximum number of physical dice allowed in a single WebGL rendering context. */
 export const MAX_DICE_POOL_TOTAL = 24;
-export const MAX_DICE_POOL_CANVAS_WIDTH = 900;
+const MAX_DICE_POOL_CANVAS_WIDTH = 900;
 export const MAX_DICE_POOL_CANVAS_HEIGHT = 1320;
 
 /** Clamps a die count to the valid range [1, 24]. */

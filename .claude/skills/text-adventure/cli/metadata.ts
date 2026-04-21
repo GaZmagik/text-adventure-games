@@ -4,7 +4,7 @@ import { MODULE_DIGESTS } from './data/module-digests';
 /**
  * Valid top-level command names for the tag CLI.
  */
-export type TopLevelCommandName =
+type TopLevelCommandName =
   | 'help'
   | 'module'
   | 'state'
@@ -27,7 +27,7 @@ export type TopLevelCommandName =
   | 'prose-gate';
 
 /** Help information for a CLI subcommand. */
-export type SubcommandHelp = {
+type SubcommandHelp = {
   name: string;
   usage: string;
   description: string;
@@ -35,7 +35,7 @@ export type SubcommandHelp = {
 };
 
 /** Documentation structure for a top-level CLI command. */
-export type CommandHelp = {
+type CommandHelp = {
   command: string;
   description: string;
   subcommands: SubcommandHelp[];
@@ -280,9 +280,6 @@ export const PRE_GAME_WIDGETS = new Set<string>([
   'character-creation',
   'dice-pool',
 ]);
-
-/** Alias — pre-config widgets are the same set as pre-game widgets. */
-export const PRE_CONFIG_WIDGETS: Set<string> = PRE_GAME_WIDGETS;
 
 /** CSS variable scopes required for specific widget types. */
 export const WIDGET_STYLE_SCOPES: Record<string, readonly string[] | undefined> = {

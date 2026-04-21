@@ -10,7 +10,7 @@
 // When a multiWordFlag's initial value token is followed by additional
 // non-flag tokens, they are joined with spaces.
 
-export type ParsedArgs = {
+type ParsedArgs = {
   positional: string[];
   flags: Record<string, string>;
   booleans: Set<string>;

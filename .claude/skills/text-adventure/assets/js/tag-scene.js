@@ -309,3 +309,22 @@ function initTagScene(root) {
     document.addEventListener('keydown', _playSceneAudio, { once: true });
   }
 }
+
+(function hydratePendingTagScenes() {
+  if (typeof window === 'undefined') return;
+  window.initTagScene = initTagScene;
+  window.tag = window.tag || {};
+  var pending = window.tag._pendingScenes || [];
+  pending.forEach(function(el) {
+    if (!el || !el.shadowRoot || el._tagSceneHydrated) return;
+    initTagScene(el.shadowRoot);
+    el._tagSceneHydrated = true;
+  });
+  window.tag._pendingScenes = [];
+  if (typeof document === 'undefined' || !document.querySelectorAll) return;
+  document.querySelectorAll('ta-scene').forEach(function(el) {
+    if (!el.shadowRoot || el._tagSceneHydrated) return;
+    initTagScene(el.shadowRoot);
+    el._tagSceneHydrated = true;
+  });
+})();

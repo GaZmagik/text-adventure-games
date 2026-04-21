@@ -32,6 +32,16 @@ describe('handleHelp', () => {
       expect(commandNames).toContain('tag verify');
     });
 
+    test('documents style refresh and prose gate in the quickstart loop', async () => {
+      const result = await handleHelp([]);
+      const data = result.data as {
+        workflow: { turnLoop: { command: string }[] };
+      };
+      const commands = data.workflow.turnLoop.map(step => step.command);
+      expect(commands).toContain('tag style activate');
+      expect(commands).toContain('tag prose-check /tmp/scene.html');
+    });
+
     test('includes cardinal rules', async () => {
       const result = await handleHelp([]);
       const data = result.data as { cardinalRules: string[] };
@@ -91,6 +101,16 @@ describe('handleHelp', () => {
       expect(applyStep!.command).toContain('tag setup apply');
     });
 
+    test('includes visual style activation before the opening scene', async () => {
+      const result = await handleHelp(['new-game']);
+      const data = result.data as {
+        steps: { name: string; command: string }[];
+      };
+      const styleStep = data.steps.find(step => step.name.includes('Visual Style'));
+      expect(styleStep).toBeDefined();
+      expect(styleStep!.command).toContain('tag style activate');
+    });
+
     test('opening scene step description explains sync-before-render order', async () => {
       const result = await handleHelp(['new-game']);
       const data = result.data as {
@@ -101,6 +121,7 @@ describe('handleHelp', () => {
       expect(openingStep!.command).toContain('tag state sync --apply --scene 1');
       expect(openingStep!.description).toContain('sync');
       expect(openingStep!.description).toContain('render');
+      expect(openingStep!.description).toContain('tag prose-check');
     });
 
     test('includes module tier list', async () => {
@@ -139,6 +160,15 @@ describe('handleHelp', () => {
       };
       expect(data.workflow[0]!.name).toContain('Sync');
       expect(data.workflow[data.workflow.length - 1]!.name).toContain('Post');
+    });
+
+    test('includes style refresh and prose gate steps', async () => {
+      const result = await handleHelp(['scene']);
+      const data = result.data as {
+        workflow: { name: string; command: string }[];
+      };
+      expect(data.workflow.some(step => step.command === 'tag style activate')).toBe(true);
+      expect(data.workflow.some(step => step.command === 'tag prose-check /tmp/scene.html')).toBe(true);
     });
 
     test('includes prose checklist', async () => {

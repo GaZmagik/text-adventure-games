@@ -4,7 +4,7 @@
 import type { StatBlock, StatName } from '../types';
 
 /** Configuration for a single player archetype. */
-export type ArchetypeConfig = {
+type ArchetypeConfig = {
   /** Base ability scores before random bonuses. */
   baseStats: StatBlock;
   /** Primary stats for this archetype (highest base values). */

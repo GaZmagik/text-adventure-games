@@ -1,8 +1,23 @@
 import type { GmState, StatName } from '../../types';
 import { XP_THRESHOLDS } from '../../data/xp-tables';
-import { wrapInShadowDom, emitStandaloneCustomElement } from '../lib/shadow-wrapper';
+import { esc } from '../../lib/html';
+import { emitStandaloneCustomElement } from '../lib/shadow-wrapper';
 
 const STAT_ORDER: StatName[] = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
+
+/**
+ * Builds the plain HTML fallback for the character sheet.
+ */
+function buildCharacterFallback(config: any): string {
+  let html = `<div class="widget-character"><div class="widget-title">${esc(config.name)} (${esc(config.class)} Lv ${esc(config.level)})</div>`;
+  html += `<p>HP: ${esc(config.hp)} / ${esc(config.maxHp)} | AC: ${esc(config.ac)}</p>`;
+  html += '<div class="stats-grid">';
+  STAT_ORDER.forEach(s => {
+    html += `<span>${s}: ${esc(config.stats[s])} (${config.modifiers[s] >= 0 ? '+' : ''}${esc(config.modifiers[s])})</span> `;
+  });
+  html += '</div></div>';
+  return html;
+}
 
 /**
  * Renders the player character sheet widget.
@@ -21,12 +36,8 @@ export function renderCharacter(state: GmState | null, styleName: string, _optio
   const char = state?.character;
 
   if (!char) {
-    const html = `<div class="widget-character">
-  <p class="empty-state">No character data available.</p>
-</div>`;
-    // When called from scene.ts panel with empty styleName, return raw HTML
-    if (!styleName) return html;
-    return wrapInShadowDom({ styleName, html });
+    const html = `<div class="widget-character"><p class="empty-state">No character data available.</p></div>`;
+    return emitStandaloneCustomElement({ tag: 'ta-character', styleName, html });
   }
 
   // Coerce numeric state values to safe defaults
@@ -65,6 +76,7 @@ export function renderCharacter(state: GmState | null, styleName: string, _optio
   return emitStandaloneCustomElement({
     tag: 'ta-character',
     styleName,
+    html: buildCharacterFallback(config),
     attrs: { 'data-config': JSON.stringify(config) },
   });
 }

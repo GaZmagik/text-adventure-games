@@ -9,7 +9,7 @@
 import { CDN_BASE, CSS_MANIFEST, JS_MANIFEST } from '../../../assets/cdn-manifest.ts';
 import { esc, emitCustomElement } from '../../lib/html';
 
-export type ShadowWrapperOptions = {
+type ShadowWrapperOptions = {
   /** Style name matching a key in CSS_MANIFEST (e.g. 'station'). */
   styleName: string;
   /** HTML content to render inside the shadow root. */
@@ -117,7 +117,7 @@ ${inlineScriptBlock}
 </script>`;
 }
 
-export type RootCustomElementOptions = {
+type RootCustomElementOptions = {
   /** The tag name (e.g., 'ta-scenario-select') */
   tag: string;
   /** Inner HTML content */
@@ -152,7 +152,7 @@ export function emitRootCustomElement(opts: RootCustomElementOptions): string {
   }
 
   const attrStr = Object.entries(attrs)
-    .filter(([, v]) => v != null && v !== '')
+    .filter(([, v]) => v != null)
     .map(([k, v]) => {
       const strVal = typeof v === 'object' ? JSON.stringify(v) : String(v);
       return ` ${k}="${esc(strVal)}"`;
@@ -167,7 +167,7 @@ export function emitRootCustomElement(opts: RootCustomElementOptions): string {
   return scripts ? `${html}\n${scripts}` : html;
 }
 
-export type StandaloneCustomElementOptions = {
+type StandaloneCustomElementOptions = {
   /** The tag name (e.g., 'ta-dice') */
   tag: string;
   /** Active style for standalone renders. Falsy means nested/custom inline usage. */

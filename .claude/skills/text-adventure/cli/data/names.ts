@@ -4,7 +4,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-export type NamePool = {
+type NamePool = {
   realWorldGiven: string[];
   realWorldSurname: string[];
   sciFiGiven: string[];

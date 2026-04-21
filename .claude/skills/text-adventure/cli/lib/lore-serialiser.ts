@@ -6,15 +6,14 @@ import type {
   MapState, StoryArchitectState, CarryForward, ArcSummary, ShipState, CrewMutation,
 } from '../types';
 import { SCHEMA_VERSION } from './constants';
-export { parseLoreFrontmatter, buildLoreFrontmatter } from './lore-frontmatter';
-export type { LoreFrontmatter } from './lore-frontmatter';
+export { parseLoreFrontmatter } from './lore-frontmatter';
 
 // ── Types ────────────────────────────────────────────────────────────
 
 /** 
  * Summary of the player character that was active at the time of export. 
  */
-export type PreviousAdventurer = {
+type PreviousAdventurer = {
   name: string;
   class: string;
   level: number;
@@ -28,7 +27,7 @@ export type PreviousAdventurer = {
  * (LF1 format) at the end of the exported file. It contains the minimum 
  * state required to reconstruct the world for a new player.
  */
-export type LoreMechanicalData = {
+type LoreMechanicalData = {
   _loreVersion: 1;
   _schemaVersion: string;
   rosterMutations: NpcMutation[];

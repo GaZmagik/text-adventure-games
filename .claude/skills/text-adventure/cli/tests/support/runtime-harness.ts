@@ -1,4 +1,4 @@
-export class FakeClassList {
+class FakeClassList {
   private readonly classes = new Set<string>();
 
   add(...names: string[]): void {
@@ -175,13 +175,13 @@ export class FakeElement {
   }
 }
 
-export type FakeWindow = {
+type FakeWindow = {
   matchMedia: (query: string) => { matches: boolean };
   tag?: unknown;
   [key: string]: unknown;
 };
 
-export class FakeCanvasElement extends FakeElement {
+class FakeCanvasElement extends FakeElement {
   width = 0;
   height = 0;
 
@@ -199,7 +199,7 @@ export class FakeCanvasElement extends FakeElement {
   }
 }
 
-export class FakeDocument {
+class FakeDocument {
   readonly documentElement: FakeElement;
   readonly body: FakeElement;
   readonly head: FakeElement;

@@ -36,4 +36,10 @@ describe('TA_COMPONENTS_CODE', () => {
     expect(TA_COMPONENTS_CODE).toContain('class TaDialogue extends HTMLElement');
     expect(TA_COMPONENTS_CODE).toContain("customElements.define('ta-dialogue', TaDialogue)");
   });
+
+  test('ta-scene delegates light-DOM fallback hydration to initTagScene', () => {
+    expect(TA_COMPONENTS_CODE).toContain("typeof window.initTagScene === 'function'");
+    expect(TA_COMPONENTS_CODE).toContain('window.initTagScene(this.shadowRoot)');
+    expect(TA_COMPONENTS_CODE).toContain('window.tag._pendingScenes.push(this)');
+  });
 });

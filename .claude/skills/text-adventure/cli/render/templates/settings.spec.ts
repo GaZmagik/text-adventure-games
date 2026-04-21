@@ -122,4 +122,18 @@ describe('settings modules', () => {
     expect(html).toContain('custom-module');
     expect(html).toContain('bestiary');
   });
+
+  test('toStringArray handles objects with name or label', () => {
+    const options = {
+      data: {
+        rulebooks: [{ name: 'Custom Rules' }],
+        difficulties: [{ label: 'Insane' }],
+        visualStyles: [123], // Fallback to String()
+      }
+    };
+    const html = renderSettings(null, '', options);
+    expect(html).toContain('Custom Rules');
+    expect(html).toContain('Insane');
+    expect(html).toContain('123');
+  });
 });

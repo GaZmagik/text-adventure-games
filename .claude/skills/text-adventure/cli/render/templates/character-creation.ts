@@ -87,6 +87,8 @@ export function renderCharacterCreation(_state: GmState | null, styleName: strin
     allowCustom,
     proficiencies,
     defaultName,
+    givenNames,
+    surnames,
   };
 
   const cssUrls = [styleName, 'common-widget', 'pregame-design'].filter(Boolean);

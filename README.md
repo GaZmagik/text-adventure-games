@@ -72,8 +72,9 @@ To build the `text-adventure.zip` file yourself:
 1. Clone the repository.
 2. Ensure you have [Bun](https://bun.sh/) installed.
 3. Run `./scripts/zip.sh` from the project root.
-   - Append `--release <branch>` to force the CDN assets to point to a specific branch (defaults to the current branch).
-   - Append `--user <username>` to point the CDN to your own GitHub username if you have forked the repository.
+   - By default, the script pins CDN assets to `v<skill-version>` for stable release builds.
+   - Append `--release <git-ref>` to point CDN assets at a specific tag, branch, or commit.
+   - Append `--user <username>` to point the CDN at your fork's GitHub username.
 
 ### Upgrading to a New Version
 
@@ -91,9 +92,8 @@ If you already have an older version of the skill installed:
    "Resume my adventure from this save file." Your character, world, and progress
    will be restored.
 
-> **Note:** Saves are forward-compatible. A save from any earlier version will load in v1.3.0 —
-> new features (arcs, NPC pronouns/stats, story threads, ship state, crew morale, map state,
-> time tracking) will activate automatically with sensible defaults.
+> **Note:** Saves are forward-compatible. A save from any earlier version will load in v1.4.0
+> with sensible defaults for fields introduced after that save was created.
 
 ### Installing Output Styles
 
@@ -123,10 +123,11 @@ The engine will guide you through settings, character creation, and into the adv
 The project uses an **orchestrator + modules** pattern:
 
 - **`text-adventure`** is the orchestrator skill — it handles the session lifecycle, widget rendering, core rules, and loads expansion modules on demand.
-- **`tag` CLI** (v1.3.0+) is the rendering engine — a TypeScript/Bun tool that produces deterministic HTML widgets from game state. Fourteen commands: `help`, `module`, `state`, `compute`, `render`, `save`, `quest`, `batch`, `rules`, `export`, `verify`, `build-css`, `setup`, `style`. 20 widget types. Zero npm dependencies.
+- **`tag` CLI** (v1.4.0) is the rendering and workflow engine — a TypeScript/Bun tool with 20 top-level commands spanning state, rendering, verification, setup, style activation, bundled scenario discovery, lore diagnostics, compaction recovery, and prose review gates. It renders 20 widget types through a CDN-backed `ta-*` Web Components runtime. Zero production dependencies.
 - **Output styles** are independent rendering layers — they change the narrative voice, pacing, and prose craft without touching game logic or mechanics.
 
 All game output is rendered inside `visualize:show_widget` panels. No plain text output — everything is styled, interactive, and widget-based.
+Scene and standalone widgets are emitted as `ta-*` custom elements and hydrated by CDN CSS/JS at runtime.
 
 - **`.lore.md` files** are authored adventures — upload one to start a pre-crafted campaign with world history, NPC roster, and branching story beats.
 - **`.save.md` files** are portable save states — download one during play, upload it later to resume exactly where you left off.

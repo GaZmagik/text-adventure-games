@@ -1,6 +1,6 @@
 import type { PendingRoll, RollRecord, RollType } from '../types';
 
-export const PENDING_TO_ROLL_TYPE: Record<PendingRoll['type'], RollType> = {
+const PENDING_TO_ROLL_TYPE: Record<PendingRoll['type'], RollType> = {
   contest: 'contested_roll',
   hazard: 'hazard_save',
 };

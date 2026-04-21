@@ -1353,6 +1353,14 @@
         var content = this.innerHTML;
         this.innerHTML = '';
         this.shadowRoot.innerHTML = cssLinks + '<style>' + hostCss + panelCss + '</style>' + content;
+        window.tag = window.tag || {};
+        if (typeof window.initTagScene === 'function') {
+          window.initTagScene(this.shadowRoot);
+          this._tagSceneHydrated = true;
+        } else {
+          window.tag._pendingScenes = window.tag._pendingScenes || [];
+          window.tag._pendingScenes.push(this);
+        }
       } catch (e) {
         this.shadowRoot.innerHTML = '<div>Error rendering ta-scene</div>';
       }

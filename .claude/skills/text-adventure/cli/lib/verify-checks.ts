@@ -10,7 +10,7 @@ import type { GmState } from '../types';
 /** 
  * Represents a DOM element with a `data-prompt` attribute. 
  */
-export type PromptElement = {
+type PromptElement = {
   markup: string;
   prompt: string;
   id: string | null;
@@ -21,7 +21,7 @@ export type PromptElement = {
 /** 
  * Represents a `<button>` element with associated metadata. 
  */
-export type ButtonElement = {
+type ButtonElement = {
   markup: string;
   text: string;
   prompt: string | null;
@@ -83,7 +83,7 @@ function isJsArtifact(value: string): boolean {
  * @param {string} html - The HTML string.
  * @param {string} name - The attribute name.
  */
-export function extractAttributeValues(html: string, name: string): string[] {
+function extractAttributeValues(html: string, name: string): string[] {
   const values: string[] = [];
   const pattern = new RegExp(`\\b${name}\\s*=\\s*(['"])(.*?)\\1`, 'gi');
   let match: RegExpExecArray | null;
@@ -330,7 +330,7 @@ const CUSTOM_ELEMENT_WIDGETS = new Set([
  * Every widget must carry a signed `render-origin` comment.
  * This prevents GMs from bypassing validation gates with hand-coded HTML.
  */
-export function checkShadowRenderOrigin(widgetType: string, html: string, failures: string[]): void {
+function checkShadowRenderOrigin(widgetType: string, html: string, failures: string[]): void {
   const renderWidgetType = VERIFY_RENDER_TYPE_MAP[widgetType] ?? widgetType;
   if (!hasValidRenderOrigin(renderWidgetType, html)) {
     failures.push(
@@ -355,7 +355,7 @@ export function checkShadowRenderOrigin(widgetType: string, html: string, failur
 /** 
  * Generic checks for pre-game configuration widgets (Settings, Scenario, CharCreate). 
  */
-export function checkPreGameWidget(html: string, failures: string[]): void {
+function checkPreGameWidget(html: string, failures: string[]): void {
   const isSettings = html.includes('widget-settings') || html.includes('settings-confirm');
   const isScenario = html.includes('scenario-card') || html.includes('scenario-select');
   const isCharCreate = html.includes('character-creation') || html.includes('archetype');
@@ -669,7 +669,7 @@ export function checkCharacterWidget(html: string, failures: string[], state?: {
 
 // ── In-game (non-scene) widget checks ────────────────────────────────
 
-export const IN_GAME_WIDGET_MARKERS: Record<string, string[]> = {
+const IN_GAME_WIDGET_MARKERS: Record<string, string[]> = {
   dice: ['ta-dice'],
   'dice-pool': ['ta-dice-pool'],
   dialogue: ['ta-dialogue'],

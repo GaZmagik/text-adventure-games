@@ -1,5 +1,22 @@
 import type { GmState } from '../../types';
-import { wrapInShadowDom, emitStandaloneCustomElement } from '../lib/shadow-wrapper';
+import { esc } from '../../lib/html';
+import { emitStandaloneCustomElement } from '../lib/shadow-wrapper';
+
+/**
+ * Builds the plain HTML fallback for the map.
+ */
+function buildMapFallback(config: any): string {
+  let html = '<div class="widget-map"><div class="widget-title">Navigation Map</div>';
+  html += `<p class="map-location map-current">Current: ${esc(config.current)}</p>`;
+  html += `<p class="map-summary">${esc(config.visited?.length ?? 0)} visited / ${esc(config.nodes.length)} revealed</p>`;
+  html += '<ul class="map-zones">';
+  config.nodes.forEach((n: any) => {
+    const isCurrent = n.id === config.current ? ' (Current)' : '';
+    html += `<li>${esc(n.id)}${isCurrent}</li>`;
+  });
+  html += '</ul></div>';
+  return html;
+}
 
 /**
  * Renders the exploration map widget.
@@ -19,8 +36,7 @@ export function renderMap(state: GmState | null, styleName: string, _options?: R
 
   if (!mapState) {
     const html = `<div class="widget-map"><p class="empty-state">No map data available.</p></div>`;
-    if (!styleName) return html;
-    return wrapInShadowDom({ styleName, html });
+    return emitStandaloneCustomElement({ tag: 'ta-map', styleName, html });
   }
 
   // Pre-calculate nodes for the component (simple circle positions)
@@ -47,6 +63,7 @@ export function renderMap(state: GmState | null, styleName: string, _options?: R
   return emitStandaloneCustomElement({
     tag: 'ta-map',
     styleName,
+    html: buildMapFallback(config),
     attrs: { 'data-map': JSON.stringify(config) },
   });
 }

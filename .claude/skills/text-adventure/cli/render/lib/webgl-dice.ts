@@ -2,7 +2,7 @@ import type { DieType } from '../../types';
 import { serialiseInlineScriptData } from '../../lib/html';
 import type { DieConfig } from './die-geometries';
 
-export type WebGLDiceCodeOptions = {
+type WebGLDiceCodeOptions = {
   dieType: DieType;
   config: DieConfig;
   fontScale: number;

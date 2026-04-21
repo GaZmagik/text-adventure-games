@@ -16,7 +16,7 @@ const VALID_TIER_SET = new Set<string>(VALID_TIERS);
 const KNOWN_MODULE_SET = new Set<string>(KNOWN_MODULES);
 
 /** Result of a state validation check. */
-export type ValidationResult = {
+type ValidationResult = {
   valid: boolean;
   errors: string[];
   warnings: string[];

@@ -1,5 +1,21 @@
 import type { GmState } from '../../types';
-import { wrapInShadowDom, emitStandaloneCustomElement } from '../lib/shadow-wrapper';
+import { esc } from '../../lib/html';
+import { emitStandaloneCustomElement } from '../lib/shadow-wrapper';
+
+/**
+ * Builds the plain HTML fallback for the starchart.
+ */
+function buildStarchartFallback(config: any): string {
+  let html = '<div class="widget-starchart"><div class="widget-title">Star Chart</div>';
+  html += `<p class="chart-location">Current: ${esc(config.current)}</p>`;
+  html += '<ul class="chart-systems">';
+  config.systems.forEach((s: any) => {
+    const isCurrent = s.name === config.current ? ' (Current)' : '';
+    html += `<li>${esc(s.name)}${isCurrent}</li>`;
+  });
+  html += '</ul></div>';
+  return html;
+}
 
 /**
  * Renders the navigational star chart widget.
@@ -17,8 +33,7 @@ import { wrapInShadowDom, emitStandaloneCustomElement } from '../lib/shadow-wrap
 export function renderStarchart(state: GmState | null, styleName: string, _options?: Record<string, unknown>): string {
   if (!state?.visitedRooms?.length) {
     const html = `<div class="empty-state"><p>No star systems charted yet.</p></div>`;
-    if (!styleName) return html;
-    return wrapInShadowDom({ styleName, html });
+    return emitStandaloneCustomElement({ tag: 'ta-starchart', styleName, html });
   }
 
   const currentRoom = state?.currentRoom ?? 'Unknown System';
@@ -51,6 +66,7 @@ export function renderStarchart(state: GmState | null, styleName: string, _optio
   return emitStandaloneCustomElement({
     tag: 'ta-starchart',
     styleName,
+    html: buildStarchartFallback(config),
     attrs: { 'data-chart': JSON.stringify(config) },
   });
 }

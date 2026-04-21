@@ -3,7 +3,7 @@
 
 import type { PreGeneratedCharacter, StatBlock } from '../types';
 
-export type PregenInput = {
+type PregenInput = {
   theme: string;
   tone?: string;
   rulebook?: string;

@@ -1,7 +1,7 @@
 // Shared outcome badge styling — used by dice.ts and combat-turn.ts templates.
 import type { RollOutcome } from '../../types';
 
-export type BadgeStyle = {
+type BadgeStyle = {
   bg: string;
   text: string;
   border: string;

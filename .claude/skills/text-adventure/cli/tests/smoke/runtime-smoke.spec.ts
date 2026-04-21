@@ -2,9 +2,11 @@ import { describe, expect, test } from 'bun:test';
 import { renderDice } from '../../render/templates/dice';
 import { renderDicePool } from '../../render/templates/dice-pool';
 import { SCENE_SCRIPT_CODE } from '../../render/lib/scene-script';
+import { TA_COMPONENTS_CODE } from '../../render/lib/ta-components';
 import {
   append,
   createRenderRuntime,
+  executeGeneratedCode,
   FakeElement,
   makeElement,
 } from '../support/runtime-harness';
@@ -166,6 +168,104 @@ describe('widget runtime smoke', () => {
     expect(overlay.style.display).toBe('none');
     expect(sceneContent.style.display).toBe('block');
     expect(footerCharacter.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  test('ta-scene custom element hydrates scene controls inside its shadow root', () => {
+    const env = createSmokeRuntime();
+    env.window.initTagScene = compileSceneRuntime(env);
+
+    class SceneShadowRoot extends FakeElement {
+      constructor() {
+        super('scene-shadow-root');
+        this.ownerDocument = env.document;
+      }
+
+      get innerHTML(): string {
+        return Object.getOwnPropertyDescriptor(FakeElement.prototype, 'innerHTML')!.get!.call(this) as string;
+      }
+
+      set innerHTML(value: string) {
+        Object.getOwnPropertyDescriptor(FakeElement.prototype, 'innerHTML')!.set!.call(this, value);
+        if (!value.includes('scene-content')) return;
+
+        const root = append(this, makeElement(env.document, 'div', { classes: ['root'] }), env.document);
+        const revealBrief = append(root, makeElement(env.document, 'div', { id: 'reveal-brief' }), env.document);
+        const revealFull = append(root, makeElement(env.document, 'div', { id: 'reveal-full' }), env.document);
+        append(revealBrief, makeElement(env.document, 'button', { id: 'continue-reveal-btn' }), env.document);
+        append(revealFull, makeElement(env.document, 'div', { id: 'scene-content' }), env.document);
+        const overlay = append(revealFull, makeElement(env.document, 'div', { id: 'panel-overlay' }), env.document);
+        append(overlay, makeElement(env.document, 'h2', { id: 'panel-title-text' }), env.document);
+        append(overlay, makeElement(env.document, 'button', { id: 'panel-close-btn' }), env.document);
+        append(overlay, makeElement(env.document, 'div', {
+          classes: ['panel-content'],
+          attrs: { 'data-panel': 'character' },
+        }), env.document);
+        append(root, makeElement(env.document, 'button', {
+          classes: ['footer-btn'],
+          attrs: { 'data-panel': 'character', 'aria-expanded': 'false' },
+        }), env.document);
+        append(root, makeElement(env.document, 'button', {
+          classes: ['action-card'],
+          attrs: { 'data-prompt': 'scan-now', title: 'scan-now' },
+        }), env.document);
+        revealFull.style.display = 'none';
+        overlay.style.display = 'none';
+      }
+    }
+
+    class TestHTMLElement extends FakeElement {
+      shadowRoot: FakeElement | null = null;
+
+      constructor() {
+        super('custom-element');
+        this.ownerDocument = env.document;
+      }
+
+      attachShadow(_opts: { mode: string }): FakeElement {
+        this.shadowRoot = new SceneShadowRoot();
+        return this.shadowRoot;
+      }
+    }
+
+    const registry = new Map<string, new () => TestHTMLElement>();
+    const customElements = {
+      get: (name: string) => registry.get(name),
+      define: (name: string, ctor: new () => TestHTMLElement) => registry.set(name, ctor),
+    };
+
+    executeGeneratedCode(TA_COMPONENTS_CODE, env, {
+      HTMLElement: TestHTMLElement,
+      customElements,
+      sendPrompt: env.sendPrompt,
+    });
+
+    const SceneCtor = registry.get('ta-scene');
+    expect(SceneCtor).toBeDefined();
+    const host = new SceneCtor!() as TestHTMLElement & { connectedCallback: () => void };
+    host.setAttribute('data-css-urls', '');
+    host.innerHTML = '<div class="root"><div id="scene-content"></div></div>';
+    host.connectedCallback();
+
+    const shadow = host.shadowRoot!;
+    const revealBrief = shadow.getElementById('reveal-brief')!;
+    const revealFull = shadow.getElementById('reveal-full')!;
+    const sceneContent = shadow.getElementById('scene-content')!;
+    const overlay = shadow.getElementById('panel-overlay')!;
+    const continueBtn = shadow.getElementById('continue-reveal-btn')!;
+    const panelBtn = shadow.querySelector('.footer-btn[data-panel]')!;
+    const actionBtn = shadow.querySelector('[data-prompt]')!;
+
+    continueBtn.dispatch('click');
+    expect(revealBrief.style.display).toBe('none');
+    expect(revealFull.style.display).toBe('block');
+
+    panelBtn.dispatch('click');
+    expect(overlay.style.display).toBe('block');
+    expect(sceneContent.style.display).toBe('none');
+    expect(panelBtn.getAttribute('aria-expanded')).toBe('true');
+
+    actionBtn.dispatch('click');
+    expect(env.prompts).toEqual(['scan-now']);
   });
 
   test('scene runtime sends only the enriched level-up prompt once', () => {

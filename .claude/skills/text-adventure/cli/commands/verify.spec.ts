@@ -485,8 +485,8 @@ describe('tag verify', () => {
     ])]);
     let html = await renderComposedScene();
     html = html.replace(
-      '<span class="atmo-pill">The scene unfolds before you...</span>',
-      '<span class="atmo-pill">Cold light from the viewport</span>',
+      /<div class="atmo-strip">[\s\S]*?<\/div>/,
+      '<div class="atmo-strip"><span class="atmo-pill">Cold light from the viewport</span></div>',
     );
     const filePath = join(tempDir, 'too-few-atmo-pills.html');
     writeFileSync(filePath, html, 'utf-8');
@@ -718,11 +718,13 @@ describe('sync marker invalidation after verify', () => {
     await setupState();
     const { getSyncMarkerPath } = await import('../lib/state-store');
     const syncMarkerPath = getSyncMarkerPath();
+    const needsVerifyPath = join(tempDir, '.needs-verify');
 
     // Sync marker exists before verify (written in beforeEach)
     expect(existsSync(syncMarkerPath)).toBe(true);
 
     const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
+    expect(existsSync(needsVerifyPath)).toBe(true);
     let html = (renderResult.data as string)
       .replace(
         '<p><!-- Narrative content rendered by the GM --></p>',
@@ -743,6 +745,7 @@ describe('sync marker invalidation after verify', () => {
 
     // Sync marker must be gone — forces sync --apply before next render
     expect(existsSync(syncMarkerPath)).toBe(false);
+    expect(existsSync(needsVerifyPath)).toBe(false);
   });
 
   test('failed scene verify does NOT delete the sync marker', async () => {

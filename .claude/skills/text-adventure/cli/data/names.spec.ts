@@ -34,7 +34,8 @@ describe('names loader', () => {
     const name = names.getRandomName('fantasy');
     expect(name).toContain(' ');
     const parts = name.split(' ');
-    expect(parts.length).toBe(2);
+    // Handle multi-word names like "De la Cruz" or "Van der Berg"
+    expect(parts.length).toBeGreaterThanOrEqual(2);
   });
 
   test('sci-fi theme picks from sci-fi pool', () => {

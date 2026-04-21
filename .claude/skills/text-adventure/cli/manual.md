@@ -71,9 +71,15 @@ run before render to pass the sync gate.
 | `tag batch` | — | `--commands`, `--dry-run` | `tag batch --commands "state get scene; save validate"` |
 | `tag rules` | (none), `<category>`, `<keyword>` | None | `tag rules output` |
 | `tag export` | `generate`, `load`, `validate` | None | `tag export generate` / `tag export load /path/to/world.lore.md` |
-| `tag build-css` | — | `--output-dir` | `tag build-css` |
+| `tag build-css` | — | `--output-dir`, `--release`, `--user` | `tag build-css` |
 | `tag setup` | `apply` | `--settings`, `--character` | `tag setup apply --settings '{...}' --character '{...}'` |
 | `tag style` | `activate` | None | `tag style activate` |
+| `tag scenario` | `bundled` | None | `tag scenario bundled` |
+| `tag lore` | `defaults`, `pregen`, `status` | None | `tag lore status` |
+| `tag compact` | `restore` | None | `tag compact restore` |
+| `tag settings` | `prose` | `llm`, `manual` | `tag settings prose manual` |
+| `tag prose-check` | `<file>` | None | `tag prose-check /tmp/scene.html` |
+| `tag prose-gate` | `--manual`, `--llm <file>` | None | `tag prose-gate --manual` |
 | `tag help` | (default), `new-game`, `scene` | None | `tag help` |
 
 ### `--data` Flag (render)
@@ -128,6 +134,21 @@ Verify every widget before `show_widget`.
 
 Do not embed save/export payloads into scene HTML. Scene/footer widgets use the `Save ↗` and `Export ↗` prompt actions; `save-div` is a standalone utility widget, not part of the normal scene flow.
 
+### Scene Prose Review Gate
+
+Scene widgets need two independent clearances before `show_widget`:
+
+1. `tag verify /tmp/scene.html`
+2. `tag prose-check /tmp/scene.html`
+3. `tag prose-gate --manual` or `tag prose-gate --llm /tmp/prose-check-result.json`
+
+Use `tag settings prose manual` or `tag settings prose llm` to choose the review mode.
+`manual` returns the deterministic checklist for GM self-review. `llm` returns a ready-to-run
+Claude review command plus a JSON handoff file that `tag prose-gate --llm` validates.
+
+If the scene HTML changes after `tag prose-check`, run `tag prose-check` again before calling
+`tag prose-gate`.
+
 ### `tag state sync` Output Fields
 
 | Field | Type | Description |
@@ -143,6 +164,17 @@ Do not embed save/export payloads into scene HTML. Scene/footer widgets use the 
 | `stateHistoryCount` | number | Undo history depth |
 
 When `compactionDetected` is **true**, run `tag state context` for the full module digest, then re-run `tag module activate-tier 1` and any required Tier 2/3 activations before generating the next scene. Compaction resets `_modulesRead`; reading the digest alone does not satisfy the scene render gate.
+
+### `tag compact restore`
+
+Use `tag compact restore` when compaction has cleared render freshness state or scene render
+reports hollow/stale context. It clears the compaction block and returns the recovery steps.
+In the normal recovery path, re-run:
+
+- `tag module activate-tier 1`
+- `tag style activate`
+
+Then reload any required Tier 2/3 modules or lore files before rendering the next scene.
 
 ---
 
@@ -209,7 +241,7 @@ referenced in subsequent commands via `$label.field`.
 
 Extract, minify, and hash CSS from all style `.md` files.
 
-**Usage:** `tag build-css [--output-dir <path>]`
+**Usage:** `tag build-css [--output-dir <path>] [--release <git-ref>] [--user <github-user>]`
 
 Reads all `styles/*.md` files plus `styles/style-reference.md`, extracts CSS code blocks,
 combines theme + structural CSS, minifies, and writes per-style `.css` files to `assets/css/`.
@@ -225,11 +257,13 @@ remains only for legacy fallback/empty-state cases that still ship literal light
 
 The CDN base is generated into `assets/cdn-manifest.ts` and points at jsDelivr:
 `https://cdn.jsdelivr.net/gh/GaZmagik/text-adventure-games@<ref>/.claude/skills/text-adventure/assets`.
-Default builds now use the current HEAD commit hash so exported widgets always point at immutable
-CDN assets instead of a mutable branch cache. The final release cut can still pass `--release <tag>`
-to swap that ref to a semantic release tag. Run `tag build-css` after pushing the target commit so
-jsDelivr can resolve the commit URL. The `assets/` directory is excluded from the skill zip because
-those files are served from the CDN, not bundled into the delivery archive.
+Direct `tag build-css` runs now default to the current HEAD commit hash so exported widgets always
+point at immutable CDN assets instead of a mutable branch cache. Pass `--release <git-ref>` to pin
+the CDN to a specific tag, branch, or commit, and `--user <github-user>` when building against a
+fork. `scripts/zip.sh` passes `--release v<skill-version>` by default for release zips. Run
+`tag build-css` after pushing the target ref so jsDelivr can resolve the URL. The `assets/`
+directory is excluded from the skill zip because those files are served from the CDN, not bundled
+into the delivery archive.
 
 Run automatically by `scripts/zip.sh` before building the skill zip.
 

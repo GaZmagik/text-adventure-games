@@ -63,7 +63,7 @@ export const NON_ADVERBS: ReadonlySet<string> = new Set([
 ]);
 
 /** Common function words excluded from repetition window and n-gram checks. */
-export const STOPWORDS: ReadonlySet<string> = new Set([
+const STOPWORDS: ReadonlySet<string> = new Set([
   'a', 'an', 'the', 'and', 'or', 'but', 'if', 'in', 'on', 'at', 'to', 'for',
   'of', 'with', 'by', 'from', 'up', 'about', 'into', 'through', 'during',
   'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had',
@@ -78,21 +78,21 @@ export const STOPWORDS: ReadonlySet<string> = new Set([
 ]);
 
 /** Number words mapped to their numeric value — for word-count mismatch detection. */
-export const NUMBER_WORDS: Readonly<Record<string, number>> = {
+const NUMBER_WORDS: Readonly<Record<string, number>> = {
   one: 1, two: 2, three: 3, four: 4, five: 5,
   six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
   eleven: 11, twelve: 12,
 };
 
 /** Failure context — if a sentence contains these, wasted-motion verbs are permissible. */
-export const FAILURE_CONTEXT = /\b(but|however|couldn't|could not|failed|unable|though)\b/i;
+const FAILURE_CONTEXT = /\b(but|however|couldn't|could not|failed|unable|though)\b/i;
 
 /** Emotion words for the emotional-labelling gate. */
-export const EMOTION_WORDS = /\b(dread|fear|anger|rage|fury|joy|sorrow|grief|horror|panic|anxiety|despair|hope|relief|shame|guilt|pride|disgust|awe|wonder|longing|anguish|terror|elation|resignation|defiance)\b/i;
+const EMOTION_WORDS = /\b(dread|fear|anger|rage|fury|joy|sorrow|grief|horror|panic|anxiety|despair|hope|relief|shame|guilt|pride|disgust|awe|wonder|longing|anguish|terror|elation|resignation|defiance)\b/i;
 
 /** Adjectives that indicate telling-not-showing when preceded by a linking verb.
  *  Three categories: emotion, atmosphere, character trait. */
-export const TELLING_ADJECTIVES: ReadonlySet<string> = new Set([
+const TELLING_ADJECTIVES: ReadonlySet<string> = new Set([
   // Emotions
   'angry', 'afraid', 'terrified', 'relieved', 'suspicious', 'sad', 'happy',
   'furious', 'anxious', 'nervous', 'excited', 'desperate', 'hopeful',
@@ -115,7 +115,7 @@ export const TELLING_ADJECTIVES: ReadonlySet<string> = new Set([
 
 /** Non-visual sense vocabulary — used by the non-visual-senses heuristic rule.
  *  An array of regexes, one per sense category. At least one must match for the check to pass. */
-export const SENSE_WORDS_RE: readonly RegExp[] = [
+const SENSE_WORDS_RE: readonly RegExp[] = [
   // Sound
   /\b(hum|clang|click|creak|groan|hiss|ring|rattle|scrape|thud|buzz|rumble|echo|squeal|whisper|roar|thunder|mutter|murmur|silent|silence|quiet|loud|noise|sound|heard|hear|beat|tick|chime|drip|snap|pop|screech|howl|wail|shriek)\b/i,
   // Smell

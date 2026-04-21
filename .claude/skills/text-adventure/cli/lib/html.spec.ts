@@ -69,9 +69,9 @@ describe('emitCustomElement', () => {
       .toBe('<ta-test data-foo="bar &quot;baz&quot;" data-x="42"></ta-test>');
   });
 
-  test('skips null, undefined, or empty string values', () => {
+  test('skips null and undefined but preserves empty string values', () => {
     expect(emitCustomElement('ta-test', { a: '1', b: null, c: undefined, d: '', e: '2' }))
-      .toBe('<ta-test a="1" e="2"></ta-test>');
+      .toBe('<ta-test a="1" d="" e="2"></ta-test>');
   });
 
   test('serialises objects and arrays as JSON', () => {

@@ -94,7 +94,7 @@ export async function extractAllCss(filePath: string, scopes?: readonly string[]
 /** 
  * Result of a CSS filtering operation. 
  */
-export type FilterResult = {
+type FilterResult = {
   css: string;
   included: string[];
   excluded: string[];

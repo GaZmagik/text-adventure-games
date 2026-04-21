@@ -1,6 +1,6 @@
 // Self-contained inline WebGL renderer for mixed dice pools on one canvas.
 
-export const WEBGL_DICE_POOL_CODE: string = `
+const WEBGL_DICE_POOL_CODE: string = `
 (function(){
 var canvas=document.getElementById('dice-pool-canvas');
 if(!canvas)return;

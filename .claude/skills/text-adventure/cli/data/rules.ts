@@ -1,7 +1,7 @@
 // Game rules quick-reference data for `tag rules` command.
 // File/line references point to the authoritative source for each rule.
 
-export type Rule = {
+type Rule = {
   id: number;
   category: Category;
   rule: string;

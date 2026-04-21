@@ -30,6 +30,11 @@ describe('renderScene custom element', () => {
     expect(html).toContain('</ta-scene>');
   });
 
+  test('renders empty state when state is null', () => {
+    const html = renderScene(null, 'station');
+    expect(html).toContain('No active scene');
+  });
+
   test('includes data-room attribute', () => {
     const html = renderScene(BASE_STATE, 'station');
     expect(html).toContain('data-room="Bridge"');
@@ -83,6 +88,13 @@ describe('renderScene panel pre-population', () => {
     const html = renderScene(state, 'station');
     expect(html).toContain('data-panel="levelup"');
   });
+
+  test('ignores unknown modules when building panel fallbacks', () => {
+    const state = { ...BASE_STATE, modulesActive: ['custom'] };
+    const html = renderScene(state, 'station');
+    expect(html).toContain('data-panel="character"');
+    expect(html).not.toContain('data-panel="custom"');
+  });
 });
 
 // ── Inner HTML content ─────────────────────────────────────────────
@@ -115,12 +127,41 @@ describe('renderScene inner content', () => {
   test('includes footer element', () => {
     const html = renderScene(BASE_STATE, 'station');
     expect(html).toContain('ta-footer');
+    expect(html).toContain('id="save-btn"');
   });
 
   test('includes HP pips when character present', () => {
     const html = renderScene(BASE_STATE, 'station');
     expect(html).toContain('status-bar');
     expect(html).toContain('AC 14');
+  });
+});
+
+describe('renderScene fallback escaping', () => {
+  test('escapes room, narrative, atmosphere, and quest fallback text', () => {
+    const malicious = '<img src=x onerror=alert("x")> "quotes" & ampersand';
+    const state = {
+      ...BASE_STATE,
+      currentRoom: malicious,
+      modulesActive: ['core-systems', 'atmosphere'],
+      quests: [{
+        id: 'q1',
+        title: malicious,
+        status: 'active',
+        objectives: [{ id: 'o1', description: malicious, completed: false }],
+        clues: [],
+      }],
+    };
+    const html = renderScene(state, 'station', {
+      data: {
+        text: malicious,
+        brief: malicious,
+        atmosphere: [malicious, 'ozone & salt', '"quoted" air'],
+      },
+    });
+    expect(html).not.toContain('<img src=x');
+    expect(html).toContain('&lt;img src=x onerror=alert(&quot;x&quot;)&gt;');
+    expect(html).toContain('&quot;quotes&quot; &amp; ampersand');
   });
 });
 

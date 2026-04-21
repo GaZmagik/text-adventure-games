@@ -12,10 +12,11 @@
 
 ---
 
-> **CLI:** The `tag render <widget>` command produces widget HTML wrapped in Shadow DOM.
-> CSS is loaded from GitHub Pages CDN via a `<link>` in the shadow root — not embedded
-> inline. The `tag build-css` command extracts and minifies CSS from style sources into
-> `assets/css/`. This eliminates CSS hallucination and reduces widget token cost by ~95%.
+> **CLI:** The `tag render <widget>` command emits `ta-*` custom elements. Standalone renders
+> attach jsDelivr CSS URLs through `data-css-urls` and load the shared `ta-components.js`
+> runtime, which hydrates Shadow DOM internally. The `tag build-css` command extracts and
+> minifies CSS from style sources into `assets/css/`. This eliminates CSS hallucination and
+> reduces widget token cost by ~95%.
 
 ## CSS Custom Property Contract
 
@@ -225,9 +226,10 @@ produces deterministic HTML with the correct CSS custom properties from the acti
 You MUST use `tag render` instead of generating widget HTML manually. This prevents CSS
 hallucination (inventing colours/properties instead of reading the style file).
 
-Available widgets: `scene`, `ticker`, `character`, `dice`, `ship`, `crew`, `codex`, `map`,
-`starchart`, `footer`, `save-div`, `levelup`, `recap`, `combat-turn`, `dialogue`, `settings`,
-`scenario-select`, `character-creation`. See `cli/manual.md` for full reference.
+Available widgets: `scene`, `ticker`, `character`, `dice`, `dice-pool`, `ship`, `crew`,
+`codex`, `map`, `starchart`, `footer`, `save-div`, `levelup`, `recap`, `combat-turn`,
+`dialogue`, `settings`, `scenario-select`, `character-creation`, `arc-complete`.
+See `cli/manual.md` for full reference.
 
 ---
 

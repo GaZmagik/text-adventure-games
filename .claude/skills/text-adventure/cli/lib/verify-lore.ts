@@ -240,7 +240,7 @@ export function checkLorePayload(
 // ── Orchestrator ────────────────────────────────────────────────────
 
 /** Result of a comprehensive lore file verification. */
-export type LoreVerifyResult = {
+type LoreVerifyResult = {
   failures: string[];
   warnings: string[];
   /** Total number of check phases completed. */

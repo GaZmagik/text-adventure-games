@@ -2,7 +2,27 @@
 // dialogue option buttons with data-prompt.
 
 import type { GmState } from '../../types';
+import { esc } from '../../lib/html';
 import { emitStandaloneCustomElement } from '../lib/shadow-wrapper';
+
+/**
+ * Builds the plain HTML fallback for NPC dialogue.
+ */
+function buildDialogueFallback(speaker: string, text: string, choices: { label: string; prompt: string }[]): string {
+  let html = `<div class="widget-dialogue"><div class="dlg-speaker">${esc(speaker)}</div>`;
+  if (text) {
+    html += `<div class="dlg-text">${esc(text)}</div>`;
+  }
+  if (choices.length > 0) {
+    html += '<div class="dlg-choices">';
+    choices.forEach(c => {
+      html += `<button class="dlg-choice-btn" data-prompt="${esc(c.prompt)}" title="${esc(c.prompt)}">${esc(c.label)}</button>`;
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+  return html;
+}
 
 /**
  * Renders the NPC dialogue widget.
@@ -34,6 +54,7 @@ export function renderDialogue(state: GmState | null, styleName: string, options
   return emitStandaloneCustomElement({
     tag: 'ta-dialogue',
     styleName,
+    html: buildDialogueFallback(npcName, dialogueText, choices),
     attrs: {
       'data-speaker': npcName,
       'data-text': dialogueText || null,

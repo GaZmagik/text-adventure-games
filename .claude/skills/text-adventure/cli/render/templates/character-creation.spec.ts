@@ -65,6 +65,14 @@ describe('character-creation config serialisation', () => {
     expect(html).toContain('Piloting');
   });
 
+  test('serialises object-based proficiencies with attributes', () => {
+    const html = renderCharacterCreation(null, 'station', {
+      data: { proficiencies: [{ name: 'Repair', attr: 'INT' }, { name: 'Stealth' }] },
+    });
+    expect(html).toContain('Repair (INT)');
+    expect(html).toContain('Stealth');
+  });
+
   test('serialises defaultName when provided', () => {
     const html = renderCharacterCreation(null, 'station', {
       data: { defaultName: 'Test Hero' },

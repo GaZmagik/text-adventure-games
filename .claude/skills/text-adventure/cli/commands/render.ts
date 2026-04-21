@@ -9,7 +9,6 @@ import { containsForbiddenKeys } from '../lib/security';
 import { stampRenderOrigin } from '../lib/render-origin';
 import { generatePregenCharacters } from '../lib/pregen-generator';
 import {
-  PRE_CONFIG_WIDGETS,
   PRE_GAME_WIDGETS,
   buildFeatureChecklist,
   buildModulesRequired,
@@ -31,7 +30,7 @@ const SCENE_WIDGET = 'scene';
  * @param {Set<string>} [moduleSet] - Set of active modules.
  * @returns {string[]} - Array of descriptions for required elements.
  */
-export function buildRequiredElements(widgetType: string, state: GmState | null, moduleSet?: Set<string>): string[] {
+function buildRequiredElements(widgetType: string, state: GmState | null, moduleSet?: Set<string>): string[] {
   const modules = moduleSet ?? new Set(state?.modulesActive ?? []);
   const elements: string[] = [];
 
@@ -67,7 +66,7 @@ export function buildRequiredElements(widgetType: string, state: GmState | null,
  * @param {Set<string>} [moduleSet] - Set of active modules.
  * @returns {string | null} - The HTML skeleton string, or null if not a scene widget.
  */
-export function buildSkeleton(widgetType: string, state: GmState | null, moduleSet?: Set<string>): string | null {
+function buildSkeleton(widgetType: string, state: GmState | null, moduleSet?: Set<string>): string | null {
   if (widgetType !== SCENE_WIDGET) return null;
 
   const modules = moduleSet ?? new Set(state?.modulesActive ?? []);
@@ -654,7 +653,7 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
 
   // Resolve style name: --style flag > state.visualStyle > default for pre-config widgets > error
   const resolvedStyle = styleName ?? state?.visualStyle
-    ?? (PRE_CONFIG_WIDGETS.has(widgetType) ? 'station' : null);
+    ?? (PRE_GAME_WIDGETS.has(widgetType) ? 'station' : null);
 
   if (!resolvedStyle) {
     return styleNotSet();
@@ -664,9 +663,9 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     return fail('Style name contains invalid characters.', 'Use alphanumeric, hyphens, and underscores only.', 'render');
   }
 
-  // CSS is now delivered via CDN (Shadow DOM + GitHub Pages).
-  // Templates receive the style name and use wrapInShadowDom() to generate
-  // the Shadow DOM bootstrap with a <link> to the CDN CSS file.
+  // CSS/JS assets are delivered via jsDelivr-backed custom elements.
+  // Templates receive the style name and emit ta-* elements that hydrate
+  // against the generated CDN manifest at render time.
   // See: cli/render/lib/shadow-wrapper.ts, assets/css/, assets/cdn-manifest.ts
 
   // Build options object

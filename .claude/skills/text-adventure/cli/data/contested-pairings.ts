@@ -1,7 +1,7 @@
 // Contested check attribute pairings from modules/die-rolls.md
 import type { StatName } from '../types';
 
-export type ContestedPairing = {
+type ContestedPairing = {
   action: string;
   playerAttribute: StatName[];
   npcAttribute: StatName[];

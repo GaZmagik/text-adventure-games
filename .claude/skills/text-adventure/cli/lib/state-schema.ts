@@ -219,7 +219,7 @@ const stateHistoryEntry = object({
   newValue: leaf(),
 });
 
-export const GM_STATE_SHAPE: StateShape = object({
+const GM_STATE_SHAPE: StateShape = object({
   _version: leaf(),
   scene: leaf(),
   currentRoom: leaf(),

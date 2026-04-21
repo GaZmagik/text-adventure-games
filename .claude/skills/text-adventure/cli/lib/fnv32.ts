@@ -33,7 +33,7 @@ export function attachChecksum(code: string): string {
 }
 
 /** Result of a save-string decoding operation. */
-export type DecodeResult =
+type DecodeResult =
   | { valid: true; payload: Record<string, unknown>; mode: 'compact' | 'full' | 'lore' }
   | { valid: false; error: string };
 
