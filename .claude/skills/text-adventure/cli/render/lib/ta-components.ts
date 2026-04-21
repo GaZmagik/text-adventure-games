@@ -171,6 +171,11 @@ export const TA_COMPONENTS_CODE = String.raw`
     return escHtml(raw);
   }
 
+  function safeToken(value, fallback) {
+    var raw = String(value == null ? '' : value).trim().toLowerCase();
+    return /^[a-z0-9_-]+$/.test(raw) ? raw : fallback;
+  }
+
   function safeCssUrl(value) {
     var raw = String(value == null ? '' : value).trim();
     if (!raw) return '';
@@ -384,6 +389,125 @@ export const TA_COMPONENTS_CODE = String.raw`
         this._synth.onvoiceschanged = null;
         this._voicesChangedHandler = null;
       }
+    }
+  }
+
+  // TaIcon
+  class TaIcon extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); }
+    connectedCallback() {
+      const name = this.getAttribute('name');
+      const label = this.getAttribute('label');
+      const spriteUrl = window.tag.ICON_SPRITE_URL || '';
+      if (!name) return;
+      const role = label ? 'img' : 'presentation';
+      const aria = label ? 'aria-label="' + escHtml(label) + '"' : 'aria-hidden="true"';
+      this.shadowRoot.innerHTML = '<style>:host{display:inline-flex;width:1.2em;height:1.2em;vertical-align:middle}svg{width:100%;height:100%;fill:currentColor;pointer-events:none}</style>' +
+        '<svg role="' + role + '" ' + aria + '><use href="' + spriteUrl + '#' + escHtml(name) + '"></use></svg>';
+    }
+  }
+
+  // TaActionCard
+  class TaActionCard extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); }
+    connectedCallback() {
+      const type = this.getAttribute('type');
+      const tone = this.getAttribute('tone');
+      const prompt = this.getAttribute('data-prompt');
+      const titleEl = this.querySelector('.btn-title');
+      const title = titleEl ? titleEl.textContent : 'Action';
+      const descEl = this.querySelector('.action-desc');
+      const desc = descEl ? descEl.textContent : '';
+      
+      const iconMap = {
+        'investigate': 'investigate',
+        'combat': 'danger',
+        'talk': 'dialogue',
+        'loot': 'loot',
+        'danger': 'danger'
+      };
+      const iconName = safeToken(iconMap[type] || type, '');
+      const toneClass = safeToken(tone, 'normal');
+
+      this.shadowRoot.innerHTML = '<style>' +
+        ':host{display:block;margin:8px 0}:focus{outline:none}' +
+        '.card{display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(84,88,128,0.06);border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:8px;cursor:pointer;text-align:left;width:100%;font-family:inherit;color:inherit;transition:all 0.2s}' +
+        '.card:hover{border-color:var(--ta-color-accent);background:rgba(84,88,128,0.1)}' +
+        '.card:focus-visible{outline:2px solid var(--ta-color-focus,#4ECDC4);outline-offset:2px}' +
+        '.card-risky{border-color:var(--ta-color-warning);}' +
+        '.card-danger{border-color:var(--ta-color-danger);}' +
+        '.icon-wrap{flex-shrink:0;color:var(--ta-color-accent);display:flex;align-items:center;justify-content:center}' +
+        '.text-wrap{flex:1}' +
+        '.title{display:block;font-weight:600;font-size:14px}' +
+        '.desc{display:block;font-size:12px;opacity:0.7}' +
+        '</style>' +
+        '<button class="card card-' + toneClass + '" type="button">' +
+          (iconName ? '<div class="icon-wrap"><ta-icon name="' + escHtml(iconName) + '"></ta-icon></div>' : '') +
+          '<div class="text-wrap"><span class="title">' + escHtml(title) + '</span>' +
+          (desc ? '<span class="desc">' + escHtml(desc) + '</span>' : '') + '</div>' +
+        '</button>';
+
+      this.shadowRoot.querySelector('.card').addEventListener('click', () => {
+        if (prompt) window.tag.sendOrCopyPrompt(this.shadowRoot.querySelector('.card'), prompt);
+      });
+    }
+  }
+
+  // TaLocBar
+  class TaLocBar extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); }
+    connectedCallback() {
+      const name = this.getAttribute('name') || 'Unknown Sector';
+      const time = this.getAttribute('time') || '';
+      this.shadowRoot.innerHTML = '<style>' +
+        ':host{display:block;margin-bottom:16px;border-bottom:1px solid rgba(84,88,128,0.2);padding-bottom:8px}' +
+        '.loc-wrap{display:flex;justify-content:space-between;align-items:baseline}' +
+        '.loc-name{font-family:var(--ta-font-heading);font-size:14px;font-weight:700;color:var(--ta-color-accent);text-transform:uppercase;letter-spacing:0.05em}' +
+        '.loc-time{font-size:11px;color:var(--sta-text-tertiary);letter-spacing:0.02em}' +
+        '</style>' +
+        '<div class="loc-wrap"><span class="loc-name">' + escHtml(name) + '</span>' +
+        (time ? '<span class="loc-time">' + escHtml(time) + '</span>' : '') + '</div>';
+    }
+  }
+
+  // TaBadge
+  class TaBadge extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); }
+    connectedCallback() {
+      const tone = this.getAttribute('tone') || 'normal';
+      const toneClass = safeToken(tone, 'normal');
+      const label = this.textContent || '';
+      this.shadowRoot.innerHTML = '<style>' +
+        ':host{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin:2px}' +
+        '.badge-normal{background:rgba(84,88,128,0.15);color:var(--sta-text-secondary)}' +
+        '.badge-success{background:rgba(43,168,130,0.15);color:var(--ta-color-success);border:0.5px solid var(--ta-color-success)}' +
+        '.badge-warning{background:rgba(240,165,0,0.15);color:var(--ta-color-warning);border:0.5px solid var(--ta-color-warning)}' +
+        '.badge-danger{background:rgba(232,72,85,0.15);color:var(--ta-color-danger);border:0.5px solid var(--ta-color-danger)}' +
+        '.badge-accent{background:rgba(78,205,196,0.15);color:var(--ta-color-accent);border:0.5px solid var(--ta-color-accent)}' +
+        '</style>' +
+        '<span class="badge-' + toneClass + '">' + escHtml(label) + '</span>';
+    }
+  }
+
+  // TaMeter
+  class TaMeter extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); }
+    connectedCallback() {
+      const value = parseFloat(this.getAttribute('value') || '0');
+      const max = parseFloat(this.getAttribute('max') || '100');
+      const label = this.getAttribute('label') || '';
+      const tone = this.getAttribute('tone') || 'accent';
+      const toneToken = safeToken(tone, 'accent');
+      const pct = Math.min(100, Math.max(0, (value / max) * 100));
+      
+      this.shadowRoot.innerHTML = '<style>' +
+        ':host{display:block;margin:8px 0;font-family:var(--ta-font-body)}' +
+        '.meter-header{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;color:var(--sta-text-secondary)}' +
+        '.meter-track{height:6px;background:rgba(84,88,128,0.1);border-radius:3px;overflow:hidden;border:0.5px solid rgba(84,88,128,0.2)}' +
+        '.meter-fill{height:100%;width:' + pct + '%;transition:width 0.4s;background:var(--ta-color-' + toneToken + ',#4ECDC4)}' +
+        '</style>' +
+        (label ? '<div class="meter-header"><span>' + escHtml(label) + '</span><span>' + value + '/' + max + '</span></div>' : '') +
+        '<div class="meter-track"><div class="meter-fill"></div></div>';
     }
   }
 
@@ -1760,6 +1884,11 @@ export const TA_COMPONENTS_CODE = String.raw`
   if (!customElements.get('ta-map')) customElements.define('ta-map', TaMap);
   if (!customElements.get('ta-starchart')) customElements.define('ta-starchart', TaStarchart);
   if (!customElements.get('ta-dice-pool')) customElements.define('ta-dice-pool', TaDicePool);
+  if (!customElements.get('ta-icon')) customElements.define('ta-icon', TaIcon);
+  if (!customElements.get('ta-loc-bar')) customElements.define('ta-loc-bar', TaLocBar);
+  if (!customElements.get('ta-action-card')) customElements.define('ta-action-card', TaActionCard);
+  if (!customElements.get('ta-badge')) customElements.define('ta-badge', TaBadge);
+  if (!customElements.get('ta-meter')) customElements.define('ta-meter', TaMeter);
 
 })();
 `.trim();

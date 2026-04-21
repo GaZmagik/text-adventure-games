@@ -61,13 +61,7 @@ async function setupState(): Promise<void> {
 
 function injectSceneActions(html: string, actions: string): string {
   return html.replace(
-    `<!-- [ACTIONS: Insert POI buttons and action cards here.
-           Each button MUST use <strong class="btn-title"> for the title:
-
-           POI:    <button class="poi-btn" data-poi="id" data-prompt="..." title="..."><strong class="btn-title">Title</strong>Description text.</button>
-           Action: <button class="action-btn" data-prompt="..." title="..."><strong class="btn-title">Title</strong>Description text.</button>
-
-           tag verify will reject buttons without <strong> title structure.] -->`,
+    /<!-- \[ACTIONS:[\s\S]*?title structure\.\] -->/,
     actions,
   );
 }

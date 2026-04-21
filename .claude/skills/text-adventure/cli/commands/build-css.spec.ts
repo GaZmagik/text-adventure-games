@@ -171,6 +171,13 @@ describe('CDN manifest', () => {
     expect(manifest).toContain(`'tag-soundscape.js'`);
   });
 
+  it('manifest contains icon sprite URL and hash exports', () => {
+    const manifest = readFileSync(join(tmpDir, 'cdn-manifest.ts'), 'utf-8');
+    expect(manifest).toContain('export const ICON_SPRITE_URL');
+    expect(manifest).toContain('export const ICON_SPRITE_HASH');
+    expect(manifest).toContain('/icons/sprite.svg?v=');
+  });
+
   it('manifest is valid TypeScript (parseable)', () => {
     const manifest = readFileSync(join(tmpDir, 'cdn-manifest.ts'), 'utf-8');
     // Quick structural check — must contain both exports and close properly
@@ -207,6 +214,23 @@ describe('JS output files', () => {
       const content = readFileSync(join(tmpDir, 'js', script.fileName), 'utf-8');
       expect(script.hash).toBe(fnv32(content));
     }
+  });
+});
+
+describe('SVG sprite output', () => {
+  it('writes an icon sprite with symbol entries', () => {
+    const spritePath = join(tmpDir, 'icons', 'sprite.svg');
+    expect(existsSync(spritePath)).toBe(true);
+    const sprite = readFileSync(spritePath, 'utf-8');
+    expect(sprite).toContain('<symbol id="danger"');
+    expect(sprite).toContain('<symbol id="investigate"');
+    expect(sprite).toContain('<symbol id="locked"');
+  });
+
+  it('icon sprite hash in manifest matches the generated sprite', () => {
+    const sprite = readFileSync(join(tmpDir, 'icons', 'sprite.svg'), 'utf-8');
+    const manifest = readFileSync(join(tmpDir, 'cdn-manifest.ts'), 'utf-8');
+    expect(manifest).toContain(`export const ICON_SPRITE_HASH = '${fnv32(sprite)}';`);
   });
 });
 

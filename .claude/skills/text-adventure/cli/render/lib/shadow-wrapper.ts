@@ -6,7 +6,7 @@
  * :host override with CSS variable fallbacks, and content injection.
  */
 
-import { CDN_BASE, CSS_MANIFEST, JS_MANIFEST } from '../../../assets/cdn-manifest.ts';
+import { CDN_BASE, CSS_MANIFEST, JS_MANIFEST, ICON_SPRITE_HASH, ICON_SPRITE_URL } from '../../../assets/cdn-manifest.ts';
 import { esc, emitCustomElement } from '../../lib/html';
 
 type ShadowWrapperOptions = {
@@ -163,8 +163,11 @@ export function emitRootCustomElement(opts: RootCustomElementOptions): string {
   const html = `<${opts.tag}${attrStr}>${fallback}</${opts.tag}>`;
   
   const scripts = resolvedJs.map(url => `<script src="${url}"></script>`).join('\n');
+  const iconBootstrap = resolvedJs.length > 0
+    ? `<script>window.tag=window.tag||{};window.tag.ICON_SPRITE_URL=${JSON.stringify(ICON_SPRITE_URL)};window.tag.ICON_SPRITE_HASH=${JSON.stringify(ICON_SPRITE_HASH)};</script>`
+    : '';
   
-  return scripts ? `${html}\n${scripts}` : html;
+  return scripts ? `${html}\n${iconBootstrap}\n${scripts}` : html;
 }
 
 type StandaloneCustomElementOptions = {

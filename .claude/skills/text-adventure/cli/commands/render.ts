@@ -93,7 +93,13 @@ function buildSkeleton(widgetType: string, state: GmState | null, moduleSet?: Se
   parts.push('      <div id="narrative" class="narrative">');
   parts.push('        <!-- [NARRATIVE: second-person present-tense prose] -->');
   parts.push('      </div>');
-  parts.push('      <!-- [ACTIONS: 2-5 player choices plus optional data-poi examine buttons] -->');
+  parts.push('      <!-- [ACTIONS: 2-5 player choices plus optional data-poi examine buttons]');
+  parts.push('           Preferred: <ta-action-card type="investigate" data-prompt="..." title="...">');
+  parts.push('                        <ta-icon name="investigate" label="Investigate"></ta-icon>');
+  parts.push('                        <strong class="btn-title">Investigate</strong>');
+  parts.push('                        <span class="action-desc">Look for hidden clues.</span>');
+  parts.push('                      </ta-action-card>');
+  parts.push('      -->');
   parts.push('      <div class="status-bar">');
   parts.push('        <!-- [STATUS: HP / AC / Level when character exists] -->');
   parts.push('      </div>');

@@ -71,6 +71,10 @@ if [ ! -f "$SKILL_DIR/assets/js/tag-scene.js" ] || [ ! -f "$SKILL_DIR/assets/js/
 	echo "Error: assets/js/ is missing CDN JS files" >&2
 	exit 1
 fi
+if [ ! -f "$SKILL_DIR/assets/icons/sprite.svg" ]; then
+	echo "Error: assets/icons/sprite.svg is missing" >&2
+	exit 1
+fi
 
 zip -r "$OUTPUT" . \
 	-x "*.DS_Store" \
@@ -84,6 +88,8 @@ zip -r "$OUTPUT" . \
 	-x "cli/tests/*" \
 	-x "assets/css/*" \
 	-x "assets/js/*" \
+	-x "assets/icons/*" \
+	-x "icons/*" \
 	-x "scratch/*" \
 	-x "coverage/*" \
 	-x "*.lore.md"

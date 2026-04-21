@@ -37,6 +37,31 @@ describe('TA_COMPONENTS_CODE', () => {
     expect(TA_COMPONENTS_CODE).toContain("customElements.define('ta-dialogue', TaDialogue)");
   });
 
+  test('contains TaIcon component definition', () => {
+    expect(TA_COMPONENTS_CODE).toContain('class TaIcon extends HTMLElement');
+    expect(TA_COMPONENTS_CODE).toContain("customElements.define('ta-icon', TaIcon)");
+  });
+
+  test('contains TaActionCard component definition', () => {
+    expect(TA_COMPONENTS_CODE).toContain('class TaActionCard extends HTMLElement');
+    expect(TA_COMPONENTS_CODE).toContain("customElements.define('ta-action-card', TaActionCard)");
+  });
+
+  test('contains TaBadge component definition', () => {
+    expect(TA_COMPONENTS_CODE).toContain('class TaBadge extends HTMLElement');
+    expect(TA_COMPONENTS_CODE).toContain("customElements.define('ta-badge', TaBadge)");
+  });
+
+  test('contains TaMeter component definition', () => {
+    expect(TA_COMPONENTS_CODE).toContain('class TaMeter extends HTMLElement');
+    expect(TA_COMPONENTS_CODE).toContain("customElements.define('ta-meter', TaMeter)");
+  });
+
+  test('contains TaLocBar component definition', () => {
+    expect(TA_COMPONENTS_CODE).toContain('class TaLocBar extends HTMLElement');
+    expect(TA_COMPONENTS_CODE).toContain("customElements.define('ta-loc-bar', TaLocBar)");
+  });
+
   test('ta-scene delegates light-DOM fallback hydration to initTagScene', () => {
     expect(TA_COMPONENTS_CODE).toContain("typeof window.initTagScene === 'function'");
     expect(TA_COMPONENTS_CODE).toContain('window.initTagScene(this.shadowRoot)');

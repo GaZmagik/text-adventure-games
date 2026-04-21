@@ -430,9 +430,16 @@ function checkStatusBar(html: string, state: GmState, failures: string[]): void 
 
 /** Extract data-prompt attribute values from action cards (not footer buttons). */
 function extractActionPrompts(html: string): string[] {
-  return extractPromptElements(html)
-    .filter(el => el.classes.includes('action-card'))
-    .map(el => el.prompt);
+  const sceneContent = extractDivBlockById(html, 'scene-content') ?? html;
+  return extractButtonElements(sceneContent)
+    .filter(el => el.prompt !== null)
+    .filter(el =>
+      el.classes.includes('action-card')
+      || el.classes.includes('action-btn')
+      || el.classes.includes('poi-btn')
+      || el.markup.toLowerCase().startsWith('<ta-action-card')
+    )
+    .map(el => el.prompt!);
 }
 
 function checkActionCardEditorialLabels(html: string, failures: string[]): void {
@@ -503,7 +510,8 @@ function checkButtonTitleStructure(html: string, failures: string[]): void {
   const buttons = extractButtonElements(html).filter(
     btn => btn.classes.includes('poi-btn')
       || btn.classes.includes('action-btn')
-      || btn.classes.includes('action-card'),
+      || btn.classes.includes('action-card')
+      || btn.markup.toLowerCase().startsWith('<ta-action-card'),
   );
   if (buttons.length === 0) return;
 

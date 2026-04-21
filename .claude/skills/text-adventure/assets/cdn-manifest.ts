@@ -16,12 +16,15 @@ export const CSS_MANIFEST: Record<string, string> = {
   'terminal': '78e22900',
   'weathered': 'a80746ec',
   'pregame-design': '662e4718',
-  'scene-design': 'e4c31cbe',
+  'scene-design': '7529a0b0',
   'common-widget': 'cd6535a0',
 };
 
 export const JS_MANIFEST: Record<string, string> = {
-  'ta-components.js': '8d2138b8',
+  'ta-components.js': '907f6c5c',
   'tag-scene.js': '3d31f2ec',
   'tag-soundscape.js': '6ec84062',
 };
+
+export const ICON_SPRITE_URL = `${CDN_BASE}/icons/sprite.svg?v=f0889e50`;
+export const ICON_SPRITE_HASH = 'f0889e50';

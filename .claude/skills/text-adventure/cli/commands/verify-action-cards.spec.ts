@@ -8,13 +8,6 @@ import { handleState } from './state/index';
 
 let tempDir: string;
 const originalEnv = process.env.TAG_STATE_DIR;
-const ACTION_PLACEHOLDER = `<!-- [ACTIONS: Insert POI buttons and action cards here.
-           Each button MUST use <strong class="btn-title"> for the title:
-
-           POI:    <button class="poi-btn" data-poi="id" data-prompt="..." title="..."><strong class="btn-title">Title</strong>Description text.</button>
-           Action: <button class="action-btn" data-prompt="..." title="..."><strong class="btn-title">Title</strong>Description text.</button>
-
-           tag verify will reject buttons without <strong> title structure.] -->`;
 
 beforeEach(() => {
   clearStateDirCache();
@@ -75,7 +68,7 @@ async function buildSceneHtml(actionCards: string): Promise<string> {
       '<p class="narrative">The corridor stretches ahead, dimly lit by emergency strips.</p>'
       + '<p class="narrative">A faint vibration pulses through the deck plates beneath your boots.</p>',
     );
-  html = html.replace(ACTION_PLACEHOLDER, actionCards);
+  html = html.replace(/<!-- \[ACTIONS:[\s\S]*?title structure\.\] -->/, actionCards);
   return html;
 }
 

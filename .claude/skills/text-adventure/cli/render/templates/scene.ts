@@ -18,7 +18,10 @@ const ACTION_PLACEHOLDER = `<!-- [ACTIONS: Insert POI buttons and action cards h
            POI:    <button class="poi-btn" data-poi="id" data-prompt="..." title="..."><strong class="btn-title">Title</strong>Description text.</button>
            Action: <button class="action-btn" data-prompt="..." title="..."><strong class="btn-title">Title</strong>Description text.</button>
 
-           tag verify will reject buttons without <strong> title structure.] -->`;
+           Preferred semantic form:
+                   <ta-action-card type="investigate" data-prompt="..." title="..."><strong class="btn-title">Title</strong><span class="action-desc">Description text.</span></ta-action-card>
+
+           tag verify accepts both semantic components and legacy button structures, and rejects choices without <strong> title structure.] -->`;
 
 /**
  * Renders the primary in-game scene widget.
@@ -45,6 +48,7 @@ export function renderScene(state: GmState | null, styleName: string, options?: 
     ? data.atmosphere.map(value => String(value)).filter(Boolean)
     : [];
   const brief = typeof data.brief === 'string' ? data.brief : '';
+  const vfx = typeof data.vfx === 'string' ? data.vfx : '';
 
   const phases = Number(options?.phases) || 1;
   const narrativeHtml = buildNarrativeHtml(narrative, phases);
@@ -81,10 +85,7 @@ export function renderScene(state: GmState | null, styleName: string, options?: 
 
         <div id="reveal-full" style="display:none">
           <div id="scene-content">
-            <header class="loc-bar">
-              <div class="loc-name">${esc(location)}</div>
-              <div class="loc-time">${esc(timeLabel)}</div>
-            </header>
+            <ta-loc-bar name="${esc(location)}" time="${esc(timeLabel)}"></ta-loc-bar>
 
             ${buildAtmosphereStrip(atmosphere, state.modulesActive ?? [])}
 
@@ -121,6 +122,7 @@ export function renderScene(state: GmState | null, styleName: string, options?: 
       </div>
     `,
     attrs: {
+      'data-vfx': vfx,
       'data-style': styleName,
       'data-room': location,
       'data-time': timeLabel,

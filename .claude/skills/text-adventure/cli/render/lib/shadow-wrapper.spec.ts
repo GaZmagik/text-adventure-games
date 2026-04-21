@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'bun:test';
-import { wrapInShadowDom } from './shadow-wrapper';
-import { JS_MANIFEST } from '../../../assets/cdn-manifest.ts';
+import { emitRootCustomElement, wrapInShadowDom } from './shadow-wrapper';
+import { ICON_SPRITE_HASH, ICON_SPRITE_URL, JS_MANIFEST } from '../../../assets/cdn-manifest.ts';
 
 describe('wrapInShadowDom', () => {
   const minimalOpts = {
@@ -119,5 +119,18 @@ describe('wrapInShadowDom', () => {
     expect(shadowDeclIdx).toBeGreaterThan(-1);
     expect(scriptIdx).toBeGreaterThan(-1);
     expect(shadowDeclIdx).toBeLessThan(scriptIdx);
+  });
+});
+
+describe('emitRootCustomElement', () => {
+  it('bootstraps the icon sprite URL before CDN component scripts', () => {
+    const result = emitRootCustomElement({
+      tag: 'ta-scene',
+      html: '<div>Scene</div>',
+      jsUrls: ['ta-components', 'tag-scene'],
+    });
+    expect(result).toContain(`window.tag.ICON_SPRITE_URL=${JSON.stringify(ICON_SPRITE_URL)}`);
+    expect(result).toContain(`window.tag.ICON_SPRITE_HASH=${JSON.stringify(ICON_SPRITE_HASH)}`);
+    expect(result.indexOf('ICON_SPRITE_URL')).toBeLessThan(result.indexOf('/js/ta-components.js'));
   });
 });

@@ -184,7 +184,7 @@ export function countClassOccurrences(html: string, className: string): number {
  */
 export function extractButtonElements(html: string): ButtonElement[] {
   const buttons: ButtonElement[] = [];
-  const pattern = /<button\b[^>]*>[\s\S]*?<\/button>/gi;
+  const pattern = /<(button|ta-action-card)\b[^>]*>[\s\S]*?<\/\1>/gi;
   let match: RegExpExecArray | null;
   while ((match = pattern.exec(html)) !== null) {
     const markup = match[0];
@@ -227,7 +227,10 @@ export function extractPromptElements(html: string): PromptElement[] {
  * Extracts only buttons that have the `action-card` class.
  */
 export function extractActionButtons(html: string): ButtonElement[] {
-  return extractButtonElements(html).filter(button => button.classes.includes('action-card'));
+  return extractButtonElements(html).filter(button => 
+    button.classes.includes('action-card') || 
+    button.markup.toLowerCase().startsWith('<ta-action-card')
+  );
 }
 
 // ── Shared check functions ───────────────────────────────────────────
