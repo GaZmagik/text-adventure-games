@@ -1,0 +1,5 @@
+assets/
+coverage/
+node_modules/
+story/*.base64.lore.md
+text-adventure.zip
