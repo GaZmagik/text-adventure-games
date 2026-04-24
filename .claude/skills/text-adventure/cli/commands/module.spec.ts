@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { handleModule } from './module';
@@ -25,9 +25,28 @@ describe('tag module activate', () => {
     await handleState(['reset']);
     const result = await handleModule(['activate', 'prose-craft']);
     expect(result.ok).toBe(true);
-    const data = result.data as { module: string; modulePath: string; addedToActive: boolean; addedToRead: boolean };
+    const data = result.data as {
+      module: string;
+      modulePath: string;
+      addedToActive: boolean;
+      addedToRead: boolean;
+      contract: { summary: string };
+      content?: string;
+    };
     expect(data.module).toBe('prose-craft');
     expect(data.modulePath).toContain('prose-craft');
+    expect(data.contract.summary.length).toBeGreaterThan(0);
+    expect(data.content).toBeUndefined();
+  });
+
+  test('--full includes full module markdown while keeping compact contract', async () => {
+    await handleState(['reset']);
+    const result = await handleModule(['activate', 'prose-craft', '--full']);
+    expect(result.ok).toBe(true);
+    const data = result.data as { compact: boolean; content: string; contract: { summary: string } };
+    expect(data.compact).toBe(false);
+    expect(data.content).toContain('#');
+    expect(data.contract.summary.length).toBeGreaterThan(0);
   });
 
   test('adds module to modulesActive if not present', async () => {
@@ -76,6 +95,16 @@ describe('tag module activate-tier', () => {
     expect(data.modules.length).toBeGreaterThanOrEqual(6);
     expect(data.modules.some(m => m.name === 'prose-craft')).toBe(true);
     expect(data.modules.every(m => m.modulePath.length > 0)).toBe(true);
+  });
+
+  test('activate-tier returns compact contracts by default', async () => {
+    await handleState(['reset']);
+    const result = await handleModule(['activate-tier', '1']);
+    expect(result.ok).toBe(true);
+    const data = result.data as { compact: boolean; modules: { contract: { summary: string }; content?: string }[] };
+    expect(data.compact).toBe(true);
+    expect(data.modules[0]!.contract.summary.length).toBeGreaterThan(0);
+    expect(data.modules.some(module => module.content !== undefined)).toBe(false);
   });
 
   test('adds all tier modules to _modulesRead', async () => {

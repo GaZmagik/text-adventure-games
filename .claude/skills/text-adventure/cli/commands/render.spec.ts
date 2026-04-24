@@ -7,10 +7,7 @@ import { saveState, createDefaultState } from '../lib/state-store';
 import { clearStateDirCache } from './verify';
 import { WIDGET_CSS_SCOPES } from '../metadata';
 import { extractJsonTagAttr, extractScriptSrcs } from '../tests/support/rendered-widget';
-import {
-  MAX_DICE_POOL_CANVAS_HEIGHT,
-  MAX_DICE_POOL_TOTAL,
-} from '../render/templates/dice-pool';
+import { MAX_DICE_POOL_CANVAS_HEIGHT, MAX_DICE_POOL_TOTAL } from '../render/templates/dice-pool';
 
 let tempDir: string;
 const originalEnv = process.env.TAG_STATE_DIR;
@@ -94,23 +91,13 @@ describe('render state requirement', () => {
   });
 
   test('rejects dice widget --data missing required dieType', async () => {
-    const result = await handleRender([
-      'dice',
-      '--raw',
-      '--data',
-      '{"stat":"STR","modifier":2}',
-    ]);
+    const result = await handleRender(['dice', '--raw', '--data', '{"stat":"STR","modifier":2}']);
     expect(result.ok).toBe(false);
     expect(result.error!.message).toContain('missing required key "dieType"');
   });
 
   test('rejects dice widget --data with wrong dieType type', async () => {
-    const result = await handleRender([
-      'dice',
-      '--raw',
-      '--data',
-      '{"dieType":42}',
-    ]);
+    const result = await handleRender(['dice', '--raw', '--data', '{"dieType":42}']);
     expect(result.ok).toBe(false);
     expect(result.error!.message).toContain('"dieType" must be string');
   });
@@ -129,14 +116,7 @@ describe('render state requirement', () => {
   });
 
   test('rejects non-object --data payloads', async () => {
-    const result = await handleRender([
-      'settings',
-      '--raw',
-      '--style',
-      'terminal',
-      '--data',
-      '["not","an","object"]',
-    ]);
+    const result = await handleRender(['settings', '--raw', '--style', 'terminal', '--data', '["not","an","object"]']);
     expect(result.ok).toBe(false);
     expect(result.error!.message).toContain('--data must be a JSON object');
   });
@@ -165,6 +145,32 @@ describe('render state requirement', () => {
     ]);
     expect(result.ok).toBe(false);
     expect(result.error!.message).toContain('choices[0].prompt');
+  });
+
+  test('rejects world-preview data with non-string seed', async () => {
+    const result = await handleRender([
+      'world-preview',
+      '--raw',
+      '--style',
+      'terminal',
+      '--data',
+      '{"seed":42,"theme":"space"}',
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('"seed" must be a string');
+  });
+
+  test('rejects route-planner data with non-string endpoint', async () => {
+    const result = await handleRender([
+      'route-planner',
+      '--raw',
+      '--style',
+      'terminal',
+      '--data',
+      '{"from":"bridge","to":42}',
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('"to" must be a string');
   });
 
   test('rejects character-creation archetypes without names', async () => {
@@ -418,17 +424,31 @@ describe('render freshness gates', () => {
     state.scene = 1;
     state.currentRoom = 'bridge';
     state.character = {
-      name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-      level: 1, xp: 0, currency: 0, currencyName: 'credits',
+      name: 'Test',
+      class: 'Scout',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
       stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
       modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-      proficiencyBonus: 2, proficiencies: [], abilities: [],
-      inventory: [], conditions: [],
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
       equipment: { weapon: 'None', armour: 'None' },
     };
     state._modulesRead = [
-      'gm-checklist', 'prose-craft', 'core-systems',
-      'die-rolls', 'character-creation', 'save-codex',
+      'gm-checklist',
+      'prose-craft',
+      'core-systems',
+      'die-rolls',
+      'character-creation',
+      'save-codex',
     ];
     state._proseCraftEpoch = 0;
     state._styleReadEpoch = 0;
@@ -527,7 +547,14 @@ describe('render freshness gates', () => {
     state._loreSource = '/tmp/adventure.lore.md';
     state.rosterMutations = [];
     state.codexMutations = [];
-    state._modulesRead = ['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex'];
+    state._modulesRead = [
+      'gm-checklist',
+      'prose-craft',
+      'core-systems',
+      'die-rolls',
+      'character-creation',
+      'save-codex',
+    ];
     state._proseCraftEpoch = 0;
     state._styleReadEpoch = 0;
     state._compactionCount = 0;
@@ -545,7 +572,14 @@ describe('render freshness gates', () => {
     state._loreSource = '/tmp/adventure.lore.md';
     state.rosterMutations = [{ type: 'add', id: 'npc1', name: 'Mara', role: 'guide' }] as any;
     state.codexMutations = [];
-    state._modulesRead = ['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex'];
+    state._modulesRead = [
+      'gm-checklist',
+      'prose-craft',
+      'core-systems',
+      'die-rolls',
+      'character-creation',
+      'save-codex',
+    ];
     state._proseCraftEpoch = 0;
     state._styleReadEpoch = 0;
     state._compactionCount = 0;
@@ -563,7 +597,14 @@ describe('render freshness gates', () => {
     state._loreSource = '/tmp/adventure.lore.md';
     state.rosterMutations = [];
     state.codexMutations = [{ type: 'add', id: 'loc1', name: 'The Reef' }] as any;
-    state._modulesRead = ['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex'];
+    state._modulesRead = [
+      'gm-checklist',
+      'prose-craft',
+      'core-systems',
+      'die-rolls',
+      'character-creation',
+      'save-codex',
+    ];
     state._proseCraftEpoch = 0;
     state._styleReadEpoch = 0;
     state._compactionCount = 0;
@@ -580,7 +621,14 @@ describe('render freshness gates', () => {
     state.seed = 'abc123';
     state.rosterMutations = [];
     state.codexMutations = [];
-    state._modulesRead = ['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex'];
+    state._modulesRead = [
+      'gm-checklist',
+      'prose-craft',
+      'core-systems',
+      'die-rolls',
+      'character-creation',
+      'save-codex',
+    ];
     state._proseCraftEpoch = 0;
     state._styleReadEpoch = 0;
     state._compactionCount = 0;
@@ -671,9 +719,18 @@ describe('render character-creation pre-gen injection', () => {
     state.seed = 'render-test';
     state.modulesActive = ['pre-generated-characters'];
     (state as Record<string, unknown>)._lorePregen = [
-      { name: 'Suri Kade', class: 'Reef Diver', hook: 'From the lore pipeline.', pronouns: 'she/her',
-        stats: { STR: 12, DEX: 15, CON: 13, INT: 11, WIS: 13, CHA: 10 }, hp: 12, ac: 13,
-        proficiencies: ['Athletics', 'Stealth'], startingInventory: [], startingCurrency: 55 },
+      {
+        name: 'Suri Kade',
+        class: 'Reef Diver',
+        hook: 'From the lore pipeline.',
+        pronouns: 'she/her',
+        stats: { STR: 12, DEX: 15, CON: 13, INT: 11, WIS: 13, CHA: 10 },
+        hp: 12,
+        ac: 13,
+        proficiencies: ['Athletics', 'Stealth'],
+        startingInventory: [],
+        startingCurrency: 55,
+      },
     ];
     await saveState(state);
 

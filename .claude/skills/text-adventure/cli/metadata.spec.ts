@@ -5,7 +5,6 @@ import {
   buildModulesRequired,
   WIDGET_CSS_SELECTORS,
   WIDGET_STYLE_SCOPES,
-  WIDGET_CSS_SCOPES,
   WIDGET_TYPE_NAMES,
 } from './metadata';
 
@@ -25,10 +24,7 @@ describe('buildModulesRequired', () => {
     const state = createDefaultState();
     state.modulesActive = ['prose-craft', 'audio'];
 
-    expect(buildModulesRequired(state)).toEqual([
-      'modules/prose-craft.md',
-      'modules/audio.md',
-    ]);
+    expect(buildModulesRequired(state)).toEqual(['modules/prose-craft.md', 'modules/audio.md']);
   });
 });
 
@@ -50,7 +46,14 @@ describe('WIDGET_CSS_SELECTORS', () => {
 
   test('scene entry does NOT contain combat/shop/dice selectors', () => {
     const scene = WIDGET_CSS_SELECTORS.scene;
-    const forbidden = ['.enemy-card', '.merchant-header', '.die-display', '.roll-breakdown', '.item-grid', '.shop-footer'];
+    const forbidden = [
+      '.enemy-card',
+      '.merchant-header',
+      '.die-display',
+      '.roll-breakdown',
+      '.item-grid',
+      '.shop-footer',
+    ];
     for (const sel of forbidden) {
       expect(scene).not.toContain(sel);
     }

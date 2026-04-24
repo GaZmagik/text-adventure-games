@@ -18,8 +18,24 @@ describe('tag style activate', () => {
     expect(result.data).toHaveProperty('style', 'station');
     expect(result.data).toHaveProperty('stylePath');
     expect(result.data).toHaveProperty('referencePath');
+    expect(result.data).toHaveProperty('styleContract');
+    expect(result.data).toHaveProperty('referenceContract');
     expect(typeof (result.data as { stylePath: string }).stylePath).toBe('string');
     expect(typeof (result.data as { referencePath: string }).referencePath).toBe('string');
+  });
+
+  test('returns compact contracts by default and full markdown with --full', async () => {
+    const compact = await handleStyle(['activate']);
+    expect(compact.ok).toBe(true);
+    expect((compact.data as { compact: boolean; styleContent?: string }).compact).toBe(true);
+    expect((compact.data as { styleContent?: string }).styleContent).toBeUndefined();
+
+    const full = await handleStyle(['activate', '--full']);
+    expect(full.ok).toBe(true);
+    const data = full.data as { compact: boolean; styleContent: string; referenceContent: string };
+    expect(data.compact).toBe(false);
+    expect(data.styleContent).toContain('station');
+    expect(data.referenceContent).toContain('Style Reference');
   });
 
   test('stamps _styleReadEpoch with current _compactionCount', async () => {
@@ -46,7 +62,9 @@ describe('tag style activate', () => {
     const { join } = await import('node:path');
     const { homedir } = await import('node:os');
     const stateDir = process.env.TAG_STATE_DIR || join(homedir(), '.tag');
-    try { unlinkSync(join(stateDir, 'state.json')); } catch {}
+    try {
+      unlinkSync(join(stateDir, 'state.json'));
+    } catch {}
 
     const result = await handleStyle(['activate']);
     expect(result.ok).toBe(false);

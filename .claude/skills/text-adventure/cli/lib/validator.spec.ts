@@ -1,17 +1,28 @@
 import { describe, test, expect } from 'bun:test';
 import { validateState } from './validator';
 import { createDefaultState } from './state-store';
+import { generateWorld } from './worldgen';
 import type { NpcMutation, Character } from '../types';
 
 /** Builds a minimal valid Character with overrides. */
 function mkChar(overrides: Partial<Character> = {}): Character {
   return {
-    name: 'Hero', class: 'Soldier', hp: 10, maxHp: 10, ac: 12,
-    level: 1, xp: 0, currency: 0, currencyName: 'gold',
+    name: 'Hero',
+    class: 'Soldier',
+    hp: 10,
+    maxHp: 10,
+    ac: 12,
+    level: 1,
+    xp: 0,
+    currency: 0,
+    currencyName: 'gold',
     stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
     modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-    proficiencyBonus: 2, proficiencies: [], abilities: [],
-    inventory: [], conditions: [],
+    proficiencyBonus: 2,
+    proficiencies: [],
+    abilities: [],
+    inventory: [],
+    conditions: [],
     equipment: { weapon: 'knife', armour: 'none' },
     ...overrides,
   };
@@ -20,13 +31,24 @@ function mkChar(overrides: Partial<Character> = {}): Character {
 /** Builds a minimal valid NpcMutation with overrides. */
 function mkNpc(overrides: Partial<NpcMutation> = {}): NpcMutation {
   return {
-    id: 'npc_01', name: 'Guard', pronouns: 'he/him', role: 'guard',
-    tier: 'minion', level: 1,
+    id: 'npc_01',
+    name: 'Guard',
+    pronouns: 'he/him',
+    role: 'guard',
+    tier: 'minion',
+    level: 1,
     stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
     modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-    hp: 6, maxHp: 6, ac: 8, soak: 1, damageDice: '1d6',
-    status: 'active', alive: true, trust: 0,
-    disposition: 'neutral', dispositionSeed: 0.5,
+    hp: 6,
+    maxHp: 6,
+    ac: 8,
+    soak: 1,
+    damageDice: '1d6',
+    status: 'active',
+    alive: true,
+    trust: 0,
+    disposition: 'neutral',
+    dispositionSeed: 0.5,
     ...overrides,
   };
 }
@@ -37,6 +59,24 @@ describe('validateState', () => {
     const result = validateState(state);
     expect(result.valid).toBe(true);
     expect(result.errors).toHaveLength(0);
+  });
+
+  test('accepts valid generated worldData', () => {
+    const state = createDefaultState();
+    state.worldData = generateWorld('validator-world', 'space');
+    const result = validateState(state);
+    expect(result.valid).toBe(true);
+    expect(result.errors.filter(error => error.includes('worldData'))).toHaveLength(0);
+  });
+
+  test('rejects worldData with invalid room exits', () => {
+    const state = createDefaultState();
+    state.worldData = generateWorld('validator-world', 'dungeon');
+    const firstRoom = Object.values(state.worldData.rooms)[0]!;
+    firstRoom.exits.push('missing_room');
+    const result = validateState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(error => error.includes('missing_room'))).toBe(true);
   });
 
   test('null input fails validation', () => {
@@ -364,9 +404,16 @@ describe('validateState', () => {
         level: 1,
         stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
         modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-        hp: 6, maxHp: 6, ac: 8, soak: 1, damageDice: '1d6',
-        status: 'active', alive: true, trust: 0,
-        disposition: 'neutral', dispositionSeed: 0.5,
+        hp: 6,
+        maxHp: 6,
+        ac: 8,
+        soak: 1,
+        damageDice: '1d6',
+        status: 'active',
+        alive: true,
+        trust: 0,
+        disposition: 'neutral',
+        dispositionSeed: 0.5,
       },
     ];
     const result = validateState(state);
@@ -386,9 +433,16 @@ describe('validateState', () => {
         level: 1,
         stats: null as any,
         modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-        hp: 6, maxHp: 6, ac: 8, soak: 1, damageDice: '1d6',
-        status: 'active', alive: true, trust: 0,
-        disposition: 'neutral', dispositionSeed: 0.5,
+        hp: 6,
+        maxHp: 6,
+        ac: 8,
+        soak: 1,
+        damageDice: '1d6',
+        status: 'active',
+        alive: true,
+        trust: 0,
+        disposition: 'neutral',
+        dispositionSeed: 0.5,
       },
     ];
     const result = validateState(state);
@@ -524,18 +578,14 @@ describe('validateState — NPC ID uniqueness', () => {
 describe('validateState — rollHistory entries', () => {
   test('invalid RollType produces a warning', () => {
     const state = createDefaultState();
-    state.rollHistory = [
-      { scene: 1, type: 'bogus_roll' as any, roll: 15, outcome: 'success' },
-    ];
+    state.rollHistory = [{ scene: 1, type: 'bogus_roll' as any, roll: 15, outcome: 'success' }];
     const result = validateState(state);
     expect(result.warnings.some(w => w.includes('type') && w.includes('rollHistory'))).toBe(true);
   });
 
   test('invalid StatName in roll produces a warning', () => {
     const state = createDefaultState();
-    state.rollHistory = [
-      { scene: 1, type: 'contested_roll', stat: 'FOO' as any, roll: 12, outcome: 'success' },
-    ];
+    state.rollHistory = [{ scene: 1, type: 'contested_roll', stat: 'FOO' as any, roll: 12, outcome: 'success' }];
     const result = validateState(state);
     expect(result.warnings.some(w => w.includes('stat') && w.includes('rollHistory'))).toBe(true);
   });
@@ -605,9 +655,7 @@ describe('validateState — warning coverage', () => {
 
   test('reports quest per-entry errors and warnings across id, title, status, objectives, and clues', () => {
     const state = createDefaultState();
-    state.quests = [
-      { id: '', title: 42, status: 'pending', objectives: 'none', clues: 'secret' } as any,
-    ];
+    state.quests = [{ id: '', title: 42, status: 'pending', objectives: 'none', clues: 'secret' } as any];
     const result = validateState(state);
     expect(result.errors.some(e => e.includes('quests[0].id'))).toBe(true);
     expect(result.warnings.some(w => w.includes('quests[0].title'))).toBe(true);
@@ -620,10 +668,14 @@ describe('validateState — warning coverage', () => {
     const state = createDefaultState();
     state.character = mkChar({
       class: '' as any,
-      xp: -1, currency: 'rich' as any, currencyName: 99 as any,
+      xp: -1,
+      currency: 'rich' as any,
+      currencyName: 99 as any,
       modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0 } as any,
-      proficiencyBonus: 'high' as any, proficiencies: 'all' as any,
-      abilities: {} as any, inventory: 'none' as any,
+      proficiencyBonus: 'high' as any,
+      proficiencies: 'all' as any,
+      abilities: {} as any,
+      inventory: 'none' as any,
       conditions: 'poisoned' as any,
       equipment: { weapon: 42 as any, armour: null as any },
     });

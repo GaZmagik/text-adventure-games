@@ -20,12 +20,22 @@ beforeEach(async () => {
   state.scene = 7;
   state.factions = { rebels: 42 };
   state.character = {
-    name: 'Test Hero', class: 'Scout', hp: 18, maxHp: 20, ac: 13,
-    level: 3, xp: 500, currency: 200, currencyName: 'credits',
+    name: 'Test Hero',
+    class: 'Scout',
+    hp: 18,
+    maxHp: 20,
+    ac: 13,
+    level: 3,
+    xp: 500,
+    currency: 200,
+    currencyName: 'credits',
     stats: { STR: 10, DEX: 16, CON: 10, INT: 10, WIS: 14, CHA: 12 },
     modifiers: { STR: 0, DEX: 3, CON: 0, INT: 0, WIS: 2, CHA: 1 },
-    proficiencyBonus: 2, proficiencies: ['Stealth'],
-    abilities: [], inventory: [], conditions: [],
+    proficiencyBonus: 2,
+    proficiencies: ['Stealth'],
+    abilities: [],
+    inventory: [],
+    conditions: [],
     equipment: { weapon: 'Blaster', armour: 'Vest' },
   };
   await saveState(state);
@@ -256,10 +266,69 @@ describe('save validate', () => {
 });
 
 describe('save migrate', () => {
-  test('returns stub error — migration not yet required', async () => {
+  test('re-emits a valid save in current SF2 format', async () => {
+    const genResult = await handleSave(['generate']);
+    const original = (genResult.data as Record<string, unknown>).saveString as string;
+    const result = await handleSave(['migrate', original]);
+    expect(result.ok).toBe(true);
+    expect(result.command).toBe('save migrate');
+    const data = result.data as Record<string, unknown>;
+    expect(data.sourceMode).toBe('full');
+    expect(data.mode).toBe('full');
+    expect(data.format).toBe('SF2');
+    expect(data.saveString).toEqual(expect.stringContaining('.SF2:'));
+
+    const decoded = validateAndDecode(data.saveString as string);
+    expect(decoded.valid).toBe(true);
+    if (!decoded.valid) throw new Error('Expected migrated save to decode.');
+    expect(decoded.payload.scene).toBe(7);
+    expect(decoded.payload._schemaVersion).toBe(SCHEMA_VERSION);
+  });
+
+  test('migrates older payloads without persisting them to state', async () => {
+    const payload = {
+      ...createDefaultState(),
+      _schemaVersion: '1.2.0',
+      scene: 3,
+      character: {
+        name: 'Old Hero',
+        class: 'Scout',
+        hp: 99,
+        maxHp: 20,
+        ac: 13,
+        level: 3,
+        xp: 500,
+        currency: 200,
+        currencyName: 'credits',
+        stats: { STR: 10, DEX: 16, CON: 10, INT: 10, WIS: 14, CHA: 12 },
+        modifiers: { STR: 0, DEX: 3, CON: 0, INT: 0, WIS: 2, CHA: 1 },
+        proficiencyBonus: 2,
+        proficiencies: ['Stealth'],
+        abilities: [],
+        inventory: [],
+        conditions: [],
+        equipment: { weapon: 'Blaster', armour: 'Vest' },
+      },
+    };
+    const code = 'SF2:' + Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64');
+    const result = await handleSave(['migrate', attachChecksum(code)]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    const decoded = validateAndDecode(data.saveString as string);
+    if (!decoded.valid) throw new Error('Expected migrated save to decode.');
+    const character = decoded.payload.character as Record<string, unknown>;
+    expect(character.hp).toBe(20);
+    expect(decoded.payload._schemaVersion).toBe(SCHEMA_VERSION);
+
+    const currentState = await loadState();
+    expect(currentState.scene).toBe(7);
+    expect(currentState.character?.name).toBe('Test Hero');
+  });
+
+  test('fails for corrupt input', async () => {
     const result = await handleSave(['migrate', 'something']);
     expect(result.ok).toBe(false);
-    expect(result.error!.message).toContain('not yet required');
+    expect(result.error!.message).toContain('Save validation failed');
     expect(result.command).toBe('save migrate');
   });
 });
@@ -284,6 +353,29 @@ describe('save validate — detailed checks', () => {
     const data = result.data as Record<string, unknown>;
     expect(data.valid).toBe(false);
     expect(data.error).toBeDefined();
+    expect(data.scene).toBeNull();
+    expect(data.characterName).toBeNull();
+  });
+
+  test('returns valid: false when checksum-valid save data fails state validation', async () => {
+    const code =
+      'SF2:' +
+      Buffer.from(
+        JSON.stringify({
+          _version: 1,
+          scene: 1,
+          character: { name: 'Bad Guy' },
+        }),
+        'utf-8',
+      ).toString('base64');
+
+    const result = await handleSave(['validate', attachChecksum(code)]);
+
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.valid).toBe(false);
+    expect(data.mode).toBe('full');
+    expect(String(data.error)).toContain('invalid state');
     expect(data.scene).toBeNull();
     expect(data.characterName).toBeNull();
   });
@@ -421,7 +513,9 @@ describe('save load — prototype pollution filtering', () => {
       '"__proto__":{"polluted":true}}';
     const payloadJson =
       '{"_version":1,"scene":1,"currentRoom":"bridge","visitedRooms":[],' +
-      '"rollHistory":[],"character":' + characterJson + ',' +
+      '"rollHistory":[],"character":' +
+      characterJson +
+      ',' +
       '"worldFlags":{},"modulesActive":[],"rosterMutations":[],' +
       '"codexMutations":[],' +
       '"time":{"period":"morning","date":"Day 1","elapsed":0,"hour":8,' +
@@ -462,8 +556,11 @@ describe('save — _stateHistory persistence', () => {
   test('_stateHistory round-trips through save/load', async () => {
     const state = await loadState();
     const entry: StateHistoryEntry = {
-      timestamp: '2026-03-24T12:00:00Z', command: 'state set',
-      path: 'scene', oldValue: 0, newValue: 7,
+      timestamp: '2026-03-24T12:00:00Z',
+      command: 'state set',
+      path: 'scene',
+      oldValue: 0,
+      newValue: 7,
     };
     state._stateHistory = [entry];
     await saveState(state);
@@ -490,7 +587,10 @@ describe('save — _stateHistory persistence', () => {
   test('_stateHistory caps at MAX_STATE_HISTORY on load', async () => {
     const entries: StateHistoryEntry[] = Array.from({ length: MAX_STATE_HISTORY + 20 }, (_, i) => ({
       timestamp: `2026-03-24T${String(i).padStart(2, '0')}:00:00Z`,
-      command: `cmd-${i}`, path: 'scene', oldValue: i, newValue: i + 1,
+      command: `cmd-${i}`,
+      path: 'scene',
+      oldValue: i,
+      newValue: i + 1,
     }));
     const state = await loadState();
     const payload: Record<string, unknown> = { ...state, _stateHistory: entries };
@@ -507,7 +607,15 @@ describe('save — _stateHistory persistence', () => {
 
   test('_lastComputation is excluded from save payload', async () => {
     const state = await loadState();
-    state._lastComputation = { type: 'hazard_save', stat: 'DEX', roll: 15, modifier: 3, total: 18, dc: 14, outcome: 'success' };
+    state._lastComputation = {
+      type: 'hazard_save',
+      stat: 'DEX',
+      roll: 15,
+      modifier: 3,
+      total: 18,
+      dc: 14,
+      outcome: 'success',
+    };
     await saveState(state);
     const genResult = await handleSave(['generate']);
     expect(genResult.ok).toBe(true);
@@ -530,14 +638,26 @@ describe('save load — HP clamping migration', () => {
   test('clamps character.hp into [0, maxHp] range on load', async () => {
     const base = createDefaultState();
     const payload: Record<string, unknown> = {
-      ...base, _version: 1, scene: 1,
+      ...base,
+      _version: 1,
+      scene: 1,
       character: {
-        name: 'Wounded', class: 'Scout', hp: -5, maxHp: 20, ac: 10,
-        level: 1, xp: 0, currency: 0, currencyName: 'credits',
+        name: 'Wounded',
+        class: 'Scout',
+        hp: -5,
+        maxHp: 20,
+        ac: 10,
+        level: 1,
+        xp: 0,
+        currency: 0,
+        currencyName: 'credits',
         stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
         modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-        proficiencyBonus: 2, proficiencies: [], abilities: [],
-        inventory: [], conditions: [],
+        proficiencyBonus: 2,
+        proficiencies: [],
+        abilities: [],
+        inventory: [],
+        conditions: [],
         equipment: { weapon: 'Blaster', armour: 'Vest' },
       },
     };
@@ -589,15 +709,27 @@ describe('save — semver two-digit component', () => {
     // that no clamp is applied when the version is correctly parsed numerically.
     const base = createDefaultState();
     const payload: Record<string, unknown> = {
-      ...base, v: 1, mode: 'full',
-      _schemaVersion: '1.10.0',   // Simulate a hypothetical future version
+      ...base,
+      v: 1,
+      mode: 'full',
+      _schemaVersion: '1.10.0', // Simulate a hypothetical future version
       character: {
-        name: 'Future', class: 'Scout', hp: 20, maxHp: 20, ac: 10,
-        level: 1, xp: 0, currency: 0, currencyName: 'credits',
+        name: 'Future',
+        class: 'Scout',
+        hp: 20,
+        maxHp: 20,
+        ac: 10,
+        level: 1,
+        xp: 0,
+        currency: 0,
+        currencyName: 'credits',
         stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
         modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-        proficiencyBonus: 2, proficiencies: [], abilities: [],
-        inventory: [], conditions: [],
+        proficiencyBonus: 2,
+        proficiencies: [],
+        abilities: [],
+        inventory: [],
+        conditions: [],
         equipment: { weapon: 'Blaster', armour: 'Vest' },
       },
     };
@@ -632,14 +764,26 @@ describe('save — schema versioning', () => {
   test('migration applies HP clamp for pre-1.3.0 saves', async () => {
     const base = createDefaultState();
     const payload: Record<string, unknown> = {
-      ...base, v: 1, mode: 'full',
+      ...base,
+      v: 1,
+      mode: 'full',
       character: {
-        name: 'Legacy', class: 'Scout', hp: 25, maxHp: 20, ac: 10,
-        level: 1, xp: 0, currency: 0, currencyName: 'credits',
+        name: 'Legacy',
+        class: 'Scout',
+        hp: 25,
+        maxHp: 20,
+        ac: 10,
+        level: 1,
+        xp: 0,
+        currency: 0,
+        currencyName: 'credits',
         stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
         modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-        proficiencyBonus: 2, proficiencies: [], abilities: [],
-        inventory: [], conditions: [],
+        proficiencyBonus: 2,
+        proficiencies: [],
+        abilities: [],
+        inventory: [],
+        conditions: [],
         equipment: { weapon: 'Blaster', armour: 'Vest' },
       },
     };

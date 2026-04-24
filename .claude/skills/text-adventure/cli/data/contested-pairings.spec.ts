@@ -22,10 +22,22 @@ describe('CONTESTED_PAIRINGS', () => {
 });
 
 describe('getOpposingAttribute', () => {
-  test('CHA opposes WIS', () => { expect(getOpposingAttribute('CHA')).toBe('WIS'); });
-  test('DEX opposes WIS', () => { expect(getOpposingAttribute('DEX')).toBe('WIS'); });
-  test('WIS opposes CHA', () => { expect(getOpposingAttribute('WIS')).toBe('CHA'); });
-  test('STR opposes STR', () => { expect(getOpposingAttribute('STR')).toBe('STR'); });
-  test('INT opposes WIS', () => { expect(getOpposingAttribute('INT')).toBe('WIS'); });
-  test('CON defaults to CON', () => { expect(getOpposingAttribute('CON')).toBe('CON'); });
+  test('CHA opposes WIS', () => {
+    expect(getOpposingAttribute('CHA')).toBe('WIS');
+  });
+  test('DEX opposes WIS', () => {
+    expect(getOpposingAttribute('DEX')).toBe('WIS');
+  });
+  test('WIS opposes CHA', () => {
+    expect(getOpposingAttribute('WIS')).toBe('CHA');
+  });
+  test('STR opposes STR', () => {
+    expect(getOpposingAttribute('STR')).toBe('STR');
+  });
+  test('INT opposes WIS', () => {
+    expect(getOpposingAttribute('INT')).toBe('WIS');
+  });
+  test('CON defaults to CON', () => {
+    expect(getOpposingAttribute('CON')).toBe('CON');
+  });
 });

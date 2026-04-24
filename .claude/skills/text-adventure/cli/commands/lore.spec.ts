@@ -30,7 +30,12 @@ describe('tag lore defaults', () => {
     const result = await handleLore(['defaults']);
     expect(result.ok).toBe(true);
     const data = result.data as Record<string, unknown>;
-    expect(data.defaults).toEqual({ difficulty: 'hard', pacing: 'slow', rulebook: 'd20_system', visualStyle: 'holographic' });
+    expect(data.defaults).toEqual({
+      difficulty: 'hard',
+      pacing: 'slow',
+      rulebook: 'd20_system',
+      visualStyle: 'holographic',
+    });
   });
 
   test('returns empty when no _loreDefaults exist', async () => {
@@ -46,12 +51,26 @@ describe('tag lore pregen', () => {
   test('returns _lorePregen characters from state', async () => {
     const state = await loadState();
     state._lorePregen = [
-      { name: 'Rian Vale', class: 'Diver', pronouns: 'he/him', hook: 'Explorer',
+      {
+        name: 'Rian Vale',
+        class: 'Diver',
+        pronouns: 'he/him',
+        hook: 'Explorer',
         stats: { STR: 12, DEX: 14, CON: 10, INT: 13, WIS: 11, CHA: 9 },
-        hp: 10, ac: 12, proficiencies: ['Athletics', 'Survival'] },
-      { name: 'Suri Kade', class: 'Engineer', pronouns: 'she/her', hook: 'Steady hand',
+        hp: 10,
+        ac: 12,
+        proficiencies: ['Athletics', 'Survival'],
+      },
+      {
+        name: 'Suri Kade',
+        class: 'Engineer',
+        pronouns: 'she/her',
+        hook: 'Steady hand',
         stats: { STR: 8, DEX: 10, CON: 12, INT: 16, WIS: 14, CHA: 10 },
-        hp: 8, ac: 11, proficiencies: ['Mechanics'] },
+        hp: 8,
+        ac: 11,
+        proficiencies: ['Mechanics'],
+      },
     ];
     await saveState(state);
 
@@ -80,9 +99,16 @@ describe('tag lore status', () => {
     state._loreSource = '/tmp/test.lore.md';
     state._loreDefaults = { difficulty: 'hard', rulebook: 'd20_system' };
     state._lorePregen = [
-      { name: 'Rian', class: 'Diver', pronouns: 'he/him', hook: 'x',
+      {
+        name: 'Rian',
+        class: 'Diver',
+        pronouns: 'he/him',
+        hook: 'x',
         stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
-        hp: 10, ac: 10, proficiencies: [] },
+        hp: 10,
+        ac: 10,
+        proficiencies: [],
+      },
     ];
     state.modulesActive = ['pre-generated-characters', ...state.modulesActive];
     await saveState(state);
@@ -101,9 +127,16 @@ describe('tag lore status', () => {
     const state = await loadState();
     state._loreSource = '/tmp/test.lore.md';
     state._lorePregen = [
-      { name: 'Rian', class: 'Diver', pronouns: 'he/him', hook: 'x',
+      {
+        name: 'Rian',
+        class: 'Diver',
+        pronouns: 'he/him',
+        hook: 'x',
         stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
-        hp: 10, ac: 10, proficiencies: [] },
+        hp: 10,
+        ac: 10,
+        proficiencies: [],
+      },
     ];
     await saveState(state);
 

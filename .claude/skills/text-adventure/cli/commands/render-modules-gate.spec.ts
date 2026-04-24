@@ -32,17 +32,31 @@ describe('_modulesRead render gate', () => {
     state.currentRoom = 'bridge';
     state.visualStyle = 'station';
     state.modulesActive = [
-      'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-      'character-creation', 'save-codex',
+      'gm-checklist',
+      'prose-craft',
+      'core-systems',
+      'die-rolls',
+      'character-creation',
+      'save-codex',
     ];
     state._modulesRead = [];
     state.character = {
-      name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-      level: 1, xp: 0, currency: 0, currencyName: 'credits',
+      name: 'Test',
+      class: 'Scout',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
       stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
       modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-      proficiencyBonus: 2, proficiencies: [], abilities: [],
-      inventory: [], conditions: [],
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
       equipment: { weapon: 'Knife', armour: 'Vest' },
     };
     await saveState(state);
@@ -59,17 +73,31 @@ describe('_modulesRead render gate', () => {
     state.currentRoom = 'bridge';
     state.visualStyle = 'station';
     state.modulesActive = [
-      'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-      'character-creation', 'save-codex',
+      'gm-checklist',
+      'prose-craft',
+      'core-systems',
+      'die-rolls',
+      'character-creation',
+      'save-codex',
     ];
     state._modulesRead = ['gm-checklist', 'prose-craft'];
     state.character = {
-      name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-      level: 1, xp: 0, currency: 0, currencyName: 'credits',
+      name: 'Test',
+      class: 'Scout',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
       stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
       modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-      proficiencyBonus: 2, proficiencies: [], abilities: [],
-      inventory: [], conditions: [],
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
       equipment: { weapon: 'Knife', armour: 'Vest' },
     };
     await saveState(state);
@@ -85,20 +113,38 @@ describe('_modulesRead render gate', () => {
     state.currentRoom = 'bridge';
     state.visualStyle = 'station';
     state.modulesActive = [
-      'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-      'character-creation', 'save-codex',
+      'gm-checklist',
+      'prose-craft',
+      'core-systems',
+      'die-rolls',
+      'character-creation',
+      'save-codex',
     ];
     state._modulesRead = [
-      'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-      'character-creation', 'save-codex',
+      'gm-checklist',
+      'prose-craft',
+      'core-systems',
+      'die-rolls',
+      'character-creation',
+      'save-codex',
     ];
     state.character = {
-      name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-      level: 1, xp: 0, currency: 0, currencyName: 'credits',
+      name: 'Test',
+      class: 'Scout',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
       stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
       modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-      proficiencyBonus: 2, proficiencies: [], abilities: [],
-      inventory: [], conditions: [],
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
       equipment: { weapon: 'Knife', armour: 'Vest' },
     };
     state._proseCraftEpoch = 0;
@@ -124,17 +170,31 @@ describe('_modulesRead render gate', () => {
     state.currentRoom = 'bridge';
     state.visualStyle = 'station';
     state.modulesActive = [
-      'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-      'character-creation', 'save-codex',
+      'gm-checklist',
+      'prose-craft',
+      'core-systems',
+      'die-rolls',
+      'character-creation',
+      'save-codex',
     ];
     state._modulesRead = [];
     state.character = {
-      name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-      level: 1, xp: 0, currency: 0, currencyName: 'credits',
+      name: 'Test',
+      class: 'Scout',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
       stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
       modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-      proficiencyBonus: 2, proficiencies: [], abilities: [],
-      inventory: [], conditions: [],
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
       equipment: { weapon: 'Knife', armour: 'Vest' },
     };
     await saveState(state);
@@ -150,17 +210,31 @@ describe('_modulesRead render gate', () => {
     state.currentRoom = 'bridge';
     state.visualStyle = 'station';
     state.modulesActive = [
-      'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-      'character-creation', 'save-codex',
+      'gm-checklist',
+      'prose-craft',
+      'core-systems',
+      'die-rolls',
+      'character-creation',
+      'save-codex',
     ];
     state._modulesRead = ['gm-checklist', 'prose-craft', 'core-systems'];
     state.character = {
-      name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-      level: 1, xp: 0, currency: 0, currencyName: 'credits',
+      name: 'Test',
+      class: 'Scout',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
       stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
       modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-      proficiencyBonus: 2, proficiencies: [], abilities: [],
-      inventory: [], conditions: [],
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
       equipment: { weapon: 'Knife', armour: 'Vest' },
     };
     await saveState(state);

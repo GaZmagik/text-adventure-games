@@ -1,23 +1,24 @@
+// Style activation returns the active theme contract and stamps style freshness into state.
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import type { CommandResult } from '../types';
 import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState } from '../lib/state-store';
+import { parseArgs } from '../lib/args';
+import { extractCompactContract } from '../lib/contracts';
 
 const STYLES_DIR = join(import.meta.dir, '..', '..', 'styles');
 const STYLE_REFERENCE = 'style-reference.md';
 
 export async function handleStyle(args: string[]): Promise<CommandResult> {
-  const subcommand = args[0];
+  const parsed = parseArgs(args, ['full']);
+  const subcommand = parsed.positional[0];
+  const full = parsed.booleans.has('full');
   if (!subcommand) {
-    return fail('Missing subcommand.', 'Usage: tag style activate', 'style');
+    return fail('Missing subcommand.', 'Usage: tag style activate [--full]', 'style');
   }
   if (subcommand !== 'activate') {
-    return fail(
-      `Unknown subcommand "${subcommand}".`,
-      'Available: activate',
-      'style',
-    );
+    return fail(`Unknown subcommand "${subcommand}".`, 'Available: activate', 'style');
   }
 
   const state = await tryLoadState();
@@ -34,11 +35,7 @@ export async function handleStyle(args: string[]): Promise<CommandResult> {
 
   const knownStyles = listStyles();
   if (!knownStyles.includes(styleName)) {
-    return fail(
-      `Unknown style: "${styleName}".`,
-      `Available styles: ${knownStyles.join(', ')}`,
-      'style',
-    );
+    return fail(`Unknown style: "${styleName}".`, `Available styles: ${knownStyles.join(', ')}`, 'style');
   }
 
   const stylePath = join(STYLES_DIR, `${styleName}.md`);
@@ -57,14 +54,28 @@ export async function handleStyle(args: string[]): Promise<CommandResult> {
   state._styleReadEpoch = state._compactionCount ?? 0;
   await saveState(state);
 
-  return ok({
-    style: styleName,
-    stylePath,
-    referencePath,
-    styleChars: styleContent.length,
-    referenceChars: referenceContent.length,
-    instruction: `To read the style guides, use 'cat ${stylePath}' and 'cat ${referencePath}'.`
-  }, 'style');
+  return ok(
+    {
+      style: styleName,
+      stylePath,
+      referencePath,
+      styleChars: styleContent.length,
+      referenceChars: referenceContent.length,
+      styleContract: extractCompactContract(styleName, 'style', styleContent),
+      referenceContract: extractCompactContract(
+        STYLE_REFERENCE.replace(/\.md$/, ''),
+        'style-reference',
+        referenceContent,
+      ),
+      compact: !full,
+      freshnessEpoch: state._styleReadEpoch,
+      instruction: full
+        ? `Full style markdown is included in data.styleContent and data.referenceContent. To re-read from disk, use 'cat ${stylePath}' and 'cat ${referencePath}'.`
+        : `Compact style contracts returned. Use 'tag style activate --full' or cat ${stylePath} and ${referencePath} for full guidance.`,
+      ...(full ? { styleContent, referenceContent } : {}),
+    },
+    'style',
+  );
 }
 
 function listStyles(): string[] {

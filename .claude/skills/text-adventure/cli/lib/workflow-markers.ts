@@ -1,3 +1,4 @@
+// Workflow marker utilities clear render/verify gates and manage compaction block sentinels.
 import { existsSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { getSyncMarkerPath } from './state-store';
@@ -14,7 +15,11 @@ export function clearWorkflowMarkers(options: ClearWorkflowMarkerOptions = {}): 
   const dir = getWorkflowMarkerDir();
 
   for (const fileName of ['.last-sync', '.last-verify', '.needs-verify']) {
-    try { unlinkSync(join(dir, fileName)); } catch { /* best-effort cleanup */ }
+    try {
+      unlinkSync(join(dir, fileName));
+    } catch {
+      /* best-effort cleanup */
+    }
   }
 
   if (!options.includePreGameVerify) return;
@@ -22,7 +27,11 @@ export function clearWorkflowMarkers(options: ClearWorkflowMarkerOptions = {}): 
   try {
     for (const entry of readdirSync(dir)) {
       if (!entry.startsWith('.verified-')) continue;
-      try { unlinkSync(join(dir, entry)); } catch { /* best-effort cleanup */ }
+      try {
+        unlinkSync(join(dir, entry));
+      } catch {
+        /* best-effort cleanup */
+      }
     }
   } catch {
     /* state dir may not exist yet */
@@ -38,11 +47,17 @@ function getCompactionBlockPath(): string {
 export function writeCompactionBlock(reason: string): void {
   try {
     writeFileSync(getCompactionBlockPath(), reason, { encoding: 'utf-8', mode: 0o600 });
-  } catch { /* state dir may not exist — non-fatal */ }
+  } catch {
+    /* state dir may not exist — non-fatal */
+  }
 }
 
 export function clearCompactionBlock(): void {
-  try { unlinkSync(getCompactionBlockPath()); } catch { /* best-effort */ }
+  try {
+    unlinkSync(getCompactionBlockPath());
+  } catch {
+    /* best-effort */
+  }
 }
 
 export function isCompactionBlocked(): boolean {

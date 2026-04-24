@@ -14,7 +14,9 @@ function calcModifier(stat: number): number {
 }
 
 function normaliseText(value: unknown): string {
-  return String(value ?? '').trim().toLowerCase();
+  return String(value ?? '')
+    .trim()
+    .toLowerCase();
 }
 
 function isOpeningLens(value: unknown): value is OpeningLens {
@@ -43,14 +45,15 @@ function inferOpeningLens(charData: Record<string, unknown>, stats: Character['s
     return 'mara';
   }
 
-  const proficiencies = Array.isArray(charData.proficiencies)
-    ? charData.proficiencies.map(normaliseText)
-    : [];
+  const proficiencies = Array.isArray(charData.proficiencies) ? charData.proficiencies.map(normaliseText) : [];
   const lensScores: Record<OpeningLens, number> = { rian: 0, suri: 0, mara: 0 };
   for (const proficiency of proficiencies) {
-    if (['investigation', 'navigation', 'history', 'arcana', 'perception', 'analysis'].includes(proficiency)) lensScores.rian += 2;
-    if (['athletics', 'survival', 'stealth', 'repair', 'piloting', 'engineering', 'endurance'].includes(proficiency)) lensScores.suri += 2;
-    if (['medicine', 'persuasion', 'insight', 'lore', 'religion', 'empathy'].includes(proficiency)) lensScores.mara += 2;
+    if (['investigation', 'navigation', 'history', 'arcana', 'perception', 'analysis'].includes(proficiency))
+      lensScores.rian += 2;
+    if (['athletics', 'survival', 'stealth', 'repair', 'piloting', 'engineering', 'endurance'].includes(proficiency))
+      lensScores.suri += 2;
+    if (['medicine', 'persuasion', 'insight', 'lore', 'religion', 'empathy'].includes(proficiency))
+      lensScores.mara += 2;
   }
   if (lensScores.rian > lensScores.suri && lensScores.rian > lensScores.mara) return 'rian';
   if (lensScores.mara > lensScores.rian && lensScores.mara > lensScores.suri) return 'mara';
@@ -68,7 +71,11 @@ function inferCharacterOrigin(charData: Record<string, unknown>): CharacterOrigi
   return isCharacterOrigin(charData.characterOrigin) ? charData.characterOrigin : 'custom';
 }
 
-function inferPrologueVariant(charData: Record<string, unknown>, characterOrigin: CharacterOrigin, openingLens: OpeningLens): string {
+function inferPrologueVariant(
+  charData: Record<string, unknown>,
+  characterOrigin: CharacterOrigin,
+  openingLens: OpeningLens,
+): string {
   if (typeof charData.prologueVariant === 'string' && charData.prologueVariant.trim().length > 0) {
     return charData.prologueVariant.trim();
   }
@@ -78,7 +85,11 @@ function inferPrologueVariant(charData: Record<string, unknown>, characterOrigin
 export async function handleSetup(args: string[]): Promise<CommandResult> {
   const subcommand = args[0];
   if (subcommand !== 'apply') {
-    return fail('Unknown subcommand. Usage: tag setup apply --settings \'<json>\' --character \'<json>\'', 'tag setup apply --settings \'...\' --character \'...\'', 'setup');
+    return fail(
+      "Unknown subcommand. Usage: tag setup apply --settings '<json>' --character '<json>'",
+      "tag setup apply --settings '...' --character '...'",
+      'setup',
+    );
   }
 
   const parsed = parseArgs(args.slice(1), []);
@@ -86,30 +97,55 @@ export async function handleSetup(args: string[]): Promise<CommandResult> {
   const characterRaw = parsed.flags.character;
 
   if (!settingsRaw) {
-    return fail('Missing --settings flag.', 'tag setup apply --settings \'{"rulebook":"d20_system","visualStyle":"station","modules":[...]}\' --character \'...\'', 'setup');
+    return fail(
+      'Missing --settings flag.',
+      'tag setup apply --settings \'{"rulebook":"d20_system","visualStyle":"station","modules":[...]}\' --character \'...\'',
+      'setup',
+    );
   }
   if (!characterRaw) {
-    return fail('Missing --character flag.', 'tag setup apply --settings \'...\' --character \'{"name":"...","stats":{...},"hp":N,"ac":N,"proficiencies":[...],"abilities":[...],"pronouns":"..."}\'', 'setup');
+    return fail(
+      'Missing --character flag.',
+      'tag setup apply --settings \'...\' --character \'{"name":"...","stats":{...},"hp":N,"ac":N,"proficiencies":[...],"abilities":[...],"pronouns":"..."}\'',
+      'setup',
+    );
   }
 
   let settings: Record<string, unknown>;
   let charData: Record<string, unknown>;
-  try { settings = JSON.parse(settingsRaw); } catch { return fail('Invalid JSON in --settings flag.', 'Provide valid JSON.', 'setup'); }
-  try { charData = JSON.parse(characterRaw); } catch { return fail('Invalid JSON in --character flag.', 'Provide valid JSON.', 'setup'); }
+  try {
+    settings = JSON.parse(settingsRaw);
+  } catch {
+    return fail('Invalid JSON in --settings flag.', 'Provide valid JSON.', 'setup');
+  }
+  try {
+    charData = JSON.parse(characterRaw);
+  } catch {
+    return fail('Invalid JSON in --character flag.', 'Provide valid JSON.', 'setup');
+  }
   if (containsForbiddenKeys(settings)) {
-    return fail('--settings contains forbidden keys (__proto__, constructor, prototype).', 'Remove prohibited keys from --settings JSON.', 'setup');
+    return fail(
+      '--settings contains forbidden keys (__proto__, constructor, prototype).',
+      'Remove prohibited keys from --settings JSON.',
+      'setup',
+    );
   }
   if (containsForbiddenKeys(charData)) {
-    return fail('--character contains forbidden keys (__proto__, constructor, prototype).', 'Remove prohibited keys from --character JSON.', 'setup');
+    return fail(
+      '--character contains forbidden keys (__proto__, constructor, prototype).',
+      'Remove prohibited keys from --character JSON.',
+      'setup',
+    );
   }
 
   // Check for existing lore-populated state — merge onto it instead of replacing.
   await backupState();
   const existing = await tryLoadState();
-  const hasLoreData = existing !== null
-    && (typeof existing._loreSource === 'string' && existing._loreSource.length > 0
-      || existing.rosterMutations.length > 0
-      || existing.codexMutations.length > 0);
+  const hasLoreData =
+    existing !== null &&
+    ((typeof existing._loreSource === 'string' && existing._loreSource.length > 0) ||
+      existing.rosterMutations.length > 0 ||
+      existing.codexMutations.length > 0);
   const state = hasLoreData ? existing : createDefaultState();
 
   // Apply settings
@@ -160,7 +196,8 @@ export async function handleSetup(args: string[]): Promise<CommandResult> {
   const character: Character = {
     name,
     class: archetypeLabel,
-    hp, maxHp: hp,
+    hp,
+    maxHp: hp,
     ac,
     level: 1,
     xp: 0,
@@ -177,7 +214,11 @@ export async function handleSetup(args: string[]): Promise<CommandResult> {
   };
 
   // Apply equipment from charData if provided
-  if (Array.isArray(charData.abilities) || Array.isArray(charData.equipment) || Array.isArray(charData.startingInventory)) {
+  if (
+    Array.isArray(charData.abilities) ||
+    Array.isArray(charData.equipment) ||
+    Array.isArray(charData.startingInventory)
+  ) {
     const gear = Array.isArray(charData.equipment)
       ? charData.equipment
       : Array.isArray(charData.startingInventory)
@@ -186,9 +227,29 @@ export async function handleSetup(args: string[]): Promise<CommandResult> {
     if (Array.isArray(gear)) {
       character.inventory = gear.map((item, i) => {
         if (typeof item === 'string') {
-          const isWeapon = item.toLowerCase().includes('d4') || item.toLowerCase().includes('d6') || item.toLowerCase().includes('d8') || item.toLowerCase().includes('weapon') || item.toLowerCase().includes('pistol') || item.toLowerCase().includes('sword');
-          const isArmour = item.toLowerCase().includes('ac') || item.toLowerCase().includes('armour') || item.toLowerCase().includes('armor') || item.toLowerCase().includes('suit') || item.toLowerCase().includes('cloak') || item.toLowerCase().includes('shield');
-          const type = isWeapon ? 'weapon' : isArmour ? 'armour' : i === 0 ? 'weapon' : i === 1 ? 'armour' : 'consumable';
+          const isWeapon =
+            item.toLowerCase().includes('d4') ||
+            item.toLowerCase().includes('d6') ||
+            item.toLowerCase().includes('d8') ||
+            item.toLowerCase().includes('weapon') ||
+            item.toLowerCase().includes('pistol') ||
+            item.toLowerCase().includes('sword');
+          const isArmour =
+            item.toLowerCase().includes('ac') ||
+            item.toLowerCase().includes('armour') ||
+            item.toLowerCase().includes('armor') ||
+            item.toLowerCase().includes('suit') ||
+            item.toLowerCase().includes('cloak') ||
+            item.toLowerCase().includes('shield');
+          const type = isWeapon
+            ? 'weapon'
+            : isArmour
+              ? 'armour'
+              : i === 0
+                ? 'weapon'
+                : i === 1
+                  ? 'armour'
+                  : 'consumable';
           if (isWeapon && character.equipment.weapon === 'None') character.equipment.weapon = item;
           if (isArmour && character.equipment.armour === 'None') character.equipment.armour = item;
           return { name: item, type, slots: 1, description: '' };
@@ -200,7 +261,8 @@ export async function handleSetup(args: string[]): Promise<CommandResult> {
           const description = String(record.description ?? record.effect ?? '');
           const slots = Number(record.slots) || 1;
           if (type === 'weapon' && character.equipment.weapon === 'None') character.equipment.weapon = name;
-          if ((type === 'armour' || type === 'armor') && character.equipment.armour === 'None') character.equipment.armour = name;
+          if ((type === 'armour' || type === 'armor') && character.equipment.armour === 'None')
+            character.equipment.armour = name;
           return { name, type, slots, description };
         }
         return { name: String(item), type: 'misc', slots: 1, description: '' };
@@ -222,11 +284,26 @@ export async function handleSetup(args: string[]): Promise<CommandResult> {
   await saveState(state);
   clearWorkflowMarkers();
 
-  return ok({
-    applied: true,
-    merged: hasLoreData,
-    character: { name, class: archetypeLabel, pronouns, hp, ac, stats, currency: startingCurrency, openingLens, prologueVariant, characterOrigin },
-    settings: { visualStyle, rulebook, difficulty, pacing, moduleCount: modules.length },
-    nextStep: 'Run `tag module activate-tier 1` then `tag module activate-tier 2` to load module content. Then `tag state sync --apply --scene 1 --room <starting_room>` to begin.',
-  }, 'setup');
+  return ok(
+    {
+      applied: true,
+      merged: hasLoreData,
+      character: {
+        name,
+        class: archetypeLabel,
+        pronouns,
+        hp,
+        ac,
+        stats,
+        currency: startingCurrency,
+        openingLens,
+        prologueVariant,
+        characterOrigin,
+      },
+      settings: { visualStyle, rulebook, difficulty, pacing, moduleCount: modules.length },
+      nextStep:
+        'Run `tag module activate-tier 1` then `tag module activate-tier 2` to load module content. Then `tag state sync --apply --scene 1 --room <starting_room>` to begin.',
+    },
+    'setup',
+  );
 }

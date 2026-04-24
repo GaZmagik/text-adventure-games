@@ -37,23 +37,39 @@ async function setupState(): Promise<void> {
   await handleState(['set', 'scene', '1']);
   await handleState(['set', 'currentRoom', 'bridge']);
   await handleState(['set', 'visualStyle', 'station']);
-  await handleState(['set', 'modulesActive', JSON.stringify([
-    'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-    'character-creation', 'save-codex',
-  ])]);
-  await handleState(['set', '_modulesRead', JSON.stringify([
-    'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-    'character-creation', 'save-codex',
-  ])]);
-  await handleState(['set', 'character', JSON.stringify({
-    name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-    level: 1, xp: 0, currency: 0, currencyName: 'credits',
-    stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
-    modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-    proficiencyBonus: 2, proficiencies: [], abilities: [],
-    inventory: [], conditions: [],
-    equipment: { weapon: 'Knife', armour: 'Vest' },
-  })]);
+  await handleState([
+    'set',
+    'modulesActive',
+    JSON.stringify(['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex']),
+  ]);
+  await handleState([
+    'set',
+    '_modulesRead',
+    JSON.stringify(['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex']),
+  ]);
+  await handleState([
+    'set',
+    'character',
+    JSON.stringify({
+      name: 'Test',
+      class: 'Scout',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
+      stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+      modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'Knife', armour: 'Vest' },
+    }),
+  ]);
   await handleState(['set', '_proseCraftEpoch', '0']);
   await handleState(['set', '_styleReadEpoch', '0']);
 }
@@ -62,12 +78,11 @@ async function setupState(): Promise<void> {
 async function buildSceneHtml(actionCards: string): Promise<string> {
   const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
   expect(renderResult.ok).toBe(true);
-  let html = (renderResult.data as string)
-    .replace(
-      '<p><!-- Narrative content rendered by the GM --></p>',
-      '<p class="narrative">The corridor stretches ahead, dimly lit by emergency strips.</p>'
-      + '<p class="narrative">A faint vibration pulses through the deck plates beneath your boots.</p>',
-    );
+  let html = (renderResult.data as string).replace(
+    '<p><!-- Narrative content rendered by the GM --></p>',
+    '<p class="narrative">The corridor stretches ahead, dimly lit by emergency strips.</p>' +
+      '<p class="narrative">A faint vibration pulses through the deck plates beneath your boots.</p>',
+  );
   html = html.replace(/<!-- \[ACTIONS:[\s\S]*?title structure\.\] -->/, actionCards);
   return html;
 }
@@ -78,8 +93,8 @@ describe('verify: stat names in action cards', () => {
   test('fails when data-prompt contains a stat name', async () => {
     await setupState();
     const html = await buildSceneHtml(
-      '<button class="action-card" data-prompt="Roll STR to force the door." title="Roll STR to force the door.">Force the door</button>'
-      + '<button class="action-card" data-prompt="Sneak past quietly." title="Sneak past quietly.">Sneak past</button>',
+      '<button class="action-card" data-prompt="Roll STR to force the door." title="Roll STR to force the door.">Force the door</button>' +
+        '<button class="action-card" data-prompt="Sneak past quietly." title="Sneak past quietly.">Sneak past</button>',
     );
     const path = join(tempDir, 'scene.html');
     writeFileSync(path, html, 'utf-8');
@@ -91,8 +106,8 @@ describe('verify: stat names in action cards', () => {
   test('fails when data-prompt contains CHA', async () => {
     await setupState();
     const html = await buildSceneHtml(
-      '<button class="action-card" data-prompt="Use CHA to charm the guard." title="Use CHA to charm the guard.">Charm the guard</button>'
-      + '<button class="action-card" data-prompt="Walk away." title="Walk away.">Walk away</button>',
+      '<button class="action-card" data-prompt="Use CHA to charm the guard." title="Use CHA to charm the guard.">Charm the guard</button>' +
+        '<button class="action-card" data-prompt="Walk away." title="Walk away.">Walk away</button>',
     );
     const path = join(tempDir, 'scene.html');
     writeFileSync(path, html, 'utf-8');
@@ -104,8 +119,8 @@ describe('verify: stat names in action cards', () => {
   test('passes when action cards contain no stat names', async () => {
     await setupState();
     const html = await buildSceneHtml(
-      '<button class="action-card" data-prompt="Examine the sonar." title="Examine the sonar.">Examine sonar</button>'
-      + '<button class="action-card" data-prompt="Speak to the captain." title="Speak to the captain.">Speak to captain</button>',
+      '<button class="action-card" data-prompt="Examine the sonar." title="Examine the sonar.">Examine sonar</button>' +
+        '<button class="action-card" data-prompt="Speak to the captain." title="Speak to the captain.">Speak to captain</button>',
     );
     const path = join(tempDir, 'scene.html');
     writeFileSync(path, html, 'utf-8');
@@ -117,8 +132,8 @@ describe('verify: stat names in action cards', () => {
   test('does not false-positive on words containing stat abbreviations', async () => {
     await setupState();
     const html = await buildSceneHtml(
-      '<button class="action-card" data-prompt="Destroy the construct." title="Destroy the construct.">Destroy construct</button>'
-      + '<button class="action-card" data-prompt="Conduct an investigation." title="Conduct an investigation.">Investigate</button>',
+      '<button class="action-card" data-prompt="Destroy the construct." title="Destroy the construct.">Destroy construct</button>' +
+        '<button class="action-card" data-prompt="Conduct an investigation." title="Conduct an investigation.">Investigate</button>',
     );
     const path = join(tempDir, 'scene.html');
     writeFileSync(path, html, 'utf-8');
@@ -131,8 +146,8 @@ describe('verify: stat names in action cards', () => {
     await setupState();
     // Character panel legitimately contains STR, DEX, etc. — only action cards should be checked
     const html = await buildSceneHtml(
-      '<button class="action-card" data-prompt="Search the room." title="Search the room.">Search</button>'
-      + '<button class="action-card" data-prompt="Leave quietly." title="Leave quietly.">Leave</button>',
+      '<button class="action-card" data-prompt="Search the room." title="Search the room.">Search</button>' +
+        '<button class="action-card" data-prompt="Leave quietly." title="Leave quietly.">Leave</button>',
     );
     const path = join(tempDir, 'scene.html');
     writeFileSync(path, html, 'utf-8');
@@ -149,8 +164,8 @@ describe('verify: DC values in action cards', () => {
   test('fails when data-prompt contains DC followed by number', async () => {
     await setupState();
     const html = await buildSceneHtml(
-      '<button class="action-card" data-prompt="Attempt the DC 15 lock." title="Attempt the DC 15 lock.">Pick the lock</button>'
-      + '<button class="action-card" data-prompt="Walk away." title="Walk away.">Walk away</button>',
+      '<button class="action-card" data-prompt="Attempt the DC 15 lock." title="Attempt the DC 15 lock.">Pick the lock</button>' +
+        '<button class="action-card" data-prompt="Walk away." title="Walk away.">Walk away</button>',
     );
     const path = join(tempDir, 'scene.html');
     writeFileSync(path, html, 'utf-8');
@@ -162,8 +177,8 @@ describe('verify: DC values in action cards', () => {
   test('passes when no DC values in action cards', async () => {
     await setupState();
     const html = await buildSceneHtml(
-      '<button class="action-card" data-prompt="Try to pick the lock." title="Try to pick the lock.">Pick lock</button>'
-      + '<button class="action-card" data-prompt="Look for another way in." title="Look for another way in.">Find another way</button>',
+      '<button class="action-card" data-prompt="Try to pick the lock." title="Try to pick the lock.">Pick lock</button>' +
+        '<button class="action-card" data-prompt="Look for another way in." title="Look for another way in.">Find another way</button>',
     );
     const path = join(tempDir, 'scene.html');
     writeFileSync(path, html, 'utf-8');
@@ -175,8 +190,8 @@ describe('verify: DC values in action cards', () => {
   test('does not false-positive on DC as name or abbreviation', async () => {
     await setupState();
     const html = await buildSceneHtml(
-      '<button class="action-card" data-prompt="Talk to DC Monroe." title="Talk to DC Monroe.">Talk to Monroe</button>'
-      + '<button class="action-card" data-prompt="Head to the ADC." title="Head to the ADC.">Go to ADC</button>',
+      '<button class="action-card" data-prompt="Talk to DC Monroe." title="Talk to DC Monroe.">Talk to Monroe</button>' +
+        '<button class="action-card" data-prompt="Head to the ADC." title="Head to the ADC.">Go to ADC</button>',
     );
     const path = join(tempDir, 'scene.html');
     writeFileSync(path, html, 'utf-8');
@@ -188,13 +203,14 @@ describe('verify: DC values in action cards', () => {
   test('skips DC check when die-rolls module is not active', async () => {
     await setupState();
     // Remove die-rolls from active modules
-    await handleState(['set', 'modulesActive', JSON.stringify([
-      'gm-checklist', 'prose-craft', 'core-systems',
-      'character-creation', 'save-codex',
-    ])]);
+    await handleState([
+      'set',
+      'modulesActive',
+      JSON.stringify(['gm-checklist', 'prose-craft', 'core-systems', 'character-creation', 'save-codex']),
+    ]);
     const html = await buildSceneHtml(
-      '<button class="action-card" data-prompt="Attempt the DC 15 lock." title="Attempt the DC 15 lock.">Pick lock</button>'
-      + '<button class="action-card" data-prompt="Walk away." title="Walk away.">Walk away</button>',
+      '<button class="action-card" data-prompt="Attempt the DC 15 lock." title="Attempt the DC 15 lock.">Pick lock</button>' +
+        '<button class="action-card" data-prompt="Walk away." title="Walk away.">Walk away</button>',
     );
     const path = join(tempDir, 'scene.html');
     writeFileSync(path, html, 'utf-8');
@@ -211,8 +227,8 @@ describe('verify: POI and action button title structure', () => {
   test('fails when poi-btn has flat text without strong element', async () => {
     await setupState();
     const html = await buildSceneHtml(
-      '<button class="poi-btn" data-poi="oren" data-prompt="Investigate Oren Silt." title="Investigate Oren Silt.">Watch Oren SiltThe dock fixer signals someone is watching.</button>'
-      + '<button class="action-btn" data-prompt="Head to market." title="Head to market."><strong class="btn-title">Head to market</strong>Where scrip changes hands.</button>',
+      '<button class="poi-btn" data-poi="oren" data-prompt="Investigate Oren Silt." title="Investigate Oren Silt.">Watch Oren SiltThe dock fixer signals someone is watching.</button>' +
+        '<button class="action-btn" data-prompt="Head to market." title="Head to market."><strong class="btn-title">Head to market</strong>Where scrip changes hands.</button>',
     );
     const path = join(tempDir, 'scene.html');
     writeFileSync(path, html, 'utf-8');
@@ -224,8 +240,8 @@ describe('verify: POI and action button title structure', () => {
   test('fails when action-btn has flat text without strong element', async () => {
     await setupState();
     const html = await buildSceneHtml(
-      '<button class="action-btn" data-prompt="Go to Sounding House." title="Go to Sounding House.">Go to the Sounding HouseCharter headquarters.</button>'
-      + '<button class="action-btn" data-prompt="Leave." title="Leave."><strong class="btn-title">Leave the quay</strong>Head back to your berth.</button>',
+      '<button class="action-btn" data-prompt="Go to Sounding House." title="Go to Sounding House.">Go to the Sounding HouseCharter headquarters.</button>' +
+        '<button class="action-btn" data-prompt="Leave." title="Leave."><strong class="btn-title">Leave the quay</strong>Head back to your berth.</button>',
     );
     const path = join(tempDir, 'scene.html');
     writeFileSync(path, html, 'utf-8');
@@ -237,8 +253,8 @@ describe('verify: POI and action button title structure', () => {
   test('fails when action-card has flat text without strong element', async () => {
     await setupState();
     const html = await buildSceneHtml(
-      '<button class="action-card" data-prompt="Talk to Oren." title="Talk to Oren.">Talk to Oren SiltThe fixer knows dock gossip.</button>'
-      + '<button class="action-card" data-prompt="Leave." title="Leave."><strong class="btn-title">Leave quietly</strong>Slip away before anyone notices.</button>',
+      '<button class="action-card" data-prompt="Talk to Oren." title="Talk to Oren.">Talk to Oren SiltThe fixer knows dock gossip.</button>' +
+        '<button class="action-card" data-prompt="Leave." title="Leave."><strong class="btn-title">Leave quietly</strong>Slip away before anyone notices.</button>',
     );
     const path = join(tempDir, 'scene.html');
     writeFileSync(path, html, 'utf-8');
@@ -250,8 +266,8 @@ describe('verify: POI and action button title structure', () => {
   test('passes when all POI and action buttons have strong title', async () => {
     await setupState();
     const html = await buildSceneHtml(
-      '<button class="poi-btn" data-poi="oren" data-prompt="Investigate Oren." title="Investigate Oren."><strong class="btn-title">Watch Oren Silt</strong>The dock fixer signals someone is watching.</button>'
-      + '<button class="action-btn" data-prompt="Head to market." title="Head to market."><strong class="btn-title">Head to Coalglass Market</strong>Where scrip changes hands.</button>',
+      '<button class="poi-btn" data-poi="oren" data-prompt="Investigate Oren." title="Investigate Oren."><strong class="btn-title">Watch Oren Silt</strong>The dock fixer signals someone is watching.</button>' +
+        '<button class="action-btn" data-prompt="Head to market." title="Head to market."><strong class="btn-title">Head to Coalglass Market</strong>Where scrip changes hands.</button>',
     );
     const path = join(tempDir, 'scene.html');
     writeFileSync(path, html, 'utf-8');
@@ -264,8 +280,8 @@ describe('verify: POI and action button title structure', () => {
     await setupState();
     // Footer buttons don't need title structure — only scene-content buttons
     const html = await buildSceneHtml(
-      '<button class="action-btn" data-prompt="Search." title="Search."><strong class="btn-title">Search the room</strong>Look for clues.</button>'
-      + '<button class="action-btn" data-prompt="Leave." title="Leave."><strong class="btn-title">Leave</strong>Head out.</button>',
+      '<button class="action-btn" data-prompt="Search." title="Search."><strong class="btn-title">Search the room</strong>Look for clues.</button>' +
+        '<button class="action-btn" data-prompt="Leave." title="Leave."><strong class="btn-title">Leave</strong>Head out.</button>',
     );
     const path = join(tempDir, 'scene.html');
     writeFileSync(path, html, 'utf-8');
@@ -277,9 +293,9 @@ describe('verify: POI and action button title structure', () => {
   test('reports count of offending buttons', async () => {
     await setupState();
     const html = await buildSceneHtml(
-      '<button class="poi-btn" data-poi="a" data-prompt="Check A." title="Check A.">Check sensor arrayThe readings are off.</button>'
-      + '<button class="poi-btn" data-poi="b" data-prompt="Check B." title="Check B.">Examine hull breachDamage from the storm.</button>'
-      + '<button class="action-btn" data-prompt="Go." title="Go.">Go to engineeringThe lights are flickering.</button>',
+      '<button class="poi-btn" data-poi="a" data-prompt="Check A." title="Check A.">Check sensor arrayThe readings are off.</button>' +
+        '<button class="poi-btn" data-poi="b" data-prompt="Check B." title="Check B.">Examine hull breachDamage from the storm.</button>' +
+        '<button class="action-btn" data-prompt="Go." title="Go.">Go to engineeringThe lights are flickering.</button>',
     );
     const path = join(tempDir, 'scene.html');
     writeFileSync(path, html, 'utf-8');

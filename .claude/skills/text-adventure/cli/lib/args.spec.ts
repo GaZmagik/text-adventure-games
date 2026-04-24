@@ -31,10 +31,7 @@ describe('parseArgs', () => {
   });
 
   test('mixed: positional, flag with value, and boolean flag', () => {
-    const result = parseArgs(
-      ['scene', '--style', 'station', '--raw'],
-      ['raw'],
-    );
+    const result = parseArgs(['scene', '--style', 'station', '--raw'], ['raw']);
     expect(result.positional).toEqual(['scene']);
     expect(result.flags).toEqual({ style: 'station' });
     expect(result.booleans.has('raw')).toBe(true);
@@ -108,11 +105,7 @@ describe('parseArgs', () => {
 
 describe('parseArgs — multi-word flag values', () => {
   test('rejoins multi-word value split by shell: --name Maren Dray', () => {
-    const result = parseArgs(
-      ['--name', 'Maren', 'Dray', '--tier', 'minion'],
-      [],
-      ['name', 'pronouns', 'tier', 'role'],
-    );
+    const result = parseArgs(['--name', 'Maren', 'Dray', '--tier', 'minion'], [], ['name', 'pronouns', 'tier', 'role']);
     expect(result.flags.name).toBe('Maren Dray');
     expect(result.flags.tier).toBe('minion');
   });
@@ -129,21 +122,13 @@ describe('parseArgs — multi-word flag values', () => {
   });
 
   test('flag without value at end becomes boolean (no multi-word greed)', () => {
-    const result = parseArgs(
-      ['--verbose'],
-      [],
-      ['name'],
-    );
+    const result = parseArgs(['--verbose'], [], ['name']);
     expect(result.booleans.has('verbose')).toBe(true);
     expect(result.flags).toEqual({});
   });
 
   test('flag followed by another flag does not consume it as value', () => {
-    const result = parseArgs(
-      ['--name', '--tier', 'minion'],
-      [],
-      ['name', 'tier'],
-    );
+    const result = parseArgs(['--name', '--tier', 'minion'], [], ['name', 'tier']);
     // --name has no non-flag token after it, so it becomes boolean
     expect(result.booleans.has('name')).toBe(true);
     expect(result.flags.tier).toBe('minion');

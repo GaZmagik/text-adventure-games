@@ -39,7 +39,8 @@ export const SCENE_STRUCTURE: readonly string[] = [
 
 /** Density guidance — how many paragraphs per scene type. */
 export const DENSITY_GUIDANCE = {
-  actOpener: '6-10 paragraphs. Short story density. World-building, character establishment, sensory grounding, NPC introduction, tension, hook.',
+  actOpener:
+    '6-10 paragraphs. Short story density. World-building, character establishment, sensory grounding, NPC introduction, tension, hook.',
   standard: '2-4 paragraphs. One sensory beat, one plot beat, one choice.',
   transition: '1-2 paragraphs. Brief and purposeful.',
 } as const;

@@ -2,16 +2,16 @@
 
 /**
  * Calculates a 32-bit FNV-1a hash of a string.
- * 
+ *
  * @param {string} str - The input string to hash.
  * @returns {string} - An 8-character hex string representing the hash.
- * 
+ *
  * @remarks
  * This is the engine's primary checksum algorithm.
- * 
- * **Warning**: This implementation uses JS UTF-16 code units (`charCodeAt`) 
- * rather than UTF-8 bytes. Multi-byte characters are hashed as their surrogate 
- * pair values. This is a permanent architectural constraint; changing this 
+ *
+ * **Warning**: This implementation uses JS UTF-16 code units (`charCodeAt`)
+ * rather than UTF-8 bytes. Multi-byte characters are hashed as their surrogate
+ * pair values. This is a permanent architectural constraint; changing this
  * would invalidate all existing save files and verification markers.
  */
 export function fnv32(str: string): string {
@@ -39,7 +39,7 @@ type DecodeResult =
 
 /**
  * Parses a save string into its component parts, supporting both new and legacy formats.
- * 
+ *
  * New format (v1.3.0+): `CHECKSUM.FORMAT:PAYLOAD`
  * Legacy format: `FORMAT:CHECKSUM:PAYLOAD`
  */
@@ -72,10 +72,10 @@ function parseSaveString(saveString: string): { checksum: string; format: string
 
 /**
  * Validates the checksum and decodes the Base64 payload of a save/lore string.
- * 
+ *
  * @param {string} saveString - The raw string to decode.
  * @returns {DecodeResult} - The decoded payload and metadata.
- * 
+ *
  * @remarks
  * This function handles the "Master Decoding" logic:
  * 1. Resolves the format (SF1, SF2, SC1, LF1).
@@ -115,7 +115,11 @@ export function validateAndDecode(saveString: string): DecodeResult {
   } catch {
     // If base64 fails on SF1, it may genuinely be LZ-compressed
     if (format === 'SF1') {
-      return { valid: false, error: 'SF1_LZ_COMPRESSED — this save uses LZ-String compression. Vendor lz-string to decode, or re-save from an active session.' };
+      return {
+        valid: false,
+        error:
+          'SF1_LZ_COMPRESSED — this save uses LZ-String compression. Vendor lz-string to decode, or re-save from an active session.',
+      };
     }
     return { valid: false, error: 'DECODE_FAIL' };
   }

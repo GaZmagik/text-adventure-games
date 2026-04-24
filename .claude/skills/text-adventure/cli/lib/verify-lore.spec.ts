@@ -319,9 +319,7 @@ describe('checkLorePregenCharacters', () => {
   test('fails when character missing name', () => {
     const failures: string[] = [];
     const fm: LoreFrontmatter = {
-      preGeneratedCharacters: [
-        { class: 'Fighter', hp: 30 },
-      ],
+      preGeneratedCharacters: [{ class: 'Fighter', hp: 30 }],
     };
     checkLorePregenCharacters(fm, failures);
     expect(failures).toHaveLength(1);
@@ -332,9 +330,7 @@ describe('checkLorePregenCharacters', () => {
   test('fails when character missing hp', () => {
     const failures: string[] = [];
     const fm: LoreFrontmatter = {
-      preGeneratedCharacters: [
-        { name: 'Kira', class: 'Wizard' },
-      ],
+      preGeneratedCharacters: [{ name: 'Kira', class: 'Wizard' }],
     };
     checkLorePregenCharacters(fm, failures);
     expect(failures).toHaveLength(1);
@@ -344,9 +340,7 @@ describe('checkLorePregenCharacters', () => {
   test('fails when stats block has wrong number of keys', () => {
     const failures: string[] = [];
     const fm: LoreFrontmatter = {
-      preGeneratedCharacters: [
-        { name: 'Kira', class: 'Wizard', hp: 20, stats: { STR: 8, DEX: 14, CON: 10 } },
-      ],
+      preGeneratedCharacters: [{ name: 'Kira', class: 'Wizard', hp: 20, stats: { STR: 8, DEX: 14, CON: 10 } }],
     };
     checkLorePregenCharacters(fm, failures);
     expect(failures).toHaveLength(1);
@@ -385,8 +379,7 @@ describe('checkLoreBodySections', () => {
   test('fails when NPC Roster missing', () => {
     const failures: string[] = [];
     const warnings: string[] = [];
-    const lore = MINIMAL_VALID_LORE
-      .replace('## NPC Roster\n\n### Captain Vex\nA grizzled veteran.\n', '');
+    const lore = MINIMAL_VALID_LORE.replace('## NPC Roster\n\n### Captain Vex\nA grizzled veteran.\n', '');
     checkLoreBodySections(lore, {}, false, failures, warnings);
     const joined = failures.join(' ');
     expect(joined).toContain('NPC Roster');

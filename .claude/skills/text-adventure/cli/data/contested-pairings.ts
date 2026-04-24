@@ -9,16 +9,16 @@ type ContestedPairing = {
 
 // From die-rolls.md § Contested Check Attribute Pairings
 export const CONTESTED_PAIRINGS: ContestedPairing[] = [
-  { action: 'Persuade',         playerAttribute: ['CHA'],       npcAttribute: ['WIS'] },
-  { action: 'Deceive',          playerAttribute: ['CHA'],       npcAttribute: ['WIS', 'INT'] },
-  { action: 'Intimidate',       playerAttribute: ['STR', 'CHA'], npcAttribute: ['WIS', 'CHA'] },
-  { action: 'Pickpocket',       playerAttribute: ['DEX'],       npcAttribute: ['WIS'] },
-  { action: 'Sneak past',       playerAttribute: ['DEX'],       npcAttribute: ['WIS'] },
-  { action: 'Arm wrestle',      playerAttribute: ['STR'],       npcAttribute: ['STR'] },
-  { action: 'Outwit',           playerAttribute: ['INT'],       npcAttribute: ['INT', 'WIS'] },
-  { action: 'Read intentions',  playerAttribute: ['WIS'],       npcAttribute: ['CHA'] },
-  { action: 'Resist charm',     playerAttribute: ['WIS'],       npcAttribute: ['CHA'] },
-  { action: 'Spot deception',   playerAttribute: ['WIS', 'INT'], npcAttribute: ['CHA'] },
+  { action: 'Persuade', playerAttribute: ['CHA'], npcAttribute: ['WIS'] },
+  { action: 'Deceive', playerAttribute: ['CHA'], npcAttribute: ['WIS', 'INT'] },
+  { action: 'Intimidate', playerAttribute: ['STR', 'CHA'], npcAttribute: ['WIS', 'CHA'] },
+  { action: 'Pickpocket', playerAttribute: ['DEX'], npcAttribute: ['WIS'] },
+  { action: 'Sneak past', playerAttribute: ['DEX'], npcAttribute: ['WIS'] },
+  { action: 'Arm wrestle', playerAttribute: ['STR'], npcAttribute: ['STR'] },
+  { action: 'Outwit', playerAttribute: ['INT'], npcAttribute: ['INT', 'WIS'] },
+  { action: 'Read intentions', playerAttribute: ['WIS'], npcAttribute: ['CHA'] },
+  { action: 'Resist charm', playerAttribute: ['WIS'], npcAttribute: ['CHA'] },
+  { action: 'Spot deception', playerAttribute: ['WIS', 'INT'], npcAttribute: ['CHA'] },
 ];
 
 // Default opposing attribute lookup — returns the most common NPC

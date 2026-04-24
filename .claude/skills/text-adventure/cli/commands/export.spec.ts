@@ -5,7 +5,12 @@ import { tmpdir } from 'node:os';
 import { handleExport } from './export';
 import { saveState, createDefaultState, loadState } from '../lib/state-store';
 import { attachChecksum } from '../lib/fnv32';
-import { extractLorePayload, extractFrontmatterField, encodeLorePayload, extractMechanicalData } from '../lib/lore-serialiser';
+import {
+  extractLorePayload,
+  extractFrontmatterField,
+  encodeLorePayload,
+  extractMechanicalData,
+} from '../lib/lore-serialiser';
 import type { NpcMutation, Pronouns, BestiaryTier } from '../types';
 
 let tempDir: string;
@@ -13,13 +18,25 @@ const originalEnv = process.env.TAG_STATE_DIR;
 
 function makeNpc(overrides: Partial<NpcMutation> = {}): NpcMutation {
   return {
-    id: 'npc-kira', name: 'Kira Voss', pronouns: 'she/her' as Pronouns,
-    role: 'Smuggler', tier: 'rival' as BestiaryTier, level: 3,
+    id: 'npc-kira',
+    name: 'Kira Voss',
+    pronouns: 'she/her' as Pronouns,
+    role: 'Smuggler',
+    tier: 'rival' as BestiaryTier,
+    level: 3,
     stats: { STR: 10, DEX: 16, CON: 12, INT: 14, WIS: 10, CHA: 13 },
     modifiers: { STR: 0, DEX: 3, CON: 1, INT: 2, WIS: 0, CHA: 1 },
-    hp: 22, maxHp: 22, ac: 14, soak: 1, damageDice: '1d8+3',
-    status: 'active', alive: true, trust: 30, disposition: 'friendly',
-    dispositionSeed: 42, ...overrides,
+    hp: 22,
+    maxHp: 22,
+    ac: 14,
+    soak: 1,
+    damageDice: '1d8+3',
+    status: 'active',
+    alive: true,
+    trust: 30,
+    disposition: 'friendly',
+    dispositionSeed: 42,
+    ...overrides,
   };
 }
 
@@ -31,20 +48,34 @@ beforeEach(async () => {
   state.seed = 'export-seed-01';
   state.theme = 'sci-fi';
   state.modulesActive = ['core-systems', 'bestiary'];
-  state.factions = { 'Rebellion': 40, 'Empire': -70 };
+  state.factions = { Rebellion: 40, Empire: -70 };
   state.rosterMutations = [makeNpc()];
-  state.quests = [{
-    id: 'q1', title: 'Escape the Station', status: 'active',
-    objectives: [{ id: 'o1', description: 'Find the hangar', completed: false }],
-    clues: ['A keycard'],
-  }];
+  state.quests = [
+    {
+      id: 'q1',
+      title: 'Escape the Station',
+      status: 'active',
+      objectives: [{ id: 'o1', description: 'Find the hangar', completed: false }],
+      clues: ['A keycard'],
+    },
+  ];
   state.character = {
-    name: 'Zara', class: 'Pilot', hp: 15, maxHp: 18, ac: 12,
-    level: 3, xp: 900, currency: 50, currencyName: 'credits',
+    name: 'Zara',
+    class: 'Pilot',
+    hp: 15,
+    maxHp: 18,
+    ac: 12,
+    level: 3,
+    xp: 900,
+    currency: 50,
+    currencyName: 'credits',
     stats: { STR: 10, DEX: 14, CON: 12, INT: 13, WIS: 10, CHA: 11 },
     modifiers: { STR: 0, DEX: 2, CON: 1, INT: 1, WIS: 0, CHA: 0 },
-    proficiencyBonus: 2, proficiencies: ['Piloting'],
-    abilities: [], inventory: [], conditions: [],
+    proficiencyBonus: 2,
+    proficiencies: ['Piloting'],
+    abilities: [],
+    inventory: [],
+    conditions: [],
     equipment: { weapon: 'Blaster Pistol', armour: 'Flight Suit' },
   };
   await saveState(state);
@@ -175,7 +206,7 @@ describe('export load', () => {
     expect(restored._stateHistory).toEqual([]);
 
     // Mechanical data should be present
-    expect(restored.factions).toEqual({ 'Rebellion': 40, 'Empire': -70 });
+    expect(restored.factions).toEqual({ Rebellion: 40, Empire: -70 });
     expect(restored.rosterMutations).toHaveLength(1);
     expect(restored.rosterMutations[0]!.name).toBe('Kira Voss');
     expect(restored.quests).toHaveLength(1);
@@ -211,7 +242,11 @@ describe('export load', () => {
     const mechData = extractMechanicalData(minState);
     const payload = attachChecksum(encodeLorePayload(mechData));
     const lorePath = join(tempDir, 'legacy.lore.md');
-    writeFileSync(lorePath, `---\nformat: text-adventure-lore\nversion: 1\nedited: false\n---\n\n<!-- LORE:${payload} -->\n`, 'utf-8');
+    writeFileSync(
+      lorePath,
+      `---\nformat: text-adventure-lore\nversion: 1\nedited: false\n---\n\n<!-- LORE:${payload} -->\n`,
+      'utf-8',
+    );
 
     const loadResult = await handleExport(['load', lorePath]);
     expect(loadResult.ok).toBe(true);
@@ -224,17 +259,21 @@ describe('export load', () => {
   test('restores rulebook from system frontmatter alias when payload omits it', async () => {
     const payload = attachChecksum(encodeLorePayload(extractMechanicalData(createDefaultState())));
     const lorePath = join(tempDir, 'system-alias.lore.md');
-    writeFileSync(lorePath, [
-      '---',
-      'format: text-adventure-lore',
-      'version: 1',
-      'edited: false',
-      'system: d20_system',
-      '---',
-      '',
-      `<!-- LORE:${payload} -->`,
-      '',
-    ].join('\n'), 'utf-8');
+    writeFileSync(
+      lorePath,
+      [
+        '---',
+        'format: text-adventure-lore',
+        'version: 1',
+        'edited: false',
+        'system: d20_system',
+        '---',
+        '',
+        `<!-- LORE:${payload} -->`,
+        '',
+      ].join('\n'),
+      'utf-8',
+    );
 
     const result = await handleExport(['load', lorePath]);
     expect(result.ok).toBe(true);

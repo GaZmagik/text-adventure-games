@@ -31,22 +31,34 @@ async function setupState(modules: string[] = []): Promise<void> {
   state.currentRoom = 'bridge';
   state.visualStyle = 'station';
   state.modulesActive = [
-    'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-    'character-creation', 'save-codex', ...modules,
+    'gm-checklist',
+    'prose-craft',
+    'core-systems',
+    'die-rolls',
+    'character-creation',
+    'save-codex',
+    ...modules,
   ];
-  state._modulesRead = [
-    'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-    'character-creation', 'save-codex',
-  ];
+  state._modulesRead = ['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex'];
   state._proseCraftEpoch = 0;
   state._styleReadEpoch = 0;
   state.character = {
-    name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-    level: 1, xp: 0, currency: 0, currencyName: 'credits',
+    name: 'Test',
+    class: 'Scout',
+    hp: 10,
+    maxHp: 10,
+    ac: 12,
+    level: 1,
+    xp: 0,
+    currency: 0,
+    currencyName: 'credits',
     stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
     modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-    proficiencyBonus: 2, proficiencies: [], abilities: [],
-    inventory: [], conditions: [],
+    proficiencyBonus: 2,
+    proficiencies: [],
+    abilities: [],
+    inventory: [],
+    conditions: [],
     equipment: { weapon: 'Knife', armour: 'Vest' },
   };
   await saveState(state);
@@ -96,7 +108,9 @@ describe('svgGuidance in scene render', () => {
     const data = result.data as Record<string, unknown>;
     const svg = data.svgGuidance as Record<string, unknown>;
     const suggestions = svg.suggestions as string[];
-    expect(suggestions.some(s => s.toLowerCase().includes('star') || s.toLowerCase().includes('navigation'))).toBe(true);
+    expect(suggestions.some(s => s.toLowerCase().includes('star') || s.toLowerCase().includes('navigation'))).toBe(
+      true,
+    );
   });
 
   test('suggests floor plan when geo-map active', async () => {
@@ -105,7 +119,11 @@ describe('svgGuidance in scene render', () => {
     const data = result.data as Record<string, unknown>;
     const svg = data.svgGuidance as Record<string, unknown>;
     const suggestions = svg.suggestions as string[];
-    expect(suggestions.some(s => s.toLowerCase().includes('map') || s.toLowerCase().includes('floor') || s.toLowerCase().includes('layout'))).toBe(true);
+    expect(
+      suggestions.some(
+        s => s.toLowerCase().includes('map') || s.toLowerCase().includes('floor') || s.toLowerCase().includes('layout'),
+      ),
+    ).toBe(true);
   });
 
   test('includes cssVariables hint with --sta- prefix', async () => {
@@ -131,7 +149,7 @@ describe('[object Object] detection in render output', () => {
     const result = await handleRender(['settings', '--data', objData]);
     expect(result.ok).toBe(true);
     const data = result.data as Record<string, unknown>;
-    const html = typeof data === 'string' ? data : (data.html as string) ?? '';
+    const html = typeof data === 'string' ? data : ((data.html as string) ?? '');
     expect(html).not.toContain('[object Object]');
     expect(html).toContain('forgiving');
   });
@@ -142,7 +160,7 @@ describe('[object Object] detection in render output', () => {
     expect(result.ok).toBe(true);
     // Verify no [object Object] in the HTML
     const data = result.data as Record<string, unknown>;
-    const html = typeof data === 'string' ? data : (data.html as string) ?? '';
+    const html = typeof data === 'string' ? data : ((data.html as string) ?? '');
     expect(html).not.toContain('[object Object]');
   });
 

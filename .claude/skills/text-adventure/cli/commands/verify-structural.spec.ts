@@ -36,23 +36,39 @@ async function setupState(): Promise<void> {
   await handleState(['set', 'scene', '1']);
   await handleState(['set', 'currentRoom', 'bridge']);
   await handleState(['set', 'visualStyle', 'station']);
-  await handleState(['set', 'modulesActive', JSON.stringify([
-    'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-    'character-creation', 'save-codex',
-  ])]);
-  await handleState(['set', '_modulesRead', JSON.stringify([
-    'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-    'character-creation', 'save-codex',
-  ])]);
-  await handleState(['set', 'character', JSON.stringify({
-    name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-    level: 1, xp: 0, currency: 0, currencyName: 'credits',
-    stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
-    modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-    proficiencyBonus: 2, proficiencies: [], abilities: [],
-    inventory: [], conditions: [],
-    equipment: { weapon: 'Knife', armour: 'Vest' },
-  })]);
+  await handleState([
+    'set',
+    'modulesActive',
+    JSON.stringify(['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex']),
+  ]);
+  await handleState([
+    'set',
+    '_modulesRead',
+    JSON.stringify(['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex']),
+  ]);
+  await handleState([
+    'set',
+    'character',
+    JSON.stringify({
+      name: 'Test',
+      class: 'Scout',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
+      stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+      modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'Knife', armour: 'Vest' },
+    }),
+  ]);
   await handleState(['set', '_proseCraftEpoch', '0']);
   await handleState(['set', '_styleReadEpoch', '0']);
 }
@@ -61,12 +77,11 @@ async function setupState(): Promise<void> {
 async function buildSceneHtml(): Promise<string> {
   const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
   expect(renderResult.ok).toBe(true);
-  const html = (renderResult.data as string)
-    .replace(
-      '<p><!-- Narrative content rendered by the GM --></p>',
-      '<p class="narrative">The corridor stretches ahead, dimly lit by emergency strips.</p>'
-      + '<p class="narrative">A faint vibration pulses through the deck plates beneath your boots.</p>',
-    );
+  const html = (renderResult.data as string).replace(
+    '<p><!-- Narrative content rendered by the GM --></p>',
+    '<p class="narrative">The corridor stretches ahead, dimly lit by emergency strips.</p>' +
+      '<p class="narrative">A faint vibration pulses through the deck plates beneath your boots.</p>',
+  );
   return html;
 }
 
@@ -75,15 +90,12 @@ async function buildSceneHtml(): Promise<string> {
 describe('verify: checkTagRenderOrigin — progressive reveal', () => {
   test('fails when reveal-brief is removed from valid scene HTML', async () => {
     await setupState();
-    const html = (await buildSceneHtml())
-      .replace('id="reveal-brief"', 'id="reveal-something-else"');
+    const html = (await buildSceneHtml()).replace('id="reveal-brief"', 'id="reveal-something-else"');
     const path = join(tempDir, 'scene.html');
     writeFileSync(path, html, 'utf-8');
     const result = await handleVerify([path]);
     const failures = (result.data as Record<string, unknown>).failures as string[];
-    expect(failures.some(
-      f => f.includes('progressive reveal') || f.includes('NOT produced by tag render'),
-    )).toBe(true);
+    expect(failures.some(f => f.includes('progressive reveal') || f.includes('NOT produced by tag render'))).toBe(true);
   });
 });
 
@@ -92,15 +104,12 @@ describe('verify: checkTagRenderOrigin — progressive reveal', () => {
 describe('verify: checkTagRenderOrigin — CDN script', () => {
   test('fails when tag-scene.js reference is removed from valid scene HTML', async () => {
     await setupState();
-    const html = (await buildSceneHtml())
-      .replace(/tag-scene\.js/g, 'removed-script.js');
+    const html = (await buildSceneHtml()).replace(/tag-scene\.js/g, 'removed-script.js');
     const path = join(tempDir, 'scene.html');
     writeFileSync(path, html, 'utf-8');
     const result = await handleVerify([path]);
     const failures = (result.data as Record<string, unknown>).failures as string[];
-    expect(failures.some(
-      f => f.includes('tag-scene.js') || f.includes('hand-coded'),
-    )).toBe(true);
+    expect(failures.some(f => f.includes('tag-scene.js') || f.includes('hand-coded'))).toBe(true);
   });
 });
 
@@ -159,9 +168,7 @@ describe('verify: checkPanelNesting', () => {
 describe('verify: checkStatusBar', () => {
   test('fails when hp-pips and status-bar are removed from valid scene HTML', async () => {
     await setupState();
-    const html = (await buildSceneHtml())
-      .replace(/hp-pips/g, 'xx-xxxx')
-      .replace(/status-bar/g, 'xxxxxx-xxx');
+    const html = (await buildSceneHtml()).replace(/hp-pips/g, 'xx-xxxx').replace(/status-bar/g, 'xxxxxx-xxx');
     const path = join(tempDir, 'scene.html');
     writeFileSync(path, html, 'utf-8');
     const result = await handleVerify([path]);

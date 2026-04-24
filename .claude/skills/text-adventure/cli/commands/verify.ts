@@ -13,7 +13,6 @@ import { MODULE_PANEL_MAP } from '../lib/module-panel-map';
 import { TIER1_MODULES } from '../lib/constants';
 import {
   extractDivBlockById,
-  extractDivBlockByClass,
   extractAttr,
   extractButtonElements,
   extractPromptElements,
@@ -95,7 +94,9 @@ function resolveStateDir(): string {
   _stateDirCache = getStateDir();
   return _stateDirCache;
 }
-export function clearStateDirCache(): void { _stateDirCache = undefined; }
+export function clearStateDirCache(): void {
+  _stateDirCache = undefined;
+}
 
 export function getVerifyMarkerPath(): string {
   return join(resolveStateDir(), '.last-verify');
@@ -117,7 +118,9 @@ function checkFooter(html: string, state: GmState, failures: string[]): void {
   const footerButtons = extractButtonElements(footerInner);
   const panelButtons = footerButtons.filter(button => button.dataPanel !== null);
   if (footerButtons.length === 0) {
-    failures.push('Footer fallback markup is missing button controls — ta-footer must include inspectable buttons for verify and no-JS mode.');
+    failures.push(
+      'Footer fallback markup is missing button controls — ta-footer must include inspectable buttons for verify and no-JS mode.',
+    );
   }
 
   const modulesMatch = /\bdata-modules\s*=\s*(['"])(.*?)\1/i.exec(attrStr);
@@ -186,7 +189,9 @@ function checkFooter(html: string, state: GmState, failures: string[]): void {
 
   const savePrompt = extractAttr(attrStr, 'data-save-prompt');
   if ((savePrompt?.length ?? 0) < 10) {
-    failures.push('Missing footer save prompt (data-save-prompt) — save flow must remain copyable when the runtime is unavailable.');
+    failures.push(
+      'Missing footer save prompt (data-save-prompt) — save flow must remain copyable when the runtime is unavailable.',
+    );
   }
 
   if (footerButtons.length > 0) {
@@ -195,9 +200,13 @@ function checkFooter(html: string, state: GmState, failures: string[]): void {
       failures.push('Missing footer button: Save action (id="save-btn") — scene footer must always include Save ↗.');
     }
 
-    const missingAriaExpanded = panelButtons.filter(button => !/\baria-expanded\s*=\s*(['"])(true|false)\1/i.test(button.markup));
+    const missingAriaExpanded = panelButtons.filter(
+      button => !/\baria-expanded\s*=\s*(['"])(true|false)\1/i.test(button.markup),
+    );
     if (missingAriaExpanded.length > 0) {
-      failures.push('Footer panel buttons must declare aria-expanded="true|false" so overlay state changes are announced accessibly.');
+      failures.push(
+        'Footer panel buttons must declare aria-expanded="true|false" so overlay state changes are announced accessibly.',
+      );
     }
   }
 
@@ -207,13 +216,19 @@ function checkFooter(html: string, state: GmState, failures: string[]): void {
 
   if (state.modulesActive.includes('adventure-exporting')) {
     if (!hasExport) {
-      failures.push('Missing footer button: Export action (data-has-export="true") — required by active module "adventure-exporting".');
+      failures.push(
+        'Missing footer button: Export action (data-has-export="true") — required by active module "adventure-exporting".',
+      );
     }
     if ((exportPrompt?.length ?? 0) < 10) {
-      failures.push('Missing footer export prompt (data-export-prompt) — export flow must remain copyable when the runtime is unavailable.');
+      failures.push(
+        'Missing footer export prompt (data-export-prompt) — export flow must remain copyable when the runtime is unavailable.',
+      );
     }
   } else if (hasExport) {
-    failures.push('Unexpected footer button: Export action (data-has-export="true") — module "adventure-exporting" is not active.');
+    failures.push(
+      'Unexpected footer button: Export action (data-has-export="true") — module "adventure-exporting" is not active.',
+    );
   }
 
   if (state.modulesActive.includes('audio')) {
@@ -233,22 +248,25 @@ function checkSceneMeta(html: string, failures: string[]): void {
 
 function checkNarrative(html: string, failures: string[]): void {
   const blocks: string[] = [];
-  const pattern = /<div\b[^>]*(?:id\s*=\s*(['"])narrative\1|class\s*=\s*(['"])[^'"]*\bnarrative\b[^'"]*\2)[^>]*>([\s\S]*?)<\/div>/gi;
+  const pattern =
+    /<div\b[^>]*(?:id\s*=\s*(['"])narrative\1|class\s*=\s*(['"])[^'"]*\bnarrative\b[^'"]*\2)[^>]*>([\s\S]*?)<\/div>/gi;
   let match: RegExpExecArray | null;
   while ((match = pattern.exec(html)) !== null) {
     blocks.push(match[3]!);
   }
 
   if (blocks.length === 0) {
-    failures.push('Missing narrative container — scene needs #narrative or .scene-phase .narrative before it can be verified.');
+    failures.push(
+      'Missing narrative container — scene needs #narrative or .scene-phase .narrative before it can be verified.',
+    );
     return;
   }
 
   const tooShort = blocks.filter(block => stripHtml(block).length < 50);
   if (tooShort.length > 0) {
     failures.push(
-      `Found ${tooShort.length} narrative block(s) that are empty or too short. `
-      + 'Compose real prose into #narrative or every .scene-phase .narrative block before verifying.',
+      `Found ${tooShort.length} narrative block(s) that are empty or too short. ` +
+        'Compose real prose into #narrative or every .scene-phase .narrative block before verifying.',
     );
   }
 }
@@ -277,8 +295,8 @@ function checkCss(html: string, failures: string[]): void {
     if (html.includes('.css?v=')) totalCss += MIN_CSS_CHARS;
     if (totalCss < MIN_CSS_CHARS) {
       failures.push(
-        `Shadow DOM CSS is ${totalCss.toLocaleString()} chars — below ${MIN_CSS_CHARS.toLocaleString()} minimum. `
-        + 'The full tag render scene output includes CDN CSS + inline widget CSS.',
+        `Shadow DOM CSS is ${totalCss.toLocaleString()} chars — below ${MIN_CSS_CHARS.toLocaleString()} minimum. ` +
+          'The full tag render scene output includes CDN CSS + inline widget CSS.',
       );
     }
     return;
@@ -291,8 +309,8 @@ function checkCss(html: string, failures: string[]): void {
   }
   if (totalCss < MIN_CSS_CHARS) {
     failures.push(
-      `CSS is ${totalCss.toLocaleString()} chars — below ${MIN_CSS_CHARS.toLocaleString()} minimum. `
-      + 'The full tag render scene output includes ~40K+ of CSS. If CSS is this small, the widget was hand-written instead of composed from the render output.',
+      `CSS is ${totalCss.toLocaleString()} chars — below ${MIN_CSS_CHARS.toLocaleString()} minimum. ` +
+        'The full tag render scene output includes ~40K+ of CSS. If CSS is this small, the widget was hand-written instead of composed from the render output.',
     );
   }
 }
@@ -300,13 +318,17 @@ function checkCss(html: string, failures: string[]): void {
 function checkAtmosphere(html: string, state: GmState, failures: string[]): void {
   if (state.modulesActive.includes('atmosphere')) {
     if (!html.includes('atmo-pill') && !html.includes('atmo-strip')) {
-      failures.push('Missing atmosphere strip — required by active atmosphere module. Include .atmo-pill spans in the .atmo-strip div.');
+      failures.push(
+        'Missing atmosphere strip — required by active atmosphere module. Include .atmo-pill spans in the .atmo-strip div.',
+      );
       return;
     }
 
     const pillCount = countClassOccurrences(html, 'atmo-pill');
     if (pillCount < 3) {
-      failures.push(`Atmosphere strip has ${pillCount} sensory pill(s) — minimum is 3 when the atmosphere module is active.`);
+      failures.push(
+        `Atmosphere strip has ${pillCount} sensory pill(s) — minimum is 3 when the atmosphere module is active.`,
+      );
     }
   }
 }
@@ -315,21 +337,22 @@ function checkActionCards(html: string, failures: string[]): void {
   const sceneContent = extractDivBlockById(html, 'scene-content') ?? html;
   const contentPrompts = extractPromptElements(sceneContent)
     .filter(el => el.id !== 'save-btn' && el.id !== 'export-btn')
-    .filter(el => !el.classes.includes('footer-btn'))
-    .length;
+    .filter(el => !el.classes.includes('footer-btn')).length;
 
   if (contentPrompts < MIN_ACTION_PROMPTS) {
     failures.push(
-      `Found ${contentPrompts} interactive element(s) with data-prompt inside #scene-content — minimum is ${MIN_ACTION_PROMPTS}. `
-      + 'Every scene needs at least 2 visible action cards or POI buttons so the player has choices. '
-      + 'Footer buttons and hidden panel controls do not count.',
+      `Found ${contentPrompts} interactive element(s) with data-prompt inside #scene-content — minimum is ${MIN_ACTION_PROMPTS}. ` +
+        'Every scene needs at least 2 visible action cards or POI buttons so the player has choices. ' +
+        'Footer buttons and hidden panel controls do not count.',
     );
   }
 }
 
 function checkPanelOverlay(html: string, failures: string[]): void {
   if (!html.includes('panel-overlay') && !html.includes('id="panel-overlay"')) {
-    failures.push('Missing panel overlay (id="panel-overlay") — required for Character/Codex/Ship/Crew/Map panel system.');
+    failures.push(
+      'Missing panel overlay (id="panel-overlay") — required for Character/Codex/Ship/Crew/Map panel system.',
+    );
     return;
   }
 
@@ -339,9 +362,13 @@ function checkPanelOverlay(html: string, failures: string[]): void {
 
   const titleTag = /<[^>]+\bid\s*=\s*(['"])panel-title-text\1[^>]*>/i.exec(html)?.[0] ?? null;
   if (!titleTag) {
-    failures.push('Missing panel title element (id="panel-title-text") — overlay panels need a focus target and accessible name.');
+    failures.push(
+      'Missing panel title element (id="panel-title-text") — overlay panels need a focus target and accessible name.',
+    );
   } else if (!/\btabindex\s*=\s*(['"])-1\1/i.test(titleTag)) {
-    failures.push('Panel title (id="panel-title-text") must include tabindex="-1" so focus can move to the overlay heading.');
+    failures.push(
+      'Panel title (id="panel-title-text") must include tabindex="-1" so focus can move to the overlay heading.',
+    );
   }
 
   const overlayTag = /<div\b[^>]*\bid\s*=\s*(['"])panel-overlay\1[^>]*>/i.exec(html)?.[0] ?? null;
@@ -353,8 +380,8 @@ function checkPanelOverlay(html: string, failures: string[]): void {
 function checkVisualStyle(state: GmState, failures: string[]): void {
   if (!state.visualStyle) {
     failures.push(
-      'visualStyle is not set in game state. Run `tag state set visualStyle <name>` before rendering. '
-      + 'Without a visual style, widgets use incorrect colour palettes and may render invisible text in dark mode.',
+      'visualStyle is not set in game state. Run `tag state set visualStyle <name>` before rendering. ' +
+        'Without a visual style, widgets use incorrect colour palettes and may render invisible text in dark mode.',
     );
   }
 }
@@ -365,8 +392,8 @@ function checkHandCodedDice(html: string, failures: string[]): void {
   const geometryPattern = /BufferGeometry|BoxGeometry|IcosahedronGeometry/;
   if (canvasPattern.test(html) || rawGlPattern.test(html) || geometryPattern.test(html)) {
     failures.push(
-      'Detected hand-coded dice canvas or WebGL geometry. Use `tag render dice` or `tag render dice-pool` instead. '
-      + 'Hand-coded dice omit the WebGL renderer, quaternion animation, numbered face textures, click-to-roll mechanics, and deterministic seeding.',
+      'Detected hand-coded dice canvas or WebGL geometry. Use `tag render dice` or `tag render dice-pool` instead. ' +
+        'Hand-coded dice omit the WebGL renderer, quaternion animation, numbered face textures, click-to-roll mechanics, and deterministic seeding.',
     );
   }
 }
@@ -376,9 +403,9 @@ function checkTier1Modules(state: GmState, failures: string[]): void {
   const missing = TIER1_MODULES.filter(m => !active.has(m));
   if (missing.length > 0) {
     failures.push(
-      `Missing Tier 1 modules in modulesActive: ${missing.join(', ')}. `
-      + 'These must be active before rendering any widget. '
-      + 'Run `tag state set modulesActive \'["gm-checklist","prose-craft","core-systems","die-rolls","character-creation","save-codex"]\'`.',
+      `Missing Tier 1 modules in modulesActive: ${missing.join(', ')}. ` +
+        'These must be active before rendering any widget. ' +
+        'Run `tag state set modulesActive \'["gm-checklist","prose-craft","core-systems","die-rolls","character-creation","save-codex"]\'`.',
     );
   }
 }
@@ -386,18 +413,18 @@ function checkTier1Modules(state: GmState, failures: string[]): void {
 function checkTagRenderOrigin(html: string, failures: string[]): void {
   if (!html.includes('id="reveal-brief"') || !html.includes('id="reveal-full"')) {
     failures.push(
-      'Missing progressive reveal structure (#reveal-brief / #reveal-full). '
-      + 'This widget was NOT produced by tag render scene. Hand-coded widgets are forbidden — '
-      + 'use the html field from tag render scene output as the base, then compose narrative into it.',
+      'Missing progressive reveal structure (#reveal-brief / #reveal-full). ' +
+        'This widget was NOT produced by tag render scene. Hand-coded widgets are forbidden — ' +
+        'use the html field from tag render scene output as the base, then compose narrative into it.',
     );
   }
   if (!html.includes('tag-scene.js')) {
     failures.push(
-      'Missing CDN script reference (tag-scene.js). '
-      + 'This widget was hand-coded instead of using tag render scene output. '
-      + 'Hand-coded JS lacks panel wiring, sendPrompt fallback, POI budget, and audio support. '
-      + 'Recovery: discard this HTML. Run `tag render scene --style <style> > /tmp/scene.html`, '
-      + 'fill in the <!-- [NARRATIVE] --> and <!-- [BRIEF] --> placeholders, then re-verify.',
+      'Missing CDN script reference (tag-scene.js). ' +
+        'This widget was hand-coded instead of using tag render scene output. ' +
+        'Hand-coded JS lacks panel wiring, sendPrompt fallback, POI budget, and audio support. ' +
+        'Recovery: discard this HTML. Run `tag render scene --style <style> > /tmp/scene.html`, ' +
+        'fill in the <!-- [NARRATIVE] --> and <!-- [BRIEF] --> placeholders, then re-verify.',
     );
   }
 }
@@ -411,10 +438,10 @@ function checkPanelNesting(html: string, failures: string[]): void {
     const closeDivs = (betweenContent.match(/<\/div>/g) || []).length;
     if (openDivs > closeDivs) {
       failures.push(
-        'Panel overlay (#panel-overlay) is nested inside #scene-content. '
-        + 'When scene-content is hidden to show a panel, the overlay hides too — '
-        + 'breaking all panel buttons. Use tag render scene output which places the '
-        + 'overlay as a sibling of scene-content.',
+        'Panel overlay (#panel-overlay) is nested inside #scene-content. ' +
+          'When scene-content is hidden to show a panel, the overlay hides too — ' +
+          'breaking all panel buttons. Use tag render scene output which places the ' +
+          'overlay as a sibling of scene-content.',
       );
     }
   }
@@ -433,11 +460,12 @@ function extractActionPrompts(html: string): string[] {
   const sceneContent = extractDivBlockById(html, 'scene-content') ?? html;
   return extractButtonElements(sceneContent)
     .filter(el => el.prompt !== null)
-    .filter(el =>
-      el.classes.includes('action-card')
-      || el.classes.includes('action-btn')
-      || el.classes.includes('poi-btn')
-      || el.markup.toLowerCase().startsWith('<ta-action-card')
+    .filter(
+      el =>
+        el.classes.includes('action-card') ||
+        el.classes.includes('action-btn') ||
+        el.classes.includes('poi-btn') ||
+        el.markup.toLowerCase().startsWith('<ta-action-card'),
     )
     .map(el => el.prompt!);
 }
@@ -460,8 +488,8 @@ function checkActionCardEditorialLabels(html: string, failures: string[]): void 
 
   if (found.length > 0) {
     failures.push(
-      `Action card(s) include editorial guidance labels — player choices must remain neutral. `
-      + `Choices must not be framed as safe, risky, or recommended. ${found.join('; ')}.`,
+      `Action card(s) include editorial guidance labels — player choices must remain neutral. ` +
+        `Choices must not be framed as safe, risky, or recommended. ${found.join('; ')}.`,
     );
   }
 }
@@ -478,8 +506,8 @@ function checkActionCardStatNames(html: string, failures: string[]): void {
   }
   if (found.length > 0) {
     failures.push(
-      `Action card(s) reveal stat name(s) — Golden Rule 4 violation. `
-      + `Options must describe actions, not stats. ${found.join('; ')}.`,
+      `Action card(s) reveal stat name(s) — Golden Rule 4 violation. ` +
+        `Options must describe actions, not stats. ${found.join('; ')}.`,
     );
   }
 }
@@ -497,8 +525,8 @@ function checkActionCardDcValues(html: string, state: GmState, failures: string[
   }
   if (found.length > 0) {
     failures.push(
-      `Action card(s) reveal difficulty class (DC) values — Golden Rule 3 violation. `
-      + `DC is hidden until after the player commits to an action. ${found.join('; ')}.`,
+      `Action card(s) reveal difficulty class (DC) values — Golden Rule 3 violation. ` +
+        `DC is hidden until after the player commits to an action. ${found.join('; ')}.`,
     );
   }
 }
@@ -508,19 +536,20 @@ function checkActionCardDcValues(html: string, state: GmState, failures: string[
  *  when styles apply text-transform: uppercase. */
 function checkButtonTitleStructure(html: string, failures: string[]): void {
   const buttons = extractButtonElements(html).filter(
-    btn => btn.classes.includes('poi-btn')
-      || btn.classes.includes('action-btn')
-      || btn.classes.includes('action-card')
-      || btn.markup.toLowerCase().startsWith('<ta-action-card'),
+    btn =>
+      btn.classes.includes('poi-btn') ||
+      btn.classes.includes('action-btn') ||
+      btn.classes.includes('action-card') ||
+      btn.markup.toLowerCase().startsWith('<ta-action-card'),
   );
   if (buttons.length === 0) return;
 
   const flat = buttons.filter(btn => !/<strong\b/i.test(btn.markup));
   if (flat.length > 0) {
     failures.push(
-      `Found ${flat.length} POI/action button(s) without internal title structure. `
-      + 'Use <strong class="btn-title">Title</strong> followed by description text inside each .poi-btn, .action-btn, and .action-card. '
-      + 'Flat text concatenates title and description with no visual separation.',
+      `Found ${flat.length} POI/action button(s) without internal title structure. ` +
+        'Use <strong class="btn-title">Title</strong> followed by description text inside each .poi-btn, .action-btn, and .action-card. ' +
+        'Flat text concatenates title and description with no visual separation.',
     );
   }
 }
@@ -530,9 +559,28 @@ const PRE_GAME_WIDGET_TYPES = new Set(['scenario', 'rules', 'character']);
 /** In-game widget types that are NOT scenes — they come unmodified from tag render
  *  and only need lightweight verification (broken serialisation). */
 const IN_GAME_WIDGET_TYPES = new Set([
-  'dice', 'dice-pool', 'dialogue', 'levelup', 'recap',
-  'combat-turn', 'arc-complete', 'ticker', 'ship', 'crew',
-  'codex', 'map', 'starchart', 'footer', 'save-div',
+  'dice',
+  'dice-pool',
+  'dialogue',
+  'levelup',
+  'recap',
+  'combat-turn',
+  'arc-complete',
+  'ticker',
+  'ship',
+  'crew',
+  'codex',
+  'quest-log',
+  'map',
+  'world-preview',
+  'route-planner',
+  'faction-board',
+  'relationship-web',
+  'world-atlas',
+  'clue-board',
+  'starchart',
+  'footer',
+  'save-div',
 ]);
 
 /** Check if a pre-game widget type has a valid verify marker. */
@@ -552,7 +600,11 @@ function readHtmlFile(filePath: string): string | CommandResult {
   try {
     const safePath = resolveSafeReadPath(filePath, { kind: 'Verify', extensions: ['.html', '.htm'] });
     if (!safePath) {
-      return fail(`Invalid file path: ${filePath}`, 'Path must start with /, ./, ../, or ~/ and end with .html or .htm.', 'verify');
+      return fail(
+        `Invalid file path: ${filePath}`,
+        'Path must start with /, ./, ../, or ~/ and end with .html or .htm.',
+        'verify',
+      );
     }
     return readFileSync(safePath, 'utf-8');
   } catch (err: unknown) {
@@ -565,7 +617,11 @@ function readLoreMdFile(filePath: string): string | CommandResult {
   try {
     const safePath = resolveSafeReadPath(filePath, { kind: 'Verify', extensions: ['.md'] });
     if (!safePath) {
-      return fail(`Invalid file path: ${filePath}`, 'Path must end with .md and start with /, ./, ../, or ~/.', 'verify lore');
+      return fail(
+        `Invalid file path: ${filePath}`,
+        'Path must end with .md and start with /, ./, ../, or ~/.',
+        'verify lore',
+      );
     }
     return readFileSync(safePath, 'utf-8');
   } catch (err: unknown) {
@@ -579,7 +635,7 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
   if (!first) {
     return fail(
       'No arguments provided.',
-      'Usage: tag verify /tmp/scene.html OR tag verify <type> /tmp/widget.html (types: scenario, rules, character, dice, dialogue, levelup, combat-turn, arc-complete, etc.)',
+      'Usage: tag verify /tmp/scene.html OR tag verify <type> /tmp/widget.html (types: scenario, rules, character, dice, dialogue, quest-log, map, world-preview, route-planner, levelup, combat-turn, arc-complete, etc.)',
       'verify',
     );
   }
@@ -588,28 +644,38 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
   if (first === 'lore') {
     const lorePath = args[1];
     if (!lorePath) {
-      return fail('No file path provided for lore verification.', 'Usage: tag verify lore /path/to/world.lore.md', 'verify lore');
+      return fail(
+        'No file path provided for lore verification.',
+        'Usage: tag verify lore /path/to/world.lore.md',
+        'verify lore',
+      );
     }
     const contentOrError = readLoreMdFile(lorePath);
     if (typeof contentOrError !== 'string') return contentOrError;
 
     const result = verifyLoreFile(contentOrError);
     if (result.failures.length > 0) {
-      return ok({
-        status: 'fail',
-        failures: result.failures,
+      return ok(
+        {
+          status: 'fail',
+          failures: result.failures,
+          warnings: result.warnings,
+          checks: result.checks,
+          frontmatter: result.frontmatter,
+        },
+        'verify lore',
+      );
+    }
+    return ok(
+      {
+        status: 'pass',
+        failures: [],
         warnings: result.warnings,
         checks: result.checks,
         frontmatter: result.frontmatter,
-      }, 'verify lore');
-    }
-    return ok({
-      status: 'pass',
-      failures: [],
-      warnings: result.warnings,
-      checks: result.checks,
-      frontmatter: result.frontmatter,
-    }, 'verify lore');
+      },
+      'verify lore',
+    );
   }
 
   // Prose-only dry run — no structural gates, no state side-effects, no markers written
@@ -628,15 +694,19 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
     const text = extractNarrativeText(htmlOrError) ?? '';
     const proseFailures: string[] = [];
     const r = checkProseContentFromText(text, proseFailures);
-    return ok({
-      failures: proseFailures,
-      warnings: r.warnings,
-      metrics: r.metrics,
-      checks: proseFailures.length + r.warnings.length,
-      message: proseFailures.length === 0
-        ? 'Prose checks passed. No structural gates were applied — run `tag verify /tmp/scene.html` for full verification.'
-        : `${proseFailures.length} prose issue(s) found. Fix before running full \`tag verify\`.`,
-    }, 'verify prose');
+    return ok(
+      {
+        failures: proseFailures,
+        warnings: r.warnings,
+        metrics: r.metrics,
+        checks: proseFailures.length + r.warnings.length,
+        message:
+          proseFailures.length === 0
+            ? 'Prose checks passed. No structural gates were applied — run `tag verify /tmp/scene.html` for full verification.'
+            : `${proseFailures.length} prose issue(s) found. Fix before running full \`tag verify\`.`,
+      },
+      'verify prose',
+    );
   }
 
   // Detect widget type from first argument
@@ -738,12 +808,22 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
       try {
         writeFileSync(getVerifyMarkerPath(), signMarker(state.scene), 'utf-8');
       } catch (err) {
-        console.error(`[tag verify] Failed to write verify marker: ${errorMessage(err)}. Ensure ${resolveStateDir()} exists and is writable.`);
+        console.error(
+          `[tag verify] Failed to write verify marker: ${errorMessage(err)}. Ensure ${resolveStateDir()} exists and is writable.`,
+        );
       }
       state._turnCount = (state._turnCount ?? 0) + 1;
       await saveState(state);
-      try { unlinkSync(getNeedsVerifyPath()); } catch { /* already cleared */ }
-      try { unlinkSync(getSyncMarkerPath()); } catch { /* already cleared */ }
+      try {
+        unlinkSync(getNeedsVerifyPath());
+      } catch {
+        /* already cleared */
+      }
+      try {
+        unlinkSync(getSyncMarkerPath());
+      } catch {
+        /* already cleared */
+      }
       if (pendingProseFingerprint) {
         saveProseHistory(resolveStateDir(), appendFingerprint(pendingProseHistory, pendingProseFingerprint));
       }
@@ -753,24 +833,33 @@ export async function handleVerify(args: string[]): Promise<CommandResult> {
       try {
         writeFileSync(markerPath, signMarker(0), 'utf-8');
       } catch (err) {
-        console.error(`[tag verify] Failed to write pre-game marker: ${errorMessage(err)}. Ensure ${resolveStateDir()} exists and is writable.`);
+        console.error(
+          `[tag verify] Failed to write pre-game marker: ${errorMessage(err)}. Ensure ${resolveStateDir()} exists and is writable.`,
+        );
       }
     }
     // In-game non-scene widgets: no marker needed — they come unmodified from tag render
   }
 
-  return ok({
-    verified: passed,
-    widgetType,
-    scene: state.scene,
-    failures,
-    ...(proseWarnings.length > 0 ? { proseWarnings } : {}),
-    ...(proseMetrics ? { proseMetrics } : {}),
-    checks: TOTAL_CHECKS,
-    htmlChars: html.length,
-    ...(widgetType === 'rules' && state._loreDefaults ? { loreDefaults: state._loreDefaults } : {}),
-    ...(passed
-      ? { message: `${widgetType} widget verified. All ${TOTAL_CHECKS} checks passed. Pass to show_widget NOW. Do NOT modify the HTML. Do NOT embed save data, export data, or base64 strings — the Save and Export footer buttons handle this when the player clicks them.` }
-      : { message: `BLOCKED — ${widgetType} widget failed ${failures.length} of ${TOTAL_CHECKS} checks. DO NOT pass this HTML to show_widget. Fix every issue listed above, then re-run \`tag verify\`. The player must never see an unverified widget.` }),
-  }, 'verify');
+  return ok(
+    {
+      verified: passed,
+      widgetType,
+      scene: state.scene,
+      failures,
+      ...(proseWarnings.length > 0 ? { proseWarnings } : {}),
+      ...(proseMetrics ? { proseMetrics } : {}),
+      checks: TOTAL_CHECKS,
+      htmlChars: html.length,
+      ...(widgetType === 'rules' && state._loreDefaults ? { loreDefaults: state._loreDefaults } : {}),
+      ...(passed
+        ? {
+            message: `${widgetType} widget verified. All ${TOTAL_CHECKS} checks passed. Pass to show_widget NOW. Do NOT modify the HTML. Do NOT embed save data, export data, or base64 strings — the Save and Export footer buttons handle this when the player clicks them.`,
+          }
+        : {
+            message: `BLOCKED — ${widgetType} widget failed ${failures.length} of ${TOTAL_CHECKS} checks. DO NOT pass this HTML to show_widget. Fix every issue listed above, then re-run \`tag verify\`. The player must never see an unverified widget.`,
+          }),
+    },
+    'verify',
+  );
 }

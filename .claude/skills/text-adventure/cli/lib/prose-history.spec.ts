@@ -248,9 +248,7 @@ describe('checkCrossSceneProse', () => {
   test('does not warn when vocabulary overlap is below threshold', () => {
     const failures: string[] = [];
     const warnings: string[] = [];
-    const history = makeHistory([
-      makeFingerprint({ topContentWords: ['alpha', 'beta', 'gamma', 'delta', 'epsilon'] }),
-    ]);
+    const history = makeHistory([makeFingerprint({ topContentWords: ['alpha', 'beta', 'gamma', 'delta', 'epsilon'] })]);
     checkCrossSceneProse(
       makeFingerprint({ topContentWords: ['one', 'two', 'three', 'four', 'five'] }),
       history,
@@ -289,7 +287,9 @@ describe('checkCrossSceneProse', () => {
     const history = makeHistory([makeFingerprint({ topContentWords: ['alpha', 'beta', 'gamma', 'delta', 'epsilon'] })]);
     checkCrossSceneProse(
       makeFingerprint({ topContentWords: ['alpha', 'beta', 'gamma', 'zeta', 'eta'] }),
-      history, failures, warnings,
+      history,
+      failures,
+      warnings,
     );
     // 3/7 ≈ 0.43 — below 0.60 threshold
     expect(warnings.some(w => w.includes('[cross-scene-vocabulary]'))).toBe(false);

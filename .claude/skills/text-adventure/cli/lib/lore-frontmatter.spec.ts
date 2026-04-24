@@ -103,14 +103,7 @@ describe('parseLoreFrontmatter', () => {
   });
 
   test('folded string trims leading/trailing whitespace', () => {
-    const content = [
-      '---',
-      'description: >',
-      '  First line.',
-      '  Second line.',
-      'title: Test',
-      '---',
-    ].join('\n');
+    const content = ['---', 'description: >', '  First line.', '  Second line.', 'title: Test', '---'].join('\n');
     const result = parseLoreFrontmatter(content);
     expect(result.description).toBe('First line. Second line.');
   });
@@ -118,14 +111,9 @@ describe('parseLoreFrontmatter', () => {
   // ── Block sequence arrays ───────────────────────────────────────
 
   test('parses simple block sequence (string items)', () => {
-    const content = [
-      '---',
-      'required-modules:',
-      '  - core-systems',
-      '  - bestiary',
-      '  - story-architect',
-      '---',
-    ].join('\n');
+    const content = ['---', 'required-modules:', '  - core-systems', '  - bestiary', '  - story-architect', '---'].join(
+      '\n',
+    );
     const result = parseLoreFrontmatter(content);
     expect(result.requiredModules).toEqual(['core-systems', 'bestiary', 'story-architect']);
   });
@@ -149,13 +137,9 @@ describe('parseLoreFrontmatter', () => {
   // ── Nested objects ──────────────────────────────────────────────
 
   test('parses nested object (recommended-styles)', () => {
-    const content = [
-      '---',
-      'recommended-styles:',
-      '  output: Sci-Fi-Narrator',
-      '  visual: holographic',
-      '---',
-    ].join('\n');
+    const content = ['---', 'recommended-styles:', '  output: Sci-Fi-Narrator', '  visual: holographic', '---'].join(
+      '\n',
+    );
     const result = parseLoreFrontmatter(content);
     expect(result.recommendedStyles).toEqual({
       output: 'Sci-Fi-Narrator',
@@ -258,7 +242,7 @@ describe('parseLoreFrontmatter', () => {
     expect(char.background).toContain('charting quiet dangers');
     expect(char.background).toContain('licensed pilots.');
     // Folded — no literal newlines
-    expect((char.background as string)).not.toContain('\n');
+    expect(char.background as string).not.toContain('\n');
     // Subsequent key still parsed
     expect(char.hp).toBe(10);
   });
@@ -266,13 +250,7 @@ describe('parseLoreFrontmatter', () => {
   // ── Edge cases ──────────────────────────────────────────────────
 
   test('ignores blank lines inside frontmatter', () => {
-    const content = [
-      '---',
-      'format: text-adventure-lore',
-      '',
-      'title: "Test"',
-      '---',
-    ].join('\n');
+    const content = ['---', 'format: text-adventure-lore', '', 'title: "Test"', '---'].join('\n');
     const result = parseLoreFrontmatter(content);
     expect(result.format).toBe('text-adventure-lore');
     expect(result.title).toBe('Test');
@@ -285,13 +263,9 @@ describe('parseLoreFrontmatter', () => {
   });
 
   test('handles currency number coercion in nested objects', () => {
-    const content = [
-      '---',
-      'pre-generated-characters:',
-      '  - name: "Rian"',
-      '    starting-currency: 90',
-      '---',
-    ].join('\n');
+    const content = ['---', 'pre-generated-characters:', '  - name: "Rian"', '    starting-currency: 90', '---'].join(
+      '\n',
+    );
     const result = parseLoreFrontmatter(content);
     const char = result.preGeneratedCharacters![0]!;
     expect(char.startingCurrency).toBe(90);
@@ -491,9 +465,7 @@ describe('buildLoreFrontmatter', () => {
 
   test('emits complex array of objects', () => {
     const out = buildLoreFrontmatter({
-      preGeneratedCharacters: [
-        { name: 'Rian Vale', class: 'Cartographer', hp: 10, ac: 12 },
-      ],
+      preGeneratedCharacters: [{ name: 'Rian Vale', class: 'Cartographer', hp: 10, ac: 12 }],
     });
     expect(out).toContain('pre-generated-characters:\n');
     expect(out).toContain('  - name: "Rian Vale"');
@@ -503,18 +475,14 @@ describe('buildLoreFrontmatter', () => {
 
   test('emits flow-style objects for known compact fields (stats)', () => {
     const out = buildLoreFrontmatter({
-      preGeneratedCharacters: [
-        { name: 'Rian', stats: { STR: 9, DEX: 13, CON: 10, INT: 16, WIS: 14, CHA: 12 } },
-      ],
+      preGeneratedCharacters: [{ name: 'Rian', stats: { STR: 9, DEX: 13, CON: 10, INT: 16, WIS: 14, CHA: 12 } }],
     });
     expect(out).toContain('stats: { STR: 9, DEX: 13, CON: 10, INT: 16, WIS: 14, CHA: 12 }');
   });
 
   test('emits flow-style arrays for inline array fields (proficiencies)', () => {
     const out = buildLoreFrontmatter({
-      preGeneratedCharacters: [
-        { name: 'Rian', proficiencies: ['Investigation', 'Navigation'] },
-      ],
+      preGeneratedCharacters: [{ name: 'Rian', proficiencies: ['Investigation', 'Navigation'] }],
     });
     expect(out).toContain('proficiencies: ["Investigation", "Navigation"]');
   });
@@ -524,9 +492,7 @@ describe('buildLoreFrontmatter', () => {
       preGeneratedCharacters: [
         {
           name: 'Rian',
-          startingInventory: [
-            { name: 'Route-slate', type: 'key_item', effect: 'Compares routes' },
-          ],
+          startingInventory: [{ name: 'Route-slate', type: 'key_item', effect: 'Compares routes' }],
         },
       ],
     });
@@ -594,9 +560,7 @@ describe('buildLoreFrontmatter', () => {
           ac: 12,
           stats: { STR: 9, DEX: 13, CON: 10, INT: 16, WIS: 14, CHA: 12 },
           proficiencies: ['Investigation', 'Navigation'],
-          startingInventory: [
-            { name: 'Route-slate', type: 'key_item', effect: 'Compares routes' },
-          ],
+          startingInventory: [{ name: 'Route-slate', type: 'key_item', effect: 'Compares routes' }],
           startingCurrency: 90,
         },
       ],

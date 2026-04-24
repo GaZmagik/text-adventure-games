@@ -46,10 +46,11 @@ describe('state/sync', () => {
     await handleState(['reset']);
     await handleState(['set', 'scene', '3']);
     await handleState(['set', 'currentRoom', 'bridge']);
-    await handleState(['set', 'modulesActive', JSON.stringify([
-      'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-      'character-creation', 'save-codex',
-    ])]);
+    await handleState([
+      'set',
+      'modulesActive',
+      JSON.stringify(['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex']),
+    ]);
     await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
 
     const result = await handleSync([]);
@@ -77,10 +78,11 @@ describe('state/sync', () => {
   test('--apply applies mutations atomically', async () => {
     await handleState(['reset']);
     await handleState(['set', 'scene', '5']);
-    await handleState(['set', 'modulesActive', JSON.stringify([
-      'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-      'character-creation', 'save-codex',
-    ])]);
+    await handleState([
+      'set',
+      'modulesActive',
+      JSON.stringify(['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex']),
+    ]);
     writeVerifyMarker(5);
 
     const result = await handleSync(['--apply']);
@@ -120,7 +122,17 @@ describe('state/sync', () => {
   test('detects pending computation not in rollHistory', async () => {
     await handleState(['reset']);
     await handleState(['set', 'scene', '3']);
-    const comp = JSON.stringify({ type: 'contested_roll', stat: 'STR', roll: 14, modifier: 2, total: 16, margin: 3, outcome: 'success', npcId: 'guard_01', npcModifier: 1 });
+    const comp = JSON.stringify({
+      type: 'contested_roll',
+      stat: 'STR',
+      roll: 14,
+      modifier: 2,
+      total: 16,
+      margin: 3,
+      outcome: 'success',
+      npcId: 'guard_01',
+      npcModifier: 1,
+    });
     await handleState(['set', '_lastComputation', comp]);
 
     const result = await handleSync([]);
@@ -132,10 +144,11 @@ describe('state/sync', () => {
 
   test('flags missing Tier 1 modules', async () => {
     await handleState(['reset']);
-    await handleState(['set', 'modulesActive', JSON.stringify([
-      'gm-checklist', 'core-systems', 'die-rolls',
-      'character-creation', 'save-codex',
-    ])]);
+    await handleState([
+      'set',
+      'modulesActive',
+      JSON.stringify(['gm-checklist', 'core-systems', 'die-rolls', 'character-creation', 'save-codex']),
+    ]);
 
     const result = await handleSync([]);
     expect(result.ok).toBe(true);
@@ -146,29 +159,37 @@ describe('state/sync', () => {
 
   test('detects quest/worldFlag canonical mismatch', async () => {
     await handleState(['reset']);
-    const quests = JSON.stringify([{
-      id: 'find_signal', title: 'Find the Signal', status: 'active',
-      objectives: [{ id: 'locate_tower', description: 'Locate the tower', completed: true }],
-      clues: [],
-    }]);
+    const quests = JSON.stringify([
+      {
+        id: 'find_signal',
+        title: 'Find the Signal',
+        status: 'active',
+        objectives: [{ id: 'locate_tower', description: 'Locate the tower', completed: true }],
+        clues: [],
+      },
+    ]);
     await handleState(['set', 'quests', quests]);
 
     const result = await handleSync([]);
     expect(result.ok).toBe(true);
     const data = result.data as Record<string, unknown>;
     const warnings = data.warnings as string[];
-    expect(warnings.some(w =>
-      w.includes('find_signal') && w.includes('locate_tower') && w.includes('worldFlag'),
-    )).toBe(true);
+    expect(warnings.some(w => w.includes('find_signal') && w.includes('locate_tower') && w.includes('worldFlag'))).toBe(
+      true,
+    );
   });
 
   test('detects reverse mismatch — flag set but objective not complete', async () => {
     await handleState(['reset']);
-    const quests = JSON.stringify([{
-      id: 'find_signal', title: 'Find the Signal', status: 'active',
-      objectives: [{ id: 'locate_tower', description: 'Locate the tower', completed: false }],
-      clues: [],
-    }]);
+    const quests = JSON.stringify([
+      {
+        id: 'find_signal',
+        title: 'Find the Signal',
+        status: 'active',
+        objectives: [{ id: 'locate_tower', description: 'Locate the tower', completed: false }],
+        clues: [],
+      },
+    ]);
     await handleState(['set', 'quests', quests]);
     await handleState(['set', 'worldFlags.quest:find_signal:locate_tower:complete', 'true']);
 
@@ -176,20 +197,31 @@ describe('state/sync', () => {
     expect(result.ok).toBe(true);
     const data = result.data as Record<string, unknown>;
     const warnings = data.warnings as string[];
-    expect(warnings.some(w =>
-      w.includes('quest:find_signal:locate_tower:complete') && w.includes('not marked complete'),
-    )).toBe(true);
+    expect(
+      warnings.some(w => w.includes('quest:find_signal:locate_tower:complete') && w.includes('not marked complete')),
+    ).toBe(true);
   });
 
   test('warns about level-up eligibility', async () => {
     await handleState(['reset']);
     const char = JSON.stringify({
-      name: 'Kael', class: 'Scout', hp: 12, maxHp: 12, ac: 12,
-      level: 2, xp: 250, currency: 0, currencyName: 'credits',
+      name: 'Kael',
+      class: 'Scout',
+      hp: 12,
+      maxHp: 12,
+      ac: 12,
+      level: 2,
+      xp: 250,
+      currency: 0,
+      currencyName: 'credits',
       stats: { STR: 10, DEX: 14, CON: 12, INT: 10, WIS: 11, CHA: 8 },
       modifiers: { STR: 0, DEX: 2, CON: 1, INT: 0, WIS: 0, CHA: -1 },
-      proficiencyBonus: 2, proficiencies: [], abilities: [],
-      inventory: [], conditions: [], equipment: { weapon: 'blaster', armour: 'light' },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'blaster', armour: 'light' },
     });
     await handleState(['set', 'character', char]);
     // Mark level 2 as properly computed so XP-threshold check runs (not manual-bump check)
@@ -205,12 +237,23 @@ describe('state/sync', () => {
   test('warns when character.level was manually bumped without compute levelup', async () => {
     await handleState(['reset']);
     const char = JSON.stringify({
-      name: 'Kael', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-      level: 3, xp: 0, currency: 0, currencyName: 'credits',
+      name: 'Kael',
+      class: 'Scout',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 3,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
       stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
       modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-      proficiencyBonus: 2, proficiencies: [], abilities: [],
-      inventory: [], conditions: [], equipment: { weapon: 'knife', armour: 'vest' },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'knife', armour: 'vest' },
     });
     await handleState(['set', 'character', char]);
     // _computedLevel is absent (defaults to 1); character.level=3 → mismatch
@@ -224,12 +267,23 @@ describe('state/sync', () => {
   test('sets _levelupPending when manual level bump detected (persisted via --apply)', async () => {
     await handleState(['reset']);
     const char = JSON.stringify({
-      name: 'Kael', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-      level: 2, xp: 0, currency: 0, currencyName: 'credits',
+      name: 'Kael',
+      class: 'Scout',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 2,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
       stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
       modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-      proficiencyBonus: 2, proficiencies: [], abilities: [],
-      inventory: [], conditions: [], equipment: { weapon: 'knife', armour: 'vest' },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'knife', armour: 'vest' },
     });
     await handleState(['set', 'character', char]);
     // _computedLevel absent → defaults to 1; character.level=2 → manual bump detected
@@ -453,7 +507,14 @@ describe('state/sync edge cases', () => {
       await handleState(['reset']);
       await handleState(['set', 'scene', '3']);
       await handleState(['set', 'currentRoom', 'bridge']);
-      const mods = modules ?? ['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex'];
+      const mods = modules ?? [
+        'gm-checklist',
+        'prose-craft',
+        'core-systems',
+        'die-rolls',
+        'character-creation',
+        'save-codex',
+      ];
       await handleState(['set', 'modulesActive', JSON.stringify(mods)]);
       writeVerifyMarker(3);
     }
@@ -589,34 +650,40 @@ describe('state/sync edge cases', () => {
       await handleState(['reset']);
       await handleState(['set', 'scene', '3']);
       await handleState(['set', 'currentRoom', 'bridge']);
-      await handleState(['set', 'modulesActive', JSON.stringify([
-        'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-        'character-creation', 'save-codex',
-      ])]);
+      await handleState([
+        'set',
+        'modulesActive',
+        JSON.stringify([
+          'gm-checklist',
+          'prose-craft',
+          'core-systems',
+          'die-rolls',
+          'character-creation',
+          'save-codex',
+        ]),
+      ]);
       writeVerifyMarker(3);
     }
 
     test('unresolved _pendingRolls produces a warning', async () => {
       await initStateWithModules();
       const state = await loadState();
-      state._pendingRolls = [
-        { action: 1, type: 'contest', stat: 'CHA', npc: 'faal_01' },
-      ];
+      state._pendingRolls = [{ action: 1, type: 'contest', stat: 'CHA', npc: 'faal_01' }];
       await saveState(state);
 
       const result = await handleSync([]);
       expect(result.ok).toBe(true);
       const data = result.data as { warnings: string[] };
       expect(data.warnings.some(w => w.includes('pending') && w.includes('CHA'))).toBe(true);
-      expect(data.warnings).toContain('Unresolved pending roll: action 1 requires contest (CHA) — run `tag compute contest CHA faal_01`.');
+      expect(data.warnings).toContain(
+        'Unresolved pending roll: action 1 requires contest (CHA) — run `tag compute contest CHA faal_01`.',
+      );
     });
 
     test('--apply with unresolved _pendingRolls returns fail', async () => {
       await initStateWithModules();
       const state = await loadState();
-      state._pendingRolls = [
-        { action: 1, type: 'hazard', stat: 'DEX', dc: 15 },
-      ];
+      state._pendingRolls = [{ action: 1, type: 'hazard', stat: 'DEX', dc: 15 }];
       await saveState(state);
 
       const result = await handleSync(['--apply']);
@@ -628,12 +695,8 @@ describe('state/sync edge cases', () => {
     test('--apply with resolved rolls succeeds and clears _pendingRolls', async () => {
       await initStateWithModules();
       const state = await loadState();
-      state._pendingRolls = [
-        { action: 1, type: 'contest', stat: 'CHA', npc: 'faal_01' },
-      ];
-      state.rollHistory = [
-        { scene: 3, type: 'contested_roll', stat: 'CHA', roll: 14, outcome: 'success' },
-      ];
+      state._pendingRolls = [{ action: 1, type: 'contest', stat: 'CHA', npc: 'faal_01' }];
+      state.rollHistory = [{ scene: 3, type: 'contested_roll', stat: 'CHA', roll: 14, outcome: 'success' }];
       await saveState(state);
 
       const result = await handleSync(['--apply']);
@@ -666,10 +729,18 @@ describe('state/sync edge cases', () => {
       await handleState(['reset']);
       await handleState(['set', 'scene', String(scene)]);
       await handleState(['set', 'currentRoom', 'bridge']);
-      await handleState(['set', 'modulesActive', JSON.stringify([
-        'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-        'character-creation', 'save-codex',
-      ])]);
+      await handleState([
+        'set',
+        'modulesActive',
+        JSON.stringify([
+          'gm-checklist',
+          'prose-craft',
+          'core-systems',
+          'die-rolls',
+          'character-creation',
+          'save-codex',
+        ]),
+      ]);
       await handleState(['set', `worldFlags.rulebook`, rulebook]);
     }
 
@@ -723,9 +794,9 @@ describe('state/sync edge cases', () => {
       const result = await handleSync([]);
       expect(result.ok).toBe(true);
       const data = result.data as { warnings: string[]; compactionDetected: boolean };
-      expect(data.warnings.some(w =>
-        w.includes('Compaction check skipped') && w.includes('outside allowed paths'),
-      )).toBe(true);
+      expect(
+        data.warnings.some(w => w.includes('Compaction check skipped') && w.includes('outside allowed paths')),
+      ).toBe(true);
       expect(data.compactionDetected).toBe(false);
     });
 
@@ -740,9 +811,9 @@ describe('state/sync edge cases', () => {
       const result = await handleSync([]);
       expect(result.ok).toBe(true);
       const data = result.data as { warnings: string[]; compactionDetected: boolean };
-      expect(data.warnings.some(w =>
-        w.includes('Compaction check skipped') && w.includes('could not read'),
-      )).toBe(true);
+      expect(data.warnings.some(w => w.includes('Compaction check skipped') && w.includes('could not read'))).toBe(
+        true,
+      );
       expect(data.compactionDetected).toBe(false);
     });
   });
@@ -753,10 +824,18 @@ describe('state/sync edge cases', () => {
     test('--apply blocks when verify marker is missing entirely', async () => {
       await handleState(['reset']);
       await handleState(['set', 'scene', '2']);
-      await handleState(['set', 'modulesActive', JSON.stringify([
-        'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-        'character-creation', 'save-codex',
-      ])]);
+      await handleState([
+        'set',
+        'modulesActive',
+        JSON.stringify([
+          'gm-checklist',
+          'prose-craft',
+          'core-systems',
+          'die-rolls',
+          'character-creation',
+          'save-codex',
+        ]),
+      ]);
       await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
 
       rmSync(join(tempDir, '.last-verify'), { force: true });
@@ -770,10 +849,18 @@ describe('state/sync edge cases', () => {
     test('--apply blocks when last verify scene is behind current scene', async () => {
       await handleState(['reset']);
       await handleState(['set', 'scene', '5']);
-      await handleState(['set', 'modulesActive', JSON.stringify([
-        'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-        'character-creation', 'save-codex',
-      ])]);
+      await handleState([
+        'set',
+        'modulesActive',
+        JSON.stringify([
+          'gm-checklist',
+          'prose-craft',
+          'core-systems',
+          'die-rolls',
+          'character-creation',
+          'save-codex',
+        ]),
+      ]);
       await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
 
       // Write a verify marker for scene 3, but state is at scene 5
@@ -789,10 +876,18 @@ describe('state/sync edge cases', () => {
     test('--apply blocks when the current scene was re-rendered after verification', async () => {
       await handleState(['reset']);
       await handleState(['set', 'scene', '4']);
-      await handleState(['set', 'modulesActive', JSON.stringify([
-        'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-        'character-creation', 'save-codex',
-      ])]);
+      await handleState([
+        'set',
+        'modulesActive',
+        JSON.stringify([
+          'gm-checklist',
+          'prose-craft',
+          'core-systems',
+          'die-rolls',
+          'character-creation',
+          'save-codex',
+        ]),
+      ]);
       await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
 
       const { signMarker } = require('../verify');
@@ -810,10 +905,18 @@ describe('state/sync edge cases', () => {
   describe('apply time deadline coercion', () => {
     test('--apply with deadline object coerces label and remainingScenes', async () => {
       await handleState(['reset']);
-      await handleState(['set', 'modulesActive', JSON.stringify([
-        'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-        'character-creation', 'save-codex',
-      ])]);
+      await handleState([
+        'set',
+        'modulesActive',
+        JSON.stringify([
+          'gm-checklist',
+          'prose-craft',
+          'core-systems',
+          'die-rolls',
+          'character-creation',
+          'save-codex',
+        ]),
+      ]);
       await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
 
       const timeJson = JSON.stringify({
@@ -830,10 +933,18 @@ describe('state/sync edge cases', () => {
 
     test('--apply with deadline null clears deadline', async () => {
       await handleState(['reset']);
-      await handleState(['set', 'modulesActive', JSON.stringify([
-        'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-        'character-creation', 'save-codex',
-      ])]);
+      await handleState([
+        'set',
+        'modulesActive',
+        JSON.stringify([
+          'gm-checklist',
+          'prose-craft',
+          'core-systems',
+          'die-rolls',
+          'character-creation',
+          'save-codex',
+        ]),
+      ]);
       await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
 
       // First set a deadline
@@ -860,10 +971,18 @@ describe('state/sync edge cases', () => {
   describe('inlineGuidance', () => {
     test('always includes proseChecklist with 11 items', async () => {
       await handleState(['reset']);
-      await handleState(['set', 'modulesActive', JSON.stringify([
-        'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-        'character-creation', 'save-codex',
-      ])]);
+      await handleState([
+        'set',
+        'modulesActive',
+        JSON.stringify([
+          'gm-checklist',
+          'prose-craft',
+          'core-systems',
+          'die-rolls',
+          'character-creation',
+          'save-codex',
+        ]),
+      ]);
       await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
 
       const result = await handleSync([]);
@@ -878,10 +997,18 @@ describe('state/sync edge cases', () => {
 
     test('always includes renderingRules', async () => {
       await handleState(['reset']);
-      await handleState(['set', 'modulesActive', JSON.stringify([
-        'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-        'character-creation', 'save-codex',
-      ])]);
+      await handleState([
+        'set',
+        'modulesActive',
+        JSON.stringify([
+          'gm-checklist',
+          'prose-craft',
+          'core-systems',
+          'die-rolls',
+          'character-creation',
+          'save-codex',
+        ]),
+      ]);
       await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
 
       const result = await handleSync([]);
@@ -894,10 +1021,18 @@ describe('state/sync edge cases', () => {
 
     test('always includes sceneStructure', async () => {
       await handleState(['reset']);
-      await handleState(['set', 'modulesActive', JSON.stringify([
-        'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-        'character-creation', 'save-codex',
-      ])]);
+      await handleState([
+        'set',
+        'modulesActive',
+        JSON.stringify([
+          'gm-checklist',
+          'prose-craft',
+          'core-systems',
+          'die-rolls',
+          'character-creation',
+          'save-codex',
+        ]),
+      ]);
       await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
 
       const result = await handleSync([]);
@@ -941,10 +1076,18 @@ describe('state/sync edge cases', () => {
 
     test('valid --apply flag is accepted', async () => {
       await handleState(['reset']);
-      await handleState(['set', 'modulesActive', JSON.stringify([
-        'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-        'character-creation', 'save-codex',
-      ])]);
+      await handleState([
+        'set',
+        'modulesActive',
+        JSON.stringify([
+          'gm-checklist',
+          'prose-craft',
+          'core-systems',
+          'die-rolls',
+          'character-creation',
+          'save-codex',
+        ]),
+      ]);
       await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
       const result = await handleSync(['--apply']);
       expect(result.ok).toBe(true);

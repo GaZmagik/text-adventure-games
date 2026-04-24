@@ -200,7 +200,8 @@ describe('checkProseContent', () => {
   });
 
   test('pushes error-severity violations into failures array', () => {
-    const html = '<div id="narrative"><p>She noticed the crack in the hull. You felt the vibration through the deck plating.</p></div>';
+    const html =
+      '<div id="narrative"><p>She noticed the crack in the hull. You felt the vibration through the deck plating.</p></div>';
     const failures: string[] = [];
     checkProseContent(html, failures);
     expect(failures.length).toBeGreaterThan(0);
@@ -257,7 +258,8 @@ describe('checkProseContent', () => {
   });
 
   test('warns when Flesch-Kincaid score is below threshold', () => {
-    const dense = 'The infrastructural consolidation necessitates comprehensive architectural recalibration consideration. ';
+    const dense =
+      'The infrastructural consolidation necessitates comprehensive architectural recalibration consideration. ';
     const html = `<div id="narrative"><p>${dense.repeat(8)}</p></div>`;
     const failures: string[] = [];
     const result = checkProseContent(html, failures);
@@ -272,9 +274,10 @@ describe('checkProseContent', () => {
   });
 
   test('warns when scene is predominantly dialogue', () => {
-    const dialogue = '"Move along the corridor now," she said. "The passage is clear and completely safe." '
-      + '"Are you certain?" he asked. "Yes, I am certain," she said. "Then let us proceed at once," he said. '
-      + '"Fine, we will go now," she replied. "Lead the way," he said.';
+    const dialogue =
+      '"Move along the corridor now," she said. "The passage is clear and completely safe." ' +
+      '"Are you certain?" he asked. "Yes, I am certain," she said. "Then let us proceed at once," he said. ' +
+      '"Fine, we will go now," she replied. "Lead the way," he said.';
     const html = `<div id="narrative"><p>${dialogue}</p></div>`;
     const failures: string[] = [];
     const result = checkProseContent(html, failures);
@@ -335,9 +338,7 @@ describe('computeProseMetrics — FK and stddev', () => {
   test('simple text has higher FK score than complex text', () => {
     const simple = 'The cat sat. Dogs ran fast. Rain fell down.';
     const complex = 'The infrastructural consolidation necessitates comprehensive architectural recalibration.';
-    expect(computeProseMetrics(simple).fleschKincaid).toBeGreaterThan(
-      computeProseMetrics(complex).fleschKincaid,
-    );
+    expect(computeProseMetrics(simple).fleschKincaid).toBeGreaterThan(computeProseMetrics(complex).fleschKincaid);
   });
 
   test('varied sentence lengths produce higher stddev than uniform', () => {

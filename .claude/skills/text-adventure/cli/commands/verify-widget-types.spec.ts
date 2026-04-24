@@ -36,23 +36,39 @@ async function setupState(): Promise<void> {
   await handleState(['set', 'scene', '1']);
   await handleState(['set', 'currentRoom', 'bridge']);
   await handleState(['set', 'visualStyle', 'station']);
-  await handleState(['set', 'modulesActive', JSON.stringify([
-    'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-    'character-creation', 'save-codex',
-  ])]);
-  await handleState(['set', '_modulesRead', JSON.stringify([
-    'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-    'character-creation', 'save-codex',
-  ])]);
-  await handleState(['set', 'character', JSON.stringify({
-    name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-    level: 1, xp: 0, currency: 0, currencyName: 'credits',
-    stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
-    modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-    proficiencyBonus: 2, proficiencies: [], abilities: [],
-    inventory: [], conditions: [],
-    equipment: { weapon: 'Knife', armour: 'Vest' },
-  })]);
+  await handleState([
+    'set',
+    'modulesActive',
+    JSON.stringify(['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex']),
+  ]);
+  await handleState([
+    'set',
+    '_modulesRead',
+    JSON.stringify(['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex']),
+  ]);
+  await handleState([
+    'set',
+    'character',
+    JSON.stringify({
+      name: 'Test',
+      class: 'Scout',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
+      stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+      modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'Knife', armour: 'Vest' },
+    }),
+  ]);
 }
 
 describe('verify: dice widget type', () => {
@@ -149,7 +165,7 @@ describe('verify: dialogue widget type', () => {
         '<script>',
         "const host = document.getElementById('shadow-host');",
         "const root = host.attachShadow({ mode: 'open' });",
-        "root.innerHTML = `<div class=\"widget-dialogue\"><div class=\"dialogue-area\">Fake</div></div>`;",
+        'root.innerHTML = `<div class="widget-dialogue"><div class="dialogue-area">Fake</div></div>`;',
         '</script>',
       ].join('\n'),
       'utf-8',
@@ -212,11 +228,75 @@ describe('verify: arc-complete widget type', () => {
   });
 });
 
+describe('verify: quest-log widget type', () => {
+  test('quest-log widget passes verify when type specified', async () => {
+    await setupState();
+    await handleState([
+      'set',
+      'quests',
+      JSON.stringify([
+        {
+          id: 'main',
+          title: 'Secure the Bridge',
+          status: 'active',
+          objectives: [{ id: 'door', description: 'Open the blast door', completed: false }],
+          clues: [],
+        },
+      ]),
+    ]);
+    const renderResult = await handleRender(['quest-log', '--style', 'station', '--raw']);
+    expect(renderResult.ok).toBe(true);
+    const html = renderResult.data as string;
+    const path = join(tempDir, 'quest-log.html');
+    writeFileSync(path, html, 'utf-8');
+
+    const result = await handleVerify(['quest-log', path]);
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.verified).toBe(true);
+    expect(data.widgetType).toBe('quest-log');
+  });
+});
+
+describe('verify: worldgen widget types', () => {
+  test.each([
+    [
+      'world-preview',
+      ['world-preview', '--style', 'station', '--raw', '--data', '{"seed":"verify-seed","theme":"space"}'],
+    ],
+    ['route-planner', ['route-planner', '--style', 'station', '--raw']],
+    ['faction-board', ['faction-board', '--style', 'station', '--raw']],
+    ['relationship-web', ['relationship-web', '--style', 'station', '--raw']],
+    ['world-atlas', ['world-atlas', '--style', 'station', '--raw']],
+    ['clue-board', ['clue-board', '--style', 'station', '--raw']],
+  ] as const)('%s widget passes verify when type specified', async (widgetType, renderArgs) => {
+    await setupState();
+    const renderResult = await handleRender([...renderArgs]);
+    expect(renderResult.ok).toBe(true);
+    const html = renderResult.data as string;
+    const path = join(tempDir, `${widgetType}.html`);
+    writeFileSync(path, html, 'utf-8');
+
+    const result = await handleVerify([widgetType, path]);
+
+    expect(result.ok).toBe(true);
+    const data = result.data as Record<string, unknown>;
+    expect(data.verified).toBe(true);
+    expect(data.widgetType).toBe(widgetType);
+  });
+});
+
 describe('verify: pre-game types still work', () => {
   test('scenario type still works as before', async () => {
     await setupState();
-    const renderResult = await handleRender(['scenario-select', '--style', 'station', '--raw',
-      '--data', '{"scenarios":[{"title":"A","description":"Test A"},{"title":"B","description":"Test B"}]}']);
+    const renderResult = await handleRender([
+      'scenario-select',
+      '--style',
+      'station',
+      '--raw',
+      '--data',
+      '{"scenarios":[{"title":"A","description":"Test A"},{"title":"B","description":"Test B"}]}',
+    ]);
     expect(renderResult.ok).toBe(true);
     const html = renderResult.data as string;
     const path = join(tempDir, 'scenario.html');

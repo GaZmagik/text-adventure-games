@@ -2,11 +2,14 @@
 // Validates gmState structure against the contract in types.ts
 
 import { STAT_NAMES, VALID_TIERS, VALID_PRONOUNS, KNOWN_MODULES } from './constants';
-import type { RollType, StatName } from '../types';
+import type { RollType } from '../types';
 import { collectUnexpectedStatePaths } from './state-schema';
 
 const VALID_ROLL_TYPES_ARRAY: readonly string[] = [
-  'contested_roll', 'hazard_save', 'encounter_roll', 'levelup_result',
+  'contested_roll',
+  'hazard_save',
+  'encounter_roll',
+  'levelup_result',
 ] satisfies readonly RollType[];
 
 const VALID_ROLL_TYPES = new Set(VALID_ROLL_TYPES_ARRAY);
@@ -119,8 +122,7 @@ export function validateState(state: unknown): ValidationResult {
       if (typeof entry.type === 'string' && !VALID_ROLL_TYPES.has(entry.type)) {
         warnings.push(`rollHistory[${i}].type "${entry.type}" is not a recognised RollType.`);
       }
-      if (entry.stat !== undefined && typeof entry.stat === 'string'
-          && !STAT_NAME_SET.has(entry.stat)) {
+      if (entry.stat !== undefined && typeof entry.stat === 'string' && !STAT_NAME_SET.has(entry.stat)) {
         warnings.push(`rollHistory[${i}].stat "${entry.stat}" is not a recognised StatName.`);
       }
     }
@@ -151,7 +153,82 @@ export function validateState(state: unknown): ValidationResult {
     warnings.push('seed should be a string.');
   }
 
+  if (s.worldData !== undefined && s.worldData !== null) {
+    validateWorldData(s.worldData, errors, warnings);
+  }
+
   return { valid: errors.length === 0, errors, warnings };
+}
+
+function validateWorldData(value: unknown, errors: string[], warnings: string[]): void {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    errors.push('worldData must be an object.');
+    return;
+  }
+
+  const world = value as Record<string, unknown>;
+  if (typeof world.seed !== 'string' || world.seed.length === 0) {
+    errors.push('worldData.seed must be a non-empty string.');
+  }
+  if (typeof world.theme !== 'string' || !['space', 'dungeon', 'horror'].includes(world.theme)) {
+    errors.push('worldData.theme must be space, dungeon, or horror.');
+  }
+  if (typeof world.rooms !== 'object' || world.rooms === null || Array.isArray(world.rooms)) {
+    errors.push('worldData.rooms must be an object.');
+    return;
+  }
+
+  const rooms = world.rooms as Record<string, unknown>;
+  const roomIds = new Set(Object.keys(rooms));
+  if (typeof world.startRoom !== 'string' || !roomIds.has(world.startRoom)) {
+    errors.push('worldData.startRoom must reference an existing room.');
+  }
+  if (typeof world.bossRoom !== 'string' || !roomIds.has(world.bossRoom)) {
+    errors.push('worldData.bossRoom must reference an existing room.');
+  }
+
+  for (const [id, rawRoom] of Object.entries(rooms)) {
+    if (typeof rawRoom !== 'object' || rawRoom === null || Array.isArray(rawRoom)) {
+      errors.push(`worldData.rooms.${id} must be an object.`);
+      continue;
+    }
+    const room = rawRoom as Record<string, unknown>;
+    if (room.id !== id) warnings.push(`worldData.rooms.${id}.id should match its record key.`);
+    if (typeof room.name !== 'string' || room.name.length === 0)
+      errors.push(`worldData.rooms.${id}.name must be a non-empty string.`);
+    if (!Array.isArray(room.exits)) {
+      errors.push(`worldData.rooms.${id}.exits must be an array.`);
+    } else {
+      for (const exit of room.exits) {
+        if (typeof exit !== 'string' || !roomIds.has(exit)) {
+          errors.push(`worldData.rooms.${id}.exits contains unknown room "${String(exit)}".`);
+        }
+      }
+    }
+  }
+
+  const factions = world.factions as Record<string, unknown> | undefined;
+  if (!factions || typeof factions !== 'object' || !Array.isArray(factions.factions)) {
+    errors.push('worldData.factions.factions must be an array.');
+  }
+
+  if (!Array.isArray(world.roster)) {
+    errors.push('worldData.roster must be an array.');
+  } else {
+    for (let i = 0; i < world.roster.length; i++) {
+      const npc = world.roster[i] as Record<string, unknown> | undefined;
+      if (!npc || typeof npc !== 'object') {
+        errors.push(`worldData.roster[${i}] must be an object.`);
+        continue;
+      }
+      if (typeof npc.currentRoom === 'string' && !roomIds.has(npc.currentRoom)) {
+        errors.push(`worldData.roster[${i}].currentRoom references unknown room "${npc.currentRoom}".`);
+      }
+      if (typeof npc.startRoom === 'string' && !roomIds.has(npc.startRoom)) {
+        errors.push(`worldData.roster[${i}].startRoom references unknown room "${npc.startRoom}".`);
+      }
+    }
+  }
 }
 
 function validateCharacter(char: unknown, errors: string[], warnings: string[]): void {

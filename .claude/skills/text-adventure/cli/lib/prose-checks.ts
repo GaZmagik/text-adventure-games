@@ -3,24 +3,15 @@
 
 import { splitSentences, splitParagraphs } from './text-utils';
 export { splitSentences, splitParagraphs };
-import {
-  PATTERN_RULES,
-  HEURISTIC_RULES,
-  NON_ADVERBS,
-} from '../data/prose-rules';
-import type {
-  PatternRule,
-  HeuristicRule,
-  ProseViolation,
-  ProseMetrics,
-} from '../data/prose-rules';
+import { PATTERN_RULES, HEURISTIC_RULES, NON_ADVERBS } from '../data/prose-rules';
+import type { PatternRule, HeuristicRule, ProseViolation, ProseMetrics } from '../data/prose-rules';
 
 /* ------------------------------------------------------------------ */
 /*  Text extraction                                                    */
 /* ------------------------------------------------------------------ */
 
-/** 
- * Strip HTML tags while preserving block-level boundaries as double newlines. 
+/**
+ * Strip HTML tags while preserving block-level boundaries as double newlines.
  */
 function htmlToProseText(raw: string): string {
   return raw
@@ -34,34 +25,34 @@ function htmlToProseText(raw: string): string {
     .trim();
 }
 
-/** 
- * Extracts and concatenates narrative text from scene HTML, preserving paragraph breaks. 
- * 
+/**
+ * Extracts and concatenates narrative text from scene HTML, preserving paragraph breaks.
+ *
  * @param {string} html - Raw HTML source of the scene.
  * @returns {string | null} - Extracted prose text, or null if no narrative block is found.
- * 
+ *
  * @remarks
  * This function specifically targets `div#narrative` or `div.narrative` blocks.
- * It uses a nesting-aware parser to extract the inner content of these blocks 
- * without requiring a full DOM implementation (standard `replace` is insufficient 
+ * It uses a nesting-aware parser to extract the inner content of these blocks
+ * without requiring a full DOM implementation (standard `replace` is insufficient
  * for nested divs).
  */
 export function extractNarrativeText(html: string): string | null {
   const blocks: string[] = [];
   const startRegex = /<div\b[^>]*(?:id\s*=\s*(['"])narrative\1|class\s*=\s*(['"])[^'"]*\bnarrative\b[^'"]*\2)[^>]*>/gi;
   const tokenRegex = /<\/?div\b[^>]*>/gi;
-  
+
   let match: RegExpExecArray | null;
   startRegex.lastIndex = 0;
-  
+
   while ((match = startRegex.exec(html)) !== null) {
     const contentStart = match.index + match[0].length;
     let depth = 1;
-    
+
     tokenRegex.lastIndex = contentStart;
     let endIndex = -1;
     let tokenMatch: RegExpExecArray | null;
-    
+
     while ((tokenMatch = tokenRegex.exec(html)) !== null) {
       if (tokenMatch[0].toLowerCase().startsWith('</div')) {
         depth--;
@@ -73,16 +64,16 @@ export function extractNarrativeText(html: string): string | null {
         depth++;
       }
     }
-    
+
     if (endIndex !== -1) {
       blocks.push(htmlToProseText(html.slice(contentStart, endIndex)));
       startRegex.lastIndex = endIndex + 6; // Move past this block
     } else {
       blocks.push(htmlToProseText(html.slice(contentStart)));
-      break; 
+      break;
     }
   }
-  
+
   if (blocks.length === 0) return null;
   return blocks.join('\n\n');
 }
@@ -91,9 +82,9 @@ export function extractNarrativeText(html: string): string | null {
 /*  Syllable counting                                                  */
 /* ------------------------------------------------------------------ */
 
-/** 
- * Vowel-group heuristic syllable counter (~90% accuracy for common English). 
- * 
+/**
+ * Vowel-group heuristic syllable counter (~90% accuracy for common English).
+ *
  * @param {string} word - The word to analyze.
  * @returns {number} - Estimated syllable count.
  */
@@ -140,15 +131,12 @@ const COMPILED_PATTERN_RULES = new Map<string, RegExp>(
 
 /**
  * Tier 1: Evaluates "hard" regex-based prose rules.
- * 
+ *
  * @param {string} text - The prose text to analyze.
  * @param {readonly PatternRule[]} rules - The set of pattern rules to apply.
  * @returns {ProseViolation[]} - List of identified violations.
  */
-export function evaluatePatternRules(
-  text: string,
-  rules: readonly PatternRule[] = PATTERN_RULES,
-): ProseViolation[] {
+export function evaluatePatternRules(text: string, rules: readonly PatternRule[] = PATTERN_RULES): ProseViolation[] {
   const violations: ProseViolation[] = [];
 
   for (const rule of rules) {
@@ -178,7 +166,7 @@ export function evaluatePatternRules(
 
 /**
  * Tier 2: Evaluates "soft" heuristic-based prose rules.
- * 
+ *
  * @param {string} text - The prose text to analyze.
  * @param {readonly HeuristicRule[]} rules - The set of heuristic rules to apply.
  * @returns {ProseViolation[]} - List of identified violations.
@@ -211,10 +199,10 @@ export function evaluateHeuristicRules(
 
 /**
  * Tier 3: Computes quantitative prose metrics and readability scores.
- * 
+ *
  * @param {string} text - The prose text to analyze.
  * @returns {ProseMetrics} - Object containing word counts, ratios, and scores.
- * 
+ *
  * @remarks
  * Includes:
  * - Flesch-Kincaid Reading Ease
@@ -235,8 +223,7 @@ export function computeProseMetrics(text: string): ProseMetrics {
   const emDashCount = (text.match(/\u2014/g) || []).length;
   const emDashPer100Words = wordCount > 0 ? (emDashCount / wordCount) * 100 : 0;
 
-  const dialogueChars = (text.match(/[""\u201c][^""\u201d]*[""\u201d]/g) || [])
-    .reduce((sum, q) => sum + q.length, 0);
+  const dialogueChars = (text.match(/[""\u201c][^""\u201d]*[""\u201d]/g) || []).reduce((sum, q) => sum + q.length, 0);
   const totalChars = text.length || 1;
   const dialogueToNarrationRatio = dialogueChars / totalChars;
 
@@ -248,15 +235,15 @@ export function computeProseMetrics(text: string): ProseMetrics {
 
   // Flesch-Kincaid readability: 206.835 − 1.015×(words/sentences) − 84.6×(syllables/words)
   const syllableCount = words.reduce((sum, w) => sum + countSyllables(w), 0);
-  const fleschKincaid = wordCount > 0 && sentenceCount > 0
-    ? 206.835 - 1.015 * (wordCount / sentenceCount) - 84.6 * (syllableCount / wordCount)
-    : 0;
+  const fleschKincaid =
+    wordCount > 0 && sentenceCount > 0
+      ? 206.835 - 1.015 * (wordCount / sentenceCount) - 84.6 * (syllableCount / wordCount)
+      : 0;
 
   // Sentence length standard deviation
   const sentenceLengths = sentences.map(s => s.trim().split(/\s+/).length);
-  const variance = sentenceCount > 0
-    ? sentenceLengths.reduce((sum, l) => sum + (l - avgSentenceLength) ** 2, 0) / sentenceCount
-    : 0;
+  const variance =
+    sentenceCount > 0 ? sentenceLengths.reduce((sum, l) => sum + (l - avgSentenceLength) ** 2, 0) / sentenceCount : 0;
   const sentenceLengthStdDev = Math.sqrt(variance);
 
   return {
@@ -276,7 +263,8 @@ export function computeProseMetrics(text: string): ProseMetrics {
 /*  Voice differentiation                                              */
 /* ------------------------------------------------------------------ */
 
-const ATTRIBUTION_VERBS = '(?:said|asked|replied|whispered|called|murmured|added|continued|snapped|barked|noted|observed)';
+const ATTRIBUTION_VERBS =
+  '(?:said|asked|replied|whispered|called|murmured|added|continued|snapped|barked|noted|observed)';
 // Post-attribution: "quote" Speaker said
 const POST_ATTR_RE = new RegExp(
   `["\u201c]([^"\u201d]{1,400})["\u201d]\\s+([A-Z][a-z]{1,20})\\s+${ATTRIBUTION_VERBS}`,
@@ -288,7 +276,7 @@ const PRE_ATTR_RE = new RegExp(
   'g',
 );
 
-/** 
+/**
  * Parse attribution patterns and return utterance word-count arrays per speaker.
  * Matches: "...utterance..." Name said/asked/...
  * and:     Name said/asked "...utterance..."
@@ -297,7 +285,10 @@ export function extractSpeakerUtterances(text: string): Map<string, number[]> {
   const speakers = new Map<string, number[]>();
 
   function addUtterance(name: string, utterance: string): void {
-    const wc = utterance.trim().split(/\s+/).filter(w => w.length > 0).length;
+    const wc = utterance
+      .trim()
+      .split(/\s+/)
+      .filter(w => w.length > 0).length;
     if (wc === 0) return;
     const arr = speakers.get(name) ?? [];
     arr.push(wc);
@@ -318,8 +309,8 @@ export function extractSpeakerUtterances(text: string): Map<string, number[]> {
   return speakers;
 }
 
-/** 
- * Warn when all identified speakers have near-identical utterance lengths. 
+/**
+ * Warn when all identified speakers have near-identical utterance lengths.
  * Prevents "Same-Voice Syndrome" where all characters talk in identical rhythms.
  */
 export function checkVoiceDifferentiation(text: string, warnings: string[]): void {
@@ -349,7 +340,7 @@ export function checkVoiceDifferentiation(text: string, warnings: string[]): voi
 
 /**
  * Runs all prose checks against already-extracted narrative text.
- * 
+ *
  * @param {string} text - Pre-extracted prose text.
  * @param {string[]} failures - Array to push blocking errors into.
  * @returns {{ warnings: string[]; metrics: ProseMetrics }} - Warnings and metrics.
@@ -381,7 +372,7 @@ export function checkProseContentFromText(
       `Readability score ${metrics.fleschKincaid.toFixed(0)} (Flesch-Kincaid target: 60+) — prose may be too dense. Use shorter sentences and simpler words.`,
     );
   }
-  if (metrics.wordCount > 100 && metrics.uniqueWordRatio < 0.50) {
+  if (metrics.wordCount > 100 && metrics.uniqueWordRatio < 0.5) {
     warnings.push(
       `Low vocabulary variety: ${(metrics.uniqueWordRatio * 100).toFixed(0)}% unique words — vary your word choices.`,
     );

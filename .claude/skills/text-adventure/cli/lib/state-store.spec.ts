@@ -247,8 +247,9 @@ describe('state-store edge cases', () => {
   });
 
   test('rejects nested state-store contexts', async () => {
-    await expect(withStateStoreContext(async () => withStateStoreContext(async () => 1)))
-      .rejects.toThrow('Nested state-store contexts');
+    await expect(withStateStoreContext(async () => withStateStoreContext(async () => 1))).rejects.toThrow(
+      'Nested state-store contexts',
+    );
   });
 
   test('requires an active context before flushing', async () => {
@@ -284,8 +285,9 @@ describe('state-store edge cases', () => {
     };
 
     try {
-      await expect(import('./state-store').then(({ saveState: writeState }) => writeState(createDefaultState())))
-        .rejects.toThrow('rename failed');
+      await expect(
+        import('./state-store').then(({ saveState: writeState }) => writeState(createDefaultState())),
+      ).rejects.toThrow('rename failed');
     } finally {
       STATE_STORE_RUNTIME.renameSync = originalRename;
       STATE_STORE_RUNTIME.unlinkSync = originalUnlink;
@@ -320,7 +322,9 @@ describe('state-store edge cases', () => {
 
     const errors: string[] = [];
     const originalError = console.error;
-    console.error = (...args: unknown[]) => { errors.push(String(args[0])); };
+    console.error = (...args: unknown[]) => {
+      errors.push(String(args[0]));
+    };
 
     try {
       await withStateStoreContext(async () => {
@@ -329,7 +333,9 @@ describe('state-store edge cases', () => {
         loaded.scene = 42;
         await saveState(loaded);
         throw new Error('deliberate test exception');
-      }).catch(() => { /* swallow the rethrown error */ });
+      }).catch(() => {
+        /* swallow the rethrown error */
+      });
 
       // The finally block should have logged a dirty-state warning
       expect(errors.length).toBeGreaterThan(0);

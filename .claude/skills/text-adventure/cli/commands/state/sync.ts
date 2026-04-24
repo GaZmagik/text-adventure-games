@@ -17,8 +17,14 @@ import { getNeedsVerifyPath, getVerifyMarkerPath, readSignedMarker } from '../ve
 import { buildPendingRollCommand, resolvePendingRolls } from '../../lib/pending-rolls';
 
 const VALID_TIME_KEYS = new Set<string>([
-  'period', 'date', 'elapsed', 'hour',
-  'playerKnowsDate', 'playerKnowsTime', 'calendarSystem', 'deadline',
+  'period',
+  'date',
+  'elapsed',
+  'hour',
+  'playerKnowsDate',
+  'playerKnowsTime',
+  'calendarSystem',
+  'deadline',
 ]);
 const NPC_WORLDFLAG_PATTERN = /^npc_([a-z0-9_-]+)_/;
 
@@ -32,7 +38,12 @@ function buildSyncDiff(
   state: GmState,
   flags: Record<string, string>,
   warnings: string[],
-): { diff: Record<string, { from: unknown; to: unknown }>; nextScene: number; parsedTime: Record<string, unknown> | null; earlyReturn: CommandResult | null } {
+): {
+  diff: Record<string, { from: unknown; to: unknown }>;
+  nextScene: number;
+  parsedTime: Record<string, unknown> | null;
+  earlyReturn: CommandResult | null;
+} {
   const diff: Record<string, { from: unknown; to: unknown }> = {};
 
   let nextScene: number;
@@ -89,8 +100,8 @@ function buildSyncDiff(
   return { diff, nextScene, parsedTime, earlyReturn: null };
 }
 
-/** 
- * Verifies that the most recent computation results are recorded in rollHistory. 
+/**
+ * Verifies that the most recent computation results are recorded in rollHistory.
  */
 function checkPendingComputation(state: GmState, warnings: string[]): void {
   if (state._lastComputation && state._lastComputation.type !== 'levelup_result') {
@@ -102,8 +113,8 @@ function checkPendingComputation(state: GmState, warnings: string[]): void {
   }
 }
 
-/** 
- * Ensures mandatory Tier 1 modules are active in the context. 
+/**
+ * Ensures mandatory Tier 1 modules are active in the context.
  */
 function checkMissingModules(activeSet: Set<string>, warnings: string[]): void {
   const missingTier1 = TIER1_MODULES.filter(moduleName => !activeSet.has(moduleName));
@@ -112,8 +123,8 @@ function checkMissingModules(activeSet: Set<string>, warnings: string[]): void {
   }
 }
 
-/** 
- * Synchronizes quest objective completion with canonical worldFlags. 
+/**
+ * Synchronizes quest objective completion with canonical worldFlags.
  */
 function checkQuestWorldFlagSync(state: GmState, warnings: string[]): void {
   for (const quest of state.quests) {
@@ -127,30 +138,26 @@ function checkQuestWorldFlagSync(state: GmState, warnings: string[]): void {
       const flagSet = state.worldFlags[canonicalKey] === true;
       if (obj.completed && !flagSet) {
         warnings.push(
-          `Quest objective "${quest.id}/${obj.id}" is complete but worldFlag `
-          + `"${canonicalKey}" is not set. Use \`tag quest complete\` to sync.`,
+          `Quest objective "${quest.id}/${obj.id}" is complete but worldFlag ` +
+            `"${canonicalKey}" is not set. Use \`tag quest complete\` to sync.`,
         );
       }
       if (flagSet && !obj.completed) {
         warnings.push(
-          `WorldFlag "${canonicalKey}" is set but quest objective `
-          + `"${quest.id}/${obj.id}" is not marked complete.`,
+          `WorldFlag "${canonicalKey}" is set but quest objective ` + `"${quest.id}/${obj.id}" is not marked complete.`,
         );
       }
       if (!obj.completed) allComplete = false;
     }
     const questFlag = `quest:${quest.id}:complete`;
     if (allComplete && state.worldFlags[questFlag] !== true) {
-      warnings.push(
-        `All objectives of quest "${quest.id}" are complete but worldFlag `
-        + `"${questFlag}" is not set.`,
-      );
+      warnings.push(`All objectives of quest "${quest.id}" are complete but worldFlag ` + `"${questFlag}" is not set.`);
     }
   }
 }
 
-/** 
- * Checks if the character has reached the XP threshold for a level-up. 
+/**
+ * Checks if the character has reached the XP threshold for a level-up.
  * @remarks
  * See decision-campaign-arcs-use-full-levelxp-carry-forward-with-selective-reset.md.
  */
@@ -163,9 +170,9 @@ function checkLevelUpEligibility(state: GmState, warnings: string[]): void {
     if (level > computedLevel) {
       state._levelupPending = true;
       warnings.push(
-        `Character is level ${level} but \`tag compute levelup\` only reached level ${computedLevel}. `
-        + 'Level-up rewards (HP, proficiency, attributes) were not applied. '
-        + 'Run `tag compute levelup` to apply rewards, or set `_computedLevel` to match.',
+        `Character is level ${level} but \`tag compute levelup\` only reached level ${computedLevel}. ` +
+          'Level-up rewards (HP, proficiency, attributes) were not applied. ' +
+          'Run `tag compute levelup` to apply rewards, or set `_computedLevel` to match.',
       );
       return;
     }
@@ -174,8 +181,8 @@ function checkLevelUpEligibility(state: GmState, warnings: string[]): void {
     if (nextThreshold && xp >= nextThreshold.xp) {
       state._levelupPending = true;
       warnings.push(
-        `Level-up available! XP ${xp} >= ${nextThreshold.xp} `
-        + `(level ${level + 1}). The scene footer will show a glowing Level Up button.`,
+        `Level-up available! XP ${xp} >= ${nextThreshold.xp} ` +
+          `(level ${level + 1}). The scene footer will show a glowing Level Up button.`,
       );
     } else {
       state._levelupPending = false;
@@ -198,40 +205,35 @@ function checkNpcReferenceGaps(state: GmState, npcIds: Set<string>, warnings: st
 
 export const JOURNAL_FILENAME = 'journal.txt';
 
-/** 
+/**
  * In-depth compaction check during state sync.
  * @remarks
  * If compaction is detected, it blocks scene generation until modules are reloaded.
  * See gotcha-compaction-preflight-must-not-diverge-from-sync-state.md.
  */
-function checkCompaction(
-  state: GmState,
-  warnings: string[],
-): { compactionDetected: boolean; filesystemCount: number } {
+function checkCompaction(state: GmState, warnings: string[]): { compactionDetected: boolean; filesystemCount: number } {
   const transcriptsDir = process.env.TAG_TRANSCRIPTS_DIR || '/mnt/transcripts';
 
   const resolvedTranscripts = resolve(transcriptsDir);
   if (!isAllowedPath(resolvedTranscripts)) {
     warnings.push(
-      `Compaction check skipped: TAG_TRANSCRIPTS_DIR "${transcriptsDir}" is outside allowed paths `
-      + '(home, temp, or /mnt/). Set TAG_TRANSCRIPTS_DIR to a valid location.',
+      `Compaction check skipped: TAG_TRANSCRIPTS_DIR "${transcriptsDir}" is outside allowed paths ` +
+        '(home, temp, or /mnt/). Set TAG_TRANSCRIPTS_DIR to a valid location.',
     );
     return { compactionDetected: false, filesystemCount: 0 };
   }
 
-  let filesystemCount = 0;
+  let filesystemCount: number;
 
   try {
     const entries = readdirSync(transcriptsDir);
     filesystemCount = entries.filter(e => e !== JOURNAL_FILENAME).length;
   } catch (err: unknown) {
-    const code = err && typeof err === 'object' && 'code' in err
-      ? (err as NodeJS.ErrnoException).code
-      : undefined;
+    const code = err && typeof err === 'object' && 'code' in err ? (err as NodeJS.ErrnoException).code : undefined;
     if (code !== 'ENOENT') {
       warnings.push(
-        `Compaction check skipped: could not read "${transcriptsDir}" (${code ?? 'unknown'}). `
-        + 'Check TAG_TRANSCRIPTS_DIR and directory permissions.',
+        `Compaction check skipped: could not read "${transcriptsDir}" (${code ?? 'unknown'}). ` +
+          'Check TAG_TRANSCRIPTS_DIR and directory permissions.',
       );
     }
     return { compactionDetected: false, filesystemCount: 0 };
@@ -242,15 +244,13 @@ function checkCompaction(
 
   if (newCompactions > 0) {
     const modules = state.modulesActive ?? [];
-    const moduleList = modules.length > 0
-      ? modules.map(m => `modules/${m}.md`).join(', ')
-      : '(none active)';
+    const moduleList = modules.length > 0 ? modules.map(m => `modules/${m}.md`).join(', ') : '(none active)';
 
     warnings.push(
-      `COMPACTION DETECTED — ${newCompactions} new compaction${newCompactions > 1 ? 's' : ''} `
-      + `(stored: ${storedCount}, current: ${filesystemCount}). `
-      + `Module specs have been EVICTED from context. DO NOT generate any scene until you re-read: ${moduleList}. `
-      + `Recovery: run \`tag module activate-tier 1\` then activate Tier 2/3 modules. Generating from memory instead of re-reading produces degraded widgets.`,
+      `COMPACTION DETECTED — ${newCompactions} new compaction${newCompactions > 1 ? 's' : ''} ` +
+        `(stored: ${storedCount}, current: ${filesystemCount}). ` +
+        `Module specs have been EVICTED from context. DO NOT generate any scene until you re-read: ${moduleList}. ` +
+        `Recovery: run \`tag module activate-tier 1\` then activate Tier 2/3 modules. Generating from memory instead of re-reading produces degraded widgets.`,
     );
 
     return { compactionDetected: true, filesystemCount };
@@ -271,8 +271,8 @@ function checkPendingRolls(state: GmState, warnings: string[]): void {
   const { unresolved } = resolvePendingRolls(state._pendingRolls, state.rollHistory, state.scene);
   for (const pending of unresolved) {
     warnings.push(
-      `Unresolved pending roll: action ${pending.action} requires ${pending.type} (${pending.stat}) `
-      + `— run \`${buildPendingRollCommand(pending)}\`.`,
+      `Unresolved pending roll: action ${pending.action} requires ${pending.type} (${pending.stat}) ` +
+        `— run \`${buildPendingRollCommand(pending)}\`.`,
     );
   }
 }
@@ -283,8 +283,8 @@ function checkRulebookSet(state: GmState, warnings: string[]): void {
   const rulebook = state.worldFlags.rulebook;
   if (typeof rulebook === 'string' && rulebook.length > 0) return;
   warnings.push(
-    'worldFlags.rulebook is not set — dice enforcement will not trigger. '
-    + 'Run `tag state set worldFlags.rulebook <system>` (e.g. d20_system, pf2e_lite, narrative_engine).',
+    'worldFlags.rulebook is not set — dice enforcement will not trigger. ' +
+      'Run `tag state set worldFlags.rulebook <system>` (e.g. d20_system, pf2e_lite, narrative_engine).',
   );
 }
 
@@ -292,14 +292,18 @@ function checkRulebookSet(state: GmState, warnings: string[]): void {
 function checkStatCompleteness(state: GmState, warnings: string[]): void {
   if (!state.character) return;
   const rulebook = state.worldFlags.rulebook;
-  if (typeof rulebook !== 'string' || !rulebook.includes('d20') && !rulebook.includes('dnd') && !rulebook.includes('pf2e')) return;
+  if (
+    typeof rulebook !== 'string' ||
+    (!rulebook.includes('d20') && !rulebook.includes('dnd') && !rulebook.includes('pf2e'))
+  )
+    return;
   const stats = state.character.stats;
   const missing = STAT_NAMES.filter(s => !(s in stats) || typeof stats[s] !== 'number');
   if (missing.length > 0) {
     warnings.push(
-      `BLOCK: Character stats incomplete for ${rulebook} — missing: ${missing.join(', ')}. `
-      + 'D20-based systems require all 6 attributes (STR, DEX, CON, INT, WIS, CHA). '
-      + 'Set via `tag state set character.stats \'{"STR":10,"DEX":10,"CON":10,"INT":10,"WIS":10,"CHA":10}\'`.',
+      `BLOCK: Character stats incomplete for ${rulebook} — missing: ${missing.join(', ')}. ` +
+        'D20-based systems require all 6 attributes (STR, DEX, CON, INT, WIS, CHA). ' +
+        'Set via `tag state set character.stats \'{"STR":10,"DEX":10,"CON":10,"INT":10,"WIS":10,"CHA":10}\'`.',
     );
   }
 }
@@ -318,14 +322,14 @@ function checkRollRatio(state: GmState, warnings: string[]): void {
   const rolllessScenes = currentScene - lastRollScene;
   if (rolllessScenes >= ROLLLESS_BLOCK_THRESHOLD) {
     warnings.push(
-      `BLOCK: ${rolllessScenes} consecutive rollless scenes with ${rulebook}. `
-      + 'A dice roll is required before advancing. Run `tag compute contest <ATTR> <npc_id>` '
-      + 'or `tag compute hazard <ATTR> --dc <N>`.',
+      `BLOCK: ${rolllessScenes} consecutive rollless scenes with ${rulebook}. ` +
+        'A dice roll is required before advancing. Run `tag compute contest <ATTR> <npc_id>` ' +
+        'or `tag compute hazard <ATTR> --dc <N>`.',
     );
   } else if (rolllessScenes >= ROLLLESS_WARN_THRESHOLD) {
     warnings.push(
-      `${rolllessScenes} rollless scenes with ${rulebook}. `
-      + 'Consider adding a dice roll soon to maintain mechanical engagement.',
+      `${rolllessScenes} rollless scenes with ${rulebook}. ` +
+        'Consider adding a dice roll soon to maintain mechanical engagement.',
     );
   }
 }
@@ -336,7 +340,7 @@ const KNOWN_VALUE_FLAGS = new Set(['scene', 'room', 'time']);
 /**
  * Handler for the `tag state sync` command.
  * Performs a comprehensive audit of the game state before allowing advancement.
- * 
+ *
  * @param {string[]} args - CLI arguments (e.g., --apply, --scene 5, --room bridge).
  * @returns {Promise<CommandResult>} - Result of the sync audit.
  * @remarks
@@ -356,9 +360,10 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
 
   for (const flag of parsed.booleans) {
     if (!KNOWN_BOOLEAN_FLAGS.has(flag)) {
-      const hint = flag === 'force'
-        ? 'Did you mean `--apply`? Use `tag state sync --apply` to commit the sync.'
-        : `Valid flags: --apply, --scene <N>, --room <id>, --time <json>.`;
+      const hint =
+        flag === 'force'
+          ? 'Did you mean `--apply`? Use `tag state sync --apply` to commit the sync.'
+          : `Valid flags: --apply, --scene <N>, --room <id>, --time <json>.`;
       return fail(`Unknown flag --${flag}. ${hint}`, 'Run `tag state sync --apply` to commit changes.', 'state sync');
     }
   }
@@ -414,8 +419,8 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
       if (lastVerifyScene < state.scene) {
         return fail(
           `Scene ${state.scene} has not been verified. Last verified: ${lastVerifyScene < 0 ? 'never' : `scene ${lastVerifyScene}`}.`,
-          'Run `tag verify /tmp/scene.html` with your composed HTML before advancing. '
-          + 'This ensures the widget has all required elements (footer, panels, CSS, narrative, action cards).',
+          'Run `tag verify /tmp/scene.html` with your composed HTML before advancing. ' +
+            'This ensures the widget has all required elements (footer, panels, CSS, narrative, action cards).',
           'state sync',
         );
       }
@@ -444,11 +449,11 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
     if (unresolvedRolls.length > 0) {
       const first = unresolvedRolls[0]!;
       return fail(
-        `Cannot apply: ${unresolvedRolls.length} unresolved pending roll(s). `
-        + `First: action ${first.action} (${first.type} ${first.stat}).`,
+        `Cannot apply: ${unresolvedRolls.length} unresolved pending roll(s). ` +
+          `First: action ${first.action} (${first.type} ${first.stat}).`,
         `Run \`${buildPendingRollCommand(first)}\` first.`,
         'state sync',
-        );
+      );
     }
 
     if (diff.scene) state.scene = nextScene;
@@ -459,17 +464,28 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
       if ('date' in parsedTime && typeof parsedTime.date === 'string') coerced.date = parsedTime.date;
       if ('elapsed' in parsedTime && typeof parsedTime.elapsed === 'number') coerced.elapsed = parsedTime.elapsed;
       if ('hour' in parsedTime && typeof parsedTime.hour === 'number') coerced.hour = parsedTime.hour;
-      if ('playerKnowsDate' in parsedTime && typeof parsedTime.playerKnowsDate === 'boolean') coerced.playerKnowsDate = parsedTime.playerKnowsDate;
-      if ('playerKnowsTime' in parsedTime && typeof parsedTime.playerKnowsTime === 'boolean') coerced.playerKnowsTime = parsedTime.playerKnowsTime;
-      if ('calendarSystem' in parsedTime && typeof parsedTime.calendarSystem === 'string') coerced.calendarSystem = parsedTime.calendarSystem;
+      if ('playerKnowsDate' in parsedTime && typeof parsedTime.playerKnowsDate === 'boolean')
+        coerced.playerKnowsDate = parsedTime.playerKnowsDate;
+      if ('playerKnowsTime' in parsedTime && typeof parsedTime.playerKnowsTime === 'boolean')
+        coerced.playerKnowsTime = parsedTime.playerKnowsTime;
+      if ('calendarSystem' in parsedTime && typeof parsedTime.calendarSystem === 'string')
+        coerced.calendarSystem = parsedTime.calendarSystem;
       if ('deadline' in parsedTime) {
         const dl = parsedTime.deadline;
         if (dl === null) {
           coerced.deadline = null;
-        } else if (typeof dl === 'object' && dl !== null && 'label' in dl && 'remainingScenes' in dl
-          && typeof (dl as Record<string, unknown>).label === 'string'
-          && typeof (dl as Record<string, unknown>).remainingScenes === 'number') {
-          coerced.deadline = { label: (dl as Record<string, unknown>).label as string, remainingScenes: (dl as Record<string, unknown>).remainingScenes as number };
+        } else if (
+          typeof dl === 'object' &&
+          dl !== null &&
+          'label' in dl &&
+          'remainingScenes' in dl &&
+          typeof (dl as Record<string, unknown>).label === 'string' &&
+          typeof (dl as Record<string, unknown>).remainingScenes === 'number'
+        ) {
+          coerced.deadline = {
+            label: (dl as Record<string, unknown>).label as string,
+            remainingScenes: (dl as Record<string, unknown>).remainingScenes as number,
+          };
         }
       }
       state.time = { ...state.time, ...coerced };
@@ -496,21 +512,24 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
     writeFileSync(getSyncMarkerPath(), signMarker(state.scene), 'utf-8');
   }
 
-  return ok({
-    status,
-    diff,
-    warnings,
-    errors: [],
-    featureChecklist,
-    inlineGuidance: {
-      proseChecklist: [...PROSE_CHECKLIST],
-      renderingRules: [...RENDERING_RULES],
-      sceneStructure: [...SCENE_STRUCTURE],
-      densityGuidance: { ...DENSITY_GUIDANCE },
+  return ok(
+    {
+      status,
+      diff,
+      warnings,
+      errors: [],
+      featureChecklist,
+      inlineGuidance: {
+        proseChecklist: [...PROSE_CHECKLIST],
+        renderingRules: [...RENDERING_RULES],
+        sceneStructure: [...SCENE_STRUCTURE],
+        densityGuidance: { ...DENSITY_GUIDANCE },
+      },
+      applied: apply,
+      compactionDetected,
+      rollHistoryCount: state.rollHistory.length,
+      stateHistoryCount: state._stateHistory.length,
     },
-    applied: apply,
-    compactionDetected,
-    rollHistoryCount: state.rollHistory.length,
-    stateHistoryCount: state._stateHistory.length,
-  }, 'state sync');
+    'state sync',
+  );
 }

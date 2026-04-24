@@ -38,32 +38,45 @@ async function setupState(): Promise<void> {
   await handleState(['set', 'currentRoom', 'bridge']);
   await handleState(['set', 'visualStyle', 'station']);
   await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
-  await handleState(['set', 'modulesActive', JSON.stringify([
-    'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-    'character-creation', 'save-codex',
-  ])]);
-  await handleState(['set', 'character', JSON.stringify({
-    name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-    level: 1, xp: 0, currency: 0, currencyName: 'credits',
-    stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
-    modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-    proficiencyBonus: 2, proficiencies: [], abilities: [],
-    inventory: [], conditions: [],
-    equipment: { weapon: 'Knife', armour: 'Vest' },
-  })]);
-  await handleState(['set', '_modulesRead', JSON.stringify([
-    'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-    'character-creation', 'save-codex',
-  ])]);
+  await handleState([
+    'set',
+    'modulesActive',
+    JSON.stringify(['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex']),
+  ]);
+  await handleState([
+    'set',
+    'character',
+    JSON.stringify({
+      name: 'Test',
+      class: 'Scout',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
+      stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+      modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'Knife', armour: 'Vest' },
+    }),
+  ]);
+  await handleState([
+    'set',
+    '_modulesRead',
+    JSON.stringify(['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex']),
+  ]);
   await handleState(['set', '_proseCraftEpoch', '0']);
   await handleState(['set', '_styleReadEpoch', '0']);
 }
 
 function injectSceneActions(html: string, actions: string): string {
-  return html.replace(
-    /<!-- \[ACTIONS:[\s\S]*?title structure\.\] -->/,
-    actions,
-  );
+  return html.replace(/<!-- \[ACTIONS:[\s\S]*?title structure\.\] -->/, actions);
 }
 
 async function renderComposedScene(args: string[] = ['scene', '--style', 'station', '--raw']): Promise<string> {
@@ -71,13 +84,13 @@ async function renderComposedScene(args: string[] = ['scene', '--style', 'statio
   expect(renderResult.ok).toBe(true);
   let html = (renderResult.data as string).replace(
     '<p><!-- Narrative content rendered by the GM --></p>',
-    '<p class="narrative">The bridge hums with recycled air while warning lights crawl along the bulkheads.</p>'
-    + '<p class="narrative">Something deliberate stirs beyond the viewport and every crew member waits for your call.</p>',
+    '<p class="narrative">The bridge hums with recycled air while warning lights crawl along the bulkheads.</p>' +
+      '<p class="narrative">Something deliberate stirs beyond the viewport and every crew member waits for your call.</p>',
   );
   html = injectSceneActions(
     html,
-    '<button class="action-card" data-prompt="Examine the sonar." title="Examine the sonar."><strong class="btn-title">Examine sonar</strong></button>'
-    + '<button class="action-card" data-prompt="Speak to the captain." title="Speak to the captain."><strong class="btn-title">Speak to captain</strong></button>',
+    '<button class="action-card" data-prompt="Examine the sonar." title="Examine the sonar."><strong class="btn-title">Examine sonar</strong></button>' +
+      '<button class="action-card" data-prompt="Speak to the captain." title="Speak to the captain."><strong class="btn-title">Speak to captain</strong></button>',
   );
   return html;
 }
@@ -88,16 +101,15 @@ describe('tag verify', () => {
     const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
     expect(renderResult.ok).toBe(true);
     // Inject narrative and action cards (simulates GM composition step)
-    let html = (renderResult.data as string)
-      .replace(
-        '<p><!-- Narrative content rendered by the GM --></p>',
-        '<p class="narrative">The bridge hums with the sound of recycled air and quiet tension.</p>'
-        + '<p class="narrative">Something moves beyond the viewport, dark against the deeper dark.</p>',
-      );
+    let html = (renderResult.data as string).replace(
+      '<p><!-- Narrative content rendered by the GM --></p>',
+      '<p class="narrative">The bridge hums with the sound of recycled air and quiet tension.</p>' +
+        '<p class="narrative">Something moves beyond the viewport, dark against the deeper dark.</p>',
+    );
     html = injectSceneActions(
       html,
-      '<button class="action-card" data-prompt="Examine the sonar." title="Examine the sonar."><strong class="btn-title">Examine sonar</strong></button>'
-      + '<button class="action-card" data-prompt="Speak to the captain." title="Speak to the captain."><strong class="btn-title">Speak to captain</strong></button>',
+      '<button class="action-card" data-prompt="Examine the sonar." title="Examine the sonar."><strong class="btn-title">Examine sonar</strong></button>' +
+        '<button class="action-card" data-prompt="Speak to the captain." title="Speak to the captain."><strong class="btn-title">Speak to captain</strong></button>',
     );
     const filePath = join(tempDir, 'scene.html');
     writeFileSync(filePath, html, 'utf-8');
@@ -134,7 +146,10 @@ describe('tag verify', () => {
 
   test('fails when narrative is empty', async () => {
     await setupState();
-    const html = '<style>' + 'x'.repeat(10000) + '</style><div id="scene-meta" data-meta="{}"></div><ta-footer></ta-footer><div id="narrative"><!-- empty --></div>';
+    const html =
+      '<style>' +
+      'x'.repeat(10000) +
+      '</style><div id="scene-meta" data-meta="{}"></div><ta-footer></ta-footer><div id="narrative"><!-- empty --></div>';
     const filePath = join(tempDir, 'empty-narrative.html');
     writeFileSync(filePath, html, 'utf-8');
 
@@ -146,7 +161,8 @@ describe('tag verify', () => {
 
   test('fails when CSS is below minimum threshold', async () => {
     await setupState();
-    const html = '<style>.tiny{}</style><div id="scene-meta" data-meta="{}"></div><ta-footer></ta-footer><div id="narrative"><p>Story</p></div>';
+    const html =
+      '<style>.tiny{}</style><div id="scene-meta" data-meta="{}"></div><ta-footer></ta-footer><div id="narrative"><p>Story</p></div>';
     const filePath = join(tempDir, 'thin-css.html');
     writeFileSync(filePath, html, 'utf-8');
 
@@ -159,15 +175,14 @@ describe('tag verify', () => {
   test('writes verify marker on pass', async () => {
     await setupState();
     const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
-    let html = (renderResult.data as string)
-      .replace(
-        '<p><!-- Narrative content rendered by the GM --></p>',
-        '<p class="narrative">The corridor stretches ahead, lit by emergency strips.</p><p class="narrative">A sound echoes from below.</p>',
-      );
+    let html = (renderResult.data as string).replace(
+      '<p><!-- Narrative content rendered by the GM --></p>',
+      '<p class="narrative">The corridor stretches ahead, lit by emergency strips.</p><p class="narrative">A sound echoes from below.</p>',
+    );
     html = injectSceneActions(
       html,
-      '<button class="action-card" data-prompt="Go left." title="Go left through the corridor."><strong class="btn-title">Go left</strong></button>'
-      + '<button class="action-card" data-prompt="Go right." title="Go right toward the reactor stairs."><strong class="btn-title">Go right</strong></button>',
+      '<button class="action-card" data-prompt="Go left." title="Go left through the corridor."><strong class="btn-title">Go left</strong></button>' +
+        '<button class="action-card" data-prompt="Go right." title="Go right toward the reactor stairs."><strong class="btn-title">Go right</strong></button>',
     );
     const filePath = join(tempDir, 'scene.html');
     writeFileSync(filePath, html, 'utf-8');
@@ -199,17 +214,16 @@ describe('tag verify', () => {
   test('fails when inline onclick handlers are present', async () => {
     await setupState();
     const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
-    let html = (renderResult.data as string)
-      .replace(
-        '<p><!-- Narrative content rendered by the GM --></p>',
-        '<p class="narrative">A long narrative paragraph that establishes the scene properly.</p>',
-      );
+    let html = (renderResult.data as string).replace(
+      '<p><!-- Narrative content rendered by the GM --></p>',
+      '<p class="narrative">A long narrative paragraph that establishes the scene properly.</p>',
+    );
     // Inject an inline onclick — the exact anti-pattern
     html = injectSceneActions(
       html,
-      '<button onclick="sendPrompt(\'Do thing\')">Do thing</button>'
-      + '<button class="action-card" data-prompt="Other thing"><strong class="btn-title">Other</strong></button>'
-      + '<button class="action-card" data-prompt="Another thing"><strong class="btn-title">Another</strong></button>',
+      '<button onclick="sendPrompt(\'Do thing\')">Do thing</button>' +
+        '<button class="action-card" data-prompt="Other thing"><strong class="btn-title">Other</strong></button>' +
+        '<button class="action-card" data-prompt="Another thing"><strong class="btn-title">Another</strong></button>',
     );
     const filePath = join(tempDir, 'onclick.html');
     writeFileSync(filePath, html, 'utf-8');
@@ -222,16 +236,15 @@ describe('tag verify', () => {
   test('fails when inline onclick handlers use single-quoted attributes', async () => {
     await setupState();
     const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
-    let html = (renderResult.data as string)
-      .replace(
-        '<p><!-- Narrative content rendered by the GM --></p>',
-        '<p class="narrative">A long narrative paragraph that establishes the scene properly.</p>',
-      );
+    let html = (renderResult.data as string).replace(
+      '<p><!-- Narrative content rendered by the GM --></p>',
+      '<p class="narrative">A long narrative paragraph that establishes the scene properly.</p>',
+    );
     html = injectSceneActions(
       html,
-      "<button onclick='sendPrompt(\"Do thing\")'>Do thing</button>"
-      + '<button class="action-card" data-prompt="Other thing" title="Other thing"><strong class="btn-title">Other</strong></button>'
-      + '<button class="action-card" data-prompt="Another thing" title="Another thing"><strong class="btn-title">Another</strong></button>',
+      '<button onclick=\'sendPrompt("Do thing")\'>Do thing</button>' +
+        '<button class="action-card" data-prompt="Other thing" title="Other thing"><strong class="btn-title">Other</strong></button>' +
+        '<button class="action-card" data-prompt="Another thing" title="Another thing"><strong class="btn-title">Another</strong></button>',
     );
     const filePath = join(tempDir, 'onclick-single-quoted.html');
     writeFileSync(filePath, html, 'utf-8');
@@ -243,14 +256,17 @@ describe('tag verify', () => {
 
   test('fails when data-prompt button has no copyable fallback', async () => {
     await setupState();
-    const html = '<style>' + 'x'.repeat(10000) + '</style>'
-      + '<div id="scene-meta" data-meta="{}"></div>'
-      + '<div id="panel-overlay"></div>'
-      + '<ta-footer></ta-footer>'
-      + '<div class="status-bar"><span class="hp-display">HP 10/10</span></div>'
-      + '<div id="narrative"><p class="narrative">The bridge hums with tension and the air smells of recycled nothing.</p></div>'
-      + '<button class="action-card" data-prompt="Do the thing"><strong class="btn-title">Do thing</strong></button>'
-      + '<button class="action-card" data-prompt="Other thing"><strong class="btn-title">Other</strong></button>';
+    const html =
+      '<style>' +
+      'x'.repeat(10000) +
+      '</style>' +
+      '<div id="scene-meta" data-meta="{}"></div>' +
+      '<div id="panel-overlay"></div>' +
+      '<ta-footer></ta-footer>' +
+      '<div class="status-bar"><span class="hp-display">HP 10/10</span></div>' +
+      '<div id="narrative"><p class="narrative">The bridge hums with tension and the air smells of recycled nothing.</p></div>' +
+      '<button class="action-card" data-prompt="Do the thing"><strong class="btn-title">Do thing</strong></button>' +
+      '<button class="action-card" data-prompt="Other thing"><strong class="btn-title">Other</strong></button>';
     const filePath = join(tempDir, 'no-fallback.html');
     writeFileSync(filePath, html, 'utf-8');
 
@@ -262,15 +278,14 @@ describe('tag verify', () => {
   test('fails when only some data-prompt buttons have title fallbacks', async () => {
     await setupState();
     const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
-    let html = (renderResult.data as string)
-      .replace(
-        '<p><!-- Narrative content rendered by the GM --></p>',
-        '<p class="narrative">The bridge hums with tension and the air smells of recycled nothing.</p>',
-      );
+    let html = (renderResult.data as string).replace(
+      '<p><!-- Narrative content rendered by the GM --></p>',
+      '<p class="narrative">The bridge hums with tension and the air smells of recycled nothing.</p>',
+    );
     html = injectSceneActions(
       html,
-      '<button class="action-card" data-prompt="Do the thing" title="Do the thing"><strong class="btn-title">Do thing</strong></button>'
-      + '<button class="action-card" data-prompt="Other thing"><strong class="btn-title">Other</strong></button>',
+      '<button class="action-card" data-prompt="Do the thing" title="Do the thing"><strong class="btn-title">Do thing</strong></button>' +
+        '<button class="action-card" data-prompt="Other thing"><strong class="btn-title">Other</strong></button>',
     );
     const filePath = join(tempDir, 'partial-fallback.html');
     writeFileSync(filePath, html, 'utf-8');
@@ -283,16 +298,15 @@ describe('tag verify', () => {
   test('passes when action cards use single-quoted prompt and title attributes', async () => {
     await setupState();
     const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
-    let html = (renderResult.data as string)
-      .replace(
-        '<p><!-- Narrative content rendered by the GM --></p>',
-        '<p class="narrative">The bridge hums with the sound of recycled air and quiet tension.</p>'
-        + '<p class="narrative">Something moves beyond the viewport, dark against the deeper dark.</p>',
-      );
+    let html = (renderResult.data as string).replace(
+      '<p><!-- Narrative content rendered by the GM --></p>',
+      '<p class="narrative">The bridge hums with the sound of recycled air and quiet tension.</p>' +
+        '<p class="narrative">Something moves beyond the viewport, dark against the deeper dark.</p>',
+    );
     html = injectSceneActions(
       html,
-      "<button class='action-card' data-prompt='Examine the sonar.' title='Examine the sonar.'><strong class='btn-title'>Examine sonar</strong></button>"
-      + "<button class='action-card' data-prompt='Speak to the captain.' title='Speak to the captain.'><strong class='btn-title'>Speak to captain</strong></button>",
+      "<button class='action-card' data-prompt='Examine the sonar.' title='Examine the sonar.'><strong class='btn-title'>Examine sonar</strong></button>" +
+        "<button class='action-card' data-prompt='Speak to the captain.' title='Speak to the captain.'><strong class='btn-title'>Speak to captain</strong></button>",
     );
     const filePath = join(tempDir, 'single-quoted-prompts.html');
     writeFileSync(filePath, html, 'utf-8');
@@ -308,13 +322,16 @@ describe('tag verify', () => {
     await handleState(['reset']);
     await handleState(['set', 'scene', '1']);
     // Do NOT set visualStyle
-    const html = '<style>' + 'x'.repeat(10000) + '</style>'
-      + '<div id="scene-meta" data-meta="{}"></div>'
-      + '<div id="panel-overlay"></div>'
-      + '<ta-footer></ta-footer>'
-      + '<div id="narrative"><p class="narrative">A sufficiently long narrative paragraph for the check.</p></div>'
-      + '<button class="action-card" data-prompt="Act 1"><strong class="btn-title">Act</strong></button>'
-      + '<button class="action-card" data-prompt="Act 2"><strong class="btn-title">Act 2</strong></button>';
+    const html =
+      '<style>' +
+      'x'.repeat(10000) +
+      '</style>' +
+      '<div id="scene-meta" data-meta="{}"></div>' +
+      '<div id="panel-overlay"></div>' +
+      '<ta-footer></ta-footer>' +
+      '<div id="narrative"><p class="narrative">A sufficiently long narrative paragraph for the check.</p></div>' +
+      '<button class="action-card" data-prompt="Act 1"><strong class="btn-title">Act</strong></button>' +
+      '<button class="action-card" data-prompt="Act 2"><strong class="btn-title">Act 2</strong></button>';
     const filePath = join(tempDir, 'no-style.html');
     writeFileSync(filePath, html, 'utf-8');
 
@@ -325,15 +342,18 @@ describe('tag verify', () => {
 
   test('fails when hand-coded canvas dice detected', async () => {
     await setupState();
-    const html = '<style>' + 'x'.repeat(10000) + '</style>'
-      + '<div id="scene-meta" data-meta="{}"></div>'
-      + '<div id="panel-overlay"></div>'
-      + '<ta-footer></ta-footer>'
-      + '<div class="status-bar"><span class="hp-display">HP 10/10</span></div>'
-      + '<div id="narrative"><p class="narrative">The guard swings and you need to dodge urgently now.</p></div>'
-      + '<canvas id="dice-canvas" width="200" height="200"></canvas>'
-      + '<button class="action-card" data-prompt="Dodge"><strong class="btn-title">Dodge</strong></button>'
-      + '<button class="action-card" data-prompt="Block"><strong class="btn-title">Block</strong></button>';
+    const html =
+      '<style>' +
+      'x'.repeat(10000) +
+      '</style>' +
+      '<div id="scene-meta" data-meta="{}"></div>' +
+      '<div id="panel-overlay"></div>' +
+      '<ta-footer></ta-footer>' +
+      '<div class="status-bar"><span class="hp-display">HP 10/10</span></div>' +
+      '<div id="narrative"><p class="narrative">The guard swings and you need to dodge urgently now.</p></div>' +
+      '<canvas id="dice-canvas" width="200" height="200"></canvas>' +
+      '<button class="action-card" data-prompt="Dodge"><strong class="btn-title">Dodge</strong></button>' +
+      '<button class="action-card" data-prompt="Block"><strong class="btn-title">Block</strong></button>';
     const filePath = join(tempDir, 'hand-dice.html');
     writeFileSync(filePath, html, 'utf-8');
 
@@ -345,15 +365,14 @@ describe('tag verify', () => {
   test('increments _turnCount on successful verify', async () => {
     await setupState();
     const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
-    let html = (renderResult.data as string)
-      .replace(
-        '<p><!-- Narrative content rendered by the GM --></p>',
-        '<p class="narrative">The bridge hums with tension and the sound of something distant.</p><p class="narrative">Lights flicker overhead.</p>',
-      );
+    let html = (renderResult.data as string).replace(
+      '<p><!-- Narrative content rendered by the GM --></p>',
+      '<p class="narrative">The bridge hums with tension and the sound of something distant.</p><p class="narrative">Lights flicker overhead.</p>',
+    );
     html = injectSceneActions(
       html,
-      '<button class="action-card" data-prompt="Investigate." title="Investigate the source of the noise."><strong class="btn-title">Investigate</strong></button>'
-      + '<button class="action-card" data-prompt="Retreat." title="Retreat to safer cover."><strong class="btn-title">Retreat</strong></button>',
+      '<button class="action-card" data-prompt="Investigate." title="Investigate the source of the noise."><strong class="btn-title">Investigate</strong></button>' +
+        '<button class="action-card" data-prompt="Retreat." title="Retreat to safer cover."><strong class="btn-title">Retreat</strong></button>',
     );
     const filePath = join(tempDir, 'turncount.html');
     writeFileSync(filePath, html, 'utf-8');
@@ -371,16 +390,21 @@ describe('tag verify', () => {
     await handleState(['set', 'scene', '1']);
     await handleState(['set', 'currentRoom', 'bridge']);
     await handleState(['set', 'visualStyle', 'station']);
-    await handleState(['set', 'modulesActive', JSON.stringify([
-      'gm-checklist', 'prose-craft', 'core-systems', 'atmosphere',
-    ])]);
-    const html = '<style>' + 'x'.repeat(10000) + '</style>'
-      + '<div id="scene-meta" data-meta="{}"></div>'
-      + '<div id="panel-overlay"></div>'
-      + '<ta-footer></ta-footer>'
-      + '<div id="narrative"><p class="narrative">The air recyclers drone in the corridor ahead of you.</p></div>'
-      + '<button class="action-card" data-prompt="Advance" title="Advance down the corridor"><strong class="btn-title">Advance</strong></button>'
-      + '<button class="action-card" data-prompt="Listen" title="Listen carefully"><strong class="btn-title">Listen</strong></button>';
+    await handleState([
+      'set',
+      'modulesActive',
+      JSON.stringify(['gm-checklist', 'prose-craft', 'core-systems', 'atmosphere']),
+    ]);
+    const html =
+      '<style>' +
+      'x'.repeat(10000) +
+      '</style>' +
+      '<div id="scene-meta" data-meta="{}"></div>' +
+      '<div id="panel-overlay"></div>' +
+      '<ta-footer></ta-footer>' +
+      '<div id="narrative"><p class="narrative">The air recyclers drone in the corridor ahead of you.</p></div>' +
+      '<button class="action-card" data-prompt="Advance" title="Advance down the corridor"><strong class="btn-title">Advance</strong></button>' +
+      '<button class="action-card" data-prompt="Listen" title="Listen carefully"><strong class="btn-title">Listen</strong></button>';
     const filePath = join(tempDir, 'no-atmo.html');
     writeFileSync(filePath, html, 'utf-8');
 
@@ -394,16 +418,21 @@ describe('tag verify', () => {
     await handleState(['set', 'scene', '1']);
     await handleState(['set', 'currentRoom', 'bridge']);
     await handleState(['set', 'visualStyle', 'station']);
-    await handleState(['set', 'modulesActive', JSON.stringify([
-      'gm-checklist', 'prose-craft', 'core-systems', 'lore-codex',
-    ])]);
-    const html = '<style>' + 'x'.repeat(10000) + '</style>'
-      + '<div id="scene-meta" data-meta="{}"></div>'
-      + '<div id="panel-overlay"></div>'
-      + '<ta-footer></ta-footer>'
-      + '<div id="narrative"><p class="narrative">Ancient glyphs cover the walls of the abandoned station module.</p></div>'
-      + '<button class="action-card" data-prompt="Examine glyphs" title="Examine the ancient glyphs"><strong class="btn-title">Examine</strong></button>'
-      + '<button class="action-card" data-prompt="Move on" title="Continue through the corridor"><strong class="btn-title">Move on</strong></button>';
+    await handleState([
+      'set',
+      'modulesActive',
+      JSON.stringify(['gm-checklist', 'prose-craft', 'core-systems', 'lore-codex']),
+    ]);
+    const html =
+      '<style>' +
+      'x'.repeat(10000) +
+      '</style>' +
+      '<div id="scene-meta" data-meta="{}"></div>' +
+      '<div id="panel-overlay"></div>' +
+      '<ta-footer></ta-footer>' +
+      '<div id="narrative"><p class="narrative">Ancient glyphs cover the walls of the abandoned station module.</p></div>' +
+      '<button class="action-card" data-prompt="Examine glyphs" title="Examine the ancient glyphs"><strong class="btn-title">Examine</strong></button>' +
+      '<button class="action-card" data-prompt="Move on" title="Continue through the corridor"><strong class="btn-title">Move on</strong></button>';
     const filePath = join(tempDir, 'no-codex.html');
     writeFileSync(filePath, html, 'utf-8');
 
@@ -426,10 +455,19 @@ describe('tag verify', () => {
 
   test('fails when export button is missing while adventure-exporting is active', async () => {
     await setupState();
-    await handleState(['set', 'modulesActive', JSON.stringify([
-      'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-      'character-creation', 'save-codex', 'adventure-exporting',
-    ])]);
+    await handleState([
+      'set',
+      'modulesActive',
+      JSON.stringify([
+        'gm-checklist',
+        'prose-craft',
+        'core-systems',
+        'die-rolls',
+        'character-creation',
+        'save-codex',
+        'adventure-exporting',
+      ]),
+    ]);
     let html = await renderComposedScene();
     html = html.replace(/data-has-export="true"/, '');
     const filePath = join(tempDir, 'missing-export.html');
@@ -453,16 +491,16 @@ describe('tag verify', () => {
     const result = await handleVerify([filePath]);
     const failures = (result.data as Record<string, unknown>).failures as string[];
     expect(
-      failures.some(f => (f.includes('Unexpected footer') || f.includes('Footer module contract mismatch')) && f.includes('ship')),
+      failures.some(
+        f => (f.includes('Unexpected footer') || f.includes('Footer module contract mismatch')) && f.includes('ship'),
+      ),
     ).toBe(true);
   });
 
   test('fails when action cards use editorial guidance labels', async () => {
     await setupState();
     let html = await renderComposedScene();
-    html = html
-      .replace('Examine sonar', 'Safe option')
-      .replace('Speak to captain', 'Risky approach');
+    html = html.replace('Examine sonar', 'Safe option').replace('Speak to captain', 'Risky approach');
     const filePath = join(tempDir, 'editorial-labels.html');
     writeFileSync(filePath, html, 'utf-8');
 
@@ -473,10 +511,19 @@ describe('tag verify', () => {
 
   test('fails when atmosphere module is active but fewer than three atmo pills are present', async () => {
     await setupState();
-    await handleState(['set', 'modulesActive', JSON.stringify([
-      'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-      'character-creation', 'save-codex', 'atmosphere',
-    ])]);
+    await handleState([
+      'set',
+      'modulesActive',
+      JSON.stringify([
+        'gm-checklist',
+        'prose-craft',
+        'core-systems',
+        'die-rolls',
+        'character-creation',
+        'save-codex',
+        'atmosphere',
+      ]),
+    ]);
     let html = await renderComposedScene();
     html = html.replace(
       /<div class="atmo-strip">[\s\S]*?<\/div>/,
@@ -493,7 +540,10 @@ describe('tag verify', () => {
   test('fails when panel close button is missing', async () => {
     await setupState();
     let html = await renderComposedScene();
-    html = html.replace(/<button class="panel-close-btn" id="panel-close-btn" aria-label="Close panel">Close<\/button>/, '');
+    html = html.replace(
+      /<button class="panel-close-btn" id="panel-close-btn" aria-label="Close panel">Close<\/button>/,
+      '',
+    );
     const filePath = join(tempDir, 'missing-panel-close.html');
     writeFileSync(filePath, html, 'utf-8');
 
@@ -586,16 +636,21 @@ describe('verify audio module check', () => {
     await handleState(['set', 'scene', '1']);
     await handleState(['set', 'currentRoom', 'bridge']);
     await handleState(['set', 'visualStyle', 'station']);
-    await handleState(['set', 'modulesActive', JSON.stringify([
-      'gm-checklist', 'prose-craft', 'core-systems', 'audio',
-    ])]);
-    const html = '<style>' + 'x'.repeat(10000) + '</style>'
-      + '<div id="scene-meta" data-meta="{}"></div>'
-      + '<div id="panel-overlay"></div>'
-      + '<ta-footer data-has-audio="false"></ta-footer>'
-      + '<div id="narrative"><p class="narrative">The hum of distant generators reverberates through the corridor walls.</p></div>'
-      + '<button class="action-card" data-prompt="Listen" title="Listen to the source"><strong class="btn-title">Listen</strong></button>'
-      + '<button class="action-card" data-prompt="Move on" title="Continue past"><strong class="btn-title">Move on</strong></button>';
+    await handleState([
+      'set',
+      'modulesActive',
+      JSON.stringify(['gm-checklist', 'prose-craft', 'core-systems', 'audio']),
+    ]);
+    const html =
+      '<style>' +
+      'x'.repeat(10000) +
+      '</style>' +
+      '<div id="scene-meta" data-meta="{}"></div>' +
+      '<div id="panel-overlay"></div>' +
+      '<ta-footer data-has-audio="false"></ta-footer>' +
+      '<div id="narrative"><p class="narrative">The hum of distant generators reverberates through the corridor walls.</p></div>' +
+      '<button class="action-card" data-prompt="Listen" title="Listen to the source"><strong class="btn-title">Listen</strong></button>' +
+      '<button class="action-card" data-prompt="Move on" title="Continue past"><strong class="btn-title">Move on</strong></button>';
     const filePath = join(tempDir, 'no-audio.html');
     writeFileSync(filePath, html, 'utf-8');
 
@@ -627,17 +682,18 @@ describe('verify file path validation', () => {
   test('fails when Tier 1 modules are missing from modulesActive', async () => {
     await setupState();
     // Remove prose-craft and die-rolls from Tier 1
-    await handleState(['set', 'modulesActive', JSON.stringify([
-      'gm-checklist', 'core-systems', 'character-creation', 'save-codex',
-    ])]);
+    await handleState([
+      'set',
+      'modulesActive',
+      JSON.stringify(['gm-checklist', 'core-systems', 'character-creation', 'save-codex']),
+    ]);
 
     // Write a valid HTML file
     const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
-    let html = (renderResult.data as string)
-      .replace(
-        '<p><!-- Narrative content rendered by the GM --></p>',
-        '<p class="narrative">The bridge hums with tension.</p><p class="narrative">Something moves in the dark.</p>',
-      );
+    const html = (renderResult.data as string).replace(
+      '<p><!-- Narrative content rendered by the GM --></p>',
+      '<p class="narrative">The bridge hums with tension.</p><p class="narrative">Something moves in the dark.</p>',
+    );
     const htmlPath = join(tempDir, 'tier1-test.html');
     writeFileSync(htmlPath, html, 'utf-8');
 
@@ -654,11 +710,10 @@ describe('verify file path validation', () => {
     // setupState includes all 6 Tier 1 modules
 
     const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
-    let html = (renderResult.data as string)
-      .replace(
-        '<p><!-- Narrative content rendered by the GM --></p>',
-        '<p class="narrative">The bridge hums with tension.</p><p class="narrative">Something moves in the dark.</p>',
-      );
+    const html = (renderResult.data as string).replace(
+      '<p><!-- Narrative content rendered by the GM --></p>',
+      '<p class="narrative">The bridge hums with tension.</p><p class="narrative">Something moves in the dark.</p>',
+    );
     const htmlPath = join(tempDir, 'tier1-pass.html');
     writeFileSync(htmlPath, html, 'utf-8');
 
@@ -673,7 +728,7 @@ describe('verify file path validation', () => {
     await setupState();
     const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
     // Inject narrative + add an explicitly invalid CSS variable usage to the scene HTML.
-    let html = (renderResult.data as string)
+    const html = (renderResult.data as string)
       .replace(
         '<p><!-- Narrative content rendered by the GM --></p>',
         '<p class="narrative">The bridge hums with tension.</p><p class="narrative">Something moves.</p>',
@@ -691,12 +746,11 @@ describe('verify file path validation', () => {
   test('passes when all CSS variables use valid prefixes', async () => {
     await setupState();
     const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
-    let html = (renderResult.data as string)
-      .replace(
-        '<p><!-- Narrative content rendered by the GM --></p>',
-        '<p class="narrative">The bridge hums with a low mechanical tension while static crackles through the comms and every crew member watches the sensor wall.</p>'
-        + '<p class="narrative">Something deliberate shifts beyond the viewport, slow enough to study you back before it disappears into the dark.</p>',
-      );
+    const html = (renderResult.data as string).replace(
+      '<p><!-- Narrative content rendered by the GM --></p>',
+      '<p class="narrative">The bridge hums with a low mechanical tension while static crackles through the comms and every crew member watches the sensor wall.</p>' +
+        '<p class="narrative">Something deliberate shifts beyond the viewport, slow enough to study you back before it disappears into the dark.</p>',
+    );
     const htmlPath = join(tempDir, 'good-vars.html');
     writeFileSync(htmlPath, html, 'utf-8');
 
@@ -719,16 +773,15 @@ describe('sync marker invalidation after verify', () => {
 
     const renderResult = await handleRender(['scene', '--style', 'station', '--raw']);
     expect(existsSync(needsVerifyPath)).toBe(true);
-    let html = (renderResult.data as string)
-      .replace(
-        '<p><!-- Narrative content rendered by the GM --></p>',
-        '<p class="narrative">The bridge hums with a low mechanical tension while static crackles through the comms and every crew member watches the sensor wall.</p>'
-        + '<p class="narrative">Something deliberate shifts beyond the viewport, slow enough to study you back before it disappears into the dark.</p>',
-      );
+    let html = (renderResult.data as string).replace(
+      '<p><!-- Narrative content rendered by the GM --></p>',
+      '<p class="narrative">The bridge hums with a low mechanical tension while static crackles through the comms and every crew member watches the sensor wall.</p>' +
+        '<p class="narrative">Something deliberate shifts beyond the viewport, slow enough to study you back before it disappears into the dark.</p>',
+    );
     html = injectSceneActions(
       html,
-      '<button class="action-card" data-prompt="Check sonar." title="Check sonar."><strong class="btn-title">Check sonar</strong></button>'
-      + '<button class="action-card" data-prompt="Speak to Fen." title="Speak to Fen."><strong class="btn-title">Speak to Fen</strong></button>',
+      '<button class="action-card" data-prompt="Check sonar." title="Check sonar."><strong class="btn-title">Check sonar</strong></button>' +
+        '<button class="action-card" data-prompt="Speak to Fen." title="Speak to Fen."><strong class="btn-title">Speak to Fen</strong></button>',
     );
     const htmlPath = join(tempDir, 'sync-gate.html');
     writeFileSync(htmlPath, html, 'utf-8');
@@ -776,8 +829,8 @@ describe('scene verification edge cases', () => {
       );
     html = injectSceneActions(
       html,
-      '<button class="action-card" data-prompt="Cross-check the signal." title="Cross-check the signal."><strong class="btn-title">Cross-check</strong></button>'
-      + '<button class="action-card" data-prompt="Question Fen about the drift pattern." title="Question Fen about the drift pattern."><strong class="btn-title">Question Fen</strong></button>',
+      '<button class="action-card" data-prompt="Cross-check the signal." title="Cross-check the signal."><strong class="btn-title">Cross-check</strong></button>' +
+        '<button class="action-card" data-prompt="Question Fen about the drift pattern." title="Question Fen about the drift pattern."><strong class="btn-title">Question Fen</strong></button>',
     );
     const filePath = join(tempDir, 'scene-phases.html');
     writeFileSync(filePath, html, 'utf-8');

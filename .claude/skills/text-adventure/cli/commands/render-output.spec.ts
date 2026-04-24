@@ -6,7 +6,7 @@ import { handleRender } from './render';
 import { saveState, loadState, createDefaultState } from '../lib/state-store';
 import type { GmState } from '../types';
 import { TIER1_MODULES } from '../lib/constants';
-import { extractJsonTagAttr } from '../tests/support/rendered-widget';
+import { extractJsonTagAttr, extractTagAttr } from '../tests/support/rendered-widget';
 
 let tempDir: string;
 const originalEnv = process.env.TAG_STATE_DIR;
@@ -327,6 +327,105 @@ describe('render template output', () => {
     expect(html).toContain('<ta-footer');
   });
 
+  test('scene --data renders action cards, POIs, audio recipe, and compact panels', async () => {
+    state.modulesActive = ['prose-craft', 'core-systems', 'geo-map'];
+    state.quests = [
+      {
+        id: 'main',
+        title: 'Find the Signal',
+        status: 'active',
+        objectives: [{ id: 'locate', description: 'Locate the source', completed: false }],
+        clues: [],
+      },
+    ];
+    state.worldFlags.trackedQuestId = 'main';
+    state.worldFlags.questToast = 'Quest updated: Find the Signal';
+    state.mapState = {
+      currentZone: 'bridge',
+      visitedZones: ['bridge'],
+      revealedZones: ['bridge'],
+      doorStates: {},
+      zones: [{ id: 'bridge', name: 'Bridge', status: 'current' }],
+      connections: [],
+    };
+    await saveState(state);
+    const payload = JSON.stringify({
+      brief: 'The signal cuts through the static.',
+      text: 'Cold air pools beneath the bridge console as the signal repeats.',
+      atmosphere: ['static hiss', 'cold rails', 'ozone'],
+      pois: [
+        {
+          id: 'console',
+          title: 'Inspect Console',
+          description: 'The last packet is still buffered.',
+          prompt: 'Inspect the console buffer.',
+        },
+      ],
+      actions: [
+        {
+          title: 'Trace Signal',
+          description: 'Follow the packet route.',
+          prompt: 'Trace the signal route.',
+          type: 'investigate',
+          roll: { type: 'hazard', stat: 'INT', dc: 14 },
+        },
+        {
+          title: 'Call Crew',
+          description: 'Ask for a second read.',
+          prompt: 'Call the crew to the bridge.',
+          type: 'dialogue',
+        },
+      ],
+      audioRecipe: 'mystery',
+      panelMode: 'compact',
+    });
+
+    const result = await handleRender(['scene', '--raw', '--data', payload]);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+    expect(html).toContain('<ta-action-card');
+    expect(html).toContain('data-poi="console"');
+    expect(html).toContain('data-roll-type="hazard"');
+    expect(html).toContain('data-audio-recipe="mystery"');
+    expect(html).toContain('tracked-quest-badge');
+    expect(html).toContain('<ta-quest-toast');
+    expect(html).toContain('compact-panel');
+    expect(extractTagAttr(html, 'ta-scene', 'data-panel-mode')).toBe('compact');
+  });
+
+  test('scene --data panelMode full keeps full standalone panel custom elements', async () => {
+    state.modulesActive = ['prose-craft', 'core-systems'];
+    state.quests = [
+      {
+        id: 'main',
+        title: 'Find the Signal',
+        status: 'active',
+        objectives: [{ id: 'locate', description: 'Locate the source', completed: false }],
+        clues: [],
+      },
+    ];
+    await saveState(state);
+
+    const result = await handleRender([
+      'scene',
+      '--raw',
+      '--data',
+      JSON.stringify({
+        text: 'The room waits in a hush.',
+        actions: [
+          { title: 'Search', description: 'Look over the room.', prompt: 'Search the room.', type: 'investigate' },
+          { title: 'Leave', description: 'Move on.', prompt: 'Leave the room.', type: 'travel' },
+        ],
+        panelMode: 'full',
+      }),
+    ]);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+    expect(extractTagAttr(html, 'ta-scene', 'data-panel-mode')).toBe('full');
+    expect(html).toContain('<ta-quest-log');
+    expect(html).not.toContain('compact-panel');
+  });
+
   test('character widget shows stats and inventory', async () => {
     const result = await handleRender(['character', '--raw']);
     const html = result.data as string;
@@ -359,11 +458,12 @@ describe('render template output', () => {
       '{"label":"Boss Damage","pool":[{"dieType":"d6","count":2},{"dieType":"d8","count":2},{"dieType":"d10","count":3},{"dieType":"d20","count":1}],"modifier":4}',
     ]);
     const html = result.data as string;
-    const config = extractJsonTagAttr<{ label: string; expression: string; modifier: number; pool: Array<{ dieType: string; count: number }> }>(
-      html,
-      'ta-dice-pool',
-      'data-config',
-    );
+    const config = extractJsonTagAttr<{
+      label: string;
+      expression: string;
+      modifier: number;
+      pool: Array<{ dieType: string; count: number }>;
+    }>(html, 'ta-dice-pool', 'data-config');
     expect(html).toContain('<ta-dice-pool');
     expect(config.label).toBe('Boss Damage');
     expect(config.expression).toBe('2d6 + 2d8 + 3d10 + 1d20');
@@ -407,7 +507,14 @@ describe('render template output', () => {
     // Extract data-payload attribute and verify it contains valid JSON with _version
     const payloadMatch = html.match(/data-payload="([^"]*)"/);
     expect(payloadMatch).not.toBeNull();
-    const payload = JSON.parse(payloadMatch![1]!.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'"));
+    const payload = JSON.parse(
+      payloadMatch![1]!
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'"),
+    );
     expect(payload._version).toBe(1);
     expect(payload.scene).toBe(0);
     expect(payload.character.name).toBe('Aldric');
@@ -422,12 +529,23 @@ describe('render pending roll persistence', () => {
     state = createDefaultState();
     state.visualStyle = 'terminal';
     state.character = {
-      name: 'Kael', class: 'Scout', hp: 12, maxHp: 12, ac: 12, level: 1, xp: 0,
-      currency: 0, currencyName: 'credits',
+      name: 'Kael',
+      class: 'Scout',
+      hp: 12,
+      maxHp: 12,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
       stats: { STR: 10, DEX: 14, CON: 12, INT: 10, WIS: 11, CHA: 8 },
       modifiers: { STR: 0, DEX: 2, CON: 1, INT: 0, WIS: 0, CHA: -1 },
-      proficiencyBonus: 2, proficiencies: [], abilities: [],
-      inventory: [], conditions: [], equipment: { weapon: 'blaster', armour: 'light' },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'blaster', armour: 'light' },
     };
     state.modulesActive = ['core-systems'];
     state._modulesRead = [...TIER1_MODULES];
@@ -437,7 +555,9 @@ describe('render pending roll persistence', () => {
   });
 
   test('scene with roll actions persists _pendingRolls', async () => {
-    const data = JSON.stringify({ actions: [{ text: 'Deceive', roll: { type: 'contest', stat: 'CHA', npc: 'faal_01' } }] });
+    const data = JSON.stringify({
+      actions: [{ text: 'Deceive', roll: { type: 'contest', stat: 'CHA', npc: 'faal_01' } }],
+    });
     await handleRender(['scene', '--raw', '--data', data]);
     const updated = await loadState();
     expect(updated._pendingRolls).toBeDefined();
@@ -453,9 +573,7 @@ describe('render pending roll persistence', () => {
   });
 
   test('scene rerender clears stale _pendingRolls when roll metadata is removed', async () => {
-    state._pendingRolls = [
-      { action: 1, type: 'hazard', stat: 'DEX', dc: 13 },
-    ];
+    state._pendingRolls = [{ action: 1, type: 'hazard', stat: 'DEX', dc: 13 }];
     await saveState(state);
 
     const data = JSON.stringify({ actions: [{ text: 'Duck behind the crate' }] });

@@ -56,61 +56,249 @@ export type ProseMetrics = {
 
 /** Words ending in -ly that are NOT adverbs — excluded from adverb density. */
 export const NON_ADVERBS: ReadonlySet<string> = new Set([
-  'only', 'family', 'early', 'likely', 'lonely', 'friendly', 'ugly',
-  'holy', 'daily', 'rally', 'belly', 'bully', 'jelly', 'tally',
-  'fly', 'reply', 'supply', 'apply', 'multiply', 'imply', 'ally',
-  'assembly', 'anomaly', 'italy', 'lily', 'folly', 'jolly', 'melancholy',
+  'only',
+  'family',
+  'early',
+  'likely',
+  'lonely',
+  'friendly',
+  'ugly',
+  'holy',
+  'daily',
+  'rally',
+  'belly',
+  'bully',
+  'jelly',
+  'tally',
+  'fly',
+  'reply',
+  'supply',
+  'apply',
+  'multiply',
+  'imply',
+  'ally',
+  'assembly',
+  'anomaly',
+  'italy',
+  'lily',
+  'folly',
+  'jolly',
+  'melancholy',
 ]);
 
 /** Common function words excluded from repetition window and n-gram checks. */
 const STOPWORDS: ReadonlySet<string> = new Set([
-  'a', 'an', 'the', 'and', 'or', 'but', 'if', 'in', 'on', 'at', 'to', 'for',
-  'of', 'with', 'by', 'from', 'up', 'about', 'into', 'through', 'during',
-  'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had',
-  'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might',
-  'shall', 'can', 'not', 'also', 'just', 'more', 'most', 'very', 'some',
-  'than', 'then', 'when', 'where', 'who', 'what', 'which', 'how', 'that',
-  'this', 'these', 'those', 'such', 'each', 'both', 'all', 'any', 'own',
-  'same', 'so', 'yet', 'nor', 'after', 'before', 'since', 'while', 'until',
+  'a',
+  'an',
+  'the',
+  'and',
+  'or',
+  'but',
+  'if',
+  'in',
+  'on',
+  'at',
+  'to',
+  'for',
+  'of',
+  'with',
+  'by',
+  'from',
+  'up',
+  'about',
+  'into',
+  'through',
+  'during',
+  'is',
+  'are',
+  'was',
+  'were',
+  'be',
+  'been',
+  'being',
+  'have',
+  'has',
+  'had',
+  'do',
+  'does',
+  'did',
+  'will',
+  'would',
+  'could',
+  'should',
+  'may',
+  'might',
+  'shall',
+  'can',
+  'not',
+  'also',
+  'just',
+  'more',
+  'most',
+  'very',
+  'some',
+  'than',
+  'then',
+  'when',
+  'where',
+  'who',
+  'what',
+  'which',
+  'how',
+  'that',
+  'this',
+  'these',
+  'those',
+  'such',
+  'each',
+  'both',
+  'all',
+  'any',
+  'own',
+  'same',
+  'so',
+  'yet',
+  'nor',
+  'after',
+  'before',
+  'since',
+  'while',
+  'until',
   // Personal pronouns (short ones filtered by length < 4; longer ones need explicit exclusion)
-  'they', 'them', 'their', 'theirs', 'your', 'yours', 'ours', 'itself',
-  'herself', 'himself', 'themselves', 'ourselves', 'yourself', 'yourselves',
+  'they',
+  'them',
+  'their',
+  'theirs',
+  'your',
+  'yours',
+  'ours',
+  'itself',
+  'herself',
+  'himself',
+  'themselves',
+  'ourselves',
+  'yourself',
+  'yourselves',
 ]);
 
 /** Number words mapped to their numeric value — for word-count mismatch detection. */
 const NUMBER_WORDS: Readonly<Record<string, number>> = {
-  one: 1, two: 2, three: 3, four: 4, five: 5,
-  six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
-  eleven: 11, twelve: 12,
+  one: 1,
+  two: 2,
+  three: 3,
+  four: 4,
+  five: 5,
+  six: 6,
+  seven: 7,
+  eight: 8,
+  nine: 9,
+  ten: 10,
+  eleven: 11,
+  twelve: 12,
 };
 
 /** Failure context — if a sentence contains these, wasted-motion verbs are permissible. */
 const FAILURE_CONTEXT = /\b(but|however|couldn't|could not|failed|unable|though)\b/i;
 
 /** Emotion words for the emotional-labelling gate. */
-const EMOTION_WORDS = /\b(dread|fear|anger|rage|fury|joy|sorrow|grief|horror|panic|anxiety|despair|hope|relief|shame|guilt|pride|disgust|awe|wonder|longing|anguish|terror|elation|resignation|defiance)\b/i;
+const EMOTION_WORDS =
+  /\b(dread|fear|anger|rage|fury|joy|sorrow|grief|horror|panic|anxiety|despair|hope|relief|shame|guilt|pride|disgust|awe|wonder|longing|anguish|terror|elation|resignation|defiance)\b/i;
 
 /** Adjectives that indicate telling-not-showing when preceded by a linking verb.
  *  Three categories: emotion, atmosphere, character trait. */
 const TELLING_ADJECTIVES: ReadonlySet<string> = new Set([
   // Emotions
-  'angry', 'afraid', 'terrified', 'relieved', 'suspicious', 'sad', 'happy',
-  'furious', 'anxious', 'nervous', 'excited', 'desperate', 'hopeful',
-  'ashamed', 'guilty', 'proud', 'jealous', 'disgusted', 'horrified',
-  'panicked', 'depressed', 'elated', 'resigned', 'defiant', 'anguished',
-  'scared', 'frightened', 'worried', 'upset', 'thrilled', 'overjoyed',
-  'miserable', 'heartbroken', 'devastated', 'apprehensive', 'uneasy',
-  'confused', 'bewildered', 'stunned', 'shocked', 'alarmed', 'frustrated',
+  'angry',
+  'afraid',
+  'terrified',
+  'relieved',
+  'suspicious',
+  'sad',
+  'happy',
+  'furious',
+  'anxious',
+  'nervous',
+  'excited',
+  'desperate',
+  'hopeful',
+  'ashamed',
+  'guilty',
+  'proud',
+  'jealous',
+  'disgusted',
+  'horrified',
+  'panicked',
+  'depressed',
+  'elated',
+  'resigned',
+  'defiant',
+  'anguished',
+  'scared',
+  'frightened',
+  'worried',
+  'upset',
+  'thrilled',
+  'overjoyed',
+  'miserable',
+  'heartbroken',
+  'devastated',
+  'apprehensive',
+  'uneasy',
+  'confused',
+  'bewildered',
+  'stunned',
+  'shocked',
+  'alarmed',
+  'frustrated',
   // Atmosphere
-  'creepy', 'eerie', 'menacing', 'ominous', 'foreboding', 'oppressive',
-  'suffocating', 'hostile', 'threatening', 'gloomy', 'dreary', 'sinister',
-  'unsettling', 'forbidding', 'haunting', 'imposing', 'intimidating',
-  'claustrophobic', 'inviting', 'welcoming', 'desolate', 'bleak',
+  'creepy',
+  'eerie',
+  'menacing',
+  'ominous',
+  'foreboding',
+  'oppressive',
+  'suffocating',
+  'hostile',
+  'threatening',
+  'gloomy',
+  'dreary',
+  'sinister',
+  'unsettling',
+  'forbidding',
+  'haunting',
+  'imposing',
+  'intimidating',
+  'claustrophobic',
+  'inviting',
+  'welcoming',
+  'desolate',
+  'bleak',
   // Character traits
-  'brave', 'cowardly', 'intelligent', 'stupid', 'kind', 'cruel', 'gentle',
-  'fierce', 'honest', 'dishonest', 'trustworthy', 'cunning', 'loyal',
-  'treacherous', 'stubborn', 'reckless', 'cautious', 'arrogant', 'humble',
-  'ruthless', 'compassionate', 'generous', 'greedy', 'patient', 'impatient',
+  'brave',
+  'cowardly',
+  'intelligent',
+  'stupid',
+  'kind',
+  'cruel',
+  'gentle',
+  'fierce',
+  'honest',
+  'dishonest',
+  'trustworthy',
+  'cunning',
+  'loyal',
+  'treacherous',
+  'stubborn',
+  'reckless',
+  'cautious',
+  'arrogant',
+  'humble',
+  'ruthless',
+  'compassionate',
+  'generous',
+  'greedy',
+  'patient',
+  'impatient',
 ]);
 
 /** Non-visual sense vocabulary — used by the non-visual-senses heuristic rule.
@@ -228,7 +416,8 @@ export const PATTERN_RULES: readonly PatternRule[] = [
     id: 'cliche-phrases',
     name: 'Cliché phrases',
     severity: 'error',
-    pattern: /\b(a chill ran down|time stood still|silence was deafening|as if on cue|little did they know|blood ran cold|heart skipped a beat|sent shivers down|world seemed to (slow|stop)|every fibre of|knot in (stomach|belly|gut)|pit of (stomach|belly|gut)|hung in the (air|balance)|pierced the silence)\b/gi,
+    pattern:
+      /\b(a chill ran down|time stood still|silence was deafening|as if on cue|little did they know|blood ran cold|heart skipped a beat|sent shivers down|world seemed to (slow|stop)|every fibre of|knot in (stomach|belly|gut)|pit of (stomach|belly|gut)|hung in the (air|balance)|pierced the silence)\b/gi,
     fix: 'Replace with a specific, concrete image grounded in the scene.',
   },
   {
@@ -253,7 +442,8 @@ export const PATTERN_RULES: readonly PatternRule[] = [
     id: 'portentous-pause',
     name: 'Portentous pause',
     severity: 'error',
-    pattern: /\b(And then\s*\u2014\s*silence|What came next would change everything|Nothing could have prepared|Everything was about to change|But that was before|If only they had known|The truth was far)\b/gi,
+    pattern:
+      /\b(And then\s*\u2014\s*silence|What came next would change everything|Nothing could have prepared|Everything was about to change|But that was before|If only they had known|The truth was far)\b/gi,
     fix: 'Cut the portentous filler. Show what actually happens next.',
   },
   {
@@ -308,7 +498,9 @@ export const HEURISTIC_RULES: readonly HeuristicRule[] = [
       const lengths = sentences.map(s => s.split(/\s+/).length);
       const violations: string[] = [];
       for (let i = 0; i <= lengths.length - 3; i++) {
-        const a = lengths[i]!, b = lengths[i + 1]!, c = lengths[i + 2]!;
+        const a = lengths[i]!,
+          b = lengths[i + 1]!,
+          c = lengths[i + 2]!;
         const avg = (a + b + c) / 3;
         if (avg === 0) continue;
         const withinBand = [a, b, c].every(l => Math.abs(l - avg) / avg <= 0.2);
@@ -329,7 +521,11 @@ export const HEURISTIC_RULES: readonly HeuristicRule[] = [
       const paragraphs = splitParagraphs(text);
       if (paragraphs.length < 3) return [];
       const openers = paragraphs.map(p => {
-        const firstWord = p.trim().split(/\s+/)[0]?.toLowerCase().replace(/[^a-z]/g, '');
+        const firstWord = p
+          .trim()
+          .split(/\s+/)[0]
+          ?.toLowerCase()
+          .replace(/[^a-z]/g, '');
         return firstWord || '';
       });
       const violations: string[] = [];
@@ -348,7 +544,10 @@ export const HEURISTIC_RULES: readonly HeuristicRule[] = [
     name: 'Adverb density',
     severity: 'warning',
     check(text) {
-      const words = text.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+      const words = text
+        .toLowerCase()
+        .split(/\s+/)
+        .filter(w => w.length > 0);
       if (words.length < 20) return [];
       const adverbs = words.filter(w => w.endsWith('ly') && !NON_ADVERBS.has(w.replace(/[^a-z]/g, '')));
       const pct = (adverbs.length / words.length) * 100;
@@ -369,7 +568,9 @@ export const HEURISTIC_RULES: readonly HeuristicRule[] = [
       const passiveCount = sentences.filter(s => PASSIVE_PATTERN.test(s)).length;
       const pct = (passiveCount / sentences.length) * 100;
       if (pct > 15) {
-        return [`Passive voice in ${passiveCount}/${sentences.length} sentences (${pct.toFixed(0)}%) exceeds 15% threshold.`];
+        return [
+          `Passive voice in ${passiveCount}/${sentences.length} sentences (${pct.toFixed(0)}%) exceeds 15% threshold.`,
+        ];
       }
       return [];
     },
@@ -426,7 +627,8 @@ export const HEURISTIC_RULES: readonly HeuristicRule[] = [
     name: 'Repeated phrase (bigram)',
     severity: 'warning',
     check(text) {
-      const words = text.toLowerCase()
+      const words = text
+        .toLowerCase()
         .split(/\s+/)
         .map(w => w.replace(/[^a-z'-]/g, '').replace(/^'+|'+$/g, ''))
         .filter(w => w.length > 0);
@@ -434,7 +636,8 @@ export const HEURISTIC_RULES: readonly HeuristicRule[] = [
 
       const bigrams = new Map<string, number>();
       for (let i = 0; i < words.length - 1; i++) {
-        const a = words[i]!, b = words[i + 1]!;
+        const a = words[i]!,
+          b = words[i + 1]!;
         if (STOPWORDS.has(a) && STOPWORDS.has(b)) continue;
         if (a.length < 3 || b.length < 3) continue;
         const key = `${a} ${b}`;
@@ -457,11 +660,16 @@ export const HEURISTIC_RULES: readonly HeuristicRule[] = [
     name: 'Non-visual senses absent',
     severity: 'warning',
     check(text) {
-      const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+      const words = text
+        .trim()
+        .split(/\s+/)
+        .filter(w => w.length > 0);
       if (words.length < 100) return [];
       const hasSense = SENSE_WORDS_RE.some(re => re.test(text));
       if (!hasSense) {
-        return ['No non-visual sensory detail found — add sound, smell, temperature, texture, or taste to ground the reader.'];
+        return [
+          'No non-visual sensory detail found — add sound, smell, temperature, texture, or taste to ground the reader.',
+        ];
       }
       return [];
     },
@@ -474,9 +682,14 @@ export const HEURISTIC_RULES: readonly HeuristicRule[] = [
     check(text) {
       const paragraphs = splitParagraphs(text);
       if (paragraphs.length > 1) return [];
-      const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+      const words = text
+        .trim()
+        .split(/\s+/)
+        .filter(w => w.length > 0);
       if (words.length > 80) {
-        return [`Narrative is a single unbroken block of ${words.length} words — break into paragraphs to control pacing.`];
+        return [
+          `Narrative is a single unbroken block of ${words.length} words — break into paragraphs to control pacing.`,
+        ];
       }
       return [];
     },

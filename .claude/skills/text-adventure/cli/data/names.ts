@@ -36,7 +36,10 @@ function parseNamesMd(raw: string): Omit<NamePool, 'getRandomName'> {
       currentSection = key ?? null;
       continue;
     }
-    if (line.startsWith('#')) { currentSection = null; continue; }
+    if (line.startsWith('#')) {
+      currentSection = null;
+      continue;
+    }
     const trimmed = line.trim();
     if (trimmed && currentSection) {
       result[currentSection]!.push(trimmed);
@@ -51,8 +54,15 @@ function pick(arr: string[]): string {
 }
 
 export const SCI_FI_THEMES = new Set([
-  'sci-fi', 'space', 'cyberpunk', 'post-apocalyptic',
-  'station', 'terminal', 'neon', 'holographic', 'blueprint',
+  'sci-fi',
+  'space',
+  'cyberpunk',
+  'post-apocalyptic',
+  'station',
+  'terminal',
+  'neon',
+  'holographic',
+  'blueprint',
 ]);
 
 let cachedNames: NamePool | null = null;

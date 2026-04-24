@@ -56,7 +56,14 @@ describe('getTopLevelHelp', () => {
     expect(data.widgetTypes).toContain('dice-pool');
     expect(data.widgetTypes).toContain('ship');
     expect(data.widgetTypes).toContain('crew');
+    expect(data.widgetTypes).toContain('quest-log');
     expect(data.widgetTypes).toContain('map');
+    expect(data.widgetTypes).toContain('world-preview');
+    expect(data.widgetTypes).toContain('route-planner');
+    expect(data.widgetTypes).toContain('faction-board');
+    expect(data.widgetTypes).toContain('relationship-web');
+    expect(data.widgetTypes).toContain('world-atlas');
+    expect(data.widgetTypes).toContain('clue-board');
     expect(data.widgetTypes).toContain('starchart');
     expect(data.widgetTypes).toContain('combat-turn');
     expect(data.widgetTypes).toContain('dialogue');
@@ -151,8 +158,37 @@ describe('getCommandHelp', () => {
     expect(names).toContain('complete');
     expect(names).toContain('add-objective');
     expect(names).toContain('add-clue');
+    expect(names).toContain('inspect');
+    expect(names).toContain('track');
+    expect(names).toContain('create');
     expect(names).toContain('status');
     expect(names).toContain('list');
+  });
+
+  test('faction help includes inspect subcommand', () => {
+    const result = getCommandHelp('faction');
+    const data = result.data as { subcommands: { name: string }[] };
+    const names = data.subcommands.map(s => s.name);
+    expect(names).toContain('inspect');
+  });
+
+  test('world help includes generate subcommand', () => {
+    const result = getCommandHelp('world');
+    const data = result.data as { subcommands: { name: string }[] };
+    const names = data.subcommands.map(s => s.name);
+    expect(names).toContain('generate');
+  });
+
+  test('map help includes lifecycle subcommands', () => {
+    const result = getCommandHelp('map');
+    const data = result.data as { subcommands: { name: string }[] };
+    const names = data.subcommands.map(s => s.name);
+    expect(names).toContain('enter');
+    expect(names).toContain('reveal');
+    expect(names).toContain('discover');
+    expect(names).toContain('unlock');
+    expect(names).toContain('inspect');
+    expect(names).toContain('route');
   });
 
   test('save help includes generate, load, validate, migrate subcommands', () => {

@@ -40,11 +40,7 @@ function encounterType(roll: number, escalation: number): RollOutcome {
 
 async function contest(args: string[]): Promise<CommandResult> {
   if (args.length < 2) {
-    return fail(
-      'Usage: tag compute contest <ATTR> <npc_id>',
-      'tag compute contest CHA merchant_01',
-      'compute contest',
-    );
+    return fail('Usage: tag compute contest <ATTR> <npc_id>', 'tag compute contest CHA merchant_01', 'compute contest');
   }
 
   const raw = args[0]!.toUpperCase();
@@ -62,12 +58,11 @@ async function contest(args: string[]): Promise<CommandResult> {
   if (!state) return noState('compute');
   const npc = state.rosterMutations.find(n => n.id === npcId);
   if (!npc) return npcNotFound(npcId);
-  const pendingRoll = selectPendingRollForResolution(
-    state._pendingRolls,
-    state.rollHistory,
-    state.scene,
-    { type: 'contest', stat, npc: npcId },
-  );
+  const pendingRoll = selectPendingRollForResolution(state._pendingRolls, state.rollHistory, state.scene, {
+    type: 'contest',
+    stat,
+    npc: npcId,
+  });
 
   const opposingAttr = getOpposingAttribute(stat);
   const npcModifier = npc.modifiers[opposingAttr];
@@ -111,21 +106,24 @@ async function contest(args: string[]): Promise<CommandResult> {
   });
   await saveState(state);
 
-  return ok({
-    type: 'contested_roll',
-    stat,
-    roll: playerRoll,
-    modifier: playerModifier,
-    total: playerTotal,
-    npcRoll,
-    npcModifier,
-    npcTotal,
-    margin,
-    outcome,
-    npcId,
-    npcName: npc.name,
-    opposingAttribute: opposingAttr,
-  }, 'compute contest');
+  return ok(
+    {
+      type: 'contested_roll',
+      stat,
+      roll: playerRoll,
+      modifier: playerModifier,
+      total: playerTotal,
+      npcRoll,
+      npcModifier,
+      npcTotal,
+      margin,
+      outcome,
+      npcId,
+      npcName: npc.name,
+      opposingAttribute: opposingAttr,
+    },
+    'compute contest',
+  );
 }
 
 async function hazard(args: string[]): Promise<CommandResult> {
@@ -151,12 +149,11 @@ async function hazard(args: string[]): Promise<CommandResult> {
 
   const state = await tryLoadState();
   if (!state) return noState('compute');
-  const pendingRoll = selectPendingRollForResolution(
-    state._pendingRolls,
-    state.rollHistory,
-    state.scene,
-    { type: 'hazard', stat, dc },
-  );
+  const pendingRoll = selectPendingRollForResolution(state._pendingRolls, state.rollHistory, state.scene, {
+    type: 'hazard',
+    stat,
+    dc,
+  });
 
   const modifier = state.character?.modifiers[stat] ?? 0;
   const roll = rollD20();
@@ -235,17 +232,26 @@ async function levelup(): Promise<CommandResult> {
   const maxLevel = XP_THRESHOLDS[XP_THRESHOLDS.length - 1]!.level;
 
   if (level >= maxLevel) {
-    return ok({ type: 'levelup_result', eligible: false, reason: 'already_max', currentLevel: level, currentXp: xp }, 'compute levelup');
+    return ok(
+      { type: 'levelup_result', eligible: false, reason: 'already_max', currentLevel: level, currentXp: xp },
+      'compute levelup',
+    );
   }
 
   const nextThreshold = XP_THRESHOLDS.find(t => t.level === level + 1);
   if (!nextThreshold || xp < nextThreshold.xp) {
-    return ok({
-      type: 'levelup_result', eligible: false, reason: 'insufficient_xp',
-      currentLevel: level, currentXp: xp,
-      nextThreshold: nextThreshold?.xp ?? null,
-      xpNeeded: nextThreshold ? nextThreshold.xp - xp : null,
-    }, 'compute levelup');
+    return ok(
+      {
+        type: 'levelup_result',
+        eligible: false,
+        reason: 'insufficient_xp',
+        currentLevel: level,
+        currentXp: xp,
+        nextThreshold: nextThreshold?.xp ?? null,
+        xpNeeded: nextThreshold ? nextThreshold.xp - xp : null,
+      },
+      'compute levelup',
+    );
   }
 
   const newLevel = level + 1;
@@ -265,20 +271,34 @@ async function levelup(): Promise<CommandResult> {
   state._lastComputation = computation;
   await saveState(state);
 
-  return ok({
-    type: 'levelup_result', eligible: true, previousLevel: level, newLevel,
-    hpGain, improvement, newMaxHp: state.character.maxHp, newHp: state.character.hp,
-  }, 'compute levelup');
+  return ok(
+    {
+      type: 'levelup_result',
+      eligible: true,
+      previousLevel: level,
+      newLevel,
+      hpGain,
+      improvement,
+      newMaxHp: state.character.maxHp,
+      newHp: state.character.hp,
+    },
+    'compute levelup',
+  );
 }
 
 export async function handleCompute(args: string[]): Promise<CommandResult> {
   const sub = args[0];
   switch (sub) {
-    case 'contest': return contest(args.slice(1));
-    case 'hazard': return hazard(args.slice(1));
-    case 'encounter': return encounter(args.slice(1));
-    case 'levelup': return levelup();
-    case 'pregen': return pregen(args.slice(1));
+    case 'contest':
+      return contest(args.slice(1));
+    case 'hazard':
+      return hazard(args.slice(1));
+    case 'encounter':
+      return encounter(args.slice(1));
+    case 'levelup':
+      return levelup();
+    case 'pregen':
+      return pregen(args.slice(1));
     default:
       return fail(
         `Unknown compute subcommand: ${sub ?? '(none)'}. Available: contest, hazard, encounter, levelup, pregen`,
@@ -292,26 +312,27 @@ async function pregen(args: string[]): Promise<CommandResult> {
   const flags = parseArgs(args).flags;
   const theme = flags.theme || 'space';
   const rulebook = flags.rulebook || 'd20_system';
-  
-  // This command provides a structured template/hint for the AI GM 
+
+  // This command provides a structured template/hint for the AI GM
   // to follow when generating pre-generated character payloads.
   // It ensures the GM uses the correct schema for ta-character-creation.
-  return ok({
-    type: 'pregen_template',
-    theme,
-    rulebook,
-    schema: {
-      name: "Character Name",
-      class: "Archetype/Role",
-      hook: "Narrative hook (1-2 sentences)",
-      stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
-      hp: 10,
-      ac: 10,
-      proficiencies: ["Skill 1", "Skill 2"],
-      startingInventory: [
-        { name: "Item Name", type: "equipment|weapon|consumable|key_item", description: "..." }
-      ]
+  return ok(
+    {
+      type: 'pregen_template',
+      theme,
+      rulebook,
+      schema: {
+        name: 'Character Name',
+        class: 'Archetype/Role',
+        hook: 'Narrative hook (1-2 sentences)',
+        stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+        hp: 10,
+        ac: 10,
+        proficiencies: ['Skill 1', 'Skill 2'],
+        startingInventory: [{ name: 'Item Name', type: 'equipment|weapon|consumable|key_item', description: '...' }],
+      },
+      guidance: `Generate 3 character objects for the "${theme}" theme. Use high-fidelity narrative hooks and specific starting equipment. Return ONLY the JSON array of character objects.`,
     },
-    guidance: `Generate 3 character objects for the "${theme}" theme. Use high-fidelity narrative hooks and specific starting equipment. Return ONLY the JSON array of character objects.`
-  }, 'compute pregen');
+    'compute pregen',
+  );
 }

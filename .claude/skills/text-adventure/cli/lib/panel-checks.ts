@@ -1,12 +1,15 @@
 // Panel integrity checks — structural validation for scene overlay panels.
 // Catches GM drift: empty shells, codex count mismatches, spoiler panels, quest format issues.
 
-import { extractPanelContent, countClassOccurrences, stripHtml } from './verify-checks';
+import { extractAttr, extractPanelContent, countClassOccurrences, stripHtml } from './verify-checks';
 import type { GmState } from '../types';
 
 /** Panel is template scaffolding or has an explicit empty-state placeholder. */
 function isEmptyOrPlaceholder(panelHtml: string): boolean {
-  const inner = panelHtml.replace(/^<div[^>]*>/, '').replace(/<\/div>$/, '').trim();
+  const inner = panelHtml
+    .replace(/^<div[^>]*>/, '')
+    .replace(/<\/div>$/, '')
+    .trim();
   if (!inner) return true; // Completely empty scaffold
   return /\bempty-state\b/.test(panelHtml);
 }
@@ -28,9 +31,9 @@ export function checkCodexEntryCount(html: string, failures: string[]): void {
   const actual = countClassOccurrences(codexPanel, 'codex-entry');
   if (actual !== claimed) {
     failures.push(
-      `Codex claims ${claimed} entries discovered but contains ${actual} .codex-entry element(s). `
-      + 'Every discovered entry must be visible in the codex panel. '
-      + 'Regenerate the codex panel content to include all discovered entries.',
+      `Codex claims ${claimed} entries discovered but contains ${actual} .codex-entry element(s). ` +
+        'Every discovered entry must be visible in the codex panel. ' +
+        'Regenerate the codex panel content to include all discovered entries.',
     );
   }
 }
@@ -53,9 +56,9 @@ export function checkShipPanelContent(html: string, failures: string[]): void {
   if (SHIP_PLACEHOLDER.test(text)) return;
 
   failures.push(
-    'Ship panel is present but contains no system cards (.system-card) and no placeholder message. '
-    + 'An empty ship panel spoils that the player eventually acquires a ship. '
-    + 'Either populate with ship systems, show a placeholder (e.g., "Not currently aboard a ship"), or remove the panel entirely.',
+    'Ship panel is present but contains no system cards (.system-card) and no placeholder message. ' +
+      'An empty ship panel spoils that the player eventually acquires a ship. ' +
+      'Either populate with ship systems, show a placeholder (e.g., "Not currently aboard a ship"), or remove the panel entirely.',
   );
 }
 
@@ -77,9 +80,9 @@ export function checkCrewPanelContent(html: string, failures: string[]): void {
   if (CREW_PLACEHOLDER.test(text)) return;
 
   failures.push(
-    'Crew panel is present but contains no crew members (.crew-row) and no placeholder message. '
-    + 'An empty crew panel spoils that the player eventually recruits crew. '
-    + 'Either populate with crew members, show a placeholder (e.g., "No crew recruited yet"), or remove the panel entirely.',
+    'Crew panel is present but contains no crew members (.crew-row) and no placeholder message. ' +
+      'An empty crew panel spoils that the player eventually recruits crew. ' +
+      'Either populate with crew members, show a placeholder (e.g., "No crew recruited yet"), or remove the panel entirely.',
   );
 }
 
@@ -92,11 +95,46 @@ export function checkQuestPanelIntegrity(html: string, failures: string[]): void
   if (!questPanel) return;
   if (isEmptyOrPlaceholder(questPanel)) return;
 
+  const questLogElement = /<ta-quest-log\b[^>]*>/i.exec(questPanel)?.[0];
+  if (questLogElement) {
+    const rawQuests = decodeHtmlEntities(extractAttr(questLogElement, 'data-quests'));
+    if (!rawQuests) {
+      failures.push('Quest log custom element missing data-quests payload.');
+      return;
+    }
+
+    try {
+      const quests = JSON.parse(rawQuests);
+      if (!Array.isArray(quests)) {
+        failures.push('Quest log data-quests payload must be an array.');
+        return;
+      }
+
+      for (const [index, quest] of quests.entries()) {
+        if (!isQuestRecord(quest)) {
+          failures.push(`Quest log data-quests[${index}] must be an object.`);
+          return;
+        }
+        if (typeof quest.title !== 'string' || quest.title.trim().length === 0) {
+          failures.push(`Quest log data-quests[${index}] missing title.`);
+          return;
+        }
+        if (!Array.isArray(quest.objectives)) {
+          failures.push(`Quest log data-quests[${index}] missing objectives array.`);
+          return;
+        }
+      }
+    } catch {
+      failures.push('Quest log data-quests payload must be valid JSON.');
+    }
+    return;
+  }
+
   const cardCount = countClassOccurrences(questPanel, 'quest-card');
   if (cardCount === 0) {
     failures.push(
-      'Quest panel is present but contains no quest cards (.quest-card). '
-      + 'Active quests must be visible when the quest panel exists.',
+      'Quest panel is present but contains no quest cards (.quest-card). ' +
+        'Active quests must be visible when the quest panel exists.',
     );
     return;
   }
@@ -127,10 +165,24 @@ export function checkQuestPanelIntegrity(html: string, failures: string[]): void
   const hasPercent = progressValues.some(v => /^\d+%$/.test(v));
   if (hasFraction && hasPercent) {
     failures.push(
-      'Quest progress uses mixed formats (fractions and percentages). '
-      + 'Use a consistent format �� fractions (e.g., "1/3") or percentages (e.g., "33%"), not both.',
+      'Quest progress uses mixed formats (fractions and percentages). ' +
+        'Use a consistent format �� fractions (e.g., "1/3") or percentages (e.g., "33%"), not both.',
     );
   }
+}
+
+function isQuestRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function decodeHtmlEntities(value: string | null): string {
+  if (value == null) return '';
+  return value
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
 }
 
 /* ------------------------------------------------------------------ */
@@ -148,9 +200,7 @@ export function checkMapPanelContent(html: string, failures: string[]): void {
     );
   }
   if (!/\bmap-summary\b/.test(mapPanel)) {
-    failures.push(
-      'Map panel missing summary element (.map-summary) — show visited/unexplored zone counts.',
-    );
+    failures.push('Map panel missing summary element (.map-summary) — show visited/unexplored zone counts.');
   }
 }
 
@@ -164,9 +214,9 @@ export function checkLevelUpIntegrity(state: GmState, failures: string[]): void 
   const computedLevel = state._computedLevel ?? 1;
   if (state.character.level > computedLevel) {
     failures.push(
-      `Character is level ${state.character.level} but \`tag compute levelup\` only applied rewards through level ${computedLevel}. `
-      + 'HP gains, proficiency bonus, and attribute improvements were not applied. '
-      + 'Run `tag compute levelup` before verifying the scene.',
+      `Character is level ${state.character.level} but \`tag compute levelup\` only applied rewards through level ${computedLevel}. ` +
+        'HP gains, proficiency bonus, and attribute improvements were not applied. ' +
+        'Run `tag compute levelup` before verifying the scene.',
     );
   }
 }

@@ -17,7 +17,7 @@ function integrityToStatus(integrity: number): string {
   if (integrity > 75) return 'operational';
   if (integrity > 50) return 'degraded';
   if (integrity > 25) return 'critical';
-  if (integrity > 0)  return 'failing';
+  if (integrity > 0) return 'failing';
   return 'offline';
 }
 
@@ -187,11 +187,19 @@ async function handlePower(args: string[]): Promise<CommandResult> {
   }
 
   if (!(fromId in state.shipState.systems)) {
-    return fail(`Unknown system "${fromId}".`, `Valid systems: ${Object.keys(state.shipState.systems).join(', ')}`, COMMAND);
+    return fail(
+      `Unknown system "${fromId}".`,
+      `Valid systems: ${Object.keys(state.shipState.systems).join(', ')}`,
+      COMMAND,
+    );
   }
 
   if (!(toId in state.shipState.systems)) {
-    return fail(`Unknown system "${toId}".`, `Valid systems: ${Object.keys(state.shipState.systems).join(', ')}`, COMMAND);
+    return fail(
+      `Unknown system "${toId}".`,
+      `Valid systems: ${Object.keys(state.shipState.systems).join(', ')}`,
+      COMMAND,
+    );
   }
 
   const fromPower = state.shipState.powerAllocations[fromId] ?? 0;
@@ -209,13 +217,16 @@ async function handlePower(args: string[]): Promise<CommandResult> {
   recordHistory(state, 'state ship power', `shipState.powerAllocations`, { from: fromId, to: toId }, units);
   await saveState(state);
 
-  return ok({
-    from: fromId,
-    to: toId,
-    units,
-    fromPower: state.shipState.powerAllocations[fromId],
-    toPower: state.shipState.powerAllocations[toId],
-  }, COMMAND);
+  return ok(
+    {
+      from: fromId,
+      to: toId,
+      units,
+      fromPower: state.shipState.powerAllocations[fromId],
+      toPower: state.shipState.powerAllocations[toId],
+    },
+    COMMAND,
+  );
 }
 
 async function handleCondition(args: string[]): Promise<CommandResult> {
@@ -236,7 +247,11 @@ async function handleCondition(args: string[]): Promise<CommandResult> {
   }
 
   if (!conditionName) {
-    return fail('No condition name provided.', 'Usage: tag state ship condition <add|remove> <systemId> <name>', COMMAND);
+    return fail(
+      'No condition name provided.',
+      'Usage: tag state ship condition <add|remove> <systemId> <name>',
+      COMMAND,
+    );
   }
 
   const state = await tryLoadState();
@@ -248,7 +263,11 @@ async function handleCondition(args: string[]): Promise<CommandResult> {
 
   const system = state.shipState.systems[systemId];
   if (!system) {
-    return fail(`Unknown system "${systemId}".`, `Valid systems: ${Object.keys(state.shipState.systems).join(', ')}`, COMMAND);
+    return fail(
+      `Unknown system "${systemId}".`,
+      `Valid systems: ${Object.keys(state.shipState.systems).join(', ')}`,
+      COMMAND,
+    );
   }
 
   if (operation === 'add') {
@@ -267,7 +286,13 @@ async function handleCondition(args: string[]): Promise<CommandResult> {
     system.conditions.splice(idx, 1);
   }
 
-  recordHistory(state, `state ship condition ${operation}`, `shipState.systems.${systemId}.conditions`, null, conditionName);
+  recordHistory(
+    state,
+    `state ship condition ${operation}`,
+    `shipState.systems.${systemId}.conditions`,
+    null,
+    conditionName,
+  );
   await saveState(state);
 
   return ok({ systemId, operation, condition: conditionName, conditions: system.conditions }, COMMAND);
@@ -314,17 +339,19 @@ export async function handleShip(args: string[]): Promise<CommandResult> {
   }
 
   switch (action) {
-    case 'init':      return handleInit(args.slice(1));
-    case 'damage':    return handleDamage(args.slice(1));
-    case 'repair':    return handleRepair(args.slice(1));
-    case 'power':     return handlePower(args.slice(1));
-    case 'condition': return handleCondition(args.slice(1));
-    case 'parts':     return handleParts(args.slice(1));
+    case 'init':
+      return handleInit(args.slice(1));
+    case 'damage':
+      return handleDamage(args.slice(1));
+    case 'repair':
+      return handleRepair(args.slice(1));
+    case 'power':
+      return handlePower(args.slice(1));
+    case 'condition':
+      return handleCondition(args.slice(1));
+    case 'parts':
+      return handleParts(args.slice(1));
     default:
-      return fail(
-        `Unknown ship action: "${action}".`,
-        `Valid actions: ${VALID_ACTIONS.join(', ')}`,
-        COMMAND,
-      );
+      return fail(`Unknown ship action: "${action}".`, `Valid actions: ${VALID_ACTIONS.join(', ')}`, COMMAND);
   }
 }

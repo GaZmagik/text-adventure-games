@@ -46,8 +46,7 @@ describe('resolveSafeReadPath', () => {
     const dir = makeTempDir();
     const filePath = join(dir, 'missing.lore.md');
 
-    expect(() => resolveSafeReadPath(filePath, { kind: 'Lore', extensions: ['.md'] }))
-      .toThrow('Lore file not found');
+    expect(() => resolveSafeReadPath(filePath, { kind: 'Lore', extensions: ['.md'] })).toThrow('Lore file not found');
   });
 
   test('rejects paths when home directory is root', () => {
@@ -58,8 +57,9 @@ describe('resolveSafeReadPath', () => {
     const originalHomedir = PATH_SECURITY_RUNTIME.homedir;
     PATH_SECURITY_RUNTIME.homedir = () => '/';
     try {
-      expect(() => resolveSafeReadPath(filePath, { kind: 'Lore', extensions: ['.md'] }))
-        .toThrow('must be within the home, temp, or /mnt/ directory');
+      expect(() => resolveSafeReadPath(filePath, { kind: 'Lore', extensions: ['.md'] })).toThrow(
+        'must be within the home, temp, or /mnt/ directory',
+      );
     } finally {
       PATH_SECURITY_RUNTIME.homedir = originalHomedir;
     }
@@ -76,7 +76,8 @@ describe('resolveSafeReadPath — /mnt/ prefix', () => {
 
     // Simulate /mnt/ prefix by mocking realpathSync to return a /mnt/ path
     const originalRealpath = PATH_SECURITY_RUNTIME.realpathSync;
-    PATH_SECURITY_RUNTIME.realpathSync = (() => '/mnt/user-data/uploads/world.save.md') as unknown as typeof PATH_SECURITY_RUNTIME.realpathSync;
+    PATH_SECURITY_RUNTIME.realpathSync = (() =>
+      '/mnt/user-data/uploads/world.save.md') as unknown as typeof PATH_SECURITY_RUNTIME.realpathSync;
     try {
       const result = resolveSafeReadPath(filePath, { kind: 'Save', extensions: ['.md'] });
       expect(result).toBe('/mnt/user-data/uploads/world.save.md');
@@ -93,8 +94,9 @@ describe('resolveSafeReadPath — /mnt/ prefix', () => {
     const originalRealpath = PATH_SECURITY_RUNTIME.realpathSync;
     PATH_SECURITY_RUNTIME.realpathSync = (() => '/etc/shadow') as unknown as typeof PATH_SECURITY_RUNTIME.realpathSync;
     try {
-      expect(() => resolveSafeReadPath(filePath, { kind: 'Save', extensions: ['.md'] }))
-        .toThrow('must be within the home, temp, or /mnt/ directory');
+      expect(() => resolveSafeReadPath(filePath, { kind: 'Save', extensions: ['.md'] })).toThrow(
+        'must be within the home, temp, or /mnt/ directory',
+      );
     } finally {
       PATH_SECURITY_RUNTIME.realpathSync = originalRealpath;
     }

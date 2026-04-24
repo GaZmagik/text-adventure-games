@@ -33,10 +33,18 @@ describe('DC_BY_LEVEL', () => {
 });
 
 describe('DIFFICULTY_MODIFIERS', () => {
-  test('Easy is -2', () => { expect(DIFFICULTY_MODIFIERS.easy).toBe(-2); });
-  test('Normal is 0', () => { expect(DIFFICULTY_MODIFIERS.normal).toBe(0); });
-  test('Hard is +2', () => { expect(DIFFICULTY_MODIFIERS.hard).toBe(2); });
-  test('Brutal is +4', () => { expect(DIFFICULTY_MODIFIERS.brutal).toBe(4); });
+  test('Easy is -2', () => {
+    expect(DIFFICULTY_MODIFIERS.easy).toBe(-2);
+  });
+  test('Normal is 0', () => {
+    expect(DIFFICULTY_MODIFIERS.normal).toBe(0);
+  });
+  test('Hard is +2', () => {
+    expect(DIFFICULTY_MODIFIERS.hard).toBe(2);
+  });
+  test('Brutal is +4', () => {
+    expect(DIFFICULTY_MODIFIERS.brutal).toBe(4);
+  });
 });
 
 describe('getDcForLevel', () => {

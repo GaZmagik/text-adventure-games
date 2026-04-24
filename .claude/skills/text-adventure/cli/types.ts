@@ -16,8 +16,8 @@ export type StatBlock = {
   CHA: number;
 };
 
-/** 
- * Valid stat names from the StatBlock. 
+/**
+ * Valid stat names from the StatBlock.
  */
 export type StatName = keyof StatBlock;
 
@@ -28,28 +28,28 @@ export type StatName = keyof StatBlock;
  */
 export type Pronouns = 'she/her' | 'he/him' | 'they/them' | 'it/its';
 
-/** 
- * NPC disposition levels affecting dialogue and interaction options. 
+/**
+ * NPC disposition levels affecting dialogue and interaction options.
  */
 export type DispositionState = 'hostile' | 'suspicious' | 'neutral' | 'friendly' | 'allied' | 'bonded';
 
-/** 
- * NPC power tier, affecting HP scaling and ability complexity. 
+/**
+ * NPC power tier, affecting HP scaling and ability complexity.
  */
 export type BestiaryTier = 'minion' | 'rival' | 'nemesis';
 
-/** 
- * NPC status in the narrative. 
+/**
+ * NPC status in the narrative.
  */
 export type NpcStatus = 'active' | 'injured' | 'incapacitated' | 'missing' | 'defected' | 'dead';
 
-/** 
+/**
  * Narrative lens for the opening scene.
  */
 export type OpeningLens = 'rian' | 'suri' | 'mara';
 
-/** 
- * Whether a character was chosen from pre-gens or custom-built. 
+/**
+ * Whether a character was chosen from pre-gens or custom-built.
  */
 export type CharacterOrigin = 'pregen' | 'custom';
 
@@ -108,8 +108,8 @@ export type Character = {
   poiMax?: number;
 };
 
-/** 
- * Individual item in character inventory. 
+/**
+ * Individual item in character inventory.
  */
 export type InventoryItem = {
   name: string;
@@ -180,17 +180,54 @@ export type Quest = {
   id: string;
   title: string;
   status: 'active' | 'completed' | 'failed';
+  type?: QuestType;
+  priority?: QuestPriority;
+  summary?: string;
+  description?: string;
+  currentObjectiveId?: string;
   objectives: QuestObjective[];
-  clues: string[];
+  clues: Array<string | QuestClue>;
+  relatedNpcIds?: string[];
+  relatedFactionIds?: string[];
+  relatedLocationIds?: string[];
+  rewards?: Array<string | QuestReward>;
+  consequences?: string[];
+  discoveredAtScene?: number;
+  updatedAtScene?: number;
 };
 
-/** 
- * Individual objective within a quest chain. 
+/**
+ * Individual objective within a quest chain.
  */
 export type QuestObjective = {
   id: string;
   description: string;
   completed: boolean;
+  state?: QuestObjectiveState;
+  optional?: boolean;
+  blockedReason?: string;
+  npcId?: string;
+  locationId?: string;
+};
+
+export type QuestType = 'main' | 'side' | 'crew' | 'faction' | 'rumour';
+
+export type QuestPriority = 'low' | 'normal' | 'urgent';
+
+export type QuestObjectiveState = 'active' | 'completed' | 'failed' | 'optional' | 'blocked' | 'hidden';
+
+export type QuestClue = {
+  id: string;
+  text: string;
+  source?: string;
+  scene?: number;
+  important?: boolean;
+};
+
+export type QuestReward = {
+  label: string;
+  known?: boolean;
+  received?: boolean;
 };
 
 // ── Codex ──────────────────────────────────────────────────────────
@@ -211,12 +248,12 @@ export type CodexMutation = {
 
 // ── Rolls ──────────────────────────────────────────────────────────
 
-/** 
- * Types of mechanical dice checks supported by the engine. 
+/**
+ * Types of mechanical dice checks supported by the engine.
  */
 export type RollType = 'contested_roll' | 'hazard_save' | 'encounter_roll' | 'levelup_result';
 
-/** 
+/**
  * Categorical outcomes for dice rolls.
  */
 export type RollOutcome =
@@ -233,7 +270,7 @@ export type RollOutcome =
   | 'alert'
   | 'hostile';
 
-/** 
+/**
  * Permanent record of a dice roll.
  */
 export type RollRecord = {
@@ -252,15 +289,15 @@ export type RollRecord = {
 
 // ── Dice ──────────────────────────────────────────────────────────
 
-/** 
- * Standard polyhedral die types supported by the 3D dice widget. 
+/**
+ * Standard polyhedral die types supported by the 3D dice widget.
  */
 export type DieType = 'd2' | 'd4' | 'd6' | 'd8' | 'd10' | 'd12' | 'd20' | 'd100';
 
 // ── Computation ────────────────────────────────────────────────────
 
-/** 
- * Result of a Player vs NPC stat check. 
+/**
+ * Result of a Player vs NPC stat check.
  */
 export type ContestedRollResult = {
   type: 'contested_roll';
@@ -277,8 +314,8 @@ export type ContestedRollResult = {
   context?: Record<string, unknown>;
 };
 
-/** 
- * Result of a Player vs Static DC check. 
+/**
+ * Result of a Player vs Static DC check.
  */
 export type HazardSaveResult = {
   type: 'hazard_save';
@@ -295,8 +332,8 @@ export type HazardSaveResult = {
   context?: Record<string, unknown>;
 };
 
-/** 
- * Result of a non-standard encounter check. 
+/**
+ * Result of a non-standard encounter check.
  */
 export type EncounterRollResult = {
   type: 'encounter_roll';
@@ -313,7 +350,7 @@ export type EncounterRollResult = {
   context?: Record<string, unknown>;
 };
 
-/** 
+/**
  * Result of a level-up procedure.
  */
 export type LevelupResult = {
@@ -326,8 +363,8 @@ export type LevelupResult = {
   context?: Record<string, unknown>;
 };
 
-/** 
- * Unified type for any mechanical check. 
+/**
+ * Unified type for any mechanical check.
  */
 export type ComputationResult = ContestedRollResult | HazardSaveResult | EncounterRollResult | LevelupResult;
 
@@ -346,8 +383,8 @@ export type StateHistoryEntry = {
 
 // ── Module States ──────────────────────────────────────────────────
 
-/** 
- * Persistent state for ship-based campaign modules. 
+/**
+ * Persistent state for ship-based campaign modules.
  */
 export type ShipState = {
   name: string;
@@ -357,19 +394,141 @@ export type ShipState = {
   scenesSinceRepair: number;
 };
 
-/** 
- * Persistent state for hex-crawl or map-based exploration modules. 
+export type MapType = 'settlement' | 'wilderness' | 'dungeon';
+
+export type MapZoneStatus = 'unexplored' | 'revealed' | 'visited' | 'current' | 'danger' | 'locked' | 'safe';
+
+export type MapZone = {
+  id: string;
+  name?: string;
+  type?: string;
+  terrain?: string | null;
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  status?: MapZoneStatus;
+  faction?: string | null;
+  threat?: string;
+  description?: string;
+  encounters?: string[];
+  loot?: string[];
+  connections?: string[];
+  icon?: string;
+};
+
+export type MapConnection = {
+  id?: string;
+  from: string;
+  to: string;
+  type?: string;
+  bidirectional?: boolean;
+  discovered?: boolean;
+  locked?: boolean;
+  keyItem?: string;
+  travelTime?: string;
+  status?: string;
+};
+
+export type MapDoor = {
+  between: [string, string];
+  type?: string;
+  status?: string;
+  keyItem?: string;
+};
+
+export type WorldTheme = 'space' | 'dungeon' | 'horror';
+
+export type WorldRoom = {
+  id: string;
+  name: string;
+  type: string;
+  terrain?: string;
+  description: string;
+  atmosphere?: string;
+  exits: string[];
+  controllingFaction?: string;
+  threat?: string;
+  danger?: number;
+  loot: string[];
+  encounters: string[];
+  tags?: string[];
+  icon?: string;
+};
+
+export type WorldFaction = {
+  id: string;
+  name: string;
+  ideology: string;
+  territory: string[];
+  disposition?: number;
+};
+
+export type WorldNpcProfile = {
+  id: string;
+  name: string;
+  pronouns: Pronouns;
+  role: string;
+  faction: string;
+  factionName: string;
+  startRoom: string;
+  currentRoom: string;
+  tier: BestiaryTier;
+  stats: StatBlock;
+  trust: number;
+  disposition: DispositionState;
+  agenda: string[];
+  secret: string;
+};
+
+export type WorldHooks = {
+  main: string;
+  side: string[];
+  factionA: string;
+  factionB: string;
+};
+
+export type WorldData = {
+  seed: string;
+  theme: WorldTheme;
+  mapName: string;
+  rooms: Record<string, WorldRoom>;
+  startRoom: string;
+  bossRoom: string;
+  factions: {
+    factions: WorldFaction[];
+    relations: Record<string, string>;
+  };
+  roster: WorldNpcProfile[];
+  hooks: WorldHooks;
+  meta: {
+    roomCount: number;
+    npcCount: number;
+    generatedAt: number;
+    generatorVersion: number;
+  };
+};
+
+/**
+ * Persistent state for hex-crawl or map-based exploration modules.
  */
 export type MapState = {
+  activeMapType?: MapType;
+  mapId?: string;
+  mapName?: string;
+  zones?: MapZone[];
+  connections?: MapConnection[];
+  doors?: MapDoor[];
   currentZone: string;
   visitedZones: string[];
   revealedZones: string[];
   doorStates: Record<string, string>;
   supplies?: { rations: number; water: number } | null;
+  travelLog?: unknown[];
 };
 
-/** 
- * Mutation state for a ship's crew member. 
+/**
+ * Mutation state for a ship's crew member.
  */
 export type CrewMutation = {
   id: string;
@@ -412,8 +571,8 @@ export type CarryForward = {
   worldConsequences: string[];
 };
 
-/** 
- * Summary of a completed campaign arc. 
+/**
+ * Summary of a completed campaign arc.
  */
 export type ArcSummary = {
   arc: number;
@@ -468,6 +627,7 @@ export type GmState = {
   shipState?: ShipState;
   crewMutations?: CrewMutation[];
   mapState?: MapState;
+  worldData?: WorldData;
   systemResources?: Record<string, unknown> | null;
   navPlottedCourse?: string[] | null;
   arc?: number;
@@ -478,7 +638,7 @@ export type GmState = {
   _lastComputation?: ComputationResult;
   _stateHistory: StateHistoryEntry[];
   _schemaVersion?: string;
-  /** 
+  /**
    * Count of transcripts processed since last compaction.
    * @remarks
    * See gotcha-compaction-preflight-must-not-diverge-from-sync-state.md.
@@ -486,9 +646,9 @@ export type GmState = {
   _compactionCount?: number;
   /** Active rolls that must be completed before the next scene can be rendered. */
   _pendingRolls?: PendingRoll[];
-  /** 
-   * Runtime list of modules actually loaded into the GM context. 
-   * Reset on compaction. 
+  /**
+   * Runtime list of modules actually loaded into the GM context.
+   * Reset on compaction.
    */
   _modulesRead?: string[];
   /** Tracking for prose validation rules freshness. */

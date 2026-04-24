@@ -9,7 +9,7 @@ type Rule = {
 };
 
 export const CATEGORIES = ['output', 'agency', 'cli', 'prose', 'technical'] as const;
-export type Category = typeof CATEGORIES[number];
+export type Category = (typeof CATEGORIES)[number];
 
 export const RULES: readonly Rule[] = [
   // ── OUTPUT ──────────────────────────────────────────────────────────
@@ -119,7 +119,7 @@ export const RULES: readonly Rule[] = [
     id: 17,
     category: 'prose',
     rule: 'Show, do not tell — never name emotions, reveal through physical manifestation and action',
-    ref: 'modules/prose-craft.md § Show, Don\'t Tell',
+    ref: "modules/prose-craft.md § Show, Don't Tell",
   },
 
   // ── TECHNICAL ───────────────────────────────────────────────────────

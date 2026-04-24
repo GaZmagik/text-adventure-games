@@ -116,7 +116,9 @@ describe('convenience roll functions', () => {
 
 describe('rollD100 deterministic boundaries', () => {
   const originalRandom = Math.random;
-  afterEach(() => { Math.random = originalRandom; });
+  afterEach(() => {
+    Math.random = originalRandom;
+  });
 
   test('returns 1 when both d10 rolls are 1 (Math.random returns 0.0)', () => {
     // rollD100 = (rollDie(10) - 1) * 10 + rollDie(10)
@@ -138,9 +140,7 @@ describe('rollD100 deterministic boundaries', () => {
   test('returns 91 when tens die is 10 and units die is 1', () => {
     // First call: 0.95 → rollDie(10)=10, second call: 0.0 → rollDie(10)=1
     // result = (10 - 1) * 10 + 1 = 91
-    const spy = spyOn(Math, 'random')
-      .mockReturnValueOnce(0.95)
-      .mockReturnValueOnce(0.0);
+    const spy = spyOn(Math, 'random').mockReturnValueOnce(0.95).mockReturnValueOnce(0.0);
     expect(rollD100()).toBe(91);
     spy.mockRestore();
   });
@@ -148,9 +148,7 @@ describe('rollD100 deterministic boundaries', () => {
   test('returns 10 when tens die is 1 and units die is 10', () => {
     // First call: 0.0 → rollDie(10)=1, second call: 0.95 → rollDie(10)=10
     // result = (1 - 1) * 10 + 10 = 10
-    const spy = spyOn(Math, 'random')
-      .mockReturnValueOnce(0.0)
-      .mockReturnValueOnce(0.95);
+    const spy = spyOn(Math, 'random').mockReturnValueOnce(0.0).mockReturnValueOnce(0.95);
     expect(rollD100()).toBe(10);
     spy.mockRestore();
   });

@@ -8,11 +8,7 @@ import { parseArgs } from '../lib/args';
 import { containsForbiddenKeys } from '../lib/security';
 import { stampRenderOrigin } from '../lib/render-origin';
 import { generatePregenCharacters } from '../lib/pregen-generator';
-import {
-  PRE_GAME_WIDGETS,
-  buildFeatureChecklist,
-  buildModulesRequired,
-} from '../metadata';
+import { PRE_GAME_WIDGETS, buildFeatureChecklist, buildModulesRequired } from '../metadata';
 
 // ── Phase 11: Widget structural skeleton helpers ────────────────────
 
@@ -22,8 +18,8 @@ const WIDGET_BUDGET_CHARS = 128 * 1024;
 /** Scene widgets that get a skeleton — data-driven widgets do not. */
 const SCENE_WIDGET = 'scene';
 
-/** 
- * Build the list of DOM elements that MUST be present in the rendered output. 
+/**
+ * Build the list of DOM elements that MUST be present in the rendered output.
  * Used by `tag verify` to ensure structural integrity of the composed widget.
  * @param {string} widgetType - The type of widget being verified.
  * @param {GmState | null} state - Current game state.
@@ -58,8 +54,8 @@ function buildRequiredElements(widgetType: string, state: GmState | null, module
   return elements;
 }
 
-/** 
- * Build a semantic HTML skeleton for scene renders with placeholder markers. 
+/**
+ * Build a semantic HTML skeleton for scene renders with placeholder markers.
  * This skeleton is provided to the GM to guide manual composition.
  * @param {string} widgetType - The type of widget.
  * @param {GmState | null} state - Current game state.
@@ -104,7 +100,9 @@ function buildSkeleton(widgetType: string, state: GmState | null, moduleSet?: Se
   parts.push('        <!-- [STATUS: HP / AC / Level when character exists] -->');
   parts.push('      </div>');
   parts.push('    </div>');
-  parts.push('    <div id="panel-overlay" role="dialog" aria-modal="true" aria-labelledby="panel-title-text" style="display:none">');
+  parts.push(
+    '    <div id="panel-overlay" role="dialog" aria-modal="true" aria-labelledby="panel-title-text" style="display:none">',
+  );
   parts.push('      <!-- [PANELS: character, levelup, and module panels] -->');
   parts.push('    </div>');
   parts.push('  </div>');
@@ -131,6 +129,13 @@ import { renderCrew } from '../render/templates/crew';
 import { renderCodex } from '../render/templates/codex';
 import { renderMap } from '../render/templates/map';
 import { renderStarchart } from '../render/templates/starchart';
+import { renderQuestLog } from '../render/templates/quest-log';
+import { renderWorldPreview } from '../render/templates/world-preview';
+import { renderRoutePlanner } from '../render/templates/route-planner';
+import { renderFactionBoard } from '../render/templates/faction-board';
+import { renderRelationshipWeb } from '../render/templates/relationship-web';
+import { renderWorldAtlas } from '../render/templates/world-atlas';
+import { renderClueBoard } from '../render/templates/clue-board';
 import { renderFooter } from '../render/templates/footer';
 import { renderSaveDiv } from '../render/templates/save-div';
 import { renderLevelup } from '../render/templates/levelup';
@@ -158,6 +163,13 @@ const TEMPLATES: Record<string, TemplateFn> = {
   codex: renderCodex,
   map: renderMap,
   starchart: renderStarchart,
+  'quest-log': renderQuestLog,
+  'world-preview': renderWorldPreview,
+  'route-planner': renderRoutePlanner,
+  'faction-board': renderFactionBoard,
+  'relationship-web': renderRelationshipWeb,
+  'world-atlas': renderWorldAtlas,
+  'clue-board': renderClueBoard,
   footer: renderFooter,
   'save-div': renderSaveDiv,
   levelup: renderLevelup,
@@ -224,9 +236,9 @@ function validateNamedArray(value: unknown, key: string): string | null {
     if (typeof item === 'string') continue;
     if (isPlainRecord(item)) {
       const named =
-        (typeof item.id === 'string' && item.id.trim().length > 0)
-        || (typeof item.label === 'string' && item.label.trim().length > 0)
-        || (typeof item.name === 'string' && item.name.trim().length > 0);
+        (typeof item.id === 'string' && item.id.trim().length > 0) ||
+        (typeof item.label === 'string' && item.label.trim().length > 0) ||
+        (typeof item.name === 'string' && item.name.trim().length > 0);
       if (named) continue;
     }
     return `--data key "${key}" must contain strings or objects with a non-empty id, label, or name.`;
@@ -252,9 +264,39 @@ function firstPresentValue(data: Record<string, unknown>, keys: string[]): unkno
 }
 
 function validateSceneData(data: Record<string, unknown>): string | null {
+  if (data.brief !== undefined && typeof data.brief !== 'string') {
+    return '--data key "brief" must be a string.';
+  }
+  if (data.text !== undefined && typeof data.text !== 'string') {
+    return '--data key "text" must be a string.';
+  }
+  if (data.atmosphere !== undefined) {
+    const err = validateStringArray(data.atmosphere, 'atmosphere');
+    if (err) return err;
+  }
   if (data.atmosphereEffects !== undefined) {
     const err = validateStringArray(data.atmosphereEffects, 'atmosphereEffects');
     if (err) return err;
+  }
+  if (data.vfx !== undefined && typeof data.vfx !== 'string') {
+    return '--data key "vfx" must be a string.';
+  }
+  if (data.audioRecipe !== undefined && typeof data.audioRecipe !== 'string') {
+    return '--data key "audioRecipe" must be a string.';
+  }
+  if (data.panelMode !== undefined && data.panelMode !== 'compact' && data.panelMode !== 'full') {
+    return '--data key "panelMode" must be "compact" or "full".';
+  }
+  if (data.pois !== undefined) {
+    if (!Array.isArray(data.pois)) return '--data key "pois" must be an array.';
+    for (const [index, poi] of data.pois.entries()) {
+      if (!isPlainRecord(poi)) return `--data key "pois[${index}]" must be an object.`;
+      for (const field of ['id', 'title', 'label', 'description', 'text', 'prompt']) {
+        if (poi[field] !== undefined && typeof poi[field] !== 'string') {
+          return `--data key "pois[${index}].${field}" must be a string.`;
+        }
+      }
+    }
   }
   if (data.actions !== undefined) {
     if (!Array.isArray(data.actions)) return '--data key "actions" must be an array.';
@@ -265,6 +307,12 @@ function validateSceneData(data: Record<string, unknown>): string | null {
       }
       if (action.title !== undefined && typeof action.title !== 'string') {
         return `--data key "actions[${index}].title" must be a string.`;
+      }
+      if (action.description !== undefined && typeof action.description !== 'string') {
+        return `--data key "actions[${index}].description" must be a string.`;
+      }
+      if (action.type !== undefined && typeof action.type !== 'string') {
+        return `--data key "actions[${index}].type" must be a string.`;
       }
       if (action.roll !== undefined && !isPlainRecord(action.roll)) {
         return `--data key "actions[${index}].roll" must be an object.`;
@@ -377,6 +425,45 @@ function validateArcCompleteData(data: Record<string, unknown>): string | null {
   return null;
 }
 
+function validateQuestLogData(data: Record<string, unknown>): string | null {
+  if (data.quests !== undefined && !Array.isArray(data.quests)) {
+    return '--data key "quests" must be an array.';
+  }
+  return null;
+}
+
+function validateWorldPreviewData(data: Record<string, unknown>): string | null {
+  if (data.seed !== undefined && typeof data.seed !== 'string') {
+    return '--data key "seed" must be a string.';
+  }
+  if (data.theme !== undefined && typeof data.theme !== 'string') {
+    return '--data key "theme" must be a string.';
+  }
+  return null;
+}
+
+function validateRoutePlannerData(data: Record<string, unknown>): string | null {
+  if (data.from !== undefined && typeof data.from !== 'string') {
+    return '--data key "from" must be a string.';
+  }
+  if (data.to !== undefined && typeof data.to !== 'string') {
+    return '--data key "to" must be a string.';
+  }
+  return null;
+}
+
+function validateMapData(data: Record<string, unknown>): string | null {
+  if (data.route === undefined) return null;
+  if (!isPlainRecord(data.route)) return '--data key "route" must be an object.';
+  if (data.route.from !== undefined && typeof data.route.from !== 'string') {
+    return '--data key "route.from" must be a string.';
+  }
+  if (data.route.to !== undefined && typeof data.route.to !== 'string') {
+    return '--data key "route.to" must be a string.';
+  }
+  return null;
+}
+
 function validateCharacterCreationData(data: Record<string, unknown>): string | null {
   if (data.defaultName !== undefined && typeof data.defaultName !== 'string') {
     return '--data key "defaultName" must be a string.';
@@ -459,13 +546,17 @@ function validateCharacterCreationData(data: Record<string, unknown>): string | 
 
 const WIDGET_DATA_VALIDATORS: Record<string, DataValidator> = {
   scene: validateSceneData,
-  dice: (data) => validateRequiredDataShape('dice', data),
+  dice: data => validateRequiredDataShape('dice', data),
   'dice-pool': validateDicePoolData,
   settings: validateSettingsData,
   'scenario-select': validateScenarioData,
   dialogue: validateDialogueData,
   levelup: validateLevelupData,
   'arc-complete': validateArcCompleteData,
+  'quest-log': validateQuestLogData,
+  map: validateMapData,
+  'world-preview': validateWorldPreviewData,
+  'route-planner': validateRoutePlannerData,
   'character-creation': validateCharacterCreationData,
 };
 
@@ -479,7 +570,7 @@ function validateDataShape(widgetType: string, data: Record<string, unknown>): s
 /**
  * Handler for the `tag render` command.
  * Generates deterministic HTML widgets based on game state and visual styles.
- * 
+ *
  * @param {string[]} args - CLI arguments (e.g., scene --style station --data '...').
  * @returns {Promise<CommandResult>} - Result containing the rendered HTML or error info.
  * @remarks
@@ -497,15 +588,25 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   let data: Record<string, unknown> | null = null;
   if (parsed.flags.data) {
     let parsedData: unknown;
-    try { parsedData = JSON.parse(parsed.flags.data); } catch {
+    try {
+      parsedData = JSON.parse(parsed.flags.data);
+    } catch {
       return fail('Invalid JSON in --data flag.', 'Provide valid JSON: --data \'{"key":"value"}\'', 'render');
     }
     if (!isPlainRecord(parsedData)) {
-      return fail('--data must be a JSON object.', 'Provide valid JSON object input: --data \'{"key":"value"}\'', 'render');
+      return fail(
+        '--data must be a JSON object.',
+        'Provide valid JSON object input: --data \'{"key":"value"}\'',
+        'render',
+      );
     }
     data = parsedData;
     if (data && containsForbiddenKeys(data)) {
-      return fail('Data contains forbidden keys (__proto__, constructor, prototype).', 'Remove prohibited keys from --data JSON.', 'render');
+      return fail(
+        'Data contains forbidden keys (__proto__, constructor, prototype).',
+        'Remove prohibited keys from --data JSON.',
+        'render',
+      );
     }
   }
 
@@ -519,20 +620,12 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
 
   // Validate widget type
   if (!widgetType) {
-    return fail(
-      'No widget type specified.',
-      `tag render <${Object.keys(TEMPLATES).join('|')}>`,
-      'render',
-    );
+    return fail('No widget type specified.', `tag render <${Object.keys(TEMPLATES).join('|')}>`, 'render');
   }
 
   const templateFn = TEMPLATES[widgetType];
   if (!templateFn) {
-    return fail(
-      `Unknown widget type: "${widgetType}".`,
-      `Valid types: ${Object.keys(TEMPLATES).join(', ')}`,
-      'render',
-    );
+    return fail(`Unknown widget type: "${widgetType}".`, `Valid types: ${Object.keys(TEMPLATES).join(', ')}`, 'render');
   }
 
   // Pre-game verify chain: block render if previous widget wasn't verified
@@ -549,11 +642,7 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   const isPreGame = PRE_GAME_WIDGETS.has(widgetType);
   const state = await tryLoadState();
   if (!isPreGame && !state) {
-    return fail(
-      'No game state found. In-game widgets require an active state.',
-      'tag state reset',
-      'render',
-    );
+    return fail('No game state found. In-game widgets require an active state.', 'tag state reset', 'render');
   }
 
   // Sync gate — in-game widgets require sync to have been run for the current scene (signed marker)
@@ -563,10 +652,11 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     const isFirstSceneBootstrap = state.scene === 1 && lastSyncScene < 0;
     if (!isFirstSceneBootstrap && lastSyncScene < state.scene) {
       const lastSyncLabel = lastSyncScene < 0 ? 'never' : `scene ${lastSyncScene}`;
-      const corrective = state.scene === 1
-        ? 'Run `tag state sync --apply --scene 1 --room <starting_room>` before rendering. '
-          + 'Scene 0 skips the verify gate, so this is safe to run before any scene exists.'
-        : 'Run `tag state sync --apply` before rendering.';
+      const corrective =
+        state.scene === 1
+          ? 'Run `tag state sync --apply --scene 1 --room <starting_room>` before rendering. ' +
+            'Scene 0 skips the verify gate, so this is safe to run before any scene exists.'
+          : 'Run `tag state sync --apply` before rendering.';
       return fail(
         `State sync required before rendering scene ${state.scene}. Last sync: ${lastSyncLabel}.`,
         corrective,
@@ -595,8 +685,8 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     const epoch = state._compactionCount ?? 0;
     if (state._proseCraftEpoch === undefined || state._proseCraftEpoch < epoch) {
       return fail(
-        `Cannot render scene: prose-craft content is stale (loaded at epoch ${state._proseCraftEpoch ?? 'never'}, current epoch ${epoch}). `
-        + 'Module specs must be re-read after compaction.',
+        `Cannot render scene: prose-craft content is stale (loaded at epoch ${state._proseCraftEpoch ?? 'never'}, current epoch ${epoch}). ` +
+          'Module specs must be re-read after compaction.',
         'Run `tag module activate prose-craft` to reload prose-craft content.',
         'render',
       );
@@ -608,8 +698,8 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     const epoch = state._compactionCount ?? 0;
     if (state._styleReadEpoch === undefined || state._styleReadEpoch < epoch) {
       return fail(
-        `Cannot render scene: style guidance is stale (loaded at epoch ${state._styleReadEpoch ?? 'never'}, current epoch ${epoch}). `
-        + 'Visual style docs must be re-read after compaction.',
+        `Cannot render scene: style guidance is stale (loaded at epoch ${state._styleReadEpoch ?? 'never'}, current epoch ${epoch}). ` +
+          'Visual style docs must be re-read after compaction.',
         'Run `tag style activate` to reload the active visual style and style-reference.md.',
         'render',
       );
@@ -624,8 +714,8 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     const emptyLore = state.rosterMutations.length === 0 && state.codexMutations.length === 0;
     if (hasLoreSource && emptyLore) {
       return fail(
-        'BLOCKED — state appears hollow. Lore source is on record but roster and codex are empty. '
-        + 'This typically means compaction wiped lore data and setup was re-run on a blank state.',
+        'BLOCKED — state appears hollow. Lore source is on record but roster and codex are empty. ' +
+          'This typically means compaction wiped lore data and setup was re-run on a blank state.',
         'Run `tag compact restore` to begin recovery, then reload lore with `tag export load <file.lore.md>`.',
         'render',
       );
@@ -643,8 +733,8 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
         if (pending !== currentTurn) {
           const [pScene, pTurn] = pending.split(':');
           return fail(
-            `Previous render (scene ${pScene ?? '?'}, turn ${pTurn ?? '?'}) was not verified. `
-            + 'Run `tag verify /tmp/scene.html` before rendering the next turn.',
+            `Previous render (scene ${pScene ?? '?'}, turn ${pTurn ?? '?'}) was not verified. ` +
+              'Run `tag verify /tmp/scene.html` before rendering the next turn.',
             'Every scene render must be verified before the next render — including within the same scene.',
             'render',
           );
@@ -652,21 +742,28 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
         // Same scene:turn — allow re-render for composition purposes
       } catch {
         // Malformed flag — clear it and allow render
-        try { unlinkSync(needsVerify); } catch { /* ignore */ }
+        try {
+          unlinkSync(needsVerify);
+        } catch {
+          /* ignore */
+        }
       }
     }
   }
 
   // Resolve style name: --style flag > state.visualStyle > default for pre-config widgets > error
-  const resolvedStyle = styleName ?? state?.visualStyle
-    ?? (PRE_GAME_WIDGETS.has(widgetType) ? 'station' : null);
+  const resolvedStyle = styleName ?? state?.visualStyle ?? (PRE_GAME_WIDGETS.has(widgetType) ? 'station' : null);
 
   if (!resolvedStyle) {
     return styleNotSet();
   }
 
   if (!/^[a-zA-Z0-9_-]+$/.test(resolvedStyle)) {
-    return fail('Style name contains invalid characters.', 'Use alphanumeric, hyphens, and underscores only.', 'render');
+    return fail(
+      'Style name contains invalid characters.',
+      'Use alphanumeric, hyphens, and underscores only.',
+      'render',
+    );
   }
 
   // CSS/JS assets are delivered via jsDelivr-backed custom elements.
@@ -697,16 +794,20 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     // (pre-game widgets render before state exists — the module list arrives via --data).
     const existingData = (options.data ?? {}) as Record<string, unknown>;
     const dataModules = Array.isArray((existingData.settings as Record<string, unknown>)?.modules)
-      ? (existingData.settings as Record<string, unknown>).modules as string[]
+      ? ((existingData.settings as Record<string, unknown>).modules as string[])
       : [];
-    const pregenActive = state?.modulesActive?.includes('pre-generated-characters')
-      || dataModules.includes('pre-generated-characters');
+    const pregenActive =
+      state?.modulesActive?.includes('pre-generated-characters') || dataModules.includes('pre-generated-characters');
     // Normalise alias key: GM naturally writes pregenCharacters (from tag lore pregen output)
     if (Array.isArray(existingData.pregenCharacters) && !Array.isArray(existingData.preGeneratedCharacters)) {
       existingData.preGeneratedCharacters = existingData.pregenCharacters;
     }
     // Use _lorePregen from state when lore pipeline has loaded authored characters
-    if (!Array.isArray(existingData.preGeneratedCharacters) && Array.isArray(state?._lorePregen) && state!._lorePregen.length > 0) {
+    if (
+      !Array.isArray(existingData.preGeneratedCharacters) &&
+      Array.isArray(state?._lorePregen) &&
+      state!._lorePregen.length > 0
+    ) {
       if (!options.data) options.data = existingData;
       (options.data as Record<string, unknown>).preGeneratedCharacters = state!._lorePregen;
       existingData.preGeneratedCharacters = state!._lorePregen;
@@ -734,8 +835,8 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   // Catch broken serialisation — [object Object] means --data contained objects where strings were expected
   if (html.includes('[object Object]')) {
     return fail(
-      'Rendered HTML contains "[object Object]" — the --data payload shape is not supported by this widget. '
-      + 'Use the documented string/object field shapes for this widget and re-render.',
+      'Rendered HTML contains "[object Object]" — the --data payload shape is not supported by this widget. ' +
+        'Use the documented string/object field shapes for this widget and re-render.',
       'Fix the --data JSON so every field matches the widget schema, then re-render.',
       'render',
     );
@@ -784,7 +885,9 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     const turnTag = `${state?.scene ?? 0}:${state?._turnCount ?? 0}`;
     writeFileSync(getNeedsVerifyPath(), turnTag, 'utf-8');
     if (!raw) {
-      console.error(`\n⚠️  VERIFY REQUIRED (scene ${state?.scene ?? 0}, turn ${state?._turnCount ?? 0}):\n   tag verify /tmp/scene.html\n   BEFORE passing to show_widget. Next render will BLOCK without it.\n`);
+      console.error(
+        `\n⚠️  VERIFY REQUIRED (scene ${state?.scene ?? 0}, turn ${state?._turnCount ?? 0}):\n   tag verify /tmp/scene.html\n   BEFORE passing to show_widget. Next render will BLOCK without it.\n`,
+      );
     }
   }
 
@@ -856,8 +959,8 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
   };
 
   /**
-   * Generates SVG composition guidance for the GM when there is significant 
-   * budget headroom. 
+   * Generates SVG composition guidance for the GM when there is significant
+   * budget headroom.
    * @param {typeof sizeCheck} size - Current render size metrics.
    * @param {Set<string>} modules - Set of active modules.
    * @returns {Record<string, unknown>} - Guidance object with suggestions.
@@ -868,24 +971,36 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
     const suggestions: string[] = [];
 
     if (modules.has('ship-systems')) {
-      suggestions.push('Ship cross-section SVG: show hull systems, damage indicators, power routing using --sta-color-danger/success/warning');
+      suggestions.push(
+        'Ship cross-section SVG: show hull systems, damage indicators, power routing using --sta-color-danger/success/warning',
+      );
     }
     if (modules.has('star-chart')) {
-      suggestions.push('Star chart / navigation SVG: show current position, jump routes, and nearby systems using --sta-color-location and --sta-color-accent');
+      suggestions.push(
+        'Star chart / navigation SVG: show current position, jump routes, and nearby systems using --sta-color-location and --sta-color-accent',
+      );
     }
     if (modules.has('geo-map')) {
-      suggestions.push('Floor plan / zone layout SVG: show rooms, doors, and player position using --sta-bg-tertiary and --sta-border-primary');
+      suggestions.push(
+        'Floor plan / zone layout SVG: show rooms, doors, and player position using --sta-bg-tertiary and --sta-border-primary',
+      );
     }
     if (modules.has('crew-manifest')) {
-      suggestions.push('Crew status diagram SVG: show morale/stress bars per crew member using --sta-color-success/warning/danger');
+      suggestions.push(
+        'Crew status diagram SVG: show morale/stress bars per crew member using --sta-color-success/warning/danger',
+      );
     }
-    suggestions.push('Location atmosphere SVG: architectural detail, environmental hazard visualisation, or equipment schematic using --sta-* theme variables');
+    suggestions.push(
+      'Location atmosphere SVG: architectural detail, environmental hazard visualisation, or equipment schematic using --sta-* theme variables',
+    );
 
     return {
       budgetRemaining: `${remainingK}K chars available for inline SVG`,
       suggestions,
-      cssVariables: 'Use --sta-* CSS variables for colours: --sta-color-accent (#4ECDC4), --sta-color-danger (#E84855), --sta-color-success (#2BA882), --sta-color-warning (#F0A500), --sta-text-primary (#EEF0FF), --sta-bg-primary (#1A1D2E)',
-      tokenEfficiency: 'SVG tokenises at ~3 chars/token vs ~4 chars/token for prose — maximum visual payoff per token spent',
+      cssVariables:
+        'Use --sta-* CSS variables for colours: --sta-color-accent (#4ECDC4), --sta-color-danger (#E84855), --sta-color-success (#2BA882), --sta-color-warning (#F0A500), --sta-text-primary (#EEF0FF), --sta-bg-primary (#1A1D2E)',
+      tokenEfficiency:
+        'SVG tokenises at ~3 chars/token vs ~4 chars/token for prose — maximum visual payoff per token spent',
     };
   }
 
@@ -907,8 +1022,10 @@ export async function handleRender(args: string[]): Promise<CommandResult> {
       ...(outPath ? { outFile: outPath } : {}),
       cdnStyle: resolvedStyle,
       verifyRequired: {
-        instruction: 'MANDATORY: After composing narrative into this HTML, save to a file and run `tag verify /tmp/scene.html` BEFORE passing to show_widget.',
-        consequence: 'tag state sync --apply will REFUSE to advance to the next scene if verify has not been run. The verify marker is a signed workflow gate — writing the marker file manually is unsupported and will fail validation.',
+        instruction:
+          'MANDATORY: After composing narrative into this HTML, save to a file and run `tag verify /tmp/scene.html` BEFORE passing to show_widget.',
+        consequence:
+          'tag state sync --apply will REFUSE to advance to the next scene if verify has not been run. The verify marker is a signed workflow gate — writing the marker file manually is unsupported and will fail validation.',
         command: 'tag verify /tmp/scene_final.html',
       },
       isActOpener,

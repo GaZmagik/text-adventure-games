@@ -3,14 +3,7 @@ import { MODULE_PANEL_MAP } from './module-panel-map';
 
 describe('MODULE_PANEL_MAP', () => {
   test('contains all expected module keys', () => {
-    const expectedKeys = [
-      'lore-codex',
-      'ship-systems',
-      'crew-manifest',
-      'star-chart',
-      'geo-map',
-      'core-systems',
-    ];
+    const expectedKeys = ['lore-codex', 'ship-systems', 'crew-manifest', 'star-chart', 'geo-map', 'core-systems'];
     for (const key of expectedKeys) {
       expect(MODULE_PANEL_MAP).toHaveProperty(key);
     }

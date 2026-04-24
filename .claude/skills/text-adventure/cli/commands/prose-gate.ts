@@ -6,9 +6,7 @@ import { resolveSafeReadPath, readSafeTextFile, isAllowedPath } from '../lib/pat
 import { fnv32 } from '../lib/fnv32';
 import { PROSE_GATE_FILE, PROSE_MANUAL_CLEARANCE, PROSE_LLM_CLEARANCE } from '../lib/constants';
 
-type GateValidationResult =
-  | { valid: true; gate: GateFile }
-  | { valid: false; result: CommandResult };
+type GateValidationResult = { valid: true; gate: GateFile } | { valid: false; result: CommandResult };
 
 // ── Gate file validation ──────────────────────────────────────────
 
@@ -20,11 +18,7 @@ function readAndValidateGate(command: string): GateValidationResult {
   } catch {
     return {
       valid: false,
-      result: fail(
-        'prose-check has not been run on this scene.',
-        'Run: tag prose-check <path> first.',
-        command,
-      ),
+      result: fail('prose-check has not been run on this scene.', 'Run: tag prose-check <path> first.', command),
     };
   }
 
@@ -33,7 +27,8 @@ function readAndValidateGate(command: string): GateValidationResult {
   try {
     const parsed = JSON.parse(raw) as unknown;
     if (
-      typeof parsed !== 'object' || parsed === null ||
+      typeof parsed !== 'object' ||
+      parsed === null ||
       typeof (parsed as Record<string, unknown>)['scenePath'] !== 'string' ||
       typeof (parsed as Record<string, unknown>)['sceneHash'] !== 'string' ||
       typeof (parsed as Record<string, unknown>)['mode'] !== 'string' ||
@@ -75,11 +70,7 @@ function readAndValidateGate(command: string): GateValidationResult {
   } catch {
     return {
       valid: false,
-      result: fail(
-        `Scene file not found: ${gate.scenePath}`,
-        'Re-run: tag prose-check <path>',
-        command,
-      ),
+      result: fail(`Scene file not found: ${gate.scenePath}`, 'Re-run: tag prose-check <path>', command),
     };
   }
 
@@ -178,15 +169,22 @@ export async function handleProseGate(args: string[]): Promise<CommandResult> {
     const gateResult = readAndValidateGate('prose-gate');
     if (!gateResult.valid) return gateResult.result;
 
-    try { unlinkSync(PROSE_GATE_FILE); } catch { /* already gone */ }
+    try {
+      unlinkSync(PROSE_GATE_FILE);
+    } catch {
+      /* already gone */
+    }
     state.worldFlags.proseGatedAt = Date.now();
     await saveState(state);
 
-    return ok({
-      verified: true,
-      mode: 'manual',
-      clearance: PROSE_MANUAL_CLEARANCE,
-    }, 'prose-gate');
+    return ok(
+      {
+        verified: true,
+        mode: 'manual',
+        clearance: PROSE_MANUAL_CLEARANCE,
+      },
+      'prose-gate',
+    );
   }
 
   // ── --llm <path> ────────────────────────────────────────────────
@@ -211,7 +209,11 @@ export async function handleProseGate(args: string[]): Promise<CommandResult> {
   try {
     const resolved = resolveSafeReadPath(rawPath, { kind: 'Prose gate result', extensions: ['.json'] });
     if (!resolved) {
-      return fail(`Invalid file path: ${rawPath}`, 'Path must end with .json and be within a safe directory.', 'prose-gate');
+      return fail(
+        `Invalid file path: ${rawPath}`,
+        'Path must end with .json and be within a safe directory.',
+        'prose-gate',
+      );
     }
     resultPath = resolved;
   } catch (err) {
@@ -224,24 +226,36 @@ export async function handleProseGate(args: string[]): Promise<CommandResult> {
     const raw = await readSafeTextFile(resultPath, 'Prose gate result');
     parsed = JSON.parse(raw);
   } catch (err) {
-    const msg = err instanceof SyntaxError ? 'Malformed JSON in result file.' : `Could not read result file: ${errorMessage(err)}`;
+    const msg =
+      err instanceof SyntaxError
+        ? 'Malformed JSON in result file.'
+        : `Could not read result file: ${errorMessage(err)}`;
     return fail(msg, `Check the file at: ${resultPath}`, 'prose-gate');
   }
 
   // Shape validation — guard against well-formed JSON with wrong structure
   if (typeof parsed !== 'object' || parsed === null) {
-    return fail('Result JSON missing required fields (rules, overall).', `Check the file at: ${resultPath}`, 'prose-gate');
+    return fail(
+      'Result JSON missing required fields (rules, overall).',
+      `Check the file at: ${resultPath}`,
+      'prose-gate',
+    );
   }
 
   const candidate = parsed as Record<string, unknown>;
 
   if (
     typeof candidate['overall'] !== 'string' ||
-    typeof candidate['rules'] !== 'object' || candidate['rules'] === null ||
+    typeof candidate['rules'] !== 'object' ||
+    candidate['rules'] === null ||
     Array.isArray(candidate['rules']) ||
     Object.keys(candidate['rules'] as object).length === 0
   ) {
-    return fail('Result JSON missing required fields (rules, overall).', `Check the file at: ${resultPath}`, 'prose-gate');
+    return fail(
+      'Result JSON missing required fields (rules, overall).',
+      `Check the file at: ${resultPath}`,
+      'prose-gate',
+    );
   }
 
   // Per-rule type validation — guard against null/non-string result values
@@ -259,9 +273,7 @@ export async function handleProseGate(args: string[]): Promise<CommandResult> {
   const validParsed = parsed as ProseReviewOutput;
 
   // Collect failing rules
-  const failingRules = Object.entries(validParsed.rules).filter(
-    ([, rule]) => rule.result === 'FAIL',
-  );
+  const failingRules = Object.entries(validParsed.rules).filter(([, rule]) => rule.result === 'FAIL');
 
   const hasFailures = failingRules.length > 0 || validParsed.overall !== 'PASS';
 
@@ -279,22 +291,32 @@ export async function handleProseGate(args: string[]): Promise<CommandResult> {
     }
 
     // Do NOT delete gate file on LLM content failures
-    return ok({
-      verified: false,
-      mode: 'llm',
-      failures,
-      message: `${failingRules.length} prose rule(s) failed. Revise prose and re-run tag prose-check.`,
-    }, 'prose-gate');
+    return ok(
+      {
+        verified: false,
+        mode: 'llm',
+        failures,
+        message: `${failingRules.length} prose rule(s) failed. Revise prose and re-run tag prose-check.`,
+      },
+      'prose-gate',
+    );
   }
 
   // LLM pass — delete gate file
-  try { unlinkSync(PROSE_GATE_FILE); } catch { /* already gone */ }
+  try {
+    unlinkSync(PROSE_GATE_FILE);
+  } catch {
+    /* already gone */
+  }
   state.worldFlags.proseGatedAt = Date.now();
   await saveState(state);
 
-  return ok({
-    verified: true,
-    mode: 'llm',
-    clearance: PROSE_LLM_CLEARANCE,
-  }, 'prose-gate');
+  return ok(
+    {
+      verified: true,
+      mode: 'llm',
+      clearance: PROSE_LLM_CLEARANCE,
+    },
+    'prose-gate',
+  );
 }

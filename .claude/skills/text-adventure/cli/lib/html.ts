@@ -14,18 +14,18 @@ const INLINE_SCRIPT_ESC_MAP: Record<string, string> = {
  *  Objects are coerced via .name (for abilities, equipment items passed as objects). */
 export function esc(s: unknown): string {
   if (s == null || s === false || s === '') return '';
-  const str = typeof s === 'string' ? s
-    : typeof s === 'object' && s !== null && 'name' in s ? String((s as Record<string, unknown>).name)
-    : String(s);
+  const str =
+    typeof s === 'string'
+      ? s
+      : typeof s === 'object' && s !== null && 'name' in s
+        ? String((s as Record<string, unknown>).name)
+        : String(s);
   return str.replace(ESC_RE, c => ESC_MAP[c] ?? c);
 }
 
 /** Serialise data for safe embedding inside an inline <script> tag. */
 export function serialiseInlineScriptData(value: unknown): string {
-  return JSON.stringify(value).replace(
-    INLINE_SCRIPT_ESC_RE,
-    char => INLINE_SCRIPT_ESC_MAP[char] ?? char,
-  );
+  return JSON.stringify(value).replace(INLINE_SCRIPT_ESC_RE, char => INLINE_SCRIPT_ESC_MAP[char] ?? char);
 }
 
 /** @internal — test-only

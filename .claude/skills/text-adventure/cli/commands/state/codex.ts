@@ -69,7 +69,11 @@ async function handleUnlock(args: string[]): Promise<CommandResult> {
 
   const entry = findEntry(state.codexMutations, id);
   if (!entry) {
-    return fail(`Codex entry "${id}" not found.`, 'Create it first with: tag state codex create <id> --title <title>', COMMAND);
+    return fail(
+      `Codex entry "${id}" not found.`,
+      'Create it first with: tag state codex create <id> --title <title>',
+      COMMAND,
+    );
   }
 
   if (entry.state !== 'locked') {
@@ -108,7 +112,11 @@ async function handleAdvance(args: string[]): Promise<CommandResult> {
 
   const entry = findEntry(state.codexMutations, id);
   if (!entry) {
-    return fail(`Codex entry "${id}" not found.`, 'Create it first with: tag state codex create <id> --title <title>', COMMAND);
+    return fail(
+      `Codex entry "${id}" not found.`,
+      'Create it first with: tag state codex create <id> --title <title>',
+      COMMAND,
+    );
   }
 
   if (entry.state !== 'partial') {
@@ -148,7 +156,11 @@ async function handleSecret(args: string[]): Promise<CommandResult> {
 
   const entry = findEntry(state.codexMutations, id);
   if (!entry) {
-    return fail(`Codex entry "${id}" not found.`, 'Create it first with: tag state codex create <id> --title <title>', COMMAND);
+    return fail(
+      `Codex entry "${id}" not found.`,
+      'Create it first with: tag state codex create <id> --title <title>',
+      COMMAND,
+    );
   }
 
   if (entry.state === 'redacted') {
@@ -181,7 +193,11 @@ async function handleRedact(args: string[]): Promise<CommandResult> {
 
   const entry = findEntry(state.codexMutations, id);
   if (!entry) {
-    return fail(`Codex entry "${id}" not found.`, 'Create it first with: tag state codex create <id> --title <title>', COMMAND);
+    return fail(
+      `Codex entry "${id}" not found.`,
+      'Create it first with: tag state codex create <id> --title <title>',
+      COMMAND,
+    );
   }
 
   if (entry.state === 'redacted') {
@@ -219,16 +235,17 @@ export async function handleCodex(args: string[]): Promise<CommandResult> {
   }
 
   switch (action) {
-    case 'create':  return handleCreate(args.slice(1));
-    case 'unlock':  return handleUnlock(args.slice(1));
-    case 'advance': return handleAdvance(args.slice(1));
-    case 'secret':  return handleSecret(args.slice(1));
-    case 'redact':  return handleRedact(args.slice(1));
+    case 'create':
+      return handleCreate(args.slice(1));
+    case 'unlock':
+      return handleUnlock(args.slice(1));
+    case 'advance':
+      return handleAdvance(args.slice(1));
+    case 'secret':
+      return handleSecret(args.slice(1));
+    case 'redact':
+      return handleRedact(args.slice(1));
     default:
-      return fail(
-        `Unknown codex action: "${action}".`,
-        `Valid actions: ${VALID_ACTIONS.join(', ')}`,
-        COMMAND,
-      );
+      return fail(`Unknown codex action: "${action}".`, `Valid actions: ${VALID_ACTIONS.join(', ')}`, COMMAND);
   }
 }

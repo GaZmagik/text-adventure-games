@@ -94,7 +94,11 @@ async function handleAdd(args: string[]): Promise<CommandResult> {
   if (!state.crewMutations) state.crewMutations = [];
 
   if (findMember(state, id)) {
-    return fail(`Crew member "${id}" already exists.`, 'Use a different id or modify with morale/status/assign.', COMMAND);
+    return fail(
+      `Crew member "${id}" already exists.`,
+      'Use a different id or modify with morale/status/assign.',
+      COMMAND,
+    );
   }
 
   const member: CrewMutation = {
@@ -127,11 +131,7 @@ async function handleStatus(args: string[]): Promise<CommandResult> {
   }
 
   if (!isValidStatus(newStatus)) {
-    return fail(
-      `Invalid status "${newStatus}".`,
-      `Valid statuses: ${VALID_CREW_STATUSES.join(', ')}`,
-      COMMAND,
-    );
+    return fail(`Invalid status "${newStatus}".`, `Valid statuses: ${VALID_CREW_STATUSES.join(', ')}`, COMMAND);
   }
 
   const state = await tryLoadState();
@@ -198,17 +198,19 @@ export async function handleCrew(args: string[]): Promise<CommandResult> {
   }
 
   switch (action) {
-    case 'add':     return handleAdd(args.slice(1));
-    case 'morale':  return adjustStat(args[1]!, 'morale', args[2]!);
-    case 'stress':  return adjustStat(args[1]!, 'stress', args[2]!);
-    case 'loyalty': return adjustStat(args[1]!, 'loyalty', args[2]!);
-    case 'status':  return handleStatus(args.slice(1));
-    case 'assign':  return handleAssign(args.slice(1));
+    case 'add':
+      return handleAdd(args.slice(1));
+    case 'morale':
+      return adjustStat(args[1]!, 'morale', args[2]!);
+    case 'stress':
+      return adjustStat(args[1]!, 'stress', args[2]!);
+    case 'loyalty':
+      return adjustStat(args[1]!, 'loyalty', args[2]!);
+    case 'status':
+      return handleStatus(args.slice(1));
+    case 'assign':
+      return handleAssign(args.slice(1));
     default:
-      return fail(
-        `Unknown crew action: "${action}".`,
-        `Valid actions: ${VALID_ACTIONS.join(', ')}`,
-        COMMAND,
-      );
+      return fail(`Unknown crew action: "${action}".`, `Valid actions: ${VALID_ACTIONS.join(', ')}`, COMMAND);
   }
 }

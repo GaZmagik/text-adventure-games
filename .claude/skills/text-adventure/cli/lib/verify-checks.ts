@@ -7,8 +7,8 @@ import type { GmState } from '../types';
 
 // ── Types ────────────────────────────────────────────────────────────
 
-/** 
- * Represents a DOM element with a `data-prompt` attribute. 
+/**
+ * Represents a DOM element with a `data-prompt` attribute.
  */
 type PromptElement = {
   markup: string;
@@ -18,8 +18,8 @@ type PromptElement = {
   classes: string[];
 };
 
-/** 
- * Represents a `<button>` element with associated metadata. 
+/**
+ * Represents a `<button>` element with associated metadata.
  */
 type ButtonElement = {
   markup: string;
@@ -31,7 +31,13 @@ type ButtonElement = {
   classes: string[];
 };
 
+type JsonRecord = Record<string, unknown>;
+
 // ── Utility helpers ──────────────────────────────────────────────────
+
+function isRecord(value: unknown): value is JsonRecord {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
 
 /** Cache for single-match (i flag) attribute regexes used by extractAttr. */
 const _attrRegexCache = new Map<string, RegExp>();
@@ -100,28 +106,6 @@ function extractAttributeValues(html: string, name: string): string[] {
  */
 export function extractDivBlockById(html: string, id: string): string | null {
   const opener = new RegExp(`<div\\b[^>]*\\bid\\s*=\\s*(['"])${id}\\1[^>]*>`, 'i').exec(html);
-  if (!opener || opener.index === undefined) return null;
-
-  const tagPattern = /<\/?div\b[^>]*>/gi;
-  tagPattern.lastIndex = opener.index + opener[0].length;
-  let depth = 1;
-  let match: RegExpExecArray | null;
-
-  while ((match = tagPattern.exec(html)) !== null) {
-    if (match[0].startsWith('</')) depth--;
-    else depth++;
-    if (depth === 0) return html.slice(opener.index, tagPattern.lastIndex);
-  }
-
-  return null;
-}
-
-/**
- * Extracts the first `div` block matching a class name, handling nested divs.
- */
-export function extractDivBlockByClass(html: string, className: string): string | null {
-  const escaped = className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const opener = new RegExp(`<div\\b[^>]*\\bclass\\s*=\\s*(['"])[^'"]*\\b${escaped}\\b[^'"]*\\1[^>]*>`, 'i').exec(html);
   if (!opener || opener.index === undefined) return null;
 
   const tagPattern = /<\/?div\b[^>]*>/gi;
@@ -227,16 +211,24 @@ export function extractPromptElements(html: string): PromptElement[] {
  * Extracts only buttons that have the `action-card` class.
  */
 export function extractActionButtons(html: string): ButtonElement[] {
-  return extractButtonElements(html).filter(button => 
-    button.classes.includes('action-card') || 
-    button.markup.toLowerCase().startsWith('<ta-action-card')
+  return extractButtonElements(html).filter(
+    button => button.classes.includes('action-card') || button.markup.toLowerCase().startsWith('<ta-action-card'),
   );
+}
+
+function parseJsonAttr(value: string, failures: string[], errorMessage: string): unknown {
+  try {
+    return JSON.parse(unesc(value));
+  } catch {
+    failures.push(errorMessage);
+    return undefined;
+  }
 }
 
 // ── Shared check functions ───────────────────────────────────────────
 
-/** 
- * Detects common JS serialisation failures in the HTML. 
+/**
+ * Detects common JS serialisation failures in the HTML.
  * @remarks
  * See gotcha-object-object-serialisation-failure.md.
  */
@@ -244,23 +236,21 @@ export function checkBrokenSerialisation(html: string, failures: string[]): void
   const count = (html.match(/\[object Object\]/g) ?? []).length;
   if (count > 0) {
     failures.push(
-      `Found ${count} occurrence(s) of "[object Object]" in HTML — data was not serialised correctly. `
-      + 'This typically means --data passed objects where strings were expected. '
-      + 'Check that arrays contain plain strings, not nested objects.',
+      `Found ${count} occurrence(s) of "[object Object]" in HTML — data was not serialised correctly. ` +
+        'This typically means --data passed objects where strings were expected. ' +
+        'Check that arrays contain plain strings, not nested objects.',
     );
   }
 }
 
 const VALID_VAR_PREFIXES = ['--sta-', '--ta-'];
 
-/** 
- * Enforces use of the engine's standard CSS variable prefixes. 
+/**
+ * Enforces use of the engine's standard CSS variable prefixes.
  */
 export function checkCssVariables(html: string, failures: string[]): void {
   const hits = html.matchAll(/var\(\s*(--[a-zA-Z][\w-]*)/g);
-  const locallyDefined = new Set(
-    [...html.matchAll(/(--[a-zA-Z][\w-]*)\s*:/g)].map(match => match[1]!),
-  );
+  const locallyDefined = new Set([...html.matchAll(/(--[a-zA-Z][\w-]*)\s*:/g)].map(match => match[1]!));
   const invalid = new Set<string>();
   for (const m of hits) {
     const varName = m[1]!;
@@ -271,15 +261,15 @@ export function checkCssVariables(html: string, failures: string[]): void {
   if (invalid.size > 0) {
     const sorted = [...invalid].sort();
     failures.push(
-      `Found ${sorted.length} CSS variable(s) with invalid prefix: ${sorted.join(', ')}. `
-      + 'All CSS variables must use --sta-* (station theme) or --ta-* (mapped alias) prefix. '
-      + 'Unprefixed variables like --color-* or --border-* are not defined and will resolve to nothing.',
+      `Found ${sorted.length} CSS variable(s) with invalid prefix: ${sorted.join(', ')}. ` +
+        'All CSS variables must use --sta-* (station theme) or --ta-* (mapped alias) prefix. ' +
+        'Unprefixed variables like --color-* or --border-* are not defined and will resolve to nothing.',
     );
   }
 }
 
-/** 
- * Disallows inline `onclick` handlers, enforcing the `data-prompt` pattern. 
+/**
+ * Disallows inline `onclick` handlers, enforcing the `data-prompt` pattern.
  * @remarks
  * Inline handlers break on special characters and are prohibited by the security policy.
  */
@@ -287,22 +277,22 @@ export function checkInlineOnclick(html: string, failures: string[]): void {
   const onclickCount = (html.match(/\bonclick\s*=\s*['"]/gi) ?? []).length;
   if (onclickCount > 0) {
     failures.push(
-      `Found ${onclickCount} inline onclick handler(s). Use data-prompt + addEventListener instead. `
-      + 'Inline onclick handlers break silently on apostrophes and special characters in prompt strings.',
+      `Found ${onclickCount} inline onclick handler(s). Use data-prompt + addEventListener instead. ` +
+        'Inline onclick handlers break silently on apostrophes and special characters in prompt strings.',
     );
   }
 }
 
-/** 
- * Ensures all `data-prompt` buttons have a `title` attribute for manual fallback. 
+/**
+ * Ensures all `data-prompt` buttons have a `title` attribute for manual fallback.
  */
 export function checkSendPromptFallback(html: string, failures: string[]): void {
   const promptButtons = extractPromptElements(html);
   const missingFallback = promptButtons.filter(btn => (btn.title?.length ?? 0) < 10);
   if (missingFallback.length > 0) {
     failures.push(
-      `Found ${missingFallback.length} data-prompt button(s) without adequate title fallback text. `
-      + 'Every data-prompt button needs a title attribute containing the prompt text so the player can copy it if sendPrompt is unavailable.',
+      `Found ${missingFallback.length} data-prompt button(s) without adequate title fallback text. ` +
+        'Every data-prompt button needs a title attribute containing the prompt text so the player can copy it if sendPrompt is unavailable.',
     );
   }
 }
@@ -315,16 +305,37 @@ const VERIFY_RENDER_TYPE_MAP: Record<string, string> = {
   character: 'character-creation',
 };
 
-/** 
+/**
  * Widget types that are emitted as self-bootstrapping custom elements (<ta-*>).
  * These widgets don't contain an explicit shadow-host + attachShadow script.
  */
 const CUSTOM_ELEMENT_WIDGETS = new Set([
-  'dialogue', 'levelup', 'ticker', 'footer',
-  'scenario-select', 'settings', 'character-creation',
-  'recap', 'arc-complete', 'combat-turn', 'dice',
-  'character', 'crew', 'codex', 'ship', 'map', 'starchart',
-  'dice-pool', 'scene',
+  'dialogue',
+  'levelup',
+  'ticker',
+  'footer',
+  'scenario-select',
+  'settings',
+  'character-creation',
+  'recap',
+  'arc-complete',
+  'combat-turn',
+  'dice',
+  'character',
+  'crew',
+  'codex',
+  'quest-log',
+  'ship',
+  'map',
+  'world-preview',
+  'route-planner',
+  'faction-board',
+  'relationship-web',
+  'world-atlas',
+  'clue-board',
+  'starchart',
+  'dice-pool',
+  'scene',
 ]);
 
 /**
@@ -337,8 +348,8 @@ function checkShadowRenderOrigin(widgetType: string, html: string, failures: str
   const renderWidgetType = VERIFY_RENDER_TYPE_MAP[widgetType] ?? widgetType;
   if (!hasValidRenderOrigin(renderWidgetType, html)) {
     failures.push(
-      `${widgetType} widget is missing a valid exact render-origin marker from tag render. `
-      + 'Standalone widgets must use the unmodified html returned by tag render, not a hand-coded or edited copy.',
+      `${widgetType} widget is missing a valid exact render-origin marker from tag render. ` +
+        'Standalone widgets must use the unmodified html returned by tag render, not a hand-coded or edited copy.',
     );
   }
   // Custom elements self-bootstrap — no shadow-host / attachShadow expected
@@ -347,49 +358,14 @@ function checkShadowRenderOrigin(widgetType: string, html: string, failures: str
   const hasAttachShadow = /attachShadow\(\{\s*mode\s*:\s*['"]open['"]\s*\}\)/.test(html);
   if (!hasShadowHost || !hasAttachShadow) {
     failures.push(
-      `${widgetType} widget is missing the Shadow DOM bootstrap from tag render. `
-      + 'Standalone widgets must use the unmodified html returned by tag render, not a hand-coded shell.',
+      `${widgetType} widget is missing the Shadow DOM bootstrap from tag render. ` +
+        'Standalone widgets must use the unmodified html returned by tag render, not a hand-coded shell.',
     );
   }
 }
 
-// ── Pre-game widget checks ──────────────────────────────────────────
-
-/** 
- * Generic checks for pre-game configuration widgets (Settings, Scenario, CharCreate). 
- */
-function checkPreGameWidget(html: string, failures: string[]): void {
-  const isSettings = html.includes('widget-settings') || html.includes('settings-confirm');
-  const isScenario = html.includes('scenario-card') || html.includes('scenario-select');
-  const isCharCreate = html.includes('character-creation') || html.includes('archetype');
-
-  if (isSettings) {
-    if (!html.includes('settings-confirm') && !html.includes('confirm-btn')) {
-      failures.push('Settings widget missing confirm button (id="settings-confirm" or class="confirm-btn").');
-    }
-    const groups = html.match(/data-group="([^"]+)"/g) ?? [];
-    const uniqueGroups = new Set(groups.map(g => g.replace(/data-group="|"/g, '')));
-    if (uniqueGroups.size < 2) {
-      failures.push(`Settings widget has ${uniqueGroups.size} option group(s) — expected at least 2 (rulebook, difficulty, etc.).`);
-    }
-  }
-
-  if (isScenario) {
-    const cards = (html.match(/data-prompt="/g) ?? []).length;
-    if (cards < 2) {
-      failures.push(`Scenario select has ${cards} selectable option(s) — expected at least 2 scenario cards.`);
-    }
-  }
-
-  if (isCharCreate) {
-    if (!html.includes('data-prompt') && !html.includes('sendPrompt')) {
-      failures.push('Character creation widget missing confirm mechanism (data-prompt or sendPrompt handler).');
-    }
-  }
-}
-
-/** 
- * Specific verification for the scenario selection widget. 
+/**
+ * Specific verification for the scenario selection widget.
  */
 export function checkScenarioWidget(html: string, failures: string[]): void {
   checkShadowRenderOrigin('scenario', html, failures);
@@ -406,24 +382,34 @@ export function checkScenarioWidget(html: string, failures: string[]): void {
       failures.push('Scenario-select widget missing data-scenarios attribute.');
       return;
     }
-    let scenarios: any[] = [];
-    try {
-      scenarios = JSON.parse(unesc(scenariosAttr));
-    } catch {
-      failures.push('Scenario-select widget contains invalid JSON in data-scenarios attribute.');
+    const parsedScenarios = parseJsonAttr(
+      scenariosAttr,
+      failures,
+      'Scenario-select widget contains invalid JSON in data-scenarios attribute.',
+    );
+    if (parsedScenarios === undefined) {
       return;
     }
 
-    if (!Array.isArray(scenarios) || scenarios.length !== 5) {
-      failures.push(`Found ${scenarios.length} scenario card(s) in data-scenarios — expected exactly 5 (1 featured + 4 standard).`);
+    if (!Array.isArray(parsedScenarios)) {
+      failures.push('Scenario-select widget data-scenarios attribute must contain an array.');
+      return;
     }
 
-    const featuredCount = scenarios.filter(s => s.featured).length;
+    const scenarios = parsedScenarios.filter(isRecord);
+
+    if (scenarios.length !== 5) {
+      failures.push(
+        `Found ${scenarios.length} scenario card(s) in data-scenarios — expected exactly 5 (1 featured + 4 standard).`,
+      );
+    }
+
+    const featuredCount = scenarios.filter(s => s.featured === true).length;
     if (featuredCount !== 1) {
       failures.push(`Found ${featuredCount} featured scenario(s) — expected exactly 1 featured scenario.`);
     }
 
-    const missingTitle = scenarios.filter(s => !s.title || s.title.trim().length === 0);
+    const missingTitle = scenarios.filter(s => typeof s.title !== 'string' || s.title.trim().length === 0);
     if (missingTitle.length > 0) {
       failures.push(`Found ${missingTitle.length} scenario(s) with missing or empty titles.`);
     }
@@ -441,14 +427,16 @@ export function checkScenarioWidget(html: string, failures: string[]): void {
 
   const buttons = extractPromptElements(html).filter(el => el.classes.includes('scenario-select-btn'));
   if (buttons.length !== 5) {
-    failures.push(`Found ${buttons.length} select button(s) — each scenario card needs a select button with data-prompt.`);
+    failures.push(
+      `Found ${buttons.length} select button(s) — each scenario card needs a select button with data-prompt.`,
+    );
   }
 
   const missingFallback = buttons.filter(btn => (btn.title?.trim().length ?? 0) < 10);
   if (missingFallback.length > 0) {
     failures.push(
-      `Found ${missingFallback.length} scenario button(s) without adequate title fallback text. `
-      + 'Every scenario-select button needs a copyable title attribute.',
+      `Found ${missingFallback.length} scenario button(s) without adequate title fallback text. ` +
+        'Every scenario-select button needs a copyable title attribute.',
     );
   }
 }
@@ -458,10 +446,31 @@ export function checkScenarioWidget(html: string, failures: string[]): void {
 const VALID_SETTINGS_GROUPS = new Set(['rulebook', 'difficulty', 'pacing', 'visualStyle', 'modules']);
 
 const VALID_SETTINGS_VALUES: Record<string, Set<string>> = {
-  rulebook: new Set(['d20_system', 'dnd_5e', 'gurps_lite', 'pf2e_lite', 'shadowrun_lite', 'narrative_engine', 'custom']),
+  rulebook: new Set([
+    'd20_system',
+    'dnd_5e',
+    'gurps_lite',
+    'pf2e_lite',
+    'shadowrun_lite',
+    'narrative_engine',
+    'custom',
+  ]),
   difficulty: new Set(['easy', 'normal', 'hard', 'brutal']),
   pacing: new Set(['fast', 'normal', 'slow']),
-  visualStyle: new Set(['station', 'terminal', 'parchment', 'neon', 'brutalist', 'art-deco', 'ink-wash', 'blueprint', 'stained-glass', 'sveltekit', 'weathered', 'holographic']),
+  visualStyle: new Set([
+    'station',
+    'terminal',
+    'parchment',
+    'neon',
+    'brutalist',
+    'art-deco',
+    'ink-wash',
+    'blueprint',
+    'stained-glass',
+    'sveltekit',
+    'weathered',
+    'holographic',
+  ]),
   // modules: intentionally omitted — values are extensible
 };
 
@@ -483,8 +492,9 @@ export function checkSettingsValues(html: string, failures: string[]): void {
 
   // Pattern 1: both attributes on the same element (tag render output)
   const forward = [...html.matchAll(/data-group="([^"]*)"[^>]*data-value="([^"]*)"/g)];
-  const reverse = [...html.matchAll(/data-value="([^"]*)"[^>]*data-group="([^"]*)"/g)]
-    .map(m => [m[0], m[2], m[1]] as const);
+  const reverse = [...html.matchAll(/data-value="([^"]*)"[^>]*data-group="([^"]*)"/g)].map(
+    m => [m[0], m[2], m[1]] as const,
+  );
 
   const pairs: [group: string, value: string][] = [
     ...forward.map(m => [m[1], m[2]] as [string, string]),
@@ -522,8 +532,8 @@ export function checkSettingsValues(html: string, failures: string[]): void {
   }
 }
 
-/** 
- * Specific verification for the settings configuration widget. 
+/**
+ * Specific verification for the settings configuration widget.
  */
 export function checkRulesWidget(html: string, failures: string[]): void {
   checkShadowRenderOrigin('rules', html, failures);
@@ -540,17 +550,21 @@ export function checkRulesWidget(html: string, failures: string[]): void {
       failures.push('Settings widget missing data-config attribute.');
       return;
     }
-    let config: any = {};
-    try {
-      config = JSON.parse(unesc(configAttr));
-    } catch {
-      failures.push('Settings widget contains invalid JSON in data-config attribute.');
+    const parsedConfig = parseJsonAttr(
+      configAttr,
+      failures,
+      'Settings widget contains invalid JSON in data-config attribute.',
+    );
+    if (parsedConfig === undefined) {
       return;
     }
 
-    const required = ['rulebooks', 'visualStyles', 'modules'];
+    const config = isRecord(parsedConfig) ? parsedConfig : {};
+
+    const required = ['rulebooks', 'visualStyles', 'modules'] as const;
     for (const key of required) {
-      if (!config[key] || !Array.isArray(config[key]) || config[key].length === 0) {
+      const values = config[key];
+      if (!Array.isArray(values) || values.length === 0) {
         failures.push(`Settings config missing required option group: "${key}".`);
       }
     }
@@ -563,29 +577,40 @@ export function checkRulesWidget(html: string, failures: string[]): void {
   }
 
   const uniqueGroups = new Set(extractAttributeValues(html, 'data-group'));
-  if (uniqueGroups.size < 2) failures.push(`Found ${uniqueGroups.size} option group(s) — settings needs at least 2 (e.g. rulebook, difficulty).`);
+  if (uniqueGroups.size < 2)
+    failures.push(
+      `Found ${uniqueGroups.size} option group(s) — settings needs at least 2 (e.g. rulebook, difficulty).`,
+    );
 
   const required = ['rulebook', 'visualStyle'];
   for (const group of required) {
     if (!uniqueGroups.has(group)) failures.push(`Settings missing required option group: "${group}".`);
   }
   if (!uniqueGroups.has('modules')) {
-    failures.push('Settings missing module selection group (data-group="modules") — player cannot choose active modules.');
+    failures.push(
+      'Settings missing module selection group (data-group="modules") — player cannot choose active modules.',
+    );
   }
 
   const objectValues = extractAttributeValues(html, 'data-value').filter(value => value === '[object Object]').length;
   if (objectValues > 0) {
-    failures.push(`Found ${objectValues} option(s) with data-value="[object Object]" — arrays must contain strings, not objects.`);
+    failures.push(
+      `Found ${objectValues} option(s) with data-value="[object Object]" — arrays must contain strings, not objects.`,
+    );
   }
 
   checkSettingsGroups(html, failures);
   checkSettingsValues(html, failures);
 }
 
-/** 
- * Specific verification for the character creation widget. 
+/**
+ * Specific verification for the character creation widget.
  */
-export function checkCharacterWidget(html: string, failures: string[], state?: { modulesActive?: string[]; _loreSource?: string; _lorePregen?: unknown[] } | null): void {
+export function checkCharacterWidget(
+  html: string,
+  failures: string[],
+  state?: { modulesActive?: string[]; _loreSource?: string; _lorePregen?: unknown[] } | null,
+): void {
   checkShadowRenderOrigin('character', html, failures);
   checkBrokenSerialisation(html, failures);
   checkCssVariables(html, failures);
@@ -596,37 +621,46 @@ export function checkCharacterWidget(html: string, failures: string[], state?: {
   if (tagMatch) {
     const attrStr = tagMatch[1]!;
     const configAttr = extractAttr(attrStr, 'data-config');
-    
+
     if (!configAttr) {
       failures.push('Character creation widget missing data-config attribute.');
       return;
     }
-    
-    let config: any = {};
-    try {
-      config = JSON.parse(unesc(configAttr));
-    } catch {
-      failures.push('Character creation widget contains invalid JSON in data-config attribute.');
+
+    const parsedConfig = parseJsonAttr(
+      configAttr,
+      failures,
+      'Character creation widget contains invalid JSON in data-config attribute.',
+    );
+    if (parsedConfig === undefined) {
       return;
     }
+
+    const config = isRecord(parsedConfig) ? parsedConfig : {};
 
     const archetypes = Array.isArray(config.archetypes) ? config.archetypes : [];
     const pregens = Array.isArray(config.preGeneratedCharacters) ? config.preGeneratedCharacters : [];
 
     const totalCharCards = archetypes.length + pregens.length;
-    if (totalCharCards < 2) failures.push(`Found ${totalCharCards} character card(s) (archetype + preset) — expected at least 2.`);
+    if (totalCharCards < 2)
+      failures.push(`Found ${totalCharCards} character card(s) (archetype + preset) — expected at least 2.`);
 
     if (state?.modulesActive?.includes('pre-generated-characters')) {
       if (pregens.length === 0) {
-        failures.push('pre-generated-characters module is active but no preset-card elements found (pre-generated-characters in config is empty).');
+        failures.push(
+          'pre-generated-characters module is active but no preset-card elements found (pre-generated-characters in config is empty).',
+        );
       }
     }
 
-    if (Array.isArray(state?._lorePregen) && state!._lorePregen.length > 0
-        && !state?.modulesActive?.includes('pre-generated-characters')) {
+    if (
+      Array.isArray(state?._lorePregen) &&
+      state!._lorePregen.length > 0 &&
+      !state?.modulesActive?.includes('pre-generated-characters')
+    ) {
       failures.push(
-        `State contains ${state!._lorePregen.length} pre-generated character(s) from _lorePregen but the pre-generated-characters module is not active. `
-        + 'Run `tag module activate pre-generated-characters` before rendering the character-creation widget.',
+        `State contains ${state!._lorePregen.length} pre-generated character(s) from _lorePregen but the pre-generated-characters module is not active. ` +
+          'Run `tag module activate pre-generated-characters` before rendering the character-creation widget.',
       );
     }
     return;
@@ -643,29 +677,37 @@ export function checkCharacterWidget(html: string, failures: string[], state?: {
   const archetypeCards = countClassOccurrences(html, 'archetype-card');
   const presetCardsEarly = countClassOccurrences(html, 'preset-card');
   const totalCharCards = archetypeCards + presetCardsEarly;
-  if (totalCharCards < 2) failures.push(`Found ${totalCharCards} character card(s) (archetype + preset) — expected at least 2.`);
+  if (totalCharCards < 2)
+    failures.push(`Found ${totalCharCards} character card(s) (archetype + preset) — expected at least 2.`);
 
   const emptyNames = [...html.matchAll(/class\s*=\s*(['"])[^'"]*\barch-name\b[^'"]*\1>\s*<\/div>/gi)].length;
   if (emptyNames > 0) {
     failures.push(`Found ${emptyNames} archetype card(s) with empty names — archetype labels must be visible.`);
   }
 
-  if (!/\bdata-pronouns\s*=/i.test(html)) failures.push('Character creation missing pronoun selector (data-pronouns buttons).');
-  if (!/\bdata-prof\s*=/i.test(html)) failures.push('Character creation missing proficiency selector (data-prof buttons).');
+  if (!/\bdata-pronouns\s*=/i.test(html))
+    failures.push('Character creation missing pronoun selector (data-pronouns buttons).');
+  if (!/\bdata-prof\s*=/i.test(html))
+    failures.push('Character creation missing proficiency selector (data-prof buttons).');
 
   if (state?.modulesActive?.includes('pre-generated-characters')) {
     const presetCards = countClassOccurrences(html, 'preset-card');
     if (presetCards === 0) {
-      failures.push('pre-generated-characters module is active but no preset-card elements found — pre-gen characters were not injected.');
+      failures.push(
+        'pre-generated-characters module is active but no preset-card elements found — pre-gen characters were not injected.',
+      );
     }
   }
 
   // Lore pipeline check: _lorePregen exists but module not activated
-  if (Array.isArray(state?._lorePregen) && state!._lorePregen.length > 0
-      && !state?.modulesActive?.includes('pre-generated-characters')) {
+  if (
+    Array.isArray(state?._lorePregen) &&
+    state!._lorePregen.length > 0 &&
+    !state?.modulesActive?.includes('pre-generated-characters')
+  ) {
     failures.push(
-      `State contains ${state!._lorePregen.length} pre-generated character(s) from _lorePregen but the pre-generated-characters module is not active. `
-      + 'Run `tag module activate pre-generated-characters` before rendering the character-creation widget.',
+      `State contains ${state!._lorePregen.length} pre-generated character(s) from _lorePregen but the pre-generated-characters module is not active. ` +
+        'Run `tag module activate pre-generated-characters` before rendering the character-creation widget.',
     );
   }
 }
@@ -685,7 +727,14 @@ const IN_GAME_WIDGET_MARKERS: Record<string, string[]> = {
   ship: ['ta-ship'],
   crew: ['ta-crew'],
   codex: ['ta-codex'],
+  'quest-log': ['ta-quest-log'],
   map: ['ta-map'],
+  'world-preview': ['ta-world-preview'],
+  'route-planner': ['ta-route-planner'],
+  'faction-board': ['ta-faction-board'],
+  'relationship-web': ['ta-relationship-web'],
+  'world-atlas': ['ta-world-atlas'],
+  'clue-board': ['ta-clue-board'],
   starchart: ['ta-starchart'],
   footer: ['ta-footer'],
   'save-div': ['id="save-data"', 'data-payload='],
@@ -704,13 +753,20 @@ const IN_GAME_WIDGET_REQUIRED_ATTRS: Record<string, string[]> = {
   ship: ['data-ship'],
   crew: ['data-crew'],
   codex: ['data-entries'],
+  'quest-log': ['data-quests', 'data-current-scene'],
   map: ['data-map'],
+  'world-preview': ['data-preview'],
+  'route-planner': ['data-route'],
+  'faction-board': ['data-factions'],
+  'relationship-web': ['data-graph'],
+  'world-atlas': ['data-atlas'],
+  'clue-board': ['data-clues'],
   starchart: ['data-chart'],
   footer: ['data-modules', 'data-save-prompt'],
 };
 
-/** 
- * Verification logic for simple in-game data widgets (Dice, Ticker, etc.). 
+/**
+ * Verification logic for simple in-game data widgets (Dice, Ticker, etc.).
  */
 export function checkInGameWidget(widgetType: string, html: string, failures: string[]): void {
   checkShadowRenderOrigin(widgetType, html, failures);
@@ -725,14 +781,18 @@ export function checkInGameWidget(widgetType: string, html: string, failures: st
   const markers = IN_GAME_WIDGET_MARKERS[widgetType] ?? [];
   for (const marker of markers) {
     if (!html.includes(marker)) {
-      failures.push(`Missing ${widgetType} structure marker "${marker}" — widget output looks incomplete or hand-modified.`);
+      failures.push(
+        `Missing ${widgetType} structure marker "${marker}" — widget output looks incomplete or hand-modified.`,
+      );
     }
   }
 
   const requiredAttrs = IN_GAME_WIDGET_REQUIRED_ATTRS[widgetType] ?? [];
   for (const attr of requiredAttrs) {
     if (!html.includes(attr + '=')) {
-      failures.push(`Missing ${widgetType} data attribute "${attr}" — widget output looks incomplete or hand-modified.`);
+      failures.push(
+        `Missing ${widgetType} data attribute "${attr}" — widget output looks incomplete or hand-modified.`,
+      );
     }
   }
 
@@ -758,8 +818,8 @@ export function checkSvgViewBox(html: string, failures: string[]): void {
   });
   if (missing.length > 0) {
     failures.push(
-      `Verify: [svg-viewbox] ${missing.length} <svg> element${missing.length === 1 ? '' : 's'} missing viewBox attribute. `
-      + 'Add viewBox to all SVG elements for correct scaling across display sizes.',
+      `Verify: [svg-viewbox] ${missing.length} <svg> element${missing.length === 1 ? '' : 's'} missing viewBox attribute. ` +
+        'Add viewBox to all SVG elements for correct scaling across display sizes.',
     );
   }
 }
@@ -767,13 +827,11 @@ export function checkSvgViewBox(html: string, failures: string[]): void {
 /** Ensures level-up choices are present in the HTML when a level-up is pending. */
 export function checkPendingLevelUp(html: string, failures: string[], state: GmState): void {
   if (!state._levelupPending) return;
-  const hasLevelUpChoice =
-    /\bdata-levelup-stat\s*=/i.test(html) ||
-    /\bdata-levelup-skill\s*=/i.test(html);
+  const hasLevelUpChoice = /\bdata-levelup-stat\s*=/i.test(html) || /\bdata-levelup-skill\s*=/i.test(html);
   if (!hasLevelUpChoice) {
     failures.push(
-      'Verify: [pending-level-up] A level-up is pending (_levelupPending is true) but the scene contains no '
-      + 'data-levelup-stat or data-levelup-skill choices. Include stat upgrade choices so the player can select their reward.',
+      'Verify: [pending-level-up] A level-up is pending (_levelupPending is true) but the scene contains no ' +
+        'data-levelup-stat or data-levelup-skill choices. Include stat upgrade choices so the player can select their reward.',
     );
   }
 }
@@ -789,16 +847,16 @@ export function checkScenarioCardMeta(html: string, failures: string[]): void {
   if (accentCount < cardCount) {
     const missing = cardCount - accentCount;
     failures.push(
-      `Verify: [scenario-missing-accent] ${missing} scenario card${missing === 1 ? '' : 's'} missing --ta-card-accent colour. `
-      + "Set accent: '#hexvalue' on each scenario in your --data to give each world a distinct colour identity.",
+      `Verify: [scenario-missing-accent] ${missing} scenario card${missing === 1 ? '' : 's'} missing --ta-card-accent colour. ` +
+        "Set accent: '#hexvalue' on each scenario in your --data to give each world a distinct colour identity.",
     );
   }
 
   if (logoCount < cardCount) {
     const missing = cardCount - logoCount;
     failures.push(
-      `Verify: [scenario-missing-logo] ${missing} scenario card${missing === 1 ? '' : 's'} missing an SVG logo. `
-      + "Set svgLogo: '<svg>...</svg>' on each scenario in your --data to give each world a distinctive icon.",
+      `Verify: [scenario-missing-logo] ${missing} scenario card${missing === 1 ? '' : 's'} missing an SVG logo. ` +
+        "Set svgLogo: '<svg>...</svg>' on each scenario in your --data to give each world a distinctive icon.",
     );
   }
 }
@@ -808,8 +866,8 @@ export function checkTtsComponent(html: string, failures: string[], state: GmSta
   if (!state.modulesActive?.includes('audio')) return;
   if (!/<ta-tts\b/i.test(html)) {
     failures.push(
-      'Verify: [missing-ta-tts] The audio module is active but the scene contains no <ta-tts> element. '
-      + 'Add <ta-tts> to the scene widget to enable text-to-speech narration.',
+      'Verify: [missing-ta-tts] The audio module is active but the scene contains no <ta-tts> element. ' +
+        'Add <ta-tts> to the scene widget to enable text-to-speech narration.',
     );
   }
 }

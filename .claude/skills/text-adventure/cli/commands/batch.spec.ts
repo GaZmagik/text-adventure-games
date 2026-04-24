@@ -12,13 +12,24 @@ const originalEnv = process.env.TAG_STATE_DIR;
 
 function makeNpc(): NpcMutation {
   return {
-    id: 'merchant_01', name: 'Greel', pronouns: 'they/them', role: 'merchant',
-    tier: 'rival', level: 4,
+    id: 'merchant_01',
+    name: 'Greel',
+    pronouns: 'they/them',
+    role: 'merchant',
+    tier: 'rival',
+    level: 4,
     stats: { STR: 10, DEX: 12, CON: 12, INT: 14, WIS: 14, CHA: 12 },
     modifiers: { STR: 0, DEX: 1, CON: 1, INT: 2, WIS: 2, CHA: 1 },
-    hp: 16, maxHp: 16, ac: 12, soak: 2, damageDice: '1d8',
-    status: 'active', alive: true, trust: 50,
-    disposition: 'neutral', dispositionSeed: 0.5,
+    hp: 16,
+    maxHp: 16,
+    ac: 12,
+    soak: 2,
+    damageDice: '1d8',
+    status: 'active',
+    alive: true,
+    trust: 50,
+    disposition: 'neutral',
+    dispositionSeed: 0.5,
   };
 }
 
@@ -28,12 +39,22 @@ beforeEach(async () => {
   const state = createDefaultState();
   state.rosterMutations = [makeNpc()];
   state.character = {
-    name: 'Hero', class: 'Scout', hp: 20, maxHp: 20, ac: 13,
-    level: 3, xp: 500, currency: 100, currencyName: 'credits',
+    name: 'Hero',
+    class: 'Scout',
+    hp: 20,
+    maxHp: 20,
+    ac: 13,
+    level: 3,
+    xp: 500,
+    currency: 100,
+    currencyName: 'credits',
     stats: { STR: 10, DEX: 16, CON: 10, INT: 10, WIS: 14, CHA: 12 },
     modifiers: { STR: 0, DEX: 3, CON: 0, INT: 0, WIS: 2, CHA: 1 },
-    proficiencyBonus: 2, proficiencies: ['Stealth'],
-    abilities: [], inventory: [], conditions: [],
+    proficiencyBonus: 2,
+    proficiencies: ['Stealth'],
+    abilities: [],
+    inventory: [],
+    conditions: [],
     equipment: { weapon: 'Blaster', armour: 'Vest' },
   };
   await saveState(state);
@@ -69,10 +90,7 @@ describe('batch mode', () => {
     // Run batch where second command uses $ref from first
     // "state get character" returns the full character object as label "char"
     // "state set scene $char.hp" should resolve $char.hp to 20 (from beforeEach setup)
-    const result = await handleBatch([
-      '--commands',
-      'state get character as char; state set scene $char.hp',
-    ]);
+    const result = await handleBatch(['--commands', 'state get character as char; state set scene $char.hp']);
     expect(result.ok).toBe(true);
 
     // Verify the label was resolved — scene should now be 20 (from char.hp)
@@ -241,10 +259,7 @@ describe('batch mode', () => {
   });
 
   test('treats nested references into primitive labels as unresolved', async () => {
-    const result = await handleBatch([
-      '--commands',
-      'state get scene as sc; state set currentRoom $sc.value',
-    ]);
+    const result = await handleBatch(['--commands', 'state get scene as sc; state set currentRoom $sc.value']);
     expect(result.ok).toBe(true);
     const data = result.data as Record<string, unknown>;
     const errors = data.errors as { error: string }[];
@@ -252,11 +267,7 @@ describe('batch mode', () => {
   });
 
   test('dry-run reports unresolved label references', async () => {
-    const result = await handleBatch([
-      '--dry-run',
-      '--commands',
-      'state set scene $missing.value',
-    ]);
+    const result = await handleBatch(['--dry-run', '--commands', 'state set scene $missing.value']);
     expect(result.ok).toBe(true);
     const data = result.data as Record<string, unknown>;
     const errors = data.errors as { error: string }[];
@@ -340,10 +351,7 @@ describe('batch mode', () => {
     console.error = () => {};
 
     try {
-      const result = await handleBatch([
-        '--commands',
-        'state set scene 99',
-      ]);
+      const result = await handleBatch(['--commands', 'state set scene 99']);
       expect(result.ok).toBe(true);
       const data = result.data as Record<string, unknown>;
       const errors = data.errors as { line: number; raw: string; error: string }[];

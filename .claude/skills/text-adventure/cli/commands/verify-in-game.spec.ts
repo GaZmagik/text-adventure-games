@@ -30,15 +30,29 @@ async function setupState(): Promise<void> {
   await handleState(['set', 'visualStyle', 'station']);
   await handleState(['set', 'scene', '3']);
   await handleState(['set', 'currentRoom', 'bridge']);
-  await handleState(['set', 'character', JSON.stringify({
-    name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-    level: 2, xp: 120, currency: 0, currencyName: 'credits',
-    stats: { STR: 10, DEX: 12, CON: 10, INT: 11, WIS: 13, CHA: 9 },
-    modifiers: { STR: 0, DEX: 1, CON: 0, INT: 0, WIS: 1, CHA: -1 },
-    proficiencyBonus: 2, proficiencies: [], abilities: [],
-    inventory: [], conditions: [],
-    equipment: { weapon: 'Knife', armour: 'Vest' },
-  })]);
+  await handleState([
+    'set',
+    'character',
+    JSON.stringify({
+      name: 'Test',
+      class: 'Scout',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 2,
+      xp: 120,
+      currency: 0,
+      currencyName: 'credits',
+      stats: { STR: 10, DEX: 12, CON: 10, INT: 11, WIS: 13, CHA: 9 },
+      modifiers: { STR: 0, DEX: 1, CON: 0, INT: 0, WIS: 1, CHA: -1 },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'Knife', armour: 'Vest' },
+    }),
+  ]);
 }
 
 async function renderToFile(args: string[], fileName: string): Promise<string> {
@@ -54,17 +68,22 @@ async function renderToFile(args: string[], fileName: string): Promise<string> {
 describe('tag verify in-game widgets', () => {
   test('passes for a valid dialogue widget with copyable prompt fallbacks', async () => {
     await setupState();
-    const path = await renderToFile([
-      'dialogue',
-      '--style', 'station',
-      '--data', JSON.stringify({
-        text: 'Fen keeps one hand on the console while waiting for your answer.',
-        choices: [
-          { label: 'Ask about the signal', prompt: 'I ask Fen about the signal.' },
-          { label: 'Tell Fen to hold position', prompt: 'I tell Fen to hold position.' },
-        ],
-      }),
-    ], 'dialogue.html');
+    const path = await renderToFile(
+      [
+        'dialogue',
+        '--style',
+        'station',
+        '--data',
+        JSON.stringify({
+          text: 'Fen keeps one hand on the console while waiting for your answer.',
+          choices: [
+            { label: 'Ask about the signal', prompt: 'I ask Fen about the signal.' },
+            { label: 'Tell Fen to hold position', prompt: 'I tell Fen to hold position.' },
+          ],
+        }),
+      ],
+      'dialogue.html',
+    );
     const result = await handleVerify(['dialogue', path]);
     expect(result.ok).toBe(true);
     const data = result.data as { verified: boolean; failures: string[] };
@@ -74,10 +93,20 @@ describe('tag verify in-game widgets', () => {
 
   test('passes for a valid dice widget with continue button', async () => {
     await setupState();
-    await handleState(['set', '_lastComputation', JSON.stringify({
-      type: 'hazard_save', stat: 'CON', roll: 15, modifier: 2,
-      total: 17, dc: 14, outcome: 'success', margin: 3,
-    })]);
+    await handleState([
+      'set',
+      '_lastComputation',
+      JSON.stringify({
+        type: 'hazard_save',
+        stat: 'CON',
+        roll: 15,
+        modifier: 2,
+        total: 17,
+        dc: 14,
+        outcome: 'success',
+        margin: 3,
+      }),
+    ]);
     const path = await renderToFile(['dice', '--style', 'station'], 'dice.html');
     const result = await handleVerify(['dice', path]);
     expect(result.ok).toBe(true);
@@ -88,10 +117,20 @@ describe('tag verify in-game widgets', () => {
 
   test('fails dice verify when the ta-dice payload attribute is missing', async () => {
     await setupState();
-    await handleState(['set', '_lastComputation', JSON.stringify({
-      type: 'hazard_save', stat: 'CON', roll: 15, modifier: 2,
-      total: 17, dc: 14, outcome: 'success', margin: 3,
-    })]);
+    await handleState([
+      'set',
+      '_lastComputation',
+      JSON.stringify({
+        type: 'hazard_save',
+        stat: 'CON',
+        roll: 15,
+        modifier: 2,
+        total: 17,
+        dc: 14,
+        outcome: 'success',
+        margin: 3,
+      }),
+    ]);
     const goodPath = await renderToFile(['dice', '--style', 'station'], 'bad-dice.html');
     const broken = readFileSync(goodPath, 'utf-8').replace(/\sdata-config="[^"]*"/, '');
     writeFileSync(goodPath, broken, 'utf-8');

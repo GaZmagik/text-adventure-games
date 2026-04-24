@@ -173,8 +173,7 @@ describe('checkTtsComponent', () => {
 // ── checkScenarioCardMeta ────────────────────────────────────────────
 
 describe('checkScenarioCardMeta', () => {
-  const card = (accent: string, logo: string) =>
-    `<div class="scenario-card"${accent}>${logo}</div>`;
+  const card = (accent: string, logo: string) => `<div class="scenario-card"${accent}>${logo}</div>`;
   const withAccent = ' style="--ta-card-accent: #ff0000"';
   const withLogo = '<div class="scenario-logo"><svg viewBox="0 0 10 10"></svg></div>';
 
@@ -314,20 +313,14 @@ describe('checkSendPromptFallback', () => {
 
   test('fails when data-prompt button has a title shorter than 10 characters', () => {
     const failures: string[] = [];
-    checkSendPromptFallback(
-      '<button data-prompt="Go north" title="Go">Go north</button>',
-      failures,
-    );
+    checkSendPromptFallback('<button data-prompt="Go north" title="Go">Go north</button>', failures);
     expect(failures).toHaveLength(1);
     expect(failures[0]).toContain('title fallback');
   });
 
   test('fails when data-prompt button has no title attribute', () => {
     const failures: string[] = [];
-    checkSendPromptFallback(
-      '<button data-prompt="Go north">Go north</button>',
-      failures,
-    );
+    checkSendPromptFallback('<button data-prompt="Go north">Go north</button>', failures);
     expect(failures).toHaveLength(1);
   });
 
@@ -344,11 +337,11 @@ describe('checkSettingsGroups', () => {
   test('passes when all groups are valid', () => {
     const failures: string[] = [];
     checkSettingsGroups(
-      '<div data-group="rulebook"></div>'
-      + '<div data-group="difficulty"></div>'
-      + '<div data-group="pacing"></div>'
-      + '<div data-group="visualStyle"></div>'
-      + '<div data-group="modules"></div>',
+      '<div data-group="rulebook"></div>' +
+        '<div data-group="difficulty"></div>' +
+        '<div data-group="pacing"></div>' +
+        '<div data-group="visualStyle"></div>' +
+        '<div data-group="modules"></div>',
       failures,
     );
     expect(failures).toHaveLength(0);
@@ -364,10 +357,7 @@ describe('checkSettingsGroups', () => {
 
   test('reports all unknown groups when multiple are present', () => {
     const failures: string[] = [];
-    checkSettingsGroups(
-      '<div data-group="tone"></div><div data-group="mood"></div>',
-      failures,
-    );
+    checkSettingsGroups('<div data-group="tone"></div><div data-group="mood"></div>', failures);
     expect(failures).toHaveLength(2);
     expect(failures.some(f => f.includes('"tone"'))).toBe(true);
     expect(failures.some(f => f.includes('"mood"'))).toBe(true);
@@ -381,8 +371,9 @@ describe('checkSettingsGroups', () => {
 
   test('ignores data-group inside <script> blocks (querySelector false positive)', () => {
     const failures: string[] = [];
-    const html = '<div data-group="rulebook"><button data-group="rulebook" data-value="d20_system">d20</button></div>'
-      + '<script>shadow.querySelectorAll(\'.option-card[data-group="\' + group + \'"]\').forEach(function(b) {});</script>';
+    const html =
+      '<div data-group="rulebook"><button data-group="rulebook" data-value="d20_system">d20</button></div>' +
+      "<script>shadow.querySelectorAll('.option-card[data-group=\"' + group + '\"]').forEach(function(b) {});</script>";
     checkSettingsGroups(html, failures);
     expect(failures).toHaveLength(0);
   });
@@ -394,10 +385,10 @@ describe('checkSettingsValues', () => {
   test('passes when all values are valid for their groups', () => {
     const failures: string[] = [];
     checkSettingsValues(
-      '<div data-group="rulebook" data-value="dnd_5e"></div>'
-      + '<div data-group="difficulty" data-value="hard"></div>'
-      + '<div data-group="pacing" data-value="fast"></div>'
-      + '<div data-group="visualStyle" data-value="terminal"></div>',
+      '<div data-group="rulebook" data-value="dnd_5e"></div>' +
+        '<div data-group="difficulty" data-value="hard"></div>' +
+        '<div data-group="pacing" data-value="fast"></div>' +
+        '<div data-group="visualStyle" data-value="terminal"></div>',
       failures,
     );
     expect(failures).toHaveLength(0);
@@ -429,19 +420,16 @@ describe('checkSettingsValues', () => {
 
   test('does not validate module values (extensible)', () => {
     const failures: string[] = [];
-    checkSettingsValues(
-      '<div data-group="modules" data-value="my-custom-module"></div>',
-      failures,
-    );
+    checkSettingsValues('<div data-group="modules" data-value="my-custom-module"></div>', failures);
     expect(failures).toHaveLength(0);
   });
 
   test('reports only invalid values when mixed with valid ones', () => {
     const failures: string[] = [];
     checkSettingsValues(
-      '<div data-group="rulebook" data-value="dnd_5e"></div>'
-      + '<div data-group="rulebook" data-value="pbta"></div>'
-      + '<div data-group="difficulty" data-value="normal"></div>',
+      '<div data-group="rulebook" data-value="dnd_5e"></div>' +
+        '<div data-group="rulebook" data-value="pbta"></div>' +
+        '<div data-group="difficulty" data-value="normal"></div>',
       failures,
     );
     expect(failures).toHaveLength(1);
@@ -461,9 +449,9 @@ describe('checkSettingsValues', () => {
   test('detects invalid values when data-group is on container and data-value on children', () => {
     const failures: string[] = [];
     checkSettingsValues(
-      '<fieldset data-group="rulebook"><button data-value="d20_system">D20</button>'
-      + '<button data-value="pbta">PbtA</button><button data-value="fate">Fate</button></fieldset>'
-      + '<fieldset data-group="difficulty"><button data-value="easy">Easy</button></fieldset>',
+      '<fieldset data-group="rulebook"><button data-value="d20_system">D20</button>' +
+        '<button data-value="pbta">PbtA</button><button data-value="fate">Fate</button></fieldset>' +
+        '<fieldset data-group="difficulty"><button data-value="easy">Easy</button></fieldset>',
       failures,
     );
     expect(failures).toHaveLength(1);
@@ -480,8 +468,9 @@ describe('checkSettingsValues', () => {
 
   test('ignores data-group/data-value inside <script> blocks (querySelector false positive)', () => {
     const failures: string[] = [];
-    const html = '<div data-group="rulebook"><button data-group="rulebook" data-value="d20_system">d20</button></div>'
-      + '<script>shadow.querySelectorAll(\'.option-card[data-group="\' + group + \'"]\').forEach(function(b) { b.getAttribute("data-value"); });</script>';
+    const html =
+      '<div data-group="rulebook"><button data-group="rulebook" data-value="d20_system">d20</button></div>' +
+      '<script>shadow.querySelectorAll(\'.option-card[data-group="\' + group + \'"]\').forEach(function(b) { b.getAttribute("data-value"); });</script>';
     checkSettingsValues(html, failures);
     expect(failures).toHaveLength(0);
   });

@@ -1,9 +1,5 @@
 import { describe, test, expect } from 'bun:test';
-import {
-  resolvePendingRolls,
-  selectPendingRollForResolution,
-  buildPendingRollCommand,
-} from './pending-rolls';
+import { resolvePendingRolls, selectPendingRollForResolution, buildPendingRollCommand } from './pending-rolls';
 import type { PendingRoll, RollRecord } from '../types';
 
 describe('pending-rolls', () => {
@@ -51,7 +47,7 @@ describe('pending-rolls', () => {
     test('resolves multiple pending rolls correctly without reusing rolls', () => {
       const pending1: PendingRoll = { type: 'hazard', stat: 'CON', action: 1 };
       const pending2: PendingRoll = { type: 'hazard', stat: 'CON', action: 2 };
-      
+
       const roll1: RollRecord = { ...mockRoll, action: 1, scene: 1 };
       const roll2: RollRecord = { ...mockRoll, action: 2, scene: 1 };
 
@@ -71,7 +67,7 @@ describe('pending-rolls', () => {
     test('returns the lowest action matching pending roll', () => {
       const pending1: PendingRoll = { type: 'hazard', stat: 'DEX', action: 2 };
       const pending2: PendingRoll = { type: 'hazard', stat: 'DEX', action: 1 };
-      
+
       const result = selectPendingRollForResolution([pending1, pending2], [], 1, { type: 'hazard', stat: 'DEX' });
       expect(result).toBe(pending2);
     });

@@ -31,7 +31,8 @@ afterEach(() => {
 
 // ── Helpers ────────────────────────────────────────────────────────
 
-const narrativeHtml = '<div id="narrative"><p>The corridor stretched ahead. Rust covered the walls. A distant hum echoed through the passages. Cold pressed into your bones from the metal floor.</p></div>';
+const narrativeHtml =
+  '<div id="narrative"><p>The corridor stretched ahead. Rust covered the walls. A distant hum echoed through the passages. Cold pressed into your bones from the metal floor.</p></div>';
 
 function writeTempHtml(content: string): string {
   const path = join(tempDir, 'scene.html');

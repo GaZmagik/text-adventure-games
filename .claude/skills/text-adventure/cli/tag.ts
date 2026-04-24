@@ -17,7 +17,7 @@ import { isCompactionBlocked, writeCompactionBlock } from './lib/workflow-marker
  */
 const COMPACTION_HARD_BLOCKED = new Set(['render']);
 
-/** 
+/**
  * Data structure for reporting compaction status and recovery requirements.
  */
 type CompactionAlert = {
@@ -51,7 +51,9 @@ async function checkCompactionPreflight(): Promise<CompactionAlert | null> {
       const raw = JSON.parse(readFileSync(join(stateDir, 'state.json'), 'utf-8'));
       if (typeof raw?._compactionCount === 'number') storedCount = raw._compactionCount;
       if (typeof raw?.scene === 'number') currentScene = raw.scene;
-    } catch { /* no state file — storedCount stays 0 */ }
+    } catch {
+      /* no state file — storedCount stays 0 */
+    }
 
     const newCompactions = count - storedCount;
     if (newCompactions > 0) {
@@ -72,10 +74,13 @@ async function checkCompactionPreflight(): Promise<CompactionAlert | null> {
             modulesRequired = (ctxData.required as unknown[]).filter((x): x is string => typeof x === 'string');
           }
         }
-      } catch { /* recovery failed — fall back to warning */ }
+      } catch {
+        /* recovery failed — fall back to warning */
+      }
 
-      const reason = `COMPACTION DETECTED — ${newCompactions} new compaction${newCompactions > 1 ? 's' : ''}. `
-        + `Module specs evicted from context. Run \`tag compact restore\` to reload lore and modules.`;
+      const reason =
+        `COMPACTION DETECTED — ${newCompactions} new compaction${newCompactions > 1 ? 's' : ''}. ` +
+        `Module specs evicted from context. Run \`tag compact restore\` to reload lore and modules.`;
       writeCompactionBlock(reason);
       return {
         detected: true,
@@ -85,9 +90,7 @@ async function checkCompactionPreflight(): Promise<CompactionAlert | null> {
       };
     }
   } catch (err: unknown) {
-    const code = err && typeof err === 'object' && 'code' in err
-      ? (err as NodeJS.ErrnoException).code
-      : undefined;
+    const code = err && typeof err === 'object' && 'code' in err ? (err as NodeJS.ErrnoException).code : undefined;
     if (code !== 'ENOENT') {
       console.error(`Compaction check failed: ${code ?? 'unknown'} reading ${transcriptsDir}`);
     }
@@ -164,14 +167,18 @@ async function main(): Promise<void> {
   // player-facing output without module specs). All other commands pass
   // through so the GM can run diagnostics, recovery steps, and module reloads.
   if (COMPACTION_HARD_BLOCKED.has(command!) && isCompactionBlocked()) {
-    await output({
-      ok: false,
-      command: command!,
-      error: {
-        message: 'BLOCKED — compaction detected. Rendering is suspended until module specs are restored.',
-        corrective: 'Run `tag compact restore` then `tag batch --commands "<recoveryBatch from restore output>"` to reload modules, then resume.',
+    await output(
+      {
+        ok: false,
+        command: command!,
+        error: {
+          message: 'BLOCKED — compaction detected. Rendering is suspended until module specs are restored.',
+          corrective:
+            'Run `tag compact restore` then `tag batch --commands "<recoveryBatch from restore output>"` to reload modules, then resume.',
+        },
       },
-    }, true);
+      true,
+    );
     process.exit(1);
     return;
   }
@@ -222,6 +229,21 @@ async function main(): Promise<void> {
     case 'quest': {
       const { handleQuest } = await import('./commands/quest');
       result = await handleQuest(args.slice(1));
+      break;
+    }
+    case 'faction': {
+      const { handleFaction } = await import('./commands/faction');
+      result = await handleFaction(args.slice(1));
+      break;
+    }
+    case 'world': {
+      const { handleWorld } = await import('./commands/world');
+      result = await handleWorld(args.slice(1));
+      break;
+    }
+    case 'map': {
+      const { handleMap } = await import('./commands/map');
+      result = await handleMap(args.slice(1));
       break;
     }
     case 'export': {

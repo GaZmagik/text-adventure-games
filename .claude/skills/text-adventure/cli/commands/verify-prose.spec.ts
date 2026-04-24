@@ -36,23 +36,39 @@ async function setupState(): Promise<void> {
   await handleState(['set', 'scene', '1']);
   await handleState(['set', 'currentRoom', 'bridge']);
   await handleState(['set', 'visualStyle', 'station']);
-  await handleState(['set', 'modulesActive', JSON.stringify([
-    'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-    'character-creation', 'save-codex',
-  ])]);
-  await handleState(['set', '_modulesRead', JSON.stringify([
-    'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-    'character-creation', 'save-codex',
-  ])]);
-  await handleState(['set', 'character', JSON.stringify({
-    name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-    level: 1, xp: 0, currency: 0, currencyName: 'credits',
-    stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
-    modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-    proficiencyBonus: 2, proficiencies: [], abilities: [],
-    inventory: [], conditions: [],
-    equipment: { weapon: 'Knife', armour: 'Vest' },
-  })]);
+  await handleState([
+    'set',
+    'modulesActive',
+    JSON.stringify(['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex']),
+  ]);
+  await handleState([
+    'set',
+    '_modulesRead',
+    JSON.stringify(['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex']),
+  ]);
+  await handleState([
+    'set',
+    'character',
+    JSON.stringify({
+      name: 'Test',
+      class: 'Scout',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
+      stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+      modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'Knife', armour: 'Vest' },
+    }),
+  ]);
   await handleState(['set', '_proseCraftEpoch', '0']);
   await handleState(['set', '_styleReadEpoch', '0']);
 }
@@ -71,8 +87,8 @@ describe('tag verify prose checks (integration)', () => {
   test('scene with clean prose passes verify', async () => {
     await setupState();
     const html = await buildSceneWithNarrative(
-      'The corridor stretches ahead, dimly lit by emergency strips. '
-      + 'A faint vibration pulses through the deck plates beneath your boots.',
+      'The corridor stretches ahead, dimly lit by emergency strips. ' +
+        'A faint vibration pulses through the deck plates beneath your boots.',
     );
     const path = join(tempDir, 'scene.html');
     writeFileSync(path, html, 'utf-8');
@@ -86,8 +102,8 @@ describe('tag verify prose checks (integration)', () => {
   test('scene with filter words fails with prose error', async () => {
     await setupState();
     const html = await buildSceneWithNarrative(
-      'She noticed the crack spreading across the viewport. '
-      + 'You felt the vibration intensify beneath the deck plates.',
+      'She noticed the crack spreading across the viewport. ' +
+        'You felt the vibration intensify beneath the deck plates.',
     );
     const path = join(tempDir, 'scene.html');
     writeFileSync(path, html, 'utf-8');
@@ -101,9 +117,7 @@ describe('tag verify prose checks (integration)', () => {
 
   test('scene with said-bookism fails with prose error', async () => {
     await setupState();
-    const html = await buildSceneWithNarrative(
-      '"Watch out!" she exclaimed as the conduit burst overhead.',
-    );
+    const html = await buildSceneWithNarrative('"Watch out!" she exclaimed as the conduit burst overhead.');
     const path = join(tempDir, 'scene.html');
     writeFileSync(path, html, 'utf-8');
     const result = await handleVerify([path]);
@@ -115,9 +129,7 @@ describe('tag verify prose checks (integration)', () => {
 
   test('scene with stat names in prose fails with prose error', async () => {
     await setupState();
-    const html = await buildSceneWithNarrative(
-      'With your DEX modifier, you dodge the falling beam.',
-    );
+    const html = await buildSceneWithNarrative('With your DEX modifier, you dodge the falling beam.');
     const path = join(tempDir, 'scene.html');
     writeFileSync(path, html, 'utf-8');
     const result = await handleVerify([path]);
@@ -129,15 +141,26 @@ describe('tag verify prose checks (integration)', () => {
 
   test('non-scene widget is unaffected by prose checks', async () => {
     await setupState();
-    await handleState(['set', '_lastComputation', JSON.stringify({
-      type: 'hazard_save', stat: 'CON', roll: 15, modifier: 2,
-      total: 17, dc: 14, outcome: 'success', margin: 3,
-    })]);
+    await handleState([
+      'set',
+      '_lastComputation',
+      JSON.stringify({
+        type: 'hazard_save',
+        stat: 'CON',
+        roll: 15,
+        modifier: 2,
+        total: 17,
+        dc: 14,
+        outcome: 'success',
+        margin: 3,
+      }),
+    ]);
     const renderResult = await handleRender(['dice', '--style', 'station']);
     expect(renderResult.ok).toBe(true);
-    const html = typeof renderResult.data === 'string'
-      ? renderResult.data
-      : (renderResult.data as Record<string, unknown>).html as string;
+    const html =
+      typeof renderResult.data === 'string'
+        ? renderResult.data
+        : ((renderResult.data as Record<string, unknown>).html as string);
     const path = join(tempDir, 'dice.html');
     writeFileSync(path, html, 'utf-8');
     const result = await handleVerify(['dice', path]);

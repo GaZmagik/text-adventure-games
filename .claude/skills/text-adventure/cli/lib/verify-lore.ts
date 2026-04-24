@@ -11,8 +11,13 @@ import { CSS_MANIFEST } from '../../assets/cdn-manifest';
 // ── Validation sets ─────────────────────────────────────────────────
 
 const VALID_RULEBOOKS = new Set([
-  'd20_system', 'dnd_5e', 'gurps_lite', 'pf2e_lite',
-  'shadowrun_lite', 'narrative_engine', 'custom',
+  'd20_system',
+  'dnd_5e',
+  'gurps_lite',
+  'pf2e_lite',
+  'shadowrun_lite',
+  'narrative_engine',
+  'custom',
 ]);
 
 const VALID_VISUAL_STYLES = new Set(Object.keys(CSS_MANIFEST));
@@ -24,7 +29,14 @@ const RE_SEMVER = /^\d+\.\d+\.\d+$/;
 // ── Required frontmatter fields ─────────────────────────────────────
 
 const REQUIRED_FIELDS: (keyof LoreFrontmatter)[] = [
-  'format', 'version', 'title', 'theme', 'tone', 'acts', 'players', 'difficulty',
+  'format',
+  'version',
+  'title',
+  'theme',
+  'tone',
+  'acts',
+  'players',
+  'difficulty',
 ];
 
 // ── Body section definitions ────────────────────────────────────────
@@ -79,17 +91,13 @@ export function checkLoreFrontmatterValues(fm: LoreFrontmatter, failures: string
   }
 
   if (fm.rulebook !== undefined && !VALID_RULEBOOKS.has(fm.rulebook)) {
-    failures.push(
-      `Unknown rulebook: "${fm.rulebook}". Valid: ${[...VALID_RULEBOOKS].join(', ')}.`,
-    );
+    failures.push(`Unknown rulebook: "${fm.rulebook}". Valid: ${[...VALID_RULEBOOKS].join(', ')}.`);
   }
 
   if (fm.recommendedStyles !== undefined && typeof fm.recommendedStyles === 'object' && fm.recommendedStyles !== null) {
     const visual = (fm.recommendedStyles as { visual?: string }).visual;
     if (visual !== undefined && !VALID_VISUAL_STYLES.has(visual)) {
-      failures.push(
-        `Unknown recommended visual style: "${visual}". Valid: ${[...VALID_VISUAL_STYLES].join(', ')}.`,
-      );
+      failures.push(`Unknown recommended visual style: "${visual}". Valid: ${[...VALID_VISUAL_STYLES].join(', ')}.`);
     }
   }
 
@@ -131,7 +139,11 @@ export function checkLoreExportFields(fm: LoreFrontmatter, failures: string[]): 
  * Check 5: Validates the schema of any pre-generated character options.
  */
 export function checkLorePregenCharacters(fm: LoreFrontmatter, failures: string[]): void {
-  if (!fm.preGeneratedCharacters || !Array.isArray(fm.preGeneratedCharacters) || fm.preGeneratedCharacters.length === 0) {
+  if (
+    !fm.preGeneratedCharacters ||
+    !Array.isArray(fm.preGeneratedCharacters) ||
+    fm.preGeneratedCharacters.length === 0
+  ) {
     return;
   }
 
@@ -167,9 +179,7 @@ function extractSectionContent(content: string, sectionName: string): string | n
   const start = match.index + match[0].length;
   const rest = content.slice(start);
   const nextHeading = rest.match(/^## /m);
-  const sectionText = nextHeading && nextHeading.index !== undefined
-    ? rest.slice(0, nextHeading.index)
-    : rest;
+  const sectionText = nextHeading && nextHeading.index !== undefined ? rest.slice(0, nextHeading.index) : rest;
 
   return sectionText;
 }
@@ -177,7 +187,7 @@ function extractSectionContent(content: string, sectionName: string): string | n
 /**
  * Check 6: Verifies the presence and content of required markdown headings.
  * @remarks
- * If a Base64 LORE payload is present, body sections are optional as 
+ * If a Base64 LORE payload is present, body sections are optional as
  * the engine will prioritise the encoded data.
  */
 export function checkLoreBodySections(
@@ -220,10 +230,7 @@ export function checkLoreBodySections(
 /**
  * Check 7: Locates and validates the embedded Base64 LORE payload comment.
  */
-export function checkLorePayload(
-  content: string,
-  failures: string[],
-): { hasPayload: boolean } {
+export function checkLorePayload(content: string, failures: string[]): { hasPayload: boolean } {
   const payloadStr = extractLorePayload(content);
   if (!payloadStr) return { hasPayload: false };
 
@@ -251,13 +258,13 @@ type LoreVerifyResult = {
 
 /**
  * Runs a full suite of structural and semantic checks on a .lore.md file.
- * 
+ *
  * @param {string} content - Raw Markdown content of the lore file.
  * @returns {LoreVerifyResult} - Aggregated failures and warnings.
- * 
+ *
  * @remarks
  * This is the primary entry point for world-file validation.
- * It enforces the "Text Adventure Lore" standard, ensuring that shared 
+ * It enforces the "Text Adventure Lore" standard, ensuring that shared
  * worlds are both human-readable and machine-parsable.
  */
 export function verifyLoreFile(content: string): LoreVerifyResult {

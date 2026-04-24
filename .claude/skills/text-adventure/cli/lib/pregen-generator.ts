@@ -26,9 +26,9 @@ function createRng(seed: string): () => number {
   let state = hashString(seed);
   return () => {
     state |= 0;
-    state = state + 0x6D2B79F5 | 0;
+    state = (state + 0x6d2b79f5) | 0;
     const t = Math.imul(state ^ (state >>> 15), 1 | state);
-    const u = t + Math.imul(t ^ (t >>> 7), 61 | t) ^ t;
+    const u = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((u ^ (u >>> 14)) >>> 0) / 4294967296;
   };
 }
@@ -52,71 +52,156 @@ type ArchetypeTemplate = {
   id: string;
   role: 'physical' | 'technical' | 'social';
   stats: StatBlock;
-  hp: number; ac: number;
+  hp: number;
+  ac: number;
   proficiencies: string[];
-  weapon: string; armour: string; consumable: string;
+  weapon: string;
+  armour: string;
+  consumable: string;
 };
 
 const ARCHETYPES: ArchetypeTemplate[] = [
-  { id: 'soldier', role: 'physical',
+  {
+    id: 'soldier',
+    role: 'physical',
     stats: { STR: 16, DEX: 10, CON: 14, INT: 10, WIS: 10, CHA: 10 },
-    hp: 12, ac: 14, proficiencies: ['Athletics', 'Intimidation'],
-    weapon: 'Combat knife (1d6+STR)', armour: 'Light armour (+2 AC)', consumable: 'Stim pack (restore 1d6 HP)' },
-  { id: 'scout', role: 'physical',
+    hp: 12,
+    ac: 14,
+    proficiencies: ['Athletics', 'Intimidation'],
+    weapon: 'Combat knife (1d6+STR)',
+    armour: 'Light armour (+2 AC)',
+    consumable: 'Stim pack (restore 1d6 HP)',
+  },
+  {
+    id: 'scout',
+    role: 'physical',
     stats: { STR: 10, DEX: 16, CON: 10, INT: 10, WIS: 14, CHA: 10 },
-    hp: 9, ac: 13, proficiencies: ['Stealth', 'Perception'],
-    weapon: 'Short bow (1d6+DEX)', armour: "Scout's cloak (+1 Stealth)", consumable: 'Ration pack (3 uses)' },
-  { id: 'engineer', role: 'technical',
+    hp: 9,
+    ac: 13,
+    proficiencies: ['Stealth', 'Perception'],
+    weapon: 'Short bow (1d6+DEX)',
+    armour: "Scout's cloak (+1 Stealth)",
+    consumable: 'Ration pack (3 uses)',
+  },
+  {
+    id: 'engineer',
+    role: 'technical',
     stats: { STR: 10, DEX: 12, CON: 10, INT: 16, WIS: 10, CHA: 10 },
-    hp: 8, ac: 12, proficiencies: ['Investigation', 'Repair'],
-    weapon: 'Wrench (1d4+STR)', armour: 'Repair kit (3 uses)', consumable: 'EMP charge (1 use)' },
-  { id: 'medic', role: 'technical',
+    hp: 8,
+    ac: 12,
+    proficiencies: ['Investigation', 'Repair'],
+    weapon: 'Wrench (1d4+STR)',
+    armour: 'Repair kit (3 uses)',
+    consumable: 'EMP charge (1 use)',
+  },
+  {
+    id: 'medic',
+    role: 'technical',
     stats: { STR: 10, DEX: 10, CON: 10, INT: 14, WIS: 16, CHA: 10 },
-    hp: 9, ac: 11, proficiencies: ['Medicine', 'Insight'],
-    weapon: 'Scalpel (1d4+DEX)', armour: 'Medical bag (5 uses)', consumable: 'Antitoxin (2 uses)' },
-  { id: 'diplomat', role: 'social',
+    hp: 9,
+    ac: 11,
+    proficiencies: ['Medicine', 'Insight'],
+    weapon: 'Scalpel (1d4+DEX)',
+    armour: 'Medical bag (5 uses)',
+    consumable: 'Antitoxin (2 uses)',
+  },
+  {
+    id: 'diplomat',
+    role: 'social',
     stats: { STR: 10, DEX: 10, CON: 10, INT: 14, WIS: 10, CHA: 16 },
-    hp: 8, ac: 11, proficiencies: ['Persuasion', 'Deception'],
-    weapon: 'Hidden blade (1d4+DEX)', armour: 'Fine clothes (+1 CHA checks)', consumable: 'Sealed letter (key item)' },
-  { id: 'smuggler', role: 'social',
+    hp: 8,
+    ac: 11,
+    proficiencies: ['Persuasion', 'Deception'],
+    weapon: 'Hidden blade (1d4+DEX)',
+    armour: 'Fine clothes (+1 CHA checks)',
+    consumable: 'Sealed letter (key item)',
+  },
+  {
+    id: 'smuggler',
+    role: 'social',
     stats: { STR: 10, DEX: 16, CON: 10, INT: 10, WIS: 10, CHA: 14 },
-    hp: 10, ac: 13, proficiencies: ['Sleight of Hand', 'Streetwise'],
-    weapon: 'Holdout pistol (1d6+DEX)', armour: 'Concealed holster', consumable: 'Lockpick set (5 uses)' },
+    hp: 10,
+    ac: 13,
+    proficiencies: ['Sleight of Hand', 'Streetwise'],
+    weapon: 'Holdout pistol (1d6+DEX)',
+    armour: 'Concealed holster',
+    consumable: 'Lockpick set (5 uses)',
+  },
 ];
 
 // ── Theme Adaptation ────────────────────────────────────────────────
 
 // Index order: [soldier, scout, engineer, medic, diplomat, smuggler]
 const THEME_CLASSES: Record<string, string[]> = {
-  'sci-fi':           ['Security Officer', 'Recon Specialist', 'Systems Tech', 'Field Medic', 'Liaison Officer', 'Runner'],
-  'fantasy':          ['Knight', 'Ranger', 'Artificer', 'Herbalist', 'Bard', 'Rogue'],
-  'historical':       ['Man-at-Arms', 'Outrider', 'Siege Engineer', 'Wise Woman', 'Envoy', 'Highwayman'],
+  'sci-fi': ['Security Officer', 'Recon Specialist', 'Systems Tech', 'Field Medic', 'Liaison Officer', 'Runner'],
+  fantasy: ['Knight', 'Ranger', 'Artificer', 'Herbalist', 'Bard', 'Rogue'],
+  historical: ['Man-at-Arms', 'Outrider', 'Siege Engineer', 'Wise Woman', 'Envoy', 'Highwayman'],
   'post-apocalyptic': ['Enforcer', 'Stalker', 'Mechanic', 'Doc', 'Trader', 'Scavenger'],
-  'cyberpunk':        ['Street Samurai', 'Netrunner', 'Rigger', 'Street Doc', 'Fixer', 'Ghost Runner'],
-  'steampunk':        ['Dragoon', 'Saboteur', 'Mechanist', 'Apothecary', 'Parliamentarian', 'Privateer'],
-  'wuxia':            ['Sword Saint', 'Shadow', 'Craftsman', 'Physician', 'Wandering Monk', 'Shadow Broker'],
-  'isekai':           ['Berserker', 'Trickster', 'Builder', 'Healer', 'Mediator', 'Fence'],
-  'superhero':        ['Brawler', 'Vigilante', 'Gadgeteer', 'First Responder', 'Public Figure', 'Antihero'],
-  'survival':         ['Guardian', 'Pathfinder', 'Improviser', 'Field Medic', 'Peacemaker', 'Scrounger'],
-  'political':        ['Duelist', 'Informant', 'Quartermaster', 'Court Physician', 'Courtier', 'Broker'],
+  cyberpunk: ['Street Samurai', 'Netrunner', 'Rigger', 'Street Doc', 'Fixer', 'Ghost Runner'],
+  steampunk: ['Dragoon', 'Saboteur', 'Mechanist', 'Apothecary', 'Parliamentarian', 'Privateer'],
+  wuxia: ['Sword Saint', 'Shadow', 'Craftsman', 'Physician', 'Wandering Monk', 'Shadow Broker'],
+  isekai: ['Berserker', 'Trickster', 'Builder', 'Healer', 'Mediator', 'Fence'],
+  superhero: ['Brawler', 'Vigilante', 'Gadgeteer', 'First Responder', 'Public Figure', 'Antihero'],
+  survival: ['Guardian', 'Pathfinder', 'Improviser', 'Field Medic', 'Peacemaker', 'Scrounger'],
+  political: ['Duelist', 'Informant', 'Quartermaster', 'Court Physician', 'Courtier', 'Broker'],
 };
 
 const NAME_POOLS: Record<string, string[]> = {
   'sci-fi': [
-    'Kael Voss', 'Nyx Chen', 'Orion Patel', 'Zara Webb', 'Dex Moreno', 'Lyra Okafor',
-    'Cass Dubois', 'Renn Takashi', 'Mira Koslov', 'Jace Adler', 'Suri Navarro', 'Thane Bishop',
+    'Kael Voss',
+    'Nyx Chen',
+    'Orion Patel',
+    'Zara Webb',
+    'Dex Moreno',
+    'Lyra Okafor',
+    'Cass Dubois',
+    'Renn Takashi',
+    'Mira Koslov',
+    'Jace Adler',
+    'Suri Navarro',
+    'Thane Bishop',
   ],
-  'fantasy': [
-    'Aldric Thornwood', 'Lyra Moonwhisper', 'Gareth Ironhold', 'Seraphina Vale', 'Rowan Ashford', 'Elara Duskmantle',
-    'Bran Hearthstone', 'Isadora Windhelm', 'Cedric Hollowmere', 'Miri Brightwater', 'Theron Blackthorn', 'Wren Silverbough',
+  fantasy: [
+    'Aldric Thornwood',
+    'Lyra Moonwhisper',
+    'Gareth Ironhold',
+    'Seraphina Vale',
+    'Rowan Ashford',
+    'Elara Duskmantle',
+    'Bran Hearthstone',
+    'Isadora Windhelm',
+    'Cedric Hollowmere',
+    'Miri Brightwater',
+    'Theron Blackthorn',
+    'Wren Silverbough',
   ],
-  'historical': [
-    'Marcus Aurelius', 'Helena of Tyre', 'Aelred the Steady', 'Matilda Beaufort', 'Godwin Ealdorman', 'Eleanor de Clare',
-    'Tomas the Red', 'Agnes Blackwell', 'Hugh Mortimer', 'Ysabel of Castile', 'Wulfric Ironside', 'Beatrice Fawley',
+  historical: [
+    'Marcus Aurelius',
+    'Helena of Tyre',
+    'Aelred the Steady',
+    'Matilda Beaufort',
+    'Godwin Ealdorman',
+    'Eleanor de Clare',
+    'Tomas the Red',
+    'Agnes Blackwell',
+    'Hugh Mortimer',
+    'Ysabel of Castile',
+    'Wulfric Ironside',
+    'Beatrice Fawley',
   ],
-  'default': [
-    'Alex Morgan', 'Sam Rivera', 'Jordan Blake', 'Casey Hartwell', 'Quinn Ashworth', 'Riley Chen',
-    'Avery Dunn', 'Taylor Knox', 'Morgan Frost', 'Jamie Vance', 'Drew Callister', 'Reese Tanaka',
+  default: [
+    'Alex Morgan',
+    'Sam Rivera',
+    'Jordan Blake',
+    'Casey Hartwell',
+    'Quinn Ashworth',
+    'Riley Chen',
+    'Avery Dunn',
+    'Taylor Knox',
+    'Morgan Frost',
+    'Jamie Vance',
+    'Drew Callister',
+    'Reese Tanaka',
   ],
 };
 
@@ -154,8 +239,14 @@ const HOOKS: Record<string, string[]> = {
 // ── Triples (one physical, one technical, one social) ───────────────
 
 const TRIPLES: [number, number, number][] = [
-  [0, 2, 4], [1, 3, 4], [0, 3, 5], [1, 2, 5],
-  [0, 2, 5], [1, 3, 5], [0, 3, 4], [1, 2, 4],
+  [0, 2, 4],
+  [1, 3, 4],
+  [0, 3, 5],
+  [1, 2, 5],
+  [0, 2, 5],
+  [1, 3, 5],
+  [0, 3, 4],
+  [1, 2, 4],
 ];
 
 const PRONOUN_POOL = ['she/her', 'he/him', 'they/them'] as const;
@@ -203,11 +294,7 @@ export function generatePregenCharacters(input: PregenInput): PreGeneratedCharac
       hp: arch.hp,
       ac: arch.ac,
       proficiencies: [...arch.proficiencies],
-      startingInventory: [
-        { name: arch.weapon },
-        { name: arch.armour },
-        { name: arch.consumable },
-      ],
+      startingInventory: [{ name: arch.weapon }, { name: arch.armour }, { name: arch.consumable }],
     };
   });
 }

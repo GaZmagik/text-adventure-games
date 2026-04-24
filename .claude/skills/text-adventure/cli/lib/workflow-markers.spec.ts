@@ -24,7 +24,11 @@ beforeEach(() => {
 afterEach(() => {
   delete process.env.TAG_STATE_DIR;
   STATE_STORE_RUNTIME.homedir = originalHomedir;
-  try { rmSync(testDir, { recursive: true, force: true }); } catch { /* cleanup */ }
+  try {
+    rmSync(testDir, { recursive: true, force: true });
+  } catch {
+    /* cleanup */
+  }
 });
 
 describe('clearWorkflowMarkers', () => {

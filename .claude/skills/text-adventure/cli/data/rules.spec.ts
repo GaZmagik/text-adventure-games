@@ -17,7 +17,7 @@ describe('RULES data', () => {
 
   test('every rule category is in CATEGORIES', () => {
     for (const rule of RULES) {
-      expect((CATEGORIES as readonly string[])).toContain(rule.category);
+      expect(CATEGORIES as readonly string[]).toContain(rule.category);
     }
   });
 

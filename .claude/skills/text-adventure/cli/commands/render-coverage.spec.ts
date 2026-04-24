@@ -49,12 +49,23 @@ describe('render validateDataShape type mismatch', () => {
     const state = createDefaultState();
     state.visualStyle = 'station';
     state.character = {
-      name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-      level: 1, xp: 0, currency: 0, currencyName: 'credits',
+      name: 'Test',
+      class: 'Scout',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
       stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
       modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-      proficiencyBonus: 2, proficiencies: [], abilities: [],
-      inventory: [], conditions: [], equipment: { weapon: 'Knife', armour: 'Vest' },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'Knife', armour: 'Vest' },
     };
     await saveState(state);
 
@@ -78,12 +89,23 @@ describe('render needs-verify gate', () => {
     state.visualStyle = 'station';
     state.scene = 2;
     state.character = {
-      name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-      level: 1, xp: 0, currency: 0, currencyName: 'credits',
+      name: 'Test',
+      class: 'Scout',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
       stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
       modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-      proficiencyBonus: 2, proficiencies: [], abilities: [],
-      inventory: [], conditions: [], equipment: { weapon: 'Knife', armour: 'Vest' },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'Knife', armour: 'Vest' },
     };
     state.modulesActive = ['core-systems'];
     state._modulesRead = [...TIER1_MODULES];
@@ -104,12 +126,23 @@ describe('render needs-verify gate', () => {
     state.visualStyle = 'station';
     state.scene = 1;
     state.character = {
-      name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-      level: 1, xp: 0, currency: 0, currencyName: 'credits',
+      name: 'Test',
+      class: 'Scout',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
       stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
       modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-      proficiencyBonus: 2, proficiencies: [], abilities: [],
-      inventory: [], conditions: [], equipment: { weapon: 'Knife', armour: 'Vest' },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'Knife', armour: 'Vest' },
     };
     state.modulesActive = ['core-systems'];
     state._modulesRead = [...TIER1_MODULES];
@@ -132,12 +165,23 @@ describe('render data.actions non-array validation', () => {
     const state = createDefaultState();
     state.visualStyle = 'station';
     state.character = {
-      name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-      level: 1, xp: 0, currency: 0, currencyName: 'credits',
+      name: 'Test',
+      class: 'Scout',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
       stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
       modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-      proficiencyBonus: 2, proficiencies: [], abilities: [],
-      inventory: [], conditions: [], equipment: { weapon: 'Knife', armour: 'Vest' },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'Knife', armour: 'Vest' },
     };
     state.modulesActive = ['core-systems'];
     state._modulesRead = [...TIER1_MODULES];
@@ -156,12 +200,23 @@ describe('render data.actions non-array validation', () => {
     const state = createDefaultState();
     state.visualStyle = 'station';
     state.character = {
-      name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-      level: 1, xp: 0, currency: 0, currencyName: 'credits',
+      name: 'Test',
+      class: 'Scout',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
       stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
       modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-      proficiencyBonus: 2, proficiencies: [], abilities: [],
-      inventory: [], conditions: [], equipment: { weapon: 'Knife', armour: 'Vest' },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'Knife', armour: 'Vest' },
     };
     state.modulesActive = ['core-systems'];
     state._modulesRead = [...TIER1_MODULES];
@@ -184,12 +239,23 @@ describe('render unknown style name produces warning in Shadow DOM output', () =
     const state = createDefaultState();
     state.visualStyle = 'empty-nocss';
     state.character = {
-      name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-      level: 1, xp: 0, currency: 0, currencyName: 'credits',
+      name: 'Test',
+      class: 'Scout',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
       stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
       modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-      proficiencyBonus: 2, proficiencies: [], abilities: [],
-      inventory: [], conditions: [], equipment: { weapon: 'Knife', armour: 'Vest' },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'Knife', armour: 'Vest' },
     };
     state.modulesActive = ['core-systems'];
     state._modulesRead = [...TIER1_MODULES];
@@ -215,12 +281,23 @@ describe('render atmosphere effects scoping', () => {
     const state = createDefaultState();
     state.visualStyle = 'station';
     state.character = {
-      name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-      level: 1, xp: 0, currency: 0, currencyName: 'credits',
+      name: 'Test',
+      class: 'Scout',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
       stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
       modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 10 },
-      proficiencyBonus: 2, proficiencies: [], abilities: [],
-      inventory: [], conditions: [], equipment: { weapon: 'Knife', armour: 'Vest' },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'Knife', armour: 'Vest' },
     };
     state.modulesActive = ['core-systems', 'atmosphere'];
     state._modulesRead = [...TIER1_MODULES];

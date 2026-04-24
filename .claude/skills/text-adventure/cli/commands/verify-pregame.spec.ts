@@ -37,14 +37,16 @@ async function setupState(): Promise<void> {
   writeFileSync(join(tempDir, '.last-verify'), signMarker(999), 'utf-8');
   await handleState(['set', 'visualStyle', 'station']);
   await handleState(['set', 'worldFlags.rulebook', 'narrative_engine']);
-  await handleState(['set', 'modulesActive', JSON.stringify([
-    'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-    'character-creation', 'save-codex',
-  ])]);
-  await handleState(['set', '_modulesRead', JSON.stringify([
-    'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-    'character-creation', 'save-codex',
-  ])]);
+  await handleState([
+    'set',
+    'modulesActive',
+    JSON.stringify(['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex']),
+  ]);
+  await handleState([
+    'set',
+    '_modulesRead',
+    JSON.stringify(['gm-checklist', 'prose-craft', 'core-systems', 'die-rolls', 'character-creation', 'save-codex']),
+  ]);
   await handleState(['set', '_proseCraftEpoch', '0']);
   await handleState(['set', '_styleReadEpoch', '0']);
 }
@@ -65,11 +67,42 @@ describe('tag verify scenario', () => {
     const logo = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/></svg>';
     const data = JSON.stringify({
       scenarios: [
-        { title: 'The Glass Reef Atlas', description: 'A bundled adventure', genre: ['sci-fi'], featured: true, accent: '#78e4ff', svgLogo: logo },
-        { title: 'Rust Belt', description: 'A hauler job gone wrong', genre: ['sci-fi', 'noir'], accent: '#e4a278', svgLogo: logo },
-        { title: 'Deep Freeze', description: 'Ice station mystery', genre: ['horror', 'survival'], accent: '#78c8e4', svgLogo: logo },
-        { title: 'Iron Veil', description: 'A fortress of secrets', genre: ['fantasy'], accent: '#a278e4', svgLogo: logo },
-        { title: 'Neon Requiem', description: 'City of broken neon', genre: ['cyberpunk'], accent: '#e478a2', svgLogo: logo },
+        {
+          title: 'The Glass Reef Atlas',
+          description: 'A bundled adventure',
+          genre: ['sci-fi'],
+          featured: true,
+          accent: '#78e4ff',
+          svgLogo: logo,
+        },
+        {
+          title: 'Rust Belt',
+          description: 'A hauler job gone wrong',
+          genre: ['sci-fi', 'noir'],
+          accent: '#e4a278',
+          svgLogo: logo,
+        },
+        {
+          title: 'Deep Freeze',
+          description: 'Ice station mystery',
+          genre: ['horror', 'survival'],
+          accent: '#78c8e4',
+          svgLogo: logo,
+        },
+        {
+          title: 'Iron Veil',
+          description: 'A fortress of secrets',
+          genre: ['fantasy'],
+          accent: '#a278e4',
+          svgLogo: logo,
+        },
+        {
+          title: 'Neon Requiem',
+          description: 'City of broken neon',
+          genre: ['cyberpunk'],
+          accent: '#e478a2',
+          svgLogo: logo,
+        },
       ],
     });
     const path = await renderToFile(['scenario-select', '--data', data], 'scenario.html');
@@ -203,7 +236,11 @@ describe('tag verify rules', () => {
   test('fails when confirm button missing', async () => {
     await setupState();
     const path = join(tempDir, 'no-confirm.html');
-    writeFileSync(path, '<div class="widget-settings"><div class="option-grid" data-group="rulebook"><button data-group="rulebook" data-value="d20">d20</button><button data-group="rulebook" data-value="pf2e">pf2e</button></div></div>', 'utf-8');
+    writeFileSync(
+      path,
+      '<div class="widget-settings"><div class="option-grid" data-group="rulebook"><button data-group="rulebook" data-value="d20">d20</button><button data-group="rulebook" data-value="pf2e">pf2e</button></div></div>',
+      'utf-8',
+    );
     const result = await handleVerify(['rules', path]);
     expect(result.ok).toBe(true);
     const d = result.data as { verified: boolean; failures: string[] };
@@ -214,7 +251,11 @@ describe('tag verify rules', () => {
   test('fails when option groups have [object Object] values', async () => {
     await setupState();
     const path = join(tempDir, 'broken-settings.html');
-    writeFileSync(path, '<div class="widget-settings"><button class="confirm-btn">Go</button><div class="option-grid" data-group="difficulty"><button data-value="[object Object]">[object Object]</button></div></div>', 'utf-8');
+    writeFileSync(
+      path,
+      '<div class="widget-settings"><button class="confirm-btn">Go</button><div class="option-grid" data-group="difficulty"><button data-value="[object Object]">[object Object]</button></div></div>',
+      'utf-8',
+    );
     const result = await handleVerify(['rules', path]);
     expect(result.ok).toBe(true);
     const d = result.data as { verified: boolean; failures: string[] };
@@ -225,8 +266,7 @@ describe('tag verify rules', () => {
   test('rejects edited settings HTML even if the only change is single-quoted data-group attributes', async () => {
     await setupState();
     const path = await renderToFile(['settings'], 'single-quoted-settings.html');
-    const html = readFileSync(path, 'utf-8')
-      .replace(/data-config=\"([^\"]+)\"/g, "data-config='$1'");
+    const html = readFileSync(path, 'utf-8').replace(/data-config="([^"]+)"/g, "data-config='$1'");
     writeFileSync(path, html, 'utf-8');
     const result = await handleVerify(['rules', path]);
     const d = result.data as { verified: boolean; failures: string[] };
@@ -264,12 +304,24 @@ describe('tag verify character with pre-generated-characters module', () => {
         { id: 'scout', name: 'Scout', stats: { STR: 10, DEX: 16, CON: 10, INT: 10, WIS: 14, CHA: 10 } },
       ],
     });
-    const path = await renderToFile(['character-creation', '--style', 'station', '--data', data], 'char-no-presets.html');
+    const path = await renderToFile(
+      ['character-creation', '--style', 'station', '--data', data],
+      'char-no-presets.html',
+    );
     // NOW add the module to state — verify should catch the missing preset-cards
-    await handleState(['set', 'modulesActive', JSON.stringify([
-      'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-      'character-creation', 'save-codex', 'pre-generated-characters',
-    ])]);
+    await handleState([
+      'set',
+      'modulesActive',
+      JSON.stringify([
+        'gm-checklist',
+        'prose-craft',
+        'core-systems',
+        'die-rolls',
+        'character-creation',
+        'save-codex',
+        'pre-generated-characters',
+      ]),
+    ]);
     const result = await handleVerify(['character', path]);
     expect(result.ok).toBe(true);
     const d = result.data as { verified: boolean; failures: string[] };
@@ -279,10 +331,19 @@ describe('tag verify character with pre-generated-characters module', () => {
 
   test('passes when pre-generated-characters module is active and preset-cards exist', async () => {
     await setupState();
-    await handleState(['set', 'modulesActive', JSON.stringify([
-      'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-      'character-creation', 'save-codex', 'pre-generated-characters',
-    ])]);
+    await handleState([
+      'set',
+      'modulesActive',
+      JSON.stringify([
+        'gm-checklist',
+        'prose-craft',
+        'core-systems',
+        'die-rolls',
+        'character-creation',
+        'save-codex',
+        'pre-generated-characters',
+      ]),
+    ]);
     const pregens = [
       { name: 'Kira Voss', class: 'Diver', hook: 'Brave explorer.' },
       { name: 'Milo Dray', class: 'Pilot', hook: 'Steady hand.' },
@@ -294,7 +355,10 @@ describe('tag verify character with pre-generated-characters module', () => {
       ],
       preGeneratedCharacters: pregens,
     });
-    const path = await renderToFile(['character-creation', '--style', 'station', '--data', data], 'char-with-presets.html');
+    const path = await renderToFile(
+      ['character-creation', '--style', 'station', '--data', data],
+      'char-with-presets.html',
+    );
     const result = await handleVerify(['character', path]);
     expect(result.ok).toBe(true);
     const d = result.data as { verified: boolean; failures: string[] };
@@ -306,11 +370,22 @@ describe('tag verify character with _lorePregen state data', () => {
   test('warns when _lorePregen exists but pre-generated-characters module is not active', async () => {
     await setupState();
     // Set _lorePregen in state WITHOUT adding pre-generated-characters to modulesActive
-    await handleState(['set', '_lorePregen', JSON.stringify([
-      { name: 'Rian Vale', class: 'Diver', pronouns: 'he/him', hook: 'Explorer',
-        stats: { STR: 12, DEX: 14, CON: 10, INT: 13, WIS: 11, CHA: 9 },
-        hp: 10, ac: 12, proficiencies: ['Athletics'] },
-    ])]);
+    await handleState([
+      'set',
+      '_lorePregen',
+      JSON.stringify([
+        {
+          name: 'Rian Vale',
+          class: 'Diver',
+          pronouns: 'he/him',
+          hook: 'Explorer',
+          stats: { STR: 12, DEX: 14, CON: 10, INT: 13, WIS: 11, CHA: 9 },
+          hp: 10,
+          ac: 12,
+          proficiencies: ['Athletics'],
+        },
+      ]),
+    ]);
     // Render character-creation WITHOUT pre-gen module — no preset-cards
     const data = JSON.stringify({
       archetypes: [
@@ -318,7 +393,10 @@ describe('tag verify character with _lorePregen state data', () => {
         { id: 'scout', name: 'Scout', stats: { STR: 10, DEX: 16, CON: 10, INT: 10, WIS: 14, CHA: 10 } },
       ],
     });
-    const path = await renderToFile(['character-creation', '--style', 'station', '--data', data], 'char-lore-no-module.html');
+    const path = await renderToFile(
+      ['character-creation', '--style', 'station', '--data', data],
+      'char-lore-no-module.html',
+    );
     const result = await handleVerify(['character', path]);
     expect(result.ok).toBe(true);
     const d = result.data as { verified: boolean; failures: string[] };
@@ -330,7 +408,11 @@ describe('tag verify character with _lorePregen state data', () => {
 describe('tag verify rules with _loreDefaults state data', () => {
   test('warns when _loreDefaults exists but settings widget is missing defaulted groups', async () => {
     await setupState();
-    await handleState(['set', '_loreDefaults', JSON.stringify({ difficulty: 'hard', pacing: 'slow', rulebook: 'd20_system' })]);
+    await handleState([
+      'set',
+      '_loreDefaults',
+      JSON.stringify({ difficulty: 'hard', pacing: 'slow', rulebook: 'd20_system' }),
+    ]);
     await handleState(['set', '_loreSource', '/tmp/test.lore.md']);
     // Render a valid settings widget — it should pass but report lore defaults in the result
     const path = await renderToFile(['settings'], 'settings-with-defaults.html');
@@ -348,15 +430,29 @@ describe('tag verify (default) still works for scene HTML', () => {
     await setupState();
     await handleState(['set', 'scene', '1']);
     await handleState(['set', 'currentRoom', 'bridge']);
-    await handleState(['set', 'character', JSON.stringify({
-      name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-      level: 1, xp: 0, currency: 0, currencyName: 'credits',
-      stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
-      modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-      proficiencyBonus: 2, proficiencies: [], abilities: [],
-      inventory: [], conditions: [],
-      equipment: { weapon: 'Knife', armour: 'Vest' },
-    })]);
+    await handleState([
+      'set',
+      'character',
+      JSON.stringify({
+        name: 'Test',
+        class: 'Scout',
+        hp: 10,
+        maxHp: 10,
+        ac: 12,
+        level: 1,
+        xp: 0,
+        currency: 0,
+        currencyName: 'credits',
+        stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+        modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+        proficiencyBonus: 2,
+        proficiencies: [],
+        abilities: [],
+        inventory: [],
+        conditions: [],
+        equipment: { weapon: 'Knife', armour: 'Vest' },
+      }),
+    ]);
     const result = await handleRender(['scene', '--style', 'station', '--raw']);
     const html = (result.data as string).replace(
       '<p><!-- Narrative content rendered by the GM --></p>',

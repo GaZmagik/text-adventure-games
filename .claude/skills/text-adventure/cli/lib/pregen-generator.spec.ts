@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'bun:test';
 import { generatePregenCharacters } from './pregen-generator';
-import type { PreGeneratedCharacter, StatName } from '../types';
+import type { StatName } from '../types';
 
 const STAT_KEYS: StatName[] = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
 

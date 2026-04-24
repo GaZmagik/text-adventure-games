@@ -6,7 +6,7 @@ describe('esc', () => {
     expect(esc('a & b < c > d "e"')).toBe('a &amp; b &lt; c &gt; d &quot;e&quot;');
   });
   test('escapes single quotes for attribute safety', () => {
-    expect(esc("it's a \"test\" & <more>")).toBe("it&#39;s a &quot;test&quot; &amp; &lt;more&gt;");
+    expect(esc('it\'s a "test" & <more>')).toBe('it&#39;s a &quot;test&quot; &amp; &lt;more&gt;');
   });
   test('returns empty string for null/undefined/empty', () => {
     expect(esc(null)).toBe('');
@@ -60,22 +60,24 @@ describe('emitCustomElement', () => {
   });
 
   test('renders fallback inner HTML when provided', () => {
-    expect(emitCustomElement('ta-test', {}, '<span>Loading</span>'))
-      .toBe('<ta-test><span>Loading</span></ta-test>');
+    expect(emitCustomElement('ta-test', {}, '<span>Loading</span>')).toBe('<ta-test><span>Loading</span></ta-test>');
   });
 
   test('renders attributes properly escaped', () => {
-    expect(emitCustomElement('ta-test', { 'data-foo': 'bar "baz"', 'data-x': 42 }))
-      .toBe('<ta-test data-foo="bar &quot;baz&quot;" data-x="42"></ta-test>');
+    expect(emitCustomElement('ta-test', { 'data-foo': 'bar "baz"', 'data-x': 42 })).toBe(
+      '<ta-test data-foo="bar &quot;baz&quot;" data-x="42"></ta-test>',
+    );
   });
 
   test('skips null and undefined but preserves empty string values', () => {
-    expect(emitCustomElement('ta-test', { a: '1', b: null, c: undefined, d: '', e: '2' }))
-      .toBe('<ta-test a="1" d="" e="2"></ta-test>');
+    expect(emitCustomElement('ta-test', { a: '1', b: null, c: undefined, d: '', e: '2' })).toBe(
+      '<ta-test a="1" d="" e="2"></ta-test>',
+    );
   });
 
   test('serialises objects and arrays as JSON', () => {
-    expect(emitCustomElement('ta-test', { 'data-arr': [1, 2], 'data-obj': { a: 1 } }))
-      .toBe('<ta-test data-arr="[1,2]" data-obj="{&quot;a&quot;:1}"></ta-test>');
+    expect(emitCustomElement('ta-test', { 'data-arr': [1, 2], 'data-obj': { a: 1 } })).toBe(
+      '<ta-test data-arr="[1,2]" data-obj="{&quot;a&quot;:1}"></ta-test>',
+    );
   });
 });

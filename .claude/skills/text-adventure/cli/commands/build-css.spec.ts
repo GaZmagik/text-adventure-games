@@ -2,7 +2,7 @@ import { describe, expect, it, beforeAll, afterAll } from 'bun:test';
 import { mkdtempSync, rmSync, readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { handleBuildCss } from './build-css';
+import { handleBuildCss, sanitizeSvgSymbolContent } from './build-css';
 import { fnv32 } from '../lib/fnv32';
 import { SCENE_SCRIPT_CODE } from '../render/lib/scene-script';
 import { SOUNDSCAPE_ENGINE_CODE } from '../render/lib/soundscape';
@@ -34,7 +34,11 @@ beforeAll(async () => {
 });
 
 afterAll(() => {
-  try { rmSync(tmpDir, { recursive: true, force: true }); } catch { /* ignore */ }
+  try {
+    rmSync(tmpDir, { recursive: true, force: true });
+  } catch {
+    /* ignore */
+  }
 });
 
 // ── Command result shape ─────────────────────────────────────────────
@@ -225,12 +229,55 @@ describe('SVG sprite output', () => {
     expect(sprite).toContain('<symbol id="danger"');
     expect(sprite).toContain('<symbol id="investigate"');
     expect(sprite).toContain('<symbol id="locked"');
+    expect(sprite).toContain('<symbol id="travel"');
+    expect(sprite).toContain('<symbol id="objective"');
+    expect(sprite).toContain('<symbol id="safe"');
+  });
+
+  it('preserves icon source viewBox values in generated symbols', () => {
+    const sprite = readFileSync(join(tmpDir, 'icons', 'sprite.svg'), 'utf-8');
+    expect(sprite).toContain('<symbol id="danger" viewBox="0 0 24 24">');
+    expect(sprite).toContain('<symbol id="travel" viewBox="0 0 24 24">');
   });
 
   it('icon sprite hash in manifest matches the generated sprite', () => {
     const sprite = readFileSync(join(tmpDir, 'icons', 'sprite.svg'), 'utf-8');
     const manifest = readFileSync(join(tmpDir, 'cdn-manifest.ts'), 'utf-8');
     expect(manifest).toContain(`export const ICON_SPRITE_HASH = '${fnv32(sprite)}';`);
+  });
+
+  it('sanitizes static SVG path and shape content for sprite symbols', () => {
+    const icon =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g opacity="0.9"><path fill="currentColor" d="M1 1h22v22H1z"/></g></svg>';
+
+    const sanitized = sanitizeSvgSymbolContent(icon, 'safe.svg');
+
+    expect(sanitized.viewBox).toBe('0 0 24 24');
+    expect(sanitized.inner).toContain('<path fill="currentColor"');
+  });
+
+  it('rejects active SVG content before it can enter the sprite', () => {
+    expect(() =>
+      sanitizeSvgSymbolContent('<svg viewBox="0 0 24 24"><script>alert(1)</script></svg>', 'script.svg'),
+    ).toThrow('disallowed SVG element <script>');
+
+    expect(() =>
+      sanitizeSvgSymbolContent('<svg viewBox="0 0 24 24"><path onload="alert(1)" d="M1 1h2v2z"/></svg>', 'handler.svg'),
+    ).toThrow('disallowed SVG attribute "onload"');
+
+    expect(() =>
+      sanitizeSvgSymbolContent(
+        '<svg viewBox="0 0 24 24"><path fill="url(https://example.test/icon)" d="M1 1h2v2z"/></svg>',
+        'external.svg',
+      ),
+    ).toThrow('unsafe SVG attribute value');
+
+    expect(() =>
+      sanitizeSvgSymbolContent(
+        '<svg viewBox="0 0 24 24"><path d="M1 1h2v2z"/></svg><script>alert(1)</script>',
+        'trailing.svg',
+      ),
+    ).toThrow('single <svg> root');
   });
 });
 
@@ -266,7 +313,11 @@ describe('--release flag', () => {
   });
 
   afterAll(() => {
-    try { rmSync(releaseTmpDir, { recursive: true, force: true }); } catch { /* ignore */ }
+    try {
+      rmSync(releaseTmpDir, { recursive: true, force: true });
+    } catch {
+      /* ignore */
+    }
   });
 
   it('returns ok: true with --release', () => {

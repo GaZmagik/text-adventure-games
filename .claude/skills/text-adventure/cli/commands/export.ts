@@ -30,7 +30,8 @@ async function readLoreFile(filePath: string): Promise<{
     throw new Error('No LORE payload found in file.');
   }
   const editedFlag = extractFrontmatterField(content, 'edited');
-  const frontmatterRulebook = extractFrontmatterField(content, 'rulebook') ?? extractFrontmatterField(content, 'system');
+  const frontmatterRulebook =
+    extractFrontmatterField(content, 'rulebook') ?? extractFrontmatterField(content, 'system');
   return { content, payloadString, editedFlag, frontmatterRulebook };
 }
 
@@ -47,7 +48,10 @@ function extractVisibleBody(content: string): string {
 
 // ── Decode payload into GmState ──────────────────────────────────────
 
-function decodeAndBuildState(payloadString: string, frontmatterRulebook: string | null = null): {
+function decodeAndBuildState(
+  payloadString: string,
+  frontmatterRulebook: string | null = null,
+): {
   state: GmState;
   warnings: string[];
 } {
@@ -77,15 +81,18 @@ function decodeAndBuildState(payloadString: string, frontmatterRulebook: string 
   };
   const warnings: string[] = [];
 
-  const worldFlags = typeof state.worldFlags === 'object' && state.worldFlags !== null && !Array.isArray(state.worldFlags)
-    ? { ...(state.worldFlags as Record<string, unknown>) }
-    : {};
-  const payloadRulebook = typeof worldFlags.rulebook === 'string' && worldFlags.rulebook.trim().length > 0
-    ? worldFlags.rulebook.trim()
-    : null;
-  const fallbackRulebook = typeof frontmatterRulebook === 'string' && frontmatterRulebook.trim().length > 0
-    ? frontmatterRulebook.trim()
-    : null;
+  const worldFlags =
+    typeof state.worldFlags === 'object' && state.worldFlags !== null && !Array.isArray(state.worldFlags)
+      ? { ...(state.worldFlags as Record<string, unknown>) }
+      : {};
+  const payloadRulebook =
+    typeof worldFlags.rulebook === 'string' && worldFlags.rulebook.trim().length > 0
+      ? worldFlags.rulebook.trim()
+      : null;
+  const fallbackRulebook =
+    typeof frontmatterRulebook === 'string' && frontmatterRulebook.trim().length > 0
+      ? frontmatterRulebook.trim()
+      : null;
 
   if (!payloadRulebook && fallbackRulebook) {
     worldFlags.rulebook = fallbackRulebook;
@@ -103,8 +110,9 @@ function decodeAndBuildState(payloadString: string, frontmatterRulebook: string 
 
   const { sanitized, strippedPaths } = stripUnknownStateKeys(state);
   state = sanitized as Record<string, unknown>;
-  const strippedWarnings = strippedPaths.map(path =>
-    `Stripped unexpected state key "${path}" while loading lore data.`);
+  const strippedWarnings = strippedPaths.map(
+    path => `Stripped unexpected state key "${path}" while loading lore data.`,
+  );
 
   // Validate
   const validation = validateState(state);
@@ -132,26 +140,25 @@ async function generate(): Promise<CommandResult> {
 
   const title = extractFrontmatterField(loreContent, 'title') ?? 'Untitled';
 
-  return ok({
-    loreContent,
-    title,
-    npcCount: state.rosterMutations.length,
-    factionCount: Object.keys(state.factions).length,
-    questCount: state.quests.length,
-    characterName: state.character?.name ?? null,
-    scene: state.scene,
-  }, 'export generate');
+  return ok(
+    {
+      loreContent,
+      title,
+      npcCount: state.rosterMutations.length,
+      factionCount: Object.keys(state.factions).length,
+      questCount: state.quests.length,
+      characterName: state.character?.name ?? null,
+      scene: state.scene,
+    },
+    'export generate',
+  );
 }
 
 // ── load ─────────────────────────────────────────────────────────────
 
 async function load(args: string[]): Promise<CommandResult> {
   if (args.length < 1) {
-    return fail(
-      'Usage: tag export load <file.lore.md>',
-      'tag export load /path/to/adventure.lore.md',
-      'export load',
-    );
+    return fail('Usage: tag export load <file.lore.md>', 'tag export load /path/to/adventure.lore.md', 'export load');
   }
 
   let filePath: string;
@@ -173,9 +180,9 @@ async function load(args: string[]): Promise<CommandResult> {
   }
 
   let payloadString: string;
-  let editedFlag: string | null = null;
-  let frontmatterRulebook: string | null = null;
-  let loreContent = '';
+  let editedFlag: string | null;
+  let frontmatterRulebook: string | null;
+  let loreContent: string;
   try {
     const loreFile = await readLoreFile(filePath);
     payloadString = loreFile.payloadString;
@@ -212,7 +219,9 @@ async function load(args: string[]): Promise<CommandResult> {
     const visibleBody = extractVisibleBody(loreContent);
     if (visibleBody) {
       if (state.authoredBody && state.authoredBody !== visibleBody) {
-        warnings.push('Authored body drift detected: visible body differs from payload authoredBody. Using visible body.');
+        warnings.push(
+          'Authored body drift detected: visible body differs from payload authoredBody. Using visible body.',
+        );
       }
       state.authoredBody = visibleBody;
     }
@@ -242,13 +251,16 @@ async function load(args: string[]): Promise<CommandResult> {
   state._loreSource = filePath;
   await saveState(state);
 
-  return ok({
-    message: 'Lore file loaded successfully.',
-    npcCount: state.rosterMutations.length,
-    factionCount: Object.keys(state.factions).length,
-    edited: editedFlag === 'true',
-    ...(warnings.length > 0 ? { warnings } : {}),
-  }, 'export load');
+  return ok(
+    {
+      message: 'Lore file loaded successfully.',
+      npcCount: state.rosterMutations.length,
+      factionCount: Object.keys(state.factions).length,
+      edited: editedFlag === 'true',
+      ...(warnings.length > 0 ? { warnings } : {}),
+    },
+    'export load',
+  );
 }
 
 // ── validate ─────────────────────────────────────────────────────────
@@ -281,41 +293,50 @@ async function validate(args: string[]): Promise<CommandResult> {
   }
 
   let payloadString: string;
-  let editedFlag: string | null = null;
-  let frontmatterRulebook: string | null = null;
+  let editedFlag: string | null;
+  let frontmatterRulebook: string | null;
   try {
     const loreFile = await readLoreFile(filePath);
     payloadString = loreFile.payloadString;
     editedFlag = loreFile.editedFlag;
     frontmatterRulebook = loreFile.frontmatterRulebook;
   } catch (err) {
-    return ok({
-      valid: false,
-      npcCount: 0,
-      factionCount: 0,
-      edited: false,
-      errors: [err instanceof Error ? err.message : 'Failed to read lore file.'],
-    }, 'export validate');
+    return ok(
+      {
+        valid: false,
+        npcCount: 0,
+        factionCount: 0,
+        edited: false,
+        errors: [err instanceof Error ? err.message : 'Failed to read lore file.'],
+      },
+      'export validate',
+    );
   }
 
   try {
     const { state, warnings } = decodeAndBuildState(payloadString, frontmatterRulebook);
-    return ok({
-      valid: true,
-      npcCount: state.rosterMutations.length,
-      factionCount: Object.keys(state.factions).length,
-      edited: editedFlag === 'true',
-      errors: [],
-      ...(warnings.length > 0 ? { warnings } : {}),
-    }, 'export validate');
+    return ok(
+      {
+        valid: true,
+        npcCount: state.rosterMutations.length,
+        factionCount: Object.keys(state.factions).length,
+        edited: editedFlag === 'true',
+        errors: [],
+        ...(warnings.length > 0 ? { warnings } : {}),
+      },
+      'export validate',
+    );
   } catch (err) {
-    return ok({
-      valid: false,
-      npcCount: 0,
-      factionCount: 0,
-      edited: editedFlag === 'true',
-      errors: [err instanceof Error ? err.message : 'Decode failed.'],
-    }, 'export validate');
+    return ok(
+      {
+        valid: false,
+        npcCount: 0,
+        factionCount: 0,
+        edited: editedFlag === 'true',
+        errors: [err instanceof Error ? err.message : 'Decode failed.'],
+      },
+      'export validate',
+    );
   }
 }
 
@@ -324,9 +345,12 @@ async function validate(args: string[]): Promise<CommandResult> {
 export async function handleExport(args: string[]): Promise<CommandResult> {
   const sub = args[0];
   switch (sub) {
-    case 'generate': return generate();
-    case 'load': return load(args.slice(1));
-    case 'validate': return validate(args.slice(1));
+    case 'generate':
+      return generate();
+    case 'load':
+      return load(args.slice(1));
+    case 'validate':
+      return validate(args.slice(1));
     default:
       return fail(
         `Unknown export subcommand: ${sub ?? '(none)'}. Available: generate, load, validate`,

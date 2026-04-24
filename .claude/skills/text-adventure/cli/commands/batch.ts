@@ -1,10 +1,7 @@
+// Batch command orchestration executes semicolon-delimited CLI commands with labelled result references.
 import type { CommandResult, GmState } from '../types';
 import { ok, fail, errorMessage } from '../lib/errors';
-import {
-  flushStateStoreContext,
-  tryLoadState,
-  withStateStoreContext,
-} from '../lib/state-store';
+import { flushStateStoreContext, tryLoadState, withStateStoreContext } from '../lib/state-store';
 import { parseArgs } from '../lib/args';
 import { FORBIDDEN_KEYS, MUTATING_COMMANDS } from '../lib/constants';
 import { handleState } from './state';
@@ -12,6 +9,9 @@ import { handleCompute } from './compute';
 import { handleSave } from './save';
 import { handleRender } from './render';
 import { handleQuest } from './quest';
+import { handleFaction } from './faction';
+import { handleWorld } from './world';
+import { handleMap } from './map';
 import { handleRules } from './rules';
 import { handleModule } from './module';
 import { handleExport } from './export';
@@ -29,7 +29,7 @@ type ParsedLine = {
   label?: string | undefined;
   command: string;
   args: string[];
-}
+};
 
 function parseLine(line: string): ParsedLine | null {
   const trimmed = line.trim();
@@ -127,9 +127,9 @@ function tokenizeCommand(input: string): string[] {
 
   const pushCurrent = () => {
     if (!current) return;
-    const quoted = current.length >= 2
-      && ((current.startsWith('"') && current.endsWith('"'))
-        || (current.startsWith("'") && current.endsWith("'")));
+    const quoted =
+      current.length >= 2 &&
+      ((current.startsWith('"') && current.endsWith('"')) || (current.startsWith("'") && current.endsWith("'")));
     tokens.push(quoted ? current.slice(1, -1) : current);
     current = '';
   };
@@ -187,10 +187,7 @@ function tokenizeCommand(input: string): string[] {
   return tokens;
 }
 
-function resolveReferences(
-  args: string[],
-  labelled: Record<string, unknown>,
-): string[] {
+function resolveReferences(args: string[], labelled: Record<string, unknown>): string[] {
   return args.map(arg => {
     if (!arg.startsWith('$')) return arg;
 
@@ -230,6 +227,9 @@ export const BATCH_COMMAND_HANDLERS: Record<string, (args: string[]) => Promise<
   save: handleSave,
   render: handleRender,
   quest: handleQuest,
+  faction: handleFaction,
+  world: handleWorld,
+  map: handleMap,
   rules: handleRules,
   export: handleExport,
   verify: handleVerify,
@@ -259,7 +259,11 @@ export async function handleBatch(args: string[]): Promise<CommandResult> {
 
   const MAX_BATCH_COMMANDS = 100;
   if (lines.length > MAX_BATCH_COMMANDS) {
-    return fail(`Batch too large: ${lines.length} commands (max ${MAX_BATCH_COMMANDS}).`, 'Split into smaller batches.', 'batch');
+    return fail(
+      `Batch too large: ${lines.length} commands (max ${MAX_BATCH_COMMANDS}).`,
+      'Split into smaller batches.',
+      'batch',
+    );
   }
   const results: CommandResult[] = [];
   const labelled: Record<string, unknown> = {};
@@ -346,13 +350,16 @@ export async function handleBatch(args: string[]): Promise<CommandResult> {
     bufferedWrites = contextResult.stats.virtualWrites;
   }
 
-  return ok({
-    results,
-    labelled,
-    errors,
-    dryRun,
-    state_snapshot: stateSnapshot,
-    commandCount: results.length,
-    ...(dryRun ? {} : { bufferedWrites, persistedWrites }),
-  }, 'batch');
+  return ok(
+    {
+      results,
+      labelled,
+      errors,
+      dryRun,
+      state_snapshot: stateSnapshot,
+      commandCount: results.length,
+      ...(dryRun ? {} : { bufferedWrites, persistedWrites }),
+    },
+    'batch',
+  );
 }

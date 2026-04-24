@@ -8,7 +8,8 @@ import { tryLoadState } from '../lib/state-store';
 import { fnv32 } from '../lib/fnv32';
 import { PROSE_GATE_FILE } from '../lib/constants';
 
-const SCENE_HTML = '<div id="narrative"><p>The corridor stretched ahead. Rust covered the walls. A distant hum echoed.</p></div>';
+const SCENE_HTML =
+  '<div id="narrative"><p>The corridor stretched ahead. Rust covered the walls. A distant hum echoed.</p></div>';
 let scenePath: string;
 
 function writeGateFile(
@@ -59,11 +60,11 @@ afterEach(() => {
 const PASS_RESULT = JSON.stringify({
   rules: {
     voice_differentiation: { result: 'PASS' },
-    exposition_dump:        { result: 'PASS' },
-    earned_length:          { result: 'PASS' },
-    thesaurus_abuse:        { result: 'PASS' },
-    sensory_quality:        { result: 'PASS' },
-    redefinition_overuse:   { result: 'PASS' },
+    exposition_dump: { result: 'PASS' },
+    earned_length: { result: 'PASS' },
+    thesaurus_abuse: { result: 'PASS' },
+    sensory_quality: { result: 'PASS' },
+    redefinition_overuse: { result: 'PASS' },
   },
   total_pass: 6,
   total_fail: 0,
@@ -72,12 +73,17 @@ const PASS_RESULT = JSON.stringify({
 
 const FAIL_RESULT = JSON.stringify({
   rules: {
-    voice_differentiation: { result: 'FAIL', count: 1, citations: ['"Move," Kira said. "Move," Orin said.'], suggestion: 'Give Orin a distinctive verbal tic.' },
-    exposition_dump:        { result: 'PASS' },
-    earned_length:          { result: 'PASS' },
-    thesaurus_abuse:        { result: 'PASS' },
-    sensory_quality:        { result: 'PASS' },
-    redefinition_overuse:   { result: 'PASS' },
+    voice_differentiation: {
+      result: 'FAIL',
+      count: 1,
+      citations: ['"Move," Kira said. "Move," Orin said.'],
+      suggestion: 'Give Orin a distinctive verbal tic.',
+    },
+    exposition_dump: { result: 'PASS' },
+    earned_length: { result: 'PASS' },
+    thesaurus_abuse: { result: 'PASS' },
+    sensory_quality: { result: 'PASS' },
+    redefinition_overuse: { result: 'PASS' },
   },
   total_pass: 5,
   total_fail: 1,
@@ -225,11 +231,11 @@ describe('tag prose-gate --llm (overall FAIL even if rules look fine)', () => {
     const overallFailOverride = JSON.stringify({
       rules: {
         voice_differentiation: { result: 'PASS' },
-        exposition_dump:        { result: 'PASS' },
-        earned_length:          { result: 'PASS' },
-        thesaurus_abuse:        { result: 'PASS' },
-        sensory_quality:        { result: 'PASS' },
-        redefinition_overuse:   { result: 'PASS' },
+        exposition_dump: { result: 'PASS' },
+        earned_length: { result: 'PASS' },
+        thesaurus_abuse: { result: 'PASS' },
+        sensory_quality: { result: 'PASS' },
+        redefinition_overuse: { result: 'PASS' },
       },
       total_pass: 5,
       total_fail: 1,
@@ -311,12 +317,14 @@ describe('--llm shape validation', () => {
   });
 
   test('rejects JSON where a rule entry has result: null', async () => {
-    const path = writeResultFile(JSON.stringify({
-      overall: 'PASS',
-      rules: { voice_differentiation: { result: null } },
-      total_pass: 0,
-      total_fail: 0,
-    }));
+    const path = writeResultFile(
+      JSON.stringify({
+        overall: 'PASS',
+        rules: { voice_differentiation: { result: null } },
+        total_pass: 0,
+        total_fail: 0,
+      }),
+    );
     const result = await handleProseGate(['--llm', path]);
     expect(result.ok).toBe(false);
     expect(result.error?.message).toMatch(/malformed rule/i);
@@ -394,33 +402,64 @@ describe('tag prose-gate gate file enforcement (--manual)', () => {
   });
 
   test('fails when gate has deterministic errors', async () => {
-    writeGateFile(scenePath, SCENE_HTML, 'manual', ['Prose: [filter-words] "noticed" at line 1. Fix: replace with active verb.'], []);
+    writeGateFile(
+      scenePath,
+      SCENE_HTML,
+      'manual',
+      ['Prose: [filter-words] "noticed" at line 1. Fix: replace with active verb.'],
+      [],
+    );
     const result = await handleProseGate(['--manual']);
     expect(result.ok).toBe(false);
     expect(result.error!.message).toMatch(/filter-words/i);
   });
 
   test('fails on first call when gate has unacknowledged warnings', async () => {
-    writeGateFile(scenePath, SCENE_HTML, 'manual', [], ['Prose warning: [word-repetition-window] "corridor" repeated 3 times.']);
+    writeGateFile(
+      scenePath,
+      SCENE_HTML,
+      'manual',
+      [],
+      ['Prose warning: [word-repetition-window] "corridor" repeated 3 times.'],
+    );
     const result = await handleProseGate(['--manual']);
     expect(result.ok).toBe(false);
   });
 
   test('warning message mentions the warning', async () => {
-    writeGateFile(scenePath, SCENE_HTML, 'manual', [], ['Prose warning: [word-repetition-window] "corridor" repeated 3 times.']);
+    writeGateFile(
+      scenePath,
+      SCENE_HTML,
+      'manual',
+      [],
+      ['Prose warning: [word-repetition-window] "corridor" repeated 3 times.'],
+    );
     const result = await handleProseGate(['--manual']);
     expect(result.error!.message).toContain('word-repetition-window');
   });
 
   test('gate file updated with warningsAcknowledged=true after first warning block', async () => {
-    writeGateFile(scenePath, SCENE_HTML, 'manual', [], ['Prose warning: [word-repetition-window] "corridor" repeated 3 times.']);
+    writeGateFile(
+      scenePath,
+      SCENE_HTML,
+      'manual',
+      [],
+      ['Prose warning: [word-repetition-window] "corridor" repeated 3 times.'],
+    );
     await handleProseGate(['--manual']);
     const gate = JSON.parse(readFileSync(PROSE_GATE_FILE, 'utf-8'));
     expect(gate.warningsAcknowledged).toBe(true);
   });
 
   test('passes on second call when warnings already acknowledged', async () => {
-    writeGateFile(scenePath, SCENE_HTML, 'manual', [], ['Prose warning: [word-repetition-window] "corridor" repeated 3 times.'], true);
+    writeGateFile(
+      scenePath,
+      SCENE_HTML,
+      'manual',
+      [],
+      ['Prose warning: [word-repetition-window] "corridor" repeated 3 times.'],
+      true,
+    );
     const result = await handleProseGate(['--manual']);
     expect(result.ok).toBe(true);
     expect((result.data as { verified: boolean }).verified).toBe(true);
@@ -501,7 +540,14 @@ describe('tag prose-gate gate file enforcement (--llm)', () => {
   });
 
   test('passes on second call with acknowledged warnings', async () => {
-    writeGateFile(scenePath, SCENE_HTML, 'llm', [], ['Prose warning: [word-repetition-window] "corridor" repeated.'], true);
+    writeGateFile(
+      scenePath,
+      SCENE_HTML,
+      'llm',
+      [],
+      ['Prose warning: [word-repetition-window] "corridor" repeated.'],
+      true,
+    );
     const path = writeResultFile(PASS_RESULT);
     const result = await handleProseGate(['--llm', path]);
     expect(result.ok).toBe(true);

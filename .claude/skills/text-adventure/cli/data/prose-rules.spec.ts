@@ -1,8 +1,5 @@
 import { describe, test, expect } from 'bun:test';
-import {
-  evaluatePatternRules,
-  evaluateHeuristicRules,
-} from '../lib/prose-checks';
+import { evaluatePatternRules, evaluateHeuristicRules } from '../lib/prose-checks';
 import { HEURISTIC_RULES } from './prose-rules';
 
 /* ------------------------------------------------------------------ */
@@ -46,7 +43,7 @@ describe('evaluatePatternRules', () => {
     });
 
     test('suppresses "tried to" with failure context', () => {
-      const violations = evaluatePatternRules('She tried to open the hatch but couldn\'t.');
+      const violations = evaluatePatternRules("She tried to open the hatch but couldn't.");
       expect(violations.some(v => v.ruleId === 'wasted-motion')).toBe(false);
     });
 
@@ -369,13 +366,15 @@ describe('evaluateHeuristicRules', () => {
   describe('sentence-length-uniformity', () => {
     test('warns when 3+ consecutive sentences have similar length', () => {
       // 5 sentences, each ~6 words — monotonous
-      const text = 'The engine hums in place. The light flickers above you. The walls press in close. The air feels thin today. The path leads you onward.';
+      const text =
+        'The engine hums in place. The light flickers above you. The walls press in close. The air feels thin today. The path leads you onward.';
       const violations = evaluateHeuristicRules(text);
       expect(violations.some(v => v.ruleId === 'sentence-length-uniformity')).toBe(true);
     });
 
     test('no warning for varied sentence lengths', () => {
-      const text = 'Short. The corridor stretches ahead for what feels like miles, its walls lined with conduit. Stop. A sound — faint, metallic, repeating — reaches you from somewhere deeper in the station.';
+      const text =
+        'Short. The corridor stretches ahead for what feels like miles, its walls lined with conduit. Stop. A sound — faint, metallic, repeating — reaches you from somewhere deeper in the station.';
       const violations = evaluateHeuristicRules(text);
       expect(violations.some(v => v.ruleId === 'sentence-length-uniformity')).toBe(false);
     });
@@ -400,19 +399,22 @@ describe('evaluateHeuristicRules', () => {
   describe('adverb-density', () => {
     test('warns when adverb density exceeds 5%', () => {
       // Deliberately heavy on -ly words (not in exclusion set)
-      const text = 'She quickly moved silently through the dimly lit corridor, carefully avoiding the loosely hanging wires, steadily making her way forward. The path narrowly curved sharply ahead, barely visible through the thickly clouded air. She cautiously stepped over the deeply cracked floor.';
+      const text =
+        'She quickly moved silently through the dimly lit corridor, carefully avoiding the loosely hanging wires, steadily making her way forward. The path narrowly curved sharply ahead, barely visible through the thickly clouded air. She cautiously stepped over the deeply cracked floor.';
       const violations = evaluateHeuristicRules(text);
       expect(violations.some(v => v.ruleId === 'adverb-density')).toBe(true);
     });
 
     test('no warning for sparse adverb use', () => {
-      const text = 'The corridor stretched ahead. Rust covered the walls. A drip echoed from somewhere deep in the station. The air tasted of copper and old sealant.';
+      const text =
+        'The corridor stretched ahead. Rust covered the walls. A drip echoed from somewhere deep in the station. The air tasted of copper and old sealant.';
       const violations = evaluateHeuristicRules(text);
       expect(violations.some(v => v.ruleId === 'adverb-density')).toBe(false);
     });
 
     test('excludes NON_ADVERBS like "only" and "friendly"', () => {
-      const text = 'The only friendly face in the room belonged to the early arrival. The family gathered daily in the lonely outpost.';
+      const text =
+        'The only friendly face in the room belonged to the early arrival. The family gathered daily in the lonely outpost.';
       const violations = evaluateHeuristicRules(text);
       expect(violations.some(v => v.ruleId === 'adverb-density')).toBe(false);
     });
@@ -422,13 +424,15 @@ describe('evaluateHeuristicRules', () => {
   describe('passive-voice-density', () => {
     test('warns when passive voice exceeds 15%', () => {
       // 6 sentences, 2+ passive — above 15%
-      const text = 'The door was opened by the crew. The alarm was triggered by the impact. Smoke filled the corridor. The hull was breached near the stern. You ran. The lights were dimmed by the emergency system.';
+      const text =
+        'The door was opened by the crew. The alarm was triggered by the impact. Smoke filled the corridor. The hull was breached near the stern. You ran. The lights were dimmed by the emergency system.';
       const violations = evaluateHeuristicRules(text);
       expect(violations.some(v => v.ruleId === 'passive-voice-density')).toBe(true);
     });
 
     test('no warning for active voice prose', () => {
-      const text = 'The crew opened the door. The impact triggered the alarm. Smoke filled the corridor. You ran. The emergency system dimmed the lights.';
+      const text =
+        'The crew opened the door. The impact triggered the alarm. Smoke filled the corridor. You ran. The emergency system dimmed the lights.';
       const violations = evaluateHeuristicRules(text);
       expect(violations.some(v => v.ruleId === 'passive-voice-density')).toBe(false);
     });
@@ -470,7 +474,8 @@ describe('heuristic: paragraph-density', () => {
 
 describe('heuristic: word-repetition-window', () => {
   test('flags non-stopword repeated 3+ times within 80 words', () => {
-    const text = 'The corridor stretched ahead. The dark corridor turned. Past the corridor entrance. The old corridor ended.';
+    const text =
+      'The corridor stretched ahead. The dark corridor turned. Past the corridor entrance. The old corridor ended.';
     const v = evaluateHeuristicRules(text, HEURISTIC_RULES);
     const match = v.find(x => x.ruleId === 'word-repetition-window');
     expect(match).toBeDefined();
@@ -494,7 +499,8 @@ describe('heuristic: word-repetition-window', () => {
 
   test('does not flag common pronouns', () => {
     // they/them/their/your all appear many times but are stopwords
-    const text = 'They moved through the ward. They found their gear. They told them what they knew. Your turn they said.';
+    const text =
+      'They moved through the ward. They found their gear. They told them what they knew. Your turn they said.';
     expect(evaluateHeuristicRules(text, HEURISTIC_RULES).some(x => x.ruleId === 'word-repetition-window')).toBe(false);
   });
 });
@@ -516,7 +522,8 @@ describe('heuristic: ngram-repetition', () => {
 
   test('skips bigrams where both words are stopwords', () => {
     // 'with that' — both stopwords, both > 3 chars
-    const text = 'Move forward with that speed. Run away with that force. Jump high with that power. Push on with that will.';
+    const text =
+      'Move forward with that speed. Run away with that force. Jump high with that power. Push on with that will.';
     expect(evaluateHeuristicRules(text, HEURISTIC_RULES).some(x => x.ruleId === 'ngram-repetition')).toBe(false);
   });
 

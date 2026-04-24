@@ -5,7 +5,6 @@ import { tmpdir } from 'node:os';
 import { handleQuest } from './quest';
 import { handleState } from './state';
 import { loadState, saveState } from '../lib/state-store';
-import type { GmState, Quest } from '../types';
 
 let tempDir: string;
 const originalEnv = process.env.TAG_STATE_DIR;
@@ -106,11 +105,7 @@ describe('quest add-objective', () => {
 
   test('appends to quest objectives', async () => {
     await seedQuest();
-    const result = await handleQuest([
-      'add-objective', 'q1',
-      '--id', 'obj_c',
-      '--desc', 'Repair the antenna',
-    ]);
+    const result = await handleQuest(['add-objective', 'q1', '--id', 'obj_c', '--desc', 'Repair the antenna']);
     expect(result.ok).toBe(true);
 
     const state = await loadState();
@@ -212,6 +207,78 @@ describe('quest status', () => {
   });
 });
 
+// ── inspect / track / create ───────────────────────────────────────
+
+describe('quest inspect track create', () => {
+  test('inspect returns full quest progress and canonical flags', async () => {
+    await seedQuest();
+    await handleQuest(['complete', 'q1', 'obj_a']);
+
+    const result = await handleQuest(['inspect', 'q1']);
+    expect(result.ok).toBe(true);
+    const data = result.data as {
+      id: string;
+      progress: { completed: number; total: number; percentage: number };
+      canonicalFlags: { objectives: string[] };
+    };
+    expect(data.id).toBe('q1');
+    expect(data.progress.completed).toBe(1);
+    expect(data.canonicalFlags.objectives).toContain('quest:q1:obj_a:complete');
+  });
+
+  test('track stores tracked quest flags and quest toast', async () => {
+    await seedQuest();
+    const result = await handleQuest(['track', 'q1']);
+    expect(result.ok).toBe(true);
+
+    const state = await loadState();
+    expect(state.worldFlags.trackedQuestId).toBe('q1');
+    expect(state.worldFlags.trackedQuest).toBe('q1');
+    expect(state.worldFlags.questToast).toBe('Tracking quest: Find the Signal');
+  });
+
+  test('create generates an existing-compatible quest object', async () => {
+    await handleState(['reset']);
+    const result = await handleQuest([
+      'create',
+      '--id',
+      'signal_return',
+      '--title',
+      'Signal Return',
+      '--objective-id',
+      'decode',
+      '--objective',
+      'Decode the signal',
+    ]);
+    expect(result.ok).toBe(true);
+
+    const state = await loadState();
+    const quest = state.quests.find(q => q.id === 'signal_return')!;
+    expect(quest.title).toBe('Signal Return');
+    expect(quest.status).toBe('active');
+    expect(quest.currentObjectiveId).toBe('decode');
+    expect(quest.objectives[0]!.description).toBe('Decode the signal');
+    expect(state.worldFlags.questToast).toBe('Quest started: Signal Return');
+  });
+
+  test('create rejects duplicate quest ids', async () => {
+    await seedQuest();
+    const result = await handleQuest([
+      'create',
+      '--id',
+      'q1',
+      '--title',
+      'Duplicate',
+      '--objective-id',
+      'start',
+      '--objective',
+      'Start',
+    ]);
+    expect(result.ok).toBe(false);
+    expect(result.error!.message).toContain('already exists');
+  });
+});
+
 // ── list ───────────────────────────────────────────────────────────
 
 describe('quest list', () => {
@@ -223,9 +290,7 @@ describe('quest list', () => {
       id: 'q2',
       title: 'Rescue the Crew',
       status: 'active',
-      objectives: [
-        { id: 'obj_x', description: 'Find survivors', completed: true },
-      ],
+      objectives: [{ id: 'obj_x', description: 'Find survivors', completed: true }],
       clues: ['Heard screaming from deck 3'],
     });
     await saveState(state);

@@ -16,11 +16,7 @@ type ParsedArgs = {
   booleans: Set<string>;
 };
 
-export function parseArgs(
-  args: string[],
-  booleanFlags?: string[],
-  multiWordFlags?: string[],
-): ParsedArgs {
+export function parseArgs(args: string[], booleanFlags?: string[], multiWordFlags?: string[]): ParsedArgs {
   const boolSet = new Set(booleanFlags ?? []);
   const multiWordSet = new Set(multiWordFlags ?? []);
   const positional: string[] = [];

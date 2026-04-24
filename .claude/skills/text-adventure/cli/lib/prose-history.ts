@@ -34,22 +34,90 @@ export type ProseHistory = {
 
 const HISTORY_FILE = '.prose-history.json';
 const MAX_HISTORY = 10;
-const VOCAB_OVERLAP_THRESHOLD = 0.60;
+const VOCAB_OVERLAP_THRESHOLD = 0.6;
 
 // Common English stopwords — articles, prepositions, pronouns, auxiliaries
 const STOPWORDS = new Set([
-  'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of',
-  'with', 'by', 'from', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
-  'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should',
-  'may', 'might', 'shall', 'can', 'it', 'its', 'this', 'that', 'these', 'those',
-  'i', 'me', 'my', 'we', 'our', 'you', 'your', 'he', 'she', 'him', 'her', 'his',
-  'they', 'them', 'their', 'not', 'no', 'so', 'as', 'if', 'up', 'out', 'into',
-  'over', 'after', 'then', 'there', 'about', 'all', 'which', 'who', 'what',
+  'a',
+  'an',
+  'the',
+  'and',
+  'or',
+  'but',
+  'in',
+  'on',
+  'at',
+  'to',
+  'for',
+  'of',
+  'with',
+  'by',
+  'from',
+  'is',
+  'are',
+  'was',
+  'were',
+  'be',
+  'been',
+  'being',
+  'have',
+  'has',
+  'had',
+  'do',
+  'does',
+  'did',
+  'will',
+  'would',
+  'could',
+  'should',
+  'may',
+  'might',
+  'shall',
+  'can',
+  'it',
+  'its',
+  'this',
+  'that',
+  'these',
+  'those',
+  'i',
+  'me',
+  'my',
+  'we',
+  'our',
+  'you',
+  'your',
+  'he',
+  'she',
+  'him',
+  'her',
+  'his',
+  'they',
+  'them',
+  'their',
+  'not',
+  'no',
+  'so',
+  'as',
+  'if',
+  'up',
+  'out',
+  'into',
+  'over',
+  'after',
+  'then',
+  'there',
+  'about',
+  'all',
+  'which',
+  'who',
+  'what',
 ]);
 
 // ── Opening structure classifier ──────────────────────────────────────
 
-const LOCATION_NOUNS = /^(the|a|an)\s+(corridor|chamber|bay|dock|hull|room|hall|city|street|forest|courtyard|bridge|deck|plaza|alley|square|gate|passage|vault|airlock|hangar|hold|cabin|tunnel|cavern|warehouse|market|port|station)\b/i;
+const LOCATION_NOUNS =
+  /^(the|a|an)\s+(corridor|chamber|bay|dock|hull|room|hall|city|street|forest|courtyard|bridge|deck|plaza|alley|square|gate|passage|vault|airlock|hangar|hold|cabin|tunnel|cavern|warehouse|market|port|station)\b/i;
 const LOCATION_COMPASS = /^(north|south|east|west|beyond|above|below|ahead)\b/i;
 const INTROSPECTION_RE = /^(i\s|she\s|he\s|they\s).{0,40}(felt|knew|wondered|thought|remembered|realised|realized)\b/i;
 
@@ -122,8 +190,7 @@ export function buildProseFingerprint(
     const sentenceCount = sentences.length;
     const avgSentenceLength = sentenceCount > 0 ? wordCount / sentenceCount : 0;
     const uniqueWordRatio = wordCount > 0 ? new Set(words).size / wordCount : 0;
-    const dialogueChars = (text.match(/["\u201c][^"\u201d]*["\u201d]/g) ?? [])
-      .reduce((sum, q) => sum + q.length, 0);
+    const dialogueChars = (text.match(/["\u201c][^"\u201d]*["\u201d]/g) ?? []).reduce((sum, q) => sum + q.length, 0);
     const dialogueToNarrationRatio = text.length > 0 ? dialogueChars / text.length : 0;
     metrics = { wordCount, avgSentenceLength, uniqueWordRatio, dialogueToNarrationRatio };
   }
@@ -149,7 +216,8 @@ function isProseFingerprint(x: unknown): x is ProseFingerprint {
     typeof f.openingStructure === 'string' &&
     typeof f.openingWord === 'string' &&
     Array.isArray(f.topContentWords) &&
-    typeof f.metrics === 'object' && f.metrics !== null
+    typeof f.metrics === 'object' &&
+    f.metrics !== null
   );
 }
 
@@ -158,7 +226,8 @@ export function loadProseHistory(stateDir: string): ProseHistory | null {
     const raw = readFileSync(join(stateDir, HISTORY_FILE), 'utf-8');
     const parsed = JSON.parse(raw) as unknown;
     if (
-      typeof parsed === 'object' && parsed !== null &&
+      typeof parsed === 'object' &&
+      parsed !== null &&
       (parsed as Record<string, unknown>).version === 1 &&
       Array.isArray((parsed as Record<string, unknown>).scenes)
     ) {
@@ -180,16 +249,17 @@ export function saveProseHistory(stateDir: string, history: ProseHistory): void 
     renameSync(tmp, target);
   } catch (err) {
     console.error(`prose-history: failed to save ${target}: ${(err as Error).message}`);
-    try { unlinkSync(tmp); } catch { /* ignore */ }
+    try {
+      unlinkSync(tmp);
+    } catch {
+      /* ignore */
+    }
   }
 }
 
 // ── appendFingerprint ─────────────────────────────────────────────────
 
-export function appendFingerprint(
-  history: ProseHistory | null,
-  fingerprint: ProseFingerprint,
-): ProseHistory {
+export function appendFingerprint(history: ProseHistory | null, fingerprint: ProseFingerprint): ProseHistory {
   const existing = history?.scenes ?? [];
   const scenes = [...existing, fingerprint].slice(-MAX_HISTORY);
   return { version: 1, scenes };

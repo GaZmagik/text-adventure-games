@@ -58,8 +58,7 @@ function kebabToCamel(s: string): string {
 /** Parse a raw scalar, coercing unquoted booleans/integers. Quoted values stay strings. */
 function parseScalar(raw: string): string | number | boolean {
   const t = raw.trim();
-  if ((t.startsWith('"') && t.endsWith('"')) ||
-      (t.startsWith("'") && t.endsWith("'"))) {
+  if ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'"))) {
     return t.slice(1, -1);
   }
   if (t === 'true') return true;
@@ -94,7 +93,9 @@ function splitFlowItems(s: string): string[] {
       cur += ch;
       if (ch === qChar) inQ = false;
     } else if (ch === '"' || ch === "'") {
-      inQ = true; qChar = ch; cur += ch;
+      inQ = true;
+      qChar = ch;
+      cur += ch;
     } else if (ch === ',') {
       if (cur.trim()) items.push(cur.trim());
       cur = '';
@@ -143,9 +144,7 @@ function parseFolded(lines: Line[], start: number, keyIndent: number): [string, 
 }
 
 /** Determine value type and parse accordingly. */
-function parseValue(
-  lines: Line[], lineIdx: number, rawValue: string, keyIndent: number,
-): [unknown, number] {
+function parseValue(lines: Line[], lineIdx: number, rawValue: string, keyIndent: number): [unknown, number] {
   if (rawValue === '>') {
     return parseFolded(lines, lineIdx + 1, keyIndent);
   }
@@ -162,17 +161,21 @@ function parseValue(
 }
 
 /** Parse key-value pairs at a given indentation level. */
-function parseMapping(
-  lines: Line[], start: number, baseIndent: number,
-): [Record<string, unknown>, number] {
+function parseMapping(lines: Line[], start: number, baseIndent: number): [Record<string, unknown>, number] {
   const result: Record<string, unknown> = {};
   let i = start;
   while (i < lines.length) {
     const line = lines[i]!;
-    if (line.text === '') { i++; continue; }
+    if (line.text === '') {
+      i++;
+      continue;
+    }
     if (line.indent < baseIndent) break;
     const kv = matchKV(line.text);
-    if (!kv) { i++; continue; }
+    if (!kv) {
+      i++;
+      continue;
+    }
     let value: unknown;
     [value, i] = parseValue(lines, i, kv.value, line.indent);
     result[kebabToCamel(kv.key)] = value;
@@ -181,14 +184,15 @@ function parseMapping(
 }
 
 /** Parse block sequence (array) at a given indentation level. */
-function parseSequence(
-  lines: Line[], start: number, baseIndent: number,
-): [unknown[], number] {
+function parseSequence(lines: Line[], start: number, baseIndent: number): [unknown[], number] {
   const result: unknown[] = [];
   let i = start;
   while (i < lines.length) {
     const line = lines[i]!;
-    if (line.text === '') { i++; continue; }
+    if (line.text === '') {
+      i++;
+      continue;
+    }
     if (line.indent < baseIndent) break;
     if (!line.text.startsWith('- ')) break;
 

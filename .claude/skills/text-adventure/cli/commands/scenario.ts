@@ -75,10 +75,8 @@ function scanBundledAdventures(): BundledScenario[] {
       // Detect cover art PNGs alongside the lore file
       const frontFile = `${id}-front-cover.png`;
       const backFile = `${id}-back-cover.png`;
-      const coverFront = existsSync(join(STORY_DIR, frontFile))
-        ? `${STORY_CDN}/${frontFile}` : undefined;
-      const coverBack = existsSync(join(STORY_DIR, backFile))
-        ? `${STORY_CDN}/${backFile}` : undefined;
+      const coverFront = existsSync(join(STORY_DIR, frontFile)) ? `${STORY_CDN}/${frontFile}` : undefined;
+      const coverBack = existsSync(join(STORY_DIR, backFile)) ? `${STORY_CDN}/${backFile}` : undefined;
 
       const recStyles = typeof fm.recommendedStyles === 'object' ? fm.recommendedStyles : {};
       const defaults: Record<string, string> = {};
@@ -119,25 +117,20 @@ export async function handleScenario(args: string[]): Promise<CommandResult> {
   const sub = args[0];
 
   if (!sub) {
-    return fail(
-      'No subcommand provided.',
-      'Usage: tag scenario bundled',
-      'scenario',
-    );
+    return fail('No subcommand provided.', 'Usage: tag scenario bundled', 'scenario');
   }
 
   if (sub === 'bundled') {
     const scenarios = scanBundledAdventures();
-    return ok({
-      scenarios,
-      total: scenarios.length,
-      hint: 'Merge with GM-generated scenarios, then pass to: tag render scenario-select --data \'{"scenarios": [...]}\'',
-    }, 'scenario');
+    return ok(
+      {
+        scenarios,
+        total: scenarios.length,
+        hint: 'Merge with GM-generated scenarios, then pass to: tag render scenario-select --data \'{"scenarios": [...]}\'',
+      },
+      'scenario',
+    );
   }
 
-  return fail(
-    `Unknown subcommand: ${sub}`,
-    'Valid subcommands: bundled. Usage: tag scenario bundled',
-    'scenario',
-  );
+  return fail(`Unknown subcommand: ${sub}`, 'Valid subcommands: bundled. Usage: tag scenario bundled', 'scenario');
 }

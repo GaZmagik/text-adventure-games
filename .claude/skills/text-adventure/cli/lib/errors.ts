@@ -14,25 +14,13 @@ export function fail(message: string, corrective: string, command: string): Comm
 }
 
 export function noState(command = 'state'): CommandResult {
-  return fail(
-    'No game state found.',
-    'tag state reset',
-    command,
-  );
+  return fail('No game state found.', 'tag state reset', command);
 }
 
 export function npcNotFound(npcId: string, command = 'compute'): CommandResult {
-  return fail(
-    `NPC "${npcId}" not found in roster.`,
-    'Check NPC ID with: tag state get rosterMutations',
-    command,
-  );
+  return fail(`NPC "${npcId}" not found in roster.`, 'Check NPC ID with: tag state get rosterMutations', command);
 }
 
 export function styleNotSet(): CommandResult {
-  return fail(
-    'No visual style set.',
-    'tag state set visualStyle <style-name>',
-    'render',
-  );
+  return fail('No visual style set.', 'tag state set visualStyle <style-name>', 'render');
 }

@@ -4,19 +4,31 @@ import type { CommandResult, GmState } from '../types';
 import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState } from '../lib/state-store';
 import { TIER1_MODULES } from '../lib/constants';
+import { parseArgs } from '../lib/args';
+import { extractCompactContract } from '../lib/contracts';
 
 /** Module directory relative to import.meta.dir (cli/commands/) → ../../modules/ */
 const MODULE_DIR = join(import.meta.dir, '..', '..', 'modules');
 
 const TIER2_MODULES = [
-  'scenarios', 'bestiary', 'story-architect', 'ship-systems', 'crew-manifest',
-  'star-chart', 'geo-map', 'procedural-world-gen', 'world-history', 'lore-codex',
-  'rpg-systems', 'ai-npc', 'atmosphere', 'audio', 'pre-generated-characters',
+  'scenarios',
+  'bestiary',
+  'story-architect',
+  'ship-systems',
+  'crew-manifest',
+  'star-chart',
+  'geo-map',
+  'procedural-world-gen',
+  'world-history',
+  'lore-codex',
+  'rpg-systems',
+  'ai-npc',
+  'atmosphere',
+  'audio',
+  'pre-generated-characters',
 ];
 
-const TIER3_MODULES = [
-  'adventure-exporting', 'adventure-authoring', 'arc-patterns', 'genre-mechanics',
-];
+const TIER3_MODULES = ['adventure-exporting', 'adventure-authoring', 'arc-patterns', 'genre-mechanics'];
 
 const TIERS: Record<number, readonly string[]> = {
   1: TIER1_MODULES,
@@ -35,7 +47,7 @@ function ensureModulesRead(state: GmState): string[] {
   return state._modulesRead;
 }
 
-async function activateOne(name: string): Promise<CommandResult> {
+async function activateOne(name: string, full: boolean): Promise<CommandResult> {
   const state = await tryLoadState();
   if (!state) return noState();
 
@@ -65,32 +77,43 @@ async function activateOne(name: string): Promise<CommandResult> {
   await saveState(state);
 
   const modulePath = join(MODULE_DIR, `${name}.md`);
-  return ok({
-    module: name,
-    modulePath,
-    chars: content.length,
-    addedToActive,
-    addedToRead,
-    instruction: `To read this module, use 'cat ${modulePath}'`
-  }, 'module');
+  const contract = extractCompactContract(name, 'module', content);
+  return ok(
+    {
+      module: name,
+      modulePath,
+      chars: content.length,
+      addedToActive,
+      addedToRead,
+      contract,
+      compact: !full,
+      instruction: full
+        ? `Full module markdown is included in data.content. To re-read from disk, use 'cat ${modulePath}'`
+        : `Compact module contract returned. Use 'tag module activate ${name} --full' or 'cat ${modulePath}' for full markdown.`,
+      ...(full ? { content } : {}),
+    },
+    'module',
+  );
 }
 
-async function activateTier(tierStr: string): Promise<CommandResult> {
+async function activateTier(tierStr: string, full: boolean): Promise<CommandResult> {
   const tier = Number(tierStr);
   const modules = TIERS[tier];
   if (!modules) {
-    return fail(
-      `Invalid tier "${tierStr}". Valid tiers: 1, 2, 3.`,
-      'Usage: tag module activate-tier 1',
-      'module',
-    );
+    return fail(`Invalid tier "${tierStr}". Valid tiers: 1, 2, 3.`, 'Usage: tag module activate-tier 1', 'module');
   }
 
   const state = await tryLoadState();
   if (!state) return noState();
 
   const read = ensureModulesRead(state);
-  const results: { name: string; modulePath: string; chars: number }[] = [];
+  const results: {
+    name: string;
+    modulePath: string;
+    chars: number;
+    contract: ReturnType<typeof extractCompactContract>;
+    content?: string;
+  }[] = [];
 
   const activeSet = new Set(state.modulesActive);
   const skipped: string[] = [];
@@ -115,19 +138,40 @@ async function activateTier(tierStr: string): Promise<CommandResult> {
     }
 
     const modulePath = join(MODULE_DIR, `${name}.md`);
-    results.push({ name, modulePath, chars: content.length });
+    const result: {
+      name: string;
+      modulePath: string;
+      chars: number;
+      contract: ReturnType<typeof extractCompactContract>;
+      content?: string;
+    } = {
+      name,
+      modulePath,
+      chars: content.length,
+      contract: extractCompactContract(name, 'module', content),
+    };
+    if (full) result.content = content;
+    results.push(result);
   }
 
   await saveState(state);
 
-  return ok({
-    tier,
-    modules: results,
-    totalChars: results.reduce((sum, m) => sum + m.chars, 0),
-    count: results.length,
-    instruction: `To read these modules, use 'cat' with the provided modulePaths.`,
-    ...(skipped.length > 0 ? { skipped, skippedNote: `${skipped.length} tier ${tier} module(s) not loaded — not in modulesActive.` } : {}),
-  }, 'module');
+  return ok(
+    {
+      tier,
+      modules: results,
+      totalChars: results.reduce((sum, m) => sum + m.chars, 0),
+      count: results.length,
+      compact: !full,
+      instruction: full
+        ? 'Full module markdown is included in each module.content. To re-read from disk, use cat with the provided modulePaths.'
+        : 'Compact module contracts returned. Use `tag module activate-tier <N> --full` or cat the provided modulePaths for full markdown.',
+      ...(skipped.length > 0
+        ? { skipped, skippedNote: `${skipped.length} tier ${tier} module(s) not loaded — not in modulesActive.` }
+        : {}),
+    },
+    'module',
+  );
 }
 
 async function status(): Promise<CommandResult> {
@@ -138,39 +182,38 @@ async function status(): Promise<CommandResult> {
   const read = ensureModulesRead(state);
   const unread = active.filter(m => !read.includes(m));
 
-  return ok({
-    active,
-    read: [...read],
-    unread,
-    allRead: unread.length === 0,
-  }, 'module');
+  return ok(
+    {
+      active,
+      read: [...read],
+      unread,
+      allRead: unread.length === 0,
+    },
+    'module',
+  );
 }
 
 export async function handleModule(args: string[]): Promise<CommandResult> {
-  const subcommand = args[0];
+  const parsed = parseArgs(args, ['full']);
+  const subcommand = parsed.positional[0];
+  const full = parsed.booleans.has('full');
 
   if (!subcommand) {
-    return fail(
-      'No subcommand provided.',
-      'Usage: tag module activate <name> | activate-tier <N> | status',
-      'module',
-    );
+    return fail('No subcommand provided.', 'Usage: tag module activate <name> | activate-tier <N> | status', 'module');
   }
 
   switch (subcommand) {
     case 'activate':
-      if (!args[1]) return fail('No module name provided.', 'Usage: tag module activate <name>', 'module');
-      return activateOne(args[1]);
+      if (!parsed.positional[1])
+        return fail('No module name provided.', 'Usage: tag module activate <name> [--full]', 'module');
+      return activateOne(parsed.positional[1], full);
     case 'activate-tier':
-      if (!args[1]) return fail('No tier provided.', 'Usage: tag module activate-tier <N>', 'module');
-      return activateTier(args[1]);
+      if (!parsed.positional[1])
+        return fail('No tier provided.', 'Usage: tag module activate-tier <N> [--full]', 'module');
+      return activateTier(parsed.positional[1], full);
     case 'status':
       return status();
     default:
-      return fail(
-        `Unknown subcommand: ${subcommand}`,
-        'Valid subcommands: activate, activate-tier, status',
-        'module',
-      );
+      return fail(`Unknown subcommand: ${subcommand}`, 'Valid subcommands: activate, activate-tier, status', 'module');
   }
 }

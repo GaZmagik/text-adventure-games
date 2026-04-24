@@ -23,13 +23,16 @@ function codexEntry(title: string): string {
 }
 
 function codexPanel(discovered: number, totalEntries: number, entries: string[]): string {
-  return panel('codex', `
+  return panel(
+    'codex',
+    `
     <div class="widget-codex">
       <div class="codex-title">Lore Codex</div>
       <div class="codex-summary">${discovered} of ${totalEntries} entries discovered</div>
       ${entries.join('\n')}
     </div>
-  `);
+  `,
+  );
 }
 
 function shipSystemCard(name: string, pct: number): string {
@@ -43,6 +46,15 @@ function crewRow(name: string, role: string): string {
 function questCard(title: string, progress: string, objectives: string[]): string {
   const objs = objectives.map(o => `<li class="quest-objective">${o}</li>`).join('');
   return `<div class="quest-card"><div class="quest-card-header"><span class="quest-title">${title}</span><span class="quest-progress">${progress}</span></div><ul class="quest-objectives">${objs}</ul></div>`;
+}
+
+function questLogElement(quests: unknown): string {
+  const encoded = JSON.stringify(quests)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  return `<ta-quest-log data-quests="${encoded}" data-current-scene="3"></ta-quest-log>`;
 }
 
 /* ------------------------------------------------------------------ */
@@ -93,12 +105,15 @@ describe('checkCodexEntryCount', () => {
   });
 
   test('passes when singular "entry" used with count 1', () => {
-    const html = panel('codex', `
+    const html = panel(
+      'codex',
+      `
       <div class="widget-codex">
         <div class="codex-summary">1 of 40 entry discovered</div>
         ${codexEntry('First Entry')}
       </div>
-    `);
+    `,
+    );
     const failures: string[] = [];
     checkCodexEntryCount(html, failures);
     expect(failures).toHaveLength(0);
@@ -117,33 +132,42 @@ describe('checkShipPanelContent', () => {
   });
 
   test('passes when ship panel has system cards', () => {
-    const html = panel('ship', `
+    const html = panel(
+      'ship',
+      `
       <div class="widget-ship">
         <div class="ship-title">Borrowed Tide</div>
         ${shipSystemCard('hull', 84)}
         ${shipSystemCard('engines', 78)}
       </div>
-    `);
+    `,
+    );
     const failures: string[] = [];
     checkShipPanelContent(html, failures);
     expect(failures).toHaveLength(0);
   });
 
   test('passes when ship panel has placeholder message', () => {
-    const html = panel('ship', `
+    const html = panel(
+      'ship',
+      `
       <div class="widget-ship">
         <p>Not currently aboard a ship.</p>
       </div>
-    `);
+    `,
+    );
     const failures: string[] = [];
     checkShipPanelContent(html, failures);
     expect(failures).toHaveLength(0);
   });
 
   test('passes with "no vessel" placeholder', () => {
-    const html = panel('ship', `
+    const html = panel(
+      'ship',
+      `
       <div class="widget-ship"><p>No vessel assigned.</p></div>
-    `);
+    `,
+    );
     const failures: string[] = [];
     checkShipPanelContent(html, failures);
     expect(failures).toHaveLength(0);
@@ -164,12 +188,15 @@ describe('checkShipPanelContent', () => {
   });
 
   test('fails when ship panel is empty shell', () => {
-    const html = panel('ship', `
+    const html = panel(
+      'ship',
+      `
       <div class="widget-ship">
         <div class="ship-title">Borrowed Tide</div>
         <div class="ship-meta">Repair parts: 6</div>
       </div>
-    `);
+    `,
+    );
     const failures: string[] = [];
     checkShipPanelContent(html, failures);
     expect(failures).toHaveLength(1);
@@ -178,9 +205,12 @@ describe('checkShipPanelContent', () => {
   });
 
   test('fails when ship panel has only title — no cards or placeholder', () => {
-    const html = panel('ship', `
+    const html = panel(
+      'ship',
+      `
       <div class="widget-ship"><div class="ship-title">My Ship</div></div>
-    `);
+    `,
+    );
     const failures: string[] = [];
     checkShipPanelContent(html, failures);
     expect(failures).toHaveLength(1);
@@ -199,7 +229,9 @@ describe('checkCrewPanelContent', () => {
   });
 
   test('passes when crew panel has crew rows', () => {
-    const html = panel('crew', `
+    const html = panel(
+      'crew',
+      `
       <div class="widget-crew">
         <div class="crew-title">Crew Manifest</div>
         <table class="crew-table"><tbody>
@@ -207,25 +239,32 @@ describe('checkCrewPanelContent', () => {
           ${crewRow('Ruk', 'engineer')}
         </tbody></table>
       </div>
-    `);
+    `,
+    );
     const failures: string[] = [];
     checkCrewPanelContent(html, failures);
     expect(failures).toHaveLength(0);
   });
 
   test('passes when crew panel has placeholder', () => {
-    const html = panel('crew', `
+    const html = panel(
+      'crew',
+      `
       <div class="widget-crew"><p>No crew recruited yet.</p></div>
-    `);
+    `,
+    );
     const failures: string[] = [];
     checkCrewPanelContent(html, failures);
     expect(failures).toHaveLength(0);
   });
 
   test('passes with "travelling alone" placeholder', () => {
-    const html = panel('crew', `
+    const html = panel(
+      'crew',
+      `
       <div class="widget-crew"><p>You are travelling alone.</p></div>
-    `);
+    `,
+    );
     const failures: string[] = [];
     checkCrewPanelContent(html, failures);
     expect(failures).toHaveLength(0);
@@ -246,12 +285,15 @@ describe('checkCrewPanelContent', () => {
   });
 
   test('fails when crew panel is empty shell', () => {
-    const html = panel('crew', `
+    const html = panel(
+      'crew',
+      `
       <div class="widget-crew">
         <div class="crew-title">Crew Manifest</div>
         <table class="crew-table"><thead><tr><th>Name</th><th>Role</th></tr></thead><tbody></tbody></table>
       </div>
-    `);
+    `,
+    );
     const failures: string[] = [];
     checkCrewPanelContent(html, failures);
     expect(failures).toHaveLength(1);
@@ -271,26 +313,57 @@ describe('checkQuestPanelIntegrity', () => {
     expect(failures).toHaveLength(0);
   });
 
+  test('passes with CDN-backed quest log custom element data', () => {
+    const html = panel(
+      'quests',
+      questLogElement([
+        {
+          id: 'main',
+          title: 'Find the Beacon',
+          status: 'active',
+          objectives: [{ id: 'scan', description: 'Scan the ruins', completed: false }],
+        },
+      ]),
+    );
+    const failures: string[] = [];
+    checkQuestPanelIntegrity(html, failures);
+    expect(failures).toHaveLength(0);
+  });
+
+  test('fails when quest log custom element data is malformed', () => {
+    const html = panel('quests', '<ta-quest-log data-quests="{bad json" data-current-scene="3"></ta-quest-log>');
+    const failures: string[] = [];
+    checkQuestPanelIntegrity(html, failures);
+    expect(failures).toHaveLength(1);
+    expect(failures[0]).toMatch(/valid JSON/);
+  });
+
   test('passes with well-formed quest cards using fractions', () => {
-    const html = panel('quests', `
+    const html = panel(
+      'quests',
+      `
       <div class="panel-quests">
         <div class="quests-title">Active Quests</div>
         ${questCard('Atlas of the Drowned Sky', '1/3', ['Find the chart', 'Visit the reef', 'Return'])}
         ${questCard('Borrowed Tide', '0/2', ['Talk to Quill', 'Recover the log'])}
       </div>
-    `);
+    `,
+    );
     const failures: string[] = [];
     checkQuestPanelIntegrity(html, failures);
     expect(failures).toHaveLength(0);
   });
 
   test('passes with percentage progress format', () => {
-    const html = panel('quests', `
+    const html = panel(
+      'quests',
+      `
       <div class="panel-quests">
         ${questCard('Main Quest', '33%', ['Step one'])}
         ${questCard('Side Quest', '50%', ['Step two'])}
       </div>
-    `);
+    `,
+    );
     const failures: string[] = [];
     checkQuestPanelIntegrity(html, failures);
     expect(failures).toHaveLength(0);
@@ -311,11 +384,14 @@ describe('checkQuestPanelIntegrity', () => {
   });
 
   test('fails when quest panel has no quest cards', () => {
-    const html = panel('quests', `
+    const html = panel(
+      'quests',
+      `
       <div class="panel-quests">
         <div class="quests-title">Active Quests</div>
       </div>
-    `);
+    `,
+    );
     const failures: string[] = [];
     checkQuestPanelIntegrity(html, failures);
     expect(failures).toHaveLength(1);
@@ -323,7 +399,9 @@ describe('checkQuestPanelIntegrity', () => {
   });
 
   test('fails when quest card missing title', () => {
-    const html = panel('quests', `
+    const html = panel(
+      'quests',
+      `
       <div class="panel-quests">
         <div class="quest-card">
           <div class="quest-card-header">
@@ -332,7 +410,8 @@ describe('checkQuestPanelIntegrity', () => {
           <ul class="quest-objectives"><li class="quest-objective">Do a thing</li></ul>
         </div>
       </div>
-    `);
+    `,
+    );
     const failures: string[] = [];
     checkQuestPanelIntegrity(html, failures);
     expect(failures).toHaveLength(1);
@@ -340,7 +419,9 @@ describe('checkQuestPanelIntegrity', () => {
   });
 
   test('fails when quest card missing progress', () => {
-    const html = panel('quests', `
+    const html = panel(
+      'quests',
+      `
       <div class="panel-quests">
         <div class="quest-card">
           <div class="quest-card-header">
@@ -349,7 +430,8 @@ describe('checkQuestPanelIntegrity', () => {
           <ul class="quest-objectives"><li class="quest-objective">Do a thing</li></ul>
         </div>
       </div>
-    `);
+    `,
+    );
     const failures: string[] = [];
     checkQuestPanelIntegrity(html, failures);
     expect(failures).toHaveLength(1);
@@ -357,12 +439,15 @@ describe('checkQuestPanelIntegrity', () => {
   });
 
   test('fails when progress formats are mixed (fraction + percentage)', () => {
-    const html = panel('quests', `
+    const html = panel(
+      'quests',
+      `
       <div class="panel-quests">
         ${questCard('Quest A', '1/3', ['Obj'])}
         ${questCard('Quest B', '50%', ['Obj'])}
       </div>
-    `);
+    `,
+    );
     const failures: string[] = [];
     checkQuestPanelIntegrity(html, failures);
     expect(failures).toHaveLength(1);
@@ -370,12 +455,15 @@ describe('checkQuestPanelIntegrity', () => {
   });
 
   test('passes when all quests use same format', () => {
-    const html = panel('quests', `
+    const html = panel(
+      'quests',
+      `
       <div class="panel-quests">
         ${questCard('Quest A', '0/3', ['Obj'])}
         ${questCard('Quest B', '1/2', ['Obj'])}
       </div>
-    `);
+    `,
+    );
     const failures: string[] = [];
     checkQuestPanelIntegrity(html, failures);
     expect(failures).toHaveLength(0);
@@ -394,13 +482,16 @@ describe('checkMapPanelContent', () => {
   });
 
   test('passes with complete map panel', () => {
-    const html = panel('map', `
+    const html = panel(
+      'map',
+      `
       <div class="widget-map">
         <div class="map-title">Map</div>
         <div class="map-current">Choir Steps</div>
         <div class="map-summary">3 visited · 8 unexplored</div>
       </div>
-    `);
+    `,
+    );
     const failures: string[] = [];
     checkMapPanelContent(html, failures);
     expect(failures).toHaveLength(0);
@@ -421,12 +512,15 @@ describe('checkMapPanelContent', () => {
   });
 
   test('fails when map-current is missing', () => {
-    const html = panel('map', `
+    const html = panel(
+      'map',
+      `
       <div class="widget-map">
         <div class="map-title">Map</div>
         <div class="map-summary">3 visited · 8 unexplored</div>
       </div>
-    `);
+    `,
+    );
     const failures: string[] = [];
     checkMapPanelContent(html, failures);
     expect(failures).toHaveLength(1);
@@ -434,12 +528,15 @@ describe('checkMapPanelContent', () => {
   });
 
   test('fails when map-summary is missing', () => {
-    const html = panel('map', `
+    const html = panel(
+      'map',
+      `
       <div class="widget-map">
         <div class="map-title">Map</div>
         <div class="map-current">Choir Steps</div>
       </div>
-    `);
+    `,
+    );
     const failures: string[] = [];
     checkMapPanelContent(html, failures);
     expect(failures).toHaveLength(1);
@@ -447,9 +544,12 @@ describe('checkMapPanelContent', () => {
   });
 
   test('fails when both map-current and map-summary are missing', () => {
-    const html = panel('map', `
+    const html = panel(
+      'map',
+      `
       <div class="widget-map"><div class="map-title">Map</div></div>
-    `);
+    `,
+    );
     const failures: string[] = [];
     checkMapPanelContent(html, failures);
     expect(failures).toHaveLength(2);
@@ -463,12 +563,23 @@ describe('checkMapPanelContent', () => {
 function makeState(level: number, computedLevel?: number): GmState {
   return {
     character: {
-      name: 'Rian', class: 'Cartographer', hp: 10, maxHp: 10,
-      ac: 12, level, xp: 0, currency: 0, currencyName: 'credits',
+      name: 'Rian',
+      class: 'Cartographer',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
       stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
       modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-      proficiencyBonus: 2, proficiencies: [], abilities: [],
-      inventory: [], conditions: [], equipment: { weapon: 'knife', armour: 'vest' },
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
+      equipment: { weapon: 'knife', armour: 'vest' },
     },
     _computedLevel: computedLevel,
   } as unknown as GmState;

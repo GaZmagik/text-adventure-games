@@ -22,6 +22,40 @@ const DEFAULT_OUTPUT_DIR = join(SKILL_DIR, 'assets');
 const ICONS_DIR = join(SKILL_DIR, 'icons');
 
 const CDN_ASSET_PATH = '/.claude/skills/text-adventure/assets';
+const SVG_VIEWBOX_RE = /^-?\d+(?:\.\d+)?(?:\s+-?\d+(?:\.\d+)?){3}$/;
+const SAFE_SVG_ELEMENTS = new Set(['g', 'path', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'rect']);
+const SAFE_SVG_ATTRS = new Set([
+  'clip-rule',
+  'cx',
+  'cy',
+  'd',
+  'fill',
+  'fill-opacity',
+  'fill-rule',
+  'height',
+  'opacity',
+  'points',
+  'r',
+  'rx',
+  'ry',
+  'stroke',
+  'stroke-dasharray',
+  'stroke-dashoffset',
+  'stroke-linecap',
+  'stroke-linejoin',
+  'stroke-miterlimit',
+  'stroke-opacity',
+  'stroke-width',
+  'transform',
+  'width',
+  'x',
+  'x1',
+  'x2',
+  'y',
+  'y1',
+  'y2',
+]);
+const UNSAFE_SVG_VALUE_RE = /(?:javascript|vbscript|data):|url\s*\(|[`<>]/i;
 
 /** Detect the current HEAD commit for an immutable CDN ref. Falls back to 'main'. */
 function detectGitRef(): string {
@@ -46,9 +80,9 @@ function buildCdnBase(ref: string, user: string): string {
 /** Simple CSS minification: strip comments, collapse whitespace. */
 function minifyCss(css: string): string {
   return css
-    .replace(/\/\*[\s\S]*?\*\//g, '')   // strip comments
-    .replace(/\s*\n\s*/g, '\n')         // collapse line whitespace
-    .replace(/\n{2,}/g, '\n')           // collapse blank lines
+    .replace(/\/\*[\s\S]*?\*\//g, '') // strip comments
+    .replace(/\s*\n\s*/g, '\n') // collapse line whitespace
+    .replace(/\n{2,}/g, '\n') // collapse blank lines
     .trim();
 }
 
@@ -118,6 +152,73 @@ function generateManifest(entries: StyleEntry[], scripts: ScriptEntry[], cdnBase
   return lines.join('\n');
 }
 
+export function sanitizeSvgSymbolContent(content: string, sourceName = 'icon.svg'): { viewBox: string; inner: string } {
+  const source = content
+    .replace(/<\?xml[\s\S]*?\?>/gi, '')
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .trim();
+  const svgMatch = source.match(/^<svg\b([^>]*)>([\s\S]*?)<\/svg>$/i);
+  if (!svgMatch) {
+    throw new Error(`${sourceName} must contain a single <svg> root.`);
+  }
+
+  const svgAttrs = svgMatch[1] ?? '';
+  const viewBoxMatch = svgAttrs.match(/\bviewBox\s*=\s*(["'])(.*?)\1/i);
+  const viewBox = viewBoxMatch?.[2]?.trim() ?? '';
+  if (!SVG_VIEWBOX_RE.test(viewBox)) {
+    throw new Error(`${sourceName} has an invalid viewBox.`);
+  }
+
+  const inner = (svgMatch[2] ?? '').trim();
+  if (!inner) {
+    throw new Error(`${sourceName} does not contain drawable SVG content.`);
+  }
+
+  const tagPattern = /<\/?([a-zA-Z][\w:-]*)([^<>]*)>/g;
+  const attrPattern = /([A-Za-z_:][\w:.-]*)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
+  let cursor = 0;
+  let match: RegExpExecArray | null;
+  while ((match = tagPattern.exec(inner))) {
+    if (inner.slice(cursor, match.index).trim()) {
+      throw new Error(`${sourceName} contains raw text outside SVG elements.`);
+    }
+    cursor = tagPattern.lastIndex;
+
+    const fullTag = match[0] ?? '';
+    const tagName = (match[1] ?? '').toLowerCase();
+    if (!SAFE_SVG_ELEMENTS.has(tagName)) {
+      throw new Error(`${sourceName} uses disallowed SVG element <${tagName}>.`);
+    }
+    if (fullTag.startsWith('</')) continue;
+
+    const attrText = (match[2] ?? '').replace(/\/\s*$/, '');
+    let attrCursor = 0;
+    let attrMatch: RegExpExecArray | null;
+    while ((attrMatch = attrPattern.exec(attrText))) {
+      if (attrText.slice(attrCursor, attrMatch.index).trim()) {
+        throw new Error(`${sourceName} contains malformed SVG attributes.`);
+      }
+      attrCursor = attrPattern.lastIndex;
+      const attrName = (attrMatch[1] ?? '').toLowerCase();
+      const attrValue = attrMatch[2] ?? attrMatch[3] ?? attrMatch[4] ?? '';
+      if (attrName.startsWith('on') || !SAFE_SVG_ATTRS.has(attrName)) {
+        throw new Error(`${sourceName} uses disallowed SVG attribute "${attrName}".`);
+      }
+      if (UNSAFE_SVG_VALUE_RE.test(attrValue)) {
+        throw new Error(`${sourceName} uses an unsafe SVG attribute value.`);
+      }
+    }
+    if (attrText.slice(attrCursor).trim()) {
+      throw new Error(`${sourceName} contains malformed SVG attributes.`);
+    }
+  }
+  if (inner.slice(cursor).trim()) {
+    throw new Error(`${sourceName} contains raw text outside SVG elements.`);
+  }
+
+  return { viewBox, inner };
+}
+
 // ── Main handler ─────────────────────────────────────────────────────
 
 export async function handleBuildCss(args: string[]): Promise<CommandResult> {
@@ -140,11 +241,7 @@ export async function handleBuildCss(args: string[]): Promise<CommandResult> {
   }
 
   if (styleFiles.length === 0) {
-    return fail(
-      'No style files found in styles/ directory.',
-      'Add .md style files to the styles/ directory.',
-      COMMAND,
-    );
+    return fail('No style files found in styles/ directory.', 'Add .md style files to the styles/ directory.', COMMAND);
   }
 
   // Read style-reference.md for shared structural CSS
@@ -198,7 +295,7 @@ export async function handleBuildCss(args: string[]): Promise<CommandResult> {
   const structuralCss = [
     { name: 'pregame-design', content: PREGAME_DESIGN_CSS },
     { name: 'scene-design', content: SCENE_DESIGN_CSS },
-    { name: 'common-widget', content: COMMON_WIDGET_CSS }
+    { name: 'common-widget', content: COMMON_WIDGET_CSS },
   ];
 
   for (const style of structuralCss) {
@@ -251,29 +348,36 @@ export async function handleBuildCss(args: string[]): Promise<CommandResult> {
   // ── SVG Sprite generation ───────────────────────────────────────────
   const iconsDir = join(outputDir, 'icons');
   mkdirSync(iconsDir, { recursive: true });
-  
+
   let spriteHash: string | undefined;
+  let iconFiles: string[];
   try {
-    const iconFiles = readdirSync(ICONS_DIR).filter(f => f.endsWith('.svg')).sort();
-    if (iconFiles.length > 0) {
-      const symbols: string[] = [];
-      for (const file of iconFiles) {
-        const id = file.replace(/\.svg$/, '');
-        if (!/^[a-z0-9_-]+$/i.test(id)) continue;
-        const content = await Bun.file(join(ICONS_DIR, file)).text();
-        // Simple extraction of path/shapes from SVG, assuming they are clean
-        const inner = content
-          .replace(/<svg[^>]*>/i, '')
-          .replace(/<\/svg>/i, '')
-          .trim();
-        symbols.push(`<symbol id="${id}" viewBox="0 0 24 24">${inner}</symbol>`);
+    iconFiles = readdirSync(ICONS_DIR)
+      .filter(f => f.endsWith('.svg'))
+      .sort();
+  } catch {
+    iconFiles = [];
+  }
+  if (iconFiles.length > 0) {
+    const symbols: string[] = [];
+    for (const file of iconFiles) {
+      const id = file.replace(/\.svg$/, '');
+      if (!/^[a-z0-9_-]+$/i.test(id)) continue;
+      const content = await Bun.file(join(ICONS_DIR, file)).text();
+      try {
+        const { viewBox, inner } = sanitizeSvgSymbolContent(content, file);
+        symbols.push(`<symbol id="${id}" viewBox="${viewBox}">${inner}</symbol>`);
+      } catch (err) {
+        return fail(
+          err instanceof Error ? err.message : `Unsafe SVG icon: ${file}`,
+          'Use static SVG path/shape elements without scripts, event handlers, external references, or embedded data.',
+          COMMAND,
+        );
       }
-      const sprite = `<svg xmlns="http://www.w3.org/2000/svg" style="display:none">${symbols.join('')}</svg>`;
-      spriteHash = fnv32(sprite);
-      await Bun.write(join(iconsDir, 'sprite.svg'), sprite);
     }
-  } catch (e) {
-    // Icons dir might not exist or read failed, skip silently
+    const sprite = `<svg xmlns="http://www.w3.org/2000/svg" style="display:none">${symbols.join('')}</svg>`;
+    spriteHash = fnv32(sprite);
+    await Bun.write(join(iconsDir, 'sprite.svg'), sprite);
   }
 
   // Generate CDN manifest

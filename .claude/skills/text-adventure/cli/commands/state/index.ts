@@ -13,7 +13,20 @@ import { containsForbiddenKeys } from '../../lib/security';
 import { validateStatePath, describeStateShape } from '../../lib/state-schema';
 import { clearWorkflowMarkers } from '../../lib/workflow-markers';
 
-const VALID_SUBCOMMANDS = ['get', 'set', 'create-npc', 'validate', 'reset', 'history', 'context', 'sync', 'schema', 'codex', 'crew', 'ship'] as const;
+const VALID_SUBCOMMANDS = [
+  'get',
+  'set',
+  'create-npc',
+  'validate',
+  'reset',
+  'history',
+  'context',
+  'sync',
+  'schema',
+  'codex',
+  'crew',
+  'ship',
+] as const;
 
 function isBestiaryTier(s: string): s is BestiaryTier {
   return (VALID_TIERS as readonly string[]).includes(s);
@@ -155,11 +168,7 @@ async function handleGet(args: string[]): Promise<CommandResult> {
   const result = getByPath(state, path);
 
   if (!result.found) {
-    return fail(
-      `Path "${path}" not found in state.`,
-      suggestKeys(state, path.split('.')[0]!),
-      'state get',
-    );
+    return fail(`Path "${path}" not found in state.`, suggestKeys(state, path.split('.')[0]!), 'state get');
   }
 
   return ok(result.value, 'state get');
@@ -191,7 +200,11 @@ async function handleSet(args: string[]): Promise<CommandResult> {
   if (operator === '+=' || operator === '-=') {
     rawValue = args[2]!;
     if (!rawValue) {
-      return fail(`No value provided for ${operator} operation.`, `Usage: tag state set ${path} ${operator} <number>`, 'state set');
+      return fail(
+        `No value provided for ${operator} operation.`,
+        `Usage: tag state set ${path} ${operator} <number>`,
+        'state set',
+      );
     }
     const delta = Number(rawValue);
     if (Number.isNaN(delta)) {
@@ -199,7 +212,11 @@ async function handleSet(args: string[]): Promise<CommandResult> {
     }
     const current = getByPath(state, path);
     if (!current.found || typeof current.value !== 'number') {
-      return fail(`Path "${path}" is not a number; cannot apply ${operator}.`, 'Ensure the target path holds a numeric value.', 'state set');
+      return fail(
+        `Path "${path}" is not a number; cannot apply ${operator}.`,
+        'Ensure the target path holds a numeric value.',
+        'state set',
+      );
     }
     newValue = operator === '+=' ? current.value + delta : current.value - delta;
   } else {
@@ -237,7 +254,11 @@ async function handleSet(args: string[]): Promise<CommandResult> {
 async function handleCreateNpc(args: string[]): Promise<CommandResult> {
   const npcId = args[0];
   if (!npcId) {
-    return fail('No NPC id provided.', 'Usage: tag state create-npc <id> --name <n> --tier <tier> --pronouns <p> --role <r>', 'state create-npc');
+    return fail(
+      'No NPC id provided.',
+      'Usage: tag state create-npc <id> --name <n> --tier <tier> --pronouns <p> --role <r>',
+      'state create-npc',
+    );
   }
 
   const flags = parseArgs(args.slice(1), [], ['name', 'pronouns', 'tier', 'role']).flags;
@@ -290,16 +311,14 @@ async function handleCreateNpc(args: string[]): Promise<CommandResult> {
 
   // Check for duplicate id
   if (state.rosterMutations.some(n => n.id === npcId)) {
-    return fail(`NPC "${npcId}" already exists in the roster.`, `Use a different id or modify the existing NPC with: tag state set rosterMutations.<field>`, 'state create-npc');
+    return fail(
+      `NPC "${npcId}" already exists in the roster.`,
+      `Use a different id or modify the existing NPC with: tag state set rosterMutations.<field>`,
+      'state create-npc',
+    );
   }
 
-  const npc = generateNpcFromTier(
-    flags.tier,
-    npcId,
-    flags.name,
-    flags.pronouns,
-    role,
-  );
+  const npc = generateNpcFromTier(flags.tier, npcId, flags.name, flags.pronouns, role);
 
   state.rosterMutations.push(npc);
   recordHistory(state, 'state create-npc', `rosterMutations.${npcId}`, null, npc);
@@ -320,10 +339,13 @@ async function handleReset(): Promise<CommandResult> {
   const state = createDefaultState();
   await saveState(state);
   clearWorkflowMarkers({ includePreGameVerify: true });
-  return ok({
-    message: 'State reset to defaults.',
-    hint: 'Run `tag state schema <path>` to see expected field shapes (e.g. `tag state schema character`, `tag state schema quests.0`).',
-  }, 'state reset');
+  return ok(
+    {
+      message: 'State reset to defaults.',
+      hint: 'Run `tag state schema <path>` to see expected field shapes (e.g. `tag state schema character`, `tag state schema quests.0`).',
+    },
+    'state reset',
+  );
 }
 
 function handleSchema(args: string[]): CommandResult {
@@ -342,9 +364,10 @@ async function handleContext(): Promise<CommandResult> {
   const tier1 = TIER1_MODULES.slice();
   const activeSet = new Set(active);
   const missingTier1 = tier1.filter(m => !activeSet.has(m));
-  const missingHint = missingTier1.length > 0
-    ? `Missing tier 1 modules: ${missingTier1.join(', ')}. These should be loaded before first widget render.`
-    : '';
+  const missingHint =
+    missingTier1.length > 0
+      ? `Missing tier 1 modules: ${missingTier1.join(', ')}. These should be loaded before first widget render.`
+      : '';
 
   const moduleDigests: Record<string, string> = {};
   for (const m of active) {
@@ -359,20 +382,24 @@ async function handleContext(): Promise<CommandResult> {
 
   const staleItems: string[] = [];
   if (!proseCraftFresh) staleItems.push('Run `tag module activate prose-craft` to reload prose-craft content.');
-  if (!styleDocsFresh) staleItems.push('Run `tag style activate` to reload the active visual style and style-reference.md.');
+  if (!styleDocsFresh)
+    staleItems.push('Run `tag style activate` to reload the active visual style and style-reference.md.');
   const staleHint = staleItems.join(' ');
 
-  return ok({
-    required,
-    tier1: [...tier1],
-    missingHint,
-    moduleDigests,
-    totalModules: active.length,
-    modulesActive: active,
-    proseCraftFresh,
-    styleDocsFresh,
-    staleHint,
-  }, 'state context');
+  return ok(
+    {
+      required,
+      tier1: [...tier1],
+      missingHint,
+      moduleDigests,
+      totalModules: active.length,
+      modulesActive: active,
+      proseCraftFresh,
+      styleDocsFresh,
+      staleHint,
+    },
+    'state context',
+  );
 }
 
 async function handleHistory(args: string[]): Promise<CommandResult> {

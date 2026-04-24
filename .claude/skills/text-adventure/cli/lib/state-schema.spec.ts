@@ -41,12 +41,22 @@ describe('collectUnexpectedStatePaths', () => {
   test('detects array where object expected (equipment type mismatch)', () => {
     const state = createDefaultState();
     state.character = {
-      name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-      level: 1, xp: 0, currency: 0, currencyName: 'credits',
+      name: 'Test',
+      class: 'Scout',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
       stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
       modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-      proficiencyBonus: 2, proficiencies: [], abilities: [],
-      inventory: [], conditions: [],
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
       equipment: ['Sword', 'Shield'] as any,
     };
     const paths = collectUnexpectedStatePaths(state);
@@ -56,12 +66,22 @@ describe('collectUnexpectedStatePaths', () => {
   test('does not flag valid object equipment', () => {
     const state = createDefaultState();
     state.character = {
-      name: 'Test', class: 'Scout', hp: 10, maxHp: 10, ac: 12,
-      level: 1, xp: 0, currency: 0, currencyName: 'credits',
+      name: 'Test',
+      class: 'Scout',
+      hp: 10,
+      maxHp: 10,
+      ac: 12,
+      level: 1,
+      xp: 0,
+      currency: 0,
+      currencyName: 'credits',
       stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
       modifiers: { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-      proficiencyBonus: 2, proficiencies: [], abilities: [],
-      inventory: [], conditions: [],
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
       equipment: { weapon: 'Sword', armour: 'Chainmail' },
     };
     const paths = collectUnexpectedStatePaths(state);
@@ -99,6 +119,21 @@ describe('describeStateShape', () => {
     expect(desc).toContain('description');
     expect(desc).toContain('completed');
     expect(desc).toContain('clues');
+  });
+
+  test('describes rich map zone shape', () => {
+    const desc = describeStateShape('mapState.zones.0');
+    expect(desc).toContain('id');
+    expect(desc).toContain('width');
+    expect(desc).toContain('terrain');
+    expect(desc).toContain('connections');
+  });
+
+  test('describes persisted world data shape', () => {
+    const desc = describeStateShape('worldData.rooms.bridge');
+    expect(desc).toContain('name');
+    expect(desc).toContain('exits');
+    expect(desc).toContain('controllingFaction');
   });
 
   test('describes inventory item shape', () => {
@@ -190,5 +225,8 @@ describe('validateStatePath', () => {
     expect(validateStatePath('quests.0.objectives.0.completed').valid).toBe(true);
     expect(validateStatePath('worldFlags.quest_started').valid).toBe(true);
     expect(validateStatePath('time.deadline.label').valid).toBe(true);
+    expect(validateStatePath('mapState.zones.0.width').valid).toBe(true);
+    expect(validateStatePath('mapState.connections.0.locked').valid).toBe(true);
+    expect(validateStatePath('worldData.rooms.bridge.exits.0').valid).toBe(true);
   });
 });

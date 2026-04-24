@@ -98,24 +98,57 @@ const timeState = object({
   playerKnowsDate: leaf(),
   playerKnowsTime: leaf(),
   calendarSystem: leaf(),
-  deadline: nullable(object({
-    label: leaf(),
-    remainingScenes: leaf(),
-  })),
+  deadline: nullable(
+    object({
+      label: leaf(),
+      remainingScenes: leaf(),
+    }),
+  ),
 });
 
 const questObjective = object({
   id: leaf(),
   description: leaf(),
   completed: leaf(),
+  state: leaf(),
+  optional: leaf(),
+  blockedReason: leaf(),
+  npcId: leaf(),
+  locationId: leaf(),
+});
+
+const _questClue = object({
+  id: leaf(),
+  text: leaf(),
+  source: leaf(),
+  scene: leaf(),
+  important: leaf(),
+});
+
+const _questReward = object({
+  label: leaf(),
+  known: leaf(),
+  received: leaf(),
 });
 
 const quest = object({
   id: leaf(),
   title: leaf(),
   status: leaf(),
+  type: leaf(),
+  priority: leaf(),
+  summary: leaf(),
+  description: leaf(),
+  currentObjectiveId: leaf(),
   objectives: array(questObjective),
   clues: array(leaf()),
+  relatedNpcIds: array(leaf()),
+  relatedFactionIds: array(leaf()),
+  relatedLocationIds: array(leaf()),
+  rewards: array(leaf()),
+  consequences: array(leaf()),
+  discoveredAtScene: leaf(),
+  updatedAtScene: leaf(),
 });
 
 const rollRecord = object({
@@ -134,11 +167,13 @@ const rollRecord = object({
 
 const shipState = object({
   name: leaf(),
-  systems: record(object({
-    integrity: leaf(),
-    status: leaf(),
-    conditions: array(leaf()),
-  })),
+  systems: record(
+    object({
+      integrity: leaf(),
+      status: leaf(),
+      conditions: array(leaf()),
+    }),
+  ),
   powerAllocations: record(leaf()),
   repairParts: leaf(),
   scenesSinceRepair: leaf(),
@@ -156,15 +191,131 @@ const crewMutation = object({
   task: leaf(),
 });
 
+const mapZone = object({
+  id: leaf(),
+  name: leaf(),
+  type: leaf(),
+  terrain: leaf(),
+  x: leaf(),
+  y: leaf(),
+  width: leaf(),
+  height: leaf(),
+  status: leaf(),
+  faction: leaf(),
+  threat: leaf(),
+  description: leaf(),
+  encounters: array(leaf()),
+  loot: array(leaf()),
+  connections: array(leaf()),
+  icon: leaf(),
+});
+
+const mapConnection = object({
+  id: leaf(),
+  from: leaf(),
+  to: leaf(),
+  type: leaf(),
+  bidirectional: leaf(),
+  discovered: leaf(),
+  locked: leaf(),
+  keyItem: leaf(),
+  travelTime: leaf(),
+  status: leaf(),
+});
+
+const mapDoor = object({
+  between: array(leaf()),
+  type: leaf(),
+  status: leaf(),
+  keyItem: leaf(),
+});
+
 const mapState = object({
+  activeMapType: leaf(),
+  mapId: leaf(),
+  mapName: leaf(),
+  zones: array(mapZone),
+  connections: array(mapConnection),
+  doors: array(mapDoor),
   currentZone: leaf(),
   visitedZones: array(leaf()),
   revealedZones: array(leaf()),
   doorStates: record(leaf()),
-  supplies: nullable(object({
-    rations: leaf(),
-    water: leaf(),
-  })),
+  supplies: nullable(
+    object({
+      rations: leaf(),
+      water: leaf(),
+    }),
+  ),
+  travelLog: array(leaf()),
+});
+
+const worldRoom = object({
+  id: leaf(),
+  name: leaf(),
+  type: leaf(),
+  terrain: leaf(),
+  description: leaf(),
+  atmosphere: leaf(),
+  exits: array(leaf()),
+  controllingFaction: leaf(),
+  threat: leaf(),
+  danger: leaf(),
+  loot: array(leaf()),
+  encounters: array(leaf()),
+  tags: array(leaf()),
+  icon: leaf(),
+});
+
+const worldFaction = object({
+  id: leaf(),
+  name: leaf(),
+  ideology: leaf(),
+  territory: array(leaf()),
+  disposition: leaf(),
+});
+
+const worldNpcProfile = object({
+  id: leaf(),
+  name: leaf(),
+  pronouns: leaf(),
+  role: leaf(),
+  faction: leaf(),
+  factionName: leaf(),
+  startRoom: leaf(),
+  currentRoom: leaf(),
+  tier: leaf(),
+  stats: statBlock,
+  trust: leaf(),
+  disposition: leaf(),
+  agenda: array(leaf()),
+  secret: leaf(),
+});
+
+const worldData = object({
+  seed: leaf(),
+  theme: leaf(),
+  mapName: leaf(),
+  rooms: record(worldRoom),
+  startRoom: leaf(),
+  bossRoom: leaf(),
+  factions: object({
+    factions: array(worldFaction),
+    relations: record(leaf()),
+  }),
+  roster: array(worldNpcProfile),
+  hooks: object({
+    main: leaf(),
+    side: array(leaf()),
+    factionA: leaf(),
+    factionB: leaf(),
+  }),
+  meta: object({
+    roomCount: leaf(),
+    npcCount: leaf(),
+    generatedAt: leaf(),
+    generatorVersion: leaf(),
+  }),
 });
 
 const storyArchitectState = object({
@@ -244,6 +395,7 @@ const GM_STATE_SHAPE: StateShape = object({
   shipState: nullable(shipState),
   crewMutations: array(crewMutation),
   mapState: nullable(mapState),
+  worldData: nullable(worldData),
   systemResources: leaf(),
   navPlottedCourse: leaf(),
   arc: leaf(),
@@ -266,36 +418,42 @@ const GM_STATE_SHAPE: StateShape = object({
   authoredSourceId: leaf(),
   _loreSource: leaf(),
   _authoredLoreReads: record(leaf()),
-  _lorePregen: array(object({
-    name: leaf(),
-    class: leaf(),
-    pronouns: leaf(),
-    hook: leaf(),
-    background: leaf(),
-    stats: statBlock,
-    hp: leaf(),
-    ac: leaf(),
-    proficiencies: array(leaf()),
-    startingInventory: array(object({
+  _lorePregen: array(
+    object({
       name: leaf(),
-      type: leaf(),
-      effect: leaf(),
-      description: leaf(),
-    })),
-    abilities: array(leaf()),
-    startingCurrency: leaf(),
-    openingLens: leaf(),
-    prologueVariant: leaf(),
-  })),
+      class: leaf(),
+      pronouns: leaf(),
+      hook: leaf(),
+      background: leaf(),
+      stats: statBlock,
+      hp: leaf(),
+      ac: leaf(),
+      proficiencies: array(leaf()),
+      startingInventory: array(
+        object({
+          name: leaf(),
+          type: leaf(),
+          effect: leaf(),
+          description: leaf(),
+        }),
+      ),
+      abilities: array(leaf()),
+      startingCurrency: leaf(),
+      openingLens: leaf(),
+      prologueVariant: leaf(),
+    }),
+  ),
   _loreDefaults: record(leaf()),
-  _pendingRolls: array(object({
-    action: leaf(),
-    type: leaf(),
-    stat: leaf(),
-    npc: leaf(),
-    dc: leaf(),
-    skill: leaf(),
-  })),
+  _pendingRolls: array(
+    object({
+      action: leaf(),
+      type: leaf(),
+      stat: leaf(),
+      npc: leaf(),
+      dc: leaf(),
+      skill: leaf(),
+    }),
+  ),
 });
 
 type StripResult = {
@@ -324,12 +482,7 @@ function joinPath(base: string, segment: string): string {
   return base ? `${base}.${segment}` : segment;
 }
 
-function collectUnexpectedPaths(
-  value: unknown,
-  shape: StateShape,
-  basePath: string,
-  unexpected: string[],
-): void {
+function collectUnexpectedPaths(value: unknown, shape: StateShape, basePath: string, unexpected: string[]): void {
   const current = unwrap(shape);
   if (current.kind === 'leaf') return;
 
@@ -368,19 +521,15 @@ function collectUnexpectedPaths(
   }
 }
 
-function stripUnknownKeys(
-  value: unknown,
-  shape: StateShape,
-  basePath: string,
-  strippedPaths: string[],
-): unknown {
+function stripUnknownKeys(value: unknown, shape: StateShape, basePath: string, strippedPaths: string[]): unknown {
   const current = unwrap(shape);
   if (current.kind === 'leaf') return value;
 
   if (current.kind === 'array') {
     if (!Array.isArray(value)) return value;
     return value.map((item, index) =>
-      stripUnknownKeys(item, current.item, joinPath(basePath, String(index)), strippedPaths));
+      stripUnknownKeys(item, current.item, joinPath(basePath, String(index)), strippedPaths),
+    );
   }
 
   if (!isRecord(value)) return value;
@@ -434,10 +583,14 @@ export function describeStateShape(path: string): string {
         current = inner.item;
         continue;
       }
-      if (inner.kind === 'record') { current = inner.value; continue; }
+      if (inner.kind === 'record') {
+        current = inner.value;
+        continue;
+      }
       if (inner.kind === 'object') {
         const next = inner.props[part];
-        if (!next) return `Error: Unknown key "${part}" in "${path}". Valid keys: ${Object.keys(inner.props).join(', ')}`;
+        if (!next)
+          return `Error: Unknown key "${part}" in "${path}". Valid keys: ${Object.keys(inner.props).join(', ')}`;
         current = next;
         continue;
       }

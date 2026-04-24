@@ -1,3 +1,4 @@
+// Render-origin markers bind generated widget HTML to its widget type for verification.
 import { fnv32 } from './fnv32';
 
 const RENDER_ORIGIN_PREFIX = '<!-- TAG-RENDER:';

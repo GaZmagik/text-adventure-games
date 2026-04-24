@@ -2,16 +2,26 @@
 // Pure functions for .lore.md generation and parsing.
 
 import type {
-  GmState, NpcMutation, Quest, CodexMutation, TimeState,
-  MapState, StoryArchitectState, CarryForward, ArcSummary, ShipState, CrewMutation,
+  GmState,
+  NpcMutation,
+  Quest,
+  CodexMutation,
+  TimeState,
+  MapState,
+  StoryArchitectState,
+  CarryForward,
+  ArcSummary,
+  ShipState,
+  CrewMutation,
+  WorldData,
 } from '../types';
 import { SCHEMA_VERSION } from './constants';
 export { parseLoreFrontmatter } from './lore-frontmatter';
 
 // ── Types ────────────────────────────────────────────────────────────
 
-/** 
- * Summary of the player character that was active at the time of export. 
+/**
+ * Summary of the player character that was active at the time of export.
  */
 type PreviousAdventurer = {
   name: string;
@@ -19,12 +29,12 @@ type PreviousAdventurer = {
   level: number;
 } | null;
 
-/** 
- * The mechanical data payload embedded in a .lore.md file. 
- * 
+/**
+ * The mechanical data payload embedded in a .lore.md file.
+ *
  * @remarks
- * This object is serialised to Base64 and embedded in an HTML comment 
- * (LF1 format) at the end of the exported file. It contains the minimum 
+ * This object is serialised to Base64 and embedded in an HTML comment
+ * (LF1 format) at the end of the exported file. It contains the minimum
  * state required to reconstruct the world for a new player.
  */
 type LoreMechanicalData = {
@@ -46,6 +56,7 @@ type LoreMechanicalData = {
   visualStyle?: string;
   codexMutations: CodexMutation[];
   mapState?: MapState;
+  worldData?: WorldData;
   storyArchitect?: StoryArchitectState;
   shipState?: ShipState;
   crewMutations?: CrewMutation[];
@@ -62,11 +73,11 @@ type LoreMechanicalData = {
 
 // ── YAML escaping ───────────────────────────────────────────────────
 
-/** 
- * Escape a value for safe YAML frontmatter interpolation. 
+/**
+ * Escape a value for safe YAML frontmatter interpolation.
  */
 function yamlSafe(value: string): string {
-  if (/^[a-zA-Z0-9._\-]+$/.test(value)) return value;
+  if (/^[a-zA-Z0-9._-]+$/.test(value)) return value;
   return '"' + value.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n') + '"';
 }
 
@@ -87,10 +98,10 @@ function factionLabel(standing: number): string {
 
 /**
  * Extracts the world-sharing data from a live GmState.
- * 
+ *
  * @param {GmState} state - The current game state.
  * @returns {LoreMechanicalData} - The stripped world data.
- * 
+ *
  * @remarks
  * This function handles the "World Export" logic:
  * 1. Captures character info as `previousAdventurer`.
@@ -110,9 +121,7 @@ export function extractMechanicalData(state: GmState): LoreMechanicalData {
   }));
 
   // Empty visitedZones in mapState
-  const mapState: MapState | undefined = state.mapState
-    ? { ...state.mapState, visitedZones: [] }
-    : undefined;
+  const mapState: MapState | undefined = state.mapState ? { ...state.mapState, visitedZones: [] } : undefined;
 
   const data: LoreMechanicalData = {
     _loreVersion: 1,
@@ -133,6 +142,7 @@ export function extractMechanicalData(state: GmState): LoreMechanicalData {
     ...(state.visualStyle !== undefined ? { visualStyle: state.visualStyle } : {}),
     codexMutations,
     ...(mapState !== undefined ? { mapState } : {}),
+    ...(state.worldData !== undefined ? { worldData: state.worldData } : {}),
     ...(state.storyArchitect !== undefined ? { storyArchitect: state.storyArchitect } : {}),
     ...(state.shipState !== undefined ? { shipState: state.shipState } : {}),
     ...(state.crewMutations !== undefined ? { crewMutations: state.crewMutations } : {}),
@@ -185,8 +195,7 @@ export function extractFrontmatterField(content: string, field: string): string 
   if (!line) return null;
   let value = line.slice(field.length + 1).trim();
   // Strip surrounding quotes
-  if ((value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))) {
+  if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
     value = value.slice(1, -1);
   }
   return value;
@@ -197,12 +206,11 @@ export function extractFrontmatterField(content: string, field: string): string 
 /** Builds the YAML frontmatter for the lore export. */
 function buildFrontmatter(state: GmState): string {
   const now = new Date().toISOString();
-  const title = state.theme
-    ? `Lore Export — ${state.theme}`
-    : 'Lore Export';
-  const rulebook = typeof state.worldFlags.rulebook === 'string' && state.worldFlags.rulebook.trim().length > 0
-    ? state.worldFlags.rulebook.trim()
-    : 'd20_system';
+  const title = state.theme ? `Lore Export — ${state.theme}` : 'Lore Export';
+  const rulebook =
+    typeof state.worldFlags.rulebook === 'string' && state.worldFlags.rulebook.trim().length > 0
+      ? state.worldFlags.rulebook.trim()
+      : 'd20_system';
   const calendarSystem = state.time?.calendarSystem ?? 'elapsed-only';
   const startDate = state.time?.date ?? 'Day 1';
   const startTime = state.time?.hour != null ? `${String(state.time.hour)}:00` : '08:00';
@@ -292,9 +300,13 @@ function buildNpcRoster(state: GmState): string {
     lines.push(`- **Damage Dice:** ${npc.damageDice}`);
     lines.push(`- **Disposition:** ${npc.disposition} (trust: ${npc.trust})`);
     lines.push(`- **Status:** ${npc.status}`);
-    const stats = Object.entries(npc.stats).map(([k, v]) => `${k}: ${v}`).join(', ');
+    const stats = Object.entries(npc.stats)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join(', ');
     lines.push(`- **Stats:** ${stats}`);
-    const mods = Object.entries(npc.modifiers).map(([k, v]) => `${k}: ${v}`).join(', ');
+    const mods = Object.entries(npc.modifiers)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join(', ');
     lines.push(`- **Modifiers:** ${mods}`);
     lines.push('');
     lines.push('*Prose description: (to be written by GM)*');
@@ -366,7 +378,7 @@ function buildCodexEntries(state: GmState): string {
 
 /**
  * Builds the complete human-readable .lore.md content.
- * 
+ *
  * @param {GmState} state - The game state to export.
  * @returns {string} - Full Markdown content with YAML frontmatter.
  */

@@ -5,18 +5,32 @@ export function rollDie(sides: number): number {
 }
 
 /** @internal — test-only; source files use rollD20 or rollDie directly. */
-export function rollD4(): number { return rollDie(4); }
+export function rollD4(): number {
+  return rollDie(4);
+}
 /** @internal — test-only; source files use rollD20 or rollDie directly. */
-export function rollD6(): number { return rollDie(6); }
+export function rollD6(): number {
+  return rollDie(6);
+}
 /** @internal — test-only; source files use rollD20 or rollDie directly. */
-export function rollD8(): number { return rollDie(8); }
+export function rollD8(): number {
+  return rollDie(8);
+}
 /** @internal — test-only; source files use rollD20 or rollDie directly. */
-export function rollD10(): number { return rollDie(10); }
+export function rollD10(): number {
+  return rollDie(10);
+}
 /** @internal — test-only; source files use rollD20 or rollDie directly. */
-export function rollD12(): number { return rollDie(12); }
-export function rollD20(): number { return rollDie(20); }
+export function rollD12(): number {
+  return rollDie(12);
+}
+export function rollD20(): number {
+  return rollDie(20);
+}
 /** @internal — test-only; source files use rollD20 or rollDie directly. */
-export function rollD100(): number { return (rollDie(10) - 1) * 10 + rollDie(10); }
+export function rollD100(): number {
+  return (rollDie(10) - 1) * 10 + rollDie(10);
+}
 
 /** @internal — test-only; source files use rollD20 or rollDie directly. */
 export function rollDice(count: number, sides: number, modifier: number): number {

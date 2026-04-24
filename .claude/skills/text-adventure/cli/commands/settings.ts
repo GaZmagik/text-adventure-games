@@ -1,9 +1,10 @@
+// Settings command handlers mutate persistent player-facing preferences such as prose gate mode.
 import type { CommandResult } from '../types';
 import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState } from '../lib/state-store';
 
 const VALID_PROSE_MODES = ['llm', 'manual'] as const;
-type ProseMode = typeof VALID_PROSE_MODES[number];
+type ProseMode = (typeof VALID_PROSE_MODES)[number];
 
 function isProseMode(v: string): v is ProseMode {
   return (VALID_PROSE_MODES as readonly string[]).includes(v);
@@ -28,19 +29,18 @@ export async function handleSettings(args: string[]): Promise<CommandResult> {
   // Read current mode (no mutation)
   if (!modeArg) {
     const currentMode = state.worldFlags.proseMode === 'llm' ? 'llm' : 'manual';
-    return ok({
-      mode: currentMode,
-      usage: 'tag settings prose [llm|manual]',
-      message: `Current prose review mode: ${currentMode}.`,
-    }, 'settings');
+    return ok(
+      {
+        mode: currentMode,
+        usage: 'tag settings prose [llm|manual]',
+        message: `Current prose review mode: ${currentMode}.`,
+      },
+      'settings',
+    );
   }
 
   if (!isProseMode(modeArg)) {
-    return fail(
-      `Unknown mode "${modeArg}".`,
-      'Use: llm or manual',
-      'settings',
-    );
+    return fail(`Unknown mode "${modeArg}".`, 'Use: llm or manual', 'settings');
   }
 
   // modeArg is now narrowed to ProseMode

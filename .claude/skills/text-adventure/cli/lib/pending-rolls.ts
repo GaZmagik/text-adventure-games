@@ -1,3 +1,4 @@
+// Pending-roll helpers reconcile rendered action metadata with later compute command results.
 import type { PendingRoll, RollRecord, RollType } from '../types';
 
 const PENDING_TO_ROLL_TYPE: Record<PendingRoll['type'], RollType> = {
@@ -5,8 +6,8 @@ const PENDING_TO_ROLL_TYPE: Record<PendingRoll['type'], RollType> = {
   hazard: 'hazard_save',
 };
 
-type PendingRollCriteria = Pick<PendingRoll, 'type' | 'stat'>
-  & Partial<Pick<PendingRoll, 'action' | 'npc' | 'dc' | 'skill'>>;
+type PendingRollCriteria = Pick<PendingRoll, 'type' | 'stat'> &
+  Partial<Pick<PendingRoll, 'action' | 'npc' | 'dc' | 'skill'>>;
 
 type PendingRollMatch = {
   pending: PendingRoll;
@@ -88,7 +89,7 @@ export function selectPendingRollForResolution(
   criteria: PendingRollCriteria,
 ): PendingRoll | null {
   const { unresolved } = resolvePendingRolls(pendingRolls, rollHistory, scene);
-  const candidates = unresolved.filter((pending) => {
+  const candidates = unresolved.filter(pending => {
     if (pending.type !== criteria.type) return false;
     if (pending.stat !== criteria.stat) return false;
     if (criteria.action !== undefined && pending.action !== criteria.action) return false;

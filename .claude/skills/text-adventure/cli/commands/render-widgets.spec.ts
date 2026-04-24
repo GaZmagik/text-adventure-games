@@ -156,7 +156,11 @@ describe('render widget smoke tests', () => {
     const result = await handleRender(['codex', '--raw']);
     expect(result.ok).toBe(true);
     const html = result.data as string;
-    const entries = extractJsonTagAttr<Array<{ id: string; state: string; discoveredAt?: number }>>(html, 'ta-codex', 'data-entries');
+    const entries = extractJsonTagAttr<Array<{ id: string; state: string; discoveredAt?: number }>>(
+      html,
+      'ta-codex',
+      'data-entries',
+    );
     expect(html).toContain('<ta-codex');
     expect(entries.map(entry => entry.id)).toEqual(['ancient_beacon', 'dark_signal']);
     expect(entries[0]!.state).toBe('discovered');
@@ -170,6 +174,36 @@ describe('render widget smoke tests', () => {
     const entries = extractJsonTagAttr<unknown[]>(html, 'ta-codex', 'data-entries');
     expect(html).toContain('<ta-codex');
     expect(entries).toEqual([]);
+  });
+
+  test('quest-log widget renders normalized quest data', async () => {
+    state.quests = [
+      {
+        id: 'main',
+        title: 'Secure the Bridge',
+        status: 'active',
+        objectives: [
+          { id: 'door', description: 'Open the blast door', completed: true },
+          { id: 'console', description: 'Reach the command console', completed: false },
+        ],
+        clues: ['The captain carried an override key.'],
+      },
+    ];
+    await saveState(state);
+    const result = await handleRender(['quest-log', '--raw']);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+    const quests = extractJsonTagAttr<
+      Array<{
+        title: string;
+        currentObjectiveId: string;
+        clues: Array<{ text: string }>;
+      }>
+    >(html, 'ta-quest-log', 'data-quests');
+    expect(html).toContain('<ta-quest-log');
+    expect(quests[0]!.title).toBe('Secure the Bridge');
+    expect(quests[0]!.currentObjectiveId).toBe('console');
+    expect(quests[0]!.clues[0]!.text).toBe('The captain carried an override key.');
   });
 
   test('map widget renders zone list with current zone', async () => {
@@ -192,6 +226,37 @@ describe('render widget smoke tests', () => {
     expect(map.current).toBe('Docking Bay 7');
     expect(map.nodes.some(node => node.id === 'Bridge')).toBe(true);
     expect(map.doorStates['bay-door']).toBe('locked');
+  });
+
+  test('map widget accepts --data route overlay', async () => {
+    state.mapState = {
+      activeMapType: 'dungeon',
+      currentZone: 'bridge',
+      visitedZones: ['bridge'],
+      revealedZones: ['bridge', 'hall', 'engine'],
+      doorStates: {},
+      zones: [
+        { id: 'bridge', name: 'Bridge', status: 'current' },
+        { id: 'hall', name: 'Central Hall', status: 'revealed' },
+        { id: 'engine', name: 'Engine Room', status: 'revealed' },
+      ],
+      connections: [
+        { id: 'bridge-hall', from: 'bridge', to: 'hall', discovered: true },
+        { id: 'hall-engine', from: 'hall', to: 'engine', discovered: true },
+      ],
+    };
+    await saveState(state);
+    const result = await handleRender(['map', '--raw', '--data', '{"route":{"from":"bridge","to":"engine"}}']);
+    expect(result.ok).toBe(true);
+    const html = result.data as string;
+    const map = extractJsonTagAttr<{ route: { reachable: boolean; path: string[]; pathLabels: string[] } }>(
+      html,
+      'ta-map',
+      'data-map',
+    );
+    expect(map.route.reachable).toBe(true);
+    expect(map.route.path).toEqual(['bridge', 'hall', 'engine']);
+    expect(map.route.pathLabels).toEqual(['Bridge', 'Central Hall', 'Engine Room']);
   });
 
   test('map widget renders empty-state when no mapState', async () => {
@@ -245,7 +310,11 @@ describe('render widget smoke tests', () => {
     const result = await handleRender(['combat-turn', '--style', 'terminal']);
     expect(result.ok).toBe(true);
     const html = (result.data as { html: string }).html;
-    const combat = extractJsonTagAttr<{ computation: { context?: { damage?: number } } }>(html, 'ta-combat-turn', 'data-combat');
+    const combat = extractJsonTagAttr<{ computation: { context?: { damage?: number } } }>(
+      html,
+      'ta-combat-turn',
+      'data-combat',
+    );
     expect(combat.computation.context?.damage).toBe(8);
   });
 

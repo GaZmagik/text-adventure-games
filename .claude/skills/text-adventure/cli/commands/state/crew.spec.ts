@@ -43,7 +43,17 @@ describe('crew dispatch', () => {
 
 describe('crew add', () => {
   test('creates a crew member with defaults', async () => {
-    const r = await handleState(['crew', 'add', 'eng_01', '--name', 'Kira Voss', '--pronouns', 'she/her', '--role', 'engineer']);
+    const r = await handleState([
+      'crew',
+      'add',
+      'eng_01',
+      '--name',
+      'Kira Voss',
+      '--pronouns',
+      'she/her',
+      '--role',
+      'engineer',
+    ]);
     expect(r.ok).toBe(true);
     expect(r.command).toBe('state crew');
 
@@ -102,7 +112,17 @@ describe('crew add', () => {
 
   test('fails on duplicate id', async () => {
     await handleState(['crew', 'add', 'eng_01', '--name', 'Kira', '--pronouns', 'she/her', '--role', 'engineer']);
-    const r = await handleState(['crew', 'add', 'eng_01', '--name', 'Other', '--pronouns', 'he/him', '--role', 'medic']);
+    const r = await handleState([
+      'crew',
+      'add',
+      'eng_01',
+      '--name',
+      'Other',
+      '--pronouns',
+      'he/him',
+      '--role',
+      'medic',
+    ]);
     expect(r.ok).toBe(false);
     expect(r.error?.message).toMatch(/already exists/i);
   });

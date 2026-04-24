@@ -175,7 +175,14 @@ describe('state set', () => {
 
   test('set JSON object values — parses rather than storing as string', async () => {
     await handleState(['reset']);
-    const charJson = JSON.stringify({ name: 'Rhian', class: 'Medic', hp: 9, maxHp: 9, level: 1, stats: { STR: 10, DEX: 12, CON: 10, INT: 14, WIS: 11, CHA: 13 } });
+    const charJson = JSON.stringify({
+      name: 'Rhian',
+      class: 'Medic',
+      hp: 9,
+      maxHp: 9,
+      level: 1,
+      stats: { STR: 10, DEX: 12, CON: 10, INT: 14, WIS: 11, CHA: 13 },
+    });
     const result = await handleState(['set', 'character', charJson]);
     expect(result.ok).toBe(true);
 
@@ -215,11 +222,16 @@ describe('state create-npc', () => {
   test('generates NPC with correct tier stats', async () => {
     await handleState(['reset']);
     const result = await handleState([
-      'create-npc', 'guard_01',
-      '--name', 'Gate Guard',
-      '--tier', 'minion',
-      '--pronouns', 'he/him',
-      '--role', 'guard',
+      'create-npc',
+      'guard_01',
+      '--name',
+      'Gate Guard',
+      '--tier',
+      'minion',
+      '--pronouns',
+      'he/him',
+      '--role',
+      'guard',
     ]);
     expect(result.ok).toBe(true);
 
@@ -238,10 +250,14 @@ describe('state create-npc', () => {
   test('requires --pronouns flag (fails without it)', async () => {
     await handleState(['reset']);
     const result = await handleState([
-      'create-npc', 'guard_02',
-      '--name', 'Broken Guard',
-      '--tier', 'minion',
-      '--role', 'guard',
+      'create-npc',
+      'guard_02',
+      '--name',
+      'Broken Guard',
+      '--tier',
+      'minion',
+      '--role',
+      'guard',
     ]);
     expect(result.ok).toBe(false);
     expect(result.error?.message).toMatch(/pronouns/i);
@@ -250,18 +266,28 @@ describe('state create-npc', () => {
   test('rejects duplicate NPC ids', async () => {
     await handleState(['reset']);
     await handleState([
-      'create-npc', 'guard_03',
-      '--name', 'First Guard',
-      '--tier', 'minion',
-      '--pronouns', 'she/her',
-      '--role', 'guard',
+      'create-npc',
+      'guard_03',
+      '--name',
+      'First Guard',
+      '--tier',
+      'minion',
+      '--pronouns',
+      'she/her',
+      '--role',
+      'guard',
     ]);
     const result = await handleState([
-      'create-npc', 'guard_03',
-      '--name', 'Second Guard',
-      '--tier', 'minion',
-      '--pronouns', 'they/them',
-      '--role', 'guard',
+      'create-npc',
+      'guard_03',
+      '--name',
+      'Second Guard',
+      '--tier',
+      'minion',
+      '--pronouns',
+      'they/them',
+      '--role',
+      'guard',
     ]);
     expect(result.ok).toBe(false);
     expect(result.error?.message).toMatch(/already exists/i);
@@ -270,10 +296,14 @@ describe('state create-npc', () => {
   test('requires --name flag', async () => {
     await handleState(['reset']);
     const result = await handleState([
-      'create-npc', 'guard_04',
-      '--tier', 'minion',
-      '--pronouns', 'he/him',
-      '--role', 'guard',
+      'create-npc',
+      'guard_04',
+      '--tier',
+      'minion',
+      '--pronouns',
+      'he/him',
+      '--role',
+      'guard',
     ]);
     expect(result.ok).toBe(false);
     expect(result.error?.message).toMatch(/name/i);
@@ -282,10 +312,14 @@ describe('state create-npc', () => {
   test('requires --tier flag', async () => {
     await handleState(['reset']);
     const result = await handleState([
-      'create-npc', 'guard_05',
-      '--name', 'Guard',
-      '--pronouns', 'he/him',
-      '--role', 'guard',
+      'create-npc',
+      'guard_05',
+      '--name',
+      'Guard',
+      '--pronouns',
+      'he/him',
+      '--role',
+      'guard',
     ]);
     expect(result.ok).toBe(false);
     expect(result.error?.message).toMatch(/tier/i);
@@ -293,11 +327,16 @@ describe('state create-npc', () => {
 
   test('returns error when no state exists', async () => {
     const result = await handleState([
-      'create-npc', 'guard_06',
-      '--name', 'Guard',
-      '--tier', 'minion',
-      '--pronouns', 'he/him',
-      '--role', 'guard',
+      'create-npc',
+      'guard_06',
+      '--name',
+      'Guard',
+      '--tier',
+      'minion',
+      '--pronouns',
+      'he/him',
+      '--role',
+      'guard',
     ]);
     expect(result.ok).toBe(false);
   });
@@ -459,11 +498,16 @@ describe('state create-npc — negative paths', () => {
   test('fails with invalid tier', async () => {
     await handleState(['reset']);
     const result = await handleState([
-      'create-npc', 'npc1',
-      '--name', 'Dragon Lord',
-      '--tier', 'dragon',
-      '--pronouns', 'he/him',
-      '--role', 'boss',
+      'create-npc',
+      'npc1',
+      '--name',
+      'Dragon Lord',
+      '--tier',
+      'dragon',
+      '--pronouns',
+      'he/him',
+      '--role',
+      'boss',
     ]);
     expect(result.ok).toBe(false);
     expect(result.error!.message).toContain('Invalid tier');
@@ -473,11 +517,16 @@ describe('state create-npc — negative paths', () => {
   test('fails with invalid pronouns', async () => {
     await handleState(['reset']);
     const result = await handleState([
-      'create-npc', 'npc1',
-      '--name', 'Golem',
-      '--tier', 'rival',
-      '--pronouns', 'xe/xem',
-      '--role', 'construct',
+      'create-npc',
+      'npc1',
+      '--name',
+      'Golem',
+      '--tier',
+      'rival',
+      '--pronouns',
+      'xe/xem',
+      '--role',
+      'construct',
     ]);
     expect(result.ok).toBe(false);
     expect(result.error!.message).toContain('Invalid pronouns');
@@ -490,10 +539,7 @@ describe('state create-npc — negative paths', () => {
 describe('state set — containsForbiddenKeys rejects nested __proto__', () => {
   test('stores raw string when JSON value contains __proto__ at depth', async () => {
     await handleState(['reset']);
-    const result = await handleState([
-      'set', 'worldFlags.test',
-      '{"nested": {"__proto__": {"polluted": true}}}',
-    ]);
+    const result = await handleState(['set', 'worldFlags.test', '{"nested": {"__proto__": {"polluted": true}}}']);
     expect(result.ok).toBe(true);
 
     const state = await loadState();
@@ -508,7 +554,11 @@ describe('state set — containsForbiddenKeys rejects nested __proto__', () => {
 describe('state context', () => {
   test('returns required module paths and tier1 list', async () => {
     await handleState(['reset']);
-    await handleState(['set', 'modulesActive', '["gm-checklist","prose-craft","core-systems","die-rolls","character-creation","save-codex","audio"]']);
+    await handleState([
+      'set',
+      'modulesActive',
+      '["gm-checklist","prose-craft","core-systems","die-rolls","character-creation","save-codex","audio"]',
+    ]);
     const result = await handleState(['context']);
     expect(result.ok).toBe(true);
     const data = result.data as Record<string, unknown>;
@@ -638,11 +688,16 @@ describe('state create-npc — Phase 9 improved error messages', () => {
   test('clear error for invalid pronouns lists valid values', async () => {
     await handleState(['reset']);
     const result = await handleState([
-      'create-npc', 'npc_p9a',
-      '--name', 'Golem',
-      '--tier', 'rival',
-      '--pronouns', 'xe/xem',
-      '--role', 'construct',
+      'create-npc',
+      'npc_p9a',
+      '--name',
+      'Golem',
+      '--tier',
+      'rival',
+      '--pronouns',
+      'xe/xem',
+      '--role',
+      'construct',
     ]);
     expect(result.ok).toBe(false);
     expect(result.error!.corrective).toContain('she/her');
@@ -653,11 +708,16 @@ describe('state create-npc — Phase 9 improved error messages', () => {
   test('clear error for invalid tier lists valid values', async () => {
     await handleState(['reset']);
     const result = await handleState([
-      'create-npc', 'npc_p9b',
-      '--name', 'Dragon Lord',
-      '--tier', 'dragon',
-      '--pronouns', 'he/him',
-      '--role', 'boss',
+      'create-npc',
+      'npc_p9b',
+      '--name',
+      'Dragon Lord',
+      '--tier',
+      'dragon',
+      '--pronouns',
+      'he/him',
+      '--role',
+      'boss',
     ]);
     expect(result.ok).toBe(false);
     expect(result.error!.corrective).toContain('minion');
@@ -668,10 +728,14 @@ describe('state create-npc — Phase 9 improved error messages', () => {
   test('helpful message for missing name includes quoted example', async () => {
     await handleState(['reset']);
     const result = await handleState([
-      'create-npc', 'npc_p9c',
-      '--tier', 'minion',
-      '--pronouns', 'he/him',
-      '--role', 'guard',
+      'create-npc',
+      'npc_p9c',
+      '--tier',
+      'minion',
+      '--pronouns',
+      'he/him',
+      '--role',
+      'guard',
     ]);
     expect(result.ok).toBe(false);
     expect(result.error!.message).toMatch(/name/i);
@@ -718,10 +782,12 @@ describe('state get edge cases', () => {
 
 describe('state set edge cases', () => {
   test('setByPath rejects forbidden intermediate and terminal segments', () => {
-    expect(() => __stateTestInternals.setByPath({}, 'time.__proto__.hour', 12))
-      .toThrow('Forbidden path segment: "__proto__"');
-    expect(() => __stateTestInternals.setByPath({ time: {} }, 'time.prototype', 12))
-      .toThrow('Forbidden path segment: "prototype"');
+    expect(() => __stateTestInternals.setByPath({}, 'time.__proto__.hour', 12)).toThrow(
+      'Forbidden path segment: "__proto__"',
+    );
+    expect(() => __stateTestInternals.setByPath({ time: {} }, 'time.prototype', 12)).toThrow(
+      'Forbidden path segment: "prototype"',
+    );
   });
 
   test('stores invalid JSON-like input as a raw string', async () => {
@@ -775,25 +841,29 @@ describe('state set edge cases', () => {
 
   test('rolls back invalid mutations instead of persisting them', async () => {
     await handleState(['reset']);
-    await handleState(['set', 'character', JSON.stringify({
-      name: 'Rhian',
-      class: 'Medic',
-      hp: 9,
-      maxHp: 9,
-      ac: 12,
-      level: 1,
-      xp: 0,
-      currency: 0,
-      currencyName: 'credits',
-      stats: { STR: 10, DEX: 12, CON: 10, INT: 14, WIS: 11, CHA: 13 },
-      modifiers: { STR: 0, DEX: 1, CON: 0, INT: 2, WIS: 0, CHA: 1 },
-      proficiencyBonus: 2,
-      proficiencies: [],
-      abilities: [],
-      inventory: [],
-      conditions: [],
-      equipment: { weapon: 'Scalpel', armour: 'Coat' },
-    })]);
+    await handleState([
+      'set',
+      'character',
+      JSON.stringify({
+        name: 'Rhian',
+        class: 'Medic',
+        hp: 9,
+        maxHp: 9,
+        ac: 12,
+        level: 1,
+        xp: 0,
+        currency: 0,
+        currencyName: 'credits',
+        stats: { STR: 10, DEX: 12, CON: 10, INT: 14, WIS: 11, CHA: 13 },
+        modifiers: { STR: 0, DEX: 1, CON: 0, INT: 2, WIS: 0, CHA: 1 },
+        proficiencyBonus: 2,
+        proficiencies: [],
+        abilities: [],
+        inventory: [],
+        conditions: [],
+        equipment: { weapon: 'Scalpel', armour: 'Coat' },
+      }),
+    ]);
 
     const result = await handleState(['set', 'character.hp', '99']);
     expect(result.ok).toBe(false);

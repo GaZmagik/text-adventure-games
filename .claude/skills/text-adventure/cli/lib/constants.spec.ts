@@ -1,7 +1,13 @@
 import { describe, test, expect } from 'bun:test';
 import {
-  STAT_NAMES, VALID_TIERS, VALID_PRONOUNS, VALID_TOP_KEYS,
-  KNOWN_MODULES, TIER1_MODULES, SCHEMA_VERSION, WIDGET_TYPE_NAMES,
+  STAT_NAMES,
+  VALID_TIERS,
+  VALID_PRONOUNS,
+  VALID_TOP_KEYS,
+  KNOWN_MODULES,
+  TIER1_MODULES,
+  SCHEMA_VERSION,
+  WIDGET_TYPE_NAMES,
 } from './constants';
 import { TEMPLATE_KEYS } from '../commands/render';
 import type { StatName, BestiaryTier, Pronouns, GmState } from '../types';
@@ -28,18 +34,56 @@ describe('constants', () => {
   test('VALID_TOP_KEYS matches GmState interface keys', () => {
     // satisfies enforces exhaustiveness: omitting any GmState key is a compile error
     const ALL_GM_STATE_KEYS = {
-      _version: true, _schemaVersion: true, scene: true, currentRoom: true,
-      visitedRooms: true, rollHistory: true, character: true, worldFlags: true,
-      openingLens: true, prologueVariant: true, prologueComplete: true, characterOrigin: true,
-      seed: true, theme: true, visualStyle: true, modulesActive: true,
-      rosterMutations: true, codexMutations: true, time: true, factions: true,
-      quests: true, storyArchitect: true, shipState: true, crewMutations: true,
-      mapState: true, systemResources: true, navPlottedCourse: true, arc: true,
-      arcType: true, carryForward: true, arcHistory: true, _lastComputation: true,
-      _stateHistory: true, _compactionCount: true, _pendingRolls: true, _turnCount: true,
-      _modulesRead: true, _proseCraftEpoch: true, _styleReadEpoch: true, _levelupPending: true, _computedLevel: true,
-      authoredBody: true, outputStyle: true, pacingProfile: true, authoredSourceId: true, _loreSource: true, _authoredLoreReads: true,
-      _lorePregen: true, _loreDefaults: true,
+      _version: true,
+      _schemaVersion: true,
+      scene: true,
+      currentRoom: true,
+      visitedRooms: true,
+      rollHistory: true,
+      character: true,
+      worldFlags: true,
+      openingLens: true,
+      prologueVariant: true,
+      prologueComplete: true,
+      characterOrigin: true,
+      seed: true,
+      theme: true,
+      visualStyle: true,
+      modulesActive: true,
+      rosterMutations: true,
+      codexMutations: true,
+      time: true,
+      factions: true,
+      quests: true,
+      storyArchitect: true,
+      shipState: true,
+      crewMutations: true,
+      mapState: true,
+      worldData: true,
+      systemResources: true,
+      navPlottedCourse: true,
+      arc: true,
+      arcType: true,
+      carryForward: true,
+      arcHistory: true,
+      _lastComputation: true,
+      _stateHistory: true,
+      _compactionCount: true,
+      _pendingRolls: true,
+      _turnCount: true,
+      _modulesRead: true,
+      _proseCraftEpoch: true,
+      _styleReadEpoch: true,
+      _levelupPending: true,
+      _computedLevel: true,
+      authoredBody: true,
+      outputStyle: true,
+      pacingProfile: true,
+      authoredSourceId: true,
+      _loreSource: true,
+      _authoredLoreReads: true,
+      _lorePregen: true,
+      _loreDefaults: true,
     } satisfies Record<keyof Required<GmState>, true>;
     const topKeys = [...VALID_TOP_KEYS].sort();
     const expectedKeys = Object.keys(ALL_GM_STATE_KEYS).sort();
@@ -62,7 +106,7 @@ describe('constants', () => {
 
   test('WIDGET_TYPE_NAMES matches TEMPLATES keys from render.ts', () => {
     const constantsKeys = ([...WIDGET_TYPE_NAMES] as string[]).sort();
-    const renderKeys = ([...TEMPLATE_KEYS]).sort();
+    const renderKeys = [...TEMPLATE_KEYS].sort();
     expect(constantsKeys).toEqual(renderKeys);
   });
 });

@@ -35,7 +35,8 @@ describe('tag setup apply', () => {
       archetypeLabel: 'Scout',
       pronouns: 'they/them',
       stats: { STR: 10, DEX: 16, CON: 10, INT: 10, WIS: 14, CHA: 10 },
-      hp: 9, ac: 13,
+      hp: 9,
+      ac: 13,
       proficiencies: ['Stealth', 'Perception'],
       abilities: ['Sneak Attack'],
     });
@@ -69,9 +70,13 @@ describe('tag setup apply', () => {
   test('sets pronouns in worldFlags', async () => {
     const settings = JSON.stringify({ rulebook: 'd20_system', visualStyle: 'station', modules: ['gm-checklist'] });
     const character = JSON.stringify({
-      name: 'Dren', pronouns: 'he/them',
+      name: 'Dren',
+      pronouns: 'he/them',
       stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
-      hp: 10, ac: 10, proficiencies: [], abilities: [],
+      hp: 10,
+      ac: 10,
+      proficiencies: [],
+      abilities: [],
     });
     const result = await handleSetup(['apply', '--settings', settings, '--character', character]);
     expect(result.ok).toBe(true);
@@ -82,9 +87,13 @@ describe('tag setup apply', () => {
   test('calculates modifiers from stats', async () => {
     const settings = JSON.stringify({ rulebook: 'd20_system', visualStyle: 'station', modules: [] });
     const character = JSON.stringify({
-      name: 'Test', pronouns: 'she/her',
+      name: 'Test',
+      pronouns: 'she/her',
       stats: { STR: 16, DEX: 8, CON: 14, INT: 10, WIS: 12, CHA: 9 },
-      hp: 12, ac: 14, proficiencies: [], abilities: [],
+      hp: 12,
+      ac: 14,
+      proficiencies: [],
+      abilities: [],
     });
     const result = await handleSetup(['apply', '--settings', settings, '--character', character]);
     expect(result.ok).toBe(true);
@@ -108,7 +117,9 @@ describe('tag setup apply', () => {
       hp: 10,
       ac: 12,
       proficiencies: ['Investigation', 'Navigation'],
-      startingInventory: [{ name: 'Folded route-slate', type: 'key_item', effect: 'Compares live routes against known charts' }],
+      startingInventory: [
+        { name: 'Folded route-slate', type: 'key_item', effect: 'Compares live routes against known charts' },
+      ],
       startingCurrency: 90,
     });
 
@@ -155,9 +166,13 @@ describe('tag setup apply', () => {
 
     const settings = JSON.stringify({ rulebook: 'd20_system', visualStyle: 'station', modules: ['gm-checklist'] });
     const character = JSON.stringify({
-      name: 'New Hero', pronouns: 'they/them',
+      name: 'New Hero',
+      pronouns: 'they/them',
       stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
-      hp: 10, ac: 10, proficiencies: [], abilities: [],
+      hp: 10,
+      ac: 10,
+      proficiencies: [],
+      abilities: [],
     });
 
     const result = await handleSetup(['apply', '--settings', settings, '--character', character]);
@@ -182,9 +197,13 @@ describe('tag setup apply', () => {
 
     const settings = JSON.stringify({ rulebook: 'd20_system', visualStyle: 'station', modules: ['gm-checklist'] });
     const character = JSON.stringify({
-      name: 'Merged Hero', pronouns: 'she/her',
+      name: 'Merged Hero',
+      pronouns: 'she/her',
       stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
-      hp: 10, ac: 10, proficiencies: [], abilities: [],
+      hp: 10,
+      ac: 10,
+      proficiencies: [],
+      abilities: [],
     });
 
     const result = await handleSetup(['apply', '--settings', settings, '--character', character]);
@@ -208,9 +227,13 @@ describe('tag setup apply', () => {
 
     const settings = JSON.stringify({ rulebook: 'd20_system', visualStyle: 'station', modules: ['gm-checklist'] });
     const character = JSON.stringify({
-      name: 'Fresh Hero', pronouns: 'they/them',
+      name: 'Fresh Hero',
+      pronouns: 'they/them',
       stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
-      hp: 10, ac: 10, proficiencies: [], abilities: [],
+      hp: 10,
+      ac: 10,
+      proficiencies: [],
+      abilities: [],
     });
 
     const result = await handleSetup(['apply', '--settings', settings, '--character', character]);
@@ -233,9 +256,13 @@ describe('tag setup apply', () => {
 
     const settings = JSON.stringify({ rulebook: 'd20_system', visualStyle: 'station', modules: ['gm-checklist'] });
     const character = JSON.stringify({
-      name: 'Clean Slate', pronouns: 'they/them',
+      name: 'Clean Slate',
+      pronouns: 'they/them',
       stats: { STR: 10, DEX: 10, CON: 10, INT: 10, WIS: 10, CHA: 10 },
-      hp: 10, ac: 10, proficiencies: [], abilities: [],
+      hp: 10,
+      ac: 10,
+      proficiencies: [],
+      abilities: [],
     });
 
     const result = await handleSetup(['apply', '--settings', settings, '--character', character]);

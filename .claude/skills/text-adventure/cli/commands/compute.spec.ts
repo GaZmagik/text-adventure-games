@@ -11,13 +11,24 @@ const originalEnv = process.env.TAG_STATE_DIR;
 
 function makeNpc(overrides: Partial<NpcMutation> = {}): NpcMutation {
   return {
-    id: 'test_npc', name: 'Test NPC', pronouns: 'they/them', role: 'guard',
-    tier: 'rival', level: 4,
+    id: 'test_npc',
+    name: 'Test NPC',
+    pronouns: 'they/them',
+    role: 'guard',
+    tier: 'rival',
+    level: 4,
     stats: { STR: 14, DEX: 12, CON: 12, INT: 10, WIS: 14, CHA: 10 },
     modifiers: { STR: 2, DEX: 1, CON: 1, INT: 0, WIS: 2, CHA: 0 },
-    hp: 16, maxHp: 16, ac: 12, soak: 2, damageDice: '1d8',
-    status: 'active', alive: true, trust: 50,
-    disposition: 'neutral', dispositionSeed: 0.5,
+    hp: 16,
+    maxHp: 16,
+    ac: 12,
+    soak: 2,
+    damageDice: '1d8',
+    status: 'active',
+    alive: true,
+    trust: 50,
+    disposition: 'neutral',
+    dispositionSeed: 0.5,
     ...overrides,
   };
 }
@@ -28,12 +39,22 @@ beforeEach(async () => {
   const state = createDefaultState();
   state.rosterMutations = [makeNpc()];
   state.character = {
-    name: 'Hero', class: 'Scout', hp: 20, maxHp: 20, ac: 13,
-    level: 3, xp: 500, currency: 100, currencyName: 'credits',
+    name: 'Hero',
+    class: 'Scout',
+    hp: 20,
+    maxHp: 20,
+    ac: 13,
+    level: 3,
+    xp: 500,
+    currency: 100,
+    currencyName: 'credits',
     stats: { STR: 10, DEX: 16, CON: 10, INT: 10, WIS: 14, CHA: 12 },
     modifiers: { STR: 0, DEX: 3, CON: 0, INT: 0, WIS: 2, CHA: 1 },
-    proficiencyBonus: 2, proficiencies: ['Stealth', 'Perception'],
-    abilities: [], inventory: [], conditions: [],
+    proficiencyBonus: 2,
+    proficiencies: ['Stealth', 'Perception'],
+    abilities: [],
+    inventory: [],
+    conditions: [],
     equipment: { weapon: 'Blaster Pistol', armour: 'Light Vest' },
   };
   await saveState(state);
@@ -211,13 +232,15 @@ describe('compute contest — deterministic outcomes', () => {
   // margin = (playerRoll + 1) - (npcRoll + 2)
 
   const originalRandom = Math.random;
-  afterEach(() => { Math.random = originalRandom; });
+  afterEach(() => {
+    Math.random = originalRandom;
+  });
 
   test('decisive_success when margin >= 5', async () => {
     // playerRoll=20, npcRoll=1 → margin = (20+1) - (1+2) = 18
     const spy = spyOn(Math, 'random')
-      .mockReturnValueOnce(randomForD20(20))  // player roll
-      .mockReturnValueOnce(randomForD20(1));   // NPC roll
+      .mockReturnValueOnce(randomForD20(20)) // player roll
+      .mockReturnValueOnce(randomForD20(1)); // NPC roll
     const result = await handleCompute(['contest', 'CHA', 'test_npc']);
     spy.mockRestore();
     expect(result.ok).toBe(true);
@@ -229,9 +252,7 @@ describe('compute contest — deterministic outcomes', () => {
 
   test('narrow_success when margin is 1-4', async () => {
     // playerRoll=4, npcRoll=2 → margin = (4+1) - (2+2) = 1
-    const spy = spyOn(Math, 'random')
-      .mockReturnValueOnce(randomForD20(4))
-      .mockReturnValueOnce(randomForD20(2));
+    const spy = spyOn(Math, 'random').mockReturnValueOnce(randomForD20(4)).mockReturnValueOnce(randomForD20(2));
     const result = await handleCompute(['contest', 'CHA', 'test_npc']);
     spy.mockRestore();
     expect(result.ok).toBe(true);
@@ -241,9 +262,7 @@ describe('compute contest — deterministic outcomes', () => {
 
   test('narrow_failure when margin is 0 (tie favours NPC)', async () => {
     // playerRoll=3, npcRoll=2 → margin = (3+1) - (2+2) = 0
-    const spy = spyOn(Math, 'random')
-      .mockReturnValueOnce(randomForD20(3))
-      .mockReturnValueOnce(randomForD20(2));
+    const spy = spyOn(Math, 'random').mockReturnValueOnce(randomForD20(3)).mockReturnValueOnce(randomForD20(2));
     const result = await handleCompute(['contest', 'CHA', 'test_npc']);
     spy.mockRestore();
     expect(result.ok).toBe(true);
@@ -253,9 +272,7 @@ describe('compute contest — deterministic outcomes', () => {
 
   test('failure when margin is -4 to -1', async () => {
     // playerRoll=2, npcRoll=2 → margin = (2+1) - (2+2) = -1
-    const spy = spyOn(Math, 'random')
-      .mockReturnValueOnce(randomForD20(2))
-      .mockReturnValueOnce(randomForD20(2));
+    const spy = spyOn(Math, 'random').mockReturnValueOnce(randomForD20(2)).mockReturnValueOnce(randomForD20(2));
     const result = await handleCompute(['contest', 'CHA', 'test_npc']);
     spy.mockRestore();
     expect(result.ok).toBe(true);
@@ -265,9 +282,7 @@ describe('compute contest — deterministic outcomes', () => {
 
   test('decisive_failure when margin <= -5', async () => {
     // playerRoll=1, npcRoll=20 → margin = (1+1) - (20+2) = -20
-    const spy = spyOn(Math, 'random')
-      .mockReturnValueOnce(randomForD20(1))
-      .mockReturnValueOnce(randomForD20(20));
+    const spy = spyOn(Math, 'random').mockReturnValueOnce(randomForD20(1)).mockReturnValueOnce(randomForD20(20));
     const result = await handleCompute(['contest', 'CHA', 'test_npc']);
     spy.mockRestore();
     expect(result.ok).toBe(true);
@@ -282,7 +297,9 @@ describe('compute hazard — deterministic outcomes', () => {
   // Player CON modifier = 0. DC = 14.
 
   const originalRandom = Math.random;
-  afterEach(() => { Math.random = originalRandom; });
+  afterEach(() => {
+    Math.random = originalRandom;
+  });
 
   test('critical_success when roll is 20', async () => {
     const spy = spyOn(Math, 'random').mockReturnValue(randomForD20(20));
@@ -337,7 +354,9 @@ describe('compute hazard — deterministic outcomes', () => {
 
 describe('compute encounter — deterministic outcomes', () => {
   const originalRandom = Math.random;
-  afterEach(() => { Math.random = originalRandom; });
+  afterEach(() => {
+    Math.random = originalRandom;
+  });
 
   test('quiet when roll <= 8 (escalation=0)', async () => {
     const spy = spyOn(Math, 'random').mockReturnValue(randomForD20(5));
@@ -420,9 +439,7 @@ describe('rollHistory — contest', () => {
   test('contest record captures matching pending-roll metadata', async () => {
     const state = await loadState();
     state.scene = 3;
-    state._pendingRolls = [
-      { action: 2, type: 'contest', stat: 'CHA', npc: 'test_npc', skill: 'deceive' },
-    ];
+    state._pendingRolls = [{ action: 2, type: 'contest', stat: 'CHA', npc: 'test_npc', skill: 'deceive' }];
     await saveState(state);
 
     await handleCompute(['contest', 'CHA', 'test_npc']);
@@ -449,9 +466,7 @@ describe('rollHistory — hazard', () => {
   test('hazard record captures matching pending-roll metadata', async () => {
     const state = await loadState();
     state.scene = 4;
-    state._pendingRolls = [
-      { action: 1, type: 'hazard', stat: 'CON', dc: 14, skill: 'brace' },
-    ];
+    state._pendingRolls = [{ action: 1, type: 'hazard', stat: 'CON', dc: 14, skill: 'brace' }];
     await saveState(state);
 
     await handleCompute(['hazard', 'CON', '--dc', '14']);
@@ -488,8 +503,14 @@ describe('rollHistory — cap', () => {
     const state = await loadState();
     for (let i = 0; i < 49; i++) {
       state.rollHistory.push({
-        scene: i, type: 'hazard_save', stat: 'CON',
-        roll: 10, modifier: 0, total: 10, dc: 12, outcome: 'failure',
+        scene: i,
+        type: 'hazard_save',
+        stat: 'CON',
+        roll: 10,
+        modifier: 0,
+        total: 10,
+        dc: 12,
+        outcome: 'failure',
       });
     }
     await saveState(state);

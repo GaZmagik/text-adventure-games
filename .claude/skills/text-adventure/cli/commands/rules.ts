@@ -12,37 +12,44 @@ export async function handleRules(args: string[]): Promise<CommandResult> {
 
   // No args — return all rules
   if (!query) {
-    return ok({
-      category: 'ALL',
-      rules: RULES,
-      total: RULES.length,
-      hint: `Run tag rules <category> to filter. Categories: ${CATEGORIES.join(', ')}`,
-    }, 'rules');
+    return ok(
+      {
+        category: 'ALL',
+        rules: RULES,
+        total: RULES.length,
+        hint: `Run tag rules <category> to filter. Categories: ${CATEGORIES.join(', ')}`,
+      },
+      'rules',
+    );
   }
 
   // Check if query matches a category
   if (isCategory(query)) {
     const filtered = RULES.filter(r => r.category === query);
-    return ok({
-      category: query,
-      rules: filtered,
-      total: filtered.length,
-      hint: `Showing ${query} rules. Run tag rules for all rules.`,
-    }, 'rules');
+    return ok(
+      {
+        category: query,
+        rules: filtered,
+        total: filtered.length,
+        hint: `Showing ${query} rules. Run tag rules for all rules.`,
+      },
+      'rules',
+    );
   }
 
   // Keyword search across rule text
-  const filtered = RULES.filter(r =>
-    r.rule.toLowerCase().includes(query) ||
-    r.ref.toLowerCase().includes(query),
-  );
+  const filtered = RULES.filter(r => r.rule.toLowerCase().includes(query) || r.ref.toLowerCase().includes(query));
 
-  return ok({
-    category: `search: ${query}`,
-    rules: filtered,
-    total: filtered.length,
-    hint: filtered.length > 0
-      ? `Found ${filtered.length} rules matching "${query}".`
-      : `No rules match "${query}". Categories: ${CATEGORIES.join(', ')}`,
-  }, 'rules');
+  return ok(
+    {
+      category: `search: ${query}`,
+      rules: filtered,
+      total: filtered.length,
+      hint:
+        filtered.length > 0
+          ? `Found ${filtered.length} rules matching "${query}".`
+          : `No rules match "${query}". Categories: ${CATEGORIES.join(', ')}`,
+    },
+    'rules',
+  );
 }
