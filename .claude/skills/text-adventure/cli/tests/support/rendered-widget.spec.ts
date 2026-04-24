@@ -1,10 +1,10 @@
 import { describe, test, expect } from 'bun:test';
-import { 
-  decodeHtmlEntities, 
-  extractTagMatch, 
-  extractTagAttr, 
-  extractJsonTagAttr, 
-  extractScriptSrcs 
+import {
+  decodeHtmlEntities,
+  extractTagMatch,
+  extractTagAttr,
+  extractJsonTagAttr,
+  extractScriptSrcs,
 } from './rendered-widget';
 
 describe('rendered-widget test helpers', () => {
@@ -42,7 +42,9 @@ describe('rendered-widget test helpers', () => {
 
   test('extractJsonTagAttr throws for missing attribute', () => {
     const html = '<ta-test>Content</ta-test>';
-    expect(() => extractJsonTagAttr(html, 'ta-test', 'data-config')).toThrow('Expected attribute data-config on <ta-test>.');
+    expect(() => extractJsonTagAttr(html, 'ta-test', 'data-config')).toThrow(
+      'Expected attribute data-config on <ta-test>.',
+    );
   });
 
   test('extractScriptSrcs extracts all script src attributes', () => {

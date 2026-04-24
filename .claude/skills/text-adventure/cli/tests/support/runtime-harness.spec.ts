@@ -1,11 +1,5 @@
 import { describe, test, expect } from 'bun:test';
-import {
-  append,
-  createRenderRuntime,
-  createWebGLContext,
-  executeGeneratedCode,
-  makeElement,
-} from './runtime-harness';
+import { append, createRenderRuntime, createWebGLContext, executeGeneratedCode, makeElement } from './runtime-harness';
 
 describe('runtime harness', () => {
   test('supports DOM-style registration, querying, attributes, and removal', () => {
@@ -31,11 +25,7 @@ describe('runtime harness', () => {
     child.innerHTML = '<strong>ready</strong>';
     expect(child.innerHTML).toBe('<strong>ready</strong>');
     child.innerHTML = '';
-    const nested = append(
-      child,
-      makeElement(env.document, 'span', { classes: ['match'] }),
-      env.document,
-    );
+    const nested = append(child, makeElement(env.document, 'span', { classes: ['match'] }), env.document);
 
     expect(child.textContent).toBe('');
     expect(child.children).toHaveLength(1);

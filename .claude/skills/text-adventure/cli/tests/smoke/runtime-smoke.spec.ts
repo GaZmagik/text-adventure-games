@@ -56,11 +56,13 @@ describe('widget runtime smoke', () => {
     const html = renderDice(null, '', {
       data: { dieType: 'd20', stat: 'WIS', modifier: 3, dc: 14 },
     });
-    const config = extractJsonTagAttr<{ dieType: string; stat: string; modifier: number; dc: number; faceCount: number }>(
-      html,
-      'ta-dice',
-      'data-config',
-    );
+    const config = extractJsonTagAttr<{
+      dieType: string;
+      stat: string;
+      modifier: number;
+      dc: number;
+      faceCount: number;
+    }>(html, 'ta-dice', 'data-config');
     expect(html).toContain('<ta-dice');
     expect(config.dieType).toBe('d20');
     expect(config.stat).toBe('WIS');
@@ -102,7 +104,10 @@ describe('widget runtime smoke', () => {
     const html = renderDicePool(null, '', {
       data: {
         label: 'Volley',
-        pool: [{ dieType: 'd6', count: 2 }, { dieType: 'd8', count: 1 }],
+        pool: [
+          { dieType: 'd6', count: 2 },
+          { dieType: 'd8', count: 1 },
+        ],
         modifier: 2,
       },
     });
@@ -122,29 +127,109 @@ describe('widget runtime smoke', () => {
     ]);
   });
 
+  test('ta-quest-log runtime renders quest detail from data attributes', () => {
+    const env = createSmokeRuntime();
+
+    class TestHTMLElement extends FakeElement {
+      shadowRoot: FakeElement | null = null;
+
+      constructor() {
+        super('custom-element');
+        this.ownerDocument = env.document;
+      }
+
+      attachShadow(_opts: { mode: string }): FakeElement {
+        this.shadowRoot = new FakeElement('shadow-root');
+        this.shadowRoot.ownerDocument = env.document;
+        return this.shadowRoot;
+      }
+    }
+
+    const registry = new Map<string, new () => TestHTMLElement>();
+    const customElements = {
+      get: (name: string) => registry.get(name),
+      define: (name: string, ctor: new () => TestHTMLElement) => registry.set(name, ctor),
+    };
+
+    executeGeneratedCode(TA_COMPONENTS_CODE, env, {
+      HTMLElement: TestHTMLElement,
+      customElements,
+      sendPrompt: env.sendPrompt,
+    });
+
+    const QuestLogCtor = registry.get('ta-quest-log');
+    expect(QuestLogCtor).toBeDefined();
+
+    const host = new QuestLogCtor!() as TestHTMLElement & { connectedCallback: () => void };
+    host.setAttribute(
+      'data-quests',
+      JSON.stringify([
+        {
+          id: 'main',
+          title: 'Find the Beacon',
+          status: 'active',
+          type: 'main',
+          priority: 'urgent',
+          summary: 'The beacon is still transmitting under the ruins.',
+          currentObjectiveId: 'enter',
+          objectives: [
+            { id: 'scan', description: 'Scan the ruins', state: 'completed', completed: true },
+            { id: 'enter', description: 'Enter the lower vault', state: 'active', completed: false },
+          ],
+          clues: [{ id: 'pulse', text: 'The signal repeats every nine minutes.', important: true }],
+          relatedLocationIds: ['lower_vault'],
+        },
+      ]),
+    );
+
+    host.connectedCallback();
+
+    const rendered = host.shadowRoot!.innerHTML;
+    expect(rendered).toContain('Find the Beacon');
+    expect(rendered).toContain('Enter the lower vault');
+    expect(rendered).toContain('Review Leads');
+    expect(rendered).toContain('1/2');
+  });
+
   test('scene runtime wires reveal, panel toggle, and save prompt actions', () => {
     const env = createSmokeRuntime();
     const shadow = append(env.document.body, makeElement(env.document, 'div'), env.document);
     const root = append(shadow, makeElement(env.document, 'div', { classes: ['root'] }), env.document);
     const revealBrief = append(root, makeElement(env.document, 'div', { id: 'reveal-brief' }), env.document);
     const revealFull = append(root, makeElement(env.document, 'div', { id: 'reveal-full' }), env.document);
-    const continueBtn = append(revealBrief, makeElement(env.document, 'button', { id: 'continue-reveal-btn' }), env.document);
+    const continueBtn = append(
+      revealBrief,
+      makeElement(env.document, 'button', { id: 'continue-reveal-btn' }),
+      env.document,
+    );
     const sceneContent = append(revealFull, makeElement(env.document, 'div', { id: 'scene-content' }), env.document);
     const overlay = append(revealFull, makeElement(env.document, 'div', { id: 'panel-overlay' }), env.document);
     const title = append(overlay, makeElement(env.document, 'div', { id: 'panel-title-text' }), env.document);
     const closeBtn = append(overlay, makeElement(env.document, 'button', { id: 'panel-close-btn' }), env.document);
-    append(overlay, makeElement(env.document, 'div', {
-      classes: ['panel-content'],
-      attrs: { 'data-panel': 'character' },
-    }), env.document);
-    const footerCharacter = append(root, makeElement(env.document, 'button', {
-      classes: ['footer-btn'],
-      attrs: { 'data-panel': 'character', 'aria-expanded': 'false' },
-    }), env.document);
-    const footerSave = append(root, makeElement(env.document, 'button', {
-      classes: ['footer-btn'],
-      attrs: { 'data-prompt': 'save-now', title: 'save-now' },
-    }), env.document);
+    append(
+      overlay,
+      makeElement(env.document, 'div', {
+        classes: ['panel-content'],
+        attrs: { 'data-panel': 'character' },
+      }),
+      env.document,
+    );
+    const footerCharacter = append(
+      root,
+      makeElement(env.document, 'button', {
+        classes: ['footer-btn'],
+        attrs: { 'data-panel': 'character', 'aria-expanded': 'false' },
+      }),
+      env.document,
+    );
+    const footerSave = append(
+      root,
+      makeElement(env.document, 'button', {
+        classes: ['footer-btn'],
+        attrs: { 'data-prompt': 'save-now', title: 'save-now' },
+      }),
+      env.document,
+    );
 
     revealFull.style.display = 'none';
     overlay.style.display = 'none';
@@ -196,18 +281,30 @@ describe('widget runtime smoke', () => {
         const overlay = append(revealFull, makeElement(env.document, 'div', { id: 'panel-overlay' }), env.document);
         append(overlay, makeElement(env.document, 'h2', { id: 'panel-title-text' }), env.document);
         append(overlay, makeElement(env.document, 'button', { id: 'panel-close-btn' }), env.document);
-        append(overlay, makeElement(env.document, 'div', {
-          classes: ['panel-content'],
-          attrs: { 'data-panel': 'character' },
-        }), env.document);
-        append(root, makeElement(env.document, 'button', {
-          classes: ['footer-btn'],
-          attrs: { 'data-panel': 'character', 'aria-expanded': 'false' },
-        }), env.document);
-        append(root, makeElement(env.document, 'button', {
-          classes: ['action-card'],
-          attrs: { 'data-prompt': 'scan-now', title: 'scan-now' },
-        }), env.document);
+        append(
+          overlay,
+          makeElement(env.document, 'div', {
+            classes: ['panel-content'],
+            attrs: { 'data-panel': 'character' },
+          }),
+          env.document,
+        );
+        append(
+          root,
+          makeElement(env.document, 'button', {
+            classes: ['footer-btn'],
+            attrs: { 'data-panel': 'character', 'aria-expanded': 'false' },
+          }),
+          env.document,
+        );
+        append(
+          root,
+          makeElement(env.document, 'button', {
+            classes: ['action-card'],
+            attrs: { 'data-prompt': 'scan-now', title: 'scan-now' },
+          }),
+          env.document,
+        );
         revealFull.style.display = 'none';
         overlay.style.display = 'none';
       }
@@ -272,14 +369,22 @@ describe('widget runtime smoke', () => {
     const env = createSmokeRuntime();
     const shadow = append(env.document.body, makeElement(env.document, 'div'), env.document);
     const root = append(shadow, makeElement(env.document, 'div', { classes: ['root'] }), env.document);
-    const statChoice = append(root, makeElement(env.document, 'button', {
-      classes: ['levelup-choice'],
-      attrs: { 'data-levelup-stat': 'STR' },
-    }), env.document);
-    const confirm = append(root, makeElement(env.document, 'button', {
-      id: 'levelup-confirm',
-      attrs: { 'data-prompt': 'Confirm level up.' },
-    }), env.document);
+    const statChoice = append(
+      root,
+      makeElement(env.document, 'button', {
+        classes: ['levelup-choice'],
+        attrs: { 'data-levelup-stat': 'STR' },
+      }),
+      env.document,
+    );
+    const confirm = append(
+      root,
+      makeElement(env.document, 'button', {
+        id: 'levelup-confirm',
+        attrs: { 'data-prompt': 'Confirm level up.' },
+      }),
+      env.document,
+    );
 
     compileSceneRuntime(env)(shadow);
 
@@ -292,17 +397,25 @@ describe('widget runtime smoke', () => {
   test('scene runtime blocks spent POI buttons after the budget is exhausted', () => {
     const env = createSmokeRuntime();
     const shadow = append(env.document.body, makeElement(env.document, 'div'), env.document);
-    const root = append(shadow, makeElement(env.document, 'div', {
-      classes: ['root'],
-      attrs: { 'data-poi-budget': '1' },
-    }), env.document);
-    const poi = append(root, makeElement(env.document, 'button', {
-      attrs: {
-        'data-poi': 'true',
-        'data-prompt': 'Inspect the conduit',
-        title: 'Inspect the conduit',
-      },
-    }), env.document);
+    const root = append(
+      shadow,
+      makeElement(env.document, 'div', {
+        classes: ['root'],
+        attrs: { 'data-poi-budget': '1' },
+      }),
+      env.document,
+    );
+    const poi = append(
+      root,
+      makeElement(env.document, 'button', {
+        attrs: {
+          'data-poi': 'true',
+          'data-prompt': 'Inspect the conduit',
+          title: 'Inspect the conduit',
+        },
+      }),
+      env.document,
+    );
 
     compileSceneRuntime(env)(shadow);
 

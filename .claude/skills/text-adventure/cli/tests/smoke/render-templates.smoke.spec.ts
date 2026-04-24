@@ -85,13 +85,15 @@ describe('render template smoke via handleRender', () => {
 
   test('codex widget renders discovery metadata and secret chips', async () => {
     await seedState(state => {
-      state.codexMutations = [{
-        id: 'ancient_beacon',
-        state: 'discovered',
-        discoveredAt: 4,
-        via: 'salvage',
-        secrets: ['Phase Key'],
-      }];
+      state.codexMutations = [
+        {
+          id: 'ancient_beacon',
+          state: 'discovered',
+          discoveredAt: 4,
+          via: 'salvage',
+          secrets: ['Phase Key'],
+        },
+      ];
     });
 
     const html = await renderRaw(['codex']);
@@ -127,26 +129,28 @@ describe('render template smoke via handleRender', () => {
         conditions: ['Inspired'],
         equipment: { weapon: 'Blaster', armour: 'Flight Suit' },
       };
-      state.rosterMutations = [{
-        id: 'raider_1',
-        name: 'Raider',
-        pronouns: 'they/them',
-        role: 'raider',
-        tier: 'rival',
-        level: 2,
-        stats: { STR: 12, DEX: 12, CON: 10, INT: 10, WIS: 10, CHA: 10 },
-        modifiers: { STR: 1, DEX: 1, CON: 0, INT: 0, WIS: 0, CHA: 0 },
-        hp: 8,
-        maxHp: 12,
-        ac: 12,
-        soak: 0,
-        damageDice: '1d6',
-        status: 'active',
-        alive: true,
-        trust: 0,
-        disposition: 'hostile',
-        dispositionSeed: 0.5,
-      }];
+      state.rosterMutations = [
+        {
+          id: 'raider_1',
+          name: 'Raider',
+          pronouns: 'they/them',
+          role: 'raider',
+          tier: 'rival',
+          level: 2,
+          stats: { STR: 12, DEX: 12, CON: 10, INT: 10, WIS: 10, CHA: 10 },
+          modifiers: { STR: 1, DEX: 1, CON: 0, INT: 0, WIS: 0, CHA: 0 },
+          hp: 8,
+          maxHp: 12,
+          ac: 12,
+          soak: 0,
+          damageDice: '1d6',
+          status: 'active',
+          alive: true,
+          trust: 0,
+          disposition: 'hostile',
+          dispositionSeed: 0.5,
+        },
+      ];
       state._lastComputation = {
         type: 'contested_roll',
         stat: 'STR',
@@ -175,26 +179,28 @@ describe('render template smoke via handleRender', () => {
 
   test('dialogue widget accepts npcId via --data and renders explicit choices', async () => {
     await seedState(state => {
-      state.rosterMutations = [{
-        id: 'broker_1',
-        name: 'Broker',
-        pronouns: 'she/her',
-        role: 'broker',
-        tier: 'rival',
-        level: 2,
-        stats: { STR: 8, DEX: 12, CON: 10, INT: 14, WIS: 12, CHA: 16 },
-        modifiers: { STR: -1, DEX: 1, CON: 0, INT: 2, WIS: 1, CHA: 3 },
-        hp: 12,
-        maxHp: 12,
-        ac: 11,
-        soak: 0,
-        damageDice: '1d6',
-        status: 'active',
-        alive: true,
-        trust: 45,
-        disposition: 'friendly',
-        dispositionSeed: 0.25,
-      }];
+      state.rosterMutations = [
+        {
+          id: 'broker_1',
+          name: 'Broker',
+          pronouns: 'she/her',
+          role: 'broker',
+          tier: 'rival',
+          level: 2,
+          stats: { STR: 8, DEX: 12, CON: 10, INT: 14, WIS: 12, CHA: 16 },
+          modifiers: { STR: -1, DEX: 1, CON: 0, INT: 2, WIS: 1, CHA: 3 },
+          hp: 12,
+          maxHp: 12,
+          ac: 11,
+          soak: 0,
+          damageDice: '1d6',
+          status: 'active',
+          alive: true,
+          trust: 45,
+          disposition: 'friendly',
+          dispositionSeed: 0.25,
+        },
+      ];
     });
 
     const html = await renderRaw([
@@ -212,7 +218,11 @@ describe('render template smoke via handleRender', () => {
     expect(fallback).toContain('Fallback Pool');
     expect(fallback).toContain('2d6');
 
-    const broken = await renderRaw(['dice-pool', '--data', '{"label":"Broken Pool","pool":[{"dieType":"bogus","count":99}]}']);
+    const broken = await renderRaw([
+      'dice-pool',
+      '--data',
+      '{"label":"Broken Pool","pool":[{"dieType":"bogus","count":99}]}',
+    ]);
     expect(broken).toContain('Broken Pool');
     expect(broken).toContain('2d6');
   });
@@ -287,7 +297,16 @@ describe('render template smoke via handleRender', () => {
       ];
       state.rollHistory = [
         { scene: 6, type: 'encounter_roll', roll: 9, outcome: 'hostile' },
-        { scene: 7, type: 'contested_roll', stat: 'CHA', roll: 14, modifier: 1, total: 15, npcId: 'warden_01', outcome: 'narrow_success' },
+        {
+          scene: 7,
+          type: 'contested_roll',
+          stat: 'CHA',
+          roll: 14,
+          modifier: 1,
+          total: 15,
+          npcId: 'warden_01',
+          outcome: 'narrow_success',
+        },
         { scene: 7, type: 'hazard_save', stat: 'DEX', roll: 12, modifier: 3, total: 15, dc: 14, outcome: 'success' },
       ];
       state.rosterMutations = [

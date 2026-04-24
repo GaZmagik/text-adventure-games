@@ -1,3 +1,4 @@
+// Test helpers extract custom-element payloads from rendered HTML without a browser DOM.
 const HTML_ENTITY_REPLACEMENTS: Array<[RegExp, string]> = [
   [/&quot;/g, '"'],
   [/&#39;/g, "'"],
@@ -42,6 +43,5 @@ export function extractJsonTagAttr<T>(html: string, tagName: string, attrName: s
 }
 
 export function extractScriptSrcs(html: string): string[] {
-  return [...html.matchAll(/<script\b[^>]*\bsrc\s*=\s*(['"])(.*?)\1[^>]*><\/script>/gi)]
-    .map(match => match[2] ?? '');
+  return [...html.matchAll(/<script\b[^>]*\bsrc\s*=\s*(['"])(.*?)\1[^>]*><\/script>/gi)].map(match => match[2] ?? '');
 }

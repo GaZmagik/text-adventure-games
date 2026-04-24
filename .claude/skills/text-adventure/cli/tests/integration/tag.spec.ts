@@ -33,10 +33,7 @@ async function runTag(args: string[], extraEnv: Record<string, string> = {}): Pr
     stderr: 'pipe',
   });
 
-  const [stdout, stderr] = await Promise.all([
-    new Response(proc.stdout).text(),
-    new Response(proc.stderr).text(),
-  ]);
+  const [stdout, stderr] = await Promise.all([new Response(proc.stdout).text(), new Response(proc.stderr).text()]);
   const exitCode = await proc.exited;
 
   return {
@@ -119,6 +116,23 @@ describe('tag CLI black-box', () => {
     expect(data.saveString).toEqual(expect.stringContaining('.SF2:'));
   });
 
+  test('save migrate re-emits a current SF2 save without loading it', async () => {
+    await expectOk(['state', 'reset']);
+    await expectOk(['state', 'set', 'scene', '4']);
+    const generated = await expectOk(['save', 'generate']);
+    const saveString = (generated.data as Record<string, unknown>).saveString as string;
+    await expectOk(['state', 'set', 'scene', '9']);
+
+    const migrated = await expectOk(['save', 'migrate', saveString]);
+    const data = migrated.data as Record<string, unknown>;
+    expect(data.format).toBe('SF2');
+    expect(data.scene).toBe(4);
+    expect(data.saveString).toEqual(expect.stringContaining('.SF2:'));
+
+    const current = await expectOk(['state', 'get', 'scene']);
+    expect(current.data).toBe(9);
+  });
+
   test('save failure does not reinterpret missing file paths as raw save strings', async () => {
     const result = await expectFail(['save', 'load', './missing.save.md']);
     const error = result.error as Record<string, string>;
@@ -151,7 +165,7 @@ describe('tag CLI black-box', () => {
     const data = result.data as Record<string, unknown>;
     expect(data.category).toBe('output');
     expect(typeof data.total).toBe('number');
-    expect((data.total as number)).toBeGreaterThan(0);
+    expect(data.total as number).toBeGreaterThan(0);
   });
 
   test('rules no-match path reports zero results cleanly', async () => {
@@ -182,6 +196,48 @@ describe('tag CLI black-box', () => {
     expect(error.message).toContain('Quest "missing" not found');
   });
 
+  test('quest create, inspect, and track work through the CLI', async () => {
+    await expectOk(['state', 'reset']);
+    const created = await expectOk([
+      'quest',
+      'create',
+      '--id',
+      'cleanup_q',
+      '--title',
+      'Cleanup Quest',
+      '--objective-id',
+      'start',
+      '--objective',
+      'Start the cleanup pass',
+    ]);
+    const createdData = created.data as { quest: { id: string; title: string }; tracked: boolean };
+    expect(createdData.quest.id).toBe('cleanup_q');
+    expect(createdData.tracked).toBe(true);
+
+    const inspected = await expectOk(['quest', 'inspect', 'cleanup_q']);
+    const inspectedData = inspected.data as Record<string, unknown>;
+    expect(inspectedData.title).toBe('Cleanup Quest');
+    expect(inspectedData.tracked).toBe(true);
+
+    const tracked = await expectOk(['quest', 'track', 'cleanup_q']);
+    const trackedData = tracked.data as Record<string, unknown>;
+    expect(trackedData.tracked).toBe(true);
+    expect(trackedData.toast).toEqual(expect.stringContaining('Tracking quest'));
+  });
+
+  test('faction inspect works through the CLI after world generation', async () => {
+    await expectOk(['state', 'reset']);
+    await expectOk(['world', 'generate', '--seed', 'cleanup-pass', '--theme', 'space', '--apply']);
+    const factions = await expectOk(['state', 'get', 'worldData.factions.factions']);
+    const firstFaction = (factions.data as Array<{ id: string; name: string }>)[0]!;
+    const result = await expectOk(['faction', 'inspect', firstFaction.id]);
+    const data = result.data as Record<string, unknown>;
+    expect(data.id).toBe(firstFaction.id);
+    expect(typeof data.name).toBe('string');
+    expect(data.standingLabel).toBe('neutral');
+    expect(Array.isArray(data.relations)).toBe(true);
+  });
+
   test('export happy path generates lore content', async () => {
     await expectOk(['state', 'reset']);
     const result = await expectOk(['export', 'generate']);
@@ -209,12 +265,14 @@ describe('tag CLI black-box', () => {
     try {
       const result = await runTag(['version'], { TAG_TRANSCRIPTS_DIR: transcriptsDir });
       expect(result.exitCode).toBe(0);
-      const alert = result.json._compactionAlert as {
-        detected: boolean;
-        recovered: boolean;
-        message: string;
-        modulesRequired?: string[];
-      } | undefined;
+      const alert = result.json._compactionAlert as
+        | {
+            detected: boolean;
+            recovered: boolean;
+            message: string;
+            modulesRequired?: string[];
+          }
+        | undefined;
       expect(alert).toBeDefined();
       expect(alert!.detected).toBe(true);
       expect(alert!.recovered).toBe(true);
@@ -380,10 +438,7 @@ describe('tag CLI black-box', () => {
 
     // Initialise state and set _compactionCount to 1 (matches the 1 transcript)
     await runTag(['state', 'reset'], { TAG_TRANSCRIPTS_DIR: transcriptsDir });
-    await runTag(
-      ['state', 'set', '_compactionCount', '1'],
-      { TAG_TRANSCRIPTS_DIR: transcriptsDir },
-    );
+    await runTag(['state', 'set', '_compactionCount', '1'], { TAG_TRANSCRIPTS_DIR: transcriptsDir });
 
     try {
       const result = await runTag(['version'], { TAG_TRANSCRIPTS_DIR: transcriptsDir });

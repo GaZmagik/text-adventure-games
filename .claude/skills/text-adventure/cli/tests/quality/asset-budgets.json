@@ -1,0 +1,17 @@
+{
+  "files": {
+    "assets/css/common-widget.css": 6000,
+    "assets/css/pregame-design.css": 8000,
+    "assets/css/scene-design.css": 7000,
+    "assets/icons/sprite.svg": 6500,
+    "assets/js/ta-components.js": 220000,
+    "assets/js/tag-scene.js": 16000,
+    "assets/js/tag-soundscape.js": 6000
+  },
+  "groups": {
+    "maxThemeCssBytes": 70000,
+    "totalCssBytes": 660000,
+    "totalGeneratedAssetsBytes": 900000,
+    "totalJsBytes": 235000
+  }
+}

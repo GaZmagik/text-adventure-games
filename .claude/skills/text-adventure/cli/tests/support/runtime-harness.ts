@@ -83,7 +83,10 @@ export class FakeElement {
 
   removeEventListener(type: string, listener: (this: FakeElement, event: { type: string }) => void): void {
     const existing = this.listeners.get(type) ?? [];
-    this.listeners.set(type, existing.filter(entry => entry !== listener));
+    this.listeners.set(
+      type,
+      existing.filter(entry => entry !== listener),
+    );
   }
 
   dispatch(type: string): void {
@@ -107,9 +110,7 @@ export class FakeElement {
       return;
     }
     if (name.startsWith('data-')) {
-      const key = name
-        .slice(5)
-        .replace(/-([a-z])/g, (_match, letter: string) => letter.toUpperCase());
+      const key = name.slice(5).replace(/-([a-z])/g, (_match, letter: string) => letter.toUpperCase());
       this.dataset[key] = value;
     }
   }
@@ -117,9 +118,7 @@ export class FakeElement {
   getAttribute(name: string): string | null {
     if (name === 'id') return this.id || null;
     if (name.startsWith('data-')) {
-      const key = name
-        .slice(5)
-        .replace(/-([a-z])/g, (_match, letter: string) => letter.toUpperCase());
+      const key = name.slice(5).replace(/-([a-z])/g, (_match, letter: string) => letter.toUpperCase());
       return this.dataset[key] ?? null;
     }
     return this.attributes.get(name) ?? null;
@@ -149,12 +148,7 @@ export class FakeElement {
   }
 
   closest(selector: string): FakeElement | null {
-    let current: FakeElement | null = this;
-    while (current) {
-      if (matchesSelector(current, selector)) return current;
-      current = current.parent;
-    }
-    return null;
+    return closestElement(this, selector);
   }
 
   focus(): void {
@@ -179,6 +173,15 @@ type FakeWindow = {
   matchMedia: (query: string) => { matches: boolean };
   tag?: unknown;
   [key: string]: unknown;
+};
+
+export type RenderRuntime = {
+  document: FakeDocument;
+  window: FakeWindow;
+  getComputedStyle: (element: FakeElement) => { getPropertyValue: (name: string) => string };
+  requestAnimationFrame: (callback: () => void) => number;
+  cancelAnimationFrame: (id: number) => void;
+  flushAnimationFrames: (limit?: number) => void;
 };
 
 class FakeCanvasElement extends FakeElement {
@@ -206,9 +209,7 @@ class FakeDocument {
   activeElement: FakeElement | null = null;
   private readonly byId = new Map<string, FakeElement>();
 
-  constructor(
-    private readonly makeCanvas: () => FakeCanvasElement,
-  ) {
+  constructor(private readonly makeCanvas: () => FakeCanvasElement) {
     this.documentElement = new FakeElement('html');
     this.documentElement.ownerDocument = this;
     this.head = new FakeElement('head');
@@ -244,6 +245,15 @@ class FakeDocument {
   execCommand(command: string): boolean {
     return command === 'copy';
   }
+}
+
+function closestElement(element: FakeElement, selector: string): FakeElement | null {
+  let current: FakeElement | null = element;
+  while (current) {
+    if (matchesSelector(current, selector)) return current;
+    current = current.parent;
+  }
+  return null;
 }
 
 function matchesSelector(element: FakeElement, selector: string): boolean {
@@ -305,27 +315,45 @@ export function createWebGLContext(): Record<string, unknown> {
     FRAGMENT_SHADER: 0x8b30,
     COMPILE_STATUS: 0x8b81,
     LINK_STATUS: 0x8b82,
-    createShader() { return {}; },
+    createShader() {
+      return {};
+    },
     shaderSource() {},
     compileShader() {},
-    getShaderParameter() { return true; },
-    getShaderInfoLog() { return ''; },
-    createProgram() { return {}; },
+    getShaderParameter() {
+      return true;
+    },
+    getShaderInfoLog() {
+      return '';
+    },
+    createProgram() {
+      return {};
+    },
     attachShader() {},
     linkProgram() {},
-    getProgramParameter() { return true; },
+    getProgramParameter() {
+      return true;
+    },
     useProgram() {},
-    getUniformLocation() { return {}; },
+    getUniformLocation() {
+      return {};
+    },
     uniform3f() {},
     uniform1i() {},
     uniformMatrix4fv() {},
-    createBuffer() { return {}; },
+    createBuffer() {
+      return {};
+    },
     bindBuffer() {},
     bufferData() {},
-    getAttribLocation() { return 0; },
+    getAttribLocation() {
+      return 0;
+    },
     enableVertexAttribArray() {},
     vertexAttribPointer() {},
-    createTexture() { return {}; },
+    createTexture() {
+      return {};
+    },
     bindTexture() {},
     pixelStorei() {},
     texImage2D() {},
@@ -368,8 +396,12 @@ export function makeElement(
   return element;
 }
 
-export function createRenderRuntime(options: { reducedMotion?: boolean; webglContext?: Record<string, unknown> } = {}) {
-  const document = new FakeDocument(() => new FakeCanvasElement(options.webglContext ?? createWebGLContext(), create2dContext()));
+export function createRenderRuntime(
+  options: { reducedMotion?: boolean; webglContext?: Record<string, unknown> } = {},
+): RenderRuntime {
+  const document = new FakeDocument(
+    () => new FakeCanvasElement(options.webglContext ?? createWebGLContext(), create2dContext()),
+  );
   const queuedFrames: Array<{ id: number; callback: () => void; cancelled: boolean }> = [];
   let nextFrameId = 1;
 
