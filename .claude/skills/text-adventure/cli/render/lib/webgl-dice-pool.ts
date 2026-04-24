@@ -81,7 +81,7 @@ function m4tr(v){var o=m4i();o[12]=v[0];o[13]=v[1];o[14]=v[2]||0;return o}
 
 var VS='attribute vec3 aP,aN;attribute vec2 aU;uniform mat4 uMVP,uM;varying vec3 vN;varying vec2 vU;void main(){gl_Position=uMVP*vec4(aP,1);vN=mat3(uM)*aN;vU=aU;}';
 var FS='precision mediump float;varying vec3 vN;varying vec2 vU;uniform sampler2D uT;uniform vec3 uL;void main(){vec3 n=normalize(vN);float d=max(dot(n,uL),0.0);gl_FragColor=vec4(texture2D(uT,vU).rgb*(vec3(0.3)+0.9*d),1.0);}';
-function mkSh(src,type){var s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){console.error(gl.getShaderInfoLog(s));return null}return s}
+function mkSh(src,type){var s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))return null;return s}
 var prog=gl.createProgram(),vsh=mkSh(VS,gl.VERTEX_SHADER),fsh=mkSh(FS,gl.FRAGMENT_SHADER);
 if(!vsh||!fsh)return;
 gl.attachShader(prog,vsh);gl.attachShader(prog,fsh);gl.linkProgram(prog);

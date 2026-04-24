@@ -9,7 +9,25 @@ if ! command -v bun >/dev/null 2>&1; then
 	echo "Installing Bun..."
 	# NOTE: Official Bun install script — executes remote code without checksum verification.
 	# For higher-assurance environments, consider pinning a specific Bun release tarball with SHA-256 check.
-	curl -fsSL https://bun.sh/install | bash
+	_TAG_BUN_INSTALL_SCRIPT="${TMPDIR:-/tmp}/tag-bun-install.$$"
+	_TAG_BUN_ATTEMPT=1
+	while [ "$_TAG_BUN_ATTEMPT" -le 3 ]; do
+		if curl -fsSL https://bun.sh/install -o "$_TAG_BUN_INSTALL_SCRIPT" && sh "$_TAG_BUN_INSTALL_SCRIPT"; then
+			break
+		fi
+		if [ "$_TAG_BUN_ATTEMPT" -lt 3 ]; then
+			echo "Bun install failed; retrying in 10 seconds..." >&2
+			sleep 10
+		fi
+		_TAG_BUN_ATTEMPT=$((_TAG_BUN_ATTEMPT + 1))
+	done
+	rm -f "$_TAG_BUN_INSTALL_SCRIPT"
+	unset _TAG_BUN_ATTEMPT
+	unset _TAG_BUN_INSTALL_SCRIPT
+	if ! command -v bun >/dev/null 2>&1; then
+		echo "Bun install failed after 3 attempts." >&2
+		return 1 2>/dev/null || exit 1
+	fi
 	export PATH="$HOME/.bun/bin:$PATH"
 fi
 

@@ -704,4 +704,6 @@ export type CommandResult<T = unknown> = {
   state_snapshot?: Partial<GmState> | null;
   /** Alert triggered if transcript compaction has evicted required modules. */
   _compactionAlert?: { detected: boolean; recovered: boolean; message: string; modulesRequired?: string[] } | null;
+  /** Non-fatal warnings collected while executing the command. */
+  _warnings?: string[];
 };

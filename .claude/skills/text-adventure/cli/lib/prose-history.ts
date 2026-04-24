@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { mkdirSync, readFileSync, writeFileSync, renameSync, unlinkSync } from 'node:fs';
 import { splitSentences, splitParagraphs } from './text-utils';
 import type { ProseMetrics } from '../data/prose-rules';
+import { recordWarning } from './diagnostics';
 
 // ── Types ─────────────────────────────────────────────────────────────
 
@@ -248,7 +249,7 @@ export function saveProseHistory(stateDir: string, history: ProseHistory): void 
     writeFileSync(tmp, JSON.stringify(history, null, 2), 'utf-8');
     renameSync(tmp, target);
   } catch (err) {
-    console.error(`prose-history: failed to save ${target}: ${(err as Error).message}`);
+    recordWarning(`prose-history: failed to save ${target}: ${(err as Error).message}`);
     try {
       unlinkSync(tmp);
     } catch {

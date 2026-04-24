@@ -12,6 +12,7 @@ import {
   tryLoadState,
   withStateStoreContext,
 } from './state-store';
+import { drainDiagnosticWarnings } from './diagnostics';
 
 let tempDir: string;
 const originalEnv = process.env.TAG_STATE_DIR;
@@ -22,6 +23,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  drainDiagnosticWarnings();
   rmSync(tempDir, { recursive: true, force: true });
   if (originalEnv !== undefined) {
     process.env.TAG_STATE_DIR = originalEnv;
@@ -316,33 +318,23 @@ describe('state-store edge cases', () => {
     });
   });
 
-  test('logs warning when context drops with dirty unsaved state', async () => {
+  test('records warning when context drops with dirty unsaved state', async () => {
     const state = createDefaultState();
     await saveState(state);
 
-    const errors: string[] = [];
-    const originalError = console.error;
-    console.error = (...args: unknown[]) => {
-      errors.push(String(args[0]));
-    };
+    await withStateStoreContext(async () => {
+      // Load state, mutate it (makes context dirty), then throw
+      const loaded = await loadState();
+      loaded.scene = 42;
+      await saveState(loaded);
+      throw new Error('deliberate test exception');
+    }).catch(() => {
+      /* swallow the rethrown error */
+    });
 
-    try {
-      await withStateStoreContext(async () => {
-        // Load state, mutate it (makes context dirty), then throw
-        const loaded = await loadState();
-        loaded.scene = 42;
-        await saveState(loaded);
-        throw new Error('deliberate test exception');
-      }).catch(() => {
-        /* swallow the rethrown error */
-      });
-
-      // The finally block should have logged a dirty-state warning
-      expect(errors.length).toBeGreaterThan(0);
-      expect(errors[0]).toContain('unsaved changes');
-      expect(errors[0]).toContain('virtual write');
-    } finally {
-      console.error = originalError;
-    }
+    const warnings = drainDiagnosticWarnings();
+    expect(warnings.length).toBeGreaterThan(0);
+    expect(warnings[0]).toContain('unsaved changes');
+    expect(warnings[0]).toContain('virtual write');
   });
 });

@@ -2184,7 +2184,7 @@
           };
         })();
 
-      } catch (e) { console.error('ta-dice-pool error:', e); }
+      } catch { this.shadowRoot.innerHTML = '<div>Unable to render dice pool.</div>'; }
     }
   }
 
@@ -2302,7 +2302,7 @@
         }
 
         shadow.innerHTML = html;
-      } catch (e) { console.error('ta-recap error:', e); }
+      } catch { this.textContent = 'Unable to render recap.'; }
     }
   }
 
@@ -2350,7 +2350,7 @@
             if (window.tag && window.tag.sendOrCopyPrompt) window.tag.sendOrCopyPrompt(btn, p);
           };
         });
-      } catch (e) { console.error('ta-arc-complete error:', e); }
+      } catch { this.textContent = 'Unable to render arc summary.'; }
     }
   }
 
@@ -2436,7 +2436,7 @@
         }
 
         shadow.innerHTML = html;
-      } catch (e) { console.error('ta-combat-turn error:', e); }
+      } catch { this.textContent = 'Unable to render combat turn.'; }
     }
   }
 
@@ -2573,7 +2573,7 @@
           animate();
         };
 
-      } catch (e) { console.error('ta-dice error:', e); }
+      } catch { this.shadowRoot.innerHTML = '<div>Unable to render dice.</div>'; }
     }
   }
 

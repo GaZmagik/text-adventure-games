@@ -5,6 +5,7 @@ import { mkdirSync, renameSync, writeFileSync, unlinkSync, statSync, realpathSyn
 import type { GmState } from '../types';
 import { MAX_ROLL_HISTORY, MAX_FILE_SIZE_BYTES, SCHEMA_VERSION } from './constants';
 import { validateState } from './validator';
+import { recordWarning } from './diagnostics';
 
 /**
  * Internal context for the State Store, used to batch writes and track activity.
@@ -130,7 +131,7 @@ async function tryLoadStateFromDisk(): Promise<Record<string, unknown> | null> {
     return raw;
   } catch (err: unknown) {
     if (err instanceof SyntaxError) {
-      console.error('Warning: state.json is corrupted and could not be parsed.');
+      recordWarning('Warning: state.json is corrupted and could not be parsed.');
       return null;
     }
     if (err && typeof err === 'object' && 'code' in err && (err as NodeJS.ErrnoException).code === 'ENOENT') {
@@ -209,7 +210,7 @@ export async function withStateStoreContext<T>(
     };
   } finally {
     if (activeStateStoreContext?.dirty) {
-      console.error(
+      recordWarning(
         'Warning: state-store context dropped with unsaved changes ' +
           `(${activeStateStoreContext.virtualWrites} virtual write(s), ` +
           `${activeStateStoreContext.diskWrites} disk write(s)). ` +
@@ -283,7 +284,7 @@ export async function tryLoadState(): Promise<GmState | null> {
       if (raw !== null) {
         if (!isValidGmState(raw)) {
           const { errors } = validateState(raw);
-          console.error(`Warning: state.json failed validation: ${errors.join('; ')}`);
+          recordWarning(`Warning: state.json failed validation: ${errors.join('; ')}`);
           // Intentional: inspection commands (state validate, save generate) need the raw
           // object even when invalid. The cast is scoped to this deliberate fallback path.
           activeStateStoreContext.state = raw as GmState;
@@ -300,7 +301,7 @@ export async function tryLoadState(): Promise<GmState | null> {
   if (raw === null) return null;
   if (!isValidGmState(raw)) {
     const { errors } = validateState(raw);
-    console.error(`Warning: state.json failed validation: ${errors.join('; ')}`);
+    recordWarning(`Warning: state.json failed validation: ${errors.join('; ')}`);
     // Intentional: inspection commands (state validate, save generate) need the raw
     // object even when invalid. The cast is scoped to this deliberate fallback path.
     return raw as GmState;

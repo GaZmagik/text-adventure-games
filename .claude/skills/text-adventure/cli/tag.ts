@@ -10,6 +10,7 @@ import { JOURNAL_FILENAME } from './commands/state/sync';
 import { isAllowedPath } from './lib/path-security';
 import { errorMessage } from './lib/errors';
 import { isCompactionBlocked, writeCompactionBlock } from './lib/workflow-markers';
+import { drainDiagnosticWarnings } from './lib/diagnostics';
 
 /**
  * Commands that are strictly prohibited when transcript compaction has occurred.
@@ -110,6 +111,10 @@ async function output(result: CommandResult, skipCompaction = false): Promise<vo
     if (alert) {
       result._compactionAlert = alert;
     }
+  }
+  const warnings = drainDiagnosticWarnings();
+  if (warnings.length > 0) {
+    result._warnings = [...(result._warnings ?? []), ...warnings];
   }
   console.log(JSON.stringify(result));
 }

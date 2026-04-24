@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { BATCH_COMMAND_HANDLERS, handleBatch } from './batch';
 import { TOP_LEVEL_COMMANDS } from '../metadata';
 import { saveState, createDefaultState, loadState, STATE_STORE_RUNTIME } from '../lib/state-store';
+import { drainDiagnosticWarnings } from '../lib/diagnostics';
 import type { NpcMutation } from '../types';
 
 let tempDir: string;
@@ -346,10 +347,6 @@ describe('batch mode', () => {
       return originalWrite(...args);
     };
 
-    // Suppress the dirty-state console.error from withStateStoreContext's finally block
-    const origErr = console.error;
-    console.error = () => {};
-
     try {
       const result = await handleBatch(['--commands', 'state set scene 99']);
       expect(result.ok).toBe(true);
@@ -357,8 +354,8 @@ describe('batch mode', () => {
       const errors = data.errors as { line: number; raw: string; error: string }[];
       expect(errors.some(e => e.raw === '(post-batch flush)' && e.error.includes('simulated disk full'))).toBe(true);
     } finally {
+      drainDiagnosticWarnings();
       STATE_STORE_RUNTIME.writeFileSync = originalWrite;
-      console.error = origErr;
     }
   });
 });
