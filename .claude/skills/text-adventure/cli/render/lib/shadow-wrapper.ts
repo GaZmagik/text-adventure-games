@@ -6,7 +6,13 @@
  * :host override with CSS variable fallbacks, and content injection.
  */
 
-import { CDN_BASE, CSS_MANIFEST, JS_MANIFEST, ICON_SPRITE_HASH, ICON_SPRITE_URL } from '../../../assets/cdn-manifest.ts';
+import {
+  CDN_BASE,
+  CSS_MANIFEST,
+  JS_MANIFEST,
+  ICON_SPRITE_HASH,
+  ICON_SPRITE_URL,
+} from '../../../assets/cdn-manifest.ts';
 import { esc, emitCustomElement } from '../../lib/html';
 
 type ShadowWrapperOptions = {
@@ -20,14 +26,18 @@ type ShadowWrapperOptions = {
   script?: string;
   /** Optional array of external script URLs to load. */
   scriptSrc?: string[];
-}
+};
 
 /**
  * Escape HTML content for safe embedding inside a JS template literal.
  * Backticks and ${ sequences must be escaped to prevent interpolation.
  */
 function escapeForTemplateLiteral(raw: string): string {
-  return raw.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${').replace(/<\/script/gi, '<\\/script');
+  return raw
+    .replace(/\\/g, '\\\\')
+    .replace(/`/g, '\\`')
+    .replace(/\$\{/g, '\\${')
+    .replace(/<\/script/gi, '<\\/script');
 }
 
 /**
@@ -128,7 +138,7 @@ type RootCustomElementOptions = {
   cssUrls?: string[];
   /** JS files to load from CDN (e.g., ['ta-components']) */
   jsUrls?: string[];
-}
+};
 
 /**
  * Emits a root custom element with its required CDN scripts and CSS URLs.
@@ -140,7 +150,7 @@ export function emitRootCustomElement(opts: RootCustomElementOptions): string {
     const hash = CSS_MANIFEST[name];
     return hash ? `${CDN_BASE}/css/${name}.css?v=${hash}` : `${CDN_BASE}/css/${name}.css`;
   });
-  
+
   const resolvedJs = (opts.jsUrls || []).map(name => {
     const hash = JS_MANIFEST[name + '.js'];
     return hash ? `${CDN_BASE}/js/${name}.js?v=${hash}` : `${CDN_BASE}/js/${name}.js`;
@@ -158,15 +168,17 @@ export function emitRootCustomElement(opts: RootCustomElementOptions): string {
       return ` ${k}="${esc(strVal)}"`;
     })
     .join('');
-  
-  const fallback = opts.html || `<div style="padding: 20px; font-family: monospace; opacity: 0.6;">Loading ${opts.tag}...</div>`;
+
+  const fallback =
+    opts.html || `<div style="padding: 20px; font-family: monospace; opacity: 0.6;">Loading ${opts.tag}...</div>`;
   const html = `<${opts.tag}${attrStr}>${fallback}</${opts.tag}>`;
-  
+
   const scripts = resolvedJs.map(url => `<script src="${url}"></script>`).join('\n');
-  const iconBootstrap = resolvedJs.length > 0
-    ? `<script>window.tag=window.tag||{};window.tag.ICON_SPRITE_URL=${JSON.stringify(ICON_SPRITE_URL)};window.tag.ICON_SPRITE_HASH=${JSON.stringify(ICON_SPRITE_HASH)};</script>`
-    : '';
-  
+  const iconBootstrap =
+    resolvedJs.length > 0
+      ? `<script>window.tag=window.tag||{};window.tag.ICON_SPRITE_URL=${JSON.stringify(ICON_SPRITE_URL)};window.tag.ICON_SPRITE_HASH=${JSON.stringify(ICON_SPRITE_HASH)};</script>`
+      : '';
+
   return scripts ? `${html}\n${iconBootstrap}\n${scripts}` : html;
 }
 
@@ -183,7 +195,7 @@ type StandaloneCustomElementOptions = {
   cssUrls?: string[];
   /** JS assets required to hydrate the custom element. Defaults to ta-components. */
   jsUrls?: string[];
-}
+};
 
 /**
  * Emit a custom element that works both standalone and nested inside another widget.

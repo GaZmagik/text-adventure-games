@@ -5,11 +5,11 @@ import { createDefaultState } from '../../lib/state-store';
 describe('renderLevelup', () => {
   test('renders basic level-up data', () => {
     const state = createDefaultState();
-    state.character = { 
-      name: 'Zara', 
-      level: 4, 
-      hp: 30, 
-      maxHp: 30 
+    state.character = {
+      name: 'Zara',
+      level: 4,
+      hp: 30,
+      maxHp: 30,
     } as any;
     const html = renderLevelup(state, '');
     expect(html).toContain('data-char-name="Zara"');
@@ -19,11 +19,11 @@ describe('renderLevelup', () => {
 
   test('renders proficiency bonus increase and ability options', () => {
     const state = createDefaultState();
-    state.character = { 
-      name: 'Zara', 
-      level: 5, 
-      hp: 40, 
-      maxHp: 40 
+    state.character = {
+      name: 'Zara',
+      level: 5,
+      hp: 40,
+      maxHp: 40,
     } as any;
     // Level 5 prof bonus is 3, Level 4 was 2.
     const html = renderLevelup(state, '', { data: { abilities: ['Fireball', 'Fly'] } });
@@ -40,7 +40,7 @@ describe('renderLevelup', () => {
       name: '<img src=x onerror=alert("x")> "quote" &',
       level: 5,
       hp: 40,
-      maxHp: 40
+      maxHp: 40,
     } as any;
     const html = renderLevelup(state, '', {
       data: { abilities: ['Spark & <img src=x onerror=alert(1)>'] },

@@ -23,7 +23,14 @@ describe('DIE_CONFIGS', () => {
   });
 
   const expectedFaces: Record<string, number> = {
-    d2: 2, d4: 4, d6: 6, d8: 8, d10: 10, d12: 12, d20: 20, d100: 10,
+    d2: 2,
+    d4: 4,
+    d6: 6,
+    d8: 8,
+    d10: 10,
+    d12: 12,
+    d20: 20,
+    d100: 10,
   };
 
   for (const [dt, expected] of Object.entries(expectedFaces)) {
@@ -33,8 +40,14 @@ describe('DIE_CONFIGS', () => {
   }
 
   const expectedRanges: Record<string, [number, number]> = {
-    d2: [1, 2], d4: [1, 4], d6: [1, 6], d8: [1, 8],
-    d10: [1, 10], d12: [1, 12], d20: [1, 20], d100: [0, 9],
+    d2: [1, 2],
+    d4: [1, 4],
+    d6: [1, 6],
+    d8: [1, 8],
+    d10: [1, 10],
+    d12: [1, 12],
+    d20: [1, 20],
+    d100: [0, 9],
   };
 
   for (const [dt, [min, max]] of Object.entries(expectedRanges)) {
@@ -99,7 +112,14 @@ describe('d100 geometry structure', () => {
 
 describe('trianglesPerFace', () => {
   const expected: Record<string, number> = {
-    d2: 1, d4: 1, d6: 2, d8: 1, d10: 2, d12: 3, d20: 1, d100: 2,
+    d2: 1,
+    d4: 1,
+    d6: 2,
+    d8: 1,
+    d10: 2,
+    d12: 3,
+    d20: 1,
+    d100: 2,
   };
   for (const [dt, tpf] of Object.entries(expected)) {
     test(`${dt} has trianglesPerFace=${tpf}`, () => {

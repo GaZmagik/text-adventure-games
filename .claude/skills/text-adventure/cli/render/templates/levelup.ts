@@ -9,9 +9,17 @@ import { emitStandaloneCustomElement } from '../lib/shadow-wrapper';
 /**
  * Builds the plain HTML fallback for the level-up notification.
  */
-function buildLevelupFallback(charName: string, level: number, hp: number | string, maxHp: number | string, profBonus: number, profChangedFrom: number | null, abilities: string[]): string {
+function buildLevelupFallback(
+  charName: string,
+  level: number,
+  hp: number | string,
+  maxHp: number | string,
+  profBonus: number,
+  profChangedFrom: number | null,
+  abilities: string[],
+): string {
   let html = `<div class="widget-levelup"><div class="levelup-banner">Level Up!</div><div class="levelup-subtitle">${esc(charName)} has reached level ${esc(level)}</div>`;
-  
+
   html += '<div class="levelup-stats">';
   html += `<div class="levelup-stat"><span class="levelup-stat-label">Level</span><span class="levelup-stat-value">${esc(level)}</span></div>`;
   html += `<div class="levelup-stat"><span class="levelup-stat-label">HP</span><span class="levelup-stat-value">${esc(hp)} / ${esc(maxHp)}</span></div>`;
@@ -23,7 +31,8 @@ function buildLevelupFallback(charName: string, level: number, hp: number | stri
   }
 
   if (abilities.length > 0) {
-    html += '<div class="ability-options"><div style="font-size:11px;opacity:0.6;text-transform:uppercase;margin-bottom:8px">Choose an ability</div>';
+    html +=
+      '<div class="ability-options"><div style="font-size:11px;opacity:0.6;text-transform:uppercase;margin-bottom:8px">Choose an ability</div>';
     abilities.forEach(a => {
       const prompt = `I choose the ${a} ability`;
       html += `<button class="ability-card" data-prompt="${esc(a)}" title="${esc(prompt)}">${esc(a)}</button>`;
@@ -37,15 +46,15 @@ function buildLevelupFallback(charName: string, level: number, hp: number | stri
 
 /**
  * Renders the level-up notification widget.
- * 
+ *
  * @param {GmState | null} state - Current game state.
  * @param {string} styleName - Visual style.
  * @param {Record<string, unknown>} [options] - Optional data containing new ability choices.
  * @returns {string} - The HTML wrapped in a <ta-levelup> custom element.
- * 
+ *
  * @remarks
  * Triggered when a character gains enough XP to reach a new level.
- * Displays the increased HP and proficiency bonus, and handles 
+ * Displays the increased HP and proficiency bonus, and handles
  * the selection of new abilities if provided.
  */
 export function renderLevelup(state: GmState | null, styleName: string, options?: Record<string, unknown>): string {

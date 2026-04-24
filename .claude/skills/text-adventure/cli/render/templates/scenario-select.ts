@@ -7,8 +7,8 @@ import { emitRootCustomElement } from '../lib/shadow-wrapper';
 
 // ── Data types ─────────────────────────────────────────────────────
 
-/** 
- * Represents a game scenario/adventure module. 
+/**
+ * Represents a game scenario/adventure module.
  */
 type Scenario = {
   /** Internal ID for the scenario. */
@@ -49,22 +49,27 @@ type Scenario = {
 
 /**
  * Renders the scenario selection dashboard.
- * 
+ *
  * @param {GmState | null} _state - Current game state (null at pre-game).
  * @param {string} styleName - Visual style.
  * @param {Record<string, unknown>} [options] - Configuration data.
  * @returns {string} - The HTML wrapped in a <ta-scenario-select> custom element.
- * 
+ *
  * @remarks
- * This widget implements a high-fidelity 'Storefront' UI for selecting 
- * the next adventure. It supports featured scenarios with distinct 
+ * This widget implements a high-fidelity 'Storefront' UI for selecting
+ * the next adventure. It supports featured scenarios with distinct
  * accent colours and logos, and provides a 'Hero' section for the primary choice.
  */
-export function renderScenarioSelect(_state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
+export function renderScenarioSelect(
+  _state: GmState | null,
+  styleName: string,
+  options?: Record<string, unknown>,
+): string {
   const raw = (options?.data ?? {}) as Record<string, unknown>;
   const scenarios: Scenario[] = Array.isArray(raw.scenarios)
     ? (raw.scenarios as unknown[]).filter(
-        (s): s is Scenario => typeof s === 'object' && s !== null && typeof (s as Record<string, unknown>).title === 'string',
+        (s): s is Scenario =>
+          typeof s === 'object' && s !== null && typeof (s as Record<string, unknown>).title === 'string',
       )
     : [];
 

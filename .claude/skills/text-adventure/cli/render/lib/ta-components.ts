@@ -1,8 +1,8 @@
-/** 
- * Web Components bundle for Text Adventure widgets. 
+/**
+ * Web Components bundle for Text Adventure widgets.
  * This string contains the self-executing bundle that registers all 'ta-*' custom elements.
  * It is served via CDN and injected into scenes to provide interactive functionality.
- * 
+ *
  * @remarks
  * Uses Shadow DOM for style isolation and `String.raw` to preserve CSS backslashes.
  * All components expect configuration via the `data-config` attribute.
@@ -194,6 +194,59 @@ export const TA_COMPONENTS_CODE = String.raw`
     if (!raw) return '';
     if (!/^#?(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(raw)) return '';
     return raw.charAt(0) === '#' ? raw : '#' + raw;
+  }
+
+  function conditionIcon(value) {
+    var raw = String(value == null ? '' : value).toLowerCase();
+    if (raw.indexOf('poison') >= 0 || raw.indexOf('toxic') >= 0 || raw.indexOf('venom') >= 0) return 'poisoned';
+    if (raw.indexOf('exhaust') >= 0 || raw.indexOf('fatigue') >= 0 || raw.indexOf('drain') >= 0) return 'exhausted';
+    if (raw.indexOf('injur') >= 0 || raw.indexOf('wound') >= 0 || raw.indexOf('bleed') >= 0 || raw.indexOf('hurt') >= 0) return 'injured';
+    if (raw.indexOf('wanted') >= 0 || raw.indexOf('bounty') >= 0 || raw.indexOf('marked') >= 0) return 'wanted';
+    if (raw.indexOf('lock') >= 0 || raw.indexOf('bound') >= 0 || raw.indexOf('restrain') >= 0) return 'locked';
+    if (raw.indexOf('unstable') >= 0 || raw.indexOf('stun') >= 0 || raw.indexOf('shock') >= 0 || raw.indexOf('panic') >= 0) return 'unstable';
+    return 'danger';
+  }
+
+  function statusIcon(value) {
+    var raw = String(value == null ? '' : value).toLowerCase();
+    if (raw === 'active' || raw === 'ok' || raw === 'stable') return '';
+    if (raw.indexOf('injur') >= 0 || raw.indexOf('wound') >= 0) return 'injured';
+    if (raw.indexOf('incap') >= 0 || raw.indexOf('exhaust') >= 0) return 'exhausted';
+    if (raw.indexOf('miss') >= 0) return 'investigate';
+    if (raw.indexOf('defect') >= 0 || raw.indexOf('wanted') >= 0) return 'wanted';
+    if (raw.indexOf('lock') >= 0 || raw.indexOf('blocked') >= 0) return 'locked';
+    if (raw.indexOf('dead') >= 0 || raw.indexOf('danger') >= 0 || raw.indexOf('failed') >= 0) return 'danger';
+    return 'unstable';
+  }
+
+  function codexIcon(entry) {
+    var state = String(entry && entry.state || '').toLowerCase();
+    if (state === 'locked' || state === 'redacted') return 'locked';
+    var cat = String(entry && entry.category || '').toLowerCase();
+    if (cat === 'faction') return 'wanted';
+    if (cat === 'character' || cat === 'npc') return 'dialogue';
+    if (cat === 'item' || cat === 'artifact' || cat === 'equipment') return 'loot';
+    if (cat === 'event' || cat === 'secret') return 'unstable';
+    if (cat === 'bestiary' || cat === 'threat') return 'danger';
+    return 'investigate';
+  }
+
+  function isCodexVisible(entry) {
+    if (!entry) return false;
+    if (entry.discovered) return true;
+    var state = String(entry.state || '').toLowerCase();
+    return state === 'partial' || state === 'discovered' || state === 'redacted';
+  }
+
+  function parseJsonAttr(el, name, fallback) {
+    var raw = el.getAttribute(name);
+    if (!raw) return fallback;
+    try {
+      var parsed = JSON.parse(raw);
+      return parsed == null ? fallback : parsed;
+    } catch (_err) {
+      return fallback;
+    }
   }
 
   function cssLinksFromAttr(value) {
@@ -403,7 +456,7 @@ export const TA_COMPONENTS_CODE = String.raw`
       const role = label ? 'img' : 'presentation';
       const aria = label ? 'aria-label="' + escHtml(label) + '"' : 'aria-hidden="true"';
       this.shadowRoot.innerHTML = '<style>:host{display:inline-flex;width:1.2em;height:1.2em;vertical-align:middle}svg{width:100%;height:100%;fill:currentColor;pointer-events:none}</style>' +
-        '<svg role="' + role + '" ' + aria + '><use href="' + spriteUrl + '#' + escHtml(name) + '"></use></svg>';
+        '<svg viewBox="0 0 24 24" role="' + role + '" ' + aria + '><use href="' + spriteUrl + '#' + escHtml(name) + '"></use></svg>';
     }
   }
 
@@ -421,10 +474,31 @@ export const TA_COMPONENTS_CODE = String.raw`
       
       const iconMap = {
         'investigate': 'investigate',
+        'search': 'investigate',
         'combat': 'danger',
+        'attack': 'danger',
         'talk': 'dialogue',
+        'dialogue': 'dialogue',
+        'persuade': 'persuade',
+        'negotiate': 'persuade',
         'loot': 'loot',
-        'danger': 'danger'
+        'danger': 'danger',
+        'travel': 'travel',
+        'move': 'travel',
+        'sneak': 'sneak',
+        'stealth': 'sneak',
+        'force': 'force',
+        'break': 'force',
+        'rest': 'rest',
+        'flee': 'flee',
+        'escape': 'flee',
+        'objective': 'objective',
+        'clue': 'clue',
+        'npc': 'npc',
+        'exit': 'exit',
+        'stairs': 'stairs',
+        'safe': 'safe',
+        'locked': 'locked'
       };
       const iconName = safeToken(iconMap[type] || type, '');
       const toneClass = safeToken(tone, 'normal');
@@ -1197,7 +1271,7 @@ export const TA_COMPONENTS_CODE = String.raw`
           return '<svg width="150" height="12"><rect width="100" height="8" rx="4" fill="rgba(84,88,128,0.2)"/><rect width="' + p + '" height="8" rx="4" fill="#4ECDC4"/><text x="104" y="8" font-size="10" fill="#545880">' + x + '/' + n + '</text></svg>';
         }
 
-        var h = '<style>:host{display:block}.widget-character{font-family:var(--ta-font-body);padding:16px}.char-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px}.char-name{font-family:var(--ta-font-heading);font-size:20px;font-weight:700;color:var(--sta-text-primary,#EEF0FF)}.char-class{font-size:12px;color:var(--sta-text-tertiary,#545880);text-transform:uppercase;letter-spacing:0.08em}.stat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:12px 0;text-align:center}.stat-cell{padding:8px 4px;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:6px}.stat-label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--sta-text-tertiary,#545880)}.stat-value{display:block;font-size:18px;font-weight:700;color:var(--sta-text-primary,#EEF0FF)}.stat-mod{display:block;font-size:11px;color:var(--ta-color-accent)}.section-title{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--sta-text-tertiary,#545880);margin:14px 0 6px}.inv-item{display:flex;justify-content:space-between;padding:4px 0;border-bottom:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));font-size:12px}.condition-badge{display:inline-block;padding:2px 8px;font-size:10px;border-radius:10px;background:var(--ta-color-warning-bg);color:var(--ta-color-warning);margin-right:4px}</style>';
+        var h = '<style>:host{display:block}.widget-character{font-family:var(--ta-font-body);padding:16px}.char-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px}.char-name{font-family:var(--ta-font-heading);font-size:20px;font-weight:700;color:var(--sta-text-primary,#EEF0FF)}.char-class{font-size:12px;color:var(--sta-text-tertiary,#545880);text-transform:uppercase;letter-spacing:0.08em}.stat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:12px 0;text-align:center}.stat-cell{padding:8px 4px;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:6px}.stat-label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--sta-text-tertiary,#545880)}.stat-value{display:block;font-size:18px;font-weight:700;color:var(--sta-text-primary,#EEF0FF)}.stat-mod{display:block;font-size:11px;color:var(--ta-color-accent)}.section-title{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--sta-text-tertiary,#545880);margin:14px 0 6px}.inv-item{display:flex;justify-content:space-between;padding:4px 0;border-bottom:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));font-size:12px}.condition-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;font-size:10px;border-radius:10px;background:var(--ta-color-warning-bg);color:var(--ta-color-warning);margin-right:4px;margin-bottom:4px}.condition-badge ta-icon{width:1em;height:1em}</style>';
         h += '<div class="widget-character"><div class="char-header"><span class="char-name">' + escHtml(cfg.name||'???') + '</span><span class="char-class">' + escHtml(cfg.class||'Adventurer') + ' · Lv ' + lv + '</span></div>';
         h += hpP(hp, mhp);
         h += '<div style="margin:8px 0;font-size:11px;color:var(--sta-text-secondary)">AC ' + ac + ' · Prof. +' + (cfg.proficiencyBonus||0) + ' · ' + escHtml(cfg.currencyName||'Credits') + ' ' + (cfg.currency||0) + '</div>';
@@ -1209,7 +1283,7 @@ export const TA_COMPONENTS_CODE = String.raw`
         h += '<div class="section-title">Inventory (' + inv.length + ')</div>';
         inv.forEach(function(item){ h += '<div class="inv-item"><span>' + escHtml(item.name) + '</span> <span style="color:#545880;font-size:10px">' + escHtml(item.type) + '</span></div>'; });
         h += '<div class="section-title">Conditions</div>';
-        cds.forEach(function(c){ h += '<span class="condition-badge">' + escHtml(c) + '</span>'; });
+        cds.forEach(function(c){ h += '<span class="condition-badge"><ta-icon name="' + conditionIcon(c) + '"></ta-icon>' + escHtml(c) + '</span>'; });
         if(!cds.length) h += '<span style="font-size:11px;color:#545880">None</span>';
         h += '<div style="margin-top:12px">' + xpT(xp, xpn) + '</div></div>';
         this.shadowRoot.innerHTML = h;
@@ -1223,9 +1297,12 @@ export const TA_COMPONENTS_CODE = String.raw`
     connectedCallback() {
       try {
         var crew = JSON.parse(this.getAttribute('data-crew') || '[]');
-        var h = '<style>.widget-crew{font-family:var(--ta-font-body);padding:16px}.crew-title{font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:var(--ta-color-accent);margin-bottom:12px}.crew-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}.crew-card{padding:10px;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:8px;background:rgba(84,88,128,0.06)}.crew-name{font-weight:700;font-size:13px;color:var(--sta-text-primary,#EEF0FF);display:block}.crew-role{font-size:10px;color:var(--sta-text-tertiary,#545880);text-transform:uppercase}</style>';
+        var h = '<style>.widget-crew{font-family:var(--ta-font-body);padding:16px}.crew-title{font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:var(--ta-color-accent);margin-bottom:12px}.crew-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}.crew-card{padding:10px;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:8px;background:rgba(84,88,128,0.06)}.crew-name{font-weight:700;font-size:13px;color:var(--sta-text-primary,#EEF0FF);display:block}.crew-role{font-size:10px;color:var(--sta-text-tertiary,#545880);text-transform:uppercase}.crew-status{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--sta-text-secondary,#9AA0C0);margin-top:6px}.crew-status ta-icon{color:var(--ta-color-warning);width:1em;height:1em}.crew-metrics{font-size:10px;color:var(--sta-text-tertiary,#545880);margin-top:3px}</style>';
         h += '<div class="widget-crew"><div class="crew-title">Crew Manifest</div><div class="crew-grid">';
-        crew.forEach(function(c){ h += '<div class="crew-card"><span class="crew-name">' + escHtml(c.name) + '</span><span class="crew-role">' + escHtml(c.role||'Crew') + '</span><div style="font-size:11px;color:#9AA0C0;margin-top:4px">HP ' + (c.hp||'?') + '/' + (c.maxHp||'?') + '</div></div>'; });
+        crew.forEach(function(c){
+          var icon = statusIcon(c.status);
+          h += '<div class="crew-card"><span class="crew-name">' + escHtml(c.name) + '</span><span class="crew-role">' + escHtml(c.role||'Crew') + '</span><div class="crew-status">' + (icon ? '<ta-icon name="' + icon + '"></ta-icon>' : '') + '<span>' + escHtml(c.status || 'active') + '</span></div><div class="crew-metrics">Morale ' + escHtml(c.morale ?? '?') + ' · Stress ' + escHtml(c.stress ?? '?') + '</div></div>';
+        });
         if(!crew.length) h += '<p style="font-size:12px;color:#545880">No crew registered.</p>';
         h += '</div></div>';
         this.shadowRoot.innerHTML = h;
@@ -1239,20 +1316,207 @@ export const TA_COMPONENTS_CODE = String.raw`
     connectedCallback() {
       try {
         var entries = JSON.parse(this.getAttribute('data-entries') || '[]');
-        var h = '<style>.widget-codex{font-family:var(--ta-font-body);padding:16px}.codex-title{font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:var(--ta-color-accent);margin-bottom:4px}.codex-summary{font-size:11px;color:var(--sta-text-tertiary,#545880);margin-bottom:16px}.codex-entry{margin-bottom:12px;padding:10px;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:8px}.codex-header{display:flex;justify-content:space-between;align-items:baseline}.codex-id{font-weight:700;font-size:14px;color:var(--sta-text-primary,#EEF0FF)}.codex-badge{font-size:9px;padding:1px 6px;border-radius:4px;text-transform:uppercase}.codex-secret{display:inline-block;padding:2px 6px;font-size:10px;border-radius:4px;background:rgba(78,205,196,0.1);color:#4ECDC4;margin-right:4px;margin-top:4px}</style>';
-        var d = entries.filter(function(e){return e.discovered;}).length;
+        var h = '<style>.widget-codex{font-family:var(--ta-font-body);padding:16px}.codex-title{font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:var(--ta-color-accent);margin-bottom:4px}.codex-summary{font-size:11px;color:var(--sta-text-tertiary,#545880);margin-bottom:16px}.codex-entry{margin-bottom:12px;padding:10px;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,0.4));border-radius:8px}.codex-header{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.codex-id-wrap{display:flex;align-items:center;gap:7px;min-width:0}.codex-id-wrap ta-icon{color:var(--ta-color-accent);width:1em;height:1em;flex-shrink:0}.codex-id{font-weight:700;font-size:14px;color:var(--sta-text-primary,#EEF0FF);overflow:hidden;text-overflow:ellipsis}.codex-badge{font-size:9px;padding:1px 6px;border-radius:4px;text-transform:uppercase}.codex-secret{display:inline-flex;align-items:center;gap:4px;padding:2px 6px;font-size:10px;border-radius:4px;background:rgba(78,205,196,0.1);color:#4ECDC4;margin-right:4px;margin-top:4px}.codex-secret ta-icon{width:1em;height:1em}</style>';
+        var visible = entries.filter(isCodexVisible);
+        var d = visible.filter(function(e){ return e.discovered || String(e.state || '').toLowerCase() === 'discovered'; }).length;
         h += '<div class="widget-codex"><div class="codex-title">Lore Codex</div><div class="codex-summary">' + d + ' of ' + entries.length + ' entries discovered</div>';
         entries.forEach(function(e) {
-          if(!e.discovered) return;
+          if(!isCodexVisible(e)) return;
           var c = e.category==='faction' ? '#E84855' : (e.category==='location' ? '#4ECDC4' : '#9AA0C0');
-          h += '<div class="codex-entry"><div class="codex-header"><span class="codex-id">' + escHtml(e.id) + '</span><span class="codex-badge" style="background:'+c+';color:#fff">' + escHtml(e.category||'item') + '</span></div>';
+          h += '<div class="codex-entry"><div class="codex-header"><span class="codex-id-wrap"><ta-icon name="' + codexIcon(e) + '"></ta-icon><span class="codex-id">' + escHtml(e.title || e.id) + '</span></span><span class="codex-badge" style="background:'+c+';color:#fff">' + escHtml(e.category||e.state||'item') + '</span></div>';
           h += '<div style="font-size:10px;color:#545880;margin-top:2px">' + escHtml(e.discoveredAt||'') + '</div>';
-          if(e.secrets) e.secrets.forEach(function(s){ h += '<span class="codex-secret">' + escHtml(s) + '</span>'; });
+          if(e.secrets) e.secrets.forEach(function(s){ h += '<span class="codex-secret"><ta-icon name="unstable"></ta-icon>' + escHtml(s) + '</span>'; });
           h += '</div>';
         });
         h += '</div>';
         this.shadowRoot.innerHTML = h;
       } catch (e) { this.shadowRoot.innerHTML = '<div>Error rendering ta-codex</div>'; }
+    }
+  }
+
+  // TaQuestToast
+  class TaQuestToast extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); }
+    connectedCallback() {
+      var message = this.getAttribute('message') || this.textContent || '';
+      if (!message) return;
+      this.shadowRoot.innerHTML = '<style>:host{position:absolute;right:16px;top:16px;z-index:50;pointer-events:none}.quest-toast{font-family:var(--ta-font-body);font-size:12px;font-weight:700;color:var(--sta-text-primary,#EEF0FF);background:rgba(4,8,16,.88);border:1px solid var(--ta-color-accent,#4ECDC4);border-radius:8px;padding:9px 12px;box-shadow:0 8px 24px rgba(0,0,0,.24);animation:quest-toast-in .22s ease-out both}@keyframes quest-toast-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}@media(prefers-reduced-motion:reduce){.quest-toast{animation:none}}</style><div class="quest-toast">' + escHtml(message) + '</div>';
+    }
+  }
+
+  // TaQuestLog
+  class TaQuestLog extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); this._filter = 'active'; this._selectedId = ''; this._storageKey = 'ta-quest-log:expanded'; }
+    connectedCallback() {
+      try {
+        this._quests = JSON.parse(this.getAttribute('data-quests') || '[]');
+        this._trackedId = this.getAttribute('data-tracked-quest') || '';
+        try {
+          var saved = JSON.parse(localStorage.getItem(this._storageKey) || '{}');
+          if (saved && typeof saved.filter === 'string') this._filter = saved.filter;
+          if (saved && typeof saved.selectedId === 'string') this._selectedId = saved.selectedId;
+        } catch (_storageErr) {}
+        var tracked = this._trackedId;
+        var active = (this._quests || []).filter(function(q){ return q.status === 'active'; });
+        var selected = tracked && this._quests.find(function(q){ return q.id === tracked; });
+        if (selected) this._selectedId = selected.id;
+        if (!this._selectedId || !this._quests.find(function(q){ return q.id === this._selectedId; }, this)) {
+          this._selectedId = active[0] ? active[0].id : ((this._quests || [])[0] ? this._quests[0].id : '');
+        }
+        this._render();
+      } catch (e) { this.shadowRoot.innerHTML = '<div>Error rendering ta-quest-log</div>'; }
+    }
+    _persist() {
+      try {
+        localStorage.setItem(this._storageKey, JSON.stringify({ filter: this._filter, selectedId: this._selectedId }));
+      } catch (_storageErr) {}
+    }
+    _matches(q, filter) {
+      if (filter === 'leads') return q.type === 'rumour' || (q.clues || []).length > 0;
+      return q.status === filter;
+    }
+    _count(filter) {
+      var self = this;
+      return (this._quests || []).filter(function(q){ return self._matches(q, filter); }).length;
+    }
+    _toneForStatus(status) {
+      if (status === 'completed') return 'success';
+      if (status === 'failed') return 'danger';
+      return 'accent';
+    }
+    _toneForPriority(priority) {
+      if (priority === 'urgent') return 'danger';
+      if (priority === 'low') return 'normal';
+      return 'warning';
+    }
+    _objectiveIcon(objective) {
+      var state = String(objective && objective.state || '').toLowerCase();
+      if (state === 'blocked') return 'locked';
+      if (state === 'failed') return 'danger';
+      if (state === 'completed') return 'safe';
+      if (state === 'optional') return 'investigate';
+      return 'objective';
+    }
+    _badge(label, tone) {
+      return '<span class="quest-badge quest-badge-' + safeToken(tone, 'normal') + '">' + escHtml(label) + '</span>';
+    }
+    _progress(q) {
+      var visible = (q.objectives || []).filter(function(o){ return o.state !== 'hidden'; });
+      var total = visible.length;
+      var done = visible.filter(function(o){ return o.completed || o.state === 'completed'; }).length;
+      return { done: done, total: total, pct: total > 0 ? Math.round((done / total) * 100) : 0 };
+    }
+    _promptButton(label, prompt, primary, icon) {
+      return '<button class="quest-action' + (primary ? ' quest-action-primary' : '') + '" type="button" data-prompt="' + escHtml(prompt) + '" title="' + escHtml(prompt) + '">' + (icon ? '<ta-icon name="' + escHtml(icon) + '"></ta-icon>' : '') + '<span>' + escHtml(label) + '</span></button>';
+    }
+    _renderDetail(q) {
+      if (!q) return '<section class="quest-detail quest-empty"><div class="quest-empty-title">No quest selected</div></section>';
+      var progress = this._progress(q);
+      var currentId = q.currentObjectiveId || '';
+      var visibleObjectives = (q.objectives || []).filter(function(o){ return o.state !== 'hidden'; });
+      var html = '<section class="quest-detail">';
+      html += '<div class="quest-detail-head"><div><div class="quest-kicker">' + escHtml(q.type || 'quest') + '</div><h3 class="quest-detail-title">' + escHtml(q.title || 'Untitled Quest') + '</h3></div><div class="quest-detail-badges">' + this._badge(q.status || 'active', this._toneForStatus(q.status)) + this._badge(q.priority || 'normal', this._toneForPriority(q.priority)) + '</div></div>';
+      if (q.summary) html += '<p class="quest-summary-text">' + escHtml(q.summary) + '</p>';
+      html += '<div class="quest-progress-row"><span>' + progress.done + '/' + progress.total + ' objectives</span><span>' + progress.pct + '%</span></div><div class="quest-progress-track"><div class="quest-progress-fill" style="width:' + progress.pct + '%"></div></div>';
+      if (visibleObjectives.length) {
+        html += '<ol class="quest-objectives">';
+        var owner = this;
+        visibleObjectives.forEach(function(o) {
+          var current = o.id === currentId;
+          var cls = 'quest-objective quest-objective-' + safeToken(o.state, 'active') + (current ? ' quest-objective-current' : '');
+          html += '<li class="' + cls + '"><span class="objective-icon"><ta-icon name="' + owner._objectiveIcon(o) + '"></ta-icon></span><span class="objective-state">' + escHtml(o.state || 'active') + '</span><span class="objective-text">' + escHtml(o.description || '') + '</span>';
+          if (o.blockedReason) html += '<span class="objective-note"><ta-icon name="locked"></ta-icon>' + escHtml(o.blockedReason) + '</span>';
+          html += '</li>';
+        });
+        html += '</ol>';
+      }
+      if ((q.clues || []).length) {
+        html += '<div class="quest-section"><div class="quest-section-title">Leads</div><ul class="quest-clues">';
+        (q.clues || []).forEach(function(c) {
+          html += '<li class="' + (c.important ? 'important' : '') + '"><ta-icon name="' + (c.important ? 'danger' : 'clue') + '"></ta-icon><span>' + escHtml(c.text || '') + '</span>' + (c.source ? '<small>' + escHtml(c.source) + '</small>' : '') + '</li>';
+        });
+        html += '</ul></div>';
+      }
+      var chips = [];
+      (q.relatedNpcIds || []).forEach(function(id){ chips.push(['NPC', id]); });
+      (q.relatedLocationIds || []).forEach(function(id){ chips.push(['Location', id]); });
+      (q.relatedFactionIds || []).forEach(function(id){ chips.push(['Faction', id]); });
+      if (chips.length) {
+        html += '<div class="quest-section"><div class="quest-section-title">Related</div><div class="quest-chips">';
+        chips.forEach(function(pair){
+          var icon = pair[0] === 'NPC' ? 'npc' : (pair[0] === 'Location' ? 'investigate' : 'wanted');
+          html += '<span class="quest-chip"><ta-icon name="' + icon + '"></ta-icon><b>' + escHtml(pair[0]) + '</b> ' + escHtml(pair[1]) + '</span>';
+        });
+        html += '</div></div>';
+      }
+      if ((q.rewards || []).length) {
+        html += '<div class="quest-section"><div class="quest-section-title">Rewards</div><div class="quest-rewards">';
+        (q.rewards || []).forEach(function(r){ html += '<span class="quest-reward' + (r.received ? ' received' : '') + '">' + escHtml(r.known ? r.label : 'Unknown reward') + '</span>'; });
+        html += '</div></div>';
+      }
+      var actions = [];
+      actions.push(this._promptButton('Track', 'Track quest: ' + (q.title || q.id), true, 'objective'));
+      if ((q.clues || []).length) actions.push(this._promptButton('Review Leads', 'Review clues for quest: ' + (q.title || q.id), false, 'clue'));
+      if ((q.relatedNpcIds || []).length) actions.push(this._promptButton('Ask About It', 'Ask about quest: ' + (q.title || q.id), false, 'dialogue'));
+      if ((q.relatedLocationIds || []).length) actions.push(this._promptButton('Travel', 'Travel toward quest location: ' + q.relatedLocationIds[0], false, 'travel'));
+      if (q.status === 'active' && progress.total > 0 && progress.done >= progress.total) actions.push(this._promptButton('Turn In', 'Turn in quest: ' + (q.title || q.id), false, 'loot'));
+      html += '<div class="quest-actions">' + actions.join('') + '</div>';
+      html += '</section>';
+      return html;
+    }
+    _render() {
+      var self = this;
+      var filters = ['active', 'completed', 'failed', 'leads'];
+      var quests = this._quests || [];
+      var shown = quests.filter(function(q){ return self._matches(q, self._filter); });
+      if (shown.length && !shown.some(function(q){ return q.id === self._selectedId; })) self._selectedId = shown[0].id;
+      var selected = quests.find(function(q){ return q.id === self._selectedId; }) || shown[0] || null;
+      var html = '<style>' +
+        ':host{display:block;font-family:var(--ta-font-body);color:var(--sta-text-primary,#EEF0FF)}' +
+        '.quest-log{padding:16px;display:grid;gap:14px}.quest-top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}.quest-title{font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:var(--sta-text-primary,#EEF0FF);margin:0}.quest-meta{font-size:11px;color:var(--sta-text-tertiary,#545880);text-transform:uppercase;letter-spacing:.08em}.quest-tabs{display:flex;flex-wrap:wrap;gap:6px}.quest-tab{min-height:36px;padding:7px 10px;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,.4));border-radius:6px;background:transparent;color:var(--sta-text-secondary,#9AA0C0);font-family:var(--ta-font-body);font-size:11px;cursor:pointer}.quest-tab[aria-selected=true]{border-color:var(--ta-color-accent);color:var(--ta-color-accent);background:var(--ta-color-accent-bg)}.quest-body{display:grid;grid-template-columns:minmax(180px,.9fr) minmax(260px,1.5fr);gap:14px}.quest-list{display:grid;gap:8px;align-content:start}.quest-list-item{width:100%;text-align:left;padding:10px;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,.4));border-radius:8px;background:rgba(84,88,128,.06);color:inherit;font-family:var(--ta-font-body);cursor:pointer}.quest-list-item:hover,.quest-list-item[aria-selected=true]{border-color:var(--ta-color-accent);background:var(--ta-color-accent-bg)}.quest-list-title{display:block;font-size:13px;font-weight:700;color:var(--sta-text-primary,#EEF0FF);line-height:1.3}.quest-list-sub{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.quest-badge{display:inline-block;padding:2px 7px;border-radius:5px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}.quest-badge-accent{background:var(--ta-color-accent-bg);color:var(--ta-color-accent);border:0.5px solid var(--ta-color-accent)}.quest-badge-success{background:var(--ta-badge-success-bg,rgba(43,168,130,.15));color:var(--ta-color-success,#2BA882)}.quest-badge-danger{background:var(--ta-badge-failure-bg,rgba(232,72,85,.15));color:var(--ta-color-danger,#E84855)}.quest-badge-warning{background:rgba(240,165,0,.15);color:var(--ta-color-warning,#F0A500)}.quest-badge-normal{background:rgba(84,88,128,.18);color:var(--sta-text-secondary,#9AA0C0)}.quest-detail{padding:14px;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,.4));border-radius:8px;background:rgba(84,88,128,.04);min-width:0}.quest-detail-head{display:flex;justify-content:space-between;gap:12px;align-items:start}.quest-kicker,.quest-section-title{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--sta-text-tertiary,#545880)}.quest-detail-title{margin:2px 0 0;font-family:var(--ta-font-heading);font-size:17px;color:var(--sta-text-primary,#EEF0FF)}.quest-detail-badges{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.quest-summary-text{font-size:13px;line-height:1.5;color:var(--sta-text-secondary,#9AA0C0);margin:10px 0}.quest-progress-row{display:flex;justify-content:space-between;font-size:11px;color:var(--sta-text-tertiary,#545880);margin-top:8px}.quest-progress-track{height:6px;border-radius:4px;background:rgba(84,88,128,.18);overflow:hidden;margin:4px 0 12px}.quest-progress-fill{height:100%;background:var(--ta-color-accent);transition:width .25s}.quest-objectives{list-style:none;margin:0;padding:0;display:grid;gap:6px}.quest-objective{display:grid;grid-template-columns:auto auto 1fr;gap:8px;align-items:start;padding:8px;border-radius:6px;border:0.5px solid rgba(84,88,128,.24);font-size:12px}.quest-objective-current{border-color:var(--ta-color-accent);background:var(--ta-color-accent-bg)}.quest-objective-completed{opacity:.68}.objective-icon{color:var(--ta-color-accent);line-height:1}.objective-icon ta-icon,.objective-note ta-icon,.quest-clues ta-icon,.quest-chip ta-icon,.quest-action ta-icon{width:1em;height:1em;flex-shrink:0}.objective-state{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--sta-text-tertiary,#545880)}.objective-text{line-height:1.45}.objective-note{grid-column:3;display:flex;align-items:center;gap:4px;font-size:11px;color:var(--ta-color-warning)}.quest-section{margin-top:12px}.quest-clues{margin:6px 0 0;padding:0;list-style:none;display:grid;gap:5px}.quest-clues li{display:grid;grid-template-columns:auto 1fr;gap:7px;align-items:start;font-size:12px;line-height:1.4;color:var(--sta-text-secondary,#9AA0C0);padding-left:10px;border-left:2px solid rgba(84,88,128,.3)}.quest-clues li.important{border-left-color:var(--ta-color-warning);color:var(--sta-text-primary,#EEF0FF)}.quest-clues small{grid-column:2;display:block;color:var(--sta-text-tertiary,#545880);margin-top:2px}.quest-chips,.quest-rewards,.quest-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}.quest-chip,.quest-reward{font-size:11px;padding:4px 8px;border-radius:6px;background:rgba(84,88,128,.12);color:var(--sta-text-secondary,#9AA0C0)}.quest-chip{display:inline-flex;align-items:center;gap:5px}.quest-chip b{color:var(--sta-text-primary,#EEF0FF);font-weight:700}.quest-reward.received{opacity:.55;text-decoration:line-through}.quest-action{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:8px 11px;border:0.5px solid var(--sta-border-tertiary,rgba(84,88,128,.4));border-radius:6px;background:transparent;color:var(--sta-text-secondary,#9AA0C0);font-family:var(--ta-font-body);font-size:11px;cursor:pointer}.quest-action:hover{border-color:var(--ta-color-accent);color:var(--sta-text-primary,#EEF0FF)}.quest-action-primary{border-color:var(--ta-color-accent);color:var(--ta-color-accent);background:var(--ta-color-accent-bg)}.quest-empty{display:flex;align-items:center;justify-content:center;min-height:160px;color:var(--sta-text-tertiary,#545880)}.quest-empty-title{font-size:13px}@media(max-width:640px){.quest-body{grid-template-columns:1fr}.quest-top{align-items:flex-start;flex-direction:column}.quest-detail-head{flex-direction:column}.quest-detail-badges{justify-content:flex-start}}@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}' +
+        '</style>';
+      html += '<div class="quest-log"><div class="quest-top"><div><h2 class="quest-title">Quest Log</h2><div class="quest-meta">' + quests.length + ' total quests</div></div><div class="quest-tabs" role="tablist">';
+      filters.forEach(function(filter){
+        html += '<button class="quest-tab" type="button" role="tab" data-filter="' + filter + '" aria-selected="' + (self._filter === filter ? 'true' : 'false') + '">' + escHtml(filter) + ' (' + self._count(filter) + ')</button>';
+      });
+      html += '</div></div>';
+      if (!quests.length) {
+        html += '<section class="quest-detail quest-empty"><div class="quest-empty-title">No active quests.</div></section></div>';
+        this.shadowRoot.innerHTML = html;
+        return;
+      }
+      html += '<div class="quest-body"><div class="quest-list" role="listbox">';
+      shown.forEach(function(q){
+        var p = self._progress(q);
+        html += '<button class="quest-list-item" type="button" data-quest-id="' + escHtml(q.id) + '" aria-selected="' + (selected && selected.id === q.id ? 'true' : 'false') + '"><span class="quest-list-title">' + escHtml(q.title || 'Untitled Quest') + '</span><span class="quest-list-sub">' + self._badge(q.type || 'side', 'normal') + self._badge(q.priority || 'normal', self._toneForPriority(q.priority)) + '<span class="quest-badge quest-badge-accent">' + p.done + '/' + p.total + '</span></span></button>';
+      });
+      if (!shown.length) html += '<div class="quest-empty-title">No quests in this view.</div>';
+      html += '</div>' + this._renderDetail(selected) + '</div></div>';
+      this.shadowRoot.innerHTML = html;
+      this._wire();
+    }
+    _wire() {
+      var self = this;
+      this.shadowRoot.querySelectorAll('.quest-tab').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          self._filter = this.getAttribute('data-filter') || 'active';
+          self._persist();
+          self._render();
+        });
+      });
+      this.shadowRoot.querySelectorAll('.quest-list-item').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          self._selectedId = this.getAttribute('data-quest-id') || '';
+          self._persist();
+          self._render();
+        });
+      });
+      this.shadowRoot.querySelectorAll('.quest-action[data-prompt]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var prompt = this.getAttribute('data-prompt');
+          window.tag.sendOrCopyPrompt(this, prompt);
+        });
+      });
     }
   }
 
@@ -1282,17 +1546,475 @@ export const TA_COMPONENTS_CODE = String.raw`
     connectedCallback() {
       try {
         var m = JSON.parse(this.getAttribute('data-map') || '{}');
-        var h = '<style>.widget-map{font-family:var(--ta-font-body);padding:16px}.map-canvas{width:100%;height:auto;background:#040810;border-radius:12px;border:1px solid rgba(84,88,128,0.3)}</style>';
-        h += '<div class="widget-map"><div style="font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:#EEF0FF;margin-bottom:12px">Tactical Map</div>';
-        h += '<svg class="map-canvas" viewBox="0 0 280 180">';
-        (m.nodes||[]).forEach(function(n){
-          var isC = n.id === m.current;
-          h += '<circle cx="' + n.x + '" cy="' + n.y + '" r="' + (isC?8:5) + '" fill="' + (isC?'#4ECDC4':'#545880') + '" />';
-          h += '<text x="' + n.x + '" y="' + (n.y+15) + '" font-size="8" fill="#EEF0FF" text-anchor="middle">' + escHtml(n.id) + '</text>';
-        });
-        h += '</svg></div>';
+        var mapType = safeToken(m.type || 'settlement', 'settlement');
+        var title = m.name || (mapType === 'dungeon' ? 'Dungeon Map' : mapType === 'wilderness' ? 'Region Map' : 'Tactical Map');
+        var zones = Array.isArray(m.zones) ? m.zones.slice() : [];
+        var connections = Array.isArray(m.connections) ? m.connections : [];
+        var route = m.route && typeof m.route === 'object' ? m.route : null;
+        var routePath = route && Array.isArray(route.path) ? route.path : [];
+        var routeSegments = {};
+        for (var ri = 0; ri < routePath.length - 1; ri++) {
+          routeSegments[routePath[ri] + '>' + routePath[ri + 1]] = true;
+          routeSegments[routePath[ri + 1] + '>' + routePath[ri]] = true;
+        }
+        var spriteUrl = window.tag.ICON_SPRITE_URL || '';
+
+        function num(value, fallback) {
+          var n = Number(value);
+          return Number.isFinite(n) ? n : fallback;
+        }
+        function zoneStatus(z) {
+          return safeToken(z.status || (z.id === m.current ? 'current' : 'revealed'), 'revealed');
+        }
+        function zoneFill(z) {
+          var status = zoneStatus(z);
+          if (status === 'current') return 'rgba(78,205,196,0.28)';
+          if (status === 'danger') return 'rgba(232,72,85,0.18)';
+          if (status === 'locked') return 'rgba(240,165,0,0.16)';
+          if (status === 'safe') return 'rgba(43,168,130,0.16)';
+          if (mapType === 'wilderness') {
+            var terrain = safeToken(z.terrain || z.type, '');
+            if (terrain === 'forest') return 'url(#map-forest)';
+            if (terrain === 'desert') return 'url(#map-desert)';
+            if (terrain === 'mountains' || terrain === 'mountain' || terrain === 'hills') return 'url(#map-mountains)';
+            if (terrain === 'water') return 'url(#map-water)';
+            if (terrain === 'swamp') return 'url(#map-swamp)';
+          }
+          return status === 'visited' ? 'rgba(84,88,128,0.26)' : 'rgba(84,88,128,0.10)';
+        }
+        function zoneStroke(z) {
+          var status = zoneStatus(z);
+          if (status === 'current') return '#4ECDC4';
+          if (status === 'danger') return '#E84855';
+          if (status === 'locked') return '#F0A500';
+          if (status === 'safe') return '#2BA882';
+          return 'rgba(154,160,192,0.72)';
+        }
+        function hexPoints(cx, cy, r) {
+          var pts = [];
+          for (var i = 0; i < 6; i++) {
+            var a = Math.PI / 6 + i * Math.PI / 3;
+            pts.push(Math.round(cx + Math.cos(a) * r) + ',' + Math.round(cy + Math.sin(a) * r));
+          }
+          return pts.join(' ');
+        }
+        function iconForZone(z) {
+          var status = zoneStatus(z);
+          if (status === 'locked') return 'locked';
+          if (status === 'danger') return 'danger';
+          if (status === 'safe') return 'safe';
+          var icon = safeToken(z.icon || '', '');
+          if (icon) return icon;
+          if (z.threat && z.threat !== 'none') return 'danger';
+          return '';
+        }
+        function layoutZones() {
+          var cols = Math.max(2, Math.ceil(Math.sqrt(zones.length || 1)));
+          var rows = Math.max(1, Math.ceil((zones.length || 1) / cols));
+          var xStep = cols > 1 ? 540 / (cols - 1) : 0;
+          var yStep = rows > 1 ? 210 / (rows - 1) : 0;
+          zones.forEach(function(z, i) {
+            var col = i % cols, row = Math.floor(i / cols);
+            var fallbackX = 70 + col * xStep + ((i * 37) % 19 - 9);
+            var fallbackY = 66 + row * yStep + ((i * 29) % 17 - 8);
+            z._x = num(z.x, fallbackX);
+            z._y = num(z.y, fallbackY);
+            z._w = num(z.width, mapType === 'dungeon' ? 92 : mapType === 'settlement' ? 104 : 56);
+            z._h = num(z.height, mapType === 'dungeon' ? 58 : mapType === 'settlement' ? 48 : 56);
+            z._r = Math.max(24, Math.min(42, Math.max(z._w, z._h) / 2));
+          });
+        }
+        function center(z) {
+          if (mapType === 'wilderness') return { x: z._x, y: z._y };
+          return { x: z._x + z._w / 2, y: z._y + z._h / 2 };
+        }
+        function firstKnownZone() {
+          for (var i = 0; i < zones.length; i++) if (zones[i].id === m.current) return zones[i];
+          return zones[0] || null;
+        }
+        function compactList(values) {
+          if (!Array.isArray(values) || !values.length) return '';
+          return values.slice(0, 3).map(function(v) { return String(v); }).join(', ');
+        }
+        function renderInspector(z) {
+          if (!z) return '';
+          var prompt = z.id === m.current ? 'Inspect current location: ' + (z.label || z.id) : 'I travel to ' + (z.label || z.id) + '.';
+          var meta = [];
+          if (z.type) meta.push(z.type);
+          if (z.terrain) meta.push(z.terrain);
+          if (z.faction) meta.push('faction ' + z.faction);
+          if (z.threat) meta.push('threat ' + z.threat);
+          var loot = compactList(z.loot);
+          var encounters = compactList(z.encounters);
+          var html = '<div class="map-inspector"><div><div class="map-inspector-title">' + escHtml(z.label || z.id) + '</div>';
+          if (meta.length) html += '<div class="map-inspector-meta">' + escHtml(meta.join(' · ')) + '</div>';
+          if (z.description) html += '<div class="map-inspector-desc">' + escHtml(z.description) + '</div>';
+          if (loot || encounters) html += '<div class="map-inspector-tags">' + (loot ? '<span>Loot: ' + escHtml(loot) + '</span>' : '') + (encounters ? '<span>Encounter: ' + escHtml(encounters) + '</span>' : '') + '</div>';
+          html += '</div><button class="map-inspector-btn" data-prompt="' + escHtml(prompt) + '">' + (z.id === m.current ? 'Inspect' : 'Travel') + '</button></div>';
+          return html;
+        }
+
+        var h = '<style>.widget-map{font-family:var(--ta-font-body);padding:16px;color:var(--sta-text-primary,#EEF0FF)}.map-title-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px}.map-title{font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:var(--sta-text-primary,#EEF0FF)}.map-subtitle{font-size:11px;color:var(--sta-text-tertiary,#545880);text-transform:uppercase;letter-spacing:.08em}.map-supplies,.map-route-summary{font-size:11px;color:var(--sta-text-secondary,#9AA0C0);margin:-4px 0 10px}.map-canvas{width:100%;height:auto;background:#040810;border-radius:12px;border:1px solid rgba(84,88,128,0.3)}.map-grid{stroke:rgba(84,88,128,.14);stroke-width:1}.map-route{stroke:rgba(154,160,192,.55);stroke-width:2;fill:none}.map-route-road{stroke:rgba(190,140,84,.74);stroke-width:3}.map-route-hidden{stroke-dasharray:5 5}.map-route-locked{stroke:#F0A500}.map-route-active{stroke:#4ECDC4;stroke-width:5;filter:drop-shadow(0 0 6px rgba(78,205,196,.48))}.map-route-label{font-size:10px;fill:#9AA0C0;text-anchor:middle}.map-door-lock{fill:#F0A500}.map-zone-group{cursor:pointer;outline:none}.map-zone-group:focus .map-zone-shape,.map-zone-group:hover .map-zone-shape{stroke-width:3}.map-zone-shape{stroke-width:1.4;transition:stroke-width .16s,filter .16s}.map-zone-current{filter:drop-shadow(0 0 8px rgba(78,205,196,.45))}.map-zone-revealed{stroke-dasharray:5 4}.map-zone-label{font-size:11px;fill:#EEF0FF;text-anchor:middle;font-weight:700}.map-zone-meta{font-size:9px;fill:#9AA0C0;text-anchor:middle;text-transform:uppercase}.map-current-dot{fill:#4ECDC4;stroke:#040810;stroke-width:2}.map-zone-icon{fill:#EEF0FF;opacity:.9}.map-inspector{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-top:12px;padding:10px 12px;border:1px solid rgba(84,88,128,.34);background:rgba(4,8,16,.58);border-radius:8px}.map-inspector-title{font-weight:700;font-size:13px}.map-inspector-meta{font-size:10px;color:#9AA0C0;text-transform:uppercase;margin-top:2px}.map-inspector-desc{font-size:12px;color:#EEF0FF;margin-top:6px;line-height:1.35}.map-inspector-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px;font-size:10px;color:#9AA0C0}.map-inspector-btn{flex:0 0 auto;border:1px solid rgba(78,205,196,.55);background:rgba(78,205,196,.12);color:#EEF0FF;border-radius:6px;padding:7px 10px;font:inherit;font-size:12px;cursor:pointer}.legacy-node{fill:#545880}.legacy-current{fill:#4ECDC4}@media(prefers-reduced-motion:reduce){.map-zone-shape{transition:none}}</style>';
+        h += '<div class="widget-map"><div class="map-title-row"><div class="map-title">' + escHtml(title) + '</div><div class="map-subtitle">' + escHtml(mapType) + '</div></div>';
+        if (m.supplies) h += '<div class="map-supplies">Rations ' + escHtml(m.supplies.rations ?? '?') + ' · Water ' + escHtml(m.supplies.water ?? '?') + '</div>';
+        if (route) h += '<div class="map-route-summary">' + escHtml(route.fromLabel || route.from || '') + ' -> ' + escHtml(route.toLabel || route.to || '') + ' · ' + escHtml(route.travelTime || 'unreachable') + '</div>';
+
+        if (zones.length) {
+          layoutZones();
+          var byId = {};
+          zones.forEach(function(z) { byId[z.id] = z; });
+          var maxY = 240;
+          zones.forEach(function(z) { maxY = Math.max(maxY, mapType === 'wilderness' ? z._y + z._r + 52 : z._y + z._h + 58); });
+          var height = Math.min(760, Math.max(260, Math.round(maxY)));
+          h += '<svg class="map-canvas" viewBox="0 0 680 ' + height + '" role="img" aria-label="' + escHtml(title) + '">';
+          h += '<defs><pattern id="map-forest" width="12" height="12" patternUnits="userSpaceOnUse"><rect width="12" height="12" fill="rgba(43,168,130,.18)"/><path d="M2 10 6 2l4 8H2z" fill="rgba(43,168,130,.38)"/></pattern><pattern id="map-desert" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="rgba(240,165,0,.16)"/><circle cx="3" cy="3" r="1" fill="rgba(240,165,0,.45)"/><circle cx="8" cy="7" r="1" fill="rgba(240,165,0,.35)"/></pattern><pattern id="map-mountains" width="16" height="12" patternUnits="userSpaceOnUse"><rect width="16" height="12" fill="rgba(154,160,192,.13)"/><path d="M1 11 5 3l3 5 2-3 5 6H1z" fill="rgba(154,160,192,.34)"/></pattern><pattern id="map-water" width="16" height="10" patternUnits="userSpaceOnUse"><rect width="16" height="10" fill="rgba(84,182,255,.14)"/><path d="M0 5c3 3 5-3 8 0s5-3 8 0" stroke="rgba(84,182,255,.45)" fill="none" stroke-width="1.4"/></pattern><pattern id="map-swamp" width="12" height="12" patternUnits="userSpaceOnUse"><rect width="12" height="12" fill="rgba(78,205,196,.12)"/><path d="M2 2l8 8M10 2 2 10" stroke="rgba(78,205,196,.32)" stroke-width="1"/></pattern><marker id="map-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 8 4 0 8z" fill="rgba(154,160,192,.75)"/></marker></defs>';
+          for (var gx = 40; gx < 680; gx += 40) h += '<line class="map-grid" x1="' + gx + '" y1="0" x2="' + gx + '" y2="' + height + '"/>';
+          for (var gy = 40; gy < height; gy += 40) h += '<line class="map-grid" x1="0" y1="' + gy + '" x2="680" y2="' + gy + '"/>';
+          connections.forEach(function(c) {
+            var a = byId[c.from], b = byId[c.to];
+            if (!a || !b) return;
+            var ac = center(a), bc = center(b);
+            var typeClass = safeToken(c.type || 'path', 'path');
+            var activeRoute = routeSegments[c.from + '>' + c.to] || routeSegments[c.to + '>' + c.from];
+            var routeClass = 'map-route map-route-' + typeClass + (activeRoute ? ' map-route-active' : '') + (typeClass === 'hidden' ? ' map-route-hidden' : '') + (c.locked || c.status === 'locked' ? ' map-route-locked' : '');
+            h += '<line class="' + routeClass + '" x1="' + Math.round(ac.x) + '" y1="' + Math.round(ac.y) + '" x2="' + Math.round(bc.x) + '" y2="' + Math.round(bc.y) + '"' + (c.bidirectional === false ? ' marker-end="url(#map-arrow)"' : '') + '/>';
+            var mx = Math.round((ac.x + bc.x) / 2), my = Math.round((ac.y + bc.y) / 2);
+            if (c.locked || c.status === 'locked') h += '<rect class="map-door-lock" x="' + (mx - 4) + '" y="' + (my - 4) + '" width="8" height="8" rx="1"/>';
+            if (c.travelTime) h += '<text class="map-route-label" x="' + mx + '" y="' + (my - 6) + '">' + escHtml(c.travelTime) + '</text>';
+          });
+          zones.forEach(function(z) {
+            var status = zoneStatus(z);
+            var c = center(z);
+            var prompt = z.id === m.current ? 'Inspect current location: ' + (z.label || z.id) : 'I travel to ' + (z.label || z.id) + '.';
+            h += '<g class="map-zone-group" data-zone-id="' + escHtml(z.id) + '" data-prompt="' + escHtml(prompt) + '" tabindex="0" role="button" aria-label="' + escHtml(z.label || z.id) + '">';
+            if (mapType === 'wilderness') {
+              h += '<polygon class="map-zone-shape map-zone-' + status + '" points="' + hexPoints(z._x, z._y, z._r) + '" fill="' + zoneFill(z) + '" stroke="' + zoneStroke(z) + '"/>';
+            } else {
+              h += '<rect class="map-zone-shape map-zone-' + status + '" x="' + Math.round(z._x) + '" y="' + Math.round(z._y) + '" width="' + Math.round(z._w) + '" height="' + Math.round(z._h) + '" rx="' + (mapType === 'dungeon' ? 3 : 8) + '" fill="' + zoneFill(z) + '" stroke="' + zoneStroke(z) + '"/>';
+            }
+            var icon = iconForZone(z);
+            if (icon && spriteUrl) h += '<svg class="map-zone-icon" viewBox="0 0 24 24" x="' + Math.round(c.x - 8) + '" y="' + Math.round(c.y - 21) + '" width="16" height="16"><use href="' + spriteUrl + '#' + escHtml(icon) + '"></use></svg>';
+            h += '<text class="map-zone-label" x="' + Math.round(c.x) + '" y="' + Math.round(c.y + (icon ? 6 : 3)) + '">' + escHtml(z.label || z.id) + '</text>';
+            if (z.type || z.terrain) h += '<text class="map-zone-meta" x="' + Math.round(c.x) + '" y="' + Math.round(c.y + 18) + '">' + escHtml(z.terrain || z.type) + '</text>';
+            if (z.id === m.current) h += '<circle class="map-current-dot" cx="' + Math.round(c.x) + '" cy="' + Math.round(c.y - (mapType === 'wilderness' ? z._r + 4 : z._h / 2 + 7)) + '" r="6"/>';
+            h += '</g>';
+          });
+          h += '</svg>';
+        } else {
+          h += '<svg class="map-canvas" viewBox="0 0 280 180" role="img" aria-label="' + escHtml(title) + '">';
+          (m.nodes||[]).forEach(function(n){
+            var isC = n.id === m.current;
+            var prompt = isC ? 'Inspect current location: ' + n.id : 'I travel to ' + n.id + '.';
+            h += '<g class="map-zone-group" data-zone-id="' + escHtml(n.id) + '" data-prompt="' + escHtml(prompt) + '" tabindex="0" role="button" aria-label="' + escHtml(n.id) + '">';
+            h += '<circle class="' + (isC ? 'legacy-current' : 'legacy-node') + '" cx="' + n.x + '" cy="' + n.y + '" r="' + (isC?8:5) + '" />';
+            h += '<text x="' + n.x + '" y="' + (n.y+15) + '" font-size="8" fill="#EEF0FF" text-anchor="middle">' + escHtml(n.id) + '</text></g>';
+          });
+          h += '</svg>';
+        }
+        h += renderInspector(firstKnownZone());
+        h += '</div>';
         this.shadowRoot.innerHTML = h;
+        this.shadowRoot.querySelectorAll('.map-zone-group[data-prompt], .map-inspector-btn[data-prompt]').forEach(function(el) {
+          el.addEventListener('click', function() {
+            window.tag.sendOrCopyPrompt(this, this.getAttribute('data-prompt'));
+          });
+          el.addEventListener('keydown', function(evt) {
+            if (evt.key === 'Enter' || evt.key === ' ') {
+              evt.preventDefault();
+              window.tag.sendOrCopyPrompt(this, this.getAttribute('data-prompt'));
+            }
+          });
+        });
       } catch (e) { this.shadowRoot.innerHTML = '<div>Error rendering ta-map</div>'; }
+    }
+  }
+
+  // TaWorldPreview
+  class TaWorldPreview extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); }
+    connectedCallback() {
+      try {
+        var d = parseJsonAttr(this, 'data-preview', {});
+        var zones = Array.isArray(d.zones) ? d.zones.slice(0, 36) : [];
+        var connections = Array.isArray(d.connections) ? d.connections : [];
+        function num(value, fallback) {
+          var n = Number(value);
+          return Number.isFinite(n) ? n : fallback;
+        }
+        function point(z, index) {
+          var cols = Math.max(2, Math.ceil(Math.sqrt(zones.length || 1)));
+          var row = Math.floor(index / cols);
+          var col = index % cols;
+          var fallbackX = 62 + col * (500 / Math.max(1, cols - 1));
+          var fallbackY = 54 + row * 72;
+          return { x: Math.max(34, Math.min(586, num(z.x, fallbackX))), y: Math.max(30, Math.min(228, num(z.y, fallbackY))) };
+        }
+        var coords = {};
+        zones.forEach(function(z, i) { coords[z.id] = point(z, i); });
+        var h = '<style>.widget-world-preview{font-family:var(--ta-font-body);padding:16px;color:var(--sta-text-primary,#EEF0FF)}.wp-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}.wp-title{font-family:var(--ta-font-heading);font-size:18px;font-weight:700}.wp-kicker{font-size:10px;color:#9AA0C0;text-transform:uppercase;letter-spacing:.08em}.wp-pills{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}.wp-pill{font-size:11px;border:1px solid rgba(84,88,128,.42);border-radius:999px;padding:4px 7px;color:#D7DAEF;background:rgba(4,8,16,.42)}.wp-map{width:100%;height:auto;background:#040810;border:1px solid rgba(84,88,128,.34);border-radius:8px}.wp-grid{stroke:rgba(84,88,128,.12);stroke-width:1}.wp-edge{stroke:rgba(154,160,192,.48);stroke-width:2;fill:none}.wp-edge-hidden{stroke-dasharray:5 5;opacity:.5}.wp-edge-locked{stroke:#F0A500}.wp-node rect{fill:rgba(84,88,128,.18);stroke:rgba(154,160,192,.72);stroke-width:1.3}.wp-node-start rect{fill:rgba(78,205,196,.18);stroke:#4ECDC4}.wp-node-boss rect{fill:rgba(232,72,85,.16);stroke:#E84855}.wp-node text{font-size:10px;fill:#EEF0FF;text-anchor:middle;font-weight:700}.wp-hooks{display:grid;gap:7px;margin-top:12px}.wp-hook{font-size:12px;line-height:1.35;color:#D7DAEF;border-left:3px solid rgba(78,205,196,.62);padding-left:8px}.wp-route{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:11px;color:#9AA0C0}.wp-action{margin-top:12px;border:1px solid rgba(78,205,196,.55);background:rgba(78,205,196,.12);color:#EEF0FF;border-radius:6px;padding:8px 11px;font:inherit;font-size:12px;cursor:pointer}</style>';
+        h += '<div class="widget-world-preview"><div class="wp-head"><div><div class="wp-kicker">' + escHtml(d.theme || 'world') + '</div><div class="wp-title">' + escHtml(d.mapName || 'World Preview') + '</div></div><div class="wp-pills">';
+        h += '<span class="wp-pill">' + escHtml(d.roomCount || zones.length || 0) + ' rooms</span><span class="wp-pill">' + escHtml(d.npcCount || 0) + ' NPCs</span><span class="wp-pill">' + escHtml(d.factionCount || 0) + ' factions</span></div></div>';
+        h += '<svg class="wp-map" viewBox="0 0 620 260" role="img" aria-label="' + escHtml(d.mapName || 'World Preview') + '">';
+        for (var gx = 40; gx < 620; gx += 40) h += '<line class="wp-grid" x1="' + gx + '" y1="0" x2="' + gx + '" y2="260"/>';
+        for (var gy = 40; gy < 260; gy += 40) h += '<line class="wp-grid" x1="0" y1="' + gy + '" x2="620" y2="' + gy + '"/>';
+        connections.forEach(function(c) {
+          var a = coords[c.from], b = coords[c.to];
+          if (!a || !b) return;
+          var cls = 'wp-edge' + (c.discovered === false || c.type === 'hidden' ? ' wp-edge-hidden' : '') + (c.locked || c.status === 'locked' ? ' wp-edge-locked' : '');
+          h += '<line class="' + cls + '" x1="' + Math.round(a.x) + '" y1="' + Math.round(a.y) + '" x2="' + Math.round(b.x) + '" y2="' + Math.round(b.y) + '"/>';
+        });
+        zones.forEach(function(z, i) {
+          var p = coords[z.id] || point(z, i);
+          var label = z.label || z.name || z.id;
+          var cls = 'wp-node';
+          if (label === d.startRoom || z.id === d.startRoom) cls += ' wp-node-start';
+          if (label === d.bossRoom || z.id === d.bossRoom) cls += ' wp-node-boss';
+          h += '<g class="' + cls + '"><rect x="' + Math.round(p.x - 39) + '" y="' + Math.round(p.y - 17) + '" width="78" height="34" rx="6"/><text x="' + Math.round(p.x) + '" y="' + Math.round(p.y + 4) + '">' + escHtml(label).slice(0, 28) + '</text></g>';
+        });
+        h += '</svg><div class="wp-route"><span>Start: ' + escHtml(d.startRoom || '') + '</span><span>Boss: ' + escHtml(d.bossRoom || '') + '</span><span>Seed: ' + escHtml(d.seed || '') + '</span></div>';
+        var hooks = d.hooks || {};
+        var hookList = [];
+        if (hooks.main) hookList.push(hooks.main);
+        if (Array.isArray(hooks.side)) hookList = hookList.concat(hooks.side.slice(0, 2));
+        if (hooks.factionA) hookList.push(hooks.factionA);
+        if (hooks.factionB) hookList.push(hooks.factionB);
+        if (hookList.length) {
+          h += '<div class="wp-hooks">';
+          hookList.slice(0, 4).forEach(function(hook) { h += '<div class="wp-hook">' + escHtml(hook) + '</div>'; });
+          h += '</div>';
+        }
+        if (d.applyPrompt) h += '<button class="wp-action" type="button" data-prompt="' + escHtml(d.applyPrompt) + '">Use World</button>';
+        h += '</div>';
+        this.shadowRoot.innerHTML = h;
+        this.shadowRoot.querySelectorAll('[data-prompt]').forEach(function(btn) {
+          btn.addEventListener('click', function() { window.tag.sendOrCopyPrompt(this, this.getAttribute('data-prompt')); });
+        });
+      } catch (e) { this.shadowRoot.innerHTML = '<div>Error rendering ta-world-preview</div>'; }
+    }
+  }
+
+  // TaRoutePlanner
+  class TaRoutePlanner extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); }
+    connectedCallback() {
+      try {
+        var r = parseJsonAttr(this, 'data-route', {});
+        var labels = Array.isArray(r.pathLabels) ? r.pathLabels : [];
+        var zones = Array.isArray(r.zones) ? r.zones : [];
+        var blockers = Array.isArray(r.blockers) ? r.blockers : [];
+        var routeIds = Array.isArray(r.path) ? r.path : [];
+        var active = {};
+        routeIds.forEach(function(id) { active[id] = true; });
+        function routeX(i, count) { return count <= 1 ? 170 : 36 + i * (268 / Math.max(1, count - 1)); }
+        var h = '<style>.widget-route-planner{font-family:var(--ta-font-body);padding:16px;color:var(--sta-text-primary,#EEF0FF)}.rp-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.rp-title{font-family:var(--ta-font-heading);font-size:18px;font-weight:700}.rp-status{font-size:11px;border-radius:999px;padding:4px 8px;border:1px solid rgba(84,88,128,.42);color:#D7DAEF}.rp-status-ok{border-color:rgba(78,205,196,.55);background:rgba(78,205,196,.12)}.rp-status-blocked{border-color:rgba(240,165,0,.55);background:rgba(240,165,0,.1)}.rp-canvas{width:100%;height:auto;margin-top:12px;background:#040810;border:1px solid rgba(84,88,128,.34);border-radius:8px}.rp-path-line{stroke:#4ECDC4;stroke-width:3;fill:none}.rp-node{fill:rgba(84,88,128,.22);stroke:rgba(154,160,192,.72);stroke-width:1.4}.rp-node-active{fill:rgba(78,205,196,.2);stroke:#4ECDC4}.rp-label{font-size:10px;fill:#EEF0FF;text-anchor:middle;font-weight:700}.rp-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:11px;color:#9AA0C0}.rp-step{border:1px solid rgba(84,88,128,.36);border-radius:999px;padding:4px 7px}.rp-blockers{margin-top:10px;display:grid;gap:6px}.rp-blocker{font-size:12px;color:#FFD98F;border-left:3px solid #F0A500;padding-left:8px}.rp-zones{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}.rp-zone{font-size:11px;border:1px solid rgba(84,88,128,.32);border-radius:999px;padding:4px 7px;color:#C8CEE8}.rp-action{margin-top:12px;border:1px solid rgba(78,205,196,.55);background:rgba(78,205,196,.12);color:#EEF0FF;border-radius:6px;padding:8px 11px;font:inherit;font-size:12px;cursor:pointer}</style>';
+        h += '<div class="widget-route-planner"><div class="rp-head"><div><div class="rp-title">' + escHtml(r.fromLabel || r.from || 'Route') + ' to ' + escHtml(r.toLabel || r.to || '') + '</div><div class="rp-meta"><span>' + escHtml(r.travelTime || 'unreachable') + '</span><span>Rations ' + escHtml(r.supplyCost && r.supplyCost.rations || 0) + '</span><span>Water ' + escHtml(r.supplyCost && r.supplyCost.water || 0) + '</span></div></div><span class="rp-status ' + (r.reachable ? 'rp-status-ok' : 'rp-status-blocked') + '">' + (r.reachable ? 'Reachable' : 'Blocked') + '</span></div>';
+        h += '<svg class="rp-canvas" viewBox="0 0 340 120" role="img" aria-label="Route plan">';
+        if (labels.length) {
+          for (var i = 0; i < labels.length - 1; i++) h += '<line class="rp-path-line" x1="' + routeX(i, labels.length) + '" y1="54" x2="' + routeX(i + 1, labels.length) + '" y2="54"/>';
+          labels.forEach(function(label, i) {
+            h += '<circle class="rp-node rp-node-active" cx="' + routeX(i, labels.length) + '" cy="54" r="14"/><text class="rp-label" x="' + routeX(i, labels.length) + '" y="92">' + escHtml(label).slice(0, 18) + '</text>';
+          });
+        } else {
+          var shown = zones.slice(0, 6);
+          shown.forEach(function(zone, i) {
+            var cls = active[zone.id] ? 'rp-node rp-node-active' : 'rp-node';
+            h += '<circle class="' + cls + '" cx="' + routeX(i, Math.max(2, shown.length)) + '" cy="54" r="12"/><text class="rp-label" x="' + routeX(i, Math.max(2, shown.length)) + '" y="90">' + escHtml(zone.label || zone.id).slice(0, 16) + '</text>';
+          });
+        }
+        h += '</svg>';
+        if (labels.length) h += '<div class="rp-zones">' + labels.map(function(label) { return '<span class="rp-step">' + escHtml(label) + '</span>'; }).join('') + '</div>';
+        if (blockers.length) {
+          h += '<div class="rp-blockers">';
+          blockers.slice(0, 4).forEach(function(blocker) { h += '<div class="rp-blocker">' + escHtml(blocker) + '</div>'; });
+          h += '</div>';
+        }
+        if (r.prompt) h += '<button class="rp-action" type="button" data-prompt="' + escHtml(r.prompt) + '">' + (r.reachable ? 'Travel Route' : 'Work Route') + '</button>';
+        h += '</div>';
+        this.shadowRoot.innerHTML = h;
+        this.shadowRoot.querySelectorAll('[data-prompt]').forEach(function(btn) {
+          btn.addEventListener('click', function() { window.tag.sendOrCopyPrompt(this, this.getAttribute('data-prompt')); });
+        });
+      } catch (e) { this.shadowRoot.innerHTML = '<div>Error rendering ta-route-planner</div>'; }
+    }
+  }
+
+  // TaFactionBoard
+  class TaFactionBoard extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); }
+    connectedCallback() {
+      try {
+        var board = parseJsonAttr(this, 'data-factions', {});
+        var factions = Array.isArray(board.factions) ? board.factions : [];
+        var relations = Array.isArray(board.relations) ? board.relations : [];
+        function meter(value) {
+          var n = Number(value);
+          if (!Number.isFinite(n)) n = 0;
+          return Math.max(0, Math.min(100, Math.round((n + 100) / 2)));
+        }
+        var h = '<style>.widget-faction-board{font-family:var(--ta-font-body);padding:16px;color:var(--sta-text-primary,#EEF0FF)}.fb-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:12px}.fb-title{font-family:var(--ta-font-heading);font-size:18px;font-weight:700}.fb-sub{font-size:11px;color:#9AA0C0}.fb-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}.fb-card{border:1px solid rgba(84,88,128,.34);background:rgba(4,8,16,.48);border-radius:8px;padding:10px}.fb-name{font-weight:700;font-size:13px}.fb-ideology{font-size:11px;color:#9AA0C0;margin-top:2px;min-height:16px}.fb-meter{height:7px;border-radius:999px;background:rgba(84,88,128,.28);overflow:hidden;margin:9px 0 6px}.fb-fill{height:100%;background:#4ECDC4}.fb-label{font-size:10px;text-transform:uppercase;color:#D7DAEF}.fb-territory{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.fb-chip{font-size:10px;border:1px solid rgba(84,88,128,.34);border-radius:999px;padding:3px 6px;color:#C8CEE8}.fb-inspect{margin-top:9px;border:1px solid rgba(78,205,196,.48);background:rgba(78,205,196,.1);color:#EEF0FF;border-radius:6px;padding:7px 10px;font:inherit;font-size:11px;cursor:pointer}.fb-relations{display:grid;gap:6px;margin-top:12px}.fb-relation{font-size:11px;color:#D7DAEF;border-left:3px solid rgba(154,160,192,.55);padding-left:8px}.fb-relation b{color:#EEF0FF}</style>';
+        h += '<div class="widget-faction-board"><div class="fb-head"><div class="fb-title">Faction Board</div><div class="fb-sub">' + factions.length + ' factions tracked</div></div><div class="fb-grid">';
+        factions.forEach(function(f) {
+          h += '<div class="fb-card"><div class="fb-name">' + escHtml(f.label || f.id || 'Unknown faction') + '</div><div class="fb-ideology">' + escHtml(f.ideology || (f.visible ? '' : 'Details hidden')) + '</div>';
+          h += '<div class="fb-meter" aria-label="Standing"><div class="fb-fill" style="width:' + meter(f.standing) + '%"></div></div><div class="fb-label">' + escHtml(f.standingLabel || 'neutral') + ' ' + escHtml(f.standing || 0) + '</div>';
+          var territory = Array.isArray(f.territory) ? f.territory : [];
+          h += '<div class="fb-territory">';
+          territory.slice(0, 4).forEach(function(t) { h += '<span class="fb-chip">' + escHtml(t) + '</span>'; });
+          if (!territory.length && f.territoryCount) h += '<span class="fb-chip">' + escHtml(f.territoryCount) + ' territories</span>';
+          h += '</div>';
+          if (f.inspectPrompt) h += '<button class="fb-inspect" type="button" data-prompt="' + escHtml(f.inspectPrompt) + '" title="' + escHtml(f.inspectPrompt) + '">Inspect</button>';
+          h += '</div>';
+        });
+        h += '</div>';
+        if (relations.length) {
+          h += '<div class="fb-relations">';
+          relations.slice(0, 6).forEach(function(rel) { h += '<div class="fb-relation"><b>' + escHtml(rel.aLabel || rel.a) + '</b> / <b>' + escHtml(rel.bLabel || rel.b) + '</b>: ' + escHtml(rel.status) + '</div>'; });
+          h += '</div>';
+        }
+        h += '</div>';
+        this.shadowRoot.innerHTML = h;
+        this.shadowRoot.querySelectorAll('[data-prompt]').forEach(function(btn) {
+          btn.addEventListener('click', function() { window.tag.sendOrCopyPrompt(this, this.getAttribute('data-prompt')); });
+        });
+      } catch (e) { this.shadowRoot.innerHTML = '<div>Error rendering ta-faction-board</div>'; }
+    }
+  }
+
+  // TaRelationshipWeb
+  class TaRelationshipWeb extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); }
+    connectedCallback() {
+      try {
+        var graph = parseJsonAttr(this, 'data-graph', {});
+        var nodes = Array.isArray(graph.nodes) ? graph.nodes.slice(0, 48) : [];
+        var edges = Array.isArray(graph.edges) ? graph.edges.slice(0, 72) : [];
+        var coords = {};
+        function color(type) {
+          type = safeToken(type, 'node');
+          if (type === 'faction') return '#F0A500';
+          if (type === 'npc') return '#4ECDC4';
+          if (type === 'quest') return '#E84855';
+          if (type === 'location') return '#54B6FF';
+          return '#9AA0C0';
+        }
+        nodes.forEach(function(node, i) {
+          var radius = nodes.length > 10 ? 98 : 82;
+          var angle = -Math.PI / 2 + (Math.PI * 2 * i / Math.max(1, nodes.length));
+          coords[node.id] = { x: 150 + Math.cos(angle) * radius, y: 135 + Math.sin(angle) * radius };
+        });
+        var h = '<style>.widget-relationship-web{font-family:var(--ta-font-body);padding:16px;color:var(--sta-text-primary,#EEF0FF)}.rw-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px}.rw-title{font-family:var(--ta-font-heading);font-size:18px;font-weight:700}.rw-sub{font-size:11px;color:#9AA0C0}.rw-canvas{width:100%;height:auto;background:#040810;border:1px solid rgba(84,88,128,.34);border-radius:8px}.rw-edge{stroke:rgba(154,160,192,.36);stroke-width:1.4}.rw-edge-label{font-size:8px;fill:#9AA0C0;text-anchor:middle}.rw-node-wrap{cursor:pointer;outline:none}.rw-node-wrap:focus .rw-node,.rw-node-wrap:hover .rw-node{stroke:#EEF0FF}.rw-node{stroke:#040810;stroke-width:3}.rw-hidden{opacity:.55}.rw-label{font-size:9px;fill:#EEF0FF;text-anchor:middle;font-weight:700}.rw-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.rw-chip{font-size:10px;border:1px solid rgba(84,88,128,.34);border-radius:999px;padding:3px 6px;color:#C8CEE8}</style>';
+        h += '<div class="widget-relationship-web"><div class="rw-head"><div class="rw-title">Relationship Web</div><div class="rw-sub">' + nodes.length + ' nodes / ' + edges.length + ' links</div></div>';
+        h += '<svg class="rw-canvas" viewBox="0 0 300 270" role="img" aria-label="Relationship web">';
+        edges.forEach(function(edge) {
+          var a = coords[edge.from], b = coords[edge.to];
+          if (!a || !b) return;
+          var mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+          h += '<line class="rw-edge" x1="' + Math.round(a.x) + '" y1="' + Math.round(a.y) + '" x2="' + Math.round(b.x) + '" y2="' + Math.round(b.y) + '"/>';
+          if (edge.label) h += '<text class="rw-edge-label" x="' + Math.round(mx) + '" y="' + Math.round(my - 3) + '">' + escHtml(edge.label).slice(0, 16) + '</text>';
+        });
+        nodes.forEach(function(node) {
+          var p = coords[node.id] || { x: 150, y: 135 };
+          h += '<g class="rw-node-wrap ' + (node.visible === false ? 'rw-hidden' : '') + '" data-prompt="' + escHtml(node.prompt || ('Inspect ' + (node.label || node.id))) + '" tabindex="0" role="button" aria-label="' + escHtml(node.label || node.id) + '"><circle class="rw-node" cx="' + Math.round(p.x) + '" cy="' + Math.round(p.y) + '" r="12" fill="' + color(node.type) + '"/><text class="rw-label" x="' + Math.round(p.x) + '" y="' + Math.round(p.y + 27) + '">' + escHtml(node.label || node.id).slice(0, 18) + '</text></g>';
+        });
+        h += '</svg><div class="rw-list">';
+        nodes.slice(0, 12).forEach(function(node) { h += '<span class="rw-chip">' + escHtml(node.type || 'node') + ': ' + escHtml(node.label || node.id) + '</span>'; });
+        h += '</div></div>';
+        this.shadowRoot.innerHTML = h;
+        this.shadowRoot.querySelectorAll('.rw-node-wrap[data-prompt]').forEach(function(el) {
+          el.addEventListener('click', function() {
+            window.tag.sendOrCopyPrompt(this, this.getAttribute('data-prompt'));
+          });
+          el.addEventListener('keydown', function(evt) {
+            if (evt.key === 'Enter' || evt.key === ' ') {
+              evt.preventDefault();
+              window.tag.sendOrCopyPrompt(this, this.getAttribute('data-prompt'));
+            }
+          });
+        });
+      } catch (e) { this.shadowRoot.innerHTML = '<div>Error rendering ta-relationship-web</div>'; }
+    }
+  }
+
+  // TaWorldAtlas
+  class TaWorldAtlas extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); }
+    connectedCallback() {
+      try {
+        var atlas = parseJsonAttr(this, 'data-atlas', {});
+        var rooms = Array.isArray(atlas.rooms) ? atlas.rooms : [];
+        var h = '<style>.widget-world-atlas{font-family:var(--ta-font-body);padding:16px;color:var(--sta-text-primary,#EEF0FF)}.wa-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:12px}.wa-title{font-family:var(--ta-font-heading);font-size:18px;font-weight:700}.wa-sub{font-size:11px;color:#9AA0C0}.wa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}.wa-room{border:1px solid rgba(84,88,128,.34);background:rgba(4,8,16,.48);border-radius:8px;padding:10px}.wa-current{border-color:rgba(78,205,196,.74);box-shadow:0 0 0 1px rgba(78,205,196,.16)}.wa-hidden{opacity:.68}.wa-name{display:flex;align-items:center;gap:6px;font-weight:700;font-size:13px}.wa-meta{font-size:10px;color:#9AA0C0;text-transform:uppercase;margin-top:3px}.wa-desc{font-size:12px;line-height:1.35;color:#D7DAEF;margin-top:7px}.wa-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.wa-tag{font-size:10px;border:1px solid rgba(84,88,128,.34);border-radius:999px;padding:3px 6px;color:#C8CEE8}.wa-action{margin-top:8px;border:1px solid rgba(78,205,196,.42);background:rgba(78,205,196,.1);color:#EEF0FF;border-radius:6px;padding:6px 9px;font:inherit;font-size:11px;cursor:pointer}</style>';
+        h += '<div class="widget-world-atlas"><div class="wa-head"><div class="wa-title">' + escHtml(atlas.mapName || 'World Atlas') + '</div><div class="wa-sub">' + rooms.length + ' locations</div></div><div class="wa-grid">';
+        rooms.forEach(function(room) {
+          var cls = 'wa-room' + (room.current ? ' wa-current' : '') + (room.visible ? '' : ' wa-hidden');
+          h += '<div class="' + cls + '"><div class="wa-name"><ta-icon name="' + (room.visible ? 'travel' : 'locked') + '"></ta-icon><span>' + escHtml(room.label || room.id || 'Unknown location') + '</span></div>';
+          var meta = [];
+          if (room.type) meta.push(room.type);
+          if (room.terrain) meta.push(room.terrain);
+          if (room.faction) meta.push('faction ' + room.faction);
+          if (room.visited) meta.push('visited');
+          h += '<div class="wa-meta">' + escHtml(meta.join(' / ') || (room.visible ? 'unvisited' : 'unrevealed')) + '</div>';
+          if (room.description) h += '<div class="wa-desc">' + escHtml(room.description) + '</div>';
+          var tags = [];
+          if (Array.isArray(room.loot)) tags = tags.concat(room.loot.slice(0, 2).map(function(v) { return 'loot ' + v; }));
+          if (Array.isArray(room.encounters)) tags = tags.concat(room.encounters.slice(0, 2).map(function(v) { return 'encounter ' + v; }));
+          if (Array.isArray(room.exits)) tags = tags.concat(room.exits.slice(0, 3).map(function(v) { return 'exit ' + v; }));
+          if (tags.length) {
+            h += '<div class="wa-tags">';
+            tags.slice(0, 5).forEach(function(tag) { h += '<span class="wa-tag">' + escHtml(tag) + '</span>'; });
+            h += '</div>';
+          }
+          if (room.visible) h += '<button class="wa-action" type="button" data-prompt="' + escHtml(room.current ? 'Inspect current location: ' + (room.label || room.id) : 'Review route options to ' + (room.label || room.id) + '.') + '">' + (room.current ? 'Inspect' : 'Route') + '</button>';
+          h += '</div>';
+        });
+        h += '</div></div>';
+        this.shadowRoot.innerHTML = h;
+        this.shadowRoot.querySelectorAll('[data-prompt]').forEach(function(btn) {
+          btn.addEventListener('click', function() { window.tag.sendOrCopyPrompt(this, this.getAttribute('data-prompt')); });
+        });
+      } catch (e) { this.shadowRoot.innerHTML = '<div>Error rendering ta-world-atlas</div>'; }
+    }
+  }
+
+  // TaClueBoard
+  class TaClueBoard extends HTMLElement {
+    constructor() { super(); this.attachShadow({ mode: 'open' }); }
+    connectedCallback() {
+      try {
+        var board = parseJsonAttr(this, 'data-clues', {});
+        var quests = Array.isArray(board.quests) ? board.quests : [];
+        var clues = Array.isArray(board.clues) ? board.clues : [];
+        var locations = Array.isArray(board.locations) ? board.locations : [];
+        var edges = Array.isArray(board.edges) ? board.edges : [];
+        var coords = {};
+        quests.slice(0, 5).forEach(function(q, i) { coords[q.id] = { x: 48 + i * 58, y: 38 }; });
+        clues.slice(0, 8).forEach(function(c, i) { coords[c.id] = { x: 34 + (i % 4) * 76, y: 112 + Math.floor(i / 4) * 42 }; });
+        locations.slice(0, 5).forEach(function(l, i) { coords[l.id] = { x: 48 + i * 58, y: 224 }; });
+        var h = '<style>.widget-clue-board{font-family:var(--ta-font-body);padding:16px;color:var(--sta-text-primary,#EEF0FF)}.cb-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:12px}.cb-title{font-family:var(--ta-font-heading);font-size:18px;font-weight:700}.cb-sub{font-size:11px;color:#9AA0C0}.cb-canvas{width:100%;height:auto;background:#040810;border:1px solid rgba(84,88,128,.34);border-radius:8px}.cb-edge{stroke:rgba(154,160,192,.4);stroke-width:1.3}.cb-node{fill:rgba(84,88,128,.22);stroke:rgba(154,160,192,.75);stroke-width:1.4}.cb-node-clue{fill:rgba(78,205,196,.16);stroke:#4ECDC4}.cb-node-important{fill:rgba(232,72,85,.16);stroke:#E84855}.cb-node-location{fill:rgba(84,182,255,.14);stroke:#54B6FF}.cb-label{font-size:8px;fill:#EEF0FF;text-anchor:middle;font-weight:700}.cb-list{display:grid;gap:7px;margin-top:10px}.cb-clue{font-size:12px;line-height:1.35;color:#D7DAEF;border-left:3px solid rgba(78,205,196,.62);padding-left:8px}.cb-clue-important{border-color:#E84855}.cb-source{display:block;font-size:10px;color:#9AA0C0;margin-top:2px}</style>';
+        h += '<div class="widget-clue-board"><div class="cb-head"><div class="cb-title">Clue Board</div><div class="cb-sub">' + clues.length + ' clues</div></div>';
+        h += '<svg class="cb-canvas" viewBox="0 0 340 260" role="img" aria-label="Clue board">';
+        edges.forEach(function(edge) {
+          var a = coords[edge.from], b = coords[edge.to];
+          if (!a || !b) return;
+          h += '<line class="cb-edge" x1="' + Math.round(a.x) + '" y1="' + Math.round(a.y) + '" x2="' + Math.round(b.x) + '" y2="' + Math.round(b.y) + '"/>';
+        });
+        quests.slice(0, 5).forEach(function(q) {
+          var p = coords[q.id] || { x: 40, y: 38 };
+          h += '<rect class="cb-node" x="' + Math.round(p.x - 24) + '" y="' + Math.round(p.y - 12) + '" width="48" height="24" rx="6"/><text class="cb-label" x="' + Math.round(p.x) + '" y="' + Math.round(p.y + 3) + '">' + escHtml(q.label || q.id).slice(0, 13) + '</text>';
+        });
+        clues.slice(0, 8).forEach(function(c) {
+          var p = coords[c.id] || { x: 40, y: 112 };
+          h += '<circle class="cb-node ' + (c.important ? 'cb-node-important' : 'cb-node-clue') + '" cx="' + Math.round(p.x) + '" cy="' + Math.round(p.y) + '" r="13"/><text class="cb-label" x="' + Math.round(p.x) + '" y="' + Math.round(p.y + 25) + '">' + escHtml(c.text || c.id).slice(0, 15) + '</text>';
+        });
+        locations.slice(0, 5).forEach(function(l) {
+          var p = coords[l.id] || { x: 40, y: 224 };
+          h += '<rect class="cb-node cb-node-location" x="' + Math.round(p.x - 22) + '" y="' + Math.round(p.y - 11) + '" width="44" height="22" rx="4"/><text class="cb-label" x="' + Math.round(p.x) + '" y="' + Math.round(p.y + 3) + '">' + escHtml(l.label || l.id).slice(0, 12) + '</text>';
+        });
+        h += '</svg><div class="cb-list">';
+        clues.slice(0, 6).forEach(function(c) {
+          h += '<div class="cb-clue ' + (c.important ? 'cb-clue-important' : '') + '">' + escHtml(c.text || '') + '<span class="cb-source">' + escHtml(c.questTitle || '') + (c.source ? ' / ' + escHtml(c.source) : '') + '</span></div>';
+        });
+        h += '</div></div>';
+        this.shadowRoot.innerHTML = h;
+      } catch (e) { this.shadowRoot.innerHTML = '<div>Error rendering ta-clue-board</div>'; }
     }
   }
 
@@ -1880,8 +2602,15 @@ export const TA_COMPONENTS_CODE = String.raw`
   if (!customElements.get('ta-character')) customElements.define('ta-character', TaCharacter);
   if (!customElements.get('ta-crew')) customElements.define('ta-crew', TaCrew);
   if (!customElements.get('ta-codex')) customElements.define('ta-codex', TaCodex);
+  if (!customElements.get('ta-quest-log')) customElements.define('ta-quest-log', TaQuestLog);
   if (!customElements.get('ta-ship')) customElements.define('ta-ship', TaShip);
   if (!customElements.get('ta-map')) customElements.define('ta-map', TaMap);
+  if (!customElements.get('ta-world-preview')) customElements.define('ta-world-preview', TaWorldPreview);
+  if (!customElements.get('ta-route-planner')) customElements.define('ta-route-planner', TaRoutePlanner);
+  if (!customElements.get('ta-faction-board')) customElements.define('ta-faction-board', TaFactionBoard);
+  if (!customElements.get('ta-relationship-web')) customElements.define('ta-relationship-web', TaRelationshipWeb);
+  if (!customElements.get('ta-world-atlas')) customElements.define('ta-world-atlas', TaWorldAtlas);
+  if (!customElements.get('ta-clue-board')) customElements.define('ta-clue-board', TaClueBoard);
   if (!customElements.get('ta-starchart')) customElements.define('ta-starchart', TaStarchart);
   if (!customElements.get('ta-dice-pool')) customElements.define('ta-dice-pool', TaDicePool);
   if (!customElements.get('ta-icon')) customElements.define('ta-icon', TaIcon);
@@ -1889,6 +2618,7 @@ export const TA_COMPONENTS_CODE = String.raw`
   if (!customElements.get('ta-action-card')) customElements.define('ta-action-card', TaActionCard);
   if (!customElements.get('ta-badge')) customElements.define('ta-badge', TaBadge);
   if (!customElements.get('ta-meter')) customElements.define('ta-meter', TaMeter);
+  if (!customElements.get('ta-quest-toast')) customElements.define('ta-quest-toast', TaQuestToast);
 
 })();
 `.trim();

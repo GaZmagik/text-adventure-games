@@ -23,12 +23,22 @@ describe('renderArcComplete', () => {
     const state = createDefaultState();
     state.arc = 1;
     state.character = {
-      name: 'Kira', class: 'Pilot', hp: 18, maxHp: 24, ac: 14,
-      level: 4, xp: 3200, currency: 150, currencyName: 'credits',
+      name: 'Kira',
+      class: 'Pilot',
+      hp: 18,
+      maxHp: 24,
+      ac: 14,
+      level: 4,
+      xp: 3200,
+      currency: 150,
+      currencyName: 'credits',
       stats: { STR: 10, DEX: 16, CON: 12, INT: 14, WIS: 11, CHA: 13 },
       modifiers: { STR: 0, DEX: 3, CON: 1, INT: 2, WIS: 0, CHA: 1 },
-      proficiencyBonus: 2, proficiencies: [],
-      abilities: [], inventory: [], conditions: [],
+      proficiencyBonus: 2,
+      proficiencies: [],
+      abilities: [],
+      inventory: [],
+      conditions: [],
       equipment: { weapon: 'Blaster', armour: 'Flight Suit' },
     };
     const html = renderArcComplete(state, '');
@@ -42,8 +52,20 @@ describe('renderArcComplete', () => {
   test('summarises quest completion counts and roll history', () => {
     const state = createDefaultState();
     state.quests = [
-      { id: 'q1', title: 'Main Quest', status: 'completed', objectives: [{ id: 'o1', description: 'Do thing', completed: true }], clues: [] },
-      { id: 'q2', title: 'Side Quest', status: 'active', objectives: [{ id: 'o2', description: 'Other thing', completed: false }], clues: [] },
+      {
+        id: 'q1',
+        title: 'Main Quest',
+        status: 'completed',
+        objectives: [{ id: 'o1', description: 'Do thing', completed: true }],
+        clues: [],
+      },
+      {
+        id: 'q2',
+        title: 'Side Quest',
+        status: 'active',
+        objectives: [{ id: 'o2', description: 'Other thing', completed: false }],
+        clues: [],
+      },
     ];
     state.rollHistory = [{ scene: 1, type: 'encounter_roll', roll: 7, outcome: 'hostile' }];
     const config = readConfig(renderArcComplete(state, ''));

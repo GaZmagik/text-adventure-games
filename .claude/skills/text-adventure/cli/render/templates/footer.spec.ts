@@ -6,9 +6,17 @@ import type { GmState } from '../../types';
 function makeState(overrides: Partial<GmState> = {}): GmState {
   const state = createDefaultState();
   state.modulesActive = [
-    'gm-checklist', 'prose-craft', 'core-systems', 'die-rolls',
-    'character-creation', 'save-codex',
-    'lore-codex', 'ship-systems', 'crew-manifest', 'star-chart', 'geo-map',
+    'gm-checklist',
+    'prose-craft',
+    'core-systems',
+    'die-rolls',
+    'character-creation',
+    'save-codex',
+    'lore-codex',
+    'ship-systems',
+    'crew-manifest',
+    'star-chart',
+    'geo-map',
   ];
   return { ...state, ...overrides } as GmState;
 }

@@ -8,37 +8,41 @@
 
 const CSS_SANITISE_RE = new RegExp(
   [
-    '<\\/style',                                                    // </style breakout
+    '<\\/style', // </style breakout
     '@import\\s+(?:url\\s*\\([^)]*\\)|"[^"]*"|\'[^\']*\')\\s*;?', // @import directives
-    'url\\s*\\(\\s*([\'"]?)\\w+:',                                 // url(proto:…)
-    'url\\s*\\(\\s*([\'"]?)//',                                    // url(//…)
-    'expression\\s*\\(',                                            // IE expression()
-    '-moz-binding\\s*:',                                            // -moz-binding
+    'url\\s*\\(\\s*([\'"]?)\\w+:', // url(proto:…)
+    'url\\s*\\(\\s*([\'"]?)//', // url(//…)
+    'expression\\s*\\(', // IE expression()
+    '-moz-binding\\s*:', // -moz-binding
   ].join('|'),
   'gi',
 );
 
 function cssReplacer(match: string): string {
   const lower = match.toLowerCase();
-  if (lower.startsWith('</style'))       return '<\\/style';
-  if (lower.startsWith('@import'))       return '/* @import stripped */';
-  if (lower.startsWith('expression'))    return '/* expression blocked */(';
-  if (lower.startsWith('-moz-binding'))  return '/* binding blocked */:';
+  if (lower.startsWith('</style')) return '<\\/style';
+  if (lower.startsWith('@import')) return '/* @import stripped */';
+  if (lower.startsWith('expression')) return '/* expression blocked */(';
+  if (lower.startsWith('-moz-binding')) return '/* binding blocked */:';
   // url() variants — preserve the opening quote character from the match
-  if (lower.startsWith('url')) { const quoteMatch = match.match(/url\s*\(\s*(['"]?)/i); const quote = quoteMatch?.[1] ?? ''; return match.includes('//') ? `url(${quote}/*blocked*/` : `url(${quote}/*blocked*/:`; }
+  if (lower.startsWith('url')) {
+    const quoteMatch = match.match(/url\s*\(\s*(['"]?)/i);
+    const quote = quoteMatch?.[1] ?? '';
+    return match.includes('//') ? `url(${quote}/*blocked*/` : `url(${quote}/*blocked*/:`;
+  }
   return match;
 }
 
 // Cache is process-scoped — fine for single CLI invocations. Does not invalidate on file change.
 const cssCache = new Map<string, string>();
 
-/** 
- * Extract and sanitise CSS from already-loaded markdown content, optionally filtered by scope. 
- * 
+/**
+ * Extract and sanitise CSS from already-loaded markdown content, optionally filtered by scope.
+ *
  * @param {string} content - Markdown source containing CSS blocks.
  * @param {readonly string[]} [scopes] - Optional list of scope IDs (e.g., 'atmosphere') to filter by.
  * @returns {string} - The aggregated and sanitised CSS string.
- * 
+ *
  * @remarks
  * If any CSS block contains the `@extract` marker, only marked blocks are returned.
  * If no blocks are marked, all CSS blocks are returned (legacy fallback).
@@ -58,9 +62,13 @@ export function extractCssFromContent(content: string, scopes?: readonly string[
       const scope = scopeMatch[1] ?? null; // null = unlabelled
       // When scopes filter is active: include unlabelled, 'shared', or matching scopes
       // Hierarchical matching: requesting 'atmosphere' matches 'atmosphere:dust' etc.
-      if (!scopes || scope === null || scope === 'shared'
-          || scopes.includes(scope)
-          || (scope !== null && scopes.some(s => scope.startsWith(s + ':')))) {
+      if (
+        !scopes ||
+        scope === null ||
+        scope === 'shared' ||
+        scopes.includes(scope) ||
+        (scope !== null && scopes.some(s => scope.startsWith(s + ':')))
+      ) {
         markedBlocks.push(block);
       }
     }
@@ -91,8 +99,8 @@ export async function extractAllCss(filePath: string, scopes?: readonly string[]
 
 // ── Selector-based CSS filtering (tree-shaking) ─────────────────────
 
-/** 
- * Result of a CSS filtering operation. 
+/**
+ * Result of a CSS filtering operation.
  */
 type FilterResult = {
   css: string;
@@ -112,10 +120,7 @@ type FilterResult = {
  * - `@media (prefers-color-scheme: light)` with `:root` always included
  * - `@media (prefers-reduced-motion` included when registered
  */
-export function filterCssBySelectors(
-  css: string,
-  selectors: readonly string[],
-): FilterResult {
+export function filterCssBySelectors(css: string, selectors: readonly string[]): FilterResult {
   if (!css.trim()) return { css: '', included: [], excluded: [...selectors] };
 
   const matched = new Set<string>();
@@ -191,7 +196,7 @@ type CssBlock =
 
 /** Split CSS into top-level blocks using brace-depth counting.
  *  Skips braces inside comments and string literals to prevent
- *  `content: '}'` or `/* } *​/` from desynchronising the depth counter. */
+ *  `content: '}'` or comment braces from desynchronising the depth counter. */
 function tokeniseTopLevel(css: string): CssBlock[] {
   const blocks: CssBlock[] = [];
   let depth = 0;
@@ -213,8 +218,12 @@ function tokeniseTopLevel(css: string): CssBlock[] {
       const quote = ch;
       i++;
       while (i < css.length) {
-        if (css[i] === '\\') { i++; } // skip escaped character
-        else if (css[i] === quote) { break; }
+        if (css[i] === '\\') {
+          i++;
+        } // skip escaped character
+        else if (css[i] === quote) {
+          break;
+        }
         i++;
       }
       continue;
@@ -244,15 +253,14 @@ function tokeniseTopLevel(css: string): CssBlock[] {
 
 /** Check if a CSS selector matches any registered selector.
  *  Splits on descendant/child combinators so `.pip` doesn't match `.enemy-card .pip`. */
-function selectorMatchesAny(
-  selector: string,
-  targets: readonly string[],
-  matched: Set<string>,
-): boolean {
+function selectorMatchesAny(selector: string, targets: readonly string[], matched: Set<string>): boolean {
   const parts = selector.split(',').map(s => s.trim());
   for (const part of parts) {
     // Split on combinators (space, >, +, ~) to get individual segments
-    const segments = part.split(/[\s>+~]+/).map(s => s.trim()).filter(Boolean);
+    const segments = part
+      .split(/[\s>+~]+/)
+      .map(s => s.trim())
+      .filter(Boolean);
     // Only match on the FIRST segment — descendant rules (.enemy-card .pip)
     // are dead weight if the ancestor isn't in the widget
     const first = segments[0];
@@ -275,11 +283,7 @@ function selectorMatchesAny(
 }
 
 /** Filter CSS rules inside a @media block. */
-function filterMediaContent(
-  body: string,
-  selectors: readonly string[],
-  matched: Set<string>,
-): string {
+function filterMediaContent(body: string, selectors: readonly string[], matched: Set<string>): string {
   const innerBlocks = tokeniseTopLevel(body);
   const kept: string[] = [];
   for (const block of innerBlocks) {
@@ -296,8 +300,8 @@ function filterMediaContent(
   return kept.join('\n');
 }
 
-/** 
- * @internal — test-only cache reset 
+/**
+ * @internal — test-only cache reset
  */
 export function clearCssCache(): void {
   cssCache.clear();

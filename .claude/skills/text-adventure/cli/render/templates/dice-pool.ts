@@ -1,5 +1,5 @@
 import type { GmState, DieType } from '../../types';
-import { DIE_CONFIGS } from '../lib/die-geometries';
+import { DIE_CONFIGS, type DieConfig } from '../lib/die-geometries';
 import { FONT_SCALE } from '../lib/die-textures';
 import { emitStandaloneCustomElement } from '../lib/shadow-wrapper';
 
@@ -9,11 +9,19 @@ type PoolGroup = {
   count: number;
 };
 
-const VALID_DIE_TYPES = new Set(Object.keys(DIE_CONFIGS));
+const VALID_DIE_TYPES = new Set<DieType>(Object.keys(DIE_CONFIGS) as DieType[]);
 /** Maximum number of physical dice allowed in a single WebGL rendering context. */
 export const MAX_DICE_POOL_TOTAL = 24;
 const MAX_DICE_POOL_CANVAS_WIDTH = 900;
 export const MAX_DICE_POOL_CANVAS_HEIGHT = 1320;
+
+function isDieType(value: string): value is DieType {
+  return VALID_DIE_TYPES.has(value as DieType);
+}
+
+function dieConfigFor(dieType: DieType): DieConfig {
+  return DIE_CONFIGS[dieType] as DieConfig;
+}
 
 /** Clamps a die count to the valid range [1, 24]. */
 function clampCount(value: unknown): number {
@@ -22,8 +30,8 @@ function clampCount(value: unknown): number {
   return Math.min(n, 24);
 }
 
-/** 
- * Caps the total number of dice in a pool to prevent WebGL context exhaustion or 
+/**
+ * Caps the total number of dice in a pool to prevent WebGL context exhaustion or
  * performance degradation.
  */
 function capPool(groups: PoolGroup[]): {
@@ -69,8 +77,8 @@ function normalisePool(raw: unknown): {
     if (!item || typeof item !== 'object') continue;
     const rec = item as Record<string, unknown>;
     const rawDieType = String(rec.dieType ?? rec.type ?? '').trim();
-    if (!VALID_DIE_TYPES.has(rawDieType)) continue;
-    groups.push({ dieType: rawDieType as DieType, count: clampCount(rec.count) });
+    if (!isDieType(rawDieType)) continue;
+    groups.push({ dieType: rawDieType, count: clampCount(rec.count) });
   }
   if (!groups.length) {
     return { groups: [{ dieType: 'd6', count: 2 }], omittedDice: 0, originalTotal: 2 };
@@ -79,7 +87,17 @@ function normalisePool(raw: unknown): {
 }
 
 /** Prepares a die geometry configuration for JSON serialisation. */
-function serialiseConfig(config: any) {
+function serialiseConfig(config: DieConfig): {
+  faceCount: number;
+  numberRange: [number, number];
+  geometryType: string;
+  geometryArgs: number[];
+  customVertices: number[][] | null;
+  customFaces: number[][] | null;
+  assign: number[] | null;
+  trianglesPerFace: number;
+  paired: boolean;
+} {
   return {
     faceCount: config.faceCount,
     numberRange: [...config.numberRange],
@@ -95,16 +113,16 @@ function serialiseConfig(config: any) {
 
 /**
  * Renders a multi-die pool widget.
- * 
+ *
  * @param {GmState | null} _state - Current game state (unused).
  * @param {string} styleName - Visual style.
  * @param {Record<string, unknown>} [options] - Pool configuration (groups, modifier, label).
  * @returns {string} - The HTML wrapped in a <ta-dice-pool> custom element.
- * 
+ *
  * @remarks
- * This is the most complex dice widget, supporting up to 24 simultaneous 
+ * This is the most complex dice widget, supporting up to 24 simultaneous
  * WebGL-rendered dice across multiple types (d4, d6, d8, d10, d12, d20).
- * It automatically truncates the pool if it exceeds the `MAX_DICE_POOL_TOTAL` 
+ * It automatically truncates the pool if it exceeds the `MAX_DICE_POOL_TOTAL`
  * for stability.
  */
 export function renderDicePool(_state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
@@ -120,15 +138,15 @@ export function renderDicePool(_state: GmState | null, styleName: string, option
   const canvasH = Math.min(MAX_DICE_POOL_CANVAS_HEIGHT, Math.max(220, rows * 220));
   const displayW = Math.min(canvasW, MAX_DICE_POOL_CANVAS_WIDTH);
   const expression = pool.map(group => `${group.count}${group.dieType}`).join(' + ');
-  const truncationNote = omittedDice > 0
-    ? `Displaying ${logicalDice} of ${originalTotal} dice for stability.`
-    : '';
+  const truncationNote = omittedDice > 0 ? `Displaying ${logicalDice} of ${originalTotal} dice for stability.` : '';
 
   const uniqueTypes = [...new Set(pool.map(group => group.dieType))];
-  const configMap = Object.fromEntries(uniqueTypes.map(dieType => {
-    const config = DIE_CONFIGS[dieType];
-    return [dieType, serialiseConfig(config)];
-  }));
+  const configMap = Object.fromEntries(
+    uniqueTypes.map(dieType => {
+      const config = dieConfigFor(dieType);
+      return [dieType, serialiseConfig(config)];
+    }),
+  );
   const fontMap = Object.fromEntries(uniqueTypes.map(dieType => [dieType, FONT_SCALE[dieType] ?? FONT_SCALE.d20]));
 
   const config = {
@@ -142,7 +160,7 @@ export function renderDicePool(_state: GmState | null, styleName: string, option
     configMap,
     fontMap,
     maxDice: MAX_DICE_POOL_TOTAL,
-    truncationNote
+    truncationNote,
   };
 
   return emitStandaloneCustomElement({

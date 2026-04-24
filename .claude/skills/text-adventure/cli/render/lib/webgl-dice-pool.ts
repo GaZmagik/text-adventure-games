@@ -343,4 +343,6 @@ root.addEventListener('click',function(){
 });
 })();`.trim();
 
-export function generateWebGLDicePoolCode(): string { return WEBGL_DICE_POOL_CODE; }
+export function generateWebGLDicePoolCode(): string {
+  return WEBGL_DICE_POOL_CODE;
+}

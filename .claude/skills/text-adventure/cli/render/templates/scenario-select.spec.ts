@@ -10,8 +10,22 @@ const TWO_SCENARIOS = {
 
 const FEATURED_SCENARIOS = {
   scenarios: [
-    { id: 'cold-freight', title: 'Cold Freight', preamble: 'Your deck has gone quiet.', genres: ['mystery'], difficulty: 'normal', accent: '#78e4ff' },
-    { id: 'crown', title: 'Crown of the Eventide', preamble: 'An impossible city.', genres: ['epic', 'cosmic'], featured: true, accent: '#9e8fff' },
+    {
+      id: 'cold-freight',
+      title: 'Cold Freight',
+      preamble: 'Your deck has gone quiet.',
+      genres: ['mystery'],
+      difficulty: 'normal',
+      accent: '#78e4ff',
+    },
+    {
+      id: 'crown',
+      title: 'Crown of the Eventide',
+      preamble: 'An impossible city.',
+      genres: ['epic', 'cosmic'],
+      featured: true,
+      accent: '#9e8fff',
+    },
     { id: 'dust', title: 'Dust Anvil', description: 'The drill hit something.', genres: ['horror'] },
   ],
 };
@@ -57,7 +71,12 @@ describe('scenario-select data serialisation', () => {
     const match = html.match(/data-scenarios="([^"]*)"/);
     expect(match).not.toBeNull();
     // The value is HTML-escaped JSON — unescape &quot; back to "
-    const raw = match![1]!.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;/g, "'");
+    const raw = match![1]!
+      .replace(/&quot;/g, '"')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&#39;/g, "'");
     const parsed = JSON.parse(raw);
     expect(Array.isArray(parsed)).toBe(true);
     expect(parsed.length).toBe(2);
@@ -93,10 +112,7 @@ describe('scenario-select data serialisation', () => {
   test('preserves difficulty and players', () => {
     const html = renderScenarioSelect(null, 'station', {
       data: {
-        scenarios: [
-          { title: 'A', difficulty: 'hard', players: '1-4' },
-          { title: 'B' },
-        ],
+        scenarios: [{ title: 'A', difficulty: 'hard', players: '1-4' }, { title: 'B' }],
       },
     });
     expect(html).toContain('hard');
@@ -110,7 +126,12 @@ describe('scenario-select featured', () => {
   test('featured flag is preserved in serialised data', () => {
     const html = renderScenarioSelect(null, 'station', { data: FEATURED_SCENARIOS });
     const match = html.match(/data-scenarios="([^"]*)"/);
-    const raw = match![1]!.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;/g, "'");
+    const raw = match![1]!
+      .replace(/&quot;/g, '"')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&#39;/g, "'");
     const parsed = JSON.parse(raw);
     const featured = parsed.filter((s: Record<string, unknown>) => s.featured);
     expect(featured.length).toBe(1);
@@ -191,7 +212,8 @@ describe('scenario-select cover art', () => {
 // ── SVG logo ──────────────────────────────────────────────────────
 
 describe('scenario-select svgLogo', () => {
-  const SVG_FIXTURE = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/></svg>';
+  const SVG_FIXTURE =
+    '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/></svg>';
 
   test('svgLogo is preserved in serialised data', () => {
     const html = renderScenarioSelect(null, 'station', {

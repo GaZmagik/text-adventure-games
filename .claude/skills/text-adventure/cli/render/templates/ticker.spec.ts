@@ -5,15 +5,15 @@ import { createDefaultState } from '../../lib/state-store';
 describe('renderTicker', () => {
   test('renders time and date data attributes', () => {
     const state = createDefaultState();
-    state.time = { 
-      period: 'Morning', 
-      date: 'Day 12', 
-      elapsed: 11, 
+    state.time = {
+      period: 'Morning',
+      date: 'Day 12',
+      elapsed: 11,
       hour: 8,
       playerKnowsTime: true,
       playerKnowsDate: true,
       calendarSystem: 'standard',
-      deadline: null
+      deadline: null,
     };
     const html = renderTicker(state, '');
     expect(html).toContain('data-period="Morning"');
@@ -23,15 +23,15 @@ describe('renderTicker', () => {
 
   test('respects visibility flags', () => {
     const state = createDefaultState();
-    state.time = { 
-      period: 'Morning', 
-      date: 'Day 12', 
-      elapsed: 11, 
+    state.time = {
+      period: 'Morning',
+      date: 'Day 12',
+      elapsed: 11,
       hour: 8,
       playerKnowsTime: false,
       playerKnowsDate: false,
       calendarSystem: 'standard',
-      deadline: null
+      deadline: null,
     };
     const html = renderTicker(state, '');
     expect(html).toContain('data-period="unknown"');
@@ -40,15 +40,15 @@ describe('renderTicker', () => {
 
   test('includes fallback HTML content', () => {
     const state = createDefaultState();
-    state.time = { 
-      period: 'Evening', 
-      date: 'Day 1', 
-      elapsed: 0, 
+    state.time = {
+      period: 'Evening',
+      date: 'Day 1',
+      elapsed: 0,
       hour: 20,
       playerKnowsTime: true,
       playerKnowsDate: true,
       calendarSystem: 'standard',
-      deadline: null
+      deadline: null,
     };
     const html = renderTicker(state, '');
     expect(html).toContain('widget-ticker');
@@ -66,7 +66,7 @@ describe('renderTicker', () => {
       playerKnowsTime: true,
       playerKnowsDate: true,
       calendarSystem: 'standard',
-      deadline: { label: 'Oxygen', remainingScenes: 3 }
+      deadline: { label: 'Oxygen', remainingScenes: 3 },
     };
     const html = renderTicker(state, '');
     expect(html).toContain('data-deadline-label="Oxygen"');
@@ -84,7 +84,7 @@ describe('renderTicker', () => {
       playerKnowsTime: true,
       playerKnowsDate: true,
       calendarSystem: 'standard',
-      deadline: { label: 'Self-Destruct', remainingScenes: 1 }
+      deadline: { label: 'Self-Destruct', remainingScenes: 1 },
     };
     const html = renderTicker(state, '');
     expect(html).toContain('Self-Destruct — 1 scene remaining');

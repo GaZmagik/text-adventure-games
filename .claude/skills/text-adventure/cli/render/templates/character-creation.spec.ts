@@ -2,12 +2,34 @@ import { describe, test, expect } from 'bun:test';
 import { renderCharacterCreation } from './character-creation';
 
 const ARCHETYPES = [
-  { name: 'Vanguard', description: 'Front-line fighter.', stats: { STR: 16, DEX: 12 }, hp: 12, ac: 16, fixedProficiencies: ['Athletics'] },
-  { name: 'Operative', flavour: 'Stealth specialist.', baseStats: { DEX: 16, INT: 14 }, abilities: ['Sneak Attack'], equipment: ['Lockpicks'] },
+  {
+    name: 'Vanguard',
+    description: 'Front-line fighter.',
+    stats: { STR: 16, DEX: 12 },
+    hp: 12,
+    ac: 16,
+    fixedProficiencies: ['Athletics'],
+  },
+  {
+    name: 'Operative',
+    flavour: 'Stealth specialist.',
+    baseStats: { DEX: 16, INT: 14 },
+    abilities: ['Sneak Attack'],
+    equipment: ['Lockpicks'],
+  },
 ];
 
 const PREGENS = [
-  { name: 'Kael Voss', class: 'Marine', hook: 'A grizzled vet.', stats: { STR: 14 }, hp: 10, ac: 14, proficiencies: ['Athletics'], openingLens: 'duty' },
+  {
+    name: 'Kael Voss',
+    class: 'Marine',
+    hook: 'A grizzled vet.',
+    stats: { STR: 14 },
+    hp: 10,
+    ac: 14,
+    proficiencies: ['Athletics'],
+    openingLens: 'duty',
+  },
   { name: 'Lyra Chen', class: 'Engineer', background: 'Ship mechanic.', stats: { INT: 16 }, hp: 8, ac: 12 },
 ];
 
@@ -94,7 +116,12 @@ describe('character-creation config serialisation', () => {
       data: { allowCustom: false, preGeneratedCharacters: PREGENS },
     });
     const match = html.match(/data-config="([^"]*)"/);
-    const raw = match![1]!.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;/g, "'");
+    const raw = match![1]!
+      .replace(/&quot;/g, '"')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&#39;/g, "'");
     const parsed = JSON.parse(raw);
     expect(parsed.allowCustom).toBe(false);
   });

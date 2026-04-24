@@ -44,26 +44,30 @@ type PreGeneratedCharacter = {
 
 /**
  * Renders the multi-step character creation widget.
- * 
+ *
  * @param {GmState | null} _state - Current game state (usually null during character creation).
  * @param {string} styleName - Visual style.
  * @param {Record<string, unknown>} [options] - Configuration data.
  * @returns {string} - The HTML wrapped in a <ta-character-creation> custom element.
- * 
+ *
  * @remarks
  * This widget is a complex "Wizard" that handles:
  * 1. **Archetype Selection**: Choosing a starting template.
  * 2. **Preset Selection**: Choosing an authored pre-generated character.
  * 3. **Customisation**: Naming (with pool-based randomisation), pronoun selection, and proficiency allocation.
- * 
- * The widget is entirely self-contained; it receives its configuration via a `data-config` 
+ *
+ * The widget is entirely self-contained; it receives its configuration via a `data-config`
  * JSON attribute and handles internal state transitions until final submission.
  */
-export function renderCharacterCreation(_state: GmState | null, styleName: string, options?: Record<string, unknown>): string {
+export function renderCharacterCreation(
+  _state: GmState | null,
+  styleName: string,
+  options?: Record<string, unknown>,
+): string {
   const raw = (options?.data ?? {}) as Record<string, unknown>;
-  const archetypes: Archetype[] = Array.isArray(raw.archetypes) ? raw.archetypes as Archetype[] : [];
+  const archetypes: Archetype[] = Array.isArray(raw.archetypes) ? (raw.archetypes as Archetype[]) : [];
   const preGeneratedCharacters: PreGeneratedCharacter[] = Array.isArray(raw.preGeneratedCharacters)
-    ? raw.preGeneratedCharacters as PreGeneratedCharacter[]
+    ? (raw.preGeneratedCharacters as PreGeneratedCharacter[])
     : [];
   const allowCustom = raw.allowCustom !== false;
   const proficiencies = Array.isArray(raw.proficiencies)
@@ -74,12 +78,31 @@ export function renderCharacterCreation(_state: GmState | null, styleName: strin
         const attr = obj.attr ? ` (${obj.attr})` : '';
         return name + attr;
       })
-    : ['Athletics', 'Acrobatics', 'Stealth', 'Arcana', 'History', 'Investigation', 'Nature', 'Religion', 'Perception', 'Insight', 'Persuasion', 'Deception', 'Intimidation', 'Performance', 'Survival', 'Medicine', 'Animal Handling', 'Sleight of Hand'];
+    : [
+        'Athletics',
+        'Acrobatics',
+        'Stealth',
+        'Arcana',
+        'History',
+        'Investigation',
+        'Nature',
+        'Religion',
+        'Perception',
+        'Insight',
+        'Persuasion',
+        'Deception',
+        'Intimidation',
+        'Performance',
+        'Survival',
+        'Medicine',
+        'Animal Handling',
+        'Sleight of Hand',
+      ];
   const defaultName = typeof raw.defaultName === 'string' ? raw.defaultName : '';
 
   const namePoolRaw = (options?.namePool ?? {}) as Record<string, unknown>;
-  const givenNames: string[] = Array.isArray(namePoolRaw.given) ? namePoolRaw.given as string[] : [];
-  const surnames: string[] = Array.isArray(namePoolRaw.surname) ? namePoolRaw.surname as string[] : [];
+  const givenNames: string[] = Array.isArray(namePoolRaw.given) ? (namePoolRaw.given as string[]) : [];
+  const surnames: string[] = Array.isArray(namePoolRaw.surname) ? (namePoolRaw.surname as string[]) : [];
 
   const config = {
     archetypes,

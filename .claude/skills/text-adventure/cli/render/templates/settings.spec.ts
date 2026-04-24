@@ -70,7 +70,12 @@ describe('settings config serialisation', () => {
     });
     const match = html.match(/data-config="([^"]*)"/);
     expect(match).not.toBeNull();
-    const raw = match![1]!.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;/g, "'");
+    const raw = match![1]!
+      .replace(/&quot;/g, '"')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&#39;/g, "'");
     const parsed = JSON.parse(raw);
     expect(parsed.defaults.rulebook).toBe('dnd_5e');
     expect(parsed.defaults.difficulty).toBe('hard');
@@ -129,7 +134,7 @@ describe('settings modules', () => {
         rulebooks: [{ name: 'Custom Rules' }],
         difficulties: [{ label: 'Insane' }],
         visualStyles: [123], // Fallback to String()
-      }
+      },
     };
     const html = renderSettings(null, '', options);
     expect(html).toContain('Custom Rules');

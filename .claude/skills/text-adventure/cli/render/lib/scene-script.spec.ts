@@ -79,4 +79,3 @@ describe('SCENE_SCRIPT_CODE audio recipe system', () => {
     expect(SCENE_SCRIPT_CODE).toContain('if (recipe)');
   });
 });
-

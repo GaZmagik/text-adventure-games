@@ -2,13 +2,28 @@ import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
 import { emitStandaloneCustomElement } from '../lib/shadow-wrapper';
 
+type ShipSystemSummary = {
+  name: string;
+  status: string;
+  integrity: number;
+  conditions: string[];
+};
+
+type ShipFallbackConfig = {
+  name: string;
+  repairParts: number;
+  scenesSinceRepair: number;
+  systems: ShipSystemSummary[];
+  powerAllocations: Record<string, number>;
+};
+
 /**
  * Builds the plain HTML fallback for the ship status.
  */
-function buildShipFallback(config: any): string {
+function buildShipFallback(config: ShipFallbackConfig): string {
   let html = `<div class="widget-ship"><div class="widget-title">${esc(config.name)}</div>`;
   html += '<ul class="ship-systems">';
-  config.systems.forEach((sys: any) => {
+  config.systems.forEach(sys => {
     html += `<li class="system-card"><strong>${esc(sys.name)}</strong>: ${esc(sys.status)} (${esc(sys.integrity)}%)</li>`;
   });
   html += '</ul></div>';
@@ -17,14 +32,14 @@ function buildShipFallback(config: any): string {
 
 /**
  * Renders the ship systems widget.
- * 
+ *
  * @param {GmState | null} state - Current game state.
  * @param {string} styleName - Visual style.
  * @param {Record<string, unknown>} [_options] - Unused.
  * @returns {string} - The HTML wrapped in a <ta-ship> custom element.
- * 
+ *
  * @remarks
- * Displays the status of ship systems, including integrity, 
+ * Displays the status of ship systems, including integrity,
  * power allocations, and available repair parts.
  */
 export function renderShip(state: GmState | null, styleName: string, _options?: Record<string, unknown>): string {
@@ -40,7 +55,7 @@ export function renderShip(state: GmState | null, styleName: string, _options?: 
     name,
     status: sys.status,
     integrity: sys.integrity,
-    conditions: sys.conditions
+    conditions: sys.conditions,
   }));
 
   const config = {
@@ -48,7 +63,7 @@ export function renderShip(state: GmState | null, styleName: string, _options?: 
     repairParts: ship.repairParts,
     scenesSinceRepair: ship.scenesSinceRepair,
     systems: systems,
-    powerAllocations: ship.powerAllocations
+    powerAllocations: ship.powerAllocations,
   };
 
   return emitStandaloneCustomElement({

@@ -14,11 +14,19 @@ describe('extractAllCss — CSS sanitisation', () => {
 
   afterEach(() => {
     for (const f of tempFiles) {
-      try { rmSync(f); } catch { /* ignore */ }
+      try {
+        rmSync(f);
+      } catch {
+        /* ignore */
+      }
     }
     tempFiles = [];
     if (tempDir) {
-      try { rmSync(tempDir, { recursive: true, force: true }); } catch { /* ignore */ }
+      try {
+        rmSync(tempDir, { recursive: true, force: true });
+      } catch {
+        /* ignore */
+      }
     }
   });
 
@@ -126,16 +134,19 @@ describe('extractAllCss', () => {
     const tmp = mkdtempSync(join(tmpdir(), 'css-extract-'));
     const file = join(tmp, 'test.md');
     try {
-      writeFileSync(file, [
-        '# Test',
-        '```css',
-        '.unmarked { color: red; }',
-        '```',
-        '```css',
-        '/* @extract */',
-        '.marked { color: green; }',
-        '```',
-      ].join('\n'));
+      writeFileSync(
+        file,
+        [
+          '# Test',
+          '```css',
+          '.unmarked { color: red; }',
+          '```',
+          '```css',
+          '/* @extract */',
+          '.marked { color: green; }',
+          '```',
+        ].join('\n'),
+      );
       const css = await extractAllCss(file);
       expect(css).toContain('.marked');
       expect(css).not.toContain('.unmarked');
@@ -184,34 +195,41 @@ describe('extractAllCss — scoped extraction', () => {
 
   afterEach(() => {
     if (tempDir) {
-      try { rmSync(tempDir, { recursive: true, force: true }); } catch { /* ignore */ }
+      try {
+        rmSync(tempDir, { recursive: true, force: true });
+      } catch {
+        /* ignore */
+      }
     }
   });
 
   function makeScopedFile(): string {
     tempDir = mkdtempSync(join(tmpdir(), 'css-scope-'));
     const file = join(tempDir, 'scoped.md');
-    Bun.write(file, [
-      '```css',
-      '/* @extract:shared */',
-      '.shared-class { color: red; }',
-      '```',
-      '',
-      '```css',
-      '/* @extract:dice */',
-      '.dice-class { color: blue; }',
-      '```',
-      '',
-      '```css',
-      '/* @extract:atmosphere */',
-      '.atmo-class { color: green; }',
-      '```',
-      '',
-      '```css',
-      '/* @extract */',
-      '.unlabelled-class { color: yellow; }',
-      '```',
-    ].join('\n'));
+    Bun.write(
+      file,
+      [
+        '```css',
+        '/* @extract:shared */',
+        '.shared-class { color: red; }',
+        '```',
+        '',
+        '```css',
+        '/* @extract:dice */',
+        '.dice-class { color: blue; }',
+        '```',
+        '',
+        '```css',
+        '/* @extract:atmosphere */',
+        '.atmo-class { color: green; }',
+        '```',
+        '',
+        '```css',
+        '/* @extract */',
+        '.unlabelled-class { color: yellow; }',
+        '```',
+      ].join('\n'),
+    );
     return file;
   }
 
@@ -302,14 +320,16 @@ describe('filterCssBySelectors', () => {
   });
 
   test('includes @keyframes when name is registered', () => {
-    const css = '@keyframes sta-fade-in { from { opacity: 0; } to { opacity: 1; } }\n@keyframes enemy-pulse { 0% { scale: 1; } }';
+    const css =
+      '@keyframes sta-fade-in { from { opacity: 0; } to { opacity: 1; } }\n@keyframes enemy-pulse { 0% { scale: 1; } }';
     const result = filterCssBySelectors(css, ['@keyframes sta-fade-in']);
     expect(result.css).toContain('sta-fade-in');
     expect(result.css).not.toContain('enemy-pulse');
   });
 
   test('includes @media blocks containing matching selectors', () => {
-    const css = '@media (prefers-reduced-motion: reduce) { .action-card { transition: none; } .enemy-card { animation: none; } }';
+    const css =
+      '@media (prefers-reduced-motion: reduce) { .action-card { transition: none; } .enemy-card { animation: none; } }';
     const result = filterCssBySelectors(css, ['.action-card']);
     expect(result.css).toContain('@media');
     expect(result.css).toContain('.action-card');
@@ -349,8 +369,7 @@ describe('filterCssBySelectors', () => {
   });
 
   test('passes through non-keyframes non-media at-rules like @font-face', () => {
-    const css = '@font-face { font-family: "GameFont"; src: url("game.woff2"); }\n'
-      + '.action-card { color: red; }';
+    const css = '@font-face { font-family: "GameFont"; src: url("game.woff2"); }\n' + '.action-card { color: red; }';
     const result = filterCssBySelectors(css, ['.action-card']);
     // @font-face should be passed through unconditionally
     expect(result.css).toContain('@font-face');
@@ -360,8 +379,7 @@ describe('filterCssBySelectors', () => {
   });
 
   test('passes through @supports at-rule unconditionally', () => {
-    const css = '@supports (display: grid) { .grid { display: grid; } }\n'
-      + '.btn { padding: 4px; }';
+    const css = '@supports (display: grid) { .grid { display: grid; } }\n' + '.btn { padding: 4px; }';
     const result = filterCssBySelectors(css, ['.btn']);
     expect(result.css).toContain('@supports');
     expect(result.css).toContain('.grid');
@@ -376,17 +394,30 @@ describe('extractAllCss — hierarchical atmosphere scopes', () => {
 
   afterEach(() => {
     clearCssCache();
-    if (tempDir) try { rmSync(tempDir, { recursive: true, force: true }); } catch { /* */ }
+    if (tempDir)
+      try {
+        rmSync(tempDir, { recursive: true, force: true });
+      } catch {
+        /* */
+      }
   });
 
   function makeHierarchicalFile(): string {
     tempDir = mkdtempSync(join(tmpdir(), 'css-hier-'));
     const file = join(tempDir, 'hier.md');
     const content = [
-      '```css', '/* @extract:atmosphere */ .atmo-toast { position: absolute; }', '```',
-      '```css', '/* @extract:atmosphere:dust */ .atmo-dust { opacity: 0.5; }', '```',
-      '```css', '/* @extract:atmosphere:rain */ .atmo-rain { animation: fall; }', '```',
-      '```css', '/* @extract:shared */ .panel { display: block; }', '```',
+      '```css',
+      '/* @extract:atmosphere */ .atmo-toast { position: absolute; }',
+      '```',
+      '```css',
+      '/* @extract:atmosphere:dust */ .atmo-dust { opacity: 0.5; }',
+      '```',
+      '```css',
+      '/* @extract:atmosphere:rain */ .atmo-rain { animation: fall; }',
+      '```',
+      '```css',
+      '/* @extract:shared */ .panel { display: block; }',
+      '```',
     ].join('\n');
     Bun.write(file, content);
     return file;
@@ -433,11 +464,19 @@ describe('extractAllCss — extended URI scheme blocking', () => {
 
   afterEach(() => {
     for (const f of tempFiles) {
-      try { rmSync(f); } catch { /* ignore */ }
+      try {
+        rmSync(f);
+      } catch {
+        /* ignore */
+      }
     }
     tempFiles = [];
     if (tempDir) {
-      try { rmSync(tempDir, { recursive: true, force: true }); } catch { /* ignore */ }
+      try {
+        rmSync(tempDir, { recursive: true, force: true });
+      } catch {
+        /* ignore */
+      }
     }
   });
 
@@ -450,35 +489,35 @@ describe('extractAllCss — extended URI scheme blocking', () => {
   }
 
   test('blocks data: URI scheme in url()', async () => {
-    const file = makeTempCss(".bg { background: url(data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==); }");
+    const file = makeTempCss('.bg { background: url(data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==); }');
     const css = await extractAllCss(file);
     expect(css).toContain('/*blocked*/');
     expect(css).not.toContain('data:text/html');
   });
 
   test('blocks blob: URI scheme in url()', async () => {
-    const file = makeTempCss(".bg { background: url(blob:http://evil.example); }");
+    const file = makeTempCss('.bg { background: url(blob:http://evil.example); }');
     const css = await extractAllCss(file);
     expect(css).toContain('/*blocked*/');
     expect(css).not.toContain('blob:');
   });
 
   test('blocks ftp: URI scheme in url()', async () => {
-    const file = makeTempCss(".bg { background: url(ftp://evil.example/file); }");
+    const file = makeTempCss('.bg { background: url(ftp://evil.example/file); }');
     const css = await extractAllCss(file);
     expect(css).toContain('/*blocked*/');
     expect(css).not.toContain('ftp://');
   });
 
   test('blocks javascript: URI scheme in url()', async () => {
-    const file = makeTempCss(".bg { background: url(javascript:alert(1)); }");
+    const file = makeTempCss('.bg { background: url(javascript:alert(1)); }');
     const css = await extractAllCss(file);
     expect(css).toContain('/*blocked*/');
     expect(css).not.toContain('javascript:');
   });
 
   test('allows safe relative url() references', async () => {
-    const file = makeTempCss(".bg { background: url(images/bg.png); }");
+    const file = makeTempCss('.bg { background: url(images/bg.png); }');
     const css = await extractAllCss(file);
     expect(css).toContain('url(images/bg.png)');
     expect(css).not.toContain('/*blocked*/');

@@ -5,10 +5,10 @@
 
 /**
  * Base structural CSS for the Scene Design System.
- * 
+ *
  * @remarks
  * This CSS provides the layout, padding, and positioning for all `sc-*` elements.
- * It is theme-agnostic and relies on CSS variables (e.g., `--ta-color-accent`, 
+ * It is theme-agnostic and relies on CSS variables (e.g., `--ta-color-accent`,
  * `--sta-text-primary`) for colors and typography.
  */
 export const SCENE_DESIGN_CSS = `
@@ -193,7 +193,7 @@ ta-action-card .btn-title {
 }
 
 /* ── Atmo-FX Primitives ────────────────────────────── */
-ta-scene[data-vfx*="glitch"] { animation: vfx-glitch-anim 0.3s infinite; }
+:host([data-vfx*="glitch"]) { animation: vfx-glitch-anim 0.3s infinite; }
 @keyframes vfx-glitch-anim {
   0% { transform: translate(0); }
   20% { transform: translate(-2px, 1px); }
@@ -203,24 +203,43 @@ ta-scene[data-vfx*="glitch"] { animation: vfx-glitch-anim 0.3s infinite; }
   100% { transform: translate(0); }
 }
 
-ta-scene[data-vfx*="low-light"] { filter: brightness(0.6) contrast(1.2) sepia(0.2) hue-rotate(180deg); }
+:host([data-vfx*="low-light"]) { filter: brightness(0.6) contrast(1.2) sepia(0.2) hue-rotate(180deg); }
 
-ta-scene[data-vfx*="static"]::after {
+:host([data-vfx*="static"])::after {
   content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
   background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyBAMAAADsEZWCAAAAGFBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAN89vVAAAACHRSTlMA7v7+/v7+/rVvT0EAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAAwSURBVDjLY2AYBaNgFIyCUUAGAQMDYwAByEAZBAwMjEEEYAMDAzGACMAGBgYGYgAAX9IBAnvS+DIAAAAASUVORK5CYII=");
   opacity: 0.05; z-index: 1000;
 }
 
-ta-scene[data-vfx*="radiation"] { animation: vfx-pulse-warning 2s infinite; }
+:host([data-vfx*="radiation"]) { animation: vfx-pulse-warning 2s infinite; }
 @keyframes vfx-pulse-warning {
   0%, 100% { background-color: transparent; }
   50% { background-color: rgba(144, 238, 144, 0.05); }
 }
 
+.tracked-quest-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 9px;
+  border: 0.5px solid var(--ta-color-accent, #4ECDC4);
+  border-radius: 999px;
+  color: var(--sta-text-primary, #EEF0FF);
+  background: var(--ta-color-accent-bg, rgba(78,205,196,0.10));
+  font-size: 11px;
+}
+.tracked-quest-badge span {
+  color: var(--ta-color-accent, #4ECDC4);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 9px;
+}
+
 /* ── Reduced Motion ──────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .sc-chapter-header, .sc-meta-strip, .sc-choice-stage, .sc-roll-result { transition: none; }
-  ta-scene[data-vfx*="glitch"],
-  ta-scene[data-vfx*="radiation"] { animation: none; }
+  :host([data-vfx*="glitch"]),
+  :host([data-vfx*="radiation"]) { animation: none; }
 }
 `;

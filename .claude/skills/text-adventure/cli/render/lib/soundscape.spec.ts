@@ -8,7 +8,6 @@ interface MockAudioNode {
   started: boolean;
   stopped: boolean;
   disconnected: boolean;
-  /* eslint-disable @typescript-eslint/no-explicit-any -- dynamic mock properties */
   [key: string]: any;
 }
 interface MockAudioParam {
@@ -31,9 +30,15 @@ function createHarness() {
       stopped: false,
       disconnected: false,
       connect() {},
-      disconnect() { this.disconnected = true; },
-      start() { this.started = true; },
-      stop() { this.stopped = true; },
+      disconnect() {
+        this.disconnected = true;
+      },
+      start() {
+        this.started = true;
+      },
+      stop() {
+        this.stopped = true;
+      },
       ...extra,
     };
   }
@@ -61,7 +66,10 @@ function createHarness() {
     }
 
     createGain() {
-      const gainValue: MockAudioParam & { setCalls: Array<{ value: number; time: number }>; rampCalls: Array<{ value: number; time: number }> } = {
+      const gainValue: MockAudioParam & {
+        setCalls: Array<{ value: number; time: number }>;
+        rampCalls: Array<{ value: number; time: number }>;
+      } = {
         value: 0,
         setCalls: [] as Array<{ value: number; time: number }>,
         rampCalls: [] as Array<{ value: number; time: number }>,
@@ -181,7 +189,20 @@ describe('SOUNDSCAPE_ENGINE_CODE', () => {
 
   // Sound types
   test('includes all 12 sound presets', () => {
-    for (const preset of ['ship-engine', 'rain', 'wind', 'forest', 'mechanical', 'terminal', 'alarm', 'silence', 'heartbeat', 'station-ambience', 'underwater', 'fire']) {
+    for (const preset of [
+      'ship-engine',
+      'rain',
+      'wind',
+      'forest',
+      'mechanical',
+      'terminal',
+      'alarm',
+      'silence',
+      'heartbeat',
+      'station-ambience',
+      'underwater',
+      'fire',
+    ]) {
       expect(SOUNDSCAPE_ENGINE_CODE).toContain(preset);
     }
   });
@@ -228,7 +249,9 @@ describe('SOUNDSCAPE_ENGINE_CODE', () => {
     expect(harness.oscillators).toHaveLength(2);
     expect(harness.sources).toHaveLength(1);
     expect(harness.filters[0]!.type).toBe('lowpass');
-    expect(harness.gains.some(gain => gain.gain.rampCalls.some((call: { time: number }) => call.time === 40))).toBe(true);
+    expect(harness.gains.some(gain => gain.gain.rampCalls.some((call: { time: number }) => call.time === 40))).toBe(
+      true,
+    );
   });
 
   test('alarm and fallback presets produce real node behaviour and stop tears them down', () => {

@@ -222,20 +222,20 @@ function coinQuat(a){var tilt=0.22,s=Math.sqrt(1-tilt*tilt);return qnm([tilt,Mat
 function standardOutcomeCode(dieType: DieType): string {
   if (dieType === 'd12') {
     return `
-  if(roll===range[1]){lbl='CRIT SUCCESS';bg='var(--sbg)';fg='var(--sfg)'}
-  else if(roll===range[0]){lbl='CRIT FAILURE';bg='var(--fbg)';fg='var(--ffg)'}
-  else if(margin>=4){lbl='SUCCESS';bg='var(--sbg)';fg='var(--sfg)'}
-  else if(margin>=0){lbl='NARROW SUCCESS';bg='var(--pbg)';fg='var(--pfg)'}
-  else if(margin>=-3){lbl='NARROW FAILURE';bg='var(--fbg)';fg='var(--ffg)'}
-  else{lbl='FAILURE';bg='var(--fbg)';fg='var(--ffg)'}`;
+  if(roll===range[1]){lbl='CRIT SUCCESS';bg='var(--sbg, rgba(91,186,111,0.15))';fg='var(--sfg, #5BBA6F)'}
+  else if(roll===range[0]){lbl='CRIT FAILURE';bg='var(--fbg, rgba(224,82,82,0.15))';fg='var(--ffg, #E05252)'}
+  else if(margin>=4){lbl='SUCCESS';bg='var(--sbg, rgba(91,186,111,0.15))';fg='var(--sfg, #5BBA6F)'}
+  else if(margin>=0){lbl='NARROW SUCCESS';bg='var(--pbg, rgba(232,168,56,0.15))';fg='var(--pfg, #E8A838)'}
+  else if(margin>=-3){lbl='NARROW FAILURE';bg='var(--fbg, rgba(224,82,82,0.15))';fg='var(--ffg, #E05252)'}
+  else{lbl='FAILURE';bg='var(--fbg, rgba(224,82,82,0.15))';fg='var(--ffg, #E05252)'}`;
   }
   return `
-  if(roll===range[1]){lbl='CRITICAL SUCCESS';bg='var(--sbg)';fg='var(--sfg)';bd='var(--sbd)'}
-  else if(roll===range[0]){lbl='CRITICAL FAILURE';bg='var(--fbg)';fg='var(--ffg)';bd='var(--fbd)'}
-  else if(margin>=5){lbl='SUCCESS';bg='var(--sbg)';fg='var(--sfg)'}
-  else if(margin>=0){lbl='NARROW SUCCESS';bg='var(--pbg)';fg='var(--pfg)'}
-  else if(margin>=-4){lbl='NARROW FAILURE';bg='var(--fbg)';fg='var(--ffg)'}
-  else{lbl='FAILURE';bg='var(--fbg)';fg='var(--ffg)'}`;
+  if(roll===range[1]){lbl='CRITICAL SUCCESS';bg='var(--sbg, rgba(91,186,111,0.15))';fg='var(--sfg, #5BBA6F)';bd='var(--sbd, #5BBA6F)'}
+  else if(roll===range[0]){lbl='CRITICAL FAILURE';bg='var(--fbg, rgba(224,82,82,0.15))';fg='var(--ffg, #E05252)';bd='var(--fbd, #E05252)'}
+  else if(margin>=5){lbl='SUCCESS';bg='var(--sbg, rgba(91,186,111,0.15))';fg='var(--sfg, #5BBA6F)'}
+  else if(margin>=0){lbl='NARROW SUCCESS';bg='var(--pbg, rgba(232,168,56,0.15))';fg='var(--pfg, #E8A838)'}
+  else if(margin>=-4){lbl='NARROW FAILURE';bg='var(--fbg, rgba(224,82,82,0.15))';fg='var(--ffg, #E05252)'}
+  else{lbl='FAILURE';bg='var(--fbg, rgba(224,82,82,0.15))';fg='var(--ffg, #E05252)'}`;
 }
 
 function generateCoinCode(): string {
@@ -274,9 +274,9 @@ function showRes(roll){
   document.getElementById('xv').textContent=lbl;
   var oe=document.getElementById('xo');
   oe.textContent=lbl;
-  oe.style.background=isHeads?'var(--sbg)':'var(--fbg)';
-  oe.style.color=isHeads?'var(--sfg)':'var(--ffg)';
-  oe.style.border='1.5px solid '+(isHeads?'var(--sbd)':'var(--fbd)');
+  oe.style.background=isHeads?'var(--sbg, rgba(91,186,111,0.15))':'var(--fbg, rgba(224,82,82,0.15))';
+  oe.style.color=isHeads?'var(--sfg, #5BBA6F)':'var(--ffg, #E05252)';
+  oe.style.border='1.5px solid '+(isHeads?'var(--sbd, #5BBA6F)':'var(--fbd, #E05252)');
   document.getElementById('ra').classList.add('v');
 }
 
@@ -303,9 +303,10 @@ function generateStandardCode(options: WebGLDiceCodeOptions): string {
   const assign = options.config.assign ?? labels.map(Number);
   const mirror = options.config.trianglesPerFace === 1 || options.config.trianglesPerFace === 3;
   const offY = options.config.trianglesPerFace === 1 ? -Math.round(0.12 * 128) : 0;
-  const atlasExpr = options.dieType === 'd6'
-    ? `createPipAtlas(ASSIGN,dieTx,dieBg)`
-    : `createTextAtlas(${js(labels)},${options.fontScale},dieTx,dieBg,${mirror},${offY},${options.dieType !== 'd10'})`;
+  const atlasExpr =
+    options.dieType === 'd6'
+      ? `createPipAtlas(ASSIGN,dieTx,dieBg)`
+      : `createTextAtlas(${js(labels)},${options.fontScale},dieTx,dieBg,${mirror},${offY},${options.dieType !== 'd10'})`;
 
   return `
 (function(){
@@ -365,7 +366,7 @@ document.getElementById('cz').addEventListener('click',doRoll);
 
 function generateD100Code(options: WebGLDiceCodeOptions): string {
   const assign = [1, 3, 5, 7, 9, 0, 8, 6, 4, 2];
-  const tensLabels = assign.map((value) => (value === 0 ? '00' : String(value * 10)));
+  const tensLabels = assign.map(value => (value === 0 ? '00' : String(value * 10)));
   const unitLabels = assign.map(String);
 
   return `

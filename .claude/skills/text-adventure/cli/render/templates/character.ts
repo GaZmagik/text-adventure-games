@@ -1,14 +1,35 @@
-import type { GmState, StatName } from '../../types';
+import type { Character, GmState, StatBlock, StatName } from '../../types';
 import { XP_THRESHOLDS } from '../../data/xp-tables';
 import { esc } from '../../lib/html';
 import { emitStandaloneCustomElement } from '../lib/shadow-wrapper';
 
 const STAT_ORDER: StatName[] = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
 
+type CharacterFallbackConfig = {
+  name: string;
+  class: string;
+  level: number;
+  hp: number;
+  maxHp: number;
+  ac: number;
+  xp: number;
+  xpNext: number;
+  proficiencyBonus: number;
+  currency: number;
+  currencyName: string;
+  stats: StatBlock;
+  modifiers: StatBlock;
+  proficiencies: string[];
+  inventory: Character['inventory'];
+  conditions: string[];
+  equipment: Character['equipment'];
+  abilities: string[];
+};
+
 /**
  * Builds the plain HTML fallback for the character sheet.
  */
-function buildCharacterFallback(config: any): string {
+function buildCharacterFallback(config: CharacterFallbackConfig): string {
   let html = `<div class="widget-character"><div class="widget-title">${esc(config.name)} (${esc(config.class)} Lv ${esc(config.level)})</div>`;
   html += `<p>HP: ${esc(config.hp)} / ${esc(config.maxHp)} | AC: ${esc(config.ac)}</p>`;
   html += '<div class="stats-grid">';
@@ -21,15 +42,15 @@ function buildCharacterFallback(config: any): string {
 
 /**
  * Renders the player character sheet widget.
- * 
+ *
  * @param {GmState | null} state - Current game state.
  * @param {string} styleName - Visual style.
  * @param {Record<string, unknown>} [_options] - Unused.
  * @returns {string} - The HTML wrapped in a <ta-character> custom element.
- * 
+ *
  * @remarks
- * Displays the full character sheet, including stats, HP, XP, 
- * inventory, and abilities. It automatically calculates the next 
+ * Displays the full character sheet, including stats, HP, XP,
+ * inventory, and abilities. It automatically calculates the next
  * level XP threshold from the `xp-tables` data.
  */
 export function renderCharacter(state: GmState | null, styleName: string, _options?: Record<string, unknown>): string {

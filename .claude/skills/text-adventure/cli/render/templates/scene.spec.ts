@@ -8,8 +8,17 @@ const BASE_STATE = {
   theme: 'sci-fi',
   modulesActive: ['core-systems', 'lore-codex'],
   character: {
-    name: 'Kael', class: 'Marine', hp: 8, maxHp: 10, ac: 14, level: 3, poiMax: 2,
-    xp: 500, proficiencyBonus: 2, currency: 50, currencyName: 'Credits',
+    name: 'Kael',
+    class: 'Marine',
+    hp: 8,
+    maxHp: 10,
+    ac: 14,
+    level: 3,
+    poiMax: 2,
+    xp: 500,
+    proficiencyBonus: 2,
+    currency: 50,
+    currencyName: 'Credits',
     stats: { STR: 10, DEX: 14, CON: 12, INT: 16, WIS: 10, CHA: 8 },
     modifiers: { STR: 0, DEX: 2, CON: 1, INT: 3, WIS: 0, CHA: -1 },
     proficiencies: ['Athletics', 'Perception'],
@@ -144,13 +153,15 @@ describe('renderScene fallback escaping', () => {
       ...BASE_STATE,
       currentRoom: malicious,
       modulesActive: ['core-systems', 'atmosphere'],
-      quests: [{
-        id: 'q1',
-        title: malicious,
-        status: 'active',
-        objectives: [{ id: 'o1', description: malicious, completed: false }],
-        clues: [],
-      }],
+      quests: [
+        {
+          id: 'q1',
+          title: malicious,
+          status: 'active',
+          objectives: [{ id: 'o1', description: malicious, completed: false }],
+          clues: [],
+        },
+      ],
     };
     const html = renderScene(state, 'station', {
       data: {

@@ -9,13 +9,15 @@ describe('renderDialogue', () => {
       npcName: 'Zara',
       data: {
         text: 'Hello, traveler.',
-        choices: [{ label: 'Greetings', prompt: 'I say hello' }]
-      }
+        choices: [{ label: 'Greetings', prompt: 'I say hello' }],
+      },
     };
     const html = renderDialogue(state, '', options);
     expect(html).toContain('data-speaker="Zara"');
     expect(html).toContain('data-text="Hello, traveler."');
-    expect(html).toContain('data-choices="[{&quot;label&quot;:&quot;Greetings&quot;,&quot;prompt&quot;:&quot;I say hello&quot;}]"');
+    expect(html).toContain(
+      'data-choices="[{&quot;label&quot;:&quot;Greetings&quot;,&quot;prompt&quot;:&quot;I say hello&quot;}]"',
+    );
   });
 
   test('includes fallback HTML content', () => {
@@ -24,8 +26,8 @@ describe('renderDialogue', () => {
       npcName: 'Zara',
       data: {
         text: 'Hello, traveler.',
-        choices: [{ label: 'Greetings', prompt: 'I say hello' }]
-      }
+        choices: [{ label: 'Greetings', prompt: 'I say hello' }],
+      },
     };
     const html = renderDialogue(state, '', options);
     expect(html).toContain('widget-dialogue');

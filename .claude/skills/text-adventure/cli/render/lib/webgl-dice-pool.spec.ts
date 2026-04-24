@@ -2,12 +2,7 @@ import { describe, test, expect, spyOn } from 'bun:test';
 import { generateWebGLDicePoolCode } from './webgl-dice-pool';
 import { DIE_CONFIGS } from './die-geometries';
 import { FONT_SCALE } from './die-textures';
-import {
-  append,
-  createRenderRuntime,
-  executeGeneratedCode,
-  makeElement,
-} from '../../tests/support/runtime-harness';
+import { append, createRenderRuntime, executeGeneratedCode, makeElement } from '../../tests/support/runtime-harness';
 
 function serialiseConfig(dieType: keyof typeof DIE_CONFIGS) {
   const config = DIE_CONFIGS[dieType];
@@ -16,9 +11,9 @@ function serialiseConfig(dieType: keyof typeof DIE_CONFIGS) {
     numberRange: [...config.numberRange],
     geometryType: config.geometryType,
     geometryArgs: 'geometryArgs' in config && config.geometryArgs ? [...config.geometryArgs] : [],
-    customVertices: 'customVertices' in config ? config.customVertices ?? null : null,
-    customFaces: 'customFaces' in config ? config.customFaces ?? null : null,
-    assign: 'assign' in config ? config.assign ?? null : null,
+    customVertices: 'customVertices' in config ? (config.customVertices ?? null) : null,
+    customFaces: 'customFaces' in config ? (config.customFaces ?? null) : null,
+    assign: 'assign' in config ? (config.assign ?? null) : null,
     trianglesPerFace: config.trianglesPerFace,
     paired: 'paired' in config && !!config.paired,
   };
@@ -54,7 +49,20 @@ describe('generateWebGLDicePoolCode', () => {
   });
 
   test('contains core math and mesh helpers', () => {
-    for (const fn of ['v3s', 'v3x', 'v3d', 'v3n', 'qnm', 'qAl', 'qsl', 'm4m', 'm4p', 'm4q', 'buildMesh', 'createAtlas']) {
+    for (const fn of [
+      'v3s',
+      'v3x',
+      'v3d',
+      'v3n',
+      'qnm',
+      'qAl',
+      'qsl',
+      'm4m',
+      'm4p',
+      'm4q',
+      'buildMesh',
+      'createAtlas',
+    ]) {
       expect(code).toContain(`function ${fn}(`);
     }
   });
@@ -142,7 +150,10 @@ describe('generateWebGLDicePoolCode', () => {
 
     executeGeneratedCode(code, env, {
       POOL_LABEL: 'Volley',
-      POOL_GROUPS: [{ dieType: 'd6', count: 2 }, { dieType: 'd8', count: 1 }],
+      POOL_GROUPS: [
+        { dieType: 'd6', count: 2 },
+        { dieType: 'd8', count: 1 },
+      ],
       POOL_MODIFIER: 2,
       POOL_CONFIG_MAP: {
         d6: serialiseConfig('d6'),

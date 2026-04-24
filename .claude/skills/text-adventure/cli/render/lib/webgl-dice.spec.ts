@@ -2,19 +2,10 @@ import { describe, test, expect, spyOn } from 'bun:test';
 import { generateWebGLDiceCode } from './webgl-dice';
 import { DIE_CONFIGS } from './die-geometries';
 import { FONT_SCALE } from './die-textures';
-import {
-  append,
-  createRenderRuntime,
-  executeGeneratedCode,
-  makeElement,
-} from '../../tests/support/runtime-harness';
+import { append, createRenderRuntime, executeGeneratedCode, makeElement } from '../../tests/support/runtime-harness';
 
 function mountStandardDice(env: ReturnType<typeof createRenderRuntime>) {
-  const root = append(
-    env.document.body,
-    makeElement(env.document, 'div', { classes: ['widget-dice'] }),
-    env.document,
-  );
+  const root = append(env.document.body, makeElement(env.document, 'div', { classes: ['widget-dice'] }), env.document);
   const clickZone = append(root, makeElement(env.document, 'div', { id: 'cz' }), env.document);
   append(clickZone, makeElement(env.document, 'canvas', { id: 'cv' }), env.document);
   const hint = append(root, makeElement(env.document, 'div', { id: 'hi' }), env.document);
@@ -30,11 +21,7 @@ function mountStandardDice(env: ReturnType<typeof createRenderRuntime>) {
 }
 
 function mountCoinDice(env: ReturnType<typeof createRenderRuntime>) {
-  const root = append(
-    env.document.body,
-    makeElement(env.document, 'div', { classes: ['widget-dice'] }),
-    env.document,
-  );
+  const root = append(env.document.body, makeElement(env.document, 'div', { classes: ['widget-dice'] }), env.document);
   const clickZone = append(root, makeElement(env.document, 'div', { id: 'cz' }), env.document);
   append(clickZone, makeElement(env.document, 'canvas', { id: 'cv' }), env.document);
   const hint = append(root, makeElement(env.document, 'div', { id: 'hi' }), env.document);
@@ -120,7 +107,24 @@ describe('generateWebGLDiceCode', () => {
   });
 
   test('contains the expected math and buffer helpers', () => {
-    for (const fn of ['v3s', 'v3x', 'v3d', 'v3n', 'qnm', 'qAl', 'qsl', 'm4m', 'm4p', 'm4q', 'm4i', 'buildMesh', 'mkB', 'mkT', 'spinSettle', 'eOB']) {
+    for (const fn of [
+      'v3s',
+      'v3x',
+      'v3d',
+      'v3n',
+      'qnm',
+      'qAl',
+      'qsl',
+      'm4m',
+      'm4p',
+      'm4q',
+      'm4i',
+      'buildMesh',
+      'mkB',
+      'mkT',
+      'spinSettle',
+      'eOB',
+    ]) {
       expect(standardCode).toContain(`function ${fn}(`);
     }
   });
@@ -156,7 +160,7 @@ describe('generateWebGLDiceCode', () => {
   test('d100 output contains the percentile-specific face assignment', () => {
     expect(d100Code).toContain('ASSIGN=[1,3,5,7,9,0,8,6,4,2]');
     expect(d100Code).toContain('function showRes(tv,uv)');
-    expect(d100Code).toContain("tot===0)tot=100");
+    expect(d100Code).toContain('tot===0)tot=100');
     expect(d100Code).not.toContain('function doFlip(');
   });
 
@@ -210,9 +214,7 @@ describe('generateWebGLDiceCode', () => {
 
     executeGeneratedCode(d100Code, env);
 
-    const randomSpy = spyOn(Math, 'random')
-      .mockReturnValueOnce(0)
-      .mockReturnValueOnce(0);
+    const randomSpy = spyOn(Math, 'random').mockReturnValueOnce(0).mockReturnValueOnce(0);
     try {
       rollArea.dispatch('click');
     } finally {

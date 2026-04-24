@@ -2,14 +2,26 @@ import type { GmState } from '../../types';
 import { esc } from '../../lib/html';
 import { emitStandaloneCustomElement } from '../lib/shadow-wrapper';
 
+type StarchartSystem = {
+  name: string;
+  x: number;
+  y: number;
+};
+
+type StarchartConfig = {
+  current: string;
+  systems: StarchartSystem[];
+  plottedCourse: string[] | null;
+};
+
 /**
  * Builds the plain HTML fallback for the starchart.
  */
-function buildStarchartFallback(config: any): string {
+function buildStarchartFallback(config: StarchartConfig): string {
   let html = '<div class="widget-starchart"><div class="widget-title">Star Chart</div>';
   html += `<p class="chart-location">Current: ${esc(config.current)}</p>`;
   html += '<ul class="chart-systems">';
-  config.systems.forEach((s: any) => {
+  config.systems.forEach(s => {
     const isCurrent = s.name === config.current ? ' (Current)' : '';
     html += `<li>${esc(s.name)}${isCurrent}</li>`;
   });
@@ -19,15 +31,15 @@ function buildStarchartFallback(config: any): string {
 
 /**
  * Renders the navigational star chart widget.
- * 
+ *
  * @param {GmState | null} state - Current game state.
  * @param {string} styleName - Visual style.
  * @param {Record<string, unknown>} [_options] - Unused.
  * @returns {string} - The HTML wrapped in a <ta-starchart> custom element.
- * 
+ *
  * @remarks
  * This widget provides a procedural map of visited and plotted systems.
- * It calculates a deterministic grid layout based on system names to 
+ * It calculates a deterministic grid layout based on system names to
  * ensure the map remains consistent between renders.
  */
 export function renderStarchart(state: GmState | null, styleName: string, _options?: Record<string, unknown>): string {
@@ -52,15 +64,15 @@ export function renderStarchart(state: GmState | null, styleName: string, _optio
     const seed = [...name].reduce((sum, char) => sum + char.charCodeAt(0), 0);
     return {
       name,
-      x: Math.round(40 + (col * xStep) + (seed % 18 - 9)),
-      y: Math.round(36 + (row * yStep) + (seed % 12 - 6))
+      x: Math.round(40 + col * xStep + ((seed % 18) - 9)),
+      y: Math.round(36 + row * yStep + ((seed % 12) - 6)),
     };
   });
 
   const config = {
     current: currentRoom,
     systems: systems,
-    plottedCourse: plottedCourse
+    plottedCourse: plottedCourse,
   };
 
   return emitStandaloneCustomElement({

@@ -7,10 +7,10 @@ describe('renderShip', () => {
     const state = createDefaultState();
     state.shipState = {
       name: 'Enterprise',
-      systems: { 'Engines': { integrity: 100, status: 'nominal', conditions: [] } },
+      systems: { Engines: { integrity: 100, status: 'nominal', conditions: [] } },
       powerAllocations: {},
       repairParts: 5,
-      scenesSinceRepair: 0
+      scenesSinceRepair: 0,
     };
     const html = renderShip(state, '');
     expect(html).toContain('data-ship=');
@@ -21,10 +21,10 @@ describe('renderShip', () => {
     const state = createDefaultState();
     state.shipState = {
       name: 'Voyager',
-      systems: { 'Shields': { integrity: 80, status: 'damaged', conditions: [] } },
+      systems: { Shields: { integrity: 80, status: 'damaged', conditions: [] } },
       powerAllocations: {},
       repairParts: 2,
-      scenesSinceRepair: 5
+      scenesSinceRepair: 5,
     };
     const html = renderShip(state, '');
     expect(html).toContain('widget-ship');
@@ -43,7 +43,9 @@ describe('renderShip', () => {
     const state = createDefaultState();
     state.shipState = {
       name: '<img src=x onerror=alert("x")> "quote" &',
-      systems: { 'Drive & <img src=x onerror=alert(1)>': { integrity: 80, status: 'damaged & unsafe', conditions: [] } },
+      systems: {
+        'Drive & <img src=x onerror=alert(1)>': { integrity: 80, status: 'damaged & unsafe', conditions: [] },
+      },
       powerAllocations: {},
       repairParts: 2,
       scenesSinceRepair: 5,

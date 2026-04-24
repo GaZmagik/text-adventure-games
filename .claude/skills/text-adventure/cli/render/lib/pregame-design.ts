@@ -5,10 +5,10 @@
 
 /**
  * Base structural CSS for the Pregame Design System.
- * 
+ *
  * @remarks
- * This CSS provides the layout, padding, and grid structures for the 
- * pre-game dashboards. It relies on CSS variables for theme-specific 
+ * This CSS provides the layout, padding, and grid structures for the
+ * pre-game dashboards. It relies on CSS variables for theme-specific
  * skinning.
  */
 export const PREGAME_DESIGN_CSS = `
