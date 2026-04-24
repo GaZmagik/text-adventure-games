@@ -3,28 +3,28 @@
 export const CDN_BASE = 'https://cdn.jsdelivr.net/gh/GaZmagik/text-adventure-games@v1.4.0/.claude/skills/text-adventure/assets';
 
 export const CSS_MANIFEST: Record<string, string> = {
-  'art-deco': '4776c1d8',
-  'blueprint': '7a9873b7',
-  'brutalist': 'f8e36cbf',
-  'holographic': '0105e970',
-  'ink-wash': 'd22ab7b4',
-  'neon': 'e3082620',
-  'parchment': '5c46dbe9',
-  'stained-glass': '32d43420',
-  'station': 'be0934b0',
-  'sveltekit': 'a7379a18',
-  'terminal': '78e22900',
-  'weathered': 'a80746ec',
+  'art-deco': '5bd57708',
+  'blueprint': '8942edb4',
+  'brutalist': 'e9399598',
+  'holographic': 'd1a814c8',
+  'ink-wash': '6efa405c',
+  'neon': '58d080d4',
+  'parchment': '60feaa58',
+  'stained-glass': '18809840',
+  'station': 'dd845450',
+  'sveltekit': '73abf631',
+  'terminal': '407dfdf8',
+  'weathered': '43ef9308',
   'pregame-design': '662e4718',
-  'scene-design': '7529a0b0',
+  'scene-design': '411805c5',
   'common-widget': 'cd6535a0',
 };
 
 export const JS_MANIFEST: Record<string, string> = {
-  'ta-components.js': '907f6c5c',
+  'ta-components.js': '8b37051e',
   'tag-scene.js': '3d31f2ec',
   'tag-soundscape.js': '6ec84062',
 };
 
-export const ICON_SPRITE_URL = `${CDN_BASE}/icons/sprite.svg?v=f0889e50`;
-export const ICON_SPRITE_HASH = 'f0889e50';
+export const ICON_SPRITE_URL = `${CDN_BASE}/icons/sprite.svg?v=ef5f13f8`;
+export const ICON_SPRITE_HASH = 'ef5f13f8';
