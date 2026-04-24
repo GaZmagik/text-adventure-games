@@ -2,7 +2,7 @@
 name: text-adventure
 description: Interactive text adventure game engine. Triggers on "text adventure", "play a game", "tabletop RPG", "interactive fiction", "dungeon crawl", or any narrative game request. Also for resuming prior sessions. CARDINAL RULE — Do NOT write ANY text in the conversation. No prose, narration, analysis, status updates, check descriptions, DC values, or stat breakdowns. ALL game output goes inside visualize:show_widget. ALL deliberation goes in the thinking tool. The player sees ONLY widgets. Exception — brief responses to out-of-character questions. Do NOT use for creative writing without player agency. Loads modules from modules/ directory as needed.
 metadata:
-  version: "1.4.0"
+  version: '1.4.0'
 ---
 
 # Text Adventure Game — Core Engine v1.4.0
@@ -16,11 +16,13 @@ cp -r /mnt/skills/user/text-adventure /home/claude/text-adventure && cd /home/cl
 ```
 
 To resume from a save file:
+
 ```bash
 cp -r /mnt/skills/user/text-adventure /home/claude/text-adventure && cd /home/claude/text-adventure && . ./setup.sh && tag save load /mnt/user-data/uploads/<filename>.save.md
 ```
 
 To load a `.lore.md` adventure file:
+
 ```bash
 cp -r /mnt/skills/user/text-adventure /home/claude/text-adventure && cd /home/claude/text-adventure && . ./setup.sh && tag export load /mnt/user-data/uploads/<filename>.lore.md
 ```
@@ -33,13 +35,13 @@ tag help
 
 All operational guides, checklists, and rules are delivered via CLI commands:
 
-| Command | What it returns |
-|---------|-----------------|
-| `tag help` | Quick-start workflow, turn loop, command summary, cardinal rules |
-| `tag help new-game` | Step-by-step new game setup: scenario select through opening scene |
-| `tag help scene` | Scene composition workflow, prose checklist, density guidance, scene structure |
-| `tag state sync` | Pre-scene validation — returns prose checklist and rendering rules inline |
-| `tag rules` | Quick-reference cheat sheet of all 20+ game rules |
+| Command               | What it returns                                                                     |
+| --------------------- | ----------------------------------------------------------------------------------- |
+| `tag help`            | Quick-start workflow, turn loop, command summary, cardinal rules                    |
+| `tag help new-game`   | Step-by-step new game setup: scenario select through opening scene                  |
+| `tag help scene`      | Scene composition workflow, prose checklist, density guidance, scene structure      |
+| `tag state sync`      | Pre-scene validation — returns prose checklist and rendering rules inline           |
+| `tag rules`           | Quick-reference cheat sheet of all 20+ game rules                                   |
 | `tag compact restore` | Compaction recovery — clears block, resets freshness epochs, returns recovery steps |
 
 ## Cardinal Rules
@@ -64,6 +66,7 @@ All operational guides, checklists, and rules are delivered via CLI commands:
    - Render blocked by "State sync required" → run step 1 first, then retry step 2.
    - Verify detects "hand-coded" → discard the HTML. Re-run `tag render scene` and compose into the skeleton.
    - Verify fails on prose → run `tag verify prose /tmp/scene.html` to check prose in isolation and iterate before re-running full verify.
+
 4. **Never auto-resolve player decisions** — die rolls and choices wait for input.
 5. **Never advance story without player input** — every scene ends with a choice, roll, or action prompt.
 6. **Run `tag state sync` before EVERY scene** — sync returns the prose checklist and key rules inline.
@@ -72,11 +75,13 @@ All operational guides, checklists, and rules are delivered via CLI commands:
    - `tag verify rules /tmp/settings.html` — before showing settings
    - `tag verify character /tmp/character.html` — before showing character creation
    - `tag verify /tmp/scene.html` — before showing every scene
-   - `tag verify <type> /tmp/widget.html` — before showing other widgets such as `dice`, `dice-pool`, `dialogue`, `combat-turn`, `levelup`, `recap`, `arc-complete`, `ticker`, `ship`, `crew`, `codex`, `map`, `starchart`, `footer`, or `save-div`
+   - `tag verify <type> /tmp/widget.html` — before showing other widgets such as `dice`, `dice-pool`, `dialogue`, `combat-turn`, `levelup`, `recap`, `arc-complete`, `ticker`, `ship`, `crew`, `codex`, `quest-log`, `map`, `world-preview`, `route-planner`, `faction-board`, `relationship-web`, `world-atlas`, `clue-board`, `starchart`, `footer`, or `save-div`
 8. **Run `tag prose-check` + `tag prose-gate` before EVERY scene `show_widget`** — both `tag verify` AND `tag prose-gate` must show their clearance phrase. Neither can be skipped or rationalised away:
+
    ```
    tag prose-check /tmp/scene.html
    ```
+
    Follow the `nextStep` from the response exactly:
    - **manual mode** → review prose against each checklist item; address any concerns; then run: `tag prose-gate --manual`
    - **llm mode** → run the `command` string via `claude-code:Bash` (ignore "Tool execution failed" — it executes); then run: `tag prose-gate --llm /tmp/prose-check-result.json`
@@ -102,19 +107,19 @@ Visual styles live in `styles/`. Run `tag help scene` for rendering workflow.
 Every scene has a sonic character. Set it by adding `data-audio-recipe` to the scene root element:
 
 ```html
-<div class="root" data-audio-recipe="tension" ...>
+<div class="root" data-audio-recipe="tension" ...></div>
 ```
 
 Six named recipes define the ambient texture:
 
-| Keyword | Register | Use when |
-|---|---|---|
-| `tension` | Low growl, tight stereo | Interrogation, standoff, danger approaching |
-| `wonder` | High shimmer, wide stereo | Discovery, ancient ruins, orbital view |
-| `dread` | Sub drone, almost still | Void, horror, deep-space silence |
-| `calm` | Mid warmth, gentle sway | Safe house, camp, reflection |
-| `action` | Percussive pulse, fast LFO | Chase, escape, firefight |
-| `mystery` | Narrow bandpass, medium stereo | Investigation, hidden passage, agenda |
+| Keyword   | Register                       | Use when                                    |
+| --------- | ------------------------------ | ------------------------------------------- |
+| `tension` | Low growl, tight stereo        | Interrogation, standoff, danger approaching |
+| `wonder`  | High shimmer, wide stereo      | Discovery, ancient ruins, orbital view      |
+| `dread`   | Sub drone, almost still        | Void, horror, deep-space silence            |
+| `calm`    | Mid warmth, gentle sway        | Safe house, camp, reflection                |
+| `action`  | Percussive pulse, fast LFO     | Chase, escape, firefight                    |
+| `mystery` | Narrow bandpass, medium stereo | Investigation, hidden passage, agenda       |
 
 Audio starts on first user interaction (click or keypress) and respects `prefers-reduced-motion`. Unknown keywords are silently ignored. See `modules/audio.md` for full recipe parameters and the SoundscapeEngine (player-triggered effects) system.
 
@@ -123,14 +128,18 @@ Audio starts on first user interaction (click or keypress) and respects `prefers
 SVG must be used proactively in scenes — not just for maps. Three named patterns to reach for first:
 
 **Porthole viewport** — circular frame clipping a background image or scene illustration:
+
 ```html
 <svg viewBox="0 0 200 200">
-  <defs><clipPath id="port"><circle cx="100" cy="100" r="95"/></clipPath></defs>
-  <image href="..." clip-path="url(#port)" width="200" height="200"/>
+  <defs>
+    <clipPath id="port"><circle cx="100" cy="100" r="95" /></clipPath>
+  </defs>
+  <image href="..." clip-path="url(#port)" width="200" height="200" />
 </svg>
 ```
 
 **Starfield with proximity distortion** — dots that scale or shift on hover, suggesting depth:
+
 ```html
 <svg viewBox="0 0 400 400">
   <!-- N circles, r varies by depth layer, CSS :hover scales transform-origin -->
@@ -138,15 +147,25 @@ SVG must be used proactively in scenes — not just for maps. Three named patter
 ```
 
 **Status arc** — SVG arc segment as a health or stamina progress indicator:
+
 ```html
 <svg viewBox="0 0 100 100">
-  <circle class="arc-track" cx="50" cy="50" r="40" fill="none" stroke-width="8"/>
-  <circle class="arc-fill" cx="50" cy="50" r="40" fill="none" stroke-width="8"
-    stroke-dasharray="251" stroke-dashoffset="63"/>
+  <circle class="arc-track" cx="50" cy="50" r="40" fill="none" stroke-width="8" />
+  <circle
+    class="arc-fill"
+    cx="50"
+    cy="50"
+    r="40"
+    fill="none"
+    stroke-width="8"
+    stroke-dasharray="251"
+    stroke-dashoffset="63"
+  />
 </svg>
 ```
 
 **Rules:**
+
 - Every `<svg>` MUST include a `viewBox` attribute — `tag verify` enforces this.
 - Prefer inline SVG over `<img src="*.svg">` — inline SVG inherits CSS variables and is scriptable.
 - Keep SVG self-contained: no external `href` references to files or URLs.

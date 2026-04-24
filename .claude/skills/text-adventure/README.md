@@ -10,28 +10,30 @@ cd .claude/skills/text-adventure && . ./setup.sh && tag state reset
 ```
 
 Resume from save:
+
 ```bash
 cd .claude/skills/text-adventure && . ./setup.sh && tag save load /mnt/user-data/uploads/<file>.save.md
 ```
 
 ## CLI Commands
 
-| Command | Purpose |
-|---------|---------|
-| `tag help` | Workflow guides: quickstart, new-game, scene |
-| `tag module` | Load module markdown into GM context and populate `_modulesRead` |
-| `tag state` | Game state CRUD, NPC creation, sync, context, schema |
-| `tag compute` | Hidden rolls: contest, hazard, encounter, levelup |
-| `tag render` | Deterministic HTML widget generation |
-| `tag save` | Generate, load, validate, migrate save files |
-| `tag quest` | Quest lifecycle: complete, add-objective, add-clue, status, list |
-| `tag batch` | Multiple commands in one call |
-| `tag rules` | Quick-reference cheat sheet with file/line refs |
-| `tag export` | World-sharing via .lore.md files |
-| `tag verify` | Validate composed HTML before show_widget |
-| `tag build-css` | Extract, minify, and hash CDN CSS from style sources |
-| `tag setup` | Apply settings + character payloads in one step |
-| `tag style` | Load visual style guidance into GM context |
+| Command         | Purpose                                                                                                   |
+| --------------- | --------------------------------------------------------------------------------------------------------- |
+| `tag help`      | Workflow guides: quickstart, new-game, scene                                                              |
+| `tag module`    | Load compact module contracts into GM context and populate `_modulesRead`; use `--full` for full markdown |
+| `tag state`     | Game state CRUD, NPC creation, sync, context, schema                                                      |
+| `tag compute`   | Hidden rolls: contest, hazard, encounter, levelup                                                         |
+| `tag render`    | Deterministic HTML widget generation                                                                      |
+| `tag save`      | Generate, load, validate, migrate save files                                                              |
+| `tag quest`     | Quest lifecycle: create, inspect, track, complete, add-objective, add-clue, status, list                  |
+| `tag faction`   | Inspect faction standing, relations, quests, and codex links                                              |
+| `tag batch`     | Multiple commands in one call                                                                             |
+| `tag rules`     | Quick-reference cheat sheet with file/line refs                                                           |
+| `tag export`    | World-sharing via .lore.md files                                                                          |
+| `tag verify`    | Validate composed HTML before show_widget                                                                 |
+| `tag build-css` | Extract, minify, and hash CDN CSS from style sources                                                      |
+| `tag setup`     | Apply settings + character payloads in one step                                                           |
+| `tag style`     | Load compact visual style contracts into GM context; use `--full` for full markdown                       |
 
 Run `tag <command> --help` for subcommand details.
 
@@ -41,8 +43,8 @@ Every scene follows this sequence. No exceptions.
 
 1. **Sync** — `tag state sync --apply --scene <N> --room <id>`
 2. **Load Modules** — Run `tag module activate-tier 1` before scene work. After compaction, use `tag state context` to see which active modules need reloading, then re-run `tag module activate-tier 1` plus any required Tier 2/3 activations.
-3. **Render** — `tag render scene --style <style>` — keep the Shadow DOM shell/runtime intact.
-4. **Compose** — Write narrative into `#narrative` or each `.scene-phase .narrative` block, and add actions/POIs only in the designated scene-content area. Follow `craftGuidance` from render output.
+3. **Render** — `tag render scene --style <style> --data '<json>'` for the compact scene path, or omit fields for manual composition. Keep the Shadow DOM shell/runtime intact.
+4. **Compose** — JSON `actions` and `pois` render deterministic cards/buttons. For omitted fields, write narrative into `#narrative` or each `.scene-phase .narrative` block, and add actions/POIs only in the designated scene-content area. Follow `craftGuidance` from render output.
 5. **Verify** — `tag verify /tmp/scene.html` — blocks progression until all checks pass.
 6. **Post-Scene** — `tag state sync --apply --scene <N+1>` — update HP, XP, flags, quests.
 
@@ -63,6 +65,7 @@ Every scene follows this sequence. No exceptions.
 ## Module Tiers
 
 ### Tier 1 — MUST be active before rendering any widget
+
 - `gm-checklist` — Mandatory quality gates
 - `prose-craft` — Read EVERY turn. Sentence-level narrative quality
 - `core-systems` — HP, stats, inventory, economy, factions, quests, time, XP
@@ -71,54 +74,63 @@ Every scene follows this sequence. No exceptions.
 - `save-codex` — Session persistence
 
 ### Tier 2 — Load when scenario activates (before opening scene)
+
 `scenarios`, `bestiary`, `story-architect`, `ship-systems`, `crew-manifest`,
 `star-chart`, `geo-map`, `procedural-world-gen`, `world-history`, `lore-codex`,
 `rpg-systems`, `ai-npc`, `atmosphere`, `audio`, `pre-generated-characters`
 
 ### Tier 3 — Load on demand when player triggers
+
 `adventure-exporting`, `adventure-authoring`, `arc-patterns`, `genre-mechanics`
 
 ## Visual Styles
 
-| Style | Best for |
-|-------|----------|
+| Style             | Best for                               |
+| ----------------- | -------------------------------------- |
 | Station (default) | Sci-fi, space opera, thriller, mystery |
-| Terminal | Cyberpunk, hacking, military sci-fi |
-| Parchment | Fantasy, gothic horror, historical |
-| Neon | Pulp adventure, action, cyberpunk |
-| Brutalist | Post-apocalyptic, horror, survival |
-| Art Deco | Noir, 1920s, political intrigue |
-| Ink Wash | Wuxia, meditation, literary fiction |
-| Blueprint | Engineering, military, heist |
-| Stained Glass | Dark fantasy, religious, medieval |
-| SvelteKit | Contemporary, urban, heist, comedy |
-| Weathered | Survival, dystopian, dieselpunk |
-| Holographic | Space opera, far-future, AI themes |
+| Terminal          | Cyberpunk, hacking, military sci-fi    |
+| Parchment         | Fantasy, gothic horror, historical     |
+| Neon              | Pulp adventure, action, cyberpunk      |
+| Brutalist         | Post-apocalyptic, horror, survival     |
+| Art Deco          | Noir, 1920s, political intrigue        |
+| Ink Wash          | Wuxia, meditation, literary fiction    |
+| Blueprint         | Engineering, military, heist           |
+| Stained Glass     | Dark fantasy, religious, medieval      |
+| SvelteKit         | Contemporary, urban, heist, comedy     |
+| Weathered         | Survival, dystopian, dieselpunk        |
+| Holographic       | Space opera, far-future, AI themes     |
 
 ## Widget Inventory
 
-| Widget | Command | When |
-|--------|---------|------|
-| Settings | `tag render settings --data '<json>'` | Game setup |
-| Scenario Select | `tag render scenario-select --data '<json>'` | Pre-game |
-| Character Creation | `tag render character-creation --style <s> --data '<json>'` | Pre-game |
-| Scene | `tag render scene --style <s>` | Every scene |
-| Dice | `tag render dice --style <s>` | Single die roll |
-| Dice Pool | `tag render dice-pool --style <s> --data '<json>'` | Mixed/repeated rolls |
-| Combat Turn | `tag render combat-turn --style <s>` | Combat outcome |
-| Dialogue | `tag render dialogue --style <s>` | NPC conversation |
-| Character | `tag render character --style <s>` | Character sheet |
-| Ship | `tag render ship --style <s>` | Ship status |
-| Crew | `tag render crew --style <s>` | Crew manifest |
-| Codex | `tag render codex --style <s>` | Lore codex |
-| Map | `tag render map --style <s>` | World map |
-| Star Chart | `tag render starchart --style <s>` | Navigation |
-| Ticker | `tag render ticker --style <s>` | Clock/time |
-| Footer | `tag render footer --style <s>` | Module-aware footer |
-| Level Up | `tag render levelup --style <s>` | Level-up celebration |
-| Recap | `tag render recap --style <s>` | Session summary |
-| Arc Complete | `tag render arc-complete --style <s>` | Act boundary / transition |
-| Save Div | `tag render save-div` | Save data container |
+| Widget             | Command                                                                         | When                           |
+| ------------------ | ------------------------------------------------------------------------------- | ------------------------------ |
+| Settings           | `tag render settings --data '<json>'`                                           | Game setup                     |
+| Scenario Select    | `tag render scenario-select --data '<json>'`                                    | Pre-game                       |
+| Character Creation | `tag render character-creation --style <s> --data '<json>'`                     | Pre-game                       |
+| Scene              | `tag render scene --style <s> --data '<json>'`                                  | Every scene                    |
+| Dice               | `tag render dice --style <s>`                                                   | Single die roll                |
+| Dice Pool          | `tag render dice-pool --style <s> --data '<json>'`                              | Mixed/repeated rolls           |
+| Combat Turn        | `tag render combat-turn --style <s>`                                            | Combat outcome                 |
+| Dialogue           | `tag render dialogue --style <s>`                                               | NPC conversation               |
+| Character          | `tag render character --style <s>`                                              | Character sheet                |
+| Ship               | `tag render ship --style <s>`                                                   | Ship status                    |
+| Crew               | `tag render crew --style <s>`                                                   | Crew manifest                  |
+| Codex              | `tag render codex --style <s>`                                                  | Lore codex                     |
+| Quest Log          | `tag render quest-log --style <s>`                                              | Objectives, clues, and rewards |
+| Map                | `tag render map --style <s> --data '{"route":{"from":"room_a","to":"room_b"}}'` | World map                      |
+| World Preview      | `tag render world-preview --style <s> --data '<json>'`                          | Generated-world preview        |
+| Route Planner      | `tag render route-planner --style <s> --data '<json>'`                          | Known route planning           |
+| Faction Board      | `tag render faction-board --style <s>`                                          | Factions and standing          |
+| Relationship Web   | `tag render relationship-web --style <s>`                                       | NPC/faction/quest graph        |
+| World Atlas        | `tag render world-atlas --style <s>`                                            | Generated location browser     |
+| Clue Board         | `tag render clue-board --style <s>`                                             | Quest clues and links          |
+| Star Chart         | `tag render starchart --style <s>`                                              | Navigation                     |
+| Ticker             | `tag render ticker --style <s>`                                                 | Clock/time                     |
+| Footer             | `tag render footer --style <s>`                                                 | Module-aware footer            |
+| Level Up           | `tag render levelup --style <s>`                                                | Level-up celebration           |
+| Recap              | `tag render recap --style <s>`                                                  | Session summary                |
+| Arc Complete       | `tag render arc-complete --style <s>`                                           | Act boundary / transition      |
+| Save Div           | `tag render save-div`                                                           | Save data container            |
 
 ## Verification
 
@@ -126,7 +138,7 @@ Every scene follows this sequence. No exceptions.
 - `tag verify rules /tmp/settings.html` for settings
 - `tag verify character /tmp/character.html` for character creation
 - `tag verify /tmp/scene.html` for scenes
-- `tag verify <widget> /tmp/widget.html` for standalone/in-game widgets such as `dice`, `dice-pool`, `dialogue`, `combat-turn`, `levelup`, `recap`, `arc-complete`, `ticker`, `ship`, `crew`, `codex`, `map`, `starchart`, `footer`, and `save-div`
+- `tag verify <widget> /tmp/widget.html` for standalone/in-game widgets such as `dice`, `dice-pool`, `dialogue`, `combat-turn`, `levelup`, `recap`, `arc-complete`, `ticker`, `ship`, `crew`, `codex`, `quest-log`, `map`, `world-preview`, `route-planner`, `faction-board`, `relationship-web`, `world-atlas`, `clue-board`, `starchart`, `footer`, and `save-div`
 
 Every widget should be verified before `show_widget`. Scene verification also gates the next render/sync cycle.
 
@@ -164,6 +176,7 @@ By default, `tag prose-check` runs in **manual mode** — the GM self-reviews ag
 ### One-time setup
 
 **Mac / Linux** — add to `~/.config/Claude/claude_desktop_config.json`:
+
 ```json
 {
   "mcpServers": {
@@ -173,6 +186,7 @@ By default, `tag prose-check` runs in **manual mode** — the GM self-reviews ag
 ```
 
 **Windows (WSL)** — add to `%APPDATA%\Claude\claude_desktop_config.json`:
+
 ```json
 {
   "mcpServers": {
@@ -184,6 +198,7 @@ By default, `tag prose-check` runs in **manual mode** — the GM self-reviews ag
 ### Activation
 
 Once Claude Code MCP is connected, run once per campaign:
+
 ```
 tag settings prose llm
 ```

@@ -59,28 +59,31 @@ run before render to pass the sync gate.
 
 ## § Command Reference
 
-| Command | Subcommands | Key Flags | Example |
-|---------|-------------|-----------|---------|
-| `tag module` | `activate`, `activate-tier`, `status` | None | `tag module activate-tier 1` |
-| `tag state` | `get`, `set`, `reset`, `create-npc`, `codex`, `crew`, `ship`, `validate`, `history`, `context`, `schema`, `sync` | `--tier`, `--name`, `--pronouns`, `--role`, `--apply`, `--scene`, `--room` | `tag state ship init --name "Wayfarer"` |
-| `tag compute` | `contest`, `hazard`, `encounter`, `levelup` | `--dc` (required for hazard) | `tag compute contest WIS spy_03` / `tag compute hazard CON --dc 14` |
-| `tag render` | `scene`, `combat-turn`, `dialogue`, `dice`, `dice-pool`, `character-creation`, `settings`, `character`, `ticker`, `ship`, `crew`, `codex`, `map`, `starchart`, `footer`, `save-div`, `levelup`, `recap`, `scenario-select`, `arc-complete` | `--style`, `--data` | `tag render scene --style parchment` |
-| `tag verify` | `<file>`, `<type> <file>` | None | `tag verify /tmp/scene.html` / `tag verify dialogue /tmp/dialogue.html` |
-| `tag save` | `generate`, `load`, `validate`, `migrate` | None | `tag save generate` |
-| `tag quest` | `complete`, `add-objective`, `add-clue`, `status`, `list` | `--id`, `--desc` | `tag quest complete main_quest_01 find_base` |
-| `tag batch` | — | `--commands`, `--dry-run` | `tag batch --commands "state get scene; save validate"` |
-| `tag rules` | (none), `<category>`, `<keyword>` | None | `tag rules output` |
-| `tag export` | `generate`, `load`, `validate` | None | `tag export generate` / `tag export load /path/to/world.lore.md` |
-| `tag build-css` | — | `--output-dir`, `--release`, `--user` | `tag build-css` |
-| `tag setup` | `apply` | `--settings`, `--character` | `tag setup apply --settings '{...}' --character '{...}'` |
-| `tag style` | `activate` | None | `tag style activate` |
-| `tag scenario` | `bundled` | None | `tag scenario bundled` |
-| `tag lore` | `defaults`, `pregen`, `status` | None | `tag lore status` |
-| `tag compact` | `restore` | None | `tag compact restore` |
-| `tag settings` | `prose` | `llm`, `manual` | `tag settings prose manual` |
-| `tag prose-check` | `<file>` | None | `tag prose-check /tmp/scene.html` |
-| `tag prose-gate` | `--manual`, `--llm <file>` | None | `tag prose-gate --manual` |
-| `tag help` | (default), `new-game`, `scene` | None | `tag help` |
+| Command           | Subcommands                                                                                                                                                                                                                                                                                                                                                 | Key Flags                                                                  | Example                                                                 |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `tag module`      | `activate`, `activate-tier`, `status`                                                                                                                                                                                                                                                                                                                       | `--full`                                                                   | `tag module activate-tier 1`                                            |
+| `tag state`       | `get`, `set`, `reset`, `create-npc`, `codex`, `crew`, `ship`, `validate`, `history`, `context`, `schema`, `sync`                                                                                                                                                                                                                                            | `--tier`, `--name`, `--pronouns`, `--role`, `--apply`, `--scene`, `--room` | `tag state ship init --name "Wayfarer"`                                 |
+| `tag compute`     | `contest`, `hazard`, `encounter`, `levelup`                                                                                                                                                                                                                                                                                                                 | `--dc` (required for hazard)                                               | `tag compute contest WIS spy_03` / `tag compute hazard CON --dc 14`     |
+| `tag render`      | `scene`, `combat-turn`, `dialogue`, `dice`, `dice-pool`, `character-creation`, `settings`, `character`, `ticker`, `ship`, `crew`, `codex`, `quest-log`, `map`, `world-preview`, `route-planner`, `faction-board`, `relationship-web`, `world-atlas`, `clue-board`, `starchart`, `footer`, `save-div`, `levelup`, `recap`, `scenario-select`, `arc-complete` | `--style`, `--data`                                                        | `tag render scene --style parchment`                                    |
+| `tag verify`      | `<file>`, `<type> <file>`                                                                                                                                                                                                                                                                                                                                   | None                                                                       | `tag verify /tmp/scene.html` / `tag verify dialogue /tmp/dialogue.html` |
+| `tag save`        | `generate`, `load`, `validate`, `migrate`                                                                                                                                                                                                                                                                                                                   | None                                                                       | `tag save generate`                                                     |
+| `tag quest`       | `create`, `inspect`, `track`, `complete`, `add-objective`, `add-clue`, `status`, `list`                                                                                                                                                                                                                                                                     | `--id`, `--title`, `--objective-id`, `--objective`, `--desc`               | `tag quest track main_quest_01`                                         |
+| `tag faction`     | `inspect`                                                                                                                                                                                                                                                                                                                                                   | None                                                                       | `tag faction inspect syndicate`                                         |
+| `tag world`       | `generate`                                                                                                                                                                                                                                                                                                                                                  | `--seed`, `--theme`, `--apply`                                             | `tag world generate --seed iron-cascade --theme space --apply`          |
+| `tag map`         | `enter`, `reveal`, `discover`, `unlock`, `inspect`, `route`                                                                                                                                                                                                                                                                                                 | None                                                                       | `tag map route bridge engineering`                                      |
+| `tag batch`       | —                                                                                                                                                                                                                                                                                                                                                           | `--commands`, `--dry-run`                                                  | `tag batch --commands "state get scene; save validate"`                 |
+| `tag rules`       | (none), `<category>`, `<keyword>`                                                                                                                                                                                                                                                                                                                           | None                                                                       | `tag rules output`                                                      |
+| `tag export`      | `generate`, `load`, `validate`                                                                                                                                                                                                                                                                                                                              | None                                                                       | `tag export generate` / `tag export load /path/to/world.lore.md`        |
+| `tag build-css`   | —                                                                                                                                                                                                                                                                                                                                                           | `--output-dir`, `--release`, `--user`                                      | `tag build-css`                                                         |
+| `tag setup`       | `apply`                                                                                                                                                                                                                                                                                                                                                     | `--settings`, `--character`                                                | `tag setup apply --settings '{...}' --character '{...}'`                |
+| `tag style`       | `activate`                                                                                                                                                                                                                                                                                                                                                  | `--full`                                                                   | `tag style activate`                                                    |
+| `tag scenario`    | `bundled`                                                                                                                                                                                                                                                                                                                                                   | None                                                                       | `tag scenario bundled`                                                  |
+| `tag lore`        | `defaults`, `pregen`, `status`                                                                                                                                                                                                                                                                                                                              | None                                                                       | `tag lore status`                                                       |
+| `tag compact`     | `restore`                                                                                                                                                                                                                                                                                                                                                   | None                                                                       | `tag compact restore`                                                   |
+| `tag settings`    | `prose`                                                                                                                                                                                                                                                                                                                                                     | `llm`, `manual`                                                            | `tag settings prose manual`                                             |
+| `tag prose-check` | `<file>`                                                                                                                                                                                                                                                                                                                                                    | None                                                                       | `tag prose-check /tmp/scene.html`                                       |
+| `tag prose-gate`  | `--manual`, `--llm <file>`                                                                                                                                                                                                                                                                                                                                  | None                                                                       | `tag prose-gate --manual`                                               |
+| `tag help`        | (default), `new-game`, `scene`                                                                                                                                                                                                                                                                                                                              | None                                                                       | `tag help`                                                              |
 
 ### `--data` Flag (render)
 
@@ -94,29 +97,43 @@ tag render dice-pool --style terminal --data '{"label":"Storm Volley","pool":[{"
 ```
 
 Notes:
+
 - `dice` renders a single-use 3D die, coin, or d100 widget. The visible result is generated client-side on click, revealed after the settle animation, and then locked.
 - `dice-pool` renders grouped numeric dice on one shared canvas. `pool` is an array of `{ "dieType": "...", "count": N }` objects; `label` and `modifier` are optional.
-- Scene widgets accept `atmosphereEffects` to scope CSS to specific effects:
+- Scene widgets accept JSON scene data for low-token rendering:
+  ```bash
+  tag render scene --style station --data '{"brief":"Dockside ambush","text":"Rain ticks against the cargo glass.","actions":[{"title":"Search the crates","description":"Find the hidden route marker.","prompt":"I search the crates.","type":"investigate"}],"audioRecipe":"mystery","panelMode":"compact"}'
+  ```
+  Supported scene fields include `brief`, `text`, `actions`, `pois`, `atmosphere`, `vfx`, `audioRecipe`, and `panelMode`.
+- Scene widgets also accept `atmosphereEffects` to scope CSS to specific effects:
   ```bash
   tag render scene --style station --data '{"atmosphereEffects":["dust","rain"]}'
   ```
   Only the named particle effects (plus core utilities like shake/flash/toast) are included. Omitting `atmosphereEffects` includes all atmosphere CSS (backward compatible).
+- Map widgets accept a route overlay while `tag render route-planner` remains the dedicated route detail view:
+  ```bash
+  tag render map --style station --data '{"route":{"from":"bridge","to":"engineering"}}'
+  ```
 
 ### Validated `--data` Surface
 
 Render-time validation now fails fast when the JSON shape is wrong. Supported public inputs:
 
-| Widget | Supported keys |
-|--------|----------------|
-| `dice` | `dieType` (required string) |
-| `dice-pool` | `label`, `modifier`, `pool[{ dieType, count }]` |
-| `scene` | `atmosphereEffects: string[]`, `actions[{ title?, prompt?, roll? }]` |
-| `scenario-select` | `scenarios[{ title, description?, hook?, difficulty?, players?, genre?|genres?|tags? }]` |
-| `settings` | `rulebooks|rules`, `difficulties|difficulty`, `pacingOptions|pacing`, `visualStyles|styles`, `modules|activeModules`, `defaults` |
-| `dialogue` | `npcId`, `npcName`, `text`, `choices[{ label, prompt }]` |
-| `levelup` | `abilities: string[]` |
-| `arc-complete` | `summary` |
-| `character-creation` | `defaultName`, `proficiencies`, `archetypes[{ name, description?, flavour?, id?, hp?, ac?, stats?|baseStats?, abilities?, equipment?, primaryStats?, fixedProficiencies? }]` |
+| Widget               | Supported keys                                                                                                                                                                                     |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | --------------------------- | ---------------------- | ----------------- | -------------------------- |
+| `dice`               | `dieType` (required string)                                                                                                                                                                        |
+| `dice-pool`          | `label`, `modifier`, `pool[{ dieType, count }]`                                                                                                                                                    |
+| `scene`              | `brief`, `text`, `actions[{ title?, description?, prompt?, type?, roll? }]`, `pois[{ label?, prompt? }]`, `atmosphere: string[]`, `vfx`, `audioRecipe`, `panelMode`, `atmosphereEffects: string[]` |
+| `map`                | `route: { from, to }`                                                                                                                                                                              |
+| `scenario-select`    | `scenarios[{ title, description?, hook?, difficulty?, players?, genre?                                                                                                                             | genres?                                                                    | tags? }]`                   |
+| `settings`           | `rulebooks                                                                                                                                                                                         | rules`, `difficulties                                                      | difficulty`, `pacingOptions | pacing`, `visualStyles | styles`, `modules | activeModules`, `defaults` |
+| `dialogue`           | `npcId`, `npcName`, `text`, `choices[{ label, prompt }]`                                                                                                                                           |
+| `levelup`            | `abilities: string[]`                                                                                                                                                                              |
+| `arc-complete`       | `summary`                                                                                                                                                                                          |
+| `quest-log`          | `quests[{ id, title, status, objectives[], clues?, rewards? }]`                                                                                                                                    |
+| `world-preview`      | `seed`, `theme`                                                                                                                                                                                    |
+| `route-planner`      | `from`, `to`                                                                                                                                                                                       |
+| `character-creation` | `defaultName`, `proficiencies`, `archetypes[{ name, description?, flavour?, id?, hp?, ac?, stats?                                                                                                  | baseStats?, abilities?, equipment?, primaryStats?, fixedProficiencies? }]` |
 
 ### `tag verify`
 
@@ -130,7 +147,7 @@ Verify every widget before `show_widget`.
   - `tag verify /tmp/scene.html`
 - Other widgets:
   - `tag verify <type> /tmp/widget.html`
-  - Supported non-scene widget types include `dice`, `dice-pool`, `dialogue`, `levelup`, `recap`, `combat-turn`, `arc-complete`, `ticker`, `ship`, `crew`, `codex`, `map`, `starchart`, `footer`, and `save-div`
+  - Supported non-scene widget types include `dice`, `dice-pool`, `dialogue`, `levelup`, `recap`, `combat-turn`, `arc-complete`, `ticker`, `ship`, `crew`, `codex`, `quest-log`, `map`, `world-preview`, `route-planner`, `faction-board`, `relationship-web`, `world-atlas`, `clue-board`, `starchart`, `footer`, and `save-div`
 
 Do not embed save/export payloads into scene HTML. Scene/footer widgets use the `Save ↗` and `Export ↗` prompt actions; `save-div` is a standalone utility widget, not part of the normal scene flow.
 
@@ -151,17 +168,17 @@ If the scene HTML changes after `tag prose-check`, run `tag prose-check` again b
 
 ### `tag state sync` Output Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `status` | `"clean"` \| `"warnings"` | Overall game state health |
-| `diff` | object | Pending field changes (scene, room, time) |
-| `warnings` | string[] | Validation issues — missing modules, NPC gaps, quest/flag mismatches, compaction alerts |
-| `compactionDetected` | boolean | `true` if conversation was compacted since last sync — context may be lost |
-| `featureChecklist` | string[] | Active module reminders for the current turn |
-| `applied` | boolean | Whether `--apply` was used to persist changes |
-| `rollHistoryCount` | number | Total rolls recorded in state |
-| `errors` | string[] | Structural validation errors (empty when state is valid) |
-| `stateHistoryCount` | number | Undo history depth |
+| Field                | Type                      | Description                                                                             |
+| -------------------- | ------------------------- | --------------------------------------------------------------------------------------- |
+| `status`             | `"clean"` \| `"warnings"` | Overall game state health                                                               |
+| `diff`               | object                    | Pending field changes (scene, room, time)                                               |
+| `warnings`           | string[]                  | Validation issues — missing modules, NPC gaps, quest/flag mismatches, compaction alerts |
+| `compactionDetected` | boolean                   | `true` if conversation was compacted since last sync — context may be lost              |
+| `featureChecklist`   | string[]                  | Active module reminders for the current turn                                            |
+| `applied`            | boolean                   | Whether `--apply` was used to persist changes                                           |
+| `rollHistoryCount`   | number                    | Total rolls recorded in state                                                           |
+| `errors`             | string[]                  | Structural validation errors (empty when state is valid)                                |
+| `stateHistoryCount`  | number                    | Undo history depth                                                                      |
 
 When `compactionDetected` is **true**, run `tag state context` for the full module digest, then re-run `tag module activate-tier 1` and any required Tier 2/3 activations before generating the next scene. Compaction resets `_modulesRead`; reading the digest alone does not satisfy the scene render gate.
 
@@ -195,14 +212,14 @@ On `tag save load` and `tag export load`, unexpected nested keys outside the all
 
 ## § Error Guide
 
-| Error | Cause | Fix |
-|-------|-------|-----|
-| `NPC not found: merchant_01` | NPC not yet created in state | `tag state create-npc merchant_01 --tier rival --name "Merchant" --pronouns she/her --role trader` |
-| `No game state found` | State not initialised | `tag state reset` |
-| `No visual style set` | Style missing from state | `tag state set visualStyle station` |
-| `Invalid attribute: FOO. Must be one of: STR, DEX, CON, INT, WIS, CHA` | Attribute name is not a valid stat | Use a valid stat name: `tag compute contest STR merchant_01` |
-| `Missing required flag: --dc <number>` | `--dc` flag omitted from hazard command | Add the DC: `tag compute hazard CON --dc 14` |
-| `NPC not found: nonexistent_npc` | NPC id does not exist in the current roster | Create the NPC first with `tag state create-npc`, or check the id with `tag state get rosterMutations` |
+| Error                                                                  | Cause                                       | Fix                                                                                                    |
+| ---------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `NPC not found: merchant_01`                                           | NPC not yet created in state                | `tag state create-npc merchant_01 --tier rival --name "Merchant" --pronouns she/her --role trader`     |
+| `No game state found`                                                  | State not initialised                       | `tag state reset`                                                                                      |
+| `No visual style set`                                                  | Style missing from state                    | `tag state set visualStyle station`                                                                    |
+| `Invalid attribute: FOO. Must be one of: STR, DEX, CON, INT, WIS, CHA` | Attribute name is not a valid stat          | Use a valid stat name: `tag compute contest STR merchant_01`                                           |
+| `Missing required flag: --dc <number>`                                 | `--dc` flag omitted from hazard command     | Add the DC: `tag compute hazard CON --dc 14`                                                           |
+| `NPC not found: nonexistent_npc`                                       | NPC id does not exist in the current roster | Create the NPC first with `tag state create-npc`, or check the id with `tag state get rosterMutations` |
 
 ---
 
@@ -219,21 +236,21 @@ On `tag save load` and `tag export load`, unexpected nested keys outside the all
 When a command is labelled with `as <label>`, its output fields can be
 referenced in subsequent commands via `$label.field`.
 
-| Source Command | Field | Description |
-|----------------|-------|-------------|
-| `compute contest` | `$label.margin` | Absolute difference between totals |
-| | `$label.outcome` | `"decisive_success"`, `"narrow_success"`, `"narrow_failure"`, `"failure"`, or `"decisive_failure"` |
-| | `$label.roll` | Raw d20 result |
-| | `$label.total` | Roll + modifier |
-| | `$label.modifier` | Stat modifier used |
-| `compute hazard` | `$label.outcome` | `"critical_success"`, `"success"`, `"partial_success"`, `"failure"`, or `"critical_failure"` |
-| | `$label.roll` | Raw d20 result |
-| | `$label.total` | Roll + modifier |
-| | `$label.dc` | Difficulty class |
-| `compute encounter` | `$label.roll` | Raw d20 result |
-| | `$label.escalation` | Escalation modifier passed via `--escalation` |
-| | `$label.encounter` | `"quiet"`, `"alert"`, or `"hostile"` |
-| `state get` | `$label` | The retrieved value itself (no sub-fields) |
+| Source Command      | Field               | Description                                                                                        |
+| ------------------- | ------------------- | -------------------------------------------------------------------------------------------------- |
+| `compute contest`   | `$label.margin`     | Absolute difference between totals                                                                 |
+|                     | `$label.outcome`    | `"decisive_success"`, `"narrow_success"`, `"narrow_failure"`, `"failure"`, or `"decisive_failure"` |
+|                     | `$label.roll`       | Raw d20 result                                                                                     |
+|                     | `$label.total`      | Roll + modifier                                                                                    |
+|                     | `$label.modifier`   | Stat modifier used                                                                                 |
+| `compute hazard`    | `$label.outcome`    | `"critical_success"`, `"success"`, `"partial_success"`, `"failure"`, or `"critical_failure"`       |
+|                     | `$label.roll`       | Raw d20 result                                                                                     |
+|                     | `$label.total`      | Roll + modifier                                                                                    |
+|                     | `$label.dc`         | Difficulty class                                                                                   |
+| `compute encounter` | `$label.roll`       | Raw d20 result                                                                                     |
+|                     | `$label.escalation` | Escalation modifier passed via `--escalation`                                                      |
+|                     | `$label.encounter`  | `"quiet"`, `"alert"`, or `"hostile"`                                                               |
+| `state get`         | `$label`            | The retrieved value itself (no sub-fields)                                                         |
 
 ---
 
