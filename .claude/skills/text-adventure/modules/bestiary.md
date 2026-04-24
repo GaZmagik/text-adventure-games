@@ -1,4 +1,5 @@
 # Bestiary — Adversaries and Creatures
+
 > Module for text-adventure orchestrator. Provides reusable adversary templates across all genres. Loaded alongside core-systems.
 
 Loaded by the text-adventure orchestrator (SKILL.md). Depends on: core-systems.
@@ -7,12 +8,12 @@ Loaded by the text-adventure orchestrator (SKILL.md). Depends on: core-systems.
 
 ## § CLI Commands
 
-| Action | Command | Tool |
-|--------|---------|------|
-| Create adversary NPC | `tag state create-npc <id> --tier <minion\|rival\|nemesis> --name "<name>" --pronouns <p> --role <role>` | Run via Bash tool |
-| Hidden contested roll | `tag compute contest <STAT> <npc_id>` | Run via Bash tool |
-| Encounter roll | `tag compute encounter [--escalation <n>]` | Run via Bash tool |
-| Render combat turn | `tag render combat-turn --style <style>` | Run via Bash tool |
+| Action                | Command                                                                                                  | Tool              |
+| --------------------- | -------------------------------------------------------------------------------------------------------- | ----------------- |
+| Create adversary NPC  | `tag state create-npc <id> --tier <minion\|rival\|nemesis> --name "<name>" --pronouns <p> --role <role>` | Run via Bash tool |
+| Hidden contested roll | `tag compute contest <STAT> <npc_id>`                                                                    | Run via Bash tool |
+| Encounter roll        | `tag compute encounter [--escalation <n>]`                                                               | Run via Bash tool |
+| Render combat turn    | `tag render combat-turn --style <style>`                                                                 | Run via Bash tool |
 
 ---
 
@@ -25,21 +26,21 @@ individual stat blocks (which are reserved for named NPCs in `ai-npc.md`).
 
 ### Tier-Based Resistance Modifiers
 
-| Threat Tier | Resistance Modifier | Example Adversaries |
-|-------------|-------------------|---------------------|
-| Minion | +0 to +2 | Standard guard, patrol drone, street thug |
-| Lieutenant | +3 to +5 | Squad leader, security chief, trained operative |
-| Boss | +5 to +8 | Crime lord, military commander, apex predator |
+| Threat Tier | Resistance Modifier | Example Adversaries                             |
+| ----------- | ------------------- | ----------------------------------------------- |
+| Minion      | +0 to +2            | Standard guard, patrol drone, street thug       |
+| Lieutenant  | +3 to +5            | Squad leader, security chief, trained operative |
+| Boss        | +5 to +8            | Crime lord, military commander, apex predator   |
 
 ### Situational Modifier Adjustments
 
-| Situation | Modifier Adjustment |
-|-----------|-------------------|
-| Adversary is alert/suspicious | +1 to +2 |
-| Adversary is distracted/relaxed | -1 to -2 |
-| Adversary is in darkness/poor conditions | -1 to -3 |
-| Adversary has been warned about the player | +2 to +3 |
-| Player has environmental advantage | -1 to -2 |
+| Situation                                  | Modifier Adjustment |
+| ------------------------------------------ | ------------------- |
+| Adversary is alert/suspicious              | +1 to +2            |
+| Adversary is distracted/relaxed            | -1 to -2            |
+| Adversary is in darkness/poor conditions   | -1 to -3            |
+| Adversary has been warned about the player | +2 to +3            |
+| Player has environmental advantage         | -1 to -2            |
 
 ---
 
@@ -78,20 +79,20 @@ and file, the cannon fodder, the expendable muscle.
 
 **Theme Adaptations:**
 
-| Genre | Name | Flavour |
-|-------|------|---------|
-| Space | Pirate Thug | Scarred spacer with a makeshift cudgel and stolen vac-suit |
-| Fantasy | Goblin | Small, vicious, fights with a rusty blade and feral cunning |
-| Horror | Shambler | Slow-moving corpse, grasping hands, relentless forward momentum |
-| Cyberpunk | Gang Punk | Neon-tattooed enforcer with a shock baton and too much adrenaline |
-| Wuxia | Bandit | Road thief with a notched sword and no formal training |
-| Survival | Feral Dog | Starving predator, hunts in packs, goes for the legs |
-| Steampunk | Clockwork Drone | Grinding gears, brass fists, follows its last instruction |
-| Post-Apocalyptic | Raider | Scrap-armoured scavenger with a blunt weapon |
-| Historical | Levy Conscript | Poorly armed peasant pressed into service |
-| Superhero | Street Thug | Hired muscle with a crowbar and a grudge |
-| Isekai | Slime | Gelatinous blob, slow but persistent, dissolves on contact |
-| Political | Hired Brute | Deniable muscle employed by a rival faction |
+| Genre            | Name            | Flavour                                                           |
+| ---------------- | --------------- | ----------------------------------------------------------------- |
+| Space            | Pirate Thug     | Scarred spacer with a makeshift cudgel and stolen vac-suit        |
+| Fantasy          | Goblin          | Small, vicious, fights with a rusty blade and feral cunning       |
+| Horror           | Shambler        | Slow-moving corpse, grasping hands, relentless forward momentum   |
+| Cyberpunk        | Gang Punk       | Neon-tattooed enforcer with a shock baton and too much adrenaline |
+| Wuxia            | Bandit          | Road thief with a notched sword and no formal training            |
+| Survival         | Feral Dog       | Starving predator, hunts in packs, goes for the legs              |
+| Steampunk        | Clockwork Drone | Grinding gears, brass fists, follows its last instruction         |
+| Post-Apocalyptic | Raider          | Scrap-armoured scavenger with a blunt weapon                      |
+| Historical       | Levy Conscript  | Poorly armed peasant pressed into service                         |
+| Superhero        | Street Thug     | Hired muscle with a crowbar and a grudge                          |
+| Isekai           | Slime           | Gelatinous blob, slow but persistent, dissolves on contact        |
+| Political        | Hired Brute     | Deniable muscle employed by a rival faction                       |
 
 ---
 
@@ -112,20 +113,20 @@ Fragile if cornered — prioritises repositioning over fighting up close.
 
 **Theme Adaptations:**
 
-| Genre | Name | Flavour |
-|-------|------|---------|
-| Space | Pirate Gunner | Crouches behind cargo crates, fires a beat-up blaster |
-| Fantasy | Goblin Archer | Perched on a ledge, looses crude arrows with surprising accuracy |
-| Horror | Spitter | Distended jaw, projects a stream of caustic bile from a distance |
-| Cyberpunk | Sniper Drone Operator | Controls a cheap surveillance drone fitted with a holdout pistol |
-| Wuxia | Dart Thrower | Hidden-weapon specialist, flicks poisoned needles from a sleeve |
-| Survival | Territorial Archer | Defends a resource cache with a hunting bow |
-| Steampunk | Pneumatic Rifleman | Brass-fitted air rifle, slow to reload but punishing at range |
-| Post-Apocalyptic | Scrap Gunner | Improvised firearm, unreliable but deadly when it works |
-| Historical | Skirmisher | Javelin or sling, harasses from the flanks and melts away |
-| Superhero | Rooftop Gunman | Hired sniper with a cheap rifle and a fire escape |
-| Isekai | Imp | Hovering nuisance, hurls small fireballs that sting more than they burn |
-| Political | Crossbow Assassin | Concealed in a crowd, fires once and disappears |
+| Genre            | Name                  | Flavour                                                                 |
+| ---------------- | --------------------- | ----------------------------------------------------------------------- |
+| Space            | Pirate Gunner         | Crouches behind cargo crates, fires a beat-up blaster                   |
+| Fantasy          | Goblin Archer         | Perched on a ledge, looses crude arrows with surprising accuracy        |
+| Horror           | Spitter               | Distended jaw, projects a stream of caustic bile from a distance        |
+| Cyberpunk        | Sniper Drone Operator | Controls a cheap surveillance drone fitted with a holdout pistol        |
+| Wuxia            | Dart Thrower          | Hidden-weapon specialist, flicks poisoned needles from a sleeve         |
+| Survival         | Territorial Archer    | Defends a resource cache with a hunting bow                             |
+| Steampunk        | Pneumatic Rifleman    | Brass-fitted air rifle, slow to reload but punishing at range           |
+| Post-Apocalyptic | Scrap Gunner          | Improvised firearm, unreliable but deadly when it works                 |
+| Historical       | Skirmisher            | Javelin or sling, harasses from the flanks and melts away               |
+| Superhero        | Rooftop Gunman        | Hired sniper with a cheap rifle and a fire escape                       |
+| Isekai           | Imp                   | Hovering nuisance, hurls small fireballs that sting more than they burn |
+| Political        | Crossbow Assassin     | Concealed in a crowd, fires once and disappears                         |
 
 ---
 
@@ -147,20 +148,20 @@ swarm shares a single HP pool — as it takes damage, its offensive output dimin
 
 **Theme Adaptations:**
 
-| Genre | Name | Flavour |
-|-------|------|---------|
-| Space | Voidmites | Tiny hull-eating parasites that pour through breached seals |
-| Fantasy | Rat Swarm | A living carpet of vermin boiling out of the walls |
-| Horror | Crawling Mass | Indistinct shapes, too many legs, moving as one |
-| Cyberpunk | Microdrones | Cloud of razor-edged surveillance drones gone haywire |
-| Wuxia | Hornet Swarm | Disturbed nest, furious and blinding |
-| Survival | Fire Ants | Agonising bites, relentless, drawn by warmth |
-| Steampunk | Clockwork Beetles | Tiny brass constructs that strip copper wiring |
-| Post-Apocalyptic | Mutant Roaches | Fist-sized insects with an appetite for everything |
-| Historical | Plague Rats | Disease-carrying vermin driven out by flooding |
-| Superhero | Nanite Cloud | Escaped experimental nanobots, disassemble on contact |
-| Isekai | Pixie Mob | Malicious fae, individually harmless, collectively terrifying |
-| Political | Angry Mob | Civilians whipped into a frenzy — not enemies, but dangerous |
+| Genre            | Name              | Flavour                                                       |
+| ---------------- | ----------------- | ------------------------------------------------------------- |
+| Space            | Voidmites         | Tiny hull-eating parasites that pour through breached seals   |
+| Fantasy          | Rat Swarm         | A living carpet of vermin boiling out of the walls            |
+| Horror           | Crawling Mass     | Indistinct shapes, too many legs, moving as one               |
+| Cyberpunk        | Microdrones       | Cloud of razor-edged surveillance drones gone haywire         |
+| Wuxia            | Hornet Swarm      | Disturbed nest, furious and blinding                          |
+| Survival         | Fire Ants         | Agonising bites, relentless, drawn by warmth                  |
+| Steampunk        | Clockwork Beetles | Tiny brass constructs that strip copper wiring                |
+| Post-Apocalyptic | Mutant Roaches    | Fist-sized insects with an appetite for everything            |
+| Historical       | Plague Rats       | Disease-carrying vermin driven out by flooding                |
+| Superhero        | Nanite Cloud      | Escaped experimental nanobots, disassemble on contact         |
+| Isekai           | Pixie Mob         | Malicious fae, individually harmless, collectively terrifying |
+| Political        | Angry Mob         | Civilians whipped into a frenzy — not enemies, but dangerous  |
 
 ---
 
@@ -182,20 +183,20 @@ to hold a position and prevent the player from passing. High defence, low damage
 
 **Theme Adaptations:**
 
-| Genre | Name | Flavour |
-|-------|------|---------|
-| Space | Station Sentry | Armoured guard with a stun baton and a comm link |
-| Fantasy | Shield Bearer | Heavy shield, dug in, blocks a narrow corridor |
-| Horror | Blocker | Immovable fleshy mass wedged into a doorway, pulsing |
-| Cyberpunk | Security Bot | Wall-mounted turret with a challenge protocol and armour plating |
-| Wuxia | Gate Keeper | Staff-wielding sentry guarding a sect's entrance |
-| Survival | Territorial Beast | Large herbivore defending its den, charges if provoked |
-| Steampunk | Automaton Sentinel | Brass guardian, follows patrol orders to the letter |
-| Post-Apocalyptic | Barricade Watcher | Sits behind improvised cover, shouts warnings first |
-| Historical | Man-at-Arms | Professional soldier in mail, holds the gate |
-| Superhero | Powered Suit Guard | Corporate security in light exoskeleton armour |
-| Isekai | Living Armour | Empty suit of plate mail, animated by residual enchantment |
-| Political | Palace Guard | Loyal retainer, fights defensively, sounds the alarm |
+| Genre            | Name               | Flavour                                                          |
+| ---------------- | ------------------ | ---------------------------------------------------------------- |
+| Space            | Station Sentry     | Armoured guard with a stun baton and a comm link                 |
+| Fantasy          | Shield Bearer      | Heavy shield, dug in, blocks a narrow corridor                   |
+| Horror           | Blocker            | Immovable fleshy mass wedged into a doorway, pulsing             |
+| Cyberpunk        | Security Bot       | Wall-mounted turret with a challenge protocol and armour plating |
+| Wuxia            | Gate Keeper        | Staff-wielding sentry guarding a sect's entrance                 |
+| Survival         | Territorial Beast  | Large herbivore defending its den, charges if provoked           |
+| Steampunk        | Automaton Sentinel | Brass guardian, follows patrol orders to the letter              |
+| Post-Apocalyptic | Barricade Watcher  | Sits behind improvised cover, shouts warnings first              |
+| Historical       | Man-at-Arms        | Professional soldier in mail, holds the gate                     |
+| Superhero        | Powered Suit Guard | Corporate security in light exoskeleton armour                   |
+| Isekai           | Living Armour      | Empty suit of plate mail, animated by residual enchantment       |
+| Political        | Palace Guard       | Loyal retainer, fights defensively, sounds the alarm             |
 
 ---
 
@@ -218,20 +219,20 @@ it escapes, it triggers an alarm or reinforcement encounter in the next scene.
 
 **Theme Adaptations:**
 
-| Genre | Name | Flavour |
-|-------|------|---------|
-| Space | Recon Drone | Small, fast, transmits data back to the main force |
-| Fantasy | Goblin Runner | Nimble, cowardly, bolts for the nearest tunnel |
-| Horror | Watcher | Eyeless figure that sees nonetheless, vanishes through walls |
-| Cyberpunk | Info-Runner | Light on their feet, recording everything on ocular implant |
-| Wuxia | Messenger Bird Handler | Releases a trained bird before drawing a blade |
-| Survival | Lookout Animal | Alert prey animal whose flight warns the herd |
-| Steampunk | Courier Automaton | Spring-legged construct, built for speed not combat |
-| Post-Apocalyptic | Signal Runner | Sprints back to camp with a flare gun |
-| Historical | Mounted Scout | Light cavalry, fast horse, reports to the main column |
-| Superhero | Surveillance Drone | Remote-piloted quadcopter with a camera feed |
-| Isekai | Fairy Spy | Invisible until spotted, teleports short distances |
-| Political | Court Spy | Slips away to report what they have witnessed |
+| Genre            | Name                   | Flavour                                                      |
+| ---------------- | ---------------------- | ------------------------------------------------------------ |
+| Space            | Recon Drone            | Small, fast, transmits data back to the main force           |
+| Fantasy          | Goblin Runner          | Nimble, cowardly, bolts for the nearest tunnel               |
+| Horror           | Watcher                | Eyeless figure that sees nonetheless, vanishes through walls |
+| Cyberpunk        | Info-Runner            | Light on their feet, recording everything on ocular implant  |
+| Wuxia            | Messenger Bird Handler | Releases a trained bird before drawing a blade               |
+| Survival         | Lookout Animal         | Alert prey animal whose flight warns the herd                |
+| Steampunk        | Courier Automaton      | Spring-legged construct, built for speed not combat          |
+| Post-Apocalyptic | Signal Runner          | Sprints back to camp with a flare gun                        |
+| Historical       | Mounted Scout          | Light cavalry, fast horse, reports to the main column        |
+| Superhero        | Surveillance Drone     | Remote-piloted quadcopter with a camera feed                 |
+| Isekai           | Fairy Spy              | Invisible until spotted, teleports short distances           |
+| Political        | Court Spy              | Slips away to report what they have witnessed                |
 
 ---
 
@@ -255,20 +256,20 @@ more dangerous than its raw damage suggests. Often guards a specific area or res
 
 **Theme Adaptations:**
 
-| Genre | Name | Condition | Flavour |
-|-------|------|-----------|---------|
-| Space | Hull Leech | Stunned | Attaches to the suit, delivers an electric shock |
-| Fantasy | Venomous Serpent | Poisoned | Strikes from tall grass, fangs dripping |
-| Horror | Face Hugger | Frightened | Drops from the ceiling, wraps around the head |
-| Cyberpunk | Shock Mine | Stunned | Concealed device, detonates on proximity |
-| Wuxia | Hidden Viper | Poisoned | Coiled in a scroll case, strikes when opened |
-| Survival | Trapdoor Spider | Stunned | Bursts from a silk-lined hole underfoot |
-| Steampunk | Pressure Trap | Stunned | Steam vent rigged to scald intruders |
-| Post-Apocalyptic | Toxic Spore Cluster | Poisoned | Fungal bloom that bursts when disturbed |
-| Historical | Caltrops and Serpent | Poisoned | Snake hidden among iron spikes |
-| Superhero | Tripwire Turret | Stunned | Concealed automated defence system |
-| Isekai | Mimic | Frightened | Disguised as a treasure chest, all teeth |
-| Political | Poisoned Gift | Poisoned | Trapped object left as a "peace offering" |
+| Genre            | Name                 | Condition  | Flavour                                          |
+| ---------------- | -------------------- | ---------- | ------------------------------------------------ |
+| Space            | Hull Leech           | Stunned    | Attaches to the suit, delivers an electric shock |
+| Fantasy          | Venomous Serpent     | Poisoned   | Strikes from tall grass, fangs dripping          |
+| Horror           | Face Hugger          | Frightened | Drops from the ceiling, wraps around the head    |
+| Cyberpunk        | Shock Mine           | Stunned    | Concealed device, detonates on proximity         |
+| Wuxia            | Hidden Viper         | Poisoned   | Coiled in a scroll case, strikes when opened     |
+| Survival         | Trapdoor Spider      | Stunned    | Bursts from a silk-lined hole underfoot          |
+| Steampunk        | Pressure Trap        | Stunned    | Steam vent rigged to scald intruders             |
+| Post-Apocalyptic | Toxic Spore Cluster  | Poisoned   | Fungal bloom that bursts when disturbed          |
+| Historical       | Caltrops and Serpent | Poisoned   | Snake hidden among iron spikes                   |
+| Superhero        | Tripwire Turret      | Stunned    | Concealed automated defence system               |
+| Isekai           | Mimic                | Frightened | Disguised as a treasure chest, all teeth         |
+| Political        | Poisoned Gift        | Poisoned   | Trapped object left as a "peace offering"        |
 
 ---
 
@@ -302,20 +303,20 @@ weakest member of the group. Ignores crowd-control effects that would slow it do
 
 **Theme Adaptations:**
 
-| Genre | Name | Flavour |
-|-------|------|---------|
-| Space | Pirate Brute | Cybernetically augmented thug, metal jaw, powered gauntlets |
-| Fantasy | Ogre | Towering, thick-skinned, swings a tree trunk as a club |
-| Horror | Butcher | Apron-clad figure, impossibly strong, shrugs off pain |
-| Cyberpunk | Chrome Enforcer | Full-body cybernetics, subdermal armour, hydraulic fists |
-| Wuxia | Iron Body Fighter | Hard qi technique renders flesh like iron, fights barehanded |
-| Survival | Alpha Predator | Apex carnivore, scarred from a hundred territorial fights |
-| Steampunk | Brass Golem | Steam-powered construct, relentless and unfeeling |
-| Post-Apocalyptic | Mutant Bruiser | Radiation-warped muscle, pain receptors burned away |
-| Historical | Berserker | Frothing warrior who fights through wounds that would fell others |
-| Superhero | Powerhouse Villain | Super-strength, limited intellect, directed by someone smarter |
-| Isekai | Troll | Regenerating brute, needs fire or acid to stay down |
-| Political | Champion Duelist | Undefeated in formal combat, retained by a powerful patron |
+| Genre            | Name               | Flavour                                                           |
+| ---------------- | ------------------ | ----------------------------------------------------------------- |
+| Space            | Pirate Brute       | Cybernetically augmented thug, metal jaw, powered gauntlets       |
+| Fantasy          | Ogre               | Towering, thick-skinned, swings a tree trunk as a club            |
+| Horror           | Butcher            | Apron-clad figure, impossibly strong, shrugs off pain             |
+| Cyberpunk        | Chrome Enforcer    | Full-body cybernetics, subdermal armour, hydraulic fists          |
+| Wuxia            | Iron Body Fighter  | Hard qi technique renders flesh like iron, fights barehanded      |
+| Survival         | Alpha Predator     | Apex carnivore, scarred from a hundred territorial fights         |
+| Steampunk        | Brass Golem        | Steam-powered construct, relentless and unfeeling                 |
+| Post-Apocalyptic | Mutant Bruiser     | Radiation-warped muscle, pain receptors burned away               |
+| Historical       | Berserker          | Frothing warrior who fights through wounds that would fell others |
+| Superhero        | Powerhouse Villain | Super-strength, limited intellect, directed by someone smarter    |
+| Isekai           | Troll              | Regenerating brute, needs fire or acid to stay down               |
+| Political        | Champion Duelist   | Undefeated in formal combat, retained by a powerful patron        |
 
 ---
 
@@ -340,20 +341,20 @@ maximum-damage hit per encounter.
 
 **Theme Adaptations:**
 
-| Genre | Name | Flavour |
-|-------|------|---------|
-| Space | Bounty Hunter | Scoped rifle, thermal visor, patient as stone |
-| Fantasy | Elven Archer | Longbow, preternatural calm, never wastes an arrow |
-| Horror | The Marksman | Unseen, a red dot appears on the chest before the crack of the shot |
-| Cyberpunk | Netrunner Sniper | Smart-linked rifle, targeting software compensates for wind |
-| Wuxia | Jade Archer | Recurve bow, fires from horseback or rooftop with deadly grace |
-| Survival | Poacher | Camouflaged, knows the terrain, fires from a prepared hide |
-| Steampunk | Aether Rifleman | Crystal-focused energy weapon, charges between devastating shots |
-| Post-Apocalyptic | Wasteland Marksman | Pre-war rifle maintained with obsessive care |
-| Historical | Longbowman | Draws a warbow that lesser archers cannot string |
-| Superhero | Trick-Shot Villain | Never misses, uses ricochets and impossible angles |
-| Isekai | Magic Archer | Arrows wreathed in elemental energy, seeks the target |
-| Political | Hired Assassin | A single crossbow bolt from a window, then gone |
+| Genre            | Name               | Flavour                                                             |
+| ---------------- | ------------------ | ------------------------------------------------------------------- |
+| Space            | Bounty Hunter      | Scoped rifle, thermal visor, patient as stone                       |
+| Fantasy          | Elven Archer       | Longbow, preternatural calm, never wastes an arrow                  |
+| Horror           | The Marksman       | Unseen, a red dot appears on the chest before the crack of the shot |
+| Cyberpunk        | Netrunner Sniper   | Smart-linked rifle, targeting software compensates for wind         |
+| Wuxia            | Jade Archer        | Recurve bow, fires from horseback or rooftop with deadly grace      |
+| Survival         | Poacher            | Camouflaged, knows the terrain, fires from a prepared hide          |
+| Steampunk        | Aether Rifleman    | Crystal-focused energy weapon, charges between devastating shots    |
+| Post-Apocalyptic | Wasteland Marksman | Pre-war rifle maintained with obsessive care                        |
+| Historical       | Longbowman         | Draws a warbow that lesser archers cannot string                    |
+| Superhero        | Trick-Shot Villain | Never misses, uses ricochets and impossible angles                  |
+| Isekai           | Magic Archer       | Arrows wreathed in elemental energy, seeks the target               |
+| Political        | Hired Assassin     | A single crossbow bolt from a window, then gone                     |
 
 ---
 
@@ -376,20 +377,20 @@ frustrating — forcing rerolls, creating false openings, and punishing overcomm
 
 **Theme Adaptations:**
 
-| Genre | Name | Flavour |
-|-------|------|---------|
-| Space | Con Artist | Holographic decoys, misdirecting chatter on comms |
-| Fantasy | Illusionist | Mirror images, displaced sounds, nothing is where it appears |
-| Horror | Doppelgänger | Wears a familiar face, exploits trust and hesitation |
-| Cyberpunk | Hacker | Spoofs targeting systems, feeds false data to implants |
-| Wuxia | Drunken Boxer | Stumbles and sways, but every stumble is a feint |
-| Survival | Cunning Prey | An animal that uses decoys, false trails, and ambush reversals |
-| Steampunk | Stage Magician | Smoke bombs, trap doors, misdirection as art |
-| Post-Apocalyptic | Scam Artist | Friendly face, poisoned handshake, always has an escape route |
-| Historical | Court Jester | Plays the fool, but the fool sees everything and strikes unseen |
-| Superhero | Illusionist Villain | Hard-light projections that deceive the senses |
-| Isekai | Shapeshifter | Changes form mid-combat, confusing targeting |
-| Political | Double Agent | Ally one moment, enemy the next, loyalties unknowable |
+| Genre            | Name                | Flavour                                                         |
+| ---------------- | ------------------- | --------------------------------------------------------------- |
+| Space            | Con Artist          | Holographic decoys, misdirecting chatter on comms               |
+| Fantasy          | Illusionist         | Mirror images, displaced sounds, nothing is where it appears    |
+| Horror           | Doppelgänger        | Wears a familiar face, exploits trust and hesitation            |
+| Cyberpunk        | Hacker              | Spoofs targeting systems, feeds false data to implants          |
+| Wuxia            | Drunken Boxer       | Stumbles and sways, but every stumble is a feint                |
+| Survival         | Cunning Prey        | An animal that uses decoys, false trails, and ambush reversals  |
+| Steampunk        | Stage Magician      | Smoke bombs, trap doors, misdirection as art                    |
+| Post-Apocalyptic | Scam Artist         | Friendly face, poisoned handshake, always has an escape route   |
+| Historical       | Court Jester        | Plays the fool, but the fool sees everything and strikes unseen |
+| Superhero        | Illusionist Villain | Hard-light projections that deceive the senses                  |
+| Isekai           | Shapeshifter        | Changes form mid-combat, confusing targeting                    |
+| Political        | Double Agent        | Ally one moment, enemy the next, loyalties unknowable           |
 
 ---
 
@@ -414,20 +415,20 @@ before engaging and punishing those caught off-guard.
 
 **Theme Adaptations:**
 
-| Genre | Name | Flavour |
-|-------|------|---------|
-| Space | Void Stalker | Eyeless predator adapted to low-gravity environments |
-| Fantasy | Dire Wolf | Shoulder-height, intelligent eyes, hunts with terrible patience |
-| Horror | The Thing in the Walls | Bursts through plasterboard, all claws and hunger |
-| Cyberpunk | Cyber-Hound | Military-grade attack dog with titanium teeth and targeting implants |
-| Wuxia | Mountain Tiger | Striped ghost of the forest, revered and feared |
-| Survival | Bear | Territorial apex predator, encountered near food or cubs |
-| Steampunk | Clockwork Hound | Brass-plated hunting machine, tireless and precise |
-| Post-Apocalyptic | Mutant Predator | Radiation-warped carnivore, extra limbs, wrong number of eyes |
-| Historical | War Dog | Trained for combat, armoured collar, obeys only its handler |
-| Superhero | Escaped Lab Creature | Genetically modified, unstable, frightened and lashing out |
-| Isekai | Warg | Intelligent wolf-creature, possibly domesticable |
-| Political | Hunting Cat | Exotic beast kept by a noble, released to hunt trespassers |
+| Genre            | Name                   | Flavour                                                              |
+| ---------------- | ---------------------- | -------------------------------------------------------------------- |
+| Space            | Void Stalker           | Eyeless predator adapted to low-gravity environments                 |
+| Fantasy          | Dire Wolf              | Shoulder-height, intelligent eyes, hunts with terrible patience      |
+| Horror           | The Thing in the Walls | Bursts through plasterboard, all claws and hunger                    |
+| Cyberpunk        | Cyber-Hound            | Military-grade attack dog with titanium teeth and targeting implants |
+| Wuxia            | Mountain Tiger         | Striped ghost of the forest, revered and feared                      |
+| Survival         | Bear                   | Territorial apex predator, encountered near food or cubs             |
+| Steampunk        | Clockwork Hound        | Brass-plated hunting machine, tireless and precise                   |
+| Post-Apocalyptic | Mutant Predator        | Radiation-warped carnivore, extra limbs, wrong number of eyes        |
+| Historical       | War Dog                | Trained for combat, armoured collar, obeys only its handler          |
+| Superhero        | Escaped Lab Creature   | Genetically modified, unstable, frightened and lashing out           |
+| Isekai           | Warg                   | Intelligent wolf-creature, possibly domesticable                     |
+| Political        | Hunting Cat            | Exotic beast kept by a noble, released to hunt trespassers           |
 
 ---
 
@@ -452,20 +453,20 @@ and the minions scatter.
 
 **Theme Adaptations:**
 
-| Genre | Name | Flavour |
-|-------|------|---------|
-| Space | Pirate Captain | Barking orders from the bridge, subordinates do the dying |
-| Fantasy | Hobgoblin Warlord | Disciplined, armoured, commands with iron authority |
-| Horror | The Whisperer | Unseen voice that directs the horrors, puppeteer in the dark |
-| Cyberpunk | Gang Boss | AR overlay coordinating squad movements in real time |
-| Wuxia | Bandit Chief | Experienced fighter who lets disciples fight first |
-| Survival | Pack Alpha | Dominant animal that coordinates the hunt with body language |
-| Steampunk | Foreman | Directs automaton workers turned violent, wrench in hand |
-| Post-Apocalyptic | Warlord's Lieutenant | Commands through fear and a working radio |
-| Historical | Centurion | Professional officer, fights only when the line breaks |
-| Superhero | Villain Commander | Tactical genius, directs henchmen from a command post |
-| Isekai | Goblin King | Wears a crown of bent tin, but the goblins obey |
-| Political | Spymaster | Never fights directly, sends agents and information |
+| Genre            | Name                 | Flavour                                                      |
+| ---------------- | -------------------- | ------------------------------------------------------------ |
+| Space            | Pirate Captain       | Barking orders from the bridge, subordinates do the dying    |
+| Fantasy          | Hobgoblin Warlord    | Disciplined, armoured, commands with iron authority          |
+| Horror           | The Whisperer        | Unseen voice that directs the horrors, puppeteer in the dark |
+| Cyberpunk        | Gang Boss            | AR overlay coordinating squad movements in real time         |
+| Wuxia            | Bandit Chief         | Experienced fighter who lets disciples fight first           |
+| Survival         | Pack Alpha           | Dominant animal that coordinates the hunt with body language |
+| Steampunk        | Foreman              | Directs automaton workers turned violent, wrench in hand     |
+| Post-Apocalyptic | Warlord's Lieutenant | Commands through fear and a working radio                    |
+| Historical       | Centurion            | Professional officer, fights only when the line breaks       |
+| Superhero        | Villain Commander    | Tactical genius, directs henchmen from a command post        |
+| Isekai           | Goblin King          | Wears a crown of bent tin, but the goblins obey              |
+| Political        | Spymaster            | Never fights directly, sends agents and information          |
 
 ---
 
@@ -491,20 +492,20 @@ signature ability disrupts the player's equipment or capabilities, forcing adapt
 
 **Theme Adaptations:**
 
-| Genre | Name | Ability Name | Flavour |
-|-------|------|-------------|---------|
-| Space | Systems Hacker | Override | Remotely disables suit functions or weapon systems |
-| Fantasy | Hedge Witch | Hex | Curses equipment, weapons turn heavy and armour binds |
-| Horror | Poltergeist | Disrupt | Flings equipment across the room, pins it to the wall |
-| Cyberpunk | Netrunner | Override | Hacks cyberware, locks joints, blinds smart-optics |
-| Wuxia | Pressure Point Striker | Disrupt | Seals meridians, numbing the hand that holds the weapon |
-| Survival | Corrosive Creature | Disrupt | Acid spray dissolves straps and corrodes metal |
-| Steampunk | Saboteur | Disrupt | Jams clockwork mechanisms, vents steam lines |
-| Post-Apocalyptic | EMP Specialist | Override | Pulse fries electronics, darkens powered equipment |
-| Historical | Cunning Alchemist | Hex | Thrown concoctions that corrode metal and blind |
-| Superhero | Tech Villain | Override | Electromagnetic pulse targeting specific frequencies |
-| Isekai | Enchanter | Hex | Dispels enchantments on magical equipment |
-| Political | Saboteur Agent | Disrupt | Poisons weapons, loosens armour straps before the fight |
+| Genre            | Name                   | Ability Name | Flavour                                                 |
+| ---------------- | ---------------------- | ------------ | ------------------------------------------------------- |
+| Space            | Systems Hacker         | Override     | Remotely disables suit functions or weapon systems      |
+| Fantasy          | Hedge Witch            | Hex          | Curses equipment, weapons turn heavy and armour binds   |
+| Horror           | Poltergeist            | Disrupt      | Flings equipment across the room, pins it to the wall   |
+| Cyberpunk        | Netrunner              | Override     | Hacks cyberware, locks joints, blinds smart-optics      |
+| Wuxia            | Pressure Point Striker | Disrupt      | Seals meridians, numbing the hand that holds the weapon |
+| Survival         | Corrosive Creature     | Disrupt      | Acid spray dissolves straps and corrodes metal          |
+| Steampunk        | Saboteur               | Disrupt      | Jams clockwork mechanisms, vents steam lines            |
+| Post-Apocalyptic | EMP Specialist         | Override     | Pulse fries electronics, darkens powered equipment      |
+| Historical       | Cunning Alchemist      | Hex          | Thrown concoctions that corrode metal and blind         |
+| Superhero        | Tech Villain           | Override     | Electromagnetic pulse targeting specific frequencies    |
+| Isekai           | Enchanter              | Hex          | Dispels enchantments on magical equipment               |
+| Political        | Saboteur Agent         | Disrupt      | Poisons weapons, loosens armour straps before the fight |
 
 ---
 
@@ -549,20 +550,20 @@ martial superiority. Phase 1 is controlled aggression; Phase 2 is desperate fury
 
 **Theme Adaptations:**
 
-| Genre | Name | Flavour |
-|-------|------|---------|
-| Space | Fleet Commander | Powered exoskeleton, energy blade, fights on the bridge |
-| Fantasy | Dragon Knight | Fire-blackened plate, greatsword, rides nothing — is the dragon's equal |
-| Horror | The Butcher | Unstoppable slasher, each wound only makes it angrier |
-| Cyberpunk | Cyborg Enforcer | Military-grade full-body conversion, barely human |
-| Wuxia | Sword Saint | Legendary blade technique, each strike a calligraphic masterwork |
-| Survival | Apex Predator | Ancient, scarred, territorial — the apex of its ecosystem |
-| Steampunk | War Automaton | Factory-built for a forgotten conflict, reactivated and purposeful |
-| Post-Apocalyptic | Raider King | Rules through violence, wears the trophies of defeated challengers |
-| Historical | Warlord Champion | Undefeated general, fights at the head of their army |
-| Superhero | Arch-Nemesis Bruiser | Powers matched to the hero, a dark mirror of strength |
-| Isekai | Demon General | Commanding presence, sword wreathed in dark flame |
-| Political | Grand Champion | Arena legend, fights duels to settle affairs of state |
+| Genre            | Name                 | Flavour                                                                 |
+| ---------------- | -------------------- | ----------------------------------------------------------------------- |
+| Space            | Fleet Commander      | Powered exoskeleton, energy blade, fights on the bridge                 |
+| Fantasy          | Dragon Knight        | Fire-blackened plate, greatsword, rides nothing — is the dragon's equal |
+| Horror           | The Butcher          | Unstoppable slasher, each wound only makes it angrier                   |
+| Cyberpunk        | Cyborg Enforcer      | Military-grade full-body conversion, barely human                       |
+| Wuxia            | Sword Saint          | Legendary blade technique, each strike a calligraphic masterwork        |
+| Survival         | Apex Predator        | Ancient, scarred, territorial — the apex of its ecosystem               |
+| Steampunk        | War Automaton        | Factory-built for a forgotten conflict, reactivated and purposeful      |
+| Post-Apocalyptic | Raider King          | Rules through violence, wears the trophies of defeated challengers      |
+| Historical       | Warlord Champion     | Undefeated general, fights at the head of their army                    |
+| Superhero        | Arch-Nemesis Bruiser | Powers matched to the hero, a dark mirror of strength                   |
+| Isekai           | Demon General        | Commanding presence, sword wreathed in dark flame                       |
+| Political        | Grand Champion       | Arena legend, fights duels to settle affairs of state                   |
 
 ---
 
@@ -599,20 +600,20 @@ first — and they always have an escape plan.
 
 **Theme Adaptations:**
 
-| Genre | Name | Flavour |
-|-------|------|---------|
-| Space | Crime Lord | Controls the encounter from a shielded observation deck |
-| Fantasy | Lich | Phylactery hidden elsewhere, fights through summoned dead |
-| Horror | The Puppeteer | Strings of influence invisible to the eye, victims do its work |
-| Cyberpunk | Corporate Executive | Drone army, panic room, lawyers more dangerous than soldiers |
-| Wuxia | Poisoner Sect Leader | Never touches a blade, every surface is coated, every drink suspect |
-| Survival | Trapper | The entire territory is a kill zone of snares and deadfalls |
-| Steampunk | Mad Inventor | Laboratory of lethal devices, pulls levers and laughs |
-| Post-Apocalyptic | Settlement Tyrant | Rules through information control and rigged defences |
-| Historical | Scheming Cardinal | Agents, assassins, and the weight of the Church as a weapon |
-| Superhero | Criminal Mastermind | Always three steps ahead, the lair is the real weapon |
-| Isekai | Demon Strategist | Commands from a throne, the dungeon itself obeys |
-| Political | Shadow Chancellor | Pulls strings from behind the throne, never seen in public |
+| Genre            | Name                 | Flavour                                                             |
+| ---------------- | -------------------- | ------------------------------------------------------------------- |
+| Space            | Crime Lord           | Controls the encounter from a shielded observation deck             |
+| Fantasy          | Lich                 | Phylactery hidden elsewhere, fights through summoned dead           |
+| Horror           | The Puppeteer        | Strings of influence invisible to the eye, victims do its work      |
+| Cyberpunk        | Corporate Executive  | Drone army, panic room, lawyers more dangerous than soldiers        |
+| Wuxia            | Poisoner Sect Leader | Never touches a blade, every surface is coated, every drink suspect |
+| Survival         | Trapper              | The entire territory is a kill zone of snares and deadfalls         |
+| Steampunk        | Mad Inventor         | Laboratory of lethal devices, pulls levers and laughs               |
+| Post-Apocalyptic | Settlement Tyrant    | Rules through information control and rigged defences               |
+| Historical       | Scheming Cardinal    | Agents, assassins, and the weight of the Church as a weapon         |
+| Superhero        | Criminal Mastermind  | Always three steps ahead, the lair is the real weapon               |
+| Isekai           | Demon Strategist     | Commands from a throne, the dungeon itself obeys                    |
+| Political        | Shadow Chancellor    | Pulls strings from behind the throne, never seen in public          |
 
 ---
 
@@ -652,20 +653,20 @@ player to think beyond raw damage output and exploit a specific weakness.
 
 **Theme Adaptations:**
 
-| Genre | Name | Weakness Example | Flavour |
-|-------|------|-----------------|---------|
-| Space | Void Leviathan | Destroy the nerve cluster behind its maw | Fills the corridor, pseudopods reaching |
-| Fantasy | Troll King | Fire stops regeneration | Ancient, massive, bark-like hide |
-| Horror | The Mass | Sever the original host's head from the amalgam | Fused bodies, too many mouths |
-| Cyberpunk | Bioweapon Prototype | EMP the control chip at its spine | Corporate experiment gone wrong |
-| Wuxia | Demon Beast | Strike the inverse scale beneath its chin | Mountain-dwelling horror of legend |
-| Survival | Megafauna | Blind it — destroy its eyes | Prehistoric scale, shouldn't exist |
-| Steampunk | Flesh Engine | Destroy the furnace in its chest cavity | Meat grafted to machinery |
-| Post-Apocalyptic | Irradiated Colossus | Lead-lined weapon stops regeneration | Glowing, weeping radiation |
-| Historical | Sea Serpent | Greek fire or boiling pitch | Coils around the ship, barnacle-encrusted |
-| Superhero | Kaiju | Overload its energy absorption organ | City-block scale, origin unknown |
-| Isekai | World Boss | Destroy the dungeon core powering it | Impossible anatomy, game-logic biology |
-| Political | — | *(Abomination template is rarely used in political games)* | — |
+| Genre            | Name                | Weakness Example                                           | Flavour                                   |
+| ---------------- | ------------------- | ---------------------------------------------------------- | ----------------------------------------- |
+| Space            | Void Leviathan      | Destroy the nerve cluster behind its maw                   | Fills the corridor, pseudopods reaching   |
+| Fantasy          | Troll King          | Fire stops regeneration                                    | Ancient, massive, bark-like hide          |
+| Horror           | The Mass            | Sever the original host's head from the amalgam            | Fused bodies, too many mouths             |
+| Cyberpunk        | Bioweapon Prototype | EMP the control chip at its spine                          | Corporate experiment gone wrong           |
+| Wuxia            | Demon Beast         | Strike the inverse scale beneath its chin                  | Mountain-dwelling horror of legend        |
+| Survival         | Megafauna           | Blind it — destroy its eyes                                | Prehistoric scale, shouldn't exist        |
+| Steampunk        | Flesh Engine        | Destroy the furnace in its chest cavity                    | Meat grafted to machinery                 |
+| Post-Apocalyptic | Irradiated Colossus | Lead-lined weapon stops regeneration                       | Glowing, weeping radiation                |
+| Historical       | Sea Serpent         | Greek fire or boiling pitch                                | Coils around the ship, barnacle-encrusted |
+| Superhero        | Kaiju               | Overload its energy absorption organ                       | City-block scale, origin unknown          |
+| Isekai           | World Boss          | Destroy the dungeon core powering it                       | Impossible anatomy, game-logic biology    |
+| Political        | —                   | _(Abomination template is rarely used in political games)_ | —                                         |
 
 ---
 
@@ -707,30 +708,30 @@ Defeating through persuasion is a valid (and often more rewarding) victory.
 
 **Theme Adaptations:**
 
-| Genre | Name | Flavour |
-|-------|------|---------|
-| Space | Former Crewmate | "We used to watch the stars from the observation deck. Remember?" |
-| Fantasy | Fallen Paladin | Once swore the same oath, now serves a different master |
-| Horror | Infected Friend | Still in there, somewhere, fighting for control |
-| Cyberpunk | Ex-Partner | Sold out to the corp, or did the player sell out first? |
-| Wuxia | Senior Disciple | Same school, same master, different interpretation of the teaching |
-| Survival | Former Ally | Resources are scarce, and they chose their people over yours |
-| Steampunk | Rival Inventor | Once collaborated, now their creation threatens everything |
-| Post-Apocalyptic | Exile | Banished from the settlement, returned with grievances and followers |
-| Historical | Brother-in-Arms | Served together, now on opposite sides of a war |
-| Superhero | Former Sidekick | Grew tired of the shadow, now carving their own path — violently |
-| Isekai | Rival Summoned Hero | Another person pulled to this world, with a different mission |
-| Political | Former Protégé | Learned everything from the player, now uses it against them |
+| Genre            | Name                | Flavour                                                              |
+| ---------------- | ------------------- | -------------------------------------------------------------------- |
+| Space            | Former Crewmate     | "We used to watch the stars from the observation deck. Remember?"    |
+| Fantasy          | Fallen Paladin      | Once swore the same oath, now serves a different master              |
+| Horror           | Infected Friend     | Still in there, somewhere, fighting for control                      |
+| Cyberpunk        | Ex-Partner          | Sold out to the corp, or did the player sell out first?              |
+| Wuxia            | Senior Disciple     | Same school, same master, different interpretation of the teaching   |
+| Survival         | Former Ally         | Resources are scarce, and they chose their people over yours         |
+| Steampunk        | Rival Inventor      | Once collaborated, now their creation threatens everything           |
+| Post-Apocalyptic | Exile               | Banished from the settlement, returned with grievances and followers |
+| Historical       | Brother-in-Arms     | Served together, now on opposite sides of a war                      |
+| Superhero        | Former Sidekick     | Grew tired of the shadow, now carving their own path — violently     |
+| Isekai           | Rival Summoned Hero | Another person pulled to this world, with a different mission        |
+| Political        | Former Protégé      | Learned everything from the player, now uses it against them         |
 
 ---
 
 ## § CLI Commands
 
-| Command | Purpose |
-|---------|---------|
-| `tag compute encounter --level {n} --tier {minion\|rival\|nemesis}` | Generate an encounter scaled to the player's level using templates from this module |
-| `tag state create-npc --template {template} --tier {tier} --genre {genre}` | Create an adversary NPC from a bestiary template with genre-appropriate reskinning |
-| `tag state get encounter` | Read the current encounter state (active adversaries, round, HP) |
+| Command                                                                    | Purpose                                                                             |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `tag compute encounter --level {n} --tier {minion\|rival\|nemesis}`        | Generate an encounter scaled to the player's level using templates from this module |
+| `tag state create-npc --template {template} --tier {tier} --genre {genre}` | Create an adversary NPC from a bestiary template with genre-appropriate reskinning  |
+| `tag state get encounter`                                                  | Read the current encounter state (active adversaries, round, HP)                    |
 
 ---
 
@@ -740,13 +741,13 @@ Use the table below to select appropriate adversary combinations for the player'
 level. These are guidelines, not hard rules — the GM should adjust based on narrative
 context, available resources, and recent encounter difficulty.
 
-| Player Level | Recommended Encounter |
-|-------------|----------------------|
-| 1–2 | 2–3 Minions or 1 Rival |
-| 3–4 | 3–4 Minions or 1 Rival + 2 Minions |
-| 5–6 | 1 Rival + 3 Minions or 2 Rivals |
-| 7–8 | 2 Rivals + 2 Minions or 1 Nemesis |
-| 9–10 | 1 Nemesis + 2–3 Minions |
+| Player Level | Recommended Encounter              |
+| ------------ | ---------------------------------- |
+| 1–2          | 2–3 Minions or 1 Rival             |
+| 3–4          | 3–4 Minions or 1 Rival + 2 Minions |
+| 5–6          | 1 Rival + 3 Minions or 2 Rivals    |
+| 7–8          | 2 Rivals + 2 Minions or 1 Nemesis  |
+| 9–10         | 1 Nemesis + 2–3 Minions            |
 
 **Encounter pacing:** Not every scene needs combat. The GM should aim for roughly one
 combat encounter per 3–4 scenes, with social encounters, exploration, and puzzle-solving
@@ -754,11 +755,11 @@ filling the gaps. Back-to-back combat encounters drain resources and flatten the
 
 ### XP Rewards
 
-| Tier | XP per Adversary |
-|------|-----------------|
-| Minion | 5 XP |
-| Rival | 15 XP |
-| Nemesis | 50 XP |
+| Tier    | XP per Adversary |
+| ------- | ---------------- |
+| Minion  | 5 XP             |
+| Rival   | 15 XP            |
+| Nemesis | 50 XP            |
 
 XP is awarded upon defeating or resolving the encounter (including social resolution for
 the Rival Turned Enemy template). Fleeing from an encounter awards no XP.
@@ -779,6 +780,7 @@ internally — stat blocks are **never shown to the player**.
 ```
 
 **Fields:**
+
 - **Name:** The adversary's name or title. Adapts to the genre.
 - **Tier:** Minion, Rival, or Nemesis.
 - **Description:** One sentence summarising the adversary's role.
@@ -797,6 +799,7 @@ internally — stat blocks are **never shown to the player**.
 This module adds the following field to `gmState`:
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 // Bestiary encounter tracking
 encounter: {

@@ -1,4 +1,5 @@
 # Atmosphere — Visual Immersion Engine
+
 > Module for text-adventure orchestrator. Optional — selected at game start in Settings widget.
 
 Adds dynamic visual effects to scene widgets: environmental particles, screen shake,
@@ -15,8 +16,8 @@ files, core-systems (time system), story-architect (tension tracking).
 
 ## § CLI Commands for This Module
 
-| Action | Command | Tool |
-|--------|---------|------|
+| Action                       | Command                            | Tool              |
+| ---------------------------- | ---------------------------------- | ----------------- |
 | Render scene with atmosphere | `tag render scene --style <style>` | Run via Bash tool |
 
 Atmosphere effects (particles, screen shake, colour flash, letterbox, dynamic lighting,
@@ -49,15 +50,15 @@ it applies the appropriate particle class to the root widget element automatical
 
 ### Particle Types
 
-| Type | CSS Class | Trigger Context |
-|------|-----------|-----------------|
-| Dust motes | `.atmo-dust` | Indoor, abandoned, ancient locations |
-| Rain | `.atmo-rain` | Exterior during storm, wet environments |
-| Snow | `.atmo-snow` | Cold, mountain, arctic locations |
-| Sparks | `.atmo-sparks` | Damaged systems, fire, electrical hazards |
-| Smoke | `.atmo-smoke` | Fire, exhaust, fog environments |
-| Stars | `.atmo-stars` | Space exterior, observation deck |
-| Embers | `.atmo-embers` | Campfire, forge, volcanic areas |
+| Type       | CSS Class      | Trigger Context                           |
+| ---------- | -------------- | ----------------------------------------- |
+| Dust motes | `.atmo-dust`   | Indoor, abandoned, ancient locations      |
+| Rain       | `.atmo-rain`   | Exterior during storm, wet environments   |
+| Snow       | `.atmo-snow`   | Cold, mountain, arctic locations          |
+| Sparks     | `.atmo-sparks` | Damaged systems, fire, electrical hazards |
+| Smoke      | `.atmo-smoke`  | Fire, exhaust, fog environments           |
+| Stars      | `.atmo-stars`  | Space exterior, observation deck          |
+| Embers     | `.atmo-embers` | Campfire, forge, volcanic areas           |
 
 When the scene context includes fire or electrical damage, `tag render scene` applies the
 `.atmo-sparks` particle effect automatically. When the location is an outdoor storm,
@@ -85,13 +86,13 @@ completes via the `window.tag.triggerShake()` helper built into `scene.ts`.
 Brief full-widget colour overlay for significant events. The scene widget injects a
 `.atmo-flash` div automatically via the `window.tag.triggerFlash()` helper in `scene.ts`.
 
-| Event | Flash Colour | Duration |
-|-------|-------------|----------|
-| Critical hit (player) | `--ta-color-success` at 20% opacity | 0.3s |
-| Critical hit (enemy) | `--ta-color-danger` at 25% opacity | 0.3s |
-| Level up | `--ta-color-xp` at 15% opacity | 0.5s |
-| Lore discovery | `--ta-color-conviction` at 15% opacity | 0.4s |
-| Damage taken | `--ta-color-danger` at 30% opacity | 0.2s |
+| Event                 | Flash Colour                           | Duration |
+| --------------------- | -------------------------------------- | -------- |
+| Critical hit (player) | `--ta-color-success` at 20% opacity    | 0.3s     |
+| Critical hit (enemy)  | `--ta-color-danger` at 25% opacity     | 0.3s     |
+| Level up              | `--ta-color-xp` at 15% opacity         | 0.5s     |
+| Lore discovery        | `--ta-color-conviction` at 15% opacity | 0.4s     |
+| Damage taken          | `--ta-color-danger` at 30% opacity     | 0.2s     |
 
 ---
 
@@ -110,14 +111,14 @@ CSS filter and gradient shifts based on scene atmosphere. The scene widget appli
 the appropriate `.atmo-light-*` class to the root element automatically based on
 the narrative tone.
 
-| Atmosphere | Lighting Class | Visual Effect |
-|-----------|---------------|---------------|
-| Safe / warm | `.atmo-light-safe` | Brightened, saturated, warm amber overlay |
-| Tense / suspicious | `.atmo-light-tense` | Dimmed, desaturated, cool blue overlay |
-| Danger / combat | `.atmo-light-danger` | Dimmed, high-saturation, red overlay |
-| Horror / dread | `.atmo-light-horror` | Dark, desaturated, deep purple overlay |
-| Discovery / awe | `.atmo-light-awe` | Bright, saturated, gold overlay |
-| Neutral | None | No filter or overlay applied |
+| Atmosphere         | Lighting Class       | Visual Effect                             |
+| ------------------ | -------------------- | ----------------------------------------- |
+| Safe / warm        | `.atmo-light-safe`   | Brightened, saturated, warm amber overlay |
+| Tense / suspicious | `.atmo-light-tense`  | Dimmed, desaturated, cool blue overlay    |
+| Danger / combat    | `.atmo-light-danger` | Dimmed, high-saturation, red overlay      |
+| Horror / dread     | `.atmo-light-horror` | Dark, desaturated, deep purple overlay    |
+| Discovery / awe    | `.atmo-light-awe`    | Bright, saturated, gold overlay           |
+| Neutral            | None                 | No filter or overlay applied              |
 
 Only one `.atmo-light-*` class at a time — replace, never stack.
 
@@ -131,11 +132,11 @@ class automatically.
 
 ### Degradation Levels
 
-| Level | Trigger | CSS Class | Visual Effect |
-|-------|---------|-----------|---------------|
-| 0 — Clean | Default state | None | Standard theme styling |
-| 1 — Stressed | Tension 5–6, minor damage | `.atmo-degrade-1` | Subtle desaturation, dashed borders |
-| 2 — Damaged | Tension 7–8, significant damage | `.atmo-degrade-2` | Flicker animation, further desaturation |
+| Level        | Trigger                                 | CSS Class         | Visual Effect                                    |
+| ------------ | --------------------------------------- | ----------------- | ------------------------------------------------ |
+| 0 — Clean    | Default state                           | None              | Standard theme styling                           |
+| 1 — Stressed | Tension 5–6, minor damage               | `.atmo-degrade-1` | Subtle desaturation, dashed borders              |
+| 2 — Damaged  | Tension 7–8, significant damage         | `.atmo-degrade-2` | Flicker animation, further desaturation          |
 | 3 — Critical | Tension 9–10, near death, horror climax | `.atmo-degrade-3` | Glitch animation, heavy desaturation, hue shifts |
 
 Apply only one degradation level at a time. Replace the class as tension escalates —
@@ -149,14 +150,14 @@ The widget's ambient lighting shifts based on the in-game time period (from
 core-systems time tracker). The scene widget applies the appropriate `.atmo-time-*`
 class automatically when core-systems reports a time period change.
 
-| Time Period | Class | Visual Effect |
-|-------------|-------|---------------|
-| Dawn | `.atmo-time-dawn` | Warm peach wash at 5% |
-| Morning | `.atmo-time-morning` | Bright, neutral (no overlay) |
-| Afternoon | `.atmo-time-afternoon` | Warm golden at 3% |
-| Evening | `.atmo-time-evening` | Amber/orange at 8% |
-| Night | `.atmo-time-night` | Deep blue wash at 12% |
-| Midnight | `.atmo-time-midnight` | Near-black overlay at 15%, dimmed brightness |
+| Time Period | Class                  | Visual Effect                                |
+| ----------- | ---------------------- | -------------------------------------------- |
+| Dawn        | `.atmo-time-dawn`      | Warm peach wash at 5%                        |
+| Morning     | `.atmo-time-morning`   | Bright, neutral (no overlay)                 |
+| Afternoon   | `.atmo-time-afternoon` | Warm golden at 3%                            |
+| Evening     | `.atmo-time-evening`   | Amber/orange at 8%                           |
+| Night       | `.atmo-time-night`     | Deep blue wash at 12%                        |
+| Midnight    | `.atmo-time-midnight`  | Near-black overlay at 15%, dimmed brightness |
 
 Only one time class at a time. Valid period names: `dawn`, `morning`, `afternoon`,
 `evening`, `night`, `midnight`.
@@ -172,12 +173,12 @@ The scene widget's status bar (HP, location, time) shifts border colour based on
 the current danger level. The scene widget applies the appropriate `.atmo-status-*`
 class automatically.
 
-| Danger Level | Class | Border Colour |
-|-------------|-------|---------------|
-| Safe | `.atmo-status-safe` | `--ta-color-success` at 30% opacity |
-| Caution | `.atmo-status-caution` | `--ta-color-warning` at 40% opacity |
-| Danger | `.atmo-status-danger` | `--ta-color-danger` at 50% opacity |
-| Critical | `.atmo-status-critical` | `--ta-color-danger` pulsing animation |
+| Danger Level | Class                   | Border Colour                         |
+| ------------ | ----------------------- | ------------------------------------- |
+| Safe         | `.atmo-status-safe`     | `--ta-color-success` at 30% opacity   |
+| Caution      | `.atmo-status-caution`  | `--ta-color-warning` at 40% opacity   |
+| Danger       | `.atmo-status-danger`   | `--ta-color-danger` at 50% opacity    |
+| Critical     | `.atmo-status-critical` | `--ta-color-danger` pulsing animation |
 
 ---
 
@@ -234,15 +235,15 @@ class application automatically.
 
 ### Stacking Rules
 
-| Category | Rule |
-|----------|------|
-| Particles | One type only — `.atmo-dust`, `.atmo-rain`, etc. |
-| Degradation | One level only — `.atmo-degrade-1`, `.atmo-degrade-2`, or `.atmo-degrade-3` |
-| Lighting | One tone only — `.atmo-light-safe`, `.atmo-light-tense`, etc. |
-| Time | One period only — `.atmo-time-dawn`, `.atmo-time-night`, etc. |
-| Status | One level only — `.atmo-status-safe`, `.atmo-status-danger`, etc. |
-| Letterbox | Add `.active` to show bars; remove to hide |
-| Toast / Flash / Shake | Injected and removed dynamically via JS helpers in `scene.ts` |
+| Category              | Rule                                                                        |
+| --------------------- | --------------------------------------------------------------------------- |
+| Particles             | One type only — `.atmo-dust`, `.atmo-rain`, etc.                            |
+| Degradation           | One level only — `.atmo-degrade-1`, `.atmo-degrade-2`, or `.atmo-degrade-3` |
+| Lighting              | One tone only — `.atmo-light-safe`, `.atmo-light-tense`, etc.               |
+| Time                  | One period only — `.atmo-time-dawn`, `.atmo-time-night`, etc.               |
+| Status                | One level only — `.atmo-status-safe`, `.atmo-status-danger`, etc.           |
+| Letterbox             | Add `.active` to show bars; remove to hide                                  |
+| Toast / Flash / Shake | Injected and removed dynamically via JS helpers in `scene.ts`               |
 
 Particles, time, degradation, lighting, and status classes may all be present
 simultaneously on the root element — they operate on different CSS properties and

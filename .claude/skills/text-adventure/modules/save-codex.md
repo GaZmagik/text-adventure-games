@@ -1,13 +1,39 @@
 # Save Codex — Session Persistence Engine
+
 > Module for text-adventure orchestrator. Loaded when the player wants to save or resume sessions.
+
+```json tag-contract
+{
+  "id": "save-codex",
+  "kind": "module",
+  "version": "1.4.0",
+  "summary": "Session persistence contract for SF2 saves, safe loading, validation, no-op migration, and workflow marker recovery.",
+  "mustRead": [
+    "Use footer Save/Export prompts; do not embed save/export payloads in scene HTML.",
+    "Resume requires full engine boot: style, style-reference, modules, sync, and verify markers."
+  ],
+  "commands": [
+    "tag save generate",
+    "tag save load <file.save.md|save-string>",
+    "tag save validate <file.save.md|save-string>",
+    "tag save migrate <file.save.md|save-string>",
+    "tag render save-div"
+  ],
+  "state": [
+    "SF2 saves include current game state with _lastComputation omitted.",
+    "Load stamps sync/verify/pre-game markers so resumed sessions can render safely."
+  ]
+}
+```
 
 The Save Codex encodes everything needed to resume a text adventure session into a single copyable
 string. That string can be pasted into a new conversation, shared with another player, posted to a
-forum, or stored in a notes app. No accounts. No servers. No localStorage. The save *is* the string.
+forum, or stored in a notes app. No accounts. No servers. No localStorage. The save _is_ the string.
 
 Current CLI behaviour in v1.4.0:
 
 - `tag save generate` emits a checksummed `SF2:` payload containing full game state as raw base64 JSON.
+- `tag save migrate <save>` validates a save payload, applies current migrations, and re-emits a current `SF2:` save string without loading it into active state.
 - Save and export payloads are generated on demand from the footer `Save ↗` / `Export ↗` actions.
   They are not embedded in scene HTML.
 - Legacy `SC1:` / `SF1:` payloads are accepted on load for migration and resume only.
@@ -39,12 +65,12 @@ with pre-loaded state.
 
 ## § CLI Commands for This Module
 
-| Action | Command | Tool |
-|--------|---------|------|
-| Generate save | `tag save generate` | Run via Bash tool |
-| Load save | `tag save load <file.save.md>` | Run via Bash tool |
-| Validate save | `tag save validate <file.save.md>` | Run via Bash tool |
-| Migrate old save | `tag save migrate <file>` | Run via Bash tool |
+| Action           | Command                            | Tool              |
+| ---------------- | ---------------------------------- | ----------------- |
+| Generate save    | `tag save generate`                | Run via Bash tool |
+| Load save        | `tag save load <file.save.md>`     | Run via Bash tool |
+| Validate save    | `tag save validate <file.save.md>` | Run via Bash tool |
+| Migrate old save | `tag save migrate <file>`          | Run via Bash tool |
 
 ---
 
@@ -111,7 +137,9 @@ To resume this adventure, paste the string below into a new conversation along w
 the instruction "Continue this text adventure":
 
 ```
+
 2f3c4d5e.SF2:eyJ2IjoxLCJtb2RlIjoiZnVsbCIsInNjZW5lIjo3LCJjaGFyYWN0ZXIiOns...
+
 ```
 
 *Saved from Freeport Meridian — The Oxidiser, Bar Floor*
@@ -120,24 +148,24 @@ the instruction "Continue this text adventure":
 
 ### Frontmatter fields
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `format` | Yes | Always `text-adventure-save` — identifies the file type |
-| `version` | Yes | Save format version (integer, currently `1`) |
-| `skill-version` | Yes | Text-adventure skill version for compatibility checking |
-| `character` | Yes | Character name |
-| `class` | Yes | Character class/archetype |
-| `level` | Yes | Current level |
-| `scene` | Yes | Scene number |
-| `location` | Yes | Current location name |
-| `date-saved` | Yes | ISO 8601 timestamp |
-| `game-title` | Yes | Adventure/campaign title |
-| `theme` | Yes | Genre theme (space, fantasy, horror, etc.) |
-| `visual-style` | Yes | Active visual style filename without extension (e.g. `station`, `neon`) |
-| `seed` | If compact | World generation seed |
-| `mode` | Yes | `compact` or `full` |
-| `arc` | No (defaults to 1) | Current arc number |
-| `arc-type` | No (defaults to standard) | `standard`, `epic`, or `branching` |
+| Field           | Required                  | Description                                                             |
+| --------------- | ------------------------- | ----------------------------------------------------------------------- |
+| `format`        | Yes                       | Always `text-adventure-save` — identifies the file type                 |
+| `version`       | Yes                       | Save format version (integer, currently `1`)                            |
+| `skill-version` | Yes                       | Text-adventure skill version for compatibility checking                 |
+| `character`     | Yes                       | Character name                                                          |
+| `class`         | Yes                       | Character class/archetype                                               |
+| `level`         | Yes                       | Current level                                                           |
+| `scene`         | Yes                       | Scene number                                                            |
+| `location`      | Yes                       | Current location name                                                   |
+| `date-saved`    | Yes                       | ISO 8601 timestamp                                                      |
+| `game-title`    | Yes                       | Adventure/campaign title                                                |
+| `theme`         | Yes                       | Genre theme (space, fantasy, horror, etc.)                              |
+| `visual-style`  | Yes                       | Active visual style filename without extension (e.g. `station`, `neon`) |
+| `seed`          | If compact                | World generation seed                                                   |
+| `mode`          | Yes                       | `compact` or `full`                                                     |
+| `arc`           | No (defaults to 1)        | Current arc number                                                      |
+| `arc-type`      | No (defaults to standard) | `standard`, `epic`, or `branching`                                      |
 
 ---
 
@@ -161,9 +189,6 @@ tag save generate
 The CLI produces the checksummed, encoded save payload. The footer Save button uses
 `sendPrompt()` to ask Claude to generate the `.save.md` file as a downloadable
 conversation artifact.
-
-
-
 
 ### GM Instruction — Generating Saves
 
@@ -193,15 +218,14 @@ contributed by each skill in the toolkit. This is the canonical `gmState` schema
 are active:
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 const gmState = {
   // ── Core (orchestrator) ─────────────────────────────────────
   scene: 7,
   currentRoom: 'room_4',
   visitedRooms: ['room_0', 'room_1', 'room_2', 'room_4'],
-  rollHistory: [
-    { scene: 3, action: 'force door', roll: 14, dc: 12, outcome: 'success' },
-  ],
+  rollHistory: [{ scene: 3, action: 'force door', roll: 14, dc: 12, outcome: 'success' }],
 
   // ── Character ───────────────────────────────────────────────────────────
   character: {
@@ -211,8 +235,8 @@ const gmState = {
     maxHp: 9,
     stats: { STR: 10, DEX: 16, INT: 12, WIS: 14, CON: 11, CHA: 13 },
     inventory: [
-      { id: 'medkit',    name: 'Emergency medkit', type: 'consumable', uses: 1  },
-      { id: 'keycard_b', name: 'Level-B keycard',  type: 'key_item',   uses: -1 },
+      { id: 'medkit', name: 'Emergency medkit', type: 'consumable', uses: 1 },
+      { id: 'keycard_b', name: 'Level-B keycard', type: 'key_item', uses: -1 },
     ],
     conditions: ['poisoned'],
     xp: 340,
@@ -232,7 +256,9 @@ const gmState = {
   // ── Procedural world (procedural-world-gen module) ─────────────────────
   seed: 'pale-threshold-7',
   theme: 'space',
-  // worldData is NOT stored — regenerated from seed on resume
+  worldData: {
+    /* full generated world persisted by tag world generate --apply */
+  },
 
   // ── NPC roster mutations (ai-npc module) ──────────────────────────────
   // Only NPCs whose state has diverged from the generated default are stored.
@@ -241,32 +267,37 @@ const gmState = {
   // a consistency safeguard.
   rosterMutations: [
     { id: 'maren_voss', pronouns: 'she/her', alive: false, killedInScene: 5 },
-    { id: 'finn_holt',  pronouns: 'he/him', disposition: 'friendly', trust: 72, currentRoom: 'room_6' },
+    { id: 'finn_holt', pronouns: 'he/him', disposition: 'friendly', trust: 72, currentRoom: 'room_6' },
   ],
 
   // ── Codex mutations (lore-codex module) ────────────────────────────────
   // Only entries that have changed from their generated initial state.
   codexMutations: [
-    { id: 'faction_crew',           state: 'discovered', discoveredAt: 2, via: 'told:Finn Holt' },
-    { id: 'location_room_4',        state: 'discovered', discoveredAt: 4, via: 'observed:direct observation' },
-    { id: 'character_maren_voss',   state: 'discovered', discoveredAt: 3, via: 'told:Finn Holt',
-      secrets: ['She falsified the manifest on the captain\'s orders.'] },
-    { id: 'item_keycard_b',         state: 'discovered', discoveredAt: 4, via: 'read:keycard label' },
-    { id: 'quest_main',             state: 'discovered', discoveredAt: 2, via: 'deduced:direct observation' },
+    { id: 'faction_crew', state: 'discovered', discoveredAt: 2, via: 'told:Finn Holt' },
+    { id: 'location_room_4', state: 'discovered', discoveredAt: 4, via: 'observed:direct observation' },
+    {
+      id: 'character_maren_voss',
+      state: 'discovered',
+      discoveredAt: 3,
+      via: 'told:Finn Holt',
+      secrets: ["She falsified the manifest on the captain's orders."],
+    },
+    { id: 'item_keycard_b', state: 'discovered', discoveredAt: 4, via: 'read:keycard label' },
+    { id: 'quest_main', state: 'discovered', discoveredAt: 2, via: 'deduced:direct observation' },
   ],
 
   // ── Time state (core-systems module) ──────────────────────────────────
   // The GM always tracks internal truth. Player visibility is a separate concern —
   // a pre-clock character may only see "dusk" while the GM knows "18:30, Day 3".
   time: {
-    period: 'dusk',                     // dawn | morning | midday | afternoon | dusk | evening | night | late_night | small_hours
-    date: 'Day 3 of the Siege',         // setting-appropriate date format (internal truth)
-    elapsed: 3,                          // days elapsed since adventure start (always tracked)
-    hour: 18,                            // 0–23 internal hour (always tracked, even in pre-clock settings)
-    playerKnowsDate: false,              // does the character have access to a calendar?
-    playerKnowsTime: false,              // does the character have a clock, sundial, or equivalent?
-    calendarSystem: 'custom',            // gregorian | stardate | roman | custom | elapsed-only
-    deadline: null,                      // null or { label: 'Storm arrives', remainingScenes: 4 }
+    period: 'dusk', // dawn | morning | midday | afternoon | dusk | evening | night | late_night | small_hours
+    date: 'Day 3 of the Siege', // setting-appropriate date format (internal truth)
+    elapsed: 3, // days elapsed since adventure start (always tracked)
+    hour: 18, // 0–23 internal hour (always tracked, even in pre-clock settings)
+    playerKnowsDate: false, // does the character have access to a calendar?
+    playerKnowsTime: false, // does the character have a clock, sundial, or equivalent?
+    calendarSystem: 'custom', // gregorian | stardate | roman | custom | elapsed-only
+    deadline: null, // null or { label: 'Storm arrives', remainingScenes: 4 }
   },
 
   // ── Story Architect state (story-architect module) ────────────────────
@@ -274,21 +305,36 @@ const gmState = {
   // Without this, the GM loses the entire plot structure on resume.
   storyArchitect: {
     threads: [
-      { id: 'main-quest', type: 'main', status: 'active', priority: 1,
-        seedScene: 1, lastTouched: 7, crossArc: false,
-        beats: ['discovered contamination', 'confronted Voss', 'accessed section 7'] },
-      { id: 'maren-guilt', type: 'character', status: 'escalating', priority: 2,
-        seedScene: 3, lastTouched: 6, crossArc: true,
-        beats: ['first evasion', 'player showed evidence'] },
+      {
+        id: 'main-quest',
+        type: 'main',
+        status: 'active',
+        priority: 1,
+        seedScene: 1,
+        lastTouched: 7,
+        crossArc: false,
+        beats: ['discovered contamination', 'confronted Voss', 'accessed section 7'],
+      },
+      {
+        id: 'maren-guilt',
+        type: 'character',
+        status: 'escalating',
+        priority: 2,
+        seedScene: 3,
+        lastTouched: 6,
+        crossArc: true,
+        beats: ['first evasion', 'player showed evidence'],
+      },
     ],
-    foreshadowing: [
-      { id: 'fs_cargo_noise', planted: 2, reinforced: [4], status: 'planted' },
-    ],
+    foreshadowing: [{ id: 'fs_cargo_noise', planted: 2, reinforced: [4], status: 'planted' }],
     consequences: [
-      { trigger: 'alarm_triggered', immediate: 'escalationTier +1',
-        delayed: [{ effect: 'security_lockdown', deliverAfterScenes: 2, delivered: false }] },
+      {
+        trigger: 'alarm_triggered',
+        immediate: 'escalationTier +1',
+        delayed: [{ effect: 'security_lockdown', deliverAfterScenes: 2, delivered: false }],
+      },
     ],
-    pacing: { act: 1, actProgress: 0.4, recentBeats: ['action','discovery','action'] },
+    pacing: { act: 1, actProgress: 0.4, recentBeats: ['action', 'discovery', 'action'] },
   },
 
   // ── Ship state (ship-systems module) ──────────────────────────────────
@@ -297,13 +343,13 @@ const gmState = {
   shipState: {
     name: 'Ulysses',
     systems: {
-      hull:         { integrity: 85, status: 'operational', conditions: [] },
-      engines:      { integrity: 45, status: 'degraded',    conditions: ['venting'] },
-      power_core:   { integrity: 100, status: 'operational', conditions: [] },
+      hull: { integrity: 85, status: 'operational', conditions: [] },
+      engines: { integrity: 45, status: 'degraded', conditions: ['venting'] },
+      power_core: { integrity: 100, status: 'operational', conditions: [] },
       life_support: { integrity: 70, status: 'operational', conditions: [] },
-      weapons:      { integrity: 0,  status: 'offline',     conditions: [] },
-      sensors:      { integrity: 60, status: 'degraded',    conditions: [] },
-      shields:      { integrity: 30, status: 'critical',    conditions: [] },
+      weapons: { integrity: 0, status: 'offline', conditions: [] },
+      sensors: { integrity: 60, status: 'degraded', conditions: [] },
+      shields: { integrity: 30, status: 'critical', conditions: [] },
     },
     powerAllocations: { engines: 2, life_support: 2, weapons: 0, sensors: 1, shields: 1 },
     repairParts: 3,
@@ -314,29 +360,44 @@ const gmState = {
   // Persists individual morale, loyalty, stress — without this, a mutinous
   // crew member resumes as a happy employee.
   crewMutations: [
-    { id: 'petrov_vas', pronouns: 'he/him', morale: 35, loyalty: 40, stress: 70,
-      status: 'active', assignedTo: 'engines',
-      relationships: { chen_ora: 'hostile', sable_rin: 'bonded' } },
-    { id: 'chen_ora', pronouns: 'she/her', morale: 60, loyalty: 55, stress: 30,
-      status: 'active', assignedTo: null,
-      relationships: { petrov_vas: 'wary' } },
+    {
+      id: 'petrov_vas',
+      pronouns: 'he/him',
+      morale: 35,
+      loyalty: 40,
+      stress: 70,
+      status: 'active',
+      assignedTo: 'engines',
+      relationships: { chen_ora: 'hostile', sable_rin: 'bonded' },
+    },
+    {
+      id: 'chen_ora',
+      pronouns: 'she/her',
+      morale: 60,
+      loyalty: 55,
+      stress: 30,
+      status: 'active',
+      assignedTo: null,
+      relationships: { petrov_vas: 'wary' },
+    },
   ],
 
   // ── Map state (geo-map module) ────────────────────────────────────────
   // Persists progressive revelation, door states, wilderness supplies.
   mapState: {
-    activeMapType: 'settlement',          // settlement | wilderness | dungeon
-    revealedRooms: ['room_3', 'room_5'],  // revealed but not yet visited
-    doorStates: {                          // only doors whose state changed from default
-      'room_2_north': 'open',             // open | closed | locked | jammed | destroyed
-      'room_5_east': 'locked',
+    activeMapType: 'settlement', // settlement | wilderness | dungeon
+    revealedRooms: ['room_3', 'room_5'], // revealed but not yet visited
+    doorStates: {
+      // only doors whose state changed from default
+      room_2_north: 'open', // open | closed | locked | jammed | destroyed
+      room_5_east: 'locked',
     },
-    supplies: { rations: 5, water: 3 },   // wilderness survival tracking
+    supplies: { rations: 5, water: 3 }, // wilderness survival tracking
   },
 
   // ── RPG system resources (rpg-systems module) ─────────────────────────
   // System-specific resource pools that reset incorrectly without persistence.
-  systemResources: null,                   // null for d20_system (no extra resources)
+  systemResources: null, // null for d20_system (no extra resources)
   // Examples for other systems:
   // { spellSlots: [3, 2, 1], hitDice: 4, hitDiceUsed: 1 }              // D&D 5e
   // { momentum: 3 }                                                      // Narrative Engine
@@ -345,7 +406,7 @@ const gmState = {
 
   // ── Navigation state (star-chart module) ──────────────────────────────
   // plottedCourse is the only nav field not captured by worldFlags.
-  navPlottedCourse: null,                  // null or ['system_a', 'system_b', 'system_c']
+  navPlottedCourse: null, // null or ['system_a', 'system_b', 'system_c']
 };
 ```
 
@@ -361,6 +422,7 @@ gmState when the new arc begins.
 ### carryForward Schema
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 const carryForward = {
   characterIdentity: {
@@ -374,9 +436,9 @@ const carryForward = {
     reputation: 'Known smuggler-turned-whistleblower. Allied with naval intelligence.',
   },
   factionStates: {
-    meridian_shipping: -80,  // hostile after exposure
-    naval_intelligence: 65,  // allied through cooperation
-    dock_workers_union: 30,  // neutral-positive
+    meridian_shipping: -80, // hostile after exposure
+    naval_intelligence: 65, // allied through cooperation
+    dock_workers_union: 30, // neutral-positive
   },
   npcDispositions: [
     { id: 'strand', pronouns: 'he/him', alive: true, disposition: 'allied', toward_player: 85 },
@@ -399,7 +461,8 @@ const carryForward = {
     {
       arc: 1,
       title: 'The Quiet Berth',
-      summary: 'Cargo runner Tessa Marchetti uncovered a human trafficking operation aboard the liner Helios Reach. Allied with the captain and ship doctor to rescue the prisoner and expose the corporate conspiracy.',
+      summary:
+        'Cargo runner Tessa Marchetti uncovered a human trafficking operation aboard the liner Helios Reach. Allied with the captain and ship doctor to rescue the prisoner and expose the corporate conspiracy.',
       keyOutcome: 'conspiracy_exposed',
     },
   ],
@@ -412,6 +475,7 @@ When the player clicks "Continue to next arc", the GM builds the carryForward
 object from the current gmState:
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 function buildCarryForward(gmState) {
   const c = gmState.character;
@@ -424,24 +488,33 @@ function buildCarryForward(gmState) {
       stats: { ...c.stats },
       proficiencies: [...(c.proficiencies || [])],
       abilities: [...(c.abilities || [])],
-      reputation: generateReputationSummary(gmState),  // GM writes 1-2 sentences
+      reputation: generateReputationSummary(gmState), // GM writes 1-2 sentences
     },
     factionStates: Object.entries(gmState.worldFlags)
       .filter(([k]) => k.startsWith('faction_'))
-      .reduce((acc, [k, v]) => { acc[k.replace('faction_', '')] = v; return acc; }, {}),
+      .reduce((acc, [k, v]) => {
+        acc[k.replace('faction_', '')] = v;
+        return acc;
+      }, {}),
     npcDispositions: (gmState.rosterMutations || [])
       .filter(n => n.toward_player > 70 || n.toward_player < 30 || !n.alive)
-      .map(n => ({ id: n.id, pronouns: n.pronouns, alive: n.alive !== false, disposition: n.disposition, toward_player: n.toward_player })),
-    worldConsequences: generateConsequenceSummaries(gmState),  // GM writes 3-5 sentences
+      .map(n => ({
+        id: n.id,
+        pronouns: n.pronouns,
+        alive: n.alive !== false,
+        disposition: n.disposition,
+        toward_player: n.toward_player,
+      })),
+    worldConsequences: generateConsequenceSummaries(gmState), // GM writes 3-5 sentences
     codexDiscoveries: (gmState.codexMutations || [])
       .filter(m => m.state === 'discovered')
       .map(m => ({ id: m.id, state: m.state })),
     previousArcSummaries: [
-      ...(gmState.arcHistory || []).slice(-2),  // keep last 2
+      ...(gmState.arcHistory || []).slice(-2), // keep last 2
       {
         arc: gmState.arc || 1,
         title: gmState.adventureTitle || 'Untitled',
-        summary: generateArcSummary(gmState),  // GM writes 2-3 sentences
+        summary: generateArcSummary(gmState), // GM writes 2-3 sentences
         keyOutcome: deriveKeyOutcome(gmState),
       },
     ],
@@ -460,6 +533,7 @@ growing unboundedly and competing with the skill instructions for context space.
 When the new arc begins, the GM applies carryForward to the fresh gmState:
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 function applyCarryForward(gmState, carryForward) {
   // Character identity and progression
@@ -471,9 +545,9 @@ function applyCarryForward(gmState, carryForward) {
     stats: { ...carryForward.characterIdentity.stats },
     proficiencies: [...carryForward.characterIdentity.proficiencies],
     abilities: [...carryForward.characterIdentity.abilities],
-    hp: calculateMaxHp(carryForward.characterIdentity),  // full HP
+    hp: calculateMaxHp(carryForward.characterIdentity), // full HP
     maxHp: calculateMaxHp(carryForward.characterIdentity),
-    inventory: generateStartingGear(carryForward.characterIdentity.level),  // see core-systems.md
+    inventory: generateStartingGear(carryForward.characterIdentity.level), // see core-systems.md
     conditions: [],
   };
 
@@ -502,6 +576,7 @@ function applyCarryForward(gmState, carryForward) {
 The new arc's world seed is derived from the original:
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 const newSeed = originalSeed + '_arc' + newArcNumber;
 // See modules/procedural-world-gen.md for deriveArcSeed()
@@ -513,13 +588,16 @@ const newSeed = originalSeed + '_arc' + newArcNumber;
 > strategies retained for migration context. They are not the live v1.4.0 generation path,
 > which always emits checksummed `SF2:` payloads from `tag save generate`.
 
-**What is never stored in the save payload:**
-- `worldData` — always regenerated from `seed` + `theme` in compact mode
+**What is never stored in compact historical payloads:**
+
+- `worldData` — regenerated from `seed` + `theme` in compact mode. Live `tag save generate`
+  emits full SF2 payloads and preserves `worldData` when present.
 - `rollHistory` — cosmetic; not needed to resume
 - Full NPC conversation histories — conversations do not persist across sessions by design
 - Any field that can be derived from the seed
 
 **What must always be stored:**
+
 - Everything in `character` (player progression is not regenerable)
 - `worldFlags` in full (every flag is a permanent consequence)
 - `rosterMutations` for any NPC that is dead, has moved rooms, or has a trust score above 60
@@ -548,10 +626,11 @@ player progress. The world itself is regenerated from the seed.
 ### Build
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 function buildCompactSave(gmState) {
   const payload = {
-    v: 1,                          // schema version
+    v: 1, // schema version
     mode: 'compact',
     seed: gmState.seed,
     theme: gmState.theme,
@@ -603,11 +682,11 @@ function compressRosterMutations(mutations) {
     .filter(m => !m.alive || m.trust < 40 || m.trust > 60 || m.currentRoom || m.pronouns)
     .map(m => {
       const out = { id: m.id };
-      if (m.pronouns)          out.pr = m.pronouns;  // 'she/her','he/him','they/them'
-      if (m.alive === false)   out.dead = 1;
+      if (m.pronouns) out.pr = m.pronouns; // 'she/her','he/him','they/them'
+      if (m.alive === false) out.dead = 1;
       if (m.trust !== undefined && (m.trust < 40 || m.trust > 60)) out.tr = m.trust;
-      if (m.disposition)       out.di = m.disposition.slice(0, 3); // 'gua','neu','fri','hos','des'
-      if (m.currentRoom)       out.rm = m.currentRoom;
+      if (m.disposition) out.di = m.disposition.slice(0, 3); // 'gua','neu','fri','hos','des'
+      if (m.currentRoom) out.rm = m.currentRoom;
       return out;
     });
 }
@@ -617,7 +696,7 @@ function compressCodexMutations(mutations) {
   return (mutations || []).map(m => {
     const out = { id: m.id, st: m.state === 'discovered' ? 'd' : m.state === 'partial' ? 'p' : 'r' };
     if (m.discoveredAt) out.sc = m.discoveredAt;
-    if (m.via)          out.via = m.via;
+    if (m.via) out.via = m.via;
     if (m.secrets && m.secrets.length) out.sec = m.secrets;
     return out;
   });
@@ -629,15 +708,24 @@ function compressStoryArchitect(sa) {
   if (!sa) return null;
   return {
     th: (sa.threads || []).map(t => ({
-      id: t.id, tp: t.type, s: t.status, p: t.priority,
-      ss: t.seedScene, lt: t.lastTouched, ca: t.crossArc || false,
+      id: t.id,
+      tp: t.type,
+      s: t.status,
+      p: t.priority,
+      ss: t.seedScene,
+      lt: t.lastTouched,
+      ca: t.crossArc || false,
       b: t.beats || [],
     })),
     fs: (sa.foreshadowing || []).map(f => ({
-      id: f.id, pl: f.planted, rf: f.reinforced || [], s: f.status,
+      id: f.id,
+      pl: f.planted,
+      rf: f.reinforced || [],
+      s: f.status,
     })),
     cq: (sa.consequences || []).map(c => ({
-      tr: c.trigger, im: c.immediate,
+      tr: c.trigger,
+      im: c.immediate,
       dl: (c.delayed || []).map(d => ({ ef: d.effect, af: d.deliverAfterScenes, dv: d.delivered })),
     })),
     pa: sa.pacing ? { a: sa.pacing.act, ap: sa.pacing.actProgress, rb: sa.pacing.recentBeats } : null,
@@ -667,12 +755,12 @@ function compressCrewMutations(crew) {
   if (!crew) return null;
   return crew.map(c => {
     const out = { id: c.id };
-    if (c.pronouns)      out.pr = c.pronouns;
-    if (c.morale !== undefined)  out.mo = c.morale;
+    if (c.pronouns) out.pr = c.pronouns;
+    if (c.morale !== undefined) out.mo = c.morale;
     if (c.loyalty !== undefined) out.lo = c.loyalty;
-    if (c.stress !== undefined)  out.st = c.stress;
+    if (c.stress !== undefined) out.st = c.stress;
     if (c.status && c.status !== 'active') out.s = c.status;
-    if (c.assignedTo)    out.at = c.assignedTo;
+    if (c.assignedTo) out.at = c.assignedTo;
     if (c.relationships) out.rel = c.relationships;
     if (c.alive === false) out.dead = 1;
     return out;
@@ -694,6 +782,7 @@ function compressMapState(map) {
 ### Restore
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 function restoreCompactSave(saveString) {
   const { payload, valid } = validateAndDecode(saveString);
@@ -710,7 +799,7 @@ function restoreCompactSave(saveString) {
   // Apply NPC mutations back onto roster
   const rosterMutations = expandRosterMutations(payload.npcs);
   rosterMutations.forEach(m => {
-    const npc = worldData.roster.find(n => n.id === m.id || n.name.toLowerCase().replace(/\s+/g,'_') === m.id);
+    const npc = worldData.roster.find(n => n.id === m.id || n.name.toLowerCase().replace(/\s+/g, '_') === m.id);
     if (npc) Object.assign(npc, m);
   });
 
@@ -745,9 +834,11 @@ function restoreCompactSave(saveString) {
 }
 
 function expandCharacter(c, worldData) {
-  const statKeys = ['STR','DEX','INT','WIS','CON','CHA'];
+  const statKeys = ['STR', 'DEX', 'INT', 'WIS', 'CON', 'CHA'];
   const stats = {};
-  statKeys.forEach((k, i) => { stats[k] = c.st[i]; });
+  statKeys.forEach((k, i) => {
+    stats[k] = c.st[i];
+  });
 
   // Look up full item data from worldData loot tables
   const allItems = [];
@@ -758,26 +849,33 @@ function expandCharacter(c, worldData) {
   });
 
   return {
-    name: c.n, class: c.cl, hp: c.hp, maxHp: c.mhp,
-    stats, inventory, conditions: c.cond || [], xp: c.xp, level: c.lvl,
+    name: c.n,
+    class: c.cl,
+    hp: c.hp,
+    maxHp: c.mhp,
+    stats,
+    inventory,
+    conditions: c.cond || [],
+    xp: c.xp,
+    level: c.lvl,
   };
 }
 
 function expandRosterMutations(npcs) {
-  const dispMap = { gua:'guarded', neu:'neutral', fri:'friendly', hos:'hostile', des:'desperate' };
+  const dispMap = { gua: 'guarded', neu: 'neutral', fri: 'friendly', hos: 'hostile', des: 'desperate' };
   return (npcs || []).map(m => {
     const out = { id: m.id };
-    if (m.pr)                    out.pronouns = m.pr;
-    if (m.dead)                  out.alive = false;
-    if (m.tr !== undefined)      out.trust = m.tr;  // !== undefined: trust of 0 is valid
-    if (m.di)                    out.disposition = dispMap[m.di] || m.di;
-    if (m.rm)                    out.currentRoom = m.rm;
+    if (m.pr) out.pronouns = m.pr;
+    if (m.dead) out.alive = false;
+    if (m.tr !== undefined) out.trust = m.tr; // !== undefined: trust of 0 is valid
+    if (m.di) out.disposition = dispMap[m.di] || m.di;
+    if (m.rm) out.currentRoom = m.rm;
     return out;
   });
 }
 
 function expandCodexMutations(codex) {
-  const stateMap = { d:'discovered', p:'partial', r:'redacted' };
+  const stateMap = { d: 'discovered', p: 'partial', r: 'redacted' };
   return (codex || []).map(m => ({
     id: m.id,
     state: stateMap[m.st] || 'partial',
@@ -793,28 +891,43 @@ function expandStoryArchitect(sa) {
   if (!sa) return null;
   return {
     threads: (sa.th || []).map(t => ({
-      id: t.id, type: t.tp, status: t.s, priority: t.p,
-      seedScene: t.ss, lastTouched: t.lt, crossArc: t.ca || false,
+      id: t.id,
+      type: t.tp,
+      status: t.s,
+      priority: t.p,
+      seedScene: t.ss,
+      lastTouched: t.lt,
+      crossArc: t.ca || false,
       beats: t.b || [],
     })),
     foreshadowing: (sa.fs || []).map(f => ({
-      id: f.id, planted: f.pl, reinforced: f.rf || [], status: f.s,
+      id: f.id,
+      planted: f.pl,
+      reinforced: f.rf || [],
+      status: f.s,
     })),
     consequences: (sa.cq || []).map(c => ({
-      trigger: c.tr, immediate: c.im,
+      trigger: c.tr,
+      immediate: c.im,
       delayed: (c.dl || []).map(d => ({
-        effect: d.ef, deliverAfterScenes: d.af, delivered: d.dv,
+        effect: d.ef,
+        deliverAfterScenes: d.af,
+        delivered: d.dv,
       })),
     })),
-    pacing: sa.pa ? {
-      act: sa.pa.a, actProgress: sa.pa.ap, recentBeats: sa.pa.rb || [],
-    } : { act: 1, actProgress: 0, recentBeats: [] },
+    pacing: sa.pa
+      ? {
+          act: sa.pa.a,
+          actProgress: sa.pa.ap,
+          recentBeats: sa.pa.rb || [],
+        }
+      : { act: 1, actProgress: 0, recentBeats: [] },
   };
 }
 
 function expandShipState(ship) {
   if (!ship) return null;
-  const statusMap = { ope:'operational', deg:'degraded', cri:'critical', fai:'failing', off:'offline' };
+  const statusMap = { ope: 'operational', deg: 'degraded', cri: 'critical', fai: 'failing', off: 'offline' };
   const systems = {};
   Object.entries(ship.sys || {}).forEach(([k, v]) => {
     systems[k] = {
@@ -870,6 +983,7 @@ LZ-String compression is handled by the CLI (Bun implementation — no CDN). The
 ### Build
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 function buildFullSave(gmState) {
   const payload = {
@@ -922,6 +1036,7 @@ function buildWorldSnapshot(gmState) {
 ### Restore
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 function restoreFullSave(saveString) {
   const { payload, valid } = validateAndDecode(saveString);
@@ -963,6 +1078,7 @@ function restoreFullSave(saveString) {
 Every save string carries a CRC32-style checksum to detect corruption or truncation.
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 // Simple FNV-1a 32-bit hash — fast, good distribution
 function fnv32(str) {
@@ -994,9 +1110,7 @@ function validateAndDecode(saveString) {
     if (!mode) return { valid: false, error: 'UNKNOWN_VERSION' };
 
     const encoded = code.slice(4);
-    const json = mode === 'compact'
-      ? atob(encoded)
-      : LZString.decompressFromBase64(encoded);
+    const json = mode === 'compact' ? atob(encoded) : LZString.decompressFromBase64(encoded);
 
     const payload = JSON.parse(json);
     return { valid: true, payload, mode };
@@ -1008,11 +1122,11 @@ function validateAndDecode(saveString) {
 
 ### Version compatibility table
 
-| Prefix | Mode | Compression | Compatible |
-|--------|------|-------------|------------|
-| `SF2:` | Full — current CLI format | Base64 (raw JSON) | Current |
-| `SC1:` | Compact — legacy import only | Base64 (raw JSON) | Legacy |
-| `SF1:` | Full — legacy import only | LZ-String + Base64 | Legacy |
+| Prefix | Mode                         | Compression        | Compatible |
+| ------ | ---------------------------- | ------------------ | ---------- |
+| `SF2:` | Full — current CLI format    | Base64 (raw JSON)  | Current    |
+| `SC1:` | Compact — legacy import only | Base64 (raw JSON)  | Legacy     |
+| `SF1:` | Full — legacy import only    | LZ-String + Base64 | Legacy     |
 
 The current CLI always generates `SF2:`. The loader keeps `SC1:` / `SF1:` support only so older
 saves can still be resumed and migrated forward safely.
@@ -1025,17 +1139,16 @@ Within a session, the save widget maintains up to five named save slots in JS mo
 Slots persist across widget re-renders within the same browser tab.
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 // Module-scoped slot store — resets when the page reloads (by design)
 const SAVE_SLOTS = {
-  slots: [null, null, null, null, null],  // indices 0–4
+  slots: [null, null, null, null, null], // indices 0–4
   activeSlot: null,
 };
 
 function writeSlot(index, gmState, label) {
-  const code = detectMode(gmState) === 'compact'
-    ? buildCompactSave(gmState)
-    : buildFullSave(gmState);
+  const code = detectMode(gmState) === 'compact' ? buildCompactSave(gmState) : buildFullSave(gmState);
   SAVE_SLOTS.slots[index] = {
     code,
     label: label || `Scene ${gmState.scene} — ${gmState.character?.name || 'Unknown'}`,
@@ -1164,12 +1277,12 @@ detects the mode, and reconstructs `gmState` using the standard resume protocol 
 Approximate sizes for planning. Compact mode is fast enough to QR-encode for most sessions.
 Full mode strings are always paste-able but may exceed QR capacity after many scenes.
 
-| Scenario | Mode | Typical size | QR-encodable |
-|---|---|---|---|
-| 10 scenes, 2 factions, 5 NPCs met | Compact | ~800 chars | Yes |
-| 20 scenes, full session | Compact | ~1,400 chars | Marginal |
-| Hand-authored, small | Full (compressed) | ~2,000 chars | No |
-| Hand-authored, large | Full (compressed) | ~4,000 chars | No |
+| Scenario                          | Mode              | Typical size | QR-encodable |
+| --------------------------------- | ----------------- | ------------ | ------------ |
+| 10 scenes, 2 factions, 5 NPCs met | Compact           | ~800 chars   | Yes          |
+| 20 scenes, full session           | Compact           | ~1,400 chars | Marginal     |
+| Hand-authored, small              | Full (compressed) | ~2,000 chars | No           |
+| Hand-authored, large              | Full (compressed) | ~4,000 chars | No           |
 
 For compact saves that exceed ~1,800 chars, suppress the QR option and display a note:
 `"Code is too long to QR-encode — use text copy."`
@@ -1178,20 +1291,20 @@ For compact saves that exceed ~1,800 chars, suppress the QR option and display a
 
 ## Integration Summary
 
-| Source skill | What the save preserves | Storage strategy |
-|---|---|---|
-| Orchestrator (SKILL.md) | scene, currentRoom, visitedRooms, worldFlags | Stored directly |
-| Orchestrator (SKILL.md) | character (name, class, hp, stats, inventory, conditions, xp, level) | Compressed in compact mode |
-| procedural-world-gen module | Full world structure | Seed only (compact) or worldSnapshot (full) |
-| ai-npc module | NPC trust scores, dispositions, alive state, room position | Delta-only rosterMutations |
-| lore-codex module | All entry state transitions, discovery stamps, secrets | Delta-only codexMutations |
+| Source skill                | What the save preserves                                              | Storage strategy                            |
+| --------------------------- | -------------------------------------------------------------------- | ------------------------------------------- |
+| Orchestrator (SKILL.md)     | scene, currentRoom, visitedRooms, worldFlags                         | Stored directly                             |
+| Orchestrator (SKILL.md)     | character (name, class, hp, stats, inventory, conditions, xp, level) | Compressed in compact mode                  |
+| procedural-world-gen module | Full world structure                                                 | Seed only (compact) or worldSnapshot (full) |
+| ai-npc module               | NPC trust scores, dispositions, alive state, room position           | Delta-only rosterMutations                  |
+| lore-codex module           | All entry state transitions, discovery stamps, secrets               | Delta-only codexMutations                   |
 
 ---
 
 ## Anti-Patterns (never do these)
 
-- Never store the full `worldData` in the save payload — it is always regenerable from the seed in
-  compact mode. Storing it would bloat saves by 10-50x.
+- Never paste full `worldData` into player-facing prompt text. Live full SF2 saves may persist it
+  for map inspection and generated-world command reuse; compact formats should keep seed+deltas.
 - Never store NPC conversation histories in the save — they do not persist across sessions by
   design. The NPC greets the player fresh, informed only by world flags and trust state.
 - Never skip the checksum step — a save string corrupted by a missing character should be caught

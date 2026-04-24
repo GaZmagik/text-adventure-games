@@ -1,4 +1,5 @@
 # Story Architect — Narrative Tracking Engine
+
 > Module for text-adventure orchestrator. Always loaded (recommended for all adventures longer than 3 scenes).
 
 The Story Architect is a GM-side narrative tracking system for branching plotlines, consequence
@@ -15,9 +16,9 @@ arc type selection, reversal variety, and downtime patterns, see `modules/arc-pa
 
 ## § CLI Commands
 
-| Action | Command | Tool |
-|--------|---------|------|
-| Render scene | `tag render scene --style <style>` | Run via Bash tool |
+| Action          | Command                                       | Tool              |
+| --------------- | --------------------------------------------- | ----------------- |
+| Render scene    | `tag render scene --style <style>`            | Run via Bash tool |
 | Set story state | `tag state set storyArchitect.<path> <value>` | Run via Bash tool |
 
 > **All widget output must be produced by running the `tag` CLI via Bash tool.** Do not hand-code HTML, CSS, or JS for scene rendering — use the commands above.
@@ -31,13 +32,13 @@ into the next arc. This is the narrative bridge between adventures.
 
 ### Thread Fate at Arc Conclusion
 
-| Thread Status | Fate |
-|--------------|------|
-| `resolved` | Archived. Referenced in arc summary but not carried forward. |
+| Thread Status            | Fate                                                                                                 |
+| ------------------------ | ---------------------------------------------------------------------------------------------------- |
+| `resolved`               | Archived. Referenced in arc summary but not carried forward.                                         |
 | `active` or `escalating` | If marked `crossArc: true`: seeded into new arc as `dormant`. Otherwise: force-resolved in epilogue. |
-| `climaxing` | Must resolve before arc ends. Cannot carry forward mid-climax. |
-| `dormant` | Carried forward automatically — these are unfinished business. |
-| `abandoned` | Dropped. Not carried forward. |
+| `climaxing`              | Must resolve before arc ends. Cannot carry forward mid-climax.                                       |
+| `dormant`                | Carried forward automatically — these are unfinished business.                                       |
+| `abandoned`              | Dropped. Not carried forward.                                                                        |
 
 ### Marking Threads for Cross-Arc Carry
 
@@ -192,16 +193,16 @@ seeded → active → escalating → climaxing → resolving → resolved
                                 abandoned
 ```
 
-| Status | Meaning |
-|--------|---------|
-| **seeded** | Introduced via environmental detail, NPC mention, or background event. Player may not be aware yet. |
-| **active** | Player has engaged directly — asked, investigated, or acted on it. |
-| **escalating** | Stakes rising, complications multiplying. New obstacles emerge. |
-| **climaxing** | Peak moment — confrontation, revelation, or point of no return. |
-| **resolving** | Aftermath playing out. NPCs react, world reshapes. Consequence chains deliver. |
-| **resolved** | Complete. Record resolution for callbacks. No longer demands scene time. |
-| **dormant** | Deliberately paused. Track why and what reactivates it. Not forgotten — waiting. |
-| **abandoned** | Player chose not to engage. May still affect world state passively. |
+| Status         | Meaning                                                                                             |
+| -------------- | --------------------------------------------------------------------------------------------------- |
+| **seeded**     | Introduced via environmental detail, NPC mention, or background event. Player may not be aware yet. |
+| **active**     | Player has engaged directly — asked, investigated, or acted on it.                                  |
+| **escalating** | Stakes rising, complications multiplying. New obstacles emerge.                                     |
+| **climaxing**  | Peak moment — confrontation, revelation, or point of no return.                                     |
+| **resolving**  | Aftermath playing out. NPCs react, world reshapes. Consequence chains deliver.                      |
+| **resolved**   | Complete. Record resolution for callbacks. No longer demands scene time.                            |
+| **dormant**    | Deliberately paused. Track why and what reactivates it. Not forgotten — waiting.                    |
+| **abandoned**  | Player chose not to engage. May still affect world state passively.                                 |
 
 An abandoned thread does not vanish — the docking authority still acts on the manifest
 discrepancy even if the player ignores it.
@@ -235,6 +236,7 @@ Track foreshadowing in `gmState.storyArchitect.foreshadowing`.
 observation, or near-miss — before the payoff lands. This builds unconscious expectation.
 
 Example for the Freeport Meridian:
+
 - Scene 4 (planted): "The maintenance hatch on Deck 3 was ajar."
 - Scene 7 (reinforced): "Scuff marks on the corridor floor near Deck 3."
 - Scene 10 (paid off): "The hatch opens onto a crawlway packed with unmarked crates."
@@ -343,11 +345,11 @@ dip after peaks for breathing room. 4→6→5→7→6→8 is healthier than 4→
 
 **Act structure:**
 
-| Act | Scenes | Tension | Purpose |
-|-----|--------|---------|---------|
-| 1 | 1–4 | 2–5 | Establish world, introduce threads, plant foreshadowing |
-| 2 | 5–10 | 4–8 | Escalate threads, deliver consequences, major reversal |
-| 3 | 11–15 | 6–10→3–4 | Climax, pay off foreshadowing, denouement |
+| Act | Scenes | Tension  | Purpose                                                 |
+| --- | ------ | -------- | ------------------------------------------------------- |
+| 1   | 1–4    | 2–5      | Establish world, introduce threads, plant foreshadowing |
+| 2   | 5–10   | 4–8      | Escalate threads, deliver consequences, major reversal  |
+| 3   | 11–15  | 6–10→3–4 | Climax, pay off foreshadowing, denouement               |
 
 **Act 2 reversal (mandatory).** Something the player believed turns out to be wrong, a
 trusted ally reveals an unexpected agenda, or the apparent solution creates a bigger problem.
@@ -377,13 +379,14 @@ When it reaches 0, the next escalating thread should shift to climaxing.
 Epic arcs extend the standard 3-act structure for longer, more complex narratives.
 They are only available when the player's character is level 5 or above.
 
-| Act | Scenes | Tension | Purpose |
-|-----|--------|---------|---------|
-| 1 | 1-6 | 2-5 | Extended establishment, multiple thread introductions, deeper world-building |
-| 2 | 7-14 | 4-9 | Multiple reversals, faction power shifts, alliance tests |
-| 3 | 15-20 | 6-10→3-4 | Multi-stage climax, cascading consequences, extended denouement |
+| Act | Scenes | Tension  | Purpose                                                                      |
+| --- | ------ | -------- | ---------------------------------------------------------------------------- |
+| 1   | 1-6    | 2-5      | Extended establishment, multiple thread introductions, deeper world-building |
+| 2   | 7-14   | 4-9      | Multiple reversals, faction power shifts, alliance tests                     |
+| 3   | 15-20  | 6-10→3-4 | Multi-stage climax, cascading consequences, extended denouement              |
 
 Epic arcs have:
+
 - **Higher complication budget:** 6-8 complications (vs 4-6 for standard)
 - **Tension ceiling of 10+** for climax moments (standard caps at 8)
 - **Multiple simultaneous escalating threads** (3-4 vs standard's 2-3)
@@ -397,7 +400,7 @@ scenario. The Story Architect tracks these via `branchPoints`:
 ```js
 branchPoints: [
   {
-    scene: 15,                // when the branch is presented
+    scene: 15, // when the branch is presented
     description: 'The conspiracy is exposed. What does Tessa do next?',
     paths: [
       {
@@ -419,9 +422,9 @@ branchPoints: [
         nextArcSeed: 'freelance',
       },
     ],
-    chosen: null,  // set when player decides
+    chosen: null, // set when player decides
   },
-]
+];
 ```
 
 At arc conclusion, branching arcs present the paths as action cards in the conclusion
@@ -484,15 +487,15 @@ Track NPC arcs in `gmState.storyArchitect.npcArcs`.
 
 ### Arc Archetypes
 
-| Archetype | Trajectory | Freeport Meridian Example |
-|-----------|-----------|--------------------------|
-| betrayal | Trusted → suspicious → revealed | Crew member reporting to docking authority |
-| redemption | Hostile → understanding → sacrifice | Docking officer who helps despite orders |
-| fall | Noble → compromised → lost | Faction leader whose idealism curdles |
-| growth | Fearful → tested → capable | Bartender who becomes an active ally |
-| revelation | Mysterious → partially known → understood | NPC whose true motive reframes events |
-| steadfast | Consistent — reveals depth, not change | A loyal companion as a rock in shifting sands |
-| corruption | Good → tempted → turned | Ally co-opted by an opposing faction |
+| Archetype  | Trajectory                                | Freeport Meridian Example                     |
+| ---------- | ----------------------------------------- | --------------------------------------------- |
+| betrayal   | Trusted → suspicious → revealed           | Crew member reporting to docking authority    |
+| redemption | Hostile → understanding → sacrifice       | Docking officer who helps despite orders      |
+| fall       | Noble → compromised → lost                | Faction leader whose idealism curdles         |
+| growth     | Fearful → tested → capable                | Bartender who becomes an active ally          |
+| revelation | Mysterious → partially known → understood | NPC whose true motive reframes events         |
+| steadfast  | Consistent — reveals depth, not change    | A loyal companion as a rock in shifting sands |
+| corruption | Good → tempted → turned                   | Ally co-opted by an opposing faction          |
 
 ### Rules
 
@@ -599,11 +602,11 @@ The `quests` array (core-systems) tracks mechanical objectives — what the play
 do. The `storyThreads` track the narrative layer above — why it matters and where it is
 going. They are complementary:
 
-| | core-systems `quests` | story-architect `storyThreads` |
-|-|----------------------|-------------------------------|
-| Scope | Task ("Find the manifest") | Narrative ("The Manifest Discrepancy") |
-| Player-facing? | Yes (quest panel) | No (GM-internal) |
-| Lifecycle | active → completed/failed | seeded → ... → resolved/abandoned |
+|                | core-systems `quests`      | story-architect `storyThreads`         |
+| -------------- | -------------------------- | -------------------------------------- |
+| Scope          | Task ("Find the manifest") | Narrative ("The Manifest Discrepancy") |
+| Player-facing? | Yes (quest panel)          | No (GM-internal)                       |
+| Lifecycle      | active → completed/failed  | seeded → ... → resolved/abandoned      |
 
 When a quest objective completes, the corresponding thread should receive a beat.
 
@@ -627,12 +630,14 @@ gmState.storyArchitect = {
   foreshadowing: [],
   consequenceChains: [],
   pacing: {
-    currentAct: 1, tensionLevel: 2, lastTensionShift: 0,
-    pacingNotes: "Opening — establish atmosphere and introduce the world.",
+    currentAct: 1,
+    tensionLevel: 2,
+    lastTensionShift: 0,
+    pacingNotes: 'Opening — establish atmosphere and introduce the world.',
     complicationBudget: 5, // 4–6 typical; hand-set in authored mode
-    recentBeats: []
+    recentBeats: [],
   },
-  npcArcs: []
+  npcArcs: [],
 };
 
 // Procedural mode: seed from worldData

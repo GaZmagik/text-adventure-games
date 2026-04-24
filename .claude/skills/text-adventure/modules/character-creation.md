@@ -1,5 +1,28 @@
 # Character Creation — Archetypes, Stats, and Identity
+
 > Module for text-adventure orchestrator. Always loaded — governs character creation and stat generation.
+
+```json tag-contract
+{
+  "id": "character-creation",
+  "kind": "module",
+  "version": "1.4.0",
+  "summary": "Character setup contract for archetypes, stats, equipment, pre-generated options, and setup handoff into game state.",
+  "mustRead": [
+    "Render and verify character creation before starting an adventure.",
+    "Apply the chosen payload through tag setup apply rather than mutating partial character state by hand."
+  ],
+  "commands": [
+    "tag render character-creation --style <style> --data '<json>'",
+    "tag verify character /tmp/character.html",
+    "tag setup apply --settings '<json>' --character '<json>'"
+  ],
+  "state": [
+    "character stores identity, stats, modifiers, HP, AC, class, inventory, and equipment.",
+    "worldFlags may store pronouns and opening metadata from setup."
+  ]
+}
+```
 
 This module defines how characters are built: the archetypes available, stat generation methods,
 starting equipment, and how all of this adapts to different rulebook systems and scenario themes.
@@ -10,8 +33,8 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: core-syst
 
 ## § CLI Commands for This Module
 
-| Action | Command | Tool |
-|--------|---------|------|
+| Action                    | Command                                                         | Tool              |
+| ------------------------- | --------------------------------------------------------------- | ----------------- |
 | Render character creation | `tag render character-creation --style <style> --data '<json>'` | Run via Bash tool |
 
 ---
@@ -20,11 +43,13 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: core-syst
 
 Render the character creation widget using the `tag` CLI (see § CLI Commands table above).
 The rendered widget includes:
+
 - **Left panel:** Name input (text field), archetype selector (button grid or radio cards).
 - **Right panel:** Generated stat block — populated via JS after archetype selection
   (no `sendPrompt()` round-trip — stat generation is client-side).
 
 ### Stat Block Display
+
 - Six attributes: `[name] — [value] ([modifier])` (e.g., "STR — 16 (+3)")
 - Derived stats: HP, AC, Initiative, Speed — displayed as a 2×2 metric card grid
 - Equipment list: three starting items shown as tags
@@ -33,6 +58,7 @@ The rendered widget includes:
 ### Stat Generation (D&D 5e)
 
 Each archetype has a fixed base stat array. On selection:
+
 1. Apply the base array.
 2. Roll 1d4 bonus for two randomly selected non-primary stats (adds variety).
 3. Calculate modifiers: `floor((stat - 10) / 2)`, display as `+N` or `−N`.
@@ -44,7 +70,9 @@ function generateStats(archetype) {
   // Add 1d4 to two random non-primary stats
   const nonPrimary = Object.keys(stats).filter(k => !archetype.primaryStats.includes(k));
   const boosted = nonPrimary.sort(() => Math.random() - 0.5).slice(0, 2);
-  boosted.forEach(k => { stats[k] += Math.floor(Math.random() * 4) + 1; });
+  boosted.forEach(k => {
+    stats[k] += Math.floor(Math.random() * 4) + 1;
+  });
   return stats;
 }
 
@@ -59,38 +87,38 @@ function modifier(stat) {
 
 ### Default Archetypes
 
-| Archetype | Primary | STR | DEX | INT | WIS | CON | CHA | HP | AC | Flavour |
-|-----------|---------|-----|-----|-----|-----|-----|-----|----|----|---------|
-| Soldier | STR, CON | 16 | 10 | 10 | 10 | 14 | 10 | 12 | 14 | Combat-trained, tactical instincts |
-| Scout | DEX, WIS | 10 | 16 | 10 | 14 | 10 | 10 | 9 | 13 | Agile, perceptive, evasive |
-| Engineer | INT, DEX | 10 | 12 | 16 | 10 | 10 | 10 | 8 | 12 | Improviser, systems expert |
-| Medic | WIS, INT | 10 | 10 | 14 | 16 | 10 | 10 | 9 | 11 | Healer, calm under pressure |
-| Diplomat | CHA, INT | 10 | 10 | 14 | 10 | 10 | 16 | 8 | 11 | Persuader, reads people |
-| Smuggler | DEX, CHA | 10 | 16 | 10 | 10 | 10 | 14 | 10 | 13 | Slippery, charming, resourceful |
+| Archetype | Primary  | STR | DEX | INT | WIS | CON | CHA | HP  | AC  | Flavour                            |
+| --------- | -------- | --- | --- | --- | --- | --- | --- | --- | --- | ---------------------------------- |
+| Soldier   | STR, CON | 16  | 10  | 10  | 10  | 14  | 10  | 12  | 14  | Combat-trained, tactical instincts |
+| Scout     | DEX, WIS | 10  | 16  | 10  | 14  | 10  | 10  | 9   | 13  | Agile, perceptive, evasive         |
+| Engineer  | INT, DEX | 10  | 12  | 16  | 10  | 10  | 10  | 8   | 12  | Improviser, systems expert         |
+| Medic     | WIS, INT | 10  | 10  | 14  | 16  | 10  | 10  | 9   | 11  | Healer, calm under pressure        |
+| Diplomat  | CHA, INT | 10  | 10  | 14  | 10  | 10  | 16  | 8   | 11  | Persuader, reads people            |
+| Smuggler  | DEX, CHA | 10  | 16  | 10  | 10  | 10  | 14  | 10  | 13  | Slippery, charming, resourceful    |
 
 ### Starting Equipment by Archetype
 
-| Archetype | Weapon | Armour/Tool | Consumable |
-|-----------|--------|-------------|------------|
-| Soldier | Combat knife (1d6+STR) | Light armour (+2 AC) | Stim pack (restore 1d6 HP) |
-| Scout | Short bow / sidearm (1d6+DEX) | Scout's cloak (+1 Stealth) | Ration pack (3 uses) |
-| Engineer | Wrench (1d4+STR, improvised) | Repair kit (3 uses) | EMP charge (1 use) |
-| Medic | Scalpel (1d4+DEX) | Medical bag (5 uses) | Antitoxin (2 uses) |
-| Diplomat | Hidden blade (1d4+DEX) | Fine clothes (+1 CHA checks) | Sealed letter (key item) |
-| Smuggler | Holdout pistol (1d6+DEX) | Concealed holster | Lockpick set (5 uses) |
+| Archetype | Weapon                        | Armour/Tool                  | Consumable                 |
+| --------- | ----------------------------- | ---------------------------- | -------------------------- |
+| Soldier   | Combat knife (1d6+STR)        | Light armour (+2 AC)         | Stim pack (restore 1d6 HP) |
+| Scout     | Short bow / sidearm (1d6+DEX) | Scout's cloak (+1 Stealth)   | Ration pack (3 uses)       |
+| Engineer  | Wrench (1d4+STR, improvised)  | Repair kit (3 uses)          | EMP charge (1 use)         |
+| Medic     | Scalpel (1d4+DEX)             | Medical bag (5 uses)         | Antitoxin (2 uses)         |
+| Diplomat  | Hidden blade (1d4+DEX)        | Fine clothes (+1 CHA checks) | Sealed letter (key item)   |
+| Smuggler  | Holdout pistol (1d6+DEX)      | Concealed holster            | Lockpick set (5 uses)      |
 
 ### Theme-Adapted Names
 
 Adapt archetype names and flavour to match the scenario theme. Stat arrays remain identical.
 
-| Default | Sci-Fi | Fantasy | Historical | Post-Apocalyptic | Cyberpunk | Steampunk | Wuxia | Isekai | Superhero | Survival | Political |
-|---------|--------|---------|------------|------------------|-----------|-----------|-------|--------|-----------|----------|-----------|
-| Soldier | Security Officer | Knight / Warrior | Legionary / Man-at-Arms | Enforcer | Street Samurai | Dragoon | Sword Saint | Berserker | Brawler | Guardian | Duelist |
-| Scout | Recon Specialist | Ranger / Hunter | Scout / Outrider | Stalker | Netrunner | Saboteur | Shadow | Trickster | Vigilante | Scout | Informant |
-| Engineer | Systems Tech | Artificer / Smith | Mason / Siege Engineer | Mechanic | Rigger | Mechanist | Craftsman | Builder | Gadgeteer | Improviser | Quartermaster |
-| Medic | Field Medic | Healer / Herbalist | Barber-Surgeon / Wise Woman | Doc | Street Doc | Apothecary | Physician | Healer | First Responder | Field Medic | Court Physician |
-| Diplomat | Liaison Officer | Bard / Emissary | Herald / Envoy | Trader | Fixer | Parliamentarian | Wandering Monk | Mediator | Public Figure | Peacemaker | Courtier |
-| Smuggler | Cargo Runner | Rogue / Thief | Smuggler / Fence | Scavenger | Data Analyst | Inventor | Sage | Analyst | Genius | Naturalist | Advisor |
+| Default  | Sci-Fi           | Fantasy            | Historical                  | Post-Apocalyptic | Cyberpunk      | Steampunk       | Wuxia          | Isekai    | Superhero       | Survival    | Political       |
+| -------- | ---------------- | ------------------ | --------------------------- | ---------------- | -------------- | --------------- | -------------- | --------- | --------------- | ----------- | --------------- |
+| Soldier  | Security Officer | Knight / Warrior   | Legionary / Man-at-Arms     | Enforcer         | Street Samurai | Dragoon         | Sword Saint    | Berserker | Brawler         | Guardian    | Duelist         |
+| Scout    | Recon Specialist | Ranger / Hunter    | Scout / Outrider            | Stalker          | Netrunner      | Saboteur        | Shadow         | Trickster | Vigilante       | Scout       | Informant       |
+| Engineer | Systems Tech     | Artificer / Smith  | Mason / Siege Engineer      | Mechanic         | Rigger         | Mechanist       | Craftsman      | Builder   | Gadgeteer       | Improviser  | Quartermaster   |
+| Medic    | Field Medic      | Healer / Herbalist | Barber-Surgeon / Wise Woman | Doc              | Street Doc     | Apothecary      | Physician      | Healer    | First Responder | Field Medic | Court Physician |
+| Diplomat | Liaison Officer  | Bard / Emissary    | Herald / Envoy              | Trader           | Fixer          | Parliamentarian | Wandering Monk | Mediator  | Public Figure   | Peacemaker  | Courtier        |
+| Smuggler | Cargo Runner     | Rogue / Thief      | Smuggler / Fence            | Scavenger        | Data Analyst   | Inventor        | Sage           | Analyst   | Genius          | Naturalist  | Advisor         |
 
 ---
 
@@ -137,6 +165,7 @@ and attribute definitions. This module covers D&D 5e and custom rulebooks only.
 ## Custom Rulebook Characters
 
 When using a custom rulebook:
+
 1. Read the provided PDF or markdown for attribute definitions.
 2. Present attributes in the character creation widget using the custom names and value ranges.
 3. Map archetypes to the custom system's classes/careers/roles.

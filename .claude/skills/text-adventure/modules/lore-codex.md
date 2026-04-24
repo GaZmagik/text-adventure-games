@@ -1,4 +1,5 @@
 # Lore Codex — Living Encyclopaedia Engine
+
 > Module for text-adventure orchestrator. Loaded for any adventure requiring a player-facing knowledge base.
 
 The Lore Codex is the player's accumulated record of everything their character has learned: faction
@@ -20,10 +21,10 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: ai-npc, p
 
 ## § CLI Commands
 
-| Action | Command | Tool |
-|--------|---------|------|
-| Render codex panel | `tag render codex --style <style>` | Run via Bash tool |
-| Set codex state | `tag state set codexMutations.<index>.<field> <value>` | Run via Bash tool |
+| Action             | Command                                                | Tool              |
+| ------------------ | ------------------------------------------------------ | ----------------- |
+| Render codex panel | `tag render codex --style <style>`                     | Run via Bash tool |
+| Set codex state    | `tag state set codexMutations.<index>.<field> <value>` | Run via Bash tool |
 
 ---
 
@@ -58,34 +59,38 @@ Every entry follows this structure. All fields are authored at world-generation 
 `discoveredVia` are updated at runtime.
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 const codexEntry = {
-  id: 'faction_hollow_circle',       // unique, stable, kebab-case
-  category: 'faction',               // faction | location | character | item | event | secret | bestiary
+  id: 'faction_hollow_circle', // unique, stable, kebab-case
+  category: 'faction', // faction | location | character | item | event | secret | bestiary
   title: 'The Hollow Circle',
-  icon: 'circle',                    // icon key — see Icon Vocabulary below
+  icon: 'circle', // icon key — see Icon Vocabulary below
 
   // Discovery states
-  state: 'locked',                   // locked | partial | discovered | redacted
-  discoveredVia: null,               // filled on unlock: { method, source, scene }
+  state: 'locked', // locked | partial | discovered | redacted
+  discoveredVia: null, // filled on unlock: { method, source, scene }
 
   // Content tiers — shown progressively as state advances
   content: {
     // Always visible once PARTIAL or above
-    summary: 'A secretive cult operating from within the dungeon\'s lower levels, dedicated to '
-            + 'the resurrection of a pre-human deity known only as the Hollow One.',
+    summary:
+      "A secretive cult operating from within the dungeon's lower levels, dedicated to " +
+      'the resurrection of a pre-human deity known only as the Hollow One.',
 
     // Only visible at DISCOVERED
-    detail: 'The Hollow Circle predates the current dungeon by at least three centuries. Their '
-           + 'rituals require a living host — specifically one who has crossed the threshold '
-           + 'between life and death and returned. They believe the player may qualify. The '
-           + 'current high priest, Brother Aldric Ashwood, has been searching for a suitable '
-           + 'candidate for eleven years.',
+    detail:
+      'The Hollow Circle predates the current dungeon by at least three centuries. Their ' +
+      'rituals require a living host — specifically one who has crossed the threshold ' +
+      'between life and death and returned. They believe the player may qualify. The ' +
+      'current high priest, Brother Aldric Ashwood, has been searching for a suitable ' +
+      'candidate for eleven years.',
 
     // Only visible at DISCOVERED — the mechanically relevant fragment
-    mechanical: 'Hollow Circle cultists gain +2 to all rolls if fighting in the ritual chamber. '
-               + 'They will not pursue past the threshold marker on the third floor — doing so '
-               + 'would violate their own sacred law.',
+    mechanical:
+      'Hollow Circle cultists gain +2 to all rolls if fighting in the ritual chamber. ' +
+      'They will not pursue past the threshold marker on the third floor — doing so ' +
+      'would violate their own sacred law.',
 
     // Optional: only visible if a specific world flag is set
     conditional: [
@@ -100,19 +105,19 @@ const codexEntry = {
   seeAlso: ['character_brother_aldric', 'location_ritual_chamber', 'event_the_hollow_war'],
 
   // Discovery metadata — used to filter "recently discovered" and stamp entries
-  discoveredAt: null,    // scene number when unlocked
-  sceneContext: null,    // short string: "Found in Brother Aldric's journal"
+  discoveredAt: null, // scene number when unlocked
+  sceneContext: null, // short string: "Found in Brother Aldric's journal"
 };
 ```
 
 ### State definitions
 
-| State | What the player sees | When it applies |
-|-------|---------------------|-----------------|
-| `locked` | Entry does not appear in the codex | Not yet encountered |
-| `partial` | Title + summary only. Detail is hidden behind `[...]` | Heard about it, not fully understood |
-| `discovered` | Full entry including detail and mechanical notes | Directly witnessed or thoroughly researched |
-| `redacted` | Title visible, all content replaced with `[CLASSIFIED]` | Player knew, then the knowledge was taken (amnesia, mind-wipe, etc.) |
+| State        | What the player sees                                    | When it applies                                                      |
+| ------------ | ------------------------------------------------------- | -------------------------------------------------------------------- |
+| `locked`     | Entry does not appear in the codex                      | Not yet encountered                                                  |
+| `partial`    | Title + summary only. Detail is hidden behind `[...]`   | Heard about it, not fully understood                                 |
+| `discovered` | Full entry including detail and mechanical notes        | Directly witnessed or thoroughly researched                          |
+| `redacted`   | Title visible, all content replaced with `[CLASSIFIED]` | Player knew, then the knowledge was taken (amnesia, mind-wipe, etc.) |
 
 The `redacted` state is for dramatic moments — not a common mechanic. Use sparingly.
 When a GM uses `tag state codex redact <id> --reason <reason>`, the reason is stored as
@@ -123,6 +128,7 @@ GM-side audit metadata (`redactedReason`) in state/history. It is not player-fac
 ## Entry Categories
 
 ### faction
+
 Factions, organisations, cults, corporations, gangs. Includes ideology, known members,
 territory, and current status.
 
@@ -131,6 +137,7 @@ territory, and current status.
 **Full reveals:** membership, territory, internal tensions, mechanical notes.
 
 ### location
+
 Rooms, regions, buildings, planets. Physical description, history, and notable features.
 
 **Required fields:** name, type (room/region/structure), one-sentence flavour.
@@ -138,9 +145,10 @@ Rooms, regions, buildings, planets. Physical description, history, and notable f
 **Full reveals:** full atmospheric description, hidden features, exit connections, hazards.
 
 ### character
+
 Named NPCs. Identity, role, faction affiliation, and what the player knows of their agenda.
 **Never** auto-populate from the ai-npc definition object — the codex entry reflects only
-what the *player* has learned, not the full NPC truth.
+what the _player_ has learned, not the full NPC truth.
 
 **Required fields:** name, role/title, faction.
 **Partial reveals:** name + role.
@@ -148,6 +156,7 @@ what the *player* has learned, not the full NPC truth.
 (only those the player has uncovered through dialogue).
 
 ### item
+
 Notable items: key items, unique weapons, quest objects, mysterious artefacts.
 
 **Required fields:** name, type, appearance.
@@ -155,6 +164,7 @@ Notable items: key items, unique weapons, quest objects, mysterious artefacts.
 **Full reveals:** lore, properties, any mechanical effects, origin.
 
 ### event
+
 Historical or in-progress events: wars, incidents, disasters, crimes, betrayals.
 
 **Required fields:** name, timeframe (past/ongoing), one-sentence summary.
@@ -162,14 +172,16 @@ Historical or in-progress events: wars, incidents, disasters, crimes, betrayals.
 **Full reveals:** full account, who was responsible, ongoing consequences.
 
 ### secret
+
 Information that changes the meaning of something already known. Secrets are not standalone
-discoveries — they are *amendments* to existing entries. When a secret is discovered, the
+discoveries — they are _amendments_ to existing entries. When a secret is discovered, the
 relevant entry's `content.detail` gains an appended revelation.
 
 **Displayed as:** a `[SECRET UNLOCKED]` badge on the parent entry, with the revelation
 rendered in a distinct visual style (amber tinted, italic).
 
 ### bestiary
+
 Enemy types and creatures. Stats, behaviours, weaknesses.
 
 **Required fields:** name, type, threat level (1–5).
@@ -202,6 +214,7 @@ LORE_EVENT: redact  | [entryId] | [reason]
 ```
 
 **Fields:**
+
 - `entryId` — matches `codexEntry.id` exactly.
 - `method` — how the player learned it: `observed`, `told`, `read`, `deduced`, `overheard`, `forced`
 - `source` — what/who told them: NPC name, item name, room name, or `'direct observation'`
@@ -219,18 +232,18 @@ LORE_EVENT: redact  | event_the_hollow_war | mindwipe trap triggered
 
 ### When to fire LORE_EVENTs
 
-| Trigger | Event to fire |
-|---------|--------------|
-| Player enters a room for the first time | `unlock` → location entry at `partial` |
-| Player examines a room fully | `advance` → location entry to `discovered` |
-| NPC mentions a faction by name | `unlock` → faction entry at `partial` |
-| Player earns NPC trust ≥ 60 and NPC reveals agenda | `advance` → character entry |
-| NPC admits a secret (ai-npc GM_EVENT received) | `secret` → amends character entry |
-| Player picks up a key item | `unlock` → item entry at `partial` |
-| Player reads item's inscription or documentation | `advance` → item entry to `discovered` |
-| Player witnesses a combat encounter type for the first time | `unlock` → bestiary entry |
-| Player defeats an enemy type | `advance` → bestiary entry (reveals weakness) |
-| Player deduces a connection between two events | `unlock` → event entry at `discovered` |
+| Trigger                                                     | Event to fire                                 |
+| ----------------------------------------------------------- | --------------------------------------------- |
+| Player enters a room for the first time                     | `unlock` → location entry at `partial`        |
+| Player examines a room fully                                | `advance` → location entry to `discovered`    |
+| NPC mentions a faction by name                              | `unlock` → faction entry at `partial`         |
+| Player earns NPC trust ≥ 60 and NPC reveals agenda          | `advance` → character entry                   |
+| NPC admits a secret (ai-npc GM_EVENT received)              | `secret` → amends character entry             |
+| Player picks up a key item                                  | `unlock` → item entry at `partial`            |
+| Player reads item's inscription or documentation            | `advance` → item entry to `discovered`        |
+| Player witnesses a combat encounter type for the first time | `unlock` → bestiary entry                     |
+| Player defeats an enemy type                                | `advance` → bestiary entry (reveals weakness) |
+| Player deduces a connection between two events              | `unlock` → event entry at `discovered`        |
 
 **Batch unlock rule:** When a scene transition occurs, fire all relevant `unlock` events for the
 new room before the scene widget renders. The toast notifications stack and dismiss in sequence.
@@ -243,6 +256,7 @@ When the procedural-world-gen module is active, the codex is seeded automaticall
 `worldData` at generation time. Use this function:
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 function seedCodexFromWorldData(worldData) {
   const entries = [];
@@ -258,11 +272,10 @@ function seedCodexFromWorldData(worldData) {
       discoveredVia: null,
       content: {
         summary: `A faction operating within this location. Ideology: ${f.ideology}.`,
-        detail: `Strength rating: ${f.strength}/5. Controls ${f.territory.length} zone(s). `
-               + `Current status: unknown.`,
-        mechanical: f.strength >= 4
-          ? `Dominant faction — ${f.name} members gain advantage on intimidation rolls here.`
-          : null,
+        detail:
+          `Strength rating: ${f.strength}/5. Controls ${f.territory.length} zone(s). ` + `Current status: unknown.`,
+        mechanical:
+          f.strength >= 4 ? `Dominant faction — ${f.name} members gain advantage on intimidation rolls here.` : null,
         conditional: [],
       },
       seeAlso: [],
@@ -275,8 +288,8 @@ function seedCodexFromWorldData(worldData) {
   const relEntries = {};
   worldData.factions.factions.forEach((fa, i) => {
     worldData.factions.factions.slice(i + 1).forEach(fb => {
-      const rel = worldData.factions.relations[`${fa.id}_${fb.id}`]
-               || worldData.factions.relations[`${fb.id}_${fa.id}`];
+      const rel =
+        worldData.factions.relations[`${fa.id}_${fb.id}`] || worldData.factions.relations[`${fb.id}_${fa.id}`];
       if (rel === 'hostile' || rel === 'at_war') {
         const id = `event_conflict_${fa.id}_${fb.id}`;
         entries.push({
@@ -288,8 +301,9 @@ function seedCodexFromWorldData(worldData) {
           discoveredVia: null,
           content: {
             summary: `An ongoing conflict between ${fa.name} and ${fb.name}.`,
-            detail: `Status: ${rel}. The roots of this conflict are not yet clear. `
-                  + `Both factions consider this location strategically important.`,
+            detail:
+              `Status: ${rel}. The roots of this conflict are not yet clear. ` +
+              `Both factions consider this location strategically important.`,
             mechanical: `Being known as an ally of one faction imposes −10 trust with the other on introduction.`,
             conditional: [],
           },
@@ -314,11 +328,13 @@ function seedCodexFromWorldData(worldData) {
       content: {
         summary: `A ${roomName} within this location.`,
         detail: [
-          room.atmosphere.lighting   ? `Lighting: ${room.atmosphere.lighting}.`   : '',
-          room.atmosphere.smell      ? `Smell: ${room.atmosphere.smell}.`         : '',
-          room.atmosphere.sound      ? `Sound: ${room.atmosphere.sound}.`         : '',
-          room.atmosphere.hazard     ? `Known hazard: ${room.atmosphere.hazard.replace(/_/g,' ')}.` : '',
-        ].filter(Boolean).join(' '),
+          room.atmosphere.lighting ? `Lighting: ${room.atmosphere.lighting}.` : '',
+          room.atmosphere.smell ? `Smell: ${room.atmosphere.smell}.` : '',
+          room.atmosphere.sound ? `Sound: ${room.atmosphere.sound}.` : '',
+          room.atmosphere.hazard ? `Known hazard: ${room.atmosphere.hazard.replace(/_/g, ' ')}.` : '',
+        ]
+          .filter(Boolean)
+          .join(' '),
         mechanical: room.encounter
           ? `Encounter present: ${room.encounter.name || 'unknown threat'} (threat ${room.encounter.threat}/3).`
           : null,
@@ -340,10 +356,11 @@ function seedCodexFromWorldData(worldData) {
       state: 'locked',
       discoveredVia: null,
       content: {
-        summary: `${profile.factionName} member. First encountered in the ${profile.startRoom.replace(/_/g,' ')}.`,
-        detail: `Personality: ${profile.trait}. Speech pattern: ${profile.speech}. `
-              + `They want: ${profile.wants}. `
-              + (profile.hasSecret ? 'They appear to be concealing something.' : ''),
+        summary: `${profile.factionName} member. First encountered in the ${profile.startRoom.replace(/_/g, ' ')}.`,
+        detail:
+          `Personality: ${profile.trait}. Speech pattern: ${profile.speech}. ` +
+          `They want: ${profile.wants}. ` +
+          (profile.hasSecret ? 'They appear to be concealing something.' : ''),
         mechanical: null,
         conditional: [],
       },
@@ -423,7 +440,9 @@ function seedCodexFromWorldData(worldData) {
 ```
 
 Store the result in `gmState.codex`:
+
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 gmState.codex = seedCodexFromWorldData(gmState.worldData);
 ```
@@ -439,6 +458,7 @@ The full interactive widget. Self-contained — reads from a `CODEX` constant em
 time. The GM injects the current `gmState.codex` as a JSON literal when building the widget.
 
 ### Features
+
 - Category filter tabs (All / Faction / Location / Character / Item / Event / Bestiary)
 - Search (filters by title and summary text, live as the player types)
 - Entry list with state badges and discovery stamps
@@ -461,16 +481,15 @@ handles injection of the current codex state and scene number automatically.
 The GM also resolves conditional content flags before injection:
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 function prepareCodexForRender(gmState) {
   return gmState.codex
-    .filter(e => e.state !== 'locked')  // strip locked entries — player cannot see them
+    .filter(e => e.state !== 'locked') // strip locked entries — player cannot see them
     .map(e => ({
       ...e,
       // Resolve conditionals against current world flags
-      resolvedConditionals: (e.content.conditional || [])
-        .filter(c => gmState.worldFlags[c.flag])
-        .map(c => c.text),
+      resolvedConditionals: (e.content.conditional || []).filter(c => gmState.worldFlags[c.flag]).map(c => c.text),
     }));
 }
 
@@ -511,12 +530,12 @@ When the GM receives a `LORE_EVENT` string via `sendPrompt()`:
 
 ## Integration Summary
 
-| Source | What feeds the codex | How |
-|---|---|---|
-| text-adventure orchestrator | Scene transitions, room exploration, item discovery | `LORE_EVENT: unlock / advance` |
-| ai-npc module | NPC secrets revealed, disposition changes, agenda exposed | `LORE_EVENT: advance / secret` via GM_EVENT processing |
-| procedural-world-gen module | Initial world structure | `seedCodexFromWorldData(worldData)` at session start |
-| Hand-authored scenarios | GM-written entries | Manual entry array assigned to `gmState.codex` |
+| Source                      | What feeds the codex                                      | How                                                    |
+| --------------------------- | --------------------------------------------------------- | ------------------------------------------------------ |
+| text-adventure orchestrator | Scene transitions, room exploration, item discovery       | `LORE_EVENT: unlock / advance`                         |
+| ai-npc module               | NPC secrets revealed, disposition changes, agenda exposed | `LORE_EVENT: advance / secret` via GM_EVENT processing |
+| procedural-world-gen module | Initial world structure                                   | `seedCodexFromWorldData(worldData)` at session start   |
+| Hand-authored scenarios     | GM-written entries                                        | Manual entry array assigned to `gmState.codex`         |
 
 The codex never drives narrative — it reflects it. The world generates events. The GM narrates
 them. The codex records what the player's character actually knows.
@@ -533,13 +552,14 @@ Close button — it does not define its own footer.
 
 ## Quest Log
 
-The Quest Log is a tab within the Codex panel that tracks the player's objectives. It
-integrates with the world flag system to auto-advance quest steps and provides a
-persistent record of what the player is trying to achieve.
+The Quest Log is a first-class `quest-log` widget rendered from `gmState.quests`. It
+appears from the scene footer's Quests panel when core systems are loaded and can also
+be rendered standalone with `tag render quest-log --style <style>`.
 
 ### Quest Structure
 
 Each quest has:
+
 - **Title** — short name (e.g., "Escape the Station").
 - **Status** — Active / Completed / Failed / Optional.
 - **Objective** — one-line description of what needs to be done.
@@ -563,10 +583,10 @@ Each quest has:
 - Failed conditions: if a quest becomes impossible (NPC dies, timer expires), mark as
   Failed with an explanation.
 
-### Display in Codex Panel
+### Display in Quest Log Panel
 
-The Quest Log appears as a tab alongside Lore Entries and Faction Standings within the
-codex panel.
+The Quest Log appears as the Quests footer panel. It uses `<ta-quest-log>` plus the
+shared CDN runtime so standalone HTML stays small.
 
 - Active quests at top, completed below (collapsed), failed at bottom (greyed out).
 - Each quest is expandable to show steps with checkboxes.
@@ -575,6 +595,7 @@ codex panel.
 ### gmState Fields
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 // Quest log entries stored in gmState.quests (see core-systems.md)
 // Each quest object:

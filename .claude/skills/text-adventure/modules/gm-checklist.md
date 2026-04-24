@@ -1,5 +1,32 @@
 # GM Checklist — Mandatory Quality Gates
+
 > Module for text-adventure orchestrator. Always loaded — this is a core module, not optional.
+
+```json tag-contract
+{
+  "id": "gm-checklist",
+  "kind": "module",
+  "version": "1.4.0",
+  "summary": "Mandatory workflow gates for setup, module loading, rendering, verification, prose review, and player-agency safety.",
+  "mustRead": [
+    "Read first before every gameplay workflow.",
+    "Never output game narration outside rendered widgets.",
+    "Never auto-resolve player choices or reveal DC/stat details before commitment."
+  ],
+  "commands": [
+    "tag help",
+    "tag state sync --apply",
+    "tag render <widget>",
+    "tag verify <type> /tmp/widget.html",
+    "tag prose-check /tmp/scene.html",
+    "tag prose-gate --manual"
+  ],
+  "outputs": [
+    "All player-facing game content must live inside a verified widget.",
+    "Every sendPrompt path needs a copyable data-prompt/title fallback."
+  ]
+}
+```
 
 This module provides mandatory checklists that the GM must work through at key moments
 during gameplay. It prevents common mistakes: writing text outside widgets, skipping
@@ -75,7 +102,7 @@ causes downstream failures: modules load without their dependencies, the visual 
 renders with defaults, and the character creation widget loses its name pool and pronoun
 dropdowns because the CLI pipeline was never invoked.
 
-```
+````
 NEW GAME CHECKLIST
 ═══════════════════════════════════════════
 □  0. Run `. ./setup.sh` if first session. Run `tag state reset` to initialise game state.
@@ -196,7 +223,7 @@ NEW GAME CHECKLIST
      is unsupported and will fail validation. Without verification, `tag state sync --apply` will refuse to
      advance and `tag render scene` will refuse to produce the next widget.
 □ 19. Pass the verified HTML to show_widget. Verify: is ALL game content inside the widget?
-```
+````
 
 ---
 
@@ -207,7 +234,7 @@ says "continue from save"), verify each step IN ORDER. The resume flow must perf
 same setup as a new game — skipping these steps causes visual style drift, missing
 modules, and broken narrative tracking.
 
-```
+````
 RESUME FROM SAVE CHECKLIST
 ═══════════════════════════════════════════
 □  0. Run `. ./setup.sh` — resuming always starts a new conversation, so the CLI
@@ -245,7 +272,7 @@ RESUME FROM SAVE CHECKLIST
 □ 16. Do NOT embed save/export payloads inside the scene HTML. Save ↗ / Export ↗ footer actions
      are the canonical artefact path in v1.4.0; `save-div` is a standalone utility widget.
 □ 17. Verify: is ALL game content inside the widget? No prose outside?
-```
+````
 
 **Critical:** Steps 5–8 are the ones most commonly skipped on resume. Without them,
 Claude falls back to default styling and missing module behaviour. Step 10 (NPC identity)
@@ -326,6 +353,7 @@ are BLOCKED except `tag compact restore`, `tag help`, and `tag version`. You can
 render, compute, save, or modify state until recovery is complete.
 
 Recovery procedure:
+
 1. Run `tag compact restore` — clears the block, resets freshness epochs, returns recovery steps.
 2. If `_loreSource` is shown, run `tag export load <path>` to reload world data.
 3. Run `tag module activate-tier 1` then activate Tier 2/3 modules for the current scenario.
@@ -482,6 +510,7 @@ NPC HIDDEN ROLL CHECKLIST
      suddenly a pushover.
 
 **Common mistakes:**
+
 - Showing "vs DC 15" on a contested check — contested checks show narrative only
 - Revealing the NPC's roll value or modifier in the outcome text
 - Using the word "contested" or "opposed" in player-facing text

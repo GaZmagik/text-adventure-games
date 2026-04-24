@@ -1,5 +1,32 @@
 # Core Systems — Inventory, Economy, Factions, Quests, Time, and Session Recap
+
 > Module for text-adventure orchestrator. Always loaded — these are fundamental gameplay systems.
+
+```json tag-contract
+{
+  "id": "core-systems",
+  "kind": "module",
+  "version": "1.4.0",
+  "summary": "Core gameplay state for inventory, economy, factions, quests, time, XP, status bars, and session recap.",
+  "mustRead": [
+    "Use tag quest commands for quest mutations so objectives and worldFlags stay synchronized.",
+    "Use state sync after each scene to check quest, level-up, and module obligations."
+  ],
+  "commands": [
+    "tag render scene --data '<json>'",
+    "tag render character",
+    "tag render quest-log",
+    "tag quest inspect <quest-id>",
+    "tag quest track <quest-id>",
+    "tag quest create --id <id> --title \"Title\" --objective-id <id> --objective \"Text\""
+  ],
+  "state": [
+    "quests[] holds active/completed/failed quest objects.",
+    "worldFlags.quest:<questId>:<objectiveId>:complete mirrors completed objectives.",
+    "worldFlags.trackedQuestId stores the tracked quest badge target."
+  ]
+}
+```
 
 These systems are core to every text adventure regardless of theme or setting. They govern
 what the player carries, what things cost, who trusts them, what they are trying to achieve,
@@ -40,13 +67,13 @@ adventure conclusion), the following state changes apply. These rules are mandat
 When a character transitions to a new arc, they receive gear appropriate to their
 current level. The GM may theme the gear to match the new arc's setting.
 
-| Level | Weapon | Armour | Consumables | Credits |
-|-------|--------|--------|-------------|---------|
-| 1-2 | Tier 1 (1d6 damage) | Light (AC +1) | 1 stim pack | 100 |
-| 3-4 | Tier 2 (1d8 damage) | Light (AC +1) | 2 stim packs, 1 med kit | 200 |
-| 5-6 | Tier 2 (1d8+1 damage) | Medium (AC +2) | 2 stim packs, 1 med kit | 350 |
-| 7-8 | Tier 3 (1d10 damage) | Medium (AC +2) | 3 stim packs, 2 med kits | 500 |
-| 9-10 | Tier 3 (1d10+2 damage) | Heavy (AC +3) | 3 stim packs, 2 med kits, 1 rare item | 750 |
+| Level | Weapon                 | Armour         | Consumables                           | Credits |
+| ----- | ---------------------- | -------------- | ------------------------------------- | ------- |
+| 1-2   | Tier 1 (1d6 damage)    | Light (AC +1)  | 1 stim pack                           | 100     |
+| 3-4   | Tier 2 (1d8 damage)    | Light (AC +1)  | 2 stim packs, 1 med kit               | 200     |
+| 5-6   | Tier 2 (1d8+1 damage)  | Medium (AC +2) | 2 stim packs, 1 med kit               | 350     |
+| 7-8   | Tier 3 (1d10 damage)   | Medium (AC +2) | 3 stim packs, 2 med kits              | 500     |
+| 9-10  | Tier 3 (1d10+2 damage) | Heavy (AC +3)  | 3 stim packs, 2 med kits, 1 rare item | 750     |
 
 The weapon and armour tiers adapt to the setting — a Tier 2 weapon is a "plasma pistol"
 in a space arc, a "fine longsword" in fantasy, or a "combat shotgun" in post-apocalyptic.
@@ -55,13 +82,14 @@ in a space arc, a "fine longsword" in fantasy, or a "combat shotgun" in post-apo
 
 ## § CLI Commands for This Module
 
-| Action | Command | Tool |
-|--------|---------|------|
-| Render scene (includes status bar) | `tag render scene --style <style>` | Run via Bash tool |
-| Render character panel | `tag render character --style <style>` | Run via Bash tool |
-| Render codex/quest panel | `tag render codex --style <style>` | Run via Bash tool |
-| Set game state | `tag state set <path> <value>` | Run via Bash tool |
-| Get game state | `tag state get <path>` | Run via Bash tool |
+| Action                             | Command                                | Tool              |
+| ---------------------------------- | -------------------------------------- | ----------------- |
+| Render scene (includes status bar) | `tag render scene --style <style>`     | Run via Bash tool |
+| Render character panel             | `tag render character --style <style>` | Run via Bash tool |
+| Render codex panel                 | `tag render codex --style <style>`     | Run via Bash tool |
+| Render quest panel                 | `tag render quest-log --style <style>` | Run via Bash tool |
+| Set game state                     | `tag state set <path> <value>`         | Run via Bash tool |
+| Get game state                     | `tag state get <path>`                 | Run via Bash tool |
 
 ---
 
@@ -96,33 +124,33 @@ DEX-based roll — no silent ignoring of overencumbrance.
 
 ### Item Slots
 
-| Slot | Limit | Notes |
-|------|-------|-------|
-| Weapon | 1 equipped, others stowed | Switching equipped weapon costs a manoeuvre in combat |
-| Armour | 1 equipped | Changing armour outside combat only |
-| Consumables | Up to 5 stacked per type | Stim packs, grenades, antidotes, rations |
-| Gear | Up to 8 miscellaneous items | Tools, data pads, rope, grappling hooks |
-| Credits | Unlimited | No encumbrance — currency is weightless |
+| Slot        | Limit                       | Notes                                                 |
+| ----------- | --------------------------- | ----------------------------------------------------- |
+| Weapon      | 1 equipped, others stowed   | Switching equipped weapon costs a manoeuvre in combat |
+| Armour      | 1 equipped                  | Changing armour outside combat only                   |
+| Consumables | Up to 5 stacked per type    | Stim packs, grenades, antidotes, rations              |
+| Gear        | Up to 8 miscellaneous items | Tools, data pads, rope, grappling hooks               |
+| Credits     | Unlimited                   | No encumbrance — currency is weightless               |
 
 ### Encumbrance Values
 
-| Category | Examples | Encumbrance |
-|----------|----------|-------------|
-| Light | Stim packs, data pads, small tools | 0 |
-| Standard | Blaster pistol, med kit, rations | 1 |
-| Heavy | Rifles, armour, toolkits | 2 |
-| Very heavy | Heavy weapons, powered armour | 3 |
+| Category   | Examples                           | Encumbrance |
+| ---------- | ---------------------------------- | ----------- |
+| Light      | Stim packs, data pads, small tools | 0           |
+| Standard   | Blaster pistol, med kit, rations   | 1           |
+| Heavy      | Rifles, armour, toolkits           | 2           |
+| Very heavy | Heavy weapons, powered armour      | 3           |
 
 Key items (quest-critical) have zero encumbrance and do not occupy slots.
 
 ### Item Interaction
 
-| Action | Outside Combat | During Combat |
-|--------|----------------|---------------|
-| Equip / unequip | Free action | Manoeuvre (costs movement, not main action) |
-| Use consumable | Free action | Action (uses the character's turn) |
-| Drop item | Free action (item lost unless retrieved) | Free action |
-| Trade with crew / NPC | Requires dialogue interaction | Not permitted mid-combat |
+| Action                | Outside Combat                           | During Combat                               |
+| --------------------- | ---------------------------------------- | ------------------------------------------- |
+| Equip / unequip       | Free action                              | Manoeuvre (costs movement, not main action) |
+| Use consumable        | Free action                              | Action (uses the character's turn)          |
+| Drop item             | Free action (item lost unless retrieved) | Free action                                 |
+| Trade with crew / NPC | Requires dialogue interaction            | Not permitted mid-combat                    |
 
 ### Inventory Display in Character Panel
 
@@ -141,11 +169,11 @@ setting (credits, gold, caps, denarii, etc.) — set in `gmState.character.curre
 
 ### Credit Rewards by Encounter
 
-| Encounter Type | Credit Reward |
-|----------------|---------------|
-| Minor (simple puzzle, minor NPC favour) | 10–50 |
-| Standard (combat encounter, quest step) | 50–100 |
-| Major (boss fight, quest completion, significant discovery) | 100–250 |
+| Encounter Type                                              | Credit Reward |
+| ----------------------------------------------------------- | ------------- |
+| Minor (simple puzzle, minor NPC favour)                     | 10–50         |
+| Standard (combat encounter, quest step)                     | 50–100        |
+| Major (boss fight, quest completion, significant discovery) | 100–250       |
 
 ### Credit Sources
 
@@ -185,13 +213,13 @@ Track faction standing in `gmState.factions`: an object mapping faction IDs to r
 scores (−100 to +100). Actions that help a faction increase standing; actions against it
 decrease standing. Opposing factions may have linked reputation (helping one harms the other).
 
-| Standing | Range | Effect |
-|----------|-------|--------|
-| Hostile | −100 to −50 | Attack on sight, no trading, restricted zones locked |
-| Unfriendly | −49 to −10 | Higher prices (+50%), guarded NPCs, limited access |
-| Neutral | −9 to +9 | Standard prices, standard access |
-| Friendly | +10 to +49 | Lower prices (−20%), bonus intel, restricted access granted |
-| Allied | +50 to +100 | Best prices (−40%), faction missions, safe houses, combat backup |
+| Standing   | Range       | Effect                                                           |
+| ---------- | ----------- | ---------------------------------------------------------------- |
+| Hostile    | −100 to −50 | Attack on sight, no trading, restricted zones locked             |
+| Unfriendly | −49 to −10  | Higher prices (+50%), guarded NPCs, limited access               |
+| Neutral    | −9 to +9    | Standard prices, standard access                                 |
+| Friendly   | +10 to +49  | Lower prices (−20%), bonus intel, restricted access granted      |
+| Allied     | +50 to +100 | Best prices (−40%), faction missions, safe houses, combat backup |
 
 NPC initial disposition is influenced by faction standing — a friendly faction member starts
 at higher trust. Faction changes are narrated in outcomes, never stated as numbers in prose.
@@ -201,11 +229,13 @@ at higher trust. Faction changes are narrated in outcomes, never stated as numbe
 ## Quest and Objective Tracking
 
 The GM maintains a quest log in `gmState.quests`. Each quest has:
+
 - `id`, `title`, `status` (active / completed / failed), `description`
 - `objectives` — sub-goals with completion state
 - `clues` — information gathered relevant to this quest
 
-The quest panel is rendered via `tag render codex --style <style>`. It shows:
+The quest panel is rendered via `tag render quest-log --style <style>`. It emits a compact `<ta-quest-log>` element that loads the shared CDN runtime instead of embedding the full implementation in the HTML. It shows:
+
 - **Active quests** with objectives and progress
 - **Recently completed/failed** quests (last 3)
 - **Key clues** and leads
@@ -215,10 +245,10 @@ Side quests can be discovered through exploration, NPC dialogue, or codex entrie
 
 ### Footer button
 
-The quest panel is rendered via the CLI. Do not hand-code the footer button; use:
+The quest panel is rendered via the CLI. Do not hand-code quest markup or the footer button; use:
 
 ```
-tag render codex --style <style>
+tag render quest-log --style <style>
 ```
 
 ---
@@ -253,6 +283,7 @@ the world's reactions, not through a clock on screen.
 ## Session Recap ("Previously On...")
 
 When resuming from a save, present a **recap** before the first scene (rendered via `tag render scene --style <style>`):
+
 - 2–3 sentence summary of the last session's key events (reconstructed from world flags,
   quest status, and recent roll history — not from memory).
 - Active quest status with current objectives.
@@ -311,32 +342,33 @@ time: {
 
 ### XP Awards
 
-| Action | XP |
-|--------|----|
-| Scene with meaningful decision | 25 |
-| Combat victory | 50 |
-| Secret/hidden area discovered | 30 |
-| NPC interaction resolved favourably | 20 |
-| Critical success bonus | 10 |
-| Quest thread completed | 100 |
-| Near-death survival | 40 |
+| Action                              | XP  |
+| ----------------------------------- | --- |
+| Scene with meaningful decision      | 25  |
+| Combat victory                      | 50  |
+| Secret/hidden area discovered       | 30  |
+| NPC interaction resolved favourably | 20  |
+| Critical success bonus              | 10  |
+| Quest thread completed              | 100 |
+| Near-death survival                 | 40  |
 
 ### Level Thresholds
 
-| Level | XP | HP | Improvement |
-|-------|-----|-----|-------------|
-| 1 | 0 | — | Starting stats |
-| 2 | 100 | +3 | +1 attribute |
-| 3 | 250 | +3 | New proficiency |
-| 4 | 500 | +4 | +1 attribute |
-| 5 | 800 | +4 | +1 attribute, new ability |
-| 6 | 1200 | +5 | New proficiency |
-| 7 | 1700 | +5 | +1 attribute |
-| 8 | 2300 | +6 | +1 attribute, new ability |
+| Level | XP   | HP  | Improvement               |
+| ----- | ---- | --- | ------------------------- |
+| 1     | 0    | —   | Starting stats            |
+| 2     | 100  | +3  | +1 attribute              |
+| 3     | 250  | +3  | New proficiency           |
+| 4     | 500  | +4  | +1 attribute              |
+| 5     | 800  | +4  | +1 attribute, new ability |
+| 6     | 1200 | +5  | New proficiency           |
+| 7     | 1700 | +5  | +1 attribute              |
+| 8     | 2300 | +6  | +1 attribute, new ability |
 
 ### Level-Up Widget
 
 When XP threshold is reached, present a level-up panel (rendered via `tag render character --style <style>`):
+
 - Congratulations banner with new level number.
 - HP increase applied automatically.
 - Stat improvement: player chooses which attribute to increase (+1).
@@ -385,63 +417,63 @@ Unless stated otherwise, each ability can be used **once per encounter**.
 
 ### Warrior
 
-| Level | Ability | Effect |
-|-------|---------|--------|
-| 1 | Shield Wall | Reduce incoming damage by 3 for 2 rounds. |
-| 5a | Cleave | Attack hits all adjacent enemies for weapon damage. |
-| 5b | War Cry | All enemies must pass a WIS check (DC 13) or gain Frightened for 1 round. |
-| 8a | Last Stand | When below 25% HP, gain +4 to attack rolls for 3 rounds. Once per rest. |
-| 8b | Fortify | Grant self and one ally +2 armour for the rest of the encounter. |
+| Level | Ability     | Effect                                                                    |
+| ----- | ----------- | ------------------------------------------------------------------------- |
+| 1     | Shield Wall | Reduce incoming damage by 3 for 2 rounds.                                 |
+| 5a    | Cleave      | Attack hits all adjacent enemies for weapon damage.                       |
+| 5b    | War Cry     | All enemies must pass a WIS check (DC 13) or gain Frightened for 1 round. |
+| 8a    | Last Stand  | When below 25% HP, gain +4 to attack rolls for 3 rounds. Once per rest.   |
+| 8b    | Fortify     | Grant self and one ally +2 armour for the rest of the encounter.          |
 
 ### Rogue
 
-| Level | Ability | Effect |
-|-------|---------|--------|
-| 1 | Sneak Attack | Deal double damage if attacking from stealth or before the target has acted. |
-| 5a | Smoke Bomb | Create cover; all enemies have disadvantage on attacks for 1 round. |
-| 5b | Exploit Weakness | Next attack ignores enemy armour entirely. |
-| 8a | Shadow Step | Teleport behind any enemy; guaranteed hit on next attack. Once per rest. |
-| 8b | Venomous Strike | Attack applies Poisoned condition on hit (no save). |
+| Level | Ability          | Effect                                                                       |
+| ----- | ---------------- | ---------------------------------------------------------------------------- |
+| 1     | Sneak Attack     | Deal double damage if attacking from stealth or before the target has acted. |
+| 5a    | Smoke Bomb       | Create cover; all enemies have disadvantage on attacks for 1 round.          |
+| 5b    | Exploit Weakness | Next attack ignores enemy armour entirely.                                   |
+| 8a    | Shadow Step      | Teleport behind any enemy; guaranteed hit on next attack. Once per rest.     |
+| 8b    | Venomous Strike  | Attack applies Poisoned condition on hit (no save).                          |
 
 ### Scholar
 
-| Level | Ability | Effect |
-|-------|---------|--------|
-| 1 | Analyse | Reveal one enemy's Defence, armour, and HP. Free action. |
-| 5a | Overload | Disable one enemy's special ability for 2 rounds (INT check DC 13). |
-| 5b | Tactical Insight | One ally gains advantage on their next roll. |
-| 8a | Exploit Flaw | Deal triple damage to an Analysed enemy. Once per rest. |
-| 8b | Countermeasure | Negate one enemy ability or attack entirely. Once per rest. |
+| Level | Ability          | Effect                                                              |
+| ----- | ---------------- | ------------------------------------------------------------------- |
+| 1     | Analyse          | Reveal one enemy's Defence, armour, and HP. Free action.            |
+| 5a    | Overload         | Disable one enemy's special ability for 2 rounds (INT check DC 13). |
+| 5b    | Tactical Insight | One ally gains advantage on their next roll.                        |
+| 8a    | Exploit Flaw     | Deal triple damage to an Analysed enemy. Once per rest.             |
+| 8b    | Countermeasure   | Negate one enemy ability or attack entirely. Once per rest.         |
 
 ### Medic
 
-| Level | Ability | Effect |
-|-------|---------|--------|
-| 1 | Field Triage | Heal an ally for 1d6+2 HP as a bonus action (does not consume turn). |
-| 5a | Purify | Remove one condition (Poisoned, Injured, or Frightened) from self or ally. |
-| 5b | Adrenaline Shot | Target ally gains an extra action this round. |
-| 8a | Emergency Revival | Stabilise an incapacitated ally and restore them to 1d6 HP. Once per rest. |
-| 8b | Painkiller | Target ignores all negative conditions for 3 rounds. |
+| Level | Ability           | Effect                                                                     |
+| ----- | ----------------- | -------------------------------------------------------------------------- |
+| 1     | Field Triage      | Heal an ally for 1d6+2 HP as a bonus action (does not consume turn).       |
+| 5a    | Purify            | Remove one condition (Poisoned, Injured, or Frightened) from self or ally. |
+| 5b    | Adrenaline Shot   | Target ally gains an extra action this round.                              |
+| 8a    | Emergency Revival | Stabilise an incapacitated ally and restore them to 1d6 HP. Once per rest. |
+| 8b    | Painkiller        | Target ignores all negative conditions for 3 rounds.                       |
 
 ### Engineer
 
-| Level | Ability | Effect |
-|-------|---------|--------|
-| 1 | Deploy Turret | Place an automated turret that deals 1d6 damage to a random enemy each round for 3 rounds. |
-| 5a | EMP Blast | Stun all mechanical/electronic enemies for 1 round. |
-| 5b | Reinforce Armour | Increase own or ally's armour by 2 for the encounter. |
-| 8a | Overcharge Weapon | Next attack deals triple damage but destroys the weapon. |
-| 8b | Drone Swarm | Deal 2d6 damage to all enemies for 2 rounds. Once per rest. |
+| Level | Ability           | Effect                                                                                     |
+| ----- | ----------------- | ------------------------------------------------------------------------------------------ |
+| 1     | Deploy Turret     | Place an automated turret that deals 1d6 damage to a random enemy each round for 3 rounds. |
+| 5a    | EMP Blast         | Stun all mechanical/electronic enemies for 1 round.                                        |
+| 5b    | Reinforce Armour  | Increase own or ally's armour by 2 for the encounter.                                      |
+| 8a    | Overcharge Weapon | Next attack deals triple damage but destroys the weapon.                                   |
+| 8b    | Drone Swarm       | Deal 2d6 damage to all enemies for 2 rounds. Once per rest.                                |
 
 ### Diplomat
 
-| Level | Ability | Effect |
-|-------|---------|--------|
-| 1 | Parley | Attempt to end combat peacefully (CHA check, DC varies by enemy disposition). |
-| 5a | Inspire | All allies gain +2 to all checks for 2 rounds. |
-| 5b | Demoralise | One enemy has disadvantage on all actions for 2 rounds (CHA vs WIS). |
-| 8a | Turn Foe | Convince one non-boss enemy to switch sides for the encounter (CHA DC 16). |
-| 8b | Rally | All allies regain 2d6 HP and lose the Frightened condition. Once per rest. |
+| Level | Ability    | Effect                                                                        |
+| ----- | ---------- | ----------------------------------------------------------------------------- |
+| 1     | Parley     | Attempt to end combat peacefully (CHA check, DC varies by enemy disposition). |
+| 5a    | Inspire    | All allies gain +2 to all checks for 2 rounds.                                |
+| 5b    | Demoralise | One enemy has disadvantage on all actions for 2 rounds (CHA vs WIS).          |
+| 8a    | Turn Foe   | Convince one non-boss enemy to switch sides for the encounter (CHA DC 16).    |
+| 8b    | Rally      | All allies regain 2d6 HP and lose the Frightened condition. Once per rest.    |
 
 ---
 
@@ -451,13 +483,13 @@ Conditions modify a character's capabilities. Track active conditions in
 `gmState.character.conditions` as objects: `{ name, remainingRounds, source }`.
 Display active conditions as badges in the status bar.
 
-| Condition | Effect | Duration | Cure |
-|-----------|--------|----------|------|
-| Stunned | Skip next action entirely. | 1 round | Automatic (wears off). |
-| Poisoned | Lose 1d4 HP at the start of each round. | 3 rounds or until cured | INT check (DC 14) as an action, or antidote item. |
-| Frightened | Disadvantage on all checks whilst the source is present. | Until source removed | Remove or defeat the source; Medic's Purify; Diplomat's Rally. |
-| Injured | −2 to all physical checks (STR, DEX, CON/DEX). | Until healed | Healing (any source) or rest at a safe location. |
-| Exhausted | −1 to all checks. Cumulative (stacks). | Until rested | Rest at a safe location removes all stacks. |
+| Condition  | Effect                                                   | Duration                | Cure                                                           |
+| ---------- | -------------------------------------------------------- | ----------------------- | -------------------------------------------------------------- |
+| Stunned    | Skip next action entirely.                               | 1 round                 | Automatic (wears off).                                         |
+| Poisoned   | Lose 1d4 HP at the start of each round.                  | 3 rounds or until cured | INT check (DC 14) as an action, or antidote item.              |
+| Frightened | Disadvantage on all checks whilst the source is present. | Until source removed    | Remove or defeat the source; Medic's Purify; Diplomat's Rally. |
+| Injured    | −2 to all physical checks (STR, DEX, CON/DEX).           | Until healed            | Healing (any source) or rest at a safe location.               |
+| Exhausted  | −1 to all checks. Cumulative (stacks).                   | Until rested            | Rest at a safe location removes all stacks.                    |
 
 **Applying conditions:** Conditions are applied by enemy attacks, environmental hazards,
 failed checks, or ability effects. The GM narrates the condition onset — "Your vision
@@ -480,18 +512,18 @@ them consistently.
 
 ### Hazard Types and Effects
 
-| Hazard | Check | DC | Failure Effect | Duration |
-|--------|-------|-----|----------------|----------|
-| Extreme cold | STR | 12 | 1d4 damage per round exposed; Exhausted after 3 rounds | Until shelter/heat source |
-| Extreme heat | STR | 12 | 1d4 damage per round; Exhausted after 3 rounds | Until shade/cooling |
-| Toxic atmosphere | STR | 14 | Poisoned condition; 1d6 damage per round without mask | Until clean air/mask |
-| Vacuum/decompression | STR | 16 | 2d6 damage per round; unconscious after 2 rounds | Until pressurised |
-| Radiation | INT | 14 | 1d4 damage per round; Injured condition after 3 rounds | Until shielded area |
-| Low gravity | DEX | 10 | Disadvantage on physical checks until acclimatised (3 rounds) | Ongoing |
-| High gravity | STR | 12 | −1 to all physical checks; encumbrance capacity halved | Ongoing |
-| Darkness | INT | 10 | Disadvantage on Perception; cannot target beyond short range | Until light source |
-| Unstable terrain | DEX | 12 | Fall prone; 1d6 damage on critical failure | Per movement |
-| Electrical hazard | DEX | 14 | 2d6 damage; Stunned on failure | One-time per source |
+| Hazard               | Check | DC  | Failure Effect                                                | Duration                  |
+| -------------------- | ----- | --- | ------------------------------------------------------------- | ------------------------- |
+| Extreme cold         | STR   | 12  | 1d4 damage per round exposed; Exhausted after 3 rounds        | Until shelter/heat source |
+| Extreme heat         | STR   | 12  | 1d4 damage per round; Exhausted after 3 rounds                | Until shade/cooling       |
+| Toxic atmosphere     | STR   | 14  | Poisoned condition; 1d6 damage per round without mask         | Until clean air/mask      |
+| Vacuum/decompression | STR   | 16  | 2d6 damage per round; unconscious after 2 rounds              | Until pressurised         |
+| Radiation            | INT   | 14  | 1d4 damage per round; Injured condition after 3 rounds        | Until shielded area       |
+| Low gravity          | DEX   | 10  | Disadvantage on physical checks until acclimatised (3 rounds) | Ongoing                   |
+| High gravity         | STR   | 12  | −1 to all physical checks; encumbrance capacity halved        | Ongoing                   |
+| Darkness             | INT   | 10  | Disadvantage on Perception; cannot target beyond short range  | Until light source        |
+| Unstable terrain     | DEX   | 12  | Fall prone; 1d6 damage on critical failure                    | Per movement              |
+| Electrical hazard    | DEX   | 14  | 2d6 damage; Stunned on failure                                | One-time per source       |
 
 ### Hazard Rules
 
@@ -512,22 +544,22 @@ adds a bonus to checks using that skill, reflecting competence beyond raw attrib
 
 ### Skill List (12 skills, mapped to attributes)
 
-| Attribute | Skills |
-|-----------|--------|
-| STR | Athletics, Intimidation |
-| DEX | Acrobatics, Stealth, Sleight of Hand |
-| INT | Investigation, Medicine, Mechanics |
-| CHA | Persuasion, Deception, Insight, Performance |
+| Attribute | Skills                                      |
+| --------- | ------------------------------------------- |
+| STR       | Athletics, Intimidation                     |
+| DEX       | Acrobatics, Stealth, Sleight of Hand        |
+| INT       | Investigation, Medicine, Mechanics          |
+| CHA       | Persuasion, Deception, Insight, Performance |
 
 ### Proficiency Bonus
 
 The proficiency bonus scales with character level:
 
 | Level | Proficiency Bonus |
-|-------|-------------------|
-| 1–4 | +2 |
-| 5–8 | +3 |
-| 9–10 | +4 |
+| ----- | ----------------- |
+| 1–4   | +2                |
+| 5–8   | +3                |
+| 9–10  | +4                |
 
 ### Skill Check Formula
 
@@ -541,14 +573,14 @@ applicable (see `die-rolls.md` for display format).
 
 Each archetype grants 2 fixed proficiencies and the player chooses 2 more from any skill.
 
-| Archetype | Fixed Proficiencies | Plus choose 2 from |
-|-----------|--------------------|--------------------|
-| Warrior | Athletics, Intimidation | Any |
-| Rogue | Stealth, Sleight of Hand | Any |
-| Scholar | Investigation, Medicine | Any |
-| Medic | Medicine, Insight | Any |
-| Engineer | Mechanics, Investigation | Any |
-| Diplomat | Persuasion, Insight | Any |
+| Archetype | Fixed Proficiencies      | Plus choose 2 from |
+| --------- | ------------------------ | ------------------ |
+| Warrior   | Athletics, Intimidation  | Any                |
+| Rogue     | Stealth, Sleight of Hand | Any                |
+| Scholar   | Investigation, Medicine  | Any                |
+| Medic     | Medicine, Insight        | Any                |
+| Engineer  | Mechanics, Investigation | Any                |
+| Diplomat  | Persuasion, Insight      | Any                |
 
 ### Gaining Proficiencies
 

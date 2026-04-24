@@ -1,4 +1,5 @@
 # World History — Pre-Adventure World Building
+
 > Module for text-adventure orchestrator. Recommended for all adventures.
 
 The world did not spring into existence the moment the adventure began. Empires rose before
@@ -27,10 +28,10 @@ seed the generated world's texture), core-systems (factions begin in history), s
 
 ## § CLI Commands
 
-| Action | Command | Tool |
-|--------|---------|------|
-| Render codex (includes history) | `tag render codex --style <style>` | Run via Bash tool |
-| Set world history flags | `tag state set worldFlags.<key> <value>` | Run via Bash tool |
+| Action                          | Command                                  | Tool              |
+| ------------------------------- | ---------------------------------------- | ----------------- |
+| Render codex (includes history) | `tag render codex --style <style>`       | Run via Bash tool |
+| Set world history flags         | `tag state set worldFlags.<key> <value>` | Run via Bash tool |
 
 > **All widget output must be produced by running the `tag` CLI via Bash tool.** Do not hand-code HTML, CSS, or JS for history or codex rendering — use the commands above.
 
@@ -116,22 +117,31 @@ that hoards food, distrust of central distribution, black markets in preserved g
 ```js
 gmState.worldHistory.epochs = [
   {
-    id: "the_founding_compact",
-    name: "The Founding Compact",
-    timeframe: "~340 years ago",
-    definingEvent: "Six independent mining consortia signed the Compact, pooling transit rights and establishing a permanent station at the Meridian waypoint.",
+    id: 'the_founding_compact',
+    name: 'The Founding Compact',
+    timeframe: '~340 years ago',
+    definingEvent:
+      'Six independent mining consortia signed the Compact, pooling transit rights and establishing a permanent station at the Meridian waypoint.',
     consequences: [
-      "Station governance is still formally a consortium council — six seats, rotating chair.",
-      "The original six family names still appear on docking berths, corridors, and founding plaques.",
-      "Legal disputes between corporate descendants are resolved under Compact Law, not Sector Authority law — a loophole traffickers and traders exploit routinely.",
+      'Station governance is still formally a consortium council — six seats, rotating chair.',
+      'The original six family names still appear on docking berths, corridors, and founding plaques.',
+      'Legal disputes between corporate descendants are resolved under Compact Law, not Sector Authority law — a loophole traffickers and traders exploit routinely.',
     ],
     survivors: [
-      { name: "Meridian Docking Consortium", then: "An administrative body formed to manage the shared waypoint", now: "The effective government of the station, holding monopoly on docking fees and resupply contracts" },
-      { name: "Orwen & Heist Extractives", then: "One of the six original signatory consortia", now: "A shell holding company; its assets were absorbed by the Meridian Docking Consortium seventy years ago, but the seat on the council still exists and is technically vacant" },
+      {
+        name: 'Meridian Docking Consortium',
+        then: 'An administrative body formed to manage the shared waypoint',
+        now: 'The effective government of the station, holding monopoly on docking fees and resupply contracts',
+      },
+      {
+        name: 'Orwen & Heist Extractives',
+        then: 'One of the six original signatory consortia',
+        now: 'A shell holding company; its assets were absorbed by the Meridian Docking Consortium seventy years ago, but the seat on the council still exists and is technically vacant',
+      },
     ],
     artifacts: [
       "The Compact itself — a physical document in the portmaster's office, sealed under glass, signed in six different inks",
-      "The Six Pillars corridor on Level 2, carved with the founding consortium names and their seals",
+      'The Six Pillars corridor on Level 2, carved with the founding consortium names and their seals',
     ],
     publicKnowledge: true,
     contested: false,
@@ -139,46 +149,64 @@ gmState.worldHistory.epochs = [
   },
 
   {
-    id: "the_expansion_wars",
-    name: "The Expansion Wars",
-    timeframe: "~190–160 years ago",
-    definingEvent: "Three decades of intermittent conflict as rival sector powers contested transit routes through Meridian space. The station changed administrative control four times.",
+    id: 'the_expansion_wars',
+    name: 'The Expansion Wars',
+    timeframe: '~190–160 years ago',
+    definingEvent:
+      'Three decades of intermittent conflict as rival sector powers contested transit routes through Meridian space. The station changed administrative control four times.',
     consequences: [
       "Freeport Meridian's formal neutrality doctrine — no armed vessel may berth for more than 48 hours — dates from the peace settlement.",
-      "The outer ring of the station was added as emergency refugee housing during the wars; it was never properly integrated and still runs on its own maintenance rota.",
-      "Deep distrust of Sector Authority representatives — many families lost people to Authority conscription drafts during the third phase of the wars.",
+      'The outer ring of the station was added as emergency refugee housing during the wars; it was never properly integrated and still runs on its own maintenance rota.',
+      'Deep distrust of Sector Authority representatives — many families lost people to Authority conscription drafts during the third phase of the wars.',
     ],
     survivors: [
-      { name: "The Outer Ring Residents' Association", then: "A wartime mutual aid committee for displaced refugees", now: "An informal but powerful political bloc on the station, with its own dispute resolution and a deeply adversarial relationship with the Docking Consortium" },
+      {
+        name: "The Outer Ring Residents' Association",
+        then: 'A wartime mutual aid committee for displaced refugees',
+        now: 'An informal but powerful political bloc on the station, with its own dispute resolution and a deeply adversarial relationship with the Docking Consortium',
+      },
     ],
     artifacts: [
-      "The blast scoring on the Level 4 bulkheads, never fully repaired — considered a memorial by outer-ring residents, an eyesore by the Consortium",
-      "The neutrality plaques at each docking approach, in the three languages of the warring powers",
+      'The blast scoring on the Level 4 bulkheads, never fully repaired — considered a memorial by outer-ring residents, an eyesore by the Consortium',
+      'The neutrality plaques at each docking approach, in the three languages of the warring powers',
     ],
     publicKnowledge: true,
     contested: true,
     contestedVersions: [
-      { faction: "Meridian Docking Consortium", version: "The Consortium's neutrality doctrine saved the station from destruction — administrative flexibility under pressure was leadership." },
-      { faction: "Outer Ring Residents' Association", version: "The Consortium sold docking rights to whoever was winning at the time. They called it neutrality. The outer ring called it survival at everyone else's expense." },
+      {
+        faction: 'Meridian Docking Consortium',
+        version:
+          "The Consortium's neutrality doctrine saved the station from destruction — administrative flexibility under pressure was leadership.",
+      },
+      {
+        faction: "Outer Ring Residents' Association",
+        version:
+          "The Consortium sold docking rights to whoever was winning at the time. They called it neutrality. The outer ring called it survival at everyone else's expense.",
+      },
     ],
   },
 
   {
-    id: "the_great_refit",
-    name: "The Great Refit",
-    timeframe: "~80 years ago",
-    definingEvent: "A twenty-year infrastructure project that modernised the station's core systems, funded by a Sector Authority development bond — the first Sector money ever accepted by Meridian governance.",
+    id: 'the_great_refit',
+    name: 'The Great Refit',
+    timeframe: '~80 years ago',
+    definingEvent:
+      "A twenty-year infrastructure project that modernised the station's core systems, funded by a Sector Authority development bond — the first Sector money ever accepted by Meridian governance.",
     consequences: [
       "The bond was never fully repaid. Sector Authority holds partial financial jurisdiction over core station systems as collateral — the term that allows the docking authority's expanded presence on the station.",
-      "The Refit replaced older architecture with standardised Sector-spec construction. The original Level 1 and 2 aesthetic — heavier, more ornate, darker metal — is now only preserved in the founding corridors.",
-      "A generation of station engineers trained under Sector Authority technical teams. Those engineers trained the next generation. The technical culture of Freeport Meridian is now more Sector-aligned than its governance.",
+      'The Refit replaced older architecture with standardised Sector-spec construction. The original Level 1 and 2 aesthetic — heavier, more ornate, darker metal — is now only preserved in the founding corridors.',
+      'A generation of station engineers trained under Sector Authority technical teams. Those engineers trained the next generation. The technical culture of Freeport Meridian is now more Sector-aligned than its governance.',
     ],
     survivors: [
-      { name: "Sector Docking Authority — Meridian Station", then: "A temporary Sector technical oversight body during the Refit", now: "A permanent administrative presence with jurisdiction over safety compliance, weapons inspection, and financial audit — technically advisory, practically influential" },
+      {
+        name: 'Sector Docking Authority — Meridian Station',
+        then: 'A temporary Sector technical oversight body during the Refit',
+        now: 'A permanent administrative presence with jurisdiction over safety compliance, weapons inspection, and financial audit — technically advisory, practically influential',
+      },
     ],
     artifacts: [
       "The bond documentation — locked in the portmaster's archive, its terms not publicly disclosed",
-      "The contrast between the old-spec corridors of Level 1 and the Sector-standard construction everywhere above Level 3",
+      'The contrast between the old-spec corridors of Level 1 and the Sector-standard construction everywhere above Level 3',
       "The Authority's administrative block on Level 5 — the only part of the station built entirely to Sector specification",
     ],
     publicKnowledge: false, // the bond's full terms are not public knowledge
@@ -187,21 +215,26 @@ gmState.worldHistory.epochs = [
   },
 
   {
-    id: "the_quiet_decade",
-    name: "The Quiet Decade",
-    timeframe: "~25–15 years ago",
-    definingEvent: "Ten years of relative prosperity — high transit traffic, low faction conflict, strong resupply contracts. Remembered fondly by those who lived through it, used rhetorically by politicians to imply the current period is a decline.",
+    id: 'the_quiet_decade',
+    name: 'The Quiet Decade',
+    timeframe: '~25–15 years ago',
+    definingEvent:
+      'Ten years of relative prosperity — high transit traffic, low faction conflict, strong resupply contracts. Remembered fondly by those who lived through it, used rhetorically by politicians to imply the current period is a decline.',
     consequences: [
-      "The generation that grew up during the Quiet Decade has expectations of stability that the current political climate cannot meet.",
-      "Several side enterprises — The Oxidiser bar among them — expanded during this period and are now over-committed on leases signed under optimistic projections.",
-      "Gareth Williams opened The Oxidiser bar on Level 2 in the third year of the Quiet Decade, capitalising on increased foot traffic from transit crews. His lease was signed at peak rates.",
+      'The generation that grew up during the Quiet Decade has expectations of stability that the current political climate cannot meet.',
+      'Several side enterprises — The Oxidiser bar among them — expanded during this period and are now over-committed on leases signed under optimistic projections.',
+      'Gareth Williams opened The Oxidiser bar on Level 2 in the third year of the Quiet Decade, capitalising on increased foot traffic from transit crews. His lease was signed at peak rates.',
     ],
     survivors: [
-      { name: "The Level 2 Traders' Informal Guild", then: "A loose association formed to share resupply contacts during the boom", now: "A tension-filled body increasingly divided between those who want Consortium backing and those who want to stay independent" },
+      {
+        name: "The Level 2 Traders' Informal Guild",
+        then: 'A loose association formed to share resupply contacts during the boom',
+        now: 'A tension-filled body increasingly divided between those who want Consortium backing and those who want to stay independent',
+      },
     ],
     artifacts: [
-      "The over-extended leases held by Level 2 businesses, including The Oxidiser",
-      "The expansion corridors built during the boom that are now only half-occupied",
+      'The over-extended leases held by Level 2 businesses, including The Oxidiser',
+      'The expansion corridors built during the boom that are now only half-occupied',
     ],
     publicKnowledge: true,
     contested: false,
@@ -209,30 +242,43 @@ gmState.worldHistory.epochs = [
   },
 
   {
-    id: "the_contract_dispute",
-    name: "The Contract Dispute",
-    timeframe: "~8 years ago to present",
-    definingEvent: "The Meridian Docking Consortium attempted to renegotiate resupply contracts with the outer ring's independent operators, offering lower rates in exchange for exclusive agreements. The outer ring refused. The Consortium responded by redirecting premium berths to Consortium-aligned traders.",
+    id: 'the_contract_dispute',
+    name: 'The Contract Dispute',
+    timeframe: '~8 years ago to present',
+    definingEvent:
+      "The Meridian Docking Consortium attempted to renegotiate resupply contracts with the outer ring's independent operators, offering lower rates in exchange for exclusive agreements. The outer ring refused. The Consortium responded by redirecting premium berths to Consortium-aligned traders.",
     consequences: [
-      "Transit traffic on Level 2 — the traditional independent trader level — dropped 40% over four years.",
-      "The Sector Docking Authority quietly backed the Consortium position, citing the bond agreement.",
-      "A black market in unofficial berth reassignments emerged, run by parties unknown — probably with connections to both sides.",
-      "Several Level 2 businesses closed. Those that survived did so on thinner margins and with more difficult customers.",
-      "The Oxidiser bar is still open. Gareth Williams has not closed it, but he is three months behind on his lease and deeply familiar with the people who need a drink and a place to talk.",
+      'Transit traffic on Level 2 — the traditional independent trader level — dropped 40% over four years.',
+      'The Sector Docking Authority quietly backed the Consortium position, citing the bond agreement.',
+      'A black market in unofficial berth reassignments emerged, run by parties unknown — probably with connections to both sides.',
+      'Several Level 2 businesses closed. Those that survived did so on thinner margins and with more difficult customers.',
+      'The Oxidiser bar is still open. Gareth Williams has not closed it, but he is three months behind on his lease and deeply familiar with the people who need a drink and a place to talk.',
     ],
     survivors: [
-      { name: "Outer Ring Residents' Association", then: "A political bloc resisting the contract terms", now: "Increasingly organised, increasingly desperate, and — unknown to the Consortium — in contact with a Sector auditor who may be interested in the bond documentation" },
+      {
+        name: "Outer Ring Residents' Association",
+        then: 'A political bloc resisting the contract terms',
+        now: 'Increasingly organised, increasingly desperate, and — unknown to the Consortium — in contact with a Sector auditor who may be interested in the bond documentation',
+      },
     ],
     artifacts: [
       "The disputed contract itself, filed with the Consortium's legal office",
-      "The empty units on Level 2 — dark shopfronts with old signs still in them",
-      "The unofficial berth reassignment system — a network of handshakes and data chips left in specific locations",
+      'The empty units on Level 2 — dark shopfronts with old signs still in them',
+      'The unofficial berth reassignment system — a network of handshakes and data chips left in specific locations',
     ],
     publicKnowledge: true,
     contested: true,
     contestedVersions: [
-      { faction: "Meridian Docking Consortium", version: "Rationalisation of berth allocation for efficiency. Independent operators who could not meet the new standards were not competitive." },
-      { faction: "Outer Ring Residents' Association", version: "A deliberate campaign to starve independent operators until they either accept Consortium terms or leave. It is working." },
+      {
+        faction: 'Meridian Docking Consortium',
+        version:
+          'Rationalisation of berth allocation for efficiency. Independent operators who could not meet the new standards were not competitive.',
+      },
+      {
+        faction: "Outer Ring Residents' Association",
+        version:
+          'A deliberate campaign to starve independent operators until they either accept Consortium terms or leave. It is working.',
+      },
     ],
   },
 ];
@@ -250,25 +296,25 @@ original purpose and the current purpose is where secrets and tension live.
 const powerStructureSchema = {
   id: string,
   name: string,
-  type: string,              // "government" | "corporation" | "guild" | "criminal" |
-                             //   "religious" | "military" | "informal" | "legacy"
-  founded: string,           // approximate timeframe
-  foundedBy: string,         // who created it and why
-  originalPurpose: string,   // what it was meant to do
-  currentPurpose: string,    // what it actually does now
-  evolution: string,         // the path from then to now — the drift
+  type: string, // "government" | "corporation" | "guild" | "criminal" |
+  //   "religious" | "military" | "informal" | "legacy"
+  founded: string, // approximate timeframe
+  foundedBy: string, // who created it and why
+  originalPurpose: string, // what it was meant to do
+  currentPurpose: string, // what it actually does now
+  evolution: string, // the path from then to now — the drift
   currentLeader: {
     name: string,
     characterisation: string,
     motivation: string,
     vulnerability: string,
   },
-  internalTension: string,   // the fault line inside the organisation
-  externalThreat: string,    // what threatens it from outside
-  publicPerception: string,  // how most people see it
-  secretTruth: string,       // what is true but not publicly known
+  internalTension: string, // the fault line inside the organisation
+  externalThreat: string, // what threatens it from outside
+  publicPerception: string, // how most people see it
+  secretTruth: string, // what is true but not publicly known
   worldFlags: {
-    prefix: string,          // e.g. "faction_consortium_"
+    prefix: string, // e.g. "faction_consortium_"
   },
 };
 ```
@@ -278,69 +324,99 @@ const powerStructureSchema = {
 ```js
 gmState.worldHistory.powerStructures = [
   {
-    id: "meridian_docking_consortium",
-    name: "Meridian Docking Consortium",
-    type: "government",
-    founded: "~340 years ago",
-    foundedBy: "Six mining consortia who needed a shared administrative body for the waypoint station",
-    originalPurpose: "Neutral management of shared transit infrastructure — docking fees, resupply coordination, dispute resolution",
-    currentPurpose: "De facto governance of Freeport Meridian; extraction of transit revenue; protection of Consortium-aligned commercial interests",
-    evolution: "Administrative legitimacy accumulated naturally as the station grew. No single moment of seizure — just incremental scope expansion over three centuries, each step justifiable in isolation.",
+    id: 'meridian_docking_consortium',
+    name: 'Meridian Docking Consortium',
+    type: 'government',
+    founded: '~340 years ago',
+    foundedBy: 'Six mining consortia who needed a shared administrative body for the waypoint station',
+    originalPurpose:
+      'Neutral management of shared transit infrastructure — docking fees, resupply coordination, dispute resolution',
+    currentPurpose:
+      'De facto governance of Freeport Meridian; extraction of transit revenue; protection of Consortium-aligned commercial interests',
+    evolution:
+      'Administrative legitimacy accumulated naturally as the station grew. No single moment of seizure — just incremental scope expansion over three centuries, each step justifiable in isolation.',
     currentLeader: {
-      name: "Portmaster Elara Voss",
-      characterisation: "Precise, composed, and genuinely believes the Consortium's stability is indistinguishable from the station's survival. She is not wrong that the station needs management. She is wrong about whose interests that management serves.",
-      motivation: "To preserve the station through a period she knows is more dangerous than it appears — the Sector auditor's inquiry is closer than her colleagues realise.",
-      vulnerability: "She knows about the bond documentation and what it reveals. She has been managing that knowledge for six years. It is exhausting.",
+      name: 'Portmaster Elara Voss',
+      characterisation:
+        "Precise, composed, and genuinely believes the Consortium's stability is indistinguishable from the station's survival. She is not wrong that the station needs management. She is wrong about whose interests that management serves.",
+      motivation:
+        "To preserve the station through a period she knows is more dangerous than it appears — the Sector auditor's inquiry is closer than her colleagues realise.",
+      vulnerability:
+        'She knows about the bond documentation and what it reveals. She has been managing that knowledge for six years. It is exhausting.',
     },
-    internalTension: "The six council seats represent different commercial interests that are no longer aligned. Two seats want to settle with the outer ring. Two want to accelerate the consolidation. Two are waiting to see which way it falls.",
-    externalThreat: "The Sector Authority audit, which may expose the bond terms. And the outer ring's growing organisation, which is no longer simply refusing — it is building leverage.",
-    publicPerception: "Legitimate station governance. Bureaucratic, occasionally self-serving, but the lights stay on and the docking approach is safe.",
-    secretTruth: "The bond repayment default sixteen years ago was deliberate — the Consortium's financial director at the time structured it to give the Sector Authority a financial lever in exchange for Authority backing of the Consortium's internal monopoly. The current portmaster inherited this arrangement.",
-    worldFlags: { prefix: "faction_consortium_" },
+    internalTension:
+      'The six council seats represent different commercial interests that are no longer aligned. Two seats want to settle with the outer ring. Two want to accelerate the consolidation. Two are waiting to see which way it falls.',
+    externalThreat:
+      "The Sector Authority audit, which may expose the bond terms. And the outer ring's growing organisation, which is no longer simply refusing — it is building leverage.",
+    publicPerception:
+      'Legitimate station governance. Bureaucratic, occasionally self-serving, but the lights stay on and the docking approach is safe.',
+    secretTruth:
+      "The bond repayment default sixteen years ago was deliberate — the Consortium's financial director at the time structured it to give the Sector Authority a financial lever in exchange for Authority backing of the Consortium's internal monopoly. The current portmaster inherited this arrangement.",
+    worldFlags: { prefix: 'faction_consortium_' },
   },
 
   {
-    id: "sector_docking_authority",
-    name: "Sector Docking Authority — Meridian Station",
-    type: "government",
-    founded: "~80 years ago (permanent presence)",
-    foundedBy: "Sector Authority, as technical oversight for the Great Refit bond",
-    originalPurpose: "Temporary technical oversight to ensure Sector construction standards during the Refit",
-    currentPurpose: "Permanent administrative presence; enforcement of safety and weapons compliance; quiet leverage over Consortium decisions via bond collateral",
-    evolution: "The bond's unpaid balance gave the Authority a legal basis to remain. Each renewal of the oversight mandate added scope. Nobody voted for permanent Authority presence — it simply never ended.",
+    id: 'sector_docking_authority',
+    name: 'Sector Docking Authority — Meridian Station',
+    type: 'government',
+    founded: '~80 years ago (permanent presence)',
+    foundedBy: 'Sector Authority, as technical oversight for the Great Refit bond',
+    originalPurpose: 'Temporary technical oversight to ensure Sector construction standards during the Refit',
+    currentPurpose:
+      'Permanent administrative presence; enforcement of safety and weapons compliance; quiet leverage over Consortium decisions via bond collateral',
+    evolution:
+      "The bond's unpaid balance gave the Authority a legal basis to remain. Each renewal of the oversight mandate added scope. Nobody voted for permanent Authority presence — it simply never ended.",
     currentLeader: {
-      name: "Inspector Reyan Torr",
-      characterisation: "By-the-book in the specific way that people who know where the bodies are buried tend to be — everything precisely documented, nothing done without a paper trail, no enthusiasm for improvisation.",
-      motivation: "He wants the audit completed and the bond terms resolved before his posting ends. He would prefer clean resolution. He suspects clean resolution is not what he is going to get.",
-      vulnerability: "He is aware that the bond arrangement was corrupt from the start. He does not know what to do with that knowledge yet.",
+      name: 'Inspector Reyan Torr',
+      characterisation:
+        'By-the-book in the specific way that people who know where the bodies are buried tend to be — everything precisely documented, nothing done without a paper trail, no enthusiasm for improvisation.',
+      motivation:
+        'He wants the audit completed and the bond terms resolved before his posting ends. He would prefer clean resolution. He suspects clean resolution is not what he is going to get.',
+      vulnerability:
+        'He is aware that the bond arrangement was corrupt from the start. He does not know what to do with that knowledge yet.',
     },
-    internalTension: "The Authority inspectors on-station are split between those who see Meridian as a routine posting and those who understand that the audit could be significant. Inspector Torr is in the second group. Most of his staff are in the first.",
-    externalThreat: "Outer ring legal action, which would force the bond documentation into a public proceeding and expose the arrangement.",
-    publicPerception: "Officious Sector bureaucrats with clipboards. Tolerated because they keep the weapons checks running. Resented by outer-ring residents who see them as the Consortium's enforcement arm.",
-    secretTruth: "Inspector Torr has already found the bond documentation. He has not filed his report yet. He is waiting to understand what he is looking at.",
-    worldFlags: { prefix: "faction_authority_" },
+    internalTension:
+      'The Authority inspectors on-station are split between those who see Meridian as a routine posting and those who understand that the audit could be significant. Inspector Torr is in the second group. Most of his staff are in the first.',
+    externalThreat:
+      'Outer ring legal action, which would force the bond documentation into a public proceeding and expose the arrangement.',
+    publicPerception:
+      "Officious Sector bureaucrats with clipboards. Tolerated because they keep the weapons checks running. Resented by outer-ring residents who see them as the Consortium's enforcement arm.",
+    secretTruth:
+      'Inspector Torr has already found the bond documentation. He has not filed his report yet. He is waiting to understand what he is looking at.',
+    worldFlags: { prefix: 'faction_authority_' },
   },
 
   {
-    id: "outer_ring_residents_association",
+    id: 'outer_ring_residents_association',
     name: "Outer Ring Residents' Association",
-    type: "informal",
-    founded: "~190 years ago (wartime), current form ~8 years ago",
-    foundedBy: "Wartime refugees who needed mutual aid structures; current leadership formed in response to the Contract Dispute",
-    originalPurpose: "Wartime mutual aid — food distribution, housing allocation, dispute mediation among displaced persons",
-    currentPurpose: "Political representation and economic defence for outer-ring residents against Consortium encroachment; increasingly, legal coordination",
-    evolution: "Dormant for most of its history — a community body that managed local disputes and organised festival days. The Contract Dispute turned it into a political force inside six months.",
+    type: 'informal',
+    founded: '~190 years ago (wartime), current form ~8 years ago',
+    foundedBy:
+      'Wartime refugees who needed mutual aid structures; current leadership formed in response to the Contract Dispute',
+    originalPurpose:
+      'Wartime mutual aid — food distribution, housing allocation, dispute mediation among displaced persons',
+    currentPurpose:
+      'Political representation and economic defence for outer-ring residents against Consortium encroachment; increasingly, legal coordination',
+    evolution:
+      'Dormant for most of its history — a community body that managed local disputes and organised festival days. The Contract Dispute turned it into a political force inside six months.',
     currentLeader: {
-      name: "Dael Orwen",
-      characterisation: "A cargo-master turned association chair, elected because nobody else wanted the job and she was the only one who understood what the Consortium's contract terms actually meant. She has had to learn everything else on the move.",
-      motivation: "She wants a negotiated settlement that gives outer-ring operators real berth access, not Consortium charity. She will take the audit route if negotiation is genuinely off the table.",
-      vulnerability: "She is holding the association together through personal credibility. If the audit produces nothing, or is buried, she has no fallback.",
+      name: 'Dael Orwen',
+      characterisation:
+        "A cargo-master turned association chair, elected because nobody else wanted the job and she was the only one who understood what the Consortium's contract terms actually meant. She has had to learn everything else on the move.",
+      motivation:
+        'She wants a negotiated settlement that gives outer-ring operators real berth access, not Consortium charity. She will take the audit route if negotiation is genuinely off the table.',
+      vulnerability:
+        'She is holding the association together through personal credibility. If the audit produces nothing, or is buried, she has no fallback.',
     },
-    internalTension: "Older residents who remember the Quiet Decade and want any deal that returns stability versus younger residents who have only known the Contract Dispute and want the Consortium structurally restrained.",
-    externalThreat: "The Consortium's legal resources. A protracted dispute costs the association money it does not have.",
-    publicPerception: "Sympathetic victims of Consortium consolidation, to those who know. Invisible, to those who don't. Troublemakers, in Consortium-adjacent framing.",
-    secretTruth: "Dael Orwen has the name of a Sector auditor who is interested in the bond documentation. She does not yet have the document itself. Someone on-station does — she just doesn't know who.",
-    worldFlags: { prefix: "faction_outer_ring_" },
+    internalTension:
+      'Older residents who remember the Quiet Decade and want any deal that returns stability versus younger residents who have only known the Contract Dispute and want the Consortium structurally restrained.',
+    externalThreat:
+      "The Consortium's legal resources. A protracted dispute costs the association money it does not have.",
+    publicPerception:
+      "Sympathetic victims of Consortium consolidation, to those who know. Invisible, to those who don't. Troublemakers, in Consortium-adjacent framing.",
+    secretTruth:
+      "Dael Orwen has the name of a Sector auditor who is interested in the bond documentation. She does not yet have the document itself. Someone on-station does — she just doesn't know who.",
+    worldFlags: { prefix: 'faction_outer_ring_' },
   },
 ];
 ```
@@ -374,46 +450,51 @@ const pastConflictSchema = {
 ```js
 gmState.worldHistory.pastConflicts = [
   {
-    id: "the_level_three_riot",
-    name: "The Level Three Riot",
-    when: "~12 years ago",
-    parties: ["Outer ring dockworkers", "Meridian Docking Consortium security", "Sector Docking Authority inspectors"],
-    cause: "A Consortium security sweep of unofficial berths on Level 3, conducted without notice, damaged or confiscated equipment belonging to independent operators. Three dockworkers were injured in the resulting confrontation.",
-    outcome: "Nominal: the Consortium agreed to a 48-hour notice period for security sweeps. Practical: four of the dockworkers involved were banned from Level 3 and above for six months. The ban was 'temporary'. It was never formally lifted.",
+    id: 'the_level_three_riot',
+    name: 'The Level Three Riot',
+    when: '~12 years ago',
+    parties: ['Outer ring dockworkers', 'Meridian Docking Consortium security', 'Sector Docking Authority inspectors'],
+    cause:
+      'A Consortium security sweep of unofficial berths on Level 3, conducted without notice, damaged or confiscated equipment belonging to independent operators. Three dockworkers were injured in the resulting confrontation.',
+    outcome:
+      "Nominal: the Consortium agreed to a 48-hour notice period for security sweeps. Practical: four of the dockworkers involved were banned from Level 3 and above for six months. The ban was 'temporary'. It was never formally lifted.",
     unresolved: [
-      "The four dockworkers were never compensated for confiscated equipment.",
-      "The Consortium security officer who ordered the sweep was quietly promoted.",
-      "The notice-period agreement is honoured in letter — 48 hours is given — but sweep scope expanded progressively. The notice became a formality.",
-      "Two of the four banned dockworkers are still on-station, now outer ring association members.",
+      'The four dockworkers were never compensated for confiscated equipment.',
+      'The Consortium security officer who ordered the sweep was quietly promoted.',
+      'The notice-period agreement is honoured in letter — 48 hours is given — but sweep scope expanded progressively. The notice became a formality.',
+      'Two of the four banned dockworkers are still on-station, now outer ring association members.',
     ],
     physicalEvidence: [
-      "Scuff marks and a patched section of wall on the Level 3 main corridor — the patch is slightly lighter than the surrounding material",
-      "A memorial scratched into the underside of a loading platform — four names, a date",
+      'Scuff marks and a patched section of wall on the Level 3 main corridor — the patch is slightly lighter than the surrounding material',
+      'A memorial scratched into the underside of a loading platform — four names, a date',
     ],
     livingMemory: true,
     taboo: true,
-    tabooReason: "The Consortium successfully framed it as a security incident rather than a labour dispute. Discussing it as a riot implies sympathy with the dockworkers, which carries professional risk on the upper levels.",
+    tabooReason:
+      'The Consortium successfully framed it as a security incident rather than a labour dispute. Discussing it as a riot implies sympathy with the dockworkers, which carries professional risk on the upper levels.',
   },
 
   {
-    id: "the_oxidiser_arbitration",
-    name: "The Oxidiser Lease Arbitration",
-    when: "~4 years ago",
-    parties: ["Gareth Williams", "Meridian Docking Consortium (Level 2 leasing office)"],
-    cause: "Gareth Williams, facing declining revenue from reduced foot traffic, petitioned for a lease reduction under the Compact Law hardship clause. The Consortium argued the hardship clause applied only to extractive operations, not hospitality.",
-    outcome: "The arbitration found in the Consortium's favour on the technical legal question. Gareth's lease was not reduced. A payment schedule was agreed that gave him six months of relief. That schedule ended two years ago.",
+    id: 'the_oxidiser_arbitration',
+    name: 'The Oxidiser Lease Arbitration',
+    when: '~4 years ago',
+    parties: ['Gareth Williams', 'Meridian Docking Consortium (Level 2 leasing office)'],
+    cause:
+      'Gareth Williams, facing declining revenue from reduced foot traffic, petitioned for a lease reduction under the Compact Law hardship clause. The Consortium argued the hardship clause applied only to extractive operations, not hospitality.',
+    outcome:
+      "The arbitration found in the Consortium's favour on the technical legal question. Gareth's lease was not reduced. A payment schedule was agreed that gave him six months of relief. That schedule ended two years ago.",
     unresolved: [
-      "Gareth is three months behind on the current lease rate.",
-      "He has not petitioned again. He knows the result.",
+      'Gareth is three months behind on the current lease rate.',
+      'He has not petitioned again. He knows the result.',
       "The Consortium's Level 2 leasing officer visits The Oxidiser irregularly. Always orders something. Never causes a scene. Gareth is not certain whether this is oversight or a message.",
     ],
     physicalEvidence: [
-      "The arbitration filing — a matter of public record in the Compact Law archive on Level 1",
-      "The payment schedule agreement, posted in a drawer behind the bar",
+      'The arbitration filing — a matter of public record in the Compact Law archive on Level 1',
+      'The payment schedule agreement, posted in a drawer behind the bar',
     ],
     livingMemory: true,
     taboo: false,
-    tabooReason: "",
+    tabooReason: '',
   },
 ];
 ```
@@ -429,7 +510,6 @@ operates within.
 
 ```js
 gmState.worldHistory.culture = {
-
   language: {
     commonGreetings: [
       "'Dock safe' — standard among transit crews and anyone who works near vacuum",
@@ -454,39 +534,46 @@ gmState.worldHistory.culture = {
 
   customs: [
     {
-      name: "The Founding Toast",
-      description: "On the anniversary of the Compact signing, bars across the station serve a round in the six founding consortium colours — six differently coloured drinks. Nobody is certain the colours are historically accurate. Nobody cares. Gareth has run it at The Oxidiser for fifteen years. Attendance has dropped with the foot traffic.",
+      name: 'The Founding Toast',
+      description:
+        'On the anniversary of the Compact signing, bars across the station serve a round in the six founding consortium colours — six differently coloured drinks. Nobody is certain the colours are historically accurate. Nobody cares. Gareth has run it at The Oxidiser for fifteen years. Attendance has dropped with the foot traffic.',
     },
     {
-      name: "Docking day superstitions",
-      description: "Transit crews do not bring new purchases aboard immediately after docking — they leave them at the berth for at least one sleep cycle, 'so the ship knows what's coming'. This has no practical effect and everyone knows it. Everyone does it anyway.",
+      name: 'Docking day superstitions',
+      description:
+        "Transit crews do not bring new purchases aboard immediately after docking — they leave them at the berth for at least one sleep cycle, 'so the ship knows what's coming'. This has no practical effect and everyone knows it. Everyone does it anyway.",
     },
     {
-      name: "The level line",
-      description: "There is an unspoken social division between residents of Levels 1–3 (commercial, transit, administrative) and Levels 4–5 (outer ring, storage, maintenance). Crossing levels for work is unremarkable. Socialising across the level line is uncommon enough to be noticed.",
+      name: 'The level line',
+      description:
+        'There is an unspoken social division between residents of Levels 1–3 (commercial, transit, administrative) and Levels 4–5 (outer ring, storage, maintenance). Crossing levels for work is unremarkable. Socialising across the level line is uncommon enough to be noticed.',
     },
   ],
 
   economy: {
-    currency: "Standard Sector Credits — physical chit form common among outer ring traders who distrust the station's digital ledger (controlled by the Consortium)",
-    primaryIndustry: "Transit services — docking, resupply, maintenance, crew rest",
-    secondaryIndustry: "Information brokering. A station at the intersection of three trade routes hears everything. Some people charge for what they know.",
+    currency:
+      "Standard Sector Credits — physical chit form common among outer ring traders who distrust the station's digital ledger (controlled by the Consortium)",
+    primaryIndustry: 'Transit services — docking, resupply, maintenance, crew rest',
+    secondaryIndustry:
+      'Information brokering. A station at the intersection of three trade routes hears everything. Some people charge for what they know.',
     blackMarket: [
       "Unofficial berth reassignments — a handshake economy that operates around the Consortium's preferred-trader system",
       "Compact Law jurisdiction shopping — using the founding charter's loopholes to conduct transactions that would require Sector Authority approval elsewhere",
-      "Data chips with sensitive Consortium or Authority documentation — provenance unclear, demand consistent",
+      'Data chips with sensitive Consortium or Authority documentation — provenance unclear, demand consistent',
     ],
-    tension: "The level-line economy: Level 1–3 businesses operate on Consortium-rate leases and serve higher-spending transit clientele. Level 4–5 operators run on lower margins with a more reliable but less lucrative local customer base. The Quiet Decade blurred this line; the Contract Dispute has redrawn it harder.",
+    tension:
+      'The level-line economy: Level 1–3 businesses operate on Consortium-rate leases and serve higher-spending transit clientele. Level 4–5 operators run on lower margins with a more reliable but less lucrative local customer base. The Quiet Decade blurred this line; the Contract Dispute has redrawn it harder.',
   },
 
   technology: {
-    level: "Mid-range interstellar standard. The station has functional jump-transit support infrastructure, medical facilities, and communications, but nothing cutting-edge.",
+    level:
+      'Mid-range interstellar standard. The station has functional jump-transit support infrastructure, medical facilities, and communications, but nothing cutting-edge.',
     unique: [
-      "The Compact Law arbitration system — an anachronistic but legally valid alternative jurisdiction that predates Sector standardisation and has never been successfully superseded",
+      'The Compact Law arbitration system — an anachronistic but legally valid alternative jurisdiction that predates Sector standardisation and has never been successfully superseded',
       "Level 2's original atmospheric filtration system — older than the Refit, maintained by muscle memory and a manual that exists in one copy behind the engineer's station on Level 2",
     ],
     lost: [
-      "The original Expansion Wars-era emergency beacon array — replaced during the Refit with Sector-standard equipment. Several outer-ring residents claim the old array had a frequency the new one cannot replicate, useful for a signal type they will not specify.",
+      'The original Expansion Wars-era emergency beacon array — replaced during the Refit with Sector-standard equipment. Several outer-ring residents claim the old array had a frequency the new one cannot replicate, useful for a signal type they will not specify.',
     ],
     cuttingEdge: [
       "Inspector Torr's documentation system — Sector-standard audit technology that is notably more sophisticated than anything the Consortium has access to, and they have noticed",
@@ -519,34 +606,41 @@ const beforeSnapshotSchema = {
 
 ```js
 gmState.worldHistory.beforeSnapshot = {
-  normalDay: "Morning on Level 2 means the transit crew shift change — the overnight arrivals filing off their berths toward the food stalls, the day traders setting up, the Authority compliance check at Berth 7 that happens every Tuesday regardless of whether there is anything to check. Gareth Williams opens The Oxidiser at 0900, which is when the people who worked all night need somewhere to be that isn't the berth or the bunkhouse. He pours the first drink himself. He has done it every morning for fifteen years.",
+  normalDay:
+    "Morning on Level 2 means the transit crew shift change — the overnight arrivals filing off their berths toward the food stalls, the day traders setting up, the Authority compliance check at Berth 7 that happens every Tuesday regardless of whether there is anything to check. Gareth Williams opens The Oxidiser at 0900, which is when the people who worked all night need somewhere to be that isn't the berth or the bunkhouse. He pours the first drink himself. He has done it every morning for fifteen years.",
 
   simmeringTensions: [
     {
-      tension: "Gareth is three months behind on his lease. The Level 2 leasing office has sent two written notices. A third notice triggers a formal review, which triggers Consortium involvement at a level where informal resolution becomes impossible.",
-      proximity: "days",
+      tension:
+        'Gareth is three months behind on his lease. The Level 2 leasing office has sent two written notices. A third notice triggers a formal review, which triggers Consortium involvement at a level where informal resolution becomes impossible.',
+      proximity: 'days',
     },
     {
-      tension: "Inspector Torr has the bond documentation. He has not filed his report. He is waiting for something — either confirmation of what he suspects, or a reason not to proceed.",
-      proximity: "weeks",
+      tension:
+        'Inspector Torr has the bond documentation. He has not filed his report. He is waiting for something — either confirmation of what he suspects, or a reason not to proceed.',
+      proximity: 'weeks',
     },
     {
-      tension: "Dael Orwen has scheduled a meeting of the Outer Ring Residents' Association for the end of the month. The agenda item she has not published is a vote on whether to proceed with legal action against the Consortium. She needs the bond documentation to make the case. She does not have it yet.",
-      proximity: "weeks",
+      tension:
+        "Dael Orwen has scheduled a meeting of the Outer Ring Residents' Association for the end of the month. The agenda item she has not published is a vote on whether to proceed with legal action against the Consortium. She needs the bond documentation to make the case. She does not have it yet.",
+      proximity: 'weeks',
     },
     {
-      tension: "The Consortium's two pro-settlement council seats are planning to request an emergency session. The two consolidation seats know this. The meeting has not been requested yet, but both sides are positioning.",
-      proximity: "months",
+      tension:
+        "The Consortium's two pro-settlement council seats are planning to request an emergency session. The two consolidation seats know this. The meeting has not been requested yet, but both sides are positioning.",
+      proximity: 'months',
     },
   ],
 
-  aboutToBreak: "A cargo manifest filed with the Docking Authority last night does not match the physical inventory at Berth 12. The discrepancy is small enough to be clerical error. It is not clerical error. Someone has moved something, or someone has paid someone to record something that didn't happen. By midday, the Authority will have flagged it. By evening, it will involve people who do not want it to involve them.",
+  aboutToBreak:
+    "A cargo manifest filed with the Docking Authority last night does not match the physical inventory at Berth 12. The discrepancy is small enough to be clerical error. It is not clerical error. Someone has moved something, or someone has paid someone to record something that didn't happen. By midday, the Authority will have flagged it. By evening, it will involve people who do not want it to involve them.",
 
-  whoKnows: "Portmaster Voss was informed at 0600 — the automated flag goes to her office first. She has not yet decided what to do with the information. Inspector Torr does not know yet. Gareth Williams does not know yet, but the person who filed the false manifest will be at The Oxidiser this morning. They always are when they're nervous.",
+  whoKnows:
+    "Portmaster Voss was informed at 0600 — the automated flag goes to her office first. She has not yet decided what to do with the information. Inspector Torr does not know yet. Gareth Williams does not know yet, but the person who filed the false manifest will be at The Oxidiser this morning. They always are when they're nervous.",
 
   signs: [
-    "Berth 12 had its lighting replaced last week — a maintenance job that required the corridor cameras to be offline for six hours. The timing was a coincidence. Probably.",
-    "Three regular Level 2 traders have not been in The Oxidiser for the past week. Gareth noticed. He has not mentioned it.",
+    'Berth 12 had its lighting replaced last week — a maintenance job that required the corridor cameras to be offline for six hours. The timing was a coincidence. Probably.',
+    'Three regular Level 2 traders have not been in The Oxidiser for the past week. Gareth noticed. He has not mentioned it.',
     "The Level 2 leasing officer's visit last Thursday was unusual — she stayed for forty minutes and spoke to two people Gareth didn't recognise before ordering her drink.",
     "A data chip was left under a glass at The Oxidiser's bar two days ago. The customer who left it did not return. Gareth kept it in his drawer. He has not looked at it.",
   ],
@@ -680,22 +774,23 @@ What is the world the day the adventure starts? Identify the central conflict, t
 that cannot hold, and the faction or institution driving events. This is the most recent
 epoch. Everything else is built backwards from here.
 
-*Freeport Meridian: The Contract Dispute. The Consortium consolidating. The outer ring
-organising. Something in a cargo manifest that has caught the wrong kind of attention.*
+_Freeport Meridian: The Contract Dispute. The Consortium consolidating. The outer ring
+organising. Something in a cargo manifest that has caught the wrong kind of attention._
 
 ### Step 2 — Inciting incident
 
 What event, within living memory, started the chain that produced the current era? This is
 usually the second-to-last epoch — close enough that people who were there are still around.
 
-*Freeport Meridian: The Great Refit bond and its deliberate default — a financial arrangement
+_Freeport Meridian: The Great Refit bond and its deliberate default — a financial arrangement
 structured to give the Sector Authority leverage in exchange for backing the Consortium's
 internal monopoly. Eight years of contract dispute flow directly from the Authority's
-willingness to back the Consortium because of that arrangement.*
+willingness to back the Consortium because of that arrangement._
 
 ### Step 3 — Work backwards (3–5 epochs total)
 
 Add two to three more epochs, moving further into the past. At each step, ask:
+
 - What produced the inciting incident?
 - What institutions existed before the current ones?
 - What was lost that people still miss, or lost that nobody mourns?

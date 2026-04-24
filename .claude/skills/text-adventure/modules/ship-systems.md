@@ -1,10 +1,11 @@
 # Ship Systems — Vessel Integrity Engine
+
 > Module for text-adventure orchestrator. Loaded when the player commands a vessel.
 
 The ship is not a vehicle. It is the most important NPC in a space adventure — a partner that can
 fail you at the worst moment, that costs resources to keep alive, and that changes every risk
 calculation when it starts to die. A hull breach during a tense negotiation is not a side problem;
-it *is* the problem. Power drained to life support means weapons are offline. Damaged sensors mean
+it _is_ the problem. Power drained to life support means weapons are offline. Damaged sensors mean
 you are flying blind into a system you already know is hostile.
 
 This skill models the ship as a network of seven interdependent systems, each with its own
@@ -17,10 +18,10 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: crew-mani
 
 ## § CLI Commands
 
-| Action | Command | Tool |
-|--------|---------|------|
-| Render ship status | `tag render ship --style <style>` | Run via Bash tool |
-| Set ship state | `tag state set shipState.<path> <value>` | Run via Bash tool |
+| Action             | Command                                  | Tool              |
+| ------------------ | ---------------------------------------- | ----------------- |
+| Render ship status | `tag render ship --style <style>`        | Run via Bash tool |
+| Set ship state     | `tag state set shipState.<path> <value>` | Run via Bash tool |
 
 > **Do not hand-code ship status HTML/CSS/JS.** Always run the CLI command via Bash tool to render the ship status widget. The `tag render ship` command handles all system cards, power pips, condition pills, integrity bars, action buttons, and sendPrompt wiring automatically.
 
@@ -64,6 +65,7 @@ SHIELDS     — energy barriers; absorbs damage before hull
 ```
 
 Each system has:
+
 - `integrity` — current value (0–100)
 - `power` — power units currently allocated (0–4)
 - `status` — operational | degraded | critical | offline
@@ -72,13 +74,13 @@ Each system has:
 
 ### Status thresholds
 
-| Integrity | Status | Narrative implication |
-|---|---|---|
-| 76–100 | Operational | Fully functional. No modifier. |
-| 51–75 | Degraded | Functional but strained. −1 to related rolls. |
-| 26–50 | Critical | Barely holding. −2 to related rolls. Risk of cascade. |
-| 1–25 | Failing | On the verge. −3 to related rolls. Cascade each scene. |
-| 0 | Offline | Completely non-functional. See failure modes. |
+| Integrity | Status      | Narrative implication                                  |
+| --------- | ----------- | ------------------------------------------------------ |
+| 76–100    | Operational | Fully functional. No modifier.                         |
+| 51–75     | Degraded    | Functional but strained. −1 to related rolls.          |
+| 26–50     | Critical    | Barely holding. −2 to related rolls. Risk of cascade.  |
+| 1–25      | Failing     | On the verge. −3 to related rolls. Cascade each scene. |
+| 0         | Offline     | Completely non-functional. See failure modes.          |
 
 ---
 
@@ -96,87 +98,87 @@ outside the seven power-draw systems). See crew-manifest module for the full rol
 and mandatory roles per ship class.
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 const SHIP_CLASSES = {
-
   freighter: {
-    name:        'Heavy freighter',
-    flavour:     'Built to carry, not to fight. Every panel shows the repair history.',
-    maxPower:    12,
+    name: 'Heavy freighter',
+    flavour: 'Built to carry, not to fight. Every panel shows the repair history.',
+    maxPower: 12,
     systems: {
-      hull:         { integrity:85, power:0, maxPower:0, repairCost:4, label:'Hull plating'   },
-      engines:      { integrity:80, power:3, maxPower:4, repairCost:3, label:'Drive assembly' },
-      power_core:   { integrity:90, power:0, maxPower:0, repairCost:5, label:'Reactor core'   },
-      life_support: { integrity:90, power:2, maxPower:3, repairCost:2, label:'Life support'   },
-      weapons:      { integrity:50, power:1, maxPower:2, repairCost:3, label:'Point defence'  },
-      sensors:      { integrity:70, power:2, maxPower:3, repairCost:2, label:'Sensor array'   },
-      shields:      { integrity:40, power:4, maxPower:4, repairCost:4, label:'Deflector grid' },
+      hull: { integrity: 85, power: 0, maxPower: 0, repairCost: 4, label: 'Hull plating' },
+      engines: { integrity: 80, power: 3, maxPower: 4, repairCost: 3, label: 'Drive assembly' },
+      power_core: { integrity: 90, power: 0, maxPower: 0, repairCost: 5, label: 'Reactor core' },
+      life_support: { integrity: 90, power: 2, maxPower: 3, repairCost: 2, label: 'Life support' },
+      weapons: { integrity: 50, power: 1, maxPower: 2, repairCost: 3, label: 'Point defence' },
+      sensors: { integrity: 70, power: 2, maxPower: 3, repairCost: 2, label: 'Sensor array' },
+      shields: { integrity: 40, power: 4, maxPower: 4, repairCost: 4, label: 'Deflector grid' },
     },
     cargoCapacity: 8,
-    jumpRange:     3,
-    hullPoints:    120,
+    jumpRange: 3,
+    hullPoints: 120,
   },
 
   corvette: {
-    name:        'Light corvette',
-    flavour:     'Fast and mean. Not built for comfort. Built to survive.',
-    maxPower:    14,
+    name: 'Light corvette',
+    flavour: 'Fast and mean. Not built for comfort. Built to survive.',
+    maxPower: 14,
     systems: {
-      hull:         { integrity:75, power:0, maxPower:0, repairCost:3, label:'Hull plating'      },
-      engines:      { integrity:90, power:4, maxPower:5, repairCost:3, label:'Thrust array'      },
-      power_core:   { integrity:90, power:0, maxPower:0, repairCost:4, label:'Dual reactor'      },
-      life_support: { integrity:85, power:1, maxPower:2, repairCost:2, label:'Life support'      },
-      weapons:      { integrity:90, power:5, maxPower:6, repairCost:3, label:'Weapons battery'   },
-      sensors:      { integrity:80, power:2, maxPower:3, repairCost:2, label:'Combat sensors'    },
-      shields:      { integrity:70, power:2, maxPower:4, repairCost:3, label:'Shield emitters'   },
+      hull: { integrity: 75, power: 0, maxPower: 0, repairCost: 3, label: 'Hull plating' },
+      engines: { integrity: 90, power: 4, maxPower: 5, repairCost: 3, label: 'Thrust array' },
+      power_core: { integrity: 90, power: 0, maxPower: 0, repairCost: 4, label: 'Dual reactor' },
+      life_support: { integrity: 85, power: 1, maxPower: 2, repairCost: 2, label: 'Life support' },
+      weapons: { integrity: 90, power: 5, maxPower: 6, repairCost: 3, label: 'Weapons battery' },
+      sensors: { integrity: 80, power: 2, maxPower: 3, repairCost: 2, label: 'Combat sensors' },
+      shields: { integrity: 70, power: 2, maxPower: 4, repairCost: 3, label: 'Shield emitters' },
     },
     cargoCapacity: 2,
-    jumpRange:     4,
-    hullPoints:    80,
+    jumpRange: 4,
+    hullPoints: 80,
   },
 
   salvage_tug: {
-    name:        'Salvage tug',
-    flavour:     'It shouldn\'t still be running. It knows it shouldn\'t still be running.',
-    maxPower:    10,
+    name: 'Salvage tug',
+    flavour: "It shouldn't still be running. It knows it shouldn't still be running.",
+    maxPower: 10,
     systems: {
-      hull:         { integrity:60, power:0, maxPower:0, repairCost:3, label:'Reinforced hull'  },
-      engines:      { integrity:65, power:3, maxPower:3, repairCost:4, label:'Tug drives'       },
-      power_core:   { integrity:75, power:0, maxPower:0, repairCost:5, label:'Reactor'          },
-      life_support: { integrity:70, power:2, maxPower:2, repairCost:2, label:'Life support'     },
-      weapons:      { integrity:20, power:1, maxPower:1, repairCost:4, label:'Emergency rail'   },
-      sensors:      { integrity:60, power:2, maxPower:2, repairCost:3, label:'Salvage sensors'  },
-      shields:      { integrity:20, power:2, maxPower:3, repairCost:5, label:'Deflectors'       },
+      hull: { integrity: 60, power: 0, maxPower: 0, repairCost: 3, label: 'Reinforced hull' },
+      engines: { integrity: 65, power: 3, maxPower: 3, repairCost: 4, label: 'Tug drives' },
+      power_core: { integrity: 75, power: 0, maxPower: 0, repairCost: 5, label: 'Reactor' },
+      life_support: { integrity: 70, power: 2, maxPower: 2, repairCost: 2, label: 'Life support' },
+      weapons: { integrity: 20, power: 1, maxPower: 1, repairCost: 4, label: 'Emergency rail' },
+      sensors: { integrity: 60, power: 2, maxPower: 2, repairCost: 3, label: 'Salvage sensors' },
+      shields: { integrity: 20, power: 2, maxPower: 3, repairCost: 5, label: 'Deflectors' },
     },
     cargoCapacity: 12,
-    jumpRange:     2,
-    hullPoints:    100,
+    jumpRange: 2,
+    hullPoints: 100,
   },
 
   research_vessel: {
-    name:        'Research vessel',
-    flavour:     'Every surface covered in readings. The crew would die before they\'d lose their data.',
-    maxPower:    13,
+    name: 'Research vessel',
+    flavour: "Every surface covered in readings. The crew would die before they'd lose their data.",
+    maxPower: 13,
     systems: {
-      hull:         { integrity:80, power:0, maxPower:0, repairCost:3, label:'Hull plating'       },
-      engines:      { integrity:75, power:2, maxPower:3, repairCost:3, label:'Drive systems'      },
-      power_core:   { integrity:95, power:0, maxPower:0, repairCost:4, label:'Reactor core'       },
-      life_support: { integrity:95, power:3, maxPower:3, repairCost:2, label:'Life support'       },
-      weapons:      { integrity:30, power:0, maxPower:1, repairCost:3, label:'Deterrent array'    },
-      sensors:      { integrity:95, power:5, maxPower:6, repairCost:2, label:'Science array'      },
-      shields:      { integrity:55, power:3, maxPower:4, repairCost:3, label:'Deflector grid'     },
+      hull: { integrity: 80, power: 0, maxPower: 0, repairCost: 3, label: 'Hull plating' },
+      engines: { integrity: 75, power: 2, maxPower: 3, repairCost: 3, label: 'Drive systems' },
+      power_core: { integrity: 95, power: 0, maxPower: 0, repairCost: 4, label: 'Reactor core' },
+      life_support: { integrity: 95, power: 3, maxPower: 3, repairCost: 2, label: 'Life support' },
+      weapons: { integrity: 30, power: 0, maxPower: 1, repairCost: 3, label: 'Deterrent array' },
+      sensors: { integrity: 95, power: 5, maxPower: 6, repairCost: 2, label: 'Science array' },
+      shields: { integrity: 55, power: 3, maxPower: 4, repairCost: 3, label: 'Deflector grid' },
     },
     cargoCapacity: 4,
-    jumpRange:     3,
-    hullPoints:    90,
+    jumpRange: 3,
+    hullPoints: 90,
   },
-
 };
 ```
 
 ### Initialise ship from class
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 function initShip(classKey, shipName) {
   const template = SHIP_CLASSES[classKey] || SHIP_CLASSES.freighter;
@@ -184,12 +186,12 @@ function initShip(classKey, shipName) {
   Object.entries(template.systems).forEach(([id, s]) => {
     systems[id] = {
       id,
-      label:      s.label,
-      integrity:  s.integrity,
+      label: s.label,
+      integrity: s.integrity,
       maxIntegrity: 100,
-      power:      s.power,
-      maxPower:   s.maxPower,
-      status:     integrityToStatus(s.integrity),
+      power: s.power,
+      maxPower: s.maxPower,
+      status: integrityToStatus(s.integrity),
       conditions: [],
       repairCost: s.repairCost,
       repairProgress: 0,
@@ -197,19 +199,19 @@ function initShip(classKey, shipName) {
   });
 
   return {
-    name:         shipName || template.name,
-    class:        classKey,
-    flavour:      template.flavour,
-    maxPower:     template.maxPower,
-    powerUsed:    Object.values(systems).reduce((t, s) => t + s.power, 0),
-    hullPoints:   template.hullPoints,
+    name: shipName || template.name,
+    class: classKey,
+    flavour: template.flavour,
+    maxPower: template.maxPower,
+    powerUsed: Object.values(systems).reduce((t, s) => t + s.power, 0),
+    hullPoints: template.hullPoints,
     maxHullPoints: template.hullPoints,
     cargoCapacity: template.cargoCapacity,
-    cargo:        [],
-    jumpRange:    template.jumpRange,
+    cargo: [],
+    jumpRange: template.jumpRange,
     systems,
-    conditions:   [],   // ship-level conditions: 'venting', 'overclocked', 'boarded', 'adrift'
-    repairParts:  3,    // starting repair parts in inventory
+    conditions: [], // ship-level conditions: 'venting', 'overclocked', 'boarded', 'adrift'
+    repairParts: 3, // starting repair parts in inventory
     scenesSinceRepair: 0,
   };
 }
@@ -218,7 +220,7 @@ function integrityToStatus(integrity) {
   if (integrity > 75) return 'operational';
   if (integrity > 50) return 'degraded';
   if (integrity > 25) return 'critical';
-  if (integrity >  0) return 'failing';
+  if (integrity > 0) return 'failing';
   return 'offline';
 }
 ```
@@ -231,15 +233,15 @@ Every system in a degraded or worse state imposes DC modifiers on relevant skill
 The GM applies these automatically — never mention the modifier label to the player, only the
 narrative consequence.
 
-| System | Affected actions | Degraded | Critical | Failing | Offline |
-|---|---|---|---|---|---|
-| Hull | Boarding defence, enduring impacts | −1 | −2 | −3 | Auto-fail: hull breach |
-| Engines | Jump rolls, evasion, docking approach | −1 | −2 | −3 | Cannot jump or manoeuvre |
-| Power Core | All powered systems (extra −1 on top) | −1 | −2 | −3 | Cascade: all systems lose 2 power |
-| Life Support | CON checks in affected areas, focus | −1 | −2 | −3 | Atmosphere loss — suit up or die |
-| Weapons | Attack rolls, deterrence checks | −1 | −2 | −3 | No weapons available |
-| Sensors | Navigation, detection, social (comms) | −1 | −2 | −3 | Flying blind — all navigation DC +4 |
-| Shields | Damage absorption (see Combat rules) | −1 absorb | −2 absorb | −3 absorb | No shield absorption |
+| System       | Affected actions                      | Degraded  | Critical  | Failing   | Offline                             |
+| ------------ | ------------------------------------- | --------- | --------- | --------- | ----------------------------------- |
+| Hull         | Boarding defence, enduring impacts    | −1        | −2        | −3        | Auto-fail: hull breach              |
+| Engines      | Jump rolls, evasion, docking approach | −1        | −2        | −3        | Cannot jump or manoeuvre            |
+| Power Core   | All powered systems (extra −1 on top) | −1        | −2        | −3        | Cascade: all systems lose 2 power   |
+| Life Support | CON checks in affected areas, focus   | −1        | −2        | −3        | Atmosphere loss — suit up or die    |
+| Weapons      | Attack rolls, deterrence checks       | −1        | −2        | −3        | No weapons available                |
+| Sensors      | Navigation, detection, social (comms) | −1        | −2        | −3        | Flying blind — all navigation DC +4 |
+| Shields      | Damage absorption (see Combat rules)  | −1 absorb | −2 absorb | −3 absorb | No shield absorption                |
 
 **Stacking rule:** modifiers from multiple damaged systems stack. A ship with critical engines
 and degraded sensors imposes −2 on jumps and an additional −1. The player should feel the
@@ -254,24 +256,27 @@ this pool. The player can reallocate power between scenes — but never during a
 unless a system goes offline (freeing its allocation automatically).
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 function getPowerPool(shipState) {
   return {
-    total:  shipState.maxPower,
-    used:   Object.values(shipState.systems).reduce((t, s) => t + s.power, 0),
-    free:   shipState.maxPower - Object.values(shipState.systems).reduce((t, s) => t + s.power, 0),
+    total: shipState.maxPower,
+    used: Object.values(shipState.systems).reduce((t, s) => t + s.power, 0),
+    free: shipState.maxPower - Object.values(shipState.systems).reduce((t, s) => t + s.power, 0),
   };
 }
 
 function reallocatePower(shipState, fromSystemId, toSystemId, units) {
   const from = shipState.systems[fromSystemId];
-  const to   = shipState.systems[toSystemId];
+  const to = shipState.systems[toSystemId];
   if (!from || !to) return { success: false, reason: 'System not found.' };
   if (from.power < units) return { success: false, reason: `${from.label} only has ${from.power} power to spare.` };
-  if (to.power + units > to.maxPower) return { success: false, reason: `${to.label} cannot accept more than ${to.maxPower} power.` };
-  if (to.status === 'offline') return { success: false, reason: `${to.label} is offline — power cannot be routed to a dead system.` };
+  if (to.power + units > to.maxPower)
+    return { success: false, reason: `${to.label} cannot accept more than ${to.maxPower} power.` };
+  if (to.status === 'offline')
+    return { success: false, reason: `${to.label} is offline — power cannot be routed to a dead system.` };
   from.power -= units;
-  to.power   += units;
+  to.power += units;
   shipState.powerUsed = Object.values(shipState.systems).reduce((t, s) => t + s.power, 0);
   applyPowerEffects(shipState, toSystemId);
   return { success: true };
@@ -283,11 +288,11 @@ function powerBonus(systemId, power) {
   if (power === 0) return -3;
   if (power === 1) return -1;
   if (power === maxPower) return +1;
-  if (power > maxPower)   return +2;
+  if (power > maxPower) return +2;
   return 0;
 }
 
-const POWER_BONUSES = { engines:4, weapons:6, sensors:3, shields:4, life_support:3 };
+const POWER_BONUSES = { engines: 4, weapons: 6, sensors: 3, shields: 4, life_support: 3 };
 
 function applyPowerEffects(shipState, changedSystemId) {
   const sys = shipState.systems[changedSystemId];
@@ -322,6 +327,7 @@ Damage is applied per system. Sources: combat hits, hazard rolls (from the star-
 environmental events, cascade failures.
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 function damageSystem(shipState, systemId, amount, source) {
   const sys = shipState.systems[systemId];
@@ -357,7 +363,11 @@ function damageSystem(shipState, systemId, amount, source) {
   // Critical hull — venting condition
   if (systemId === 'hull' && sys.integrity <= 25 && !shipState.conditions.includes('venting')) {
     shipState.conditions.push('venting');
-    events.push({ type: 'ship_condition', condition: 'venting', narrative: 'Hull breach detected. Atmosphere venting in affected sections.' });
+    events.push({
+      type: 'ship_condition',
+      condition: 'venting',
+      narrative: 'Hull breach detected. Atmosphere venting in affected sections.',
+    });
   }
 
   // Hull at 0 — ship destroyed
@@ -371,46 +381,46 @@ function damageSystem(shipState, systemId, amount, source) {
 
 const STATUS_CHANGE_NARRATIVES = {
   hull: {
-    degraded:  'The hull takes another hit. Structural warnings are amber across the board.',
-    critical:  'Hull integrity critical. Stress fractures visible on three sections. Any more and she vents.',
-    failing:   'The hull is tearing. You can hear it — a low groan that shouldn\'t be audible in vacuum.',
-    offline:   'Hull failure. Atmosphere venting.',
+    degraded: 'The hull takes another hit. Structural warnings are amber across the board.',
+    critical: 'Hull integrity critical. Stress fractures visible on three sections. Any more and she vents.',
+    failing: "The hull is tearing. You can hear it — a low groan that shouldn't be audible in vacuum.",
+    offline: 'Hull failure. Atmosphere venting.',
   },
   engines: {
-    degraded:  'The drives are struggling. Response lag is noticeable now.',
-    critical:  'Engines critical. Jump capability compromised. Best speed: 40%.',
-    failing:   'Drive assembly failing. Manoeuvrability minimal. No jump.',
-    offline:   'Engines offline. The ship is adrift.',
+    degraded: 'The drives are struggling. Response lag is noticeable now.',
+    critical: 'Engines critical. Jump capability compromised. Best speed: 40%.',
+    failing: 'Drive assembly failing. Manoeuvrability minimal. No jump.',
+    offline: 'Engines offline. The ship is adrift.',
   },
   life_support: {
-    degraded:  'Life support strained. CO₂ scrubbers running at 70%.',
-    critical:  'Life support critical. Suit up in the next two hours or start feeling it.',
-    failing:   'Life support failing. Atmosphere thinning. Suit up now.',
-    offline:   'Life support offline. You have minutes before hypoxia.',
+    degraded: 'Life support strained. CO₂ scrubbers running at 70%.',
+    critical: 'Life support critical. Suit up in the next two hours or start feeling it.',
+    failing: 'Life support failing. Atmosphere thinning. Suit up now.',
+    offline: 'Life support offline. You have minutes before hypoxia.',
   },
   weapons: {
-    degraded:  'Weapons systems degraded. Targeting is sluggish.',
-    critical:  'Weapons critical. Half the battery is unresponsive.',
-    failing:   'Weapons nearly gone. One shot remaining, maybe two.',
-    offline:   'Weapons offline. You are defenceless.',
+    degraded: 'Weapons systems degraded. Targeting is sluggish.',
+    critical: 'Weapons critical. Half the battery is unresponsive.',
+    failing: 'Weapons nearly gone. One shot remaining, maybe two.',
+    offline: 'Weapons offline. You are defenceless.',
   },
   sensors: {
-    degraded:  'Sensor resolution dropping. Long-range data is unreliable.',
-    critical:  'Sensor array critical. Short-range only. Flying half-blind.',
-    failing:   'Sensors failing. Proximity warnings only.',
-    offline:   'Sensors offline. You can\'t see anything coming.',
+    degraded: 'Sensor resolution dropping. Long-range data is unreliable.',
+    critical: 'Sensor array critical. Short-range only. Flying half-blind.',
+    failing: 'Sensors failing. Proximity warnings only.',
+    offline: "Sensors offline. You can't see anything coming.",
   },
   shields: {
-    degraded:  'Shield emitters degraded. Coverage down to 70%.',
-    critical:  'Shields critical. Point impacts are getting through.',
-    failing:   'Shields nearly gone. One good hit and they drop.',
-    offline:   'Shields offline. Nothing between you and what\'s out there.',
+    degraded: 'Shield emitters degraded. Coverage down to 70%.',
+    critical: 'Shields critical. Point impacts are getting through.',
+    failing: 'Shields nearly gone. One good hit and they drop.',
+    offline: "Shields offline. Nothing between you and what's out there.",
   },
   power_core: {
-    degraded:  'Power core fluctuating. Minor brownouts across secondary systems.',
-    critical:  'Power core critical. All systems drawing from emergency reserve.',
-    failing:   'Power core failing. You have minutes before total blackout.',
-    offline:   'Power core offline. Everything runs on backup. You have one jump. Maybe.',
+    degraded: 'Power core fluctuating. Minor brownouts across secondary systems.',
+    critical: 'Power core critical. All systems drawing from emergency reserve.',
+    failing: 'Power core failing. You have minutes before total blackout.',
+    offline: 'Power core offline. Everything runs on backup. You have one jump. Maybe.',
   },
 };
 ```
@@ -423,22 +433,23 @@ When a system goes offline, dependent systems lose power and take damage. The ca
 chain is the most dramatic mechanical moment in a ship-systems session.
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 // Dependency graph: which systems are affected when a given system fails
 const CASCADE_DEPENDENCIES = {
-  power_core:   ['engines','weapons','sensors','shields'],  // power failure hits everything
-  life_support: [],                                          // self-contained failure
-  engines:      [],                                          // mechanical, not power-dependent
-  hull:         ['life_support'],                            // breach affects atmosphere
-  weapons:      [],
-  sensors:      [],
-  shields:      [],
+  power_core: ['engines', 'weapons', 'sensors', 'shields'], // power failure hits everything
+  life_support: [], // self-contained failure
+  engines: [], // mechanical, not power-dependent
+  hull: ['life_support'], // breach affects atmosphere
+  weapons: [],
+  sensors: [],
+  shields: [],
 };
 
 // Cascade damage amounts (integrity lost by dependent systems)
 const CASCADE_DAMAGE = {
-  power_core: 20,  // catastrophic — power outage hits all systems hard
-  hull:        15,  // hull breach pressurises life support
+  power_core: 20, // catastrophic — power outage hits all systems hard
+  hull: 15, // hull breach pressurises life support
 };
 
 function triggerCascade(shipState, offlineSystemId) {
@@ -470,20 +481,21 @@ Repairs cost parts and time (scenes). They can be attempted in the field (partia
 or at a station (full repair). The player makes a repair roll; outcome determines recovery.
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 const REPAIR_DCS = {
-  operational: null,   // no repair needed
-  degraded:    10,
-  critical:    14,
-  failing:     17,
-  offline:     20,
+  operational: null, // no repair needed
+  degraded: 10,
+  critical: 14,
+  failing: 17,
+  offline: 20,
 };
 
 const REPAIR_PARTS_COST = {
-  degraded: 0,   // minor repair — no parts, just time
+  degraded: 0, // minor repair — no parts, just time
   critical: 1,
-  failing:  2,
-  offline:  3,
+  failing: 2,
+  offline: 3,
 };
 
 function repairRoll(shipState, systemId, rollResult, repairType) {
@@ -536,12 +548,12 @@ function repairRoll(shipState, systemId, rollResult, repairType) {
 
 ### Repair types
 
-| Type | Where | Cost | Roll | Integrity restored |
-|---|---|---|---|---|
-| Field stabilise | Anywhere | 0 parts | INT (DC by status) | Partial: +10, success: +25, crit: +40 |
-| Field overhaul | Docked/stationary | 1–3 parts | INT+2 (DC by status) | Success: +25, crit: +50 |
-| Station repair | Inhabited/station system | Credits | No roll | Full restoration to 100 |
-| Emergency patch | Combat/crisis | 1 part | DEX (DC+3) | Success: +15 (one status tier up) |
+| Type            | Where                    | Cost      | Roll                 | Integrity restored                    |
+| --------------- | ------------------------ | --------- | -------------------- | ------------------------------------- |
+| Field stabilise | Anywhere                 | 0 parts   | INT (DC by status)   | Partial: +10, success: +25, crit: +40 |
+| Field overhaul  | Docked/stationary        | 1–3 parts | INT+2 (DC by status) | Success: +25, crit: +50               |
+| Station repair  | Inhabited/station system | Credits   | No roll              | Full restoration to 100               |
+| Emergency patch | Combat/crisis            | 1 part    | DEX (DC+3)           | Success: +15 (one status tier up)     |
 
 ---
 
@@ -550,17 +562,19 @@ function repairRoll(shipState, systemId, rollResult, repairType) {
 When the ship takes weapons fire, damage is distributed across systems based on hit location.
 Roll 1d6 for hit location:
 
-| d6 | Location | System hit |
-|---|---|---|
-| 1 | Forward hull | `hull` (full damage) |
-| 2 | Engines | `engines` (full damage) |
-| 3 | Port/starboard | `shields` first; overflow to `hull` |
-| 4 | Weapons bay | `weapons` (full damage) |
-| 5 | Sensor array | `sensors` (full damage) |
-| 6 | Core section | `power_core` (half damage) + `shields` (half damage) |
+| d6  | Location       | System hit                                           |
+| --- | -------------- | ---------------------------------------------------- |
+| 1   | Forward hull   | `hull` (full damage)                                 |
+| 2   | Engines        | `engines` (full damage)                              |
+| 3   | Port/starboard | `shields` first; overflow to `hull`                  |
+| 4   | Weapons bay    | `weapons` (full damage)                              |
+| 5   | Sensor array   | `sensors` (full damage)                              |
+| 6   | Core section   | `power_core` (half damage) + `shields` (half damage) |
 
 Shields absorb damage before it reaches other systems:
+
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 function applyWeaponsDamage(shipState, rawDamage, hitLocation) {
   const shields = shipState.systems.shields;
@@ -568,10 +582,16 @@ function applyWeaponsDamage(shipState, rawDamage, hitLocation) {
 
   // Shields absorb first if operational
   if (shields.integrity > 0 && hitLocation !== 'sensors' && hitLocation !== 'weapons') {
-    const absorbRate = shields.status === 'operational' ? 0.6
-      : shields.status === 'degraded'    ? 0.4
-      : shields.status === 'critical'    ? 0.2
-      : shields.status === 'failing'     ? 0.1 : 0;
+    const absorbRate =
+      shields.status === 'operational'
+        ? 0.6
+        : shields.status === 'degraded'
+          ? 0.4
+          : shields.status === 'critical'
+            ? 0.2
+            : shields.status === 'failing'
+              ? 0.1
+              : 0;
     const absorbed = Math.floor(rawDamage * absorbRate);
     remainingDamage -= absorbed;
     // Shields themselves take a fraction of absorbed damage
@@ -625,24 +645,25 @@ SHIP_EVENT: status   | (opens the ship status widget)
 `shipState` lives at `gmState.shipState`. It is saved and restored by the save-codex module.
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 // In save-codex compact mode: ship state stored as worldFlags delta
 const shipFlags = {
   ship_class: shipState.class,
-  ship_name:  shipState.name,
-  ship_hull:  shipState.systems.hull.integrity,
-  ship_eng:   shipState.systems.engines.integrity,
-  ship_pwr:   shipState.systems.power_core.integrity,
-  ship_ls:    shipState.systems.life_support.integrity,
-  ship_wpn:   shipState.systems.weapons.integrity,
-  ship_sen:   shipState.systems.sensors.integrity,
-  ship_shd:   shipState.systems.shields.integrity,
+  ship_name: shipState.name,
+  ship_hull: shipState.systems.hull.integrity,
+  ship_eng: shipState.systems.engines.integrity,
+  ship_pwr: shipState.systems.power_core.integrity,
+  ship_ls: shipState.systems.life_support.integrity,
+  ship_wpn: shipState.systems.weapons.integrity,
+  ship_sen: shipState.systems.sensors.integrity,
+  ship_shd: shipState.systems.shields.integrity,
   ship_parts: shipState.repairParts,
-  ship_fuel:  shipState.jumpFuelRemaining,
-  ship_cond:  (shipState.conditions||[]).join(','),
+  ship_fuel: shipState.jumpFuelRemaining,
+  ship_cond: (shipState.conditions || []).join(','),
   // Power allocations
   ship_pow_eng: shipState.systems.engines.power,
-  ship_pow_ls:  shipState.systems.life_support.power,
+  ship_pow_ls: shipState.systems.life_support.power,
   ship_pow_wpn: shipState.systems.weapons.power,
   ship_pow_sen: shipState.systems.sensors.power,
   ship_pow_shd: shipState.systems.shields.power,
@@ -651,7 +672,9 @@ Object.assign(gmState.worldFlags, shipFlags);
 ```
 
 Auto-surface the widget (without player prompt) when any system crosses into critical:
+
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 if (Object.values(shipState.systems).some(s => s.status === 'critical' || s.status === 'failing')) {
   // Include a note in the next scene widget: "Ship status requires attention."

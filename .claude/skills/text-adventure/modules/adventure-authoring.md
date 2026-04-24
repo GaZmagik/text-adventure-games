@@ -1,4 +1,5 @@
 # Adventure Authoring — The `.lore.md` File Format
+
 > Module for text-adventure orchestrator. Loaded when the player uploads or pastes a `.lore.md`
 > file, or when the GM is asked to create an adventure.
 
@@ -49,34 +50,34 @@ modules to load, which styles to apply, and how the adventure is structured.
 
 ### Required Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `format` | string | Always `text-adventure-lore` — identifies the file type |
-| `version` | integer | Lore format version (currently `1`) |
-| `skill-version` | string | Minimum text-adventure skill version required |
-| `title` | string | Adventure title |
-| `author` | string | Author name |
-| `theme` | string | Genre theme: `space`, `fantasy`, `horror`, `historical`, `post-apocalyptic`, etc. |
-| `tone` | string | Narrative tone: `thriller`, `comedy`, `tragedy`, `mystery`, `epic`, `noir`, etc. |
-| `acts` | integer | Number of acts (typically 3, but 1-5 supported) |
-| `estimated-scenes` | string | Scene count range, e.g. `"15-20"` |
-| `players` | string | Player count range, e.g. `"1-2"` |
-| `difficulty` | string | `easy`, `moderate`, `hard`, or `brutal` |
-| `required-modules` | list | Module names the adventure depends on |
+| Field              | Type    | Description                                                                       |
+| ------------------ | ------- | --------------------------------------------------------------------------------- |
+| `format`           | string  | Always `text-adventure-lore` — identifies the file type                           |
+| `version`          | integer | Lore format version (currently `1`)                                               |
+| `skill-version`    | string  | Minimum text-adventure skill version required                                     |
+| `title`            | string  | Adventure title                                                                   |
+| `author`           | string  | Author name                                                                       |
+| `theme`            | string  | Genre theme: `space`, `fantasy`, `horror`, `historical`, `post-apocalyptic`, etc. |
+| `tone`             | string  | Narrative tone: `thriller`, `comedy`, `tragedy`, `mystery`, `epic`, `noir`, etc.  |
+| `acts`             | integer | Number of acts (typically 3, but 1-5 supported)                                   |
+| `estimated-scenes` | string  | Scene count range, e.g. `"15-20"`                                                 |
+| `players`          | string  | Player count range, e.g. `"1-2"`                                                  |
+| `difficulty`       | string  | `easy`, `moderate`, `hard`, or `brutal`                                           |
+| `required-modules` | list    | Module names the adventure depends on                                             |
 
 ### Optional Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `subtitle` | string | Tagline or series name |
-| `episodes` | integer | Episode number within a series (default `1`) |
-| `recommended-styles` | object | `output` (narrative style) and `visual` (CSS theme) |
-| `seed` | string | World seed — if present, `procedural-world-gen` fills secondary content (hybrid mode) |
-| `calendar-system` | string | Calendar name, e.g. `"Station Standard (24h, 365-day cycle)"` |
-| `start-date` | string | In-world date when the adventure begins |
-| `start-time` | string | In-world time when the adventure begins |
-| `pre-generated-characters` | list | Ready-made characters the player can adopt |
-| `optional-modules` | list | Modules that enhance but are not required |
+| Field                      | Type    | Description                                                                           |
+| -------------------------- | ------- | ------------------------------------------------------------------------------------- |
+| `subtitle`                 | string  | Tagline or series name                                                                |
+| `episodes`                 | integer | Episode number within a series (default `1`)                                          |
+| `recommended-styles`       | object  | `output` (narrative style) and `visual` (CSS theme)                                   |
+| `seed`                     | string  | World seed — if present, `procedural-world-gen` fills secondary content (hybrid mode) |
+| `calendar-system`          | string  | Calendar name, e.g. `"Station Standard (24h, 365-day cycle)"`                         |
+| `start-date`               | string  | In-world date when the adventure begins                                               |
+| `start-time`               | string  | In-world time when the adventure begins                                               |
+| `pre-generated-characters` | list    | Ready-made characters the player can adopt                                            |
+| `optional-modules`         | list    | Modules that enhance but are not required                                             |
 
 ### Pre-Generated Character Schema
 
@@ -84,15 +85,15 @@ Each entry in `pre-generated-characters` follows this structure:
 
 ```yaml
 pre-generated-characters:
-  - name: "Gareth Williams"
+  - name: 'Gareth Williams'
     class: Bartender
     stats: { STR: 10, DEX: 11, CON: 13, INT: 10, WIS: 15, CHA: 16 }
-    hook: "A data chip appears under your bar counter with your name etched into it"
-    background: "Thirty years on Freeport Meridian. You know every corridor, every regular, every secret."
-    proficiencies: ["Insight", "Persuasion", "Investigation", "Performance"]
+    hook: 'A data chip appears under your bar counter with your name etched into it'
+    background: 'Thirty years on Freeport Meridian. You know every corridor, every regular, every secret.'
+    proficiencies: ['Insight', 'Persuasion', 'Investigation', 'Performance']
     starting-inventory:
-      - { name: "Bar rag", type: "misc", effect: "Comfort item — +1 to composure checks" }
-      - { name: "Master keycard — The Oxidiser", type: "key_item", effect: "Opens all Oxidiser doors" }
+      - { name: 'Bar rag', type: 'misc', effect: 'Comfort item — +1 to composure checks' }
+      - { name: 'Master keycard — The Oxidiser', type: 'key_item', effect: 'Opens all Oxidiser doors' }
     starting-currency: 200
 ```
 
@@ -102,43 +103,43 @@ pre-generated-characters:
 ---
 format: text-adventure-lore
 version: 1
-skill-version: "1.0.0"
+skill-version: '1.0.0'
 
-title: "The Oxidiser Conspiracy"
-subtitle: "A Freeport Meridian Adventure"
-author: "Gareth Williams"
+title: 'The Oxidiser Conspiracy'
+subtitle: 'A Freeport Meridian Adventure'
+author: 'Gareth Williams'
 theme: space
 tone: thriller
 acts: 3
 episodes: 1
-estimated-scenes: "15-20"
-players: "1-2"
+estimated-scenes: '15-20'
+players: '1-2'
 difficulty: moderate
 
 recommended-styles:
   output: Sci-Fi-Narrator
   visual: station
 
-seed: "pale-threshold-7"
+seed: 'pale-threshold-7'
 rulebook: d20_system
 
-calendar-system: "Station Standard (24h, 365-day cycle)"
-start-date: "2347-03-15"
-start-time: "2200 hours"
+calendar-system: 'Station Standard (24h, 365-day cycle)'
+start-date: '2347-03-15'
+start-time: '2200 hours'
 
 pre-generated-characters:
-  - name: "Gareth Williams"
+  - name: 'Gareth Williams'
     class: Bartender
     stats: { STR: 10, DEX: 11, CON: 13, INT: 10, WIS: 15, CHA: 16 }
-    hook: "A data chip appears under your bar counter with your name etched into it"
+    hook: 'A data chip appears under your bar counter with your name etched into it'
     background: >
       Thirty years on Freeport Meridian. You know every corridor, every regular,
       every secret. The Oxidiser is yours — not by deed, but by decades of presence.
       When people need something found, fixed, or forgotten, they come to your bar.
-    proficiencies: ["Insight", "Persuasion", "Investigation", "Performance"]
+    proficiencies: ['Insight', 'Persuasion', 'Investigation', 'Performance']
     starting-inventory:
-      - { name: "Bar rag", type: "misc", effect: "Comfort item" }
-      - { name: "Master keycard — The Oxidiser", type: "key_item", effect: "Opens all Oxidiser doors" }
+      - { name: 'Bar rag', type: 'misc', effect: 'Comfort item' }
+      - { name: 'Master keycard — The Oxidiser', type: 'key_item', effect: 'Opens all Oxidiser doors' }
     starting-currency: 200
 
 required-modules:
@@ -182,6 +183,7 @@ discovers this history through play — it is never delivered as exposition.
 ## World History
 
 ### Epoch 1 — The Founding (2280-2295)
+
 - **Era:** Expansion
 - **Key event:** Freeport Meridian constructed as a deep-space refuelling waypoint
 - **Power structure:** Corporate charter — Meridian Corp holds governance rights
@@ -191,6 +193,7 @@ discovers this history through play — it is never delivered as exposition.
   has dwindled to a handful of loyalists and free-drink opportunists.
 
 ### Epoch 2 — The Sovereignty Crisis (2310-2318)
+
 - **Era:** Conflict
 - **Key event:** Station residents demanded self-governance after Meridian Corp
   cut life-support budgets to boost quarterly returns
@@ -204,7 +207,7 @@ discovers this history through play — it is never delivered as exposition.
 ### Rules
 
 - **Each epoch must leave a visible trace.** Architecture, slang, faction grudges,
-  memorial plaques, abandoned infrastructure — the player should be able to *see*
+  memorial plaques, abandoned infrastructure — the player should be able to _see_
   history in the world without being told about it.
 - **Epochs should conflict.** One faction's golden age is another's oppression. This
   creates NPC disagreements that feel organic rather than scripted.
@@ -226,6 +229,7 @@ outdoor areas, vehicles, and any space the player can visit.
 ## Location Atlas
 
 ### The Oxidiser — Bar Floor
+
 - **Type:** Interior, social hub
 - **Description:** Twenty-three stools, nine booths, one battered pool table.
   Strip-lighting casts everything in amber. The bottles behind the bar are
@@ -246,23 +250,23 @@ outdoor areas, vehicles, and any space the player can visit.
 
 ### Required Fields Per Location
 
-| Field | Description |
-|-------|-------------|
-| **Type** | Interior/exterior, purpose (social hub, transit, combat zone, etc.) |
-| **Description** | 2-4 sentences of physical detail — what the player sees on entry |
-| **Atmosphere** | At least 2 sensory details, at least one non-visual |
-| **Exits** | Named connections to other locations, with lock conditions if any |
+| Field           | Description                                                         |
+| --------------- | ------------------------------------------------------------------- |
+| **Type**        | Interior/exterior, purpose (social hub, transit, combat zone, etc.) |
+| **Description** | 2-4 sentences of physical detail — what the player sees on entry    |
+| **Atmosphere**  | At least 2 sensory details, at least one non-visual                 |
+| **Exits**       | Named connections to other locations, with lock conditions if any   |
 
 ### Optional Fields Per Location
 
-| Field | Description |
-|-------|-------------|
-| **NPCs present** | Who is here by default, and who appears conditionally |
-| **Secrets** | Hidden details — require checks, items, or NPC information to discover |
-| **Hazards** | Environmental dangers with DC and effect |
-| **Story relevance** | Author's note on when/how this location matters (GM-only) |
-| **Encounter override** | Specific encounter instead of rolling on the table |
-| **Loot** | Fixed items found here (not random — use Loot Tables for random drops) |
+| Field                  | Description                                                            |
+| ---------------------- | ---------------------------------------------------------------------- |
+| **NPCs present**       | Who is here by default, and who appears conditionally                  |
+| **Secrets**            | Hidden details — require checks, items, or NPC information to discover |
+| **Hazards**            | Environmental dangers with DC and effect                               |
+| **Story relevance**    | Author's note on when/how this location matters (GM-only)              |
+| **Encounter override** | Specific encounter instead of rolling on the table                     |
+| **Loot**               | Fixed items found here (not random — use Loot Tables for random drops) |
 
 ### Rules
 
@@ -290,6 +294,7 @@ authentic, consistent NPC behaviour throughout the adventure.
 ## NPC Roster
 
 ### Seren Voss — The Grey Coat Woman
+
 - **Role:** Catalyst / quest giver
 - **Species/Background:** Human, off-station. Expensive taste, real-gravity
   bearing — she grew up on a planet, not a station. Mid-forties, sharp eyes,
@@ -316,6 +321,7 @@ authentic, consistent NPC behaviour throughout the adventure.
   - Trust -10: Player demands payment before helping
 
 ### Renko — The Regular
+
 - **Role:** Informant / comic relief / canary
 - **Species/Background:** Human, station-born. Dock worker, forty years on
   Meridian, knows everyone's business because nobody notices him listening.
@@ -338,23 +344,23 @@ authentic, consistent NPC behaviour throughout the adventure.
 
 ### Required Fields Per NPC
 
-| Field | Description |
-|-------|-------------|
-| **Role** | Narrative function: catalyst, ally, antagonist, informant, wildcard, vendor |
-| **Motivation** | What they want — drives all their behaviour |
-| **Disposition start** | Starting stance toward the player |
-| **Speech pattern** | How they talk — diction, rhythm, verbal tics, vocabulary level |
+| Field                 | Description                                                                 |
+| --------------------- | --------------------------------------------------------------------------- |
+| **Role**              | Narrative function: catalyst, ally, antagonist, informant, wildcard, vendor |
+| **Motivation**        | What they want — drives all their behaviour                                 |
+| **Disposition start** | Starting stance toward the player                                           |
+| **Speech pattern**    | How they talk — diction, rhythm, verbal tics, vocabulary level              |
 
 ### Optional but Recommended Fields
 
-| Field | Description |
-|-------|-------------|
-| **Secret** | Information they hold back — with reveal condition |
-| **Arc** | Character trajectory archetype (see story-architect NPC Arc Archetypes) |
-| **Stats** | Mechanical profile for combat or contested checks |
-| **Faction** | Allegiance — may be hidden |
-| **Location** | Default location and movement triggers |
-| **Relationship triggers** | Specific actions that shift trust score |
+| Field                     | Description                                                             |
+| ------------------------- | ----------------------------------------------------------------------- |
+| **Secret**                | Information they hold back — with reveal condition                      |
+| **Arc**                   | Character trajectory archetype (see story-architect NPC Arc Archetypes) |
+| **Stats**                 | Mechanical profile for combat or contested checks                       |
+| **Faction**               | Allegiance — may be hidden                                              |
+| **Location**              | Default location and movement triggers                                  |
+| **Relationship triggers** | Specific actions that shift trust score                                 |
 
 ### Rules
 
@@ -375,8 +381,8 @@ Maps to the story-architect module. Defines the act-by-act narrative structure �
 the adventure is designed around, the decision points that create branching, and the
 consequences that ripple forward.
 
-The story spine is a framework, not a script. It defines what *could* happen, not what
-*will* happen. The GM uses it to understand the author's intent and improvise toward
+The story spine is a framework, not a script. It defines what _could_ happen, not what
+_will_ happen. The GM uses it to understand the author's intent and improvise toward
 dramatically satisfying outcomes regardless of player choices.
 
 ### Structure
@@ -385,10 +391,12 @@ dramatically satisfying outcomes regardless of player choices.
 ## Story Spine
 
 ### Act 1 — The Hook (Scenes 1-5)
+
 **Tension range:** 2-5
 **Goal:** Establish the world, introduce the mystery, give the player a reason to act.
 
 #### Beat 1: The Chip Beneath the Glass (Scene 1)
+
 - **Type:** Discovery
 - **Setup:** During a routine evening shift, Gareth finds a data chip wedged
   beneath the bar counter. His name is etched into the casing. Seren Voss is
@@ -404,6 +412,7 @@ dramatically satisfying outcomes regardless of player choices.
   Renko's nervous glances toward Deck 3
 
 #### Beat 2: First Contact (Scenes 2-3)
+
 - **Type:** Varies by player choice in Beat 1
 - **Branches:**
   - If opened chip: Encrypted message contains partial cargo manifest and a
@@ -421,10 +430,12 @@ dramatically satisfying outcomes regardless of player choices.
   with Deck 3 cargo operations.
 
 ### Act 2 — The Escalation (Scenes 6-12)
+
 **Tension range:** 4-8
 **Goal:** Deepen the mystery, force difficult choices, deliver the reversal.
 
 #### Beat 4: The Reversal (Scene 9-10)
+
 - **Type:** Revelation
 - **Setup:** The cargo discrepancy is not smuggling — it is a cover for
   evacuating political refugees from Meridian Corp's crackdown on the
@@ -441,20 +452,20 @@ dramatically satisfying outcomes regardless of player choices.
 
 ### Required Fields Per Beat
 
-| Field | Description |
-|-------|-------------|
-| **Type** | `discovery`, `confrontation`, `revelation`, `chase`, `social`, `combat`, `quiet` |
-| **Setup** | What the player walks into — situation, not script |
-| **Decision point** | The meaningful choice, with at least 2 viable options |
+| Field              | Description                                                                      |
+| ------------------ | -------------------------------------------------------------------------------- |
+| **Type**           | `discovery`, `confrontation`, `revelation`, `chase`, `social`, `combat`, `quiet` |
+| **Setup**          | What the player walks into — situation, not script                               |
+| **Decision point** | The meaningful choice, with at least 2 viable options                            |
 
 ### Optional but Recommended Fields
 
-| Field | Description |
-|-------|-------------|
-| **Branches** | How prior choices alter this beat |
-| **Consequences** | What each choice sets in motion |
-| **Foreshadowing planted** | Seeds for later payoff |
-| **Convergence** | How divergent paths rejoin (if they do) |
+| Field                     | Description                             |
+| ------------------------- | --------------------------------------- |
+| **Branches**              | How prior choices alter this beat       |
+| **Consequences**          | What each choice sets in motion         |
+| **Foreshadowing planted** | Seeds for later payoff                  |
+| **Convergence**           | How divergent paths rejoin (if they do) |
 
 ### Rules
 
@@ -484,6 +495,7 @@ an interruption.
 ## Encounter Tables
 
 ### The Oxidiser — Random Patrons (d6)
+
 1. Nervous courier, checking the door every 30 seconds
 2. Off-duty security officer, drinking alone, talkative
 3. Two merchants arguing about shipping tariffs
@@ -494,18 +506,21 @@ an interruption.
 ### Deck 3 Cargo Bay — Encounters by Escalation Tier
 
 #### Tier 1 — Quiet (d4)
+
 1. Empty — distant hum of cargo lifts
 2. Dock worker on break, willing to chat
 3. Automated cargo drone, scanning crates
 4. Stray maintenance bot, sparking and confused
 
 #### Tier 2 — Alert (d4)
+
 1. Security patrol (2 officers), checking manifests
 2. Grey Network operative, pretending to be a dock worker
 3. Locked-down cargo lift — requires keycard or INT DC 14 to bypass
 4. Station Authority drone conducting surveillance sweep
 
 #### Tier 3 — Hostile (d4)
+
 1. Armed security team (3 officers), shoot-on-sight orders
 2. Grey Network extraction team, mistaking the player for Authority
 3. Environmental hazard — coolant leak, STR DC 12 or Poisoned
@@ -536,6 +551,7 @@ core-systems inventory and economy subsystems.
 ## Loot and Rewards
 
 ### Act 1 Rewards
+
 - **Completing the chip mystery:** 50 XP, data chip contents (key item),
   Seren Voss as contact
 - **Crawlway exploration:** 25 XP, maintenance access code (reusable),
@@ -544,6 +560,7 @@ core-systems inventory and economy subsystems.
   security frequency access
 
 ### Act 2 Rewards
+
 - **Discovering the reversal truth:** 75 XP, moral dilemma (no mechanical
   reward — the reward is knowledge)
 - **Completing the Deck 3 investigation:** 100 XP, choice of Grey Network
@@ -551,15 +568,16 @@ core-systems inventory and economy subsystems.
 
 ### Merchant Inventory — Vex's Salvage Emporium (Deck 5)
 
-| Item | Type | Tier | Price | Effect |
-|------|------|------|-------|--------|
-| Stim Pack | Consumable | 1 | 25 cr | Restore 2d6 HP |
-| Signal Jammer | Gear | 2 | 80 cr | +2 Stealth near electronics |
-| Patched Enviro-Suit | Armour | 2 | 150 cr | +2 AC, resist vacuum (1 scene) |
-| Forged Security Badge | Gear | 3 | 300 cr | Bypass Tier 1 security checks |
-| EMP Grenade | Consumable | 3 | 200 cr | Disable electronics in area, 2 rounds |
+| Item                  | Type       | Tier | Price  | Effect                                |
+| --------------------- | ---------- | ---- | ------ | ------------------------------------- |
+| Stim Pack             | Consumable | 1    | 25 cr  | Restore 2d6 HP                        |
+| Signal Jammer         | Gear       | 2    | 80 cr  | +2 Stealth near electronics           |
+| Patched Enviro-Suit   | Armour     | 2    | 150 cr | +2 AC, resist vacuum (1 scene)        |
+| Forged Security Badge | Gear       | 3    | 300 cr | Bypass Tier 1 security checks         |
+| EMP Grenade           | Consumable | 3    | 200 cr | Disable electronics in area, 2 rounds |
 
 ### Random Loot — Cargo Crates (d6)
+
 1. Empty — already looted
 2. Ration packs (3) — 5 cr each, +1 CON next roll
 3. Maintenance toolkit — +2 to repair checks
@@ -592,6 +610,7 @@ Starting faction standings and the rules governing how they shift. Maps to
 ## Faction Dynamics
 
 ### Station Authority
+
 - **Starting disposition:** Neutral (0)
 - **Ideology:** Order through procedure. The station runs on rules.
 - **Shifts positive if:** Player cooperates with security, reports suspicious
@@ -604,6 +623,7 @@ Starting faction standings and the rules governing how they shift. Maps to
   the player, merchants refuse service, safe locations shrink
 
 ### The Grey Network (Seren's people)
+
 - **Starting disposition:** Unknown (--)
 - **Ideology:** Freedom through action. The Sovereignty Movement reborn.
 - **Revealed when:** Player engages with Seren's mission or discovers the
@@ -618,6 +638,7 @@ Starting faction standings and the rules governing how they shift. Maps to
   Seren becomes an antagonist, evacuation routes close
 
 ### Linked Factions
+
 - Station Authority and The Grey Network are **opposed**. Gaining +20 with
   one imposes -10 on the other. This linkage is not absolute — a skilled
   player can maintain both above neutral through careful choices, but it
@@ -626,20 +647,20 @@ Starting faction standings and the rules governing how they shift. Maps to
 
 ### Required Fields Per Faction
 
-| Field | Description |
-|-------|-------------|
-| **Starting disposition** | Numeric value and label |
-| **Shifts positive if** | Actions that increase standing |
-| **Shifts negative if** | Actions that decrease standing |
+| Field                    | Description                    |
+| ------------------------ | ------------------------------ |
+| **Starting disposition** | Numeric value and label        |
+| **Shifts positive if**   | Actions that increase standing |
+| **Shifts negative if**   | Actions that decrease standing |
 
 ### Optional but Recommended Fields
 
-| Field | Description |
-|-------|-------------|
-| **Ideology** | One-sentence belief statement — drives NPC behaviour |
-| **At +50 / -50** | Concrete gameplay effects at extreme standings |
-| **Linked factions** | Opposing or allied faction relationships with shift ratios |
-| **Revealed when** | For hidden factions — the condition that makes them visible |
+| Field               | Description                                                 |
+| ------------------- | ----------------------------------------------------------- |
+| **Ideology**        | One-sentence belief statement — drives NPC behaviour        |
+| **At +50 / -50**    | Concrete gameplay effects at extreme standings              |
+| **Linked factions** | Opposing or allied faction relationships with shift ratios  |
+| **Revealed when**   | For hidden factions — the condition that makes them visible |
 
 ---
 
@@ -719,6 +740,7 @@ flow — the inverse of loading.
 ### Step 1 — Gather Requirements
 
 Ask the player for:
+
 - **Theme** — genre and setting (required)
 - **Tone** — narrative feel (required)
 - **Number of acts** — scope of the adventure (default: 3)
@@ -729,6 +751,7 @@ Ask the player for:
 ### Step 2 — Generate World History
 
 Create 3-5 epochs following the World History section rules. Each epoch must:
+
 - Leave a visible trace in the world
 - Create at least one faction grudge or cultural artefact
 - Connect to the adventure's central conflict in some way
@@ -736,6 +759,7 @@ Create 3-5 epochs following the World History section rules. Each epoch must:
 ### Step 3 — Design the NPC Roster
 
 Create NPCs to fill these narrative roles:
+
 - **Catalyst** — the NPC who sets events in motion (1 required)
 - **Antagonist** — the opposing force, which may be a person, faction, or system (1 required)
 - **Ally** — a potential helper with their own agenda (1-2 recommended)
@@ -747,6 +771,7 @@ Each NPC must have a unique speech pattern and a motivation independent of the p
 ### Step 4 — Build the Location Atlas
 
 Create locations to support the story spine:
+
 - **Hub** — where the player starts and returns to (1 required)
 - **Investigation sites** — where clues and evidence are found (2-4)
 - **Confrontation spaces** — where key encounters happen (1-2)
@@ -758,6 +783,7 @@ Every location must connect to at least one other location. No orphan nodes.
 ### Step 5 — Craft the Story Spine
 
 Build the act structure with branching decision points:
+
 - **Act 1** — 3-5 beats, tension 2-5, goal: hook the player
 - **Act 2** — 4-6 beats, tension 4-8, goal: escalate and reverse
 - **Act 3** — 3-4 beats, tension 6-10 then 3-4, goal: climax and resolve
@@ -786,15 +812,15 @@ When a `.lore.md` file includes a `seed` field in the frontmatter, the adventure
 **hybrid mode**. The authored content provides the story spine, key NPCs, and critical
 locations. The `procedural-world-gen` module fills in secondary content:
 
-| Layer | Source |
-|-------|--------|
-| Main plot beats | `.lore.md` Story Spine |
-| Key NPCs (named, with arcs) | `.lore.md` NPC Roster |
-| Critical locations | `.lore.md` Location Atlas |
-| Side encounters | `procedural-world-gen` from seed |
-| Ambient NPCs (unnamed, background) | `procedural-world-gen` from seed |
+| Layer                                 | Source                           |
+| ------------------------------------- | -------------------------------- |
+| Main plot beats                       | `.lore.md` Story Spine           |
+| Key NPCs (named, with arcs)           | `.lore.md` NPC Roster            |
+| Critical locations                    | `.lore.md` Location Atlas        |
+| Side encounters                       | `procedural-world-gen` from seed |
+| Ambient NPCs (unnamed, background)    | `procedural-world-gen` from seed |
 | Side locations (optional exploration) | `procedural-world-gen` from seed |
-| Random loot in non-critical areas | `procedural-world-gen` from seed |
+| Random loot in non-critical areas     | `procedural-world-gen` from seed |
 
 **Conflict resolution:** Authored content always takes priority. If the seed generates an
 NPC with the same name as an authored NPC, the authored version wins. If the seed generates
@@ -808,15 +834,15 @@ overwritten by generated entries.
 
 ## Relationship to Other Modules
 
-| Module | What `.lore.md` provides to it |
-|--------|--------------------------------|
-| story-architect | Pre-seeded story threads, foreshadowing registry, NPC arcs, pacing structure |
-| core-systems | Starting faction standings, economy state, quest seeds, reward schedule |
-| lore-codex | All discoverable entries in locked state (locations, NPCs, factions, items) |
-| ai-npc | NPC personality profiles, speech patterns, secrets, reveal conditions |
-| geo-map | Location descriptions, exits, hazards, secrets, atmosphere details |
-| procedural-world-gen | World seed for hybrid mode — authored spine + procedural flesh |
-| save-codex | The `.lore.md` filename is stored in the save's `game-title` field |
+| Module               | What `.lore.md` provides to it                                               |
+| -------------------- | ---------------------------------------------------------------------------- |
+| story-architect      | Pre-seeded story threads, foreshadowing registry, NPC arcs, pacing structure |
+| core-systems         | Starting faction standings, economy state, quest seeds, reward schedule      |
+| lore-codex           | All discoverable entries in locked state (locations, NPCs, factions, items)  |
+| ai-npc               | NPC personality profiles, speech patterns, secrets, reveal conditions        |
+| geo-map              | Location descriptions, exits, hazards, secrets, atmosphere details           |
+| procedural-world-gen | World seed for hybrid mode — authored spine + procedural flesh               |
+| save-codex           | The `.lore.md` filename is stored in the save's `game-title` field           |
 
 ---
 
@@ -825,6 +851,7 @@ overwritten by generated entries.
 The Adventure Authoring module adds the following fields to `gmState`:
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 gmState: {
   // ...existing fields...
@@ -854,6 +881,7 @@ gmState: {
 ### World Flag Prefix
 
 The Adventure Authoring module uses prefix `lore_` for flags it sets directly:
+
 - `lore_loaded` — set to `true` when a `.lore.md` file is successfully parsed
 - `lore_act_{n}_started` — set when an act begins
 - `lore_beat_{id}_reached` — set when the player reaches a specific beat

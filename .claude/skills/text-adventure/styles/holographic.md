@@ -13,6 +13,23 @@ best-for:
   - any scenario where a "holographic display" framing enhances immersion
 ---
 
+```json tag-contract
+{
+  "id": "holographic",
+  "kind": "style",
+  "version": "1.4.0",
+  "summary": "Translucent sci-fi HUD style with iridescent cyan, teal, lavender, and pink accents over floating glass panels.",
+  "mustRead": [
+    "Pair with styles/style-reference.md for structural contracts.",
+    "Use translucency, outlines, and glow carefully so text remains legible."
+  ],
+  "render": [
+    "Panels should feel projected or suspended, with geometric sci-fi typography and restrained shimmer.",
+    "Best for starship, tactical overlay, space opera, cyberpunk, and far-future scenarios."
+  ]
+}
+```
+
 ## Design Philosophy
 
 The holographic style renders every widget as a panel in a floating tactical display —
@@ -92,98 +109,64 @@ These are the "holographic light" colours — used for borders, glows, and text
 accents regardless of light/dark mode:
 
 ```css
---holo-cyan:          #00E5FF   /* primary accent — most borders, active states */
---holo-teal:          #00BFA5   /* secondary accent — success, progress, pips */
---holo-lavender:      #B388FF   /* tertiary accent — mystery, special, roll crits */
---holo-pink:          #FF80AB   /* quaternary accent — danger, critical failure */
---holo-cyan-dim:      rgba(0, 229, 255, 0.35)
---holo-teal-dim:      rgba(0, 191, 165, 0.35)
---holo-lavender-dim:  rgba(179, 136, 255, 0.30)
---holo-pink-dim:      rgba(255, 128, 171, 0.35)
+--holo-cyan: #00e5ff /* primary accent — most borders, active states */ --holo-teal: #00bfa5
+  /* secondary accent — success, progress, pips */ --holo-lavender: #b388ff
+  /* tertiary accent — mystery, special, roll crits */ --holo-pink: #ff80ab
+  /* quaternary accent — danger, critical failure */ --holo-cyan-dim: rgba(0, 229, 255, 0.35)
+  --holo-teal-dim: rgba(0, 191, 165, 0.35) --holo-lavender-dim: rgba(179, 136, 255, 0.3)
+  --holo-pink-dim: rgba(255, 128, 171, 0.35);
 ```
 
 ### Dark Mode (Primary — Deep Space)
 
 ```css
 /* Backgrounds */
---holo-bg-base:        #050510          /* page / widget root */
---holo-bg-panel:       rgba(255, 255, 255, 0.05)   /* panel surface */
---holo-bg-panel-hover: rgba(255, 255, 255, 0.08)
---holo-bg-inset:       rgba(0, 0, 0, 0.30)         /* inset wells, code blocks */
---holo-bg-btn:         rgba(0, 229, 255, 0.08)
---holo-bg-btn-hover:   rgba(0, 229, 255, 0.18)
---holo-bg-btn-active:  rgba(0, 229, 255, 0.28)
-
-/* Text */
---holo-text-primary:   rgba(220, 240, 255, 0.92)   /* main body */
---holo-text-secondary: rgba(180, 210, 240, 0.70)   /* secondary info */
---holo-text-tertiary:  rgba(140, 180, 220, 0.50)   /* labels, placeholders */
---holo-text-accent:    #00E5FF                      /* highlighted / active */
---holo-text-success:   #00BFA5
---holo-text-danger:    #FF80AB
---holo-text-crit:      #B388FF
-
-/* Borders */
---holo-border-primary:   rgba(0, 229, 255, 0.55)   /* main panel borders */
---holo-border-secondary: rgba(0, 229, 255, 0.25)   /* inner dividers */
---holo-border-tertiary:  rgba(255, 255, 255, 0.10) /* subtle separators */
---holo-border-glow:      rgba(0, 229, 255, 0.80)   /* focus / active glow */
-
-/* Shadows / glows */
---holo-shadow-panel: 0 0 24px rgba(0, 229, 255, 0.10),
-                     0 8px 32px rgba(0, 0, 0, 0.60),
-                     inset 0 1px 0 rgba(255, 255, 255, 0.06);
---holo-shadow-btn:   0 0 12px rgba(0, 229, 255, 0.20),
-                     0 2px 8px rgba(0, 0, 0, 0.40);
---holo-shadow-glow:  0 0 20px rgba(0, 229, 255, 0.50),
-                     0 0 40px rgba(0, 229, 255, 0.20);
+--holo-bg-base:
+  #050510 /* page / widget root */ --holo-bg-panel: rgba(255, 255, 255, 0.05) /* panel surface */
+    --holo-bg-panel-hover: rgba(255, 255, 255, 0.08) --holo-bg-inset: rgba(0, 0, 0, 0.3) /* inset wells, code blocks */
+    --holo-bg-btn: rgba(0, 229, 255, 0.08) --holo-bg-btn-hover: rgba(0, 229, 255, 0.18)
+    --holo-bg-btn-active: rgba(0, 229, 255, 0.28) /* Text */ --holo-text-primary: rgba(220, 240, 255, 0.92)
+    /* main body */ --holo-text-secondary: rgba(180, 210, 240, 0.7) /* secondary info */
+    --holo-text-tertiary: rgba(140, 180, 220, 0.5) /* labels, placeholders */ --holo-text-accent: #00e5ff
+    /* highlighted / active */ --holo-text-success: #00bfa5 --holo-text-danger: #ff80ab --holo-text-crit: #b388ff
+    /* Borders */ --holo-border-primary: rgba(0, 229, 255, 0.55) /* main panel borders */
+    --holo-border-secondary: rgba(0, 229, 255, 0.25) /* inner dividers */
+    --holo-border-tertiary: rgba(255, 255, 255, 0.1) /* subtle separators */ --holo-border-glow: rgba(0, 229, 255, 0.8)
+    /* focus / active glow */ /* Shadows / glows */ --holo-shadow-panel: 0 0 24px rgba(0, 229, 255, 0.1),
+  0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+--holo-shadow-btn: 0 0 12px rgba(0, 229, 255, 0.2), 0 2px 8px rgba(0, 0, 0, 0.4);
+--holo-shadow-glow: 0 0 20px rgba(0, 229, 255, 0.5), 0 0 40px rgba(0, 229, 255, 0.2);
 
 /* Semantic overrides (shadow the Claude.ai host variables) */
---color-text-primary:        var(--holo-text-primary);
---color-text-secondary:      var(--holo-text-secondary);
---color-text-tertiary:       var(--holo-text-tertiary);
---color-background:          var(--holo-bg-base);
+--color-text-primary: var(--holo-text-primary);
+--color-text-secondary: var(--holo-text-secondary);
+--color-text-tertiary: var(--holo-text-tertiary);
+--color-background: var(--holo-bg-base);
 --color-background-secondary: var(--holo-bg-panel);
---color-border-primary:      var(--holo-border-primary);
---color-border-secondary:    var(--holo-border-secondary);
---color-border-tertiary:     var(--holo-border-tertiary);
+--color-border-primary: var(--holo-border-primary);
+--color-border-secondary: var(--holo-border-secondary);
+--color-border-tertiary: var(--holo-border-tertiary);
 ```
 
 ### Light Mode (Secondary — Pale Void)
 
 ```css
 /* Backgrounds */
---holo-bg-base:        #F0F0F5
---holo-bg-panel:       rgba(0, 0, 0, 0.03)
---holo-bg-panel-hover: rgba(0, 0, 0, 0.06)
---holo-bg-inset:       rgba(0, 0, 0, 0.06)
---holo-bg-btn:         rgba(0, 163, 184, 0.08)
---holo-bg-btn-hover:   rgba(0, 163, 184, 0.16)
---holo-bg-btn-active:  rgba(0, 163, 184, 0.26)
-
-/* Text (must meet WCAG AA 4.5:1 against #F0F0F5) */
---holo-text-primary:   rgba(10, 20, 40, 0.90)     /* #121E36 effective — 9.2:1 */
---holo-text-secondary: rgba(10, 30, 60, 0.68)     /* ~5.2:1 */
---holo-text-tertiary:  rgba(10, 30, 60, 0.48)     /* 3.8:1 — use for decoration only */
---holo-text-accent:    #007A8C                     /* teal darkened for light bg — 5.1:1 */
---holo-text-success:   #007A6A                     /* 5.4:1 */
---holo-text-danger:    #C0004A                     /* 5.6:1 */
---holo-text-crit:      #6200C8                     /* 6.1:1 */
-
-/* Borders */
---holo-border-primary:   rgba(0, 163, 184, 0.50)
---holo-border-secondary: rgba(0, 163, 184, 0.25)
---holo-border-tertiary:  rgba(0, 0, 0, 0.10)
---holo-border-glow:      rgba(0, 163, 184, 0.80)
-
-/* Shadows / glows */
---holo-shadow-panel: 0 0 20px rgba(0, 163, 184, 0.08),
-                     0 4px 20px rgba(0, 0, 0, 0.10),
-                     inset 0 1px 0 rgba(255, 255, 255, 0.80);
---holo-shadow-btn:   0 0 8px rgba(0, 163, 184, 0.15),
-                     0 2px 6px rgba(0, 0, 0, 0.10);
---holo-shadow-glow:  0 0 16px rgba(0, 163, 184, 0.40),
-                     0 0 32px rgba(0, 163, 184, 0.15);
+--holo-bg-base:
+  #f0f0f5 --holo-bg-panel: rgba(0, 0, 0, 0.03) --holo-bg-panel-hover: rgba(0, 0, 0, 0.06)
+    --holo-bg-inset: rgba(0, 0, 0, 0.06) --holo-bg-btn: rgba(0, 163, 184, 0.08)
+    --holo-bg-btn-hover: rgba(0, 163, 184, 0.16) --holo-bg-btn-active: rgba(0, 163, 184, 0.26)
+    /* Text (must meet WCAG AA 4.5:1 against #F0F0F5) */ --holo-text-primary: rgba(10, 20, 40, 0.9)
+    /* #121E36 effective — 9.2:1 */ --holo-text-secondary: rgba(10, 30, 60, 0.68) /* ~5.2:1 */
+    --holo-text-tertiary: rgba(10, 30, 60, 0.48) /* 3.8:1 — use for decoration only */ --holo-text-accent: #007a8c
+    /* teal darkened for light bg — 5.1:1 */ --holo-text-success: #007a6a /* 5.4:1 */ --holo-text-danger: #c0004a
+    /* 5.6:1 */ --holo-text-crit: #6200c8 /* 6.1:1 */ /* Borders */ --holo-border-primary: rgba(0, 163, 184, 0.5)
+    --holo-border-secondary: rgba(0, 163, 184, 0.25) --holo-border-tertiary: rgba(0, 0, 0, 0.1)
+    --holo-border-glow: rgba(0, 163, 184, 0.8) /* Shadows / glows */ --holo-shadow-panel: 0 0 20px
+    rgba(0, 163, 184, 0.08),
+  0 4px 20px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+--holo-shadow-btn: 0 0 8px rgba(0, 163, 184, 0.15), 0 2px 6px rgba(0, 0, 0, 0.1);
+--holo-shadow-glow: 0 0 16px rgba(0, 163, 184, 0.4), 0 0 32px rgba(0, 163, 184, 0.15);
 ```
 
 ---
@@ -191,15 +174,9 @@ accents regardless of light/dark mode:
 ## Spacing & Layout
 
 ```css
---holo-space-xs:  4px
---holo-space-sm:  8px
---holo-space-md:  14px
---holo-space-lg:  20px
---holo-space-xl:  32px
---holo-space-2xl: 48px
-
-/* Widget root padding — enough breathing room so panels feel floating */
---holo-widget-padding: 20px 20px 24px;
+--holo-space-xs: 4px --holo-space-sm: 8px --holo-space-md: 14px --holo-space-lg: 20px --holo-space-xl: 32px
+  --holo-space-2xl: 48px /* Widget root padding — enough breathing room so panels feel floating */
+  --holo-widget-padding: 20px 20px 24px;
 
 /* Panel content padding */
 --holo-panel-padding: var(--holo-space-lg);
@@ -236,11 +213,11 @@ backdrop-filter: blur(12px) saturate(160%);
 /* Solid-colour fallback for contexts where backdrop-filter is unsupported */
 /* (iframe sandboxing, some Chromium contexts without GPU compositing) */
 @supports not (backdrop-filter: blur(1px)) {
-  background: #0a0a20;   /* dark mode solid fallback */
+  background: #0a0a20; /* dark mode solid fallback */
 }
 @media (prefers-color-scheme: light) {
   @supports not (backdrop-filter: blur(1px)) {
-    background: #eaeaf2;  /* light mode solid fallback */
+    background: #eaeaf2; /* light mode solid fallback */
   }
 }
 ```
@@ -254,8 +231,9 @@ gradient border via `border-image`. Note: `border-image` cannot combine with
 ```css
 /* Technique: inset box-shadow produces a coloured inner border */
 .holo-border-iridescent {
-  box-shadow: inset 0 0 0 1px transparent,
-              var(--holo-shadow-panel);
+  box-shadow:
+    inset 0 0 0 1px transparent,
+    var(--holo-shadow-panel);
   background-clip: padding-box;
   /* Gradient border via outline trick — gradient applied to ::before */
   position: relative;
@@ -268,15 +246,17 @@ gradient border via `border-image`. Note: `border-image` cannot combine with
   padding: 1px;
   background: linear-gradient(
     135deg,
-    var(--holo-cyan)    0%,
-    var(--holo-teal)    33%,
+    var(--holo-cyan) 0%,
+    var(--holo-teal) 33%,
     var(--holo-lavender) 66%,
-    var(--holo-pink)    100%
+    var(--holo-pink) 100%
   );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box,
-                linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box,
-        linear-gradient(#fff 0 0);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
@@ -325,16 +305,18 @@ All buttons use the glassmorphism pattern. Base state:
   min-width: var(--holo-touch-target);
   box-sizing: border-box;
   cursor: pointer;
-  transition: background 150ms ease,
-              border-color 150ms ease,
-              box-shadow 150ms ease,
-              color 150ms ease;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    color 150ms ease;
   backdrop-filter: blur(6px);
   box-shadow: var(--holo-shadow-btn);
 }
 ```
 
 Hover:
+
 ```css
 .holo-btn:hover {
   background: var(--holo-bg-btn-hover);
@@ -345,6 +327,7 @@ Hover:
 ```
 
 Active / pressed:
+
 ```css
 .holo-btn:active {
   background: var(--holo-bg-btn-active);
@@ -354,6 +337,7 @@ Active / pressed:
 ```
 
 Focus (keyboard navigation — never suppress outline):
+
 ```css
 .holo-btn:focus-visible {
   outline: 2px solid var(--holo-border-glow);
@@ -367,20 +351,23 @@ Focus (keyboard navigation — never suppress outline):
 Same as `.holo-btn` but full-width in their container, left-aligned text:
 
 ```css
-.action-btn, .poi-btn {
+.action-btn,
+.poi-btn {
   width: 100%;
   text-align: left;
   padding-left: var(--holo-space-md);
 }
-.action-btn::before, .poi-btn::before {
+.action-btn::before,
+.poi-btn::before {
   content: '▶';
   margin-right: var(--holo-space-sm);
-  opacity: 0.50;
+  opacity: 0.5;
   font-size: 8px;
   vertical-align: middle;
 }
-.action-btn:hover::before, .poi-btn:hover::before {
-  opacity: 1.0;
+.action-btn:hover::before,
+.poi-btn:hover::before {
+  opacity: 1;
 }
 ```
 
@@ -407,7 +394,9 @@ Distinct from action buttons — centred, wider, slightly larger:
   display: block;
   margin: var(--holo-space-lg) auto 0;
   box-shadow: var(--holo-shadow-btn);
-  transition: background 150ms ease, box-shadow 150ms ease;
+  transition:
+    background 150ms ease,
+    box-shadow 150ms ease;
 }
 .continue-btn:hover {
   background: var(--holo-bg-btn-hover);
@@ -428,7 +417,7 @@ Smaller, secondary treatment — the panel toggles:
   font-family: 'Exo 2', ui-sans-serif, system-ui, sans-serif;
   font-size: var(--holo-text-xs);
   font-weight: 500;
-  letter-spacing: 0.10em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--holo-text-secondary);
   background: transparent;
@@ -439,7 +428,9 @@ Smaller, secondary treatment — the panel toggles:
   min-width: var(--holo-touch-target);
   box-sizing: border-box;
   cursor: pointer;
-  transition: border-color 120ms ease, color 120ms ease;
+  transition:
+    border-color 120ms ease,
+    color 120ms ease;
 }
 .footer-btn:hover {
   border-color: var(--holo-border-secondary);
@@ -462,49 +453,84 @@ with instant state changes.
 ```css
 /* Shimmer sweep — used on the location bar and crit roll results */
 @keyframes holo-shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position:  200% center; }
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
 }
 
 /* Pulse glow — used on active HP pips and live status indicators */
 @keyframes holo-pulse {
-  0%, 100% { opacity: 0.80; box-shadow: 0 0 4px var(--holo-cyan-dim); }
-  50%       { opacity: 1.00; box-shadow: 0 0 12px var(--holo-cyan); }
+  0%,
+  100% {
+    opacity: 0.8;
+    box-shadow: 0 0 4px var(--holo-cyan-dim);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 12px var(--holo-cyan);
+  }
 }
 
 /* Flicker on (panel reveal) — mimics a holographic panel powering up */
 @keyframes holo-flicker-in {
-  0%   { opacity: 0.0; transform: scaleY(0.96); }
-  20%  { opacity: 0.6; transform: scaleY(1.00); }
-  30%  { opacity: 0.3; }
-  50%  { opacity: 0.9; }
-  70%  { opacity: 0.7; }
-  100% { opacity: 1.0; transform: scaleY(1.00); }
+  0% {
+    opacity: 0;
+    transform: scaleY(0.96);
+  }
+  20% {
+    opacity: 0.6;
+    transform: scaleY(1);
+  }
+  30% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.9;
+  }
+  70% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
 }
 
 /* Iridescent colour-shift for gradient text and borders */
 @keyframes holo-iridescent {
-  0%   { filter: hue-rotate(0deg); }
-  50%  { filter: hue-rotate(40deg); }
-  100% { filter: hue-rotate(0deg); }
+  0% {
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    filter: hue-rotate(40deg);
+  }
+  100% {
+    filter: hue-rotate(0deg);
+  }
 }
 
 /* Scan line sweep — decorative overlay on the root panel */
 @keyframes holo-scan {
-  0%   { background-position: 0 -100vh; }
-  100% { background-position: 0  100vh; }
+  0% {
+    background-position: 0 -100vh;
+  }
+  100% {
+    background-position: 0 100vh;
+  }
 }
 
 /* Motion-safe application */
 @media (prefers-reduced-motion: no-preference) {
-
   /* Location bar text shimmer */
   .loc-bar .loc-name {
     background: linear-gradient(
       90deg,
       var(--holo-text-accent) 0%,
-      var(--holo-lavender)    40%,
-      var(--holo-cyan)        60%,
+      var(--holo-lavender) 40%,
+      var(--holo-cyan) 60%,
       var(--holo-text-accent) 100%
     );
     background-size: 200% auto;
@@ -541,7 +567,9 @@ with instant state changes.
 
 /* Reduced motion: instant transitions, no animation */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -615,13 +643,18 @@ How each widget type from the base engine should look under the holographic them
 ### Narrative Block (`.narrative`, `#narrative`)
 
 ```css
-#narrative, .narrative {
-  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+#narrative,
+.narrative {
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: var(--holo-text-base);
   font-weight: 300;
   line-height: 1.75;
   color: var(--holo-text-primary);
-  opacity: 0.90;
+  opacity: 0.9;
   padding: var(--holo-space-md) 0;
   border-top: 1px solid var(--holo-border-tertiary);
   border-bottom: 1px solid var(--holo-border-tertiary);
@@ -704,11 +737,31 @@ How each widget type from the base engine should look under the holographic them
   border-radius: 4px;
   border: 1px solid;
 }
-.outcome-badge.crit-success  { color: var(--holo-lavender); border-color: var(--holo-lavender-dim); background: rgba(179,136,255,0.10); }
-.outcome-badge.success       { color: var(--holo-teal);     border-color: var(--holo-teal-dim);     background: rgba(0,191,165,0.10);  }
-.outcome-badge.partial       { color: var(--holo-cyan);     border-color: var(--holo-cyan-dim);     background: rgba(0,229,255,0.08);  }
-.outcome-badge.failure       { color: var(--holo-pink);     border-color: var(--holo-pink-dim);     background: rgba(255,128,171,0.10); }
-.outcome-badge.crit-failure  { color: #FF4080;              border-color: rgba(255,64,128,0.50);    background: rgba(255,64,128,0.15); }
+.outcome-badge.crit-success {
+  color: var(--holo-lavender);
+  border-color: var(--holo-lavender-dim);
+  background: rgba(179, 136, 255, 0.1);
+}
+.outcome-badge.success {
+  color: var(--holo-teal);
+  border-color: var(--holo-teal-dim);
+  background: rgba(0, 191, 165, 0.1);
+}
+.outcome-badge.partial {
+  color: var(--holo-cyan);
+  border-color: var(--holo-cyan-dim);
+  background: rgba(0, 229, 255, 0.08);
+}
+.outcome-badge.failure {
+  color: var(--holo-pink);
+  border-color: var(--holo-pink-dim);
+  background: rgba(255, 128, 171, 0.1);
+}
+.outcome-badge.crit-failure {
+  color: #ff4080;
+  border-color: rgba(255, 64, 128, 0.5);
+  background: rgba(255, 64, 128, 0.15);
+}
 ```
 
 ### Die Roll Display
@@ -769,7 +822,7 @@ How each widget type from the base engine should look under the holographic them
 .panel-close-btn {
   font-family: 'Share Tech Mono', 'IBM Plex Mono', monospace;
   font-size: var(--holo-text-xs);
-  letter-spacing: 0.10em;
+  letter-spacing: 0.1em;
   color: var(--holo-text-tertiary);
   background: transparent;
   border: 1px solid var(--holo-border-tertiary);
@@ -780,7 +833,9 @@ How each widget type from the base engine should look under the holographic them
   box-sizing: border-box;
   cursor: pointer;
   text-transform: uppercase;
-  transition: border-color 120ms ease, color 120ms ease;
+  transition:
+    border-color 120ms ease,
+    color 120ms ease;
 }
 .panel-close-btn:hover {
   border-color: var(--holo-border-secondary);
@@ -811,7 +866,7 @@ How each widget type from the base engine should look under the holographic them
   font-family: 'Exo 2', ui-sans-serif, system-ui, sans-serif;
   font-size: var(--holo-text-xs);
   font-weight: 500;
-  letter-spacing: 0.10em;
+  letter-spacing: 0.1em;
   color: var(--holo-text-tertiary);
   text-transform: uppercase;
   display: block;
@@ -851,115 +906,109 @@ acceptable result if CSP blocks the request.
 
 :host {
   /* Iridescent accents (scheme-independent) */
-  --holo-cyan:         #00E5FF;
-  --holo-teal:         #00BFA5;
-  --holo-lavender:     #B388FF;
-  --holo-pink:         #FF80AB;
-  --holo-cyan-dim:     rgba(0, 229, 255, 0.35);
-  --holo-teal-dim:     rgba(0, 191, 165, 0.35);
-  --holo-lavender-dim: rgba(179, 136, 255, 0.30);
-  --holo-pink-dim:     rgba(255, 128, 171, 0.35);
+  --holo-cyan: #00e5ff;
+  --holo-teal: #00bfa5;
+  --holo-lavender: #b388ff;
+  --holo-pink: #ff80ab;
+  --holo-cyan-dim: rgba(0, 229, 255, 0.35);
+  --holo-teal-dim: rgba(0, 191, 165, 0.35);
+  --holo-lavender-dim: rgba(179, 136, 255, 0.3);
+  --holo-pink-dim: rgba(255, 128, 171, 0.35);
 
   /* Spacing */
-  --holo-space-xs:  4px;
-  --holo-space-sm:  8px;
-  --holo-space-md:  14px;
-  --holo-space-lg:  20px;
-  --holo-space-xl:  32px;
+  --holo-space-xs: 4px;
+  --holo-space-sm: 8px;
+  --holo-space-md: 14px;
+  --holo-space-lg: 20px;
+  --holo-space-xl: 32px;
   --holo-touch-target: 44px;
 
   /* Typography */
-  --holo-text-xs:   10px;
-  --holo-text-sm:   12px;
+  --holo-text-xs: 10px;
+  --holo-text-sm: 12px;
   --holo-text-base: 14px;
-  --holo-text-md:   16px;
-  --holo-text-lg:   20px;
-  --holo-text-xl:   26px;
+  --holo-text-md: 16px;
+  --holo-text-lg: 20px;
+  --holo-text-xl: 26px;
 
   /* Dark mode (default) */
-  --holo-bg-base:         #050510;
-  --holo-bg-panel:        rgba(255, 255, 255, 0.05);
-  --holo-bg-panel-hover:  rgba(255, 255, 255, 0.08);
-  --holo-bg-inset:        rgba(0, 0, 0, 0.30);
-  --holo-bg-btn:          rgba(0, 229, 255, 0.08);
-  --holo-bg-btn-hover:    rgba(0, 229, 255, 0.18);
-  --holo-bg-btn-active:   rgba(0, 229, 255, 0.28);
-  --holo-text-primary:    rgba(220, 240, 255, 0.92);
-  --holo-text-secondary:  rgba(180, 210, 240, 0.70);
-  --holo-text-tertiary:   rgba(140, 180, 220, 0.50);
-  --holo-text-accent:     #00E5FF;
-  --holo-text-success:    #00BFA5;
-  --holo-text-danger:     #FF80AB;
-  --holo-text-crit:       #B388FF;
-  --holo-border-primary:  rgba(0, 229, 255, 0.55);
-  --holo-border-secondary:rgba(0, 229, 255, 0.25);
-  --holo-border-tertiary: rgba(255, 255, 255, 0.10);
-  --holo-border-glow:     rgba(0, 229, 255, 0.80);
+  --holo-bg-base: #050510;
+  --holo-bg-panel: rgba(255, 255, 255, 0.05);
+  --holo-bg-panel-hover: rgba(255, 255, 255, 0.08);
+  --holo-bg-inset: rgba(0, 0, 0, 0.3);
+  --holo-bg-btn: rgba(0, 229, 255, 0.08);
+  --holo-bg-btn-hover: rgba(0, 229, 255, 0.18);
+  --holo-bg-btn-active: rgba(0, 229, 255, 0.28);
+  --holo-text-primary: rgba(220, 240, 255, 0.92);
+  --holo-text-secondary: rgba(180, 210, 240, 0.7);
+  --holo-text-tertiary: rgba(140, 180, 220, 0.5);
+  --holo-text-accent: #00e5ff;
+  --holo-text-success: #00bfa5;
+  --holo-text-danger: #ff80ab;
+  --holo-text-crit: #b388ff;
+  --holo-border-primary: rgba(0, 229, 255, 0.55);
+  --holo-border-secondary: rgba(0, 229, 255, 0.25);
+  --holo-border-tertiary: rgba(255, 255, 255, 0.1);
+  --holo-border-glow: rgba(0, 229, 255, 0.8);
   --holo-shadow-panel:
-    0 0 24px rgba(0, 229, 255, 0.10),
-    0 8px 32px rgba(0, 0, 0, 0.60),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  --holo-shadow-btn:
-    0 0 12px rgba(0, 229, 255, 0.20),
-    0 2px 8px rgba(0, 0, 0, 0.40);
-  --holo-shadow-glow:
-    0 0 20px rgba(0, 229, 255, 0.50),
-    0 0 40px rgba(0, 229, 255, 0.20);
+    0 0 24px rgba(0, 229, 255, 0.1), 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --holo-shadow-btn: 0 0 12px rgba(0, 229, 255, 0.2), 0 2px 8px rgba(0, 0, 0, 0.4);
+  --holo-shadow-glow: 0 0 20px rgba(0, 229, 255, 0.5), 0 0 40px rgba(0, 229, 255, 0.2);
 
   /* Shadow Claude.ai host variables */
-  --color-text-primary:         var(--holo-text-primary);
-  --color-text-secondary:       var(--holo-text-secondary);
-  --color-text-tertiary:        var(--holo-text-tertiary);
-  --color-background:           var(--holo-bg-base);
+  --color-text-primary: var(--holo-text-primary);
+  --color-text-secondary: var(--holo-text-secondary);
+  --color-text-tertiary: var(--holo-text-tertiary);
+  --color-background: var(--holo-bg-base);
   --color-background-secondary: var(--holo-bg-panel);
-  --color-border-primary:       var(--holo-border-primary);
-  --color-border-secondary:     var(--holo-border-secondary);
-  --color-border-tertiary:      var(--holo-border-tertiary);
-  --border-radius-md:           6px;
+  --color-border-primary: var(--holo-border-primary);
+  --color-border-secondary: var(--holo-border-secondary);
+  --color-border-tertiary: var(--holo-border-tertiary);
+  --border-radius-md: 6px;
   --font-sans: 'Exo 2', ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: 'Share Tech Mono', 'IBM Plex Mono', 'SF Mono', monospace;
 
   /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
-  --ta-font-heading:              'Exo 2', 'Orbitron', 'Rajdhani', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --ta-font-body:                 'Share Tech Mono', 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
-  --ta-color-accent:              var(--holo-cyan);
-  --ta-color-accent-hover:        color-mix(in srgb, var(--holo-cyan) 85%, white);
-  --ta-color-accent-bg:           var(--holo-cyan-dim);
-  --ta-color-accent-bg-hover:     rgba(0, 229, 255, 0.25);
-  --ta-color-success:             var(--holo-teal);
-  --ta-color-success-border:      var(--holo-teal-dim);
-  --ta-color-danger:              var(--holo-pink);
-  --ta-color-danger-border:       var(--holo-pink-dim);
-  --ta-color-danger-bg:           rgba(255, 128, 171, 0.10);
-  --ta-color-danger-bg-hover:     rgba(255, 128, 171, 0.20);
-  --ta-color-warning:             var(--holo-lavender);
-  --ta-color-warning-border:      var(--holo-lavender-dim);
-  --ta-color-warning-bg:          rgba(179, 136, 255, 0.10);
-  --ta-color-xp:                  var(--holo-lavender);
-  --ta-color-focus:               var(--holo-cyan);
-  --ta-color-conviction:          var(--holo-lavender);
-  --ta-color-conviction-border:   var(--holo-lavender-dim);
-  --ta-badge-success-bg:          rgba(0, 191, 165, 0.10);
-  --ta-badge-success-text:        var(--holo-teal);
-  --ta-badge-partial-bg:          rgba(0, 229, 255, 0.08);
-  --ta-badge-partial-text:        var(--holo-cyan);
-  --ta-badge-failure-bg:          rgba(255, 128, 171, 0.10);
-  --ta-badge-failure-text:        var(--holo-pink);
+  --ta-font-heading: 'Exo 2', 'Orbitron', 'Rajdhani', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --ta-font-body: 'Share Tech Mono', 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  --ta-color-accent: var(--holo-cyan);
+  --ta-color-accent-hover: color-mix(in srgb, var(--holo-cyan) 85%, white);
+  --ta-color-accent-bg: var(--holo-cyan-dim);
+  --ta-color-accent-bg-hover: rgba(0, 229, 255, 0.25);
+  --ta-color-success: var(--holo-teal);
+  --ta-color-success-border: var(--holo-teal-dim);
+  --ta-color-danger: var(--holo-pink);
+  --ta-color-danger-border: var(--holo-pink-dim);
+  --ta-color-danger-bg: rgba(255, 128, 171, 0.1);
+  --ta-color-danger-bg-hover: rgba(255, 128, 171, 0.2);
+  --ta-color-warning: var(--holo-lavender);
+  --ta-color-warning-border: var(--holo-lavender-dim);
+  --ta-color-warning-bg: rgba(179, 136, 255, 0.1);
+  --ta-color-xp: var(--holo-lavender);
+  --ta-color-focus: var(--holo-cyan);
+  --ta-color-conviction: var(--holo-lavender);
+  --ta-color-conviction-border: var(--holo-lavender-dim);
+  --ta-badge-success-bg: rgba(0, 191, 165, 0.1);
+  --ta-badge-success-text: var(--holo-teal);
+  --ta-badge-partial-bg: rgba(0, 229, 255, 0.08);
+  --ta-badge-partial-text: var(--holo-cyan);
+  --ta-badge-failure-bg: rgba(255, 128, 171, 0.1);
+  --ta-badge-failure-text: var(--holo-pink);
   --ta-badge-crit-success-border: var(--holo-lavender);
   --ta-badge-crit-failure-border: var(--holo-pink);
-  --ta-color-credits:             var(--holo-cyan);
-  --ta-color-tab-active:          var(--holo-cyan);
-  --ta-color-info:                #00E5FF;
-  --ta-btn-primary-text:          #ffffff;
-  --ta-border-style-poi:          1px dashed;
-  --ta-die-spin-duration:         0.6s;
+  --ta-color-credits: var(--holo-cyan);
+  --ta-color-tab-active: var(--holo-cyan);
+  --ta-color-info: #00e5ff;
+  --ta-btn-primary-text: #ffffff;
+  --ta-border-style-poi: 1px dashed;
+  --ta-die-spin-duration: 0.6s;
 
   /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
-  --sta-text-primary:             var(--holo-text-primary);
-  --sta-text-secondary:           var(--holo-text-secondary);
-  --sta-text-tertiary:            var(--holo-text-tertiary);
-  --sta-border-tertiary:          var(--holo-border-tertiary);
-  --sta-color-text-emphasis:      #ffffff;
+  --sta-text-primary: var(--holo-text-primary);
+  --sta-text-secondary: var(--holo-text-secondary);
+  --sta-text-tertiary: var(--holo-text-tertiary);
+  --sta-border-tertiary: var(--holo-border-tertiary);
+  --sta-color-text-emphasis: #ffffff;
 
   /* --- Speaker colours (multi-dialogue) --- */
   --speaker-color-0: #ff79c6;
@@ -972,40 +1021,38 @@ acceptable result if CSP blocks the request.
 
 @media (prefers-color-scheme: light) {
   :host {
-    --holo-bg-base:         #F0F0F5;
-    --holo-bg-panel:        rgba(0, 0, 0, 0.03);
-    --holo-bg-panel-hover:  rgba(0, 0, 0, 0.06);
-    --holo-bg-inset:        rgba(0, 0, 0, 0.06);
-    --holo-bg-btn:          rgba(0, 163, 184, 0.08);
-    --holo-bg-btn-hover:    rgba(0, 163, 184, 0.16);
-    --holo-bg-btn-active:   rgba(0, 163, 184, 0.26);
-    --holo-text-primary:    rgba(10, 20, 40, 0.90);
-    --holo-text-secondary:  rgba(10, 30, 60, 0.68);
-    --holo-text-tertiary:   rgba(10, 30, 60, 0.48);
-    --holo-text-accent:     #007A8C;
-    --holo-text-success:    #007A6A;
-    --holo-text-danger:     #C0004A;
-    --holo-text-crit:       #6200C8;
-    --holo-border-primary:  rgba(0, 163, 184, 0.50);
-    --holo-border-secondary:rgba(0, 163, 184, 0.25);
-    --holo-border-tertiary: rgba(0, 0, 0, 0.10);
-    --holo-border-glow:     rgba(0, 163, 184, 0.80);
+    --holo-bg-base: #f0f0f5;
+    --holo-bg-panel: rgba(0, 0, 0, 0.03);
+    --holo-bg-panel-hover: rgba(0, 0, 0, 0.06);
+    --holo-bg-inset: rgba(0, 0, 0, 0.06);
+    --holo-bg-btn: rgba(0, 163, 184, 0.08);
+    --holo-bg-btn-hover: rgba(0, 163, 184, 0.16);
+    --holo-bg-btn-active: rgba(0, 163, 184, 0.26);
+    --holo-text-primary: rgba(10, 20, 40, 0.9);
+    --holo-text-secondary: rgba(10, 30, 60, 0.68);
+    --holo-text-tertiary: rgba(10, 30, 60, 0.48);
+    --holo-text-accent: #007a8c;
+    --holo-text-success: #007a6a;
+    --holo-text-danger: #c0004a;
+    --holo-text-crit: #6200c8;
+    --holo-border-primary: rgba(0, 163, 184, 0.5);
+    --holo-border-secondary: rgba(0, 163, 184, 0.25);
+    --holo-border-tertiary: rgba(0, 0, 0, 0.1);
+    --holo-border-glow: rgba(0, 163, 184, 0.8);
     --holo-shadow-panel:
-      0 0 20px rgba(0, 163, 184, 0.08),
-      0 4px 20px rgba(0, 0, 0, 0.10),
-      inset 0 1px 0 rgba(255, 255, 255, 0.80);
-    --holo-shadow-btn:
-      0 0 8px rgba(0, 163, 184, 0.15),
-      0 2px 6px rgba(0, 0, 0, 0.10);
-    --holo-shadow-glow:
-      0 0 16px rgba(0, 163, 184, 0.40),
-      0 0 32px rgba(0, 163, 184, 0.15);
+      0 0 20px rgba(0, 163, 184, 0.08), 0 4px 20px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    --holo-shadow-btn: 0 0 8px rgba(0, 163, 184, 0.15), 0 2px 6px rgba(0, 0, 0, 0.1);
+    --holo-shadow-glow: 0 0 16px rgba(0, 163, 184, 0.4), 0 0 32px rgba(0, 163, 184, 0.15);
   }
 }
 
 /* ── Reset & Root ───────────────────────────────────────────── */
 
-*, *::before, *::after { box-sizing: border-box; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
 .root {
   font-family: var(--font-sans);
@@ -1029,11 +1076,15 @@ acceptable result if CSP blocks the request.
   backdrop-filter: blur(12px) saturate(160%);
 }
 @supports not (backdrop-filter: blur(1px)) {
-  .holo-surface { background: #0a0a20; }
+  .holo-surface {
+    background: #0a0a20;
+  }
 }
 @media (prefers-color-scheme: light) {
   @supports not (backdrop-filter: blur(1px)) {
-    .holo-surface { background: #eaeaf2; }
+    .holo-surface {
+      background: #eaeaf2;
+    }
   }
 }
 
@@ -1090,13 +1141,18 @@ acceptable result if CSP blocks the request.
 
 /* ── Narrative Block ────────────────────────────────────────── */
 
-#narrative, .narrative {
-  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+#narrative,
+.narrative {
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: var(--holo-text-base);
   font-weight: 300;
   line-height: 1.75;
   color: var(--holo-text-primary);
-  opacity: 0.90;
+  opacity: 0.9;
   padding: var(--holo-space-md) 0;
   border-top: 1px solid var(--holo-border-tertiary);
   border-bottom: 1px solid var(--holo-border-tertiary);
@@ -1106,10 +1162,14 @@ acceptable result if CSP blocks the request.
 /* ── Brief Text (Progressive Reveal) ───────────────────────── */
 
 .brief-text {
-  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: var(--holo-text-base);
   font-weight: 300;
-  line-height: 1.70;
+  line-height: 1.7;
   color: var(--holo-text-secondary);
   margin: 0 0 var(--holo-space-lg);
   font-style: italic;
@@ -1129,10 +1189,11 @@ button[data-prompt] {
   font-family: var(--font-sans);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  transition: background 150ms ease,
-              border-color 150ms ease,
-              box-shadow 150ms ease,
-              color 150ms ease;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    color 150ms ease;
 }
 button:focus-visible,
 [data-prompt]:focus-visible {
@@ -1159,7 +1220,8 @@ button:focus-visible,
   box-shadow: var(--holo-shadow-glow);
 }
 
-.action-btn, .poi-btn {
+.action-btn,
+.poi-btn {
   font-size: var(--holo-text-sm);
   font-weight: 500;
   color: var(--holo-text-accent);
@@ -1173,12 +1235,14 @@ button:focus-visible,
   display: block;
   margin-bottom: var(--holo-space-sm);
 }
-.action-btn:hover, .poi-btn:hover {
+.action-btn:hover,
+.poi-btn:hover {
   background: var(--holo-bg-btn-hover);
   border-color: var(--holo-border-primary);
   box-shadow: var(--holo-shadow-glow);
 }
-.action-btn:active, .poi-btn:active {
+.action-btn:active,
+.poi-btn:active {
   background: var(--holo-bg-btn-active);
   transform: translateY(1px);
 }
@@ -1222,9 +1286,14 @@ button:focus-visible,
   border-top: 1px solid var(--holo-border-tertiary);
   margin-top: var(--holo-space-md);
 }
-.hp-pips { display: flex; gap: 4px; align-items: center; }
+.hp-pips {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
 .hp-pip {
-  width: 10px; height: 10px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   border: 1px solid var(--holo-border-primary);
   background: transparent;
@@ -1240,8 +1309,12 @@ button:focus-visible,
   box-shadow: 0 0 6px var(--holo-pink-dim);
 }
 .xp-bar-track {
-  height: 4px; background: var(--holo-bg-inset);
-  border-radius: 2px; overflow: hidden; flex: 1; min-width: 60px;
+  height: 4px;
+  background: var(--holo-bg-inset);
+  border-radius: 2px;
+  overflow: hidden;
+  flex: 1;
+  min-width: 60px;
 }
 .xp-bar-fill {
   height: 100%;
@@ -1269,10 +1342,19 @@ button:focus-visible,
   box-shadow: var(--holo-shadow-panel);
   backdrop-filter: blur(16px) saturate(160%);
 }
-.panel-overlay { opacity: 0; transition: opacity 150ms ease; pointer-events: none; }
-.panel-overlay.visible { opacity: 1; pointer-events: auto; }
+.panel-overlay {
+  opacity: 0;
+  transition: opacity 150ms ease;
+  pointer-events: none;
+}
+.panel-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
 .panel-header {
-  display: flex; align-items: baseline; justify-content: space-between;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   padding-bottom: var(--holo-space-md);
   margin-bottom: var(--holo-space-md);
   border-bottom: 1px solid var(--holo-border-secondary);
@@ -1288,7 +1370,7 @@ button:focus-visible,
 .panel-close-btn {
   font-family: var(--font-mono);
   font-size: var(--holo-text-xs);
-  letter-spacing: 0.10em;
+  letter-spacing: 0.1em;
   color: var(--holo-text-tertiary);
   background: transparent;
   border: 1px solid var(--holo-border-tertiary);
@@ -1299,11 +1381,21 @@ button:focus-visible,
   box-sizing: border-box;
   cursor: pointer;
   text-transform: uppercase;
-  transition: border-color 120ms ease, color 120ms ease;
+  transition:
+    border-color 120ms ease,
+    color 120ms ease;
 }
-.panel-close-btn:hover { border-color: var(--holo-border-secondary); color: var(--holo-text-accent); }
-.panel-close-btn:focus-visible { outline: 2px solid var(--holo-border-glow); outline-offset: 2px; }
-.panel-content { display: none; }
+.panel-close-btn:hover {
+  border-color: var(--holo-border-secondary);
+  color: var(--holo-text-accent);
+}
+.panel-close-btn:focus-visible {
+  outline: 2px solid var(--holo-border-glow);
+  outline-offset: 2px;
+}
+.panel-content {
+  display: none;
+}
 
 /* ── Stat Grid ──────────────────────────────────────────────── */
 
@@ -1323,7 +1415,7 @@ button:focus-visible,
   font-family: var(--font-sans);
   font-size: var(--holo-text-xs);
   font-weight: 500;
-  letter-spacing: 0.10em;
+  letter-spacing: 0.1em;
   color: var(--holo-text-tertiary);
   text-transform: uppercase;
   display: block;
@@ -1356,11 +1448,31 @@ button:focus-visible,
   border-radius: 4px;
   border: 1px solid;
 }
-.outcome-badge.crit-success  { color: var(--holo-lavender); border-color: var(--holo-lavender-dim); background: rgba(179,136,255,0.10); }
-.outcome-badge.success       { color: var(--holo-teal);     border-color: var(--holo-teal-dim);     background: rgba(0,191,165,0.10);   }
-.outcome-badge.partial       { color: var(--holo-cyan);     border-color: var(--holo-cyan-dim);     background: rgba(0,229,255,0.08);   }
-.outcome-badge.failure       { color: var(--holo-pink);     border-color: var(--holo-pink-dim);     background: rgba(255,128,171,0.10); }
-.outcome-badge.crit-failure  { color: #FF4080;              border-color: rgba(255,64,128,0.50);    background: rgba(255,64,128,0.15);  }
+.outcome-badge.crit-success {
+  color: var(--holo-lavender);
+  border-color: var(--holo-lavender-dim);
+  background: rgba(179, 136, 255, 0.1);
+}
+.outcome-badge.success {
+  color: var(--holo-teal);
+  border-color: var(--holo-teal-dim);
+  background: rgba(0, 191, 165, 0.1);
+}
+.outcome-badge.partial {
+  color: var(--holo-cyan);
+  border-color: var(--holo-cyan-dim);
+  background: rgba(0, 229, 255, 0.08);
+}
+.outcome-badge.failure {
+  color: var(--holo-pink);
+  border-color: var(--holo-pink-dim);
+  background: rgba(255, 128, 171, 0.1);
+}
+.outcome-badge.crit-failure {
+  color: #ff4080;
+  border-color: rgba(255, 64, 128, 0.5);
+  background: rgba(255, 64, 128, 0.15);
+}
 
 /* ── Die Roll Display ───────────────────────────────────────── */
 
@@ -1391,25 +1503,56 @@ button:focus-visible,
 /* ── Animations (prefers-reduced-motion guarded) ────────────── */
 
 @keyframes holo-shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position:  200% center; }
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
 }
 @keyframes holo-pulse {
-  0%, 100% { opacity: 0.80; box-shadow: 0 0 4px var(--holo-cyan-dim); }
-  50%       { opacity: 1.00; box-shadow: 0 0 12px var(--holo-cyan); }
+  0%,
+  100% {
+    opacity: 0.8;
+    box-shadow: 0 0 4px var(--holo-cyan-dim);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 12px var(--holo-cyan);
+  }
 }
 @keyframes holo-flicker-in {
-  0%   { opacity: 0.0; transform: scaleY(0.96); }
-  20%  { opacity: 0.6; transform: scaleY(1.00); }
-  30%  { opacity: 0.3; }
-  50%  { opacity: 0.9; }
-  70%  { opacity: 0.7; }
-  100% { opacity: 1.0; }
+  0% {
+    opacity: 0;
+    transform: scaleY(0.96);
+  }
+  20% {
+    opacity: 0.6;
+    transform: scaleY(1);
+  }
+  30% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.9;
+  }
+  70% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 @keyframes holo-iridescent {
-  0%   { filter: hue-rotate(0deg); }
-  50%  { filter: hue-rotate(40deg); }
-  100% { filter: hue-rotate(0deg); }
+  0% {
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    filter: hue-rotate(40deg);
+  }
+  100% {
+    filter: hue-rotate(0deg);
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -1417,8 +1560,8 @@ button:focus-visible,
     background: linear-gradient(
       90deg,
       var(--holo-text-accent) 0%,
-      var(--holo-lavender)    40%,
-      var(--holo-cyan)        60%,
+      var(--holo-lavender) 40%,
+      var(--holo-cyan) 60%,
       var(--holo-text-accent) 100%
     );
     background-size: 200% auto;
@@ -1427,14 +1570,24 @@ button:focus-visible,
     -webkit-text-fill-color: transparent;
     animation: holo-shimmer 4s linear infinite;
   }
-  #reveal-full { animation: holo-flicker-in 0.35s ease-out forwards; }
-  .panel-overlay { transition: opacity 180ms ease; }
-  .hp-pip.active { animation: holo-pulse 2.4s ease-in-out infinite; }
-  .outcome-badge.crit-success { animation: holo-iridescent 3s ease-in-out infinite; }
+  #reveal-full {
+    animation: holo-flicker-in 0.35s ease-out forwards;
+  }
+  .panel-overlay {
+    transition: opacity 180ms ease;
+  }
+  .hp-pip.active {
+    animation: holo-pulse 2.4s ease-in-out infinite;
+  }
+  .outcome-badge.crit-success {
+    animation: holo-iridescent 3s ease-in-out infinite;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

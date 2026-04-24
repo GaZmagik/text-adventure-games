@@ -1,5 +1,30 @@
 # Die Rolls — Resolution Mechanics
+
 > Module for text-adventure orchestrator. Always loaded — governs all mechanical resolution.
+
+```json tag-contract
+{
+  "id": "die-rolls",
+  "kind": "module",
+  "version": "1.4.0",
+  "summary": "Resolution mechanics for hidden checks, pending rolls, DC calibration, dice widgets, and post-roll consequence delivery.",
+  "mustRead": [
+    "Never reveal stat or DC in action prompts before player commitment.",
+    "Use CLI dice widgets; never hand-code dice HTML, CSS, or JS."
+  ],
+  "commands": [
+    "tag compute contest <STAT> <npc_id>",
+    "tag compute hazard <STAT> --dc <N>",
+    "tag compute encounter --escalation <N>",
+    "tag render dice --style <style>",
+    "tag render dice-pool --style <style> --data '<json>'"
+  ],
+  "state": [
+    "_pendingRolls stores roll metadata from scene action cards.",
+    "rollHistory records completed contest, hazard, and encounter rolls."
+  ]
+}
+```
 
 This module defines how uncertain actions are resolved: the dice mechanics, the widget
 stages, DC calibration, attribute variety, difficulty scaling, and the critical rule that
@@ -11,13 +36,13 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: core-syst
 
 ## § CLI Commands for This Module
 
-| Action | Command | Tool |
-|--------|---------|------|
-| Render single-die widget | `tag render dice --style <style>` | Run via Bash tool |
-| Render mixed dice pool | `tag render dice-pool --style <style> --data '<json>'` | Run via Bash tool |
-| Hidden contested roll | `tag compute contest <STAT> <npc_id>` | Run via Bash tool |
-| Hazard save | `tag compute hazard <ATTR> --dc <N>` | Run via Bash tool |
-| Random encounter | `tag compute encounter --escalation <N>` | Run via Bash tool |
+| Action                   | Command                                                | Tool              |
+| ------------------------ | ------------------------------------------------------ | ----------------- |
+| Render single-die widget | `tag render dice --style <style>`                      | Run via Bash tool |
+| Render mixed dice pool   | `tag render dice-pool --style <style> --data '<json>'` | Run via Bash tool |
+| Hidden contested roll    | `tag compute contest <STAT> <npc_id>`                  | Run via Bash tool |
+| Hazard save              | `tag compute hazard <ATTR> --dc <N>`                   | Run via Bash tool |
+| Random encounter         | `tag compute encounter --escalation <N>`               | Run via Bash tool |
 
 > **All die roll widgets are rendered via the `tag` CLI.** The GM must never hand-code HTML, CSS, or JS for dice — hand-coded dice invariably omit the WebGL renderer, quaternion-based landing animation, collision detection, and deterministic seeding that the CLI template provides; the result is a flat, non-interactive placeholder that the player cannot click to roll. Use `tag render dice` for one logical die and `tag render dice-pool` for grouped numeric rolls on one shared canvas.
 
@@ -27,7 +52,7 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: core-syst
 
 **Never reveal which attribute a check will test in the action options.**
 
-The player chooses what to *do*, not which stat to roll. The GM determines the relevant
+The player chooses what to _do_, not which stat to roll. The GM determines the relevant
 attribute after the player commits. This prevents the player from gaming their choices
 toward their strongest stat.
 
@@ -44,9 +69,9 @@ GOOD:
 ```
 
 The player should be making narrative decisions, not mechanical ones. A player who chooses
-"Speak to the guard" might face a CHA check — or a WIS check if the guard is testing *them*.
+"Speak to the guard" might face a CHA check — or a WIS check if the guard is testing _them_.
 A player who chooses "Find another way around" might face DEX (stealth) or INT (navigation)
-or WIS (perception to spot an alternative route). The GM decides based on *how* the player
+or WIS (perception to spot an alternative route). The GM decides based on _how_ the player
 describes their approach, not based on a pre-assigned attribute.
 
 **When the roll widget renders,** the attribute and modifier are revealed — but only after
@@ -68,17 +93,19 @@ The player's single-die widget works like a standard click-to-roll check — idl
 state, 3D die, hidden result, click-to-roll reveal, then locked final state. The
 difference is in the reveal:
 
-| Check Type | Reveal |
-|------------|----------------|
-| Standard (vs DC) | Player total + DC line + outcome badge |
+| Check Type         | Reveal                                                        |
+| ------------------ | ------------------------------------------------------------- |
+| Standard (vs DC)   | Player total + DC line + outcome badge                        |
 | Contested (vs NPC) | Player total only; the NPC contest resolution remains GM-side |
 
 The player sees:
+
 - The attribute/modifier context already established for the check
 - Their 3D die roll, triggered by their click
 - Their own roll breakdown after the die settles
 
 The player **NEVER** sees:
+
 - The NPC's roll value
 - The NPC's modifier or stats
 - The competing total
@@ -86,13 +113,13 @@ The player **NEVER** sees:
 
 ### Outcome Badge Text for Contested Checks
 
-| Margin | Outcome | Example Narration |
-|--------|---------|-------------------|
-| Player wins by 5+ | Decisive success | "Your words land with precision. Their resistance crumbles." |
-| Player wins by 1-4 | Narrow success | "They hesitate — for a moment you are not sure — but they relent." |
-| Tie (NPC favoured) | Narrow failure | "They study you carefully. Something in your delivery does not quite land." |
-| NPC wins by 1-4 | Failure | "They see right through your opening gambit, but you notice a flicker of doubt." |
-| NPC wins by 5+ | Decisive failure | "Your attempt falls flat. They were expecting exactly this." |
+| Margin             | Outcome          | Example Narration                                                                |
+| ------------------ | ---------------- | -------------------------------------------------------------------------------- |
+| Player wins by 5+  | Decisive success | "Your words land with precision. Their resistance crumbles."                     |
+| Player wins by 1-4 | Narrow success   | "They hesitate — for a moment you are not sure — but they relent."               |
+| Tie (NPC favoured) | Narrow failure   | "They study you carefully. Something in your delivery does not quite land."      |
+| NPC wins by 1-4    | Failure          | "They see right through your opening gambit, but you notice a flicker of doubt." |
+| NPC wins by 5+     | Decisive failure | "Your attempt falls flat. They were expecting exactly this."                     |
 
 > **CLI:** For contested checks, use `tag compute contest <ATTR> <npc_id>` to ensure
 > the NPC's modifier is read from persisted state rather than improvised.
@@ -110,18 +137,18 @@ The GM resolves the NPC's check silently:
 
 ### Contested Check Attribute Pairings
 
-| Player Action | Player Attribute | NPC Opposing Attribute |
-|---------------|-----------------|----------------------|
-| Persuade | CHA | WIS |
-| Deceive | CHA | WIS or INT |
-| Intimidate | STR or CHA | WIS or CHA |
-| Pickpocket | DEX | WIS |
-| Sneak past | DEX | WIS |
-| Arm wrestle | STR | STR |
-| Outwit | INT | INT or WIS |
-| Read intentions | WIS | CHA |
-| Resist charm | WIS | CHA |
-| Spot deception | WIS or INT | CHA |
+| Player Action   | Player Attribute | NPC Opposing Attribute |
+| --------------- | ---------------- | ---------------------- |
+| Persuade        | CHA              | WIS                    |
+| Deceive         | CHA              | WIS or INT             |
+| Intimidate      | STR or CHA       | WIS or CHA             |
+| Pickpocket      | DEX              | WIS                    |
+| Sneak past      | DEX              | WIS                    |
+| Arm wrestle     | STR              | STR                    |
+| Outwit          | INT              | INT or WIS             |
+| Read intentions | WIS              | CHA                    |
+| Resist charm    | WIS              | CHA                    |
+| Spot deception  | WIS or INT       | CHA                    |
 
 ---
 
@@ -134,6 +161,7 @@ locks permanently.
 ### Pre-Roll
 
 Show:
+
 - The check context (for example `Perception Check` or `Coin Flip`)
 - An idle 3D die, coin, or paired percentile dice
 - A click hint such as `CLICK THE DIE TO ROLL`
@@ -145,6 +173,7 @@ pre-baked rolled face, total, or outcome badge. If the result is visible before 
 ### Roll
 
 On player click:
+
 - Generate the result client-side at click time
 - Animate the die or dice to the rolled face
 - Keep the result hidden until the settle animation completes
@@ -154,6 +183,7 @@ The roll must be triggered by explicit player click — never auto-roll.
 ### Reveal and Lock
 
 After the settle animation:
+
 1. Show the roll breakdown
 2. If a DC was supplied, reveal the DC and outcome badge now
 3. Lock the widget so the result cannot be rerolled
@@ -165,14 +195,14 @@ scene or follow-up widget.
 
 ## DC Table
 
-| Task | DC |
-|------|----|
-| Trivial | 5 |
-| Easy | 8 |
-| Moderate | 12 |
-| Hard | 16 |
-| Very Hard | 20 |
-| Near-impossible | 25 |
+| Task            | DC  |
+| --------------- | --- |
+| Trivial         | 5   |
+| Easy            | 8   |
+| Moderate        | 12  |
+| Hard            | 16  |
+| Very Hard       | 20  |
+| Near-impossible | 25  |
 
 Apply difficulty setting modifier: Easy (−2), Normal (0), Hard (+2), Brutal (+4).
 
@@ -197,6 +227,7 @@ Apply difficulty setting modifier: Easy (−2), Normal (0), Hard (+2), Brutal (+
 Use all six attributes across the adventure — not just the player's primary stats.
 
 A high-DEX character should still face:
+
 - **INT checks** — deciphering codes, understanding mechanisms, recalling knowledge
 - **WIS checks** — reading people, sensing danger, resisting manipulation
 - **CHA checks** — persuasion under pressure, intimidation, deception
@@ -211,11 +242,11 @@ uncertain about some rolls — not confident that their +5 modifier will carry t
 
 Each act should include checks across at least four different attributes:
 
-| Act | Minimum attribute variety |
-|-----|--------------------------|
-| Act 1 (scenes 1–2) | At least 3 different attributes tested |
-| Act 2 (scenes 3–8) | All 6 attributes tested at least once |
-| Act 3 (scenes 9+) | Emphasis on the player's weakest 2 stats for maximum tension |
+| Act                | Minimum attribute variety                                    |
+| ------------------ | ------------------------------------------------------------ |
+| Act 1 (scenes 1–2) | At least 3 different attributes tested                       |
+| Act 2 (scenes 3–8) | All 6 attributes tested at least once                        |
+| Act 3 (scenes 9+)  | Emphasis on the player's weakest 2 stats for maximum tension |
 
 ---
 
@@ -227,12 +258,12 @@ to set DCs based on player level and intended difficulty.
 ### DC by Player Level
 
 | Player Level | Easy DC | Moderate DC | Hard DC | Extreme DC |
-|-------------|---------|-------------|---------|------------|
-| 1–2 | 8 | 10 | 13 | 16 |
-| 3–4 | 9 | 12 | 15 | 18 |
-| 5–6 | 10 | 13 | 16 | 19 |
-| 7–8 | 11 | 14 | 17 | 20 |
-| 9–10 | 12 | 15 | 18 | 22 |
+| ------------ | ------- | ----------- | ------- | ---------- |
+| 1–2          | 8       | 10          | 13      | 16         |
+| 3–4          | 9       | 12          | 15      | 18         |
+| 5–6          | 10      | 13          | 16      | 19         |
+| 7–8          | 11      | 14          | 17      | 20         |
+| 9–10         | 12      | 15          | 18      | 22         |
 
 Use **Moderate** for most checks. **Easy** for trivial tasks where failure is still possible.
 **Hard** for specialist tasks. **Extreme** for near-impossible feats.
@@ -242,12 +273,12 @@ Use **Moderate** for most checks. **Easy** for trivial tasks where failure is st
 These modifiers are applied on top of the DC values above, based on the difficulty chosen
 in Game Settings:
 
-| Setting | DC Modifier |
-|---------|-------------|
-| Easy mode | −2 to all DCs |
+| Setting     | DC Modifier            |
+| ----------- | ---------------------- |
+| Easy mode   | −2 to all DCs          |
 | Normal mode | Standard (no modifier) |
-| Hard mode | +2 to all DCs |
-| Brutal mode | +4 to all DCs |
+| Hard mode   | +2 to all DCs          |
+| Brutal mode | +4 to all DCs          |
 
 ### Escalation Techniques
 
@@ -255,7 +286,7 @@ Beyond the table, maintain tension through:
 
 - **Disadvantage conditions** — fatigue, injury, time pressure, hostile environment,
   emotional distress. Disadvantage (roll twice, take lower) is a powerful tension tool.
-- **Complication rolls** — checks where high rolls produce *complications* alongside success.
+- **Complication rolls** — checks where high rolls produce _complications_ alongside success.
   You pick the lock, but the mechanism triggers an alarm. You persuade the captain, but she
   suspects your motives.
 - **Contested checks** — the enemy rolls too. Use `tag compute contest <ATTR> <npc_id>` to
@@ -308,16 +339,16 @@ All die types are represented by the `DieType` union: `d2 | d4 | d6 | d8 | d10 |
 
 ### Die Shapes
 
-| Die | Geometry | Faces | Opposite sum |
-|-----|----------|-------|-------------|
-| d2 | Coin (flat cylinder) | 2 | 3 |
-| d4 | Tetrahedron | 4 triangles | N/A |
-| d6 | Cube | 6 squares (12 triangles) | 7 |
-| d8 | Octahedron | 8 triangles | 9 |
-| d10 | Pentagonal trapezohedron | 10 kite faces | 11 |
-| d12 | Dodecahedron | 12 pentagons (36 triangles) | 13 |
-| d20 | Icosahedron | 20 triangles | 21 |
-| d100 | Two independent d10 canvases (Tens + Units) | 10 + 10 | N/A |
+| Die  | Geometry                                    | Faces                       | Opposite sum |
+| ---- | ------------------------------------------- | --------------------------- | ------------ |
+| d2   | Coin (flat cylinder)                        | 2                           | 3            |
+| d4   | Tetrahedron                                 | 4 triangles                 | N/A          |
+| d6   | Cube                                        | 6 squares (12 triangles)    | 7            |
+| d8   | Octahedron                                  | 8 triangles                 | 9            |
+| d10  | Pentagonal trapezohedron                    | 10 kite faces               | 11           |
+| d12  | Dodecahedron                                | 12 pentagons (36 triangles) | 13           |
+| d20  | Icosahedron                                 | 20 triangles                | 21           |
+| d100 | Two independent d10 canvases (Tens + Units) | 10 + 10                     | N/A          |
 
 ### Style-Aware Colouring
 
@@ -334,6 +365,7 @@ CSS custom properties on the widget root:
 ### Architecture
 
 The 3D die system uses:
+
 - **Hand-rolled WebGL** (~16KB inline, no external dependencies) — all geometry, shading, and animation are self-contained
 - **Texture atlas** — a single canvas texture with all face numbers in a grid, UV-mapped to each face
 - **Face clustering** — triangles grouped by normal direction (dot product > 0.93) to identify logical faces on compound shapes (d6 squares, d12 pentagons)

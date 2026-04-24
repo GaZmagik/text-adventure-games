@@ -1,4 +1,5 @@
 # Geographical Map — On-World Navigation Engine
+
 > Module for text-adventure orchestrator. Loaded for on-world exploration: settlements, wilderness, dungeons, and interiors.
 
 Where the star-chart module handles the void between worlds, this module handles the ground
@@ -16,10 +17,17 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: procedura
 
 ## § CLI Commands
 
-| Action | Command | Tool |
-|--------|---------|------|
-| Render world map | `tag render map --style <style>` | Run via Bash tool |
-| Set map state | `tag state set mapState.<path> <value>` | Run via Bash tool |
+| Action                        | Command                                                                                | Tool              |
+| ----------------------------- | -------------------------------------------------------------------------------------- | ----------------- |
+| Generate/apply procedural map | `tag world generate --seed <seed> [--theme <theme>] --apply`                           | Run via Bash tool |
+| Move between zones            | `tag map enter <zone-id>`                                                              | Run via Bash tool |
+| Reveal/discover/unlock zones  | `tag map reveal <zone-id>` / `tag map discover <from> <to>` / `tag map unlock <route>` | Run via Bash tool |
+| Inspect zone                  | `tag map inspect <zone-id>`                                                            | Run via Bash tool |
+| Plan route                    | `tag map route <from> <to>`                                                            | Run via Bash tool |
+| Render world map              | `tag render map --style <style>`                                                       | Run via Bash tool |
+| Render route planner          | `tag render route-planner --style <style> --data '{"from":"<zone>","to":"<zone>"}'`    | Run via Bash tool |
+| Render world atlas            | `tag render world-atlas --style <style>`                                               | Run via Bash tool |
+| Set map state                 | `tag state set mapState.<path> <value>`                                                | Run via Bash tool |
 
 ---
 
@@ -65,12 +73,14 @@ Streets as lines connecting locations. Key landmarks rendered with distinct SVG 
 
 **Zones:** Each location is a named zone — the market, the docks, the governor's quarters, the
 slums, the cantina. Zones have:
+
 - `type` — commercial, residential, industrial, restricted, derelict
 - `faction` — who controls this area (if contested, show both)
 - `threat` — none, low, medium, high (affects encounter likelihood)
 - `status` — open, locked (requires key/persuasion), hostile (combat on entry), destroyed
 
 **Mechanical effects:**
+
 - Restricted zones require a check (Persuasion, Stealth, or a key item) to enter.
 - Hostile zones trigger an encounter on entry — always.
 - Faction-controlled zones grant advantage on social checks if the player is allied, disadvantage if opposed.
@@ -89,18 +99,18 @@ potentially resources (rations, water, fuel).
 
 **Terrain types and effects:**
 
-| Terrain | Travel time | DC modifier | Hazard |
-|---------|------------|-------------|--------|
-| Road/path | Normal | None | None |
-| Plains/grassland | Normal | None | Exposure |
-| Forest/woodland | 1.5x | +1 Navigation | Ambush, wildlife |
-| Hills | 1.5x | +1 Athletics | Rockfall, exposure |
-| Mountains | 3x | +3 Athletics | Avalanche, altitude, exposure |
-| Desert | 2x | +2 CON | Dehydration, sandstorm, heat |
-| Swamp/marsh | 2x | +2 CON | Disease, sinking, wildlife |
-| Tundra/ice | 2x | +2 CON | Hypothermia, whiteout |
-| Water (crossing) | Special | Swimming/boat check | Drowning, current |
-| Urban ruins | 1.5x | +1 Navigation | Collapse, scavengers |
+| Terrain          | Travel time | DC modifier         | Hazard                        |
+| ---------------- | ----------- | ------------------- | ----------------------------- |
+| Road/path        | Normal      | None                | None                          |
+| Plains/grassland | Normal      | None                | Exposure                      |
+| Forest/woodland  | 1.5x        | +1 Navigation       | Ambush, wildlife              |
+| Hills            | 1.5x        | +1 Athletics        | Rockfall, exposure            |
+| Mountains        | 3x          | +3 Athletics        | Avalanche, altitude, exposure |
+| Desert           | 2x          | +2 CON              | Dehydration, sandstorm, heat  |
+| Swamp/marsh      | 2x          | +2 CON              | Disease, sinking, wildlife    |
+| Tundra/ice       | 2x          | +2 CON              | Hypothermia, whiteout         |
+| Water (crossing) | Special     | Swimming/boat check | Drowning, current             |
+| Urban ruins      | 1.5x        | +1 Navigation       | Collapse, scavengers          |
 
 **Travel encounters:** Each wilderness zone has an encounter chance rolled when the player enters.
 Encounter tables are seeded from procedural-world-gen if active, or hand-authored by the GM.
@@ -122,6 +132,7 @@ directional arrows.
 time pressure (e.g., a collapsing structure, ticking bomb, draining atmosphere).
 
 **Room states:**
+
 - `unexplored` — dashed outline, no label (player knows a room exists but not what is in it)
 - `visited` — solid outline, labelled (player has been here, contents known)
 - `current` — info colour fill with pulse animation (player is here now)
@@ -130,6 +141,7 @@ time pressure (e.g., a collapsing structure, ticking bomb, draining atmosphere).
 - `safe` — teal outline (cleared of threats, rest possible)
 
 **Doors and connections:**
+
 - Standard door: passable, no check.
 - Locked door: requires key item, Lockpicking check, or Force (STR, may alert enemies).
 - Hidden door: not visible until player passes Perception check or finds a clue.
@@ -141,26 +153,29 @@ time pressure (e.g., a collapsing structure, ticking bomb, draining atmosphere).
 ## The mapState Object
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 gmState.mapState = {
-  activeMapType: 'settlement',  // 'settlement' | 'wilderness' | 'dungeon'
-  mapId: 'trade_station',        // unique identifier for this map
-  mapName: 'Trade Station',      // display name
+  activeMapType: 'settlement', // 'settlement' | 'wilderness' | 'dungeon'
+  mapId: 'trade_station', // unique identifier for this map
+  mapName: 'Trade Station', // display name
 
   zones: [
     {
       id: 'cantina',
       name: 'The Cantina',
       type: 'commercial',
-      terrain: null,              // wilderness only: 'forest', 'desert', etc.
-      x: 120, y: 80,             // SVG coordinates for rendering
-      width: 60, height: 40,     // dungeon/settlement only
-      status: 'visited',         // 'unexplored' | 'visited' | 'current' | 'danger' | 'locked' | 'safe'
+      terrain: null, // wilderness only: 'forest', 'desert', etc.
+      x: 120,
+      y: 80, // SVG coordinates for rendering
+      width: 60,
+      height: 40, // dungeon/settlement only
+      status: 'visited', // 'unexplored' | 'visited' | 'current' | 'danger' | 'locked' | 'safe'
       faction: null,
       threat: 'low',
       description: 'A dimly lit cantina staffed by a surly Devaronian.',
-      encounters: [],            // encounter IDs that can trigger here
-      loot: [],                  // item IDs discoverable here
+      encounters: [], // encounter IDs that can trigger here
+      loot: [], // item IDs discoverable here
       connections: ['market', 'landing_bay', 'back_alley'],
     },
     // ... more zones
@@ -174,16 +189,14 @@ gmState.mapState = {
 
   currentZone: 'cantina',
   visitedZones: ['cantina', 'market'],
-  revealedZones: ['cantina', 'market', 'landing_bay'],  // visible but not necessarily visited
+  revealedZones: ['cantina', 'market', 'landing_bay'], // visible but not necessarily visited
 
   // Wilderness-specific
-  supplies: { rations: 5, water: 5 },  // null if not tracking
-  travelLog: [],  // history of zone-to-zone movements with timestamps
+  supplies: { rations: 5, water: 5 }, // null if not tracking
+  travelLog: [], // history of zone-to-zone movements with timestamps
 
   // Dungeon-specific
-  doors: [
-    { between: ['corridor_2', 'armoury'], type: 'locked', status: 'locked', keyItem: 'security_card' },
-  ],
+  doors: [{ between: ['corridor_2', 'armoury'], type: 'locked', status: 'locked', keyItem: 'security_card' }],
 };
 ```
 
@@ -222,6 +235,7 @@ Current zone:     info-colour fill with CSS pulse animation
 
 Movement between connected zones in a settlement is free — the player simply clicks the
 destination. No check required unless:
+
 - The destination is `locked` or `restricted` (requires a check or key).
 - The player is being pursued (triggers a chase encounter or Stealth check).
 - There is a time constraint (each move consumes a time unit).
@@ -229,6 +243,7 @@ destination. No check required unless:
 ### Wilderness travel
 
 Each zone-to-zone movement in the wilderness:
+
 1. **Announce travel time** based on terrain (see terrain table).
 2. **Consume resources** if supplies are tracked (1 ration + 1 water per day of travel).
 3. **Roll for encounters** — each zone has an encounter chance. Roll percentile:
@@ -242,6 +257,7 @@ Each zone-to-zone movement in the wilderness:
 ### Dungeon movement
 
 Room-to-room movement is immediate. No resource cost. The tension comes from:
+
 - Locked doors requiring checks or keys.
 - Hidden rooms requiring discovery.
 - Trap checks when entering certain rooms.
@@ -318,6 +334,22 @@ Corridors as 2px lines. Doors as perpendicular ticks on corridor lines.
 Stairs: triangle arrows. Lifts: double-headed arrows.
 ```
 
+## Route Planning
+
+Use `tag map route <from> <to>` to calculate a non-mutating route through discovered, unlocked
+connections. The command returns:
+
+- `reachable` and `path` for the shortest known route.
+- `blockers` for locked or undiscovered frontier routes.
+- `travelTime`, `steps`, and `supplyCost` for resource-aware travel.
+
+Use `tag render route-planner --style <style> --data '{"from":"<zone>","to":"<zone>"}'`
+when the player needs a visible route diagram. It renders a compact SVG path and explains why a
+route is blocked without changing `gmState.mapState`.
+
+Use `tag render world-atlas --style <style>` when the player needs a generated-world browser.
+The atlas masks unrevealed room descriptions, loot, encounters, and exits.
+
 ---
 
 ## Panel Integration
@@ -353,15 +385,15 @@ MAP_EVENT: map_item | [regionId]                         // physical map found, 
 
 ### When to fire MAP_EVENTs
 
-| Trigger | Event |
-|---------|-------|
-| Player moves to a new zone | `enter` → zone becomes visited, adjacent zones revealed |
-| Player passes Perception check | `discover` → hidden connection revealed |
-| Player finds a key item | `unlock` → locked connection becomes passable |
-| Combat clears a zone | `status` → zone changes from danger to safe |
-| Supplies consumed during travel | `supplies` → rations/water decremented |
-| Player finds a map item | `map_item` → entire region revealed at once |
-| Zone is destroyed/collapses | `status` → zone changes to derelict |
+| Trigger                         | Event                                                   |
+| ------------------------------- | ------------------------------------------------------- |
+| Player moves to a new zone      | `enter` → zone becomes visited, adjacent zones revealed |
+| Player passes Perception check  | `discover` → hidden connection revealed                 |
+| Player finds a key item         | `unlock` → locked connection becomes passable           |
+| Combat clears a zone            | `status` → zone changes from danger to safe             |
+| Supplies consumed during travel | `supplies` → rations/water decremented                  |
+| Player finds a map item         | `map_item` → entire region revealed at once             |
+| Zone is destroyed/collapses     | `status` → zone changes to derelict                     |
 
 ---
 
@@ -370,8 +402,8 @@ MAP_EVENT: map_item | [regionId]                         // physical map found, 
 ### procedural-world-gen
 
 When the procedural-world-gen module is active, map data is generated as part of the world
-pipeline. The geo-map module consumes `worldData.rooms` (for dungeons) or `worldData.regions`
-(for wilderness/settlements) and populates `gmState.mapState`.
+pipeline. Run `tag world generate --seed <seed> [--theme <theme>] --apply`; the CLI consumes
+`worldData.rooms` and populates `gmState.mapState`.
 
 ### lore-codex
 
@@ -381,15 +413,15 @@ investigation check), fire `LORE_EVENT: advance` to reveal the full codex entry.
 
 ### save-codex
 
-The save-codex captures `gmState.mapState` for persistence. In compact mode, only the
-`currentZone`, `visitedZones`, `revealedZones`, `doors` status changes, and `supplies` are
-stored — the full zone definitions are regenerable from the seed.
+The save-codex captures `gmState.mapState` for persistence. This skill version also persists full
+`gmState.worldData` so map inspection can read generated room details directly.
 
 ---
 
 ## gmState Integration
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 // Save-codex compact flags
 const mapFlags = {
@@ -402,9 +434,7 @@ const mapFlags = {
   map_supplies_water: mapState.supplies?.water ?? -1,
   // Door states (only changed doors)
   ...Object.fromEntries(
-    mapState.doors
-      .filter(d => d.status !== 'locked')
-      .map(d => [`map_door_${d.between.join('_')}`, d.status])
+    mapState.doors.filter(d => d.status !== 'locked').map(d => [`map_door_${d.between.join('_')}`, d.status]),
   ),
 };
 ```

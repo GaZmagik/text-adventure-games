@@ -18,9 +18,26 @@ best-for:
   - mystery
 ---
 
+```json tag-contract
+{
+  "id": "ink-wash",
+  "kind": "style",
+  "version": "1.4.0",
+  "summary": "Meditative brush-painting style with near-monochrome ink values, vermillion accents, serif type, and deliberate whitespace.",
+  "mustRead": [
+    "Pair with styles/style-reference.md for structural contracts.",
+    "Use whitespace as structure; avoid dense borders, heavy fills, and busy decorative layering."
+  ],
+  "render": [
+    "Vermillion should be rare and deliberate, like a seal stamp.",
+    "Best for wuxia, samurai, mythology, contemplative horror, and literary mystery."
+  ]
+}
+```
+
 ## Design Philosophy
 
-Ink wash painting (*sumi-e*) values emptiness as much as mark. A brushstroke gains meaning
+Ink wash painting (_sumi-e_) values emptiness as much as mark. A brushstroke gains meaning
 from the silence around it. This theme applies that principle to interface design: whitespace
 is not wasted space but the ground on which content rests. Every element earns its place.
 
@@ -61,17 +78,17 @@ Do not use `@import` as the only font-loading mechanism; always write out the fu
 
 ### Type Scale
 
-| Role              | Size   | Weight | Line Height | Letter Spacing |
-|-------------------|--------|--------|-------------|----------------|
-| Location heading  | 17px   | 600    | 1.3         | 0              |
-| Scene heading     | 15px   | 600    | 1.3         | 0              |
-| Narrative body    | 14px   | 400    | 1.9         | 0.01em         |
-| NPC dialogue      | 14px   | 400    | 1.85        | 0.01em         |
-| Section label     | 9px    | 500    | 1.4         | 0.18em         |
-| Atmo pill / tag   | 10px   | 400    | 1.4         | 0.06em         |
-| Button text       | 12px   | 400    | 1           | 0.04em         |
-| Footer button     | 10px   | 400    | 1           | 0.08em         |
-| Stat / mono value | 11px   | 400    | 1.5         | 0.06em         |
+| Role              | Size | Weight | Line Height | Letter Spacing |
+| ----------------- | ---- | ------ | ----------- | -------------- |
+| Location heading  | 17px | 600    | 1.3         | 0              |
+| Scene heading     | 15px | 600    | 1.3         | 0              |
+| Narrative body    | 14px | 400    | 1.9         | 0.01em         |
+| NPC dialogue      | 14px | 400    | 1.85        | 0.01em         |
+| Section label     | 9px  | 500    | 1.4         | 0.18em         |
+| Atmo pill / tag   | 10px | 400    | 1.4         | 0.06em         |
+| Button text       | 12px | 400    | 1           | 0.04em         |
+| Footer button     | 10px | 400    | 1           | 0.08em         |
+| Stat / mono value | 11px | 400    | 1.5         | 0.06em         |
 
 Section labels are always `text-transform: uppercase`. Everything else is sentence case.
 
@@ -88,50 +105,46 @@ attributes — use the custom properties only.
 ```css
 :host {
   /* --- Backgrounds --- */
-  --iw-bg-primary:      #F5F2EB;   /* rice paper — widget root */
-  --iw-bg-secondary:    #EDE9E0;   /* slightly deeper paper — inset surfaces */
-  --iw-bg-tertiary:     #E4DFD4;   /* recessed well, selected state */
-  --iw-bg-wash:         #F9F7F2;   /* near-white — hover lift */
+  --iw-bg-primary: #f5f2eb; /* rice paper — widget root */
+  --iw-bg-secondary: #ede9e0; /* slightly deeper paper — inset surfaces */
+  --iw-bg-tertiary: #e4dfd4; /* recessed well, selected state */
+  --iw-bg-wash: #f9f7f2; /* near-white — hover lift */
 
   /* --- Ink tones (text) --- */
-  --iw-ink-primary:     #1A1A1A;   /* full ink — headings, primary text */
-  --iw-ink-secondary:   #4A4A4A;   /* diluted ink — body narrative */
-  --iw-ink-tertiary:    #8A8A8A;   /* pale wash — labels, metadata */
-  --iw-ink-ghost:       #B0AA9E;   /* near-invisible — placeholder, disabled */
+  --iw-ink-primary: #1a1a1a; /* full ink — headings, primary text */
+  --iw-ink-secondary: #4a4a4a; /* diluted ink — body narrative */
+  --iw-ink-tertiary: #8a8a8a; /* pale wash — labels, metadata */
+  --iw-ink-ghost: #b0aa9e; /* near-invisible — placeholder, disabled */
 
   /* --- Borders --- */
-  --iw-border-strong:   #C5C0B6;   /* visible rule — section divider */
-  --iw-border-subtle:   #D9D4C8;   /* gentle boundary — card edge */
-  --iw-border-ghost:    #E4DFD4;   /* barely-there — inset well edge */
+  --iw-border-strong: #c5c0b6; /* visible rule — section divider */
+  --iw-border-subtle: #d9d4c8; /* gentle boundary — card edge */
+  --iw-border-ghost: #e4dfd4; /* barely-there — inset well edge */
 
   /* --- Accent: vermillion (use sparingly) --- */
-  --iw-accent:          #D03A2D;   /* vermillion seal — primary CTA, critical badge */
-  --iw-accent-muted:    rgba(208, 58, 45, 0.10);  /* wash tint — CTA background */
-  --iw-accent-border:   rgba(208, 58, 45, 0.40);  /* border tint — CTA outline */
+  --iw-accent: #d03a2d; /* vermillion seal — primary CTA, critical badge */
+  --iw-accent-muted: rgba(208, 58, 45, 0.1); /* wash tint — CTA background */
+  --iw-accent-border: rgba(208, 58, 45, 0.4); /* border tint — CTA outline */
 
   /* --- Semantic colours (desaturated to preserve monochrome feel) --- */
-  --iw-success:         #3D7A5E;   /* muted jade — success states */
-  --iw-success-bg:      rgba(61, 122, 94, 0.08);
-  --iw-warning:         #8A6B2A;   /* aged gold — warning states */
-  --iw-warning-bg:      rgba(138, 107, 42, 0.08);
-  --iw-danger:          #8A2A2A;   /* dried blood — danger / critical failure */
-  --iw-danger-bg:       rgba(138, 42, 42, 0.08);
-  --iw-info:            #2A4A6A;   /* storm blue — informational */
-  --iw-info-bg:         rgba(42, 74, 106, 0.08);
+  --iw-success: #3d7a5e; /* muted jade — success states */
+  --iw-success-bg: rgba(61, 122, 94, 0.08);
+  --iw-warning: #8a6b2a; /* aged gold — warning states */
+  --iw-warning-bg: rgba(138, 107, 42, 0.08);
+  --iw-danger: #8a2a2a; /* dried blood — danger / critical failure */
+  --iw-danger-bg: rgba(138, 42, 42, 0.08);
+  --iw-info: #2a4a6a; /* storm blue — informational */
+  --iw-info-bg: rgba(42, 74, 106, 0.08);
 
   /* --- Ink wash gradient (edge bleed effect on containers) --- */
-  --iw-edge-wash: radial-gradient(
-    ellipse at 50% 100%,
-    rgba(26, 26, 26, 0.04) 0%,
-    transparent 70%
-  );
+  --iw-edge-wash: radial-gradient(ellipse at 50% 100%, rgba(26, 26, 26, 0.04) 0%, transparent 70%);
 
   /* --- Spacing scale (generous — 50-100% larger than base) --- */
-  --iw-space-xs:  6px;
-  --iw-space-sm:  12px;
-  --iw-space-md:  20px;
-  --iw-space-lg:  32px;
-  --iw-space-xl:  52px;
+  --iw-space-xs: 6px;
+  --iw-space-sm: 12px;
+  --iw-space-md: 20px;
+  --iw-space-lg: 32px;
+  --iw-space-xl: 52px;
 
   /* --- Border radii (very slight — near-square, not pill) --- */
   --iw-radius-sm: 2px;
@@ -139,49 +152,49 @@ attributes — use the custom properties only.
   --iw-radius-lg: 4px;
 
   /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
-  --ta-font-heading:              'Noto Serif', Georgia, 'Times New Roman', serif;
-  --ta-font-body:                 system-ui, -apple-system, sans-serif;
-  --ta-font-serif:                'Noto Serif', Georgia, 'Times New Roman', serif;
-  --ta-color-accent:              var(--iw-accent);
-  --ta-color-accent-hover:        color-mix(in srgb, var(--iw-accent) 80%, black);
-  --ta-color-accent-bg:           var(--iw-accent-muted);
-  --ta-color-accent-bg-hover:     rgba(208, 58, 45, 0.18);
-  --ta-color-success:             var(--iw-success);
-  --ta-color-success-border:      color-mix(in srgb, var(--iw-success) 70%, black);
-  --ta-color-danger:              var(--iw-danger);
-  --ta-color-danger-border:       color-mix(in srgb, var(--iw-danger) 70%, black);
-  --ta-color-danger-bg:           var(--iw-danger-bg);
-  --ta-color-danger-bg-hover:     rgba(138, 42, 42, 0.16);
-  --ta-color-warning:             var(--iw-warning);
-  --ta-color-warning-border:      color-mix(in srgb, var(--iw-warning) 70%, black);
-  --ta-color-warning-bg:          var(--iw-warning-bg);
-  --ta-color-xp:                  var(--iw-warning);
-  --ta-color-focus:               var(--iw-accent);
-  --ta-color-conviction:          #6B5C8A;
-  --ta-color-conviction-border:   #5A4B78;
-  --ta-color-bg-secondary:        var(--iw-bg-secondary);
-  --ta-color-credits:             var(--iw-warning);
-  --ta-color-tab-active:          var(--iw-accent);
-  --ta-color-info:                var(--iw-info);
-  --ta-btn-primary-text:          #1a1a1a;
-  --ta-color-xp-border:           color-mix(in srgb, var(--iw-warning) 50%, transparent);
-  --ta-badge-success-bg:          var(--iw-success-bg);
-  --ta-badge-success-text:        var(--iw-success);
-  --ta-badge-partial-bg:          var(--iw-warning-bg);
-  --ta-badge-partial-text:        var(--iw-warning);
-  --ta-badge-failure-bg:          var(--iw-danger-bg);
-  --ta-badge-failure-text:        var(--iw-danger);
+  --ta-font-heading: 'Noto Serif', Georgia, 'Times New Roman', serif;
+  --ta-font-body: system-ui, -apple-system, sans-serif;
+  --ta-font-serif: 'Noto Serif', Georgia, 'Times New Roman', serif;
+  --ta-color-accent: var(--iw-accent);
+  --ta-color-accent-hover: color-mix(in srgb, var(--iw-accent) 80%, black);
+  --ta-color-accent-bg: var(--iw-accent-muted);
+  --ta-color-accent-bg-hover: rgba(208, 58, 45, 0.18);
+  --ta-color-success: var(--iw-success);
+  --ta-color-success-border: color-mix(in srgb, var(--iw-success) 70%, black);
+  --ta-color-danger: var(--iw-danger);
+  --ta-color-danger-border: color-mix(in srgb, var(--iw-danger) 70%, black);
+  --ta-color-danger-bg: var(--iw-danger-bg);
+  --ta-color-danger-bg-hover: rgba(138, 42, 42, 0.16);
+  --ta-color-warning: var(--iw-warning);
+  --ta-color-warning-border: color-mix(in srgb, var(--iw-warning) 70%, black);
+  --ta-color-warning-bg: var(--iw-warning-bg);
+  --ta-color-xp: var(--iw-warning);
+  --ta-color-focus: var(--iw-accent);
+  --ta-color-conviction: #6b5c8a;
+  --ta-color-conviction-border: #5a4b78;
+  --ta-color-bg-secondary: var(--iw-bg-secondary);
+  --ta-color-credits: var(--iw-warning);
+  --ta-color-tab-active: var(--iw-accent);
+  --ta-color-info: var(--iw-info);
+  --ta-btn-primary-text: #1a1a1a;
+  --ta-color-xp-border: color-mix(in srgb, var(--iw-warning) 50%, transparent);
+  --ta-badge-success-bg: var(--iw-success-bg);
+  --ta-badge-success-text: var(--iw-success);
+  --ta-badge-partial-bg: var(--iw-warning-bg);
+  --ta-badge-partial-text: var(--iw-warning);
+  --ta-badge-failure-bg: var(--iw-danger-bg);
+  --ta-badge-failure-text: var(--iw-danger);
   --ta-badge-crit-success-border: var(--iw-success);
   --ta-badge-crit-failure-border: var(--iw-danger);
-  --ta-border-style-poi:          1px dashed;
-  --ta-die-spin-duration:         0.5s;
+  --ta-border-style-poi: 1px dashed;
+  --ta-die-spin-duration: 0.5s;
 
   /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
-  --sta-text-primary:             var(--iw-ink-primary);
-  --sta-text-secondary:           var(--iw-ink-secondary);
-  --sta-text-tertiary:            var(--iw-ink-tertiary);
-  --sta-border-tertiary:          var(--iw-border-subtle);
-  --sta-color-text-emphasis:      #1a1a1a;
+  --sta-text-primary: var(--iw-ink-primary);
+  --sta-text-secondary: var(--iw-ink-secondary);
+  --sta-text-tertiary: var(--iw-ink-tertiary);
+  --sta-border-tertiary: var(--iw-border-subtle);
+  --sta-color-text-emphasis: #1a1a1a;
 
   /* --- Speaker colours (multi-dialogue) --- */
   --speaker-color-0: #c8853a;
@@ -199,44 +212,39 @@ attributes — use the custom properties only.
 @media (prefers-color-scheme: dark) {
   :host {
     /* --- Backgrounds --- */
-    --iw-bg-primary:      #1A1816;   /* deep charcoal — widget root */
-    --iw-bg-secondary:    #232120;   /* raised surface */
-    --iw-bg-tertiary:     #2C2A28;   /* inset well, selected state */
-    --iw-bg-wash:         #201E1C;   /* hover lift */
+    --iw-bg-primary: #1a1816; /* deep charcoal — widget root */
+    --iw-bg-secondary: #232120; /* raised surface */
+    --iw-bg-tertiary: #2c2a28; /* inset well, selected state */
+    --iw-bg-wash: #201e1c; /* hover lift */
 
     /* --- Ink tones (text) --- */
-    --iw-ink-primary:     #C5C0B6;   /* warm grey — headings, primary text */
-    --iw-ink-secondary:   #9A9590;   /* mid grey — body narrative */
-    --iw-ink-tertiary:    #6A6560;   /* dark grey — labels, metadata */
-    --iw-ink-ghost:       #4A4642;   /* near-invisible — placeholder, disabled */
+    --iw-ink-primary: #c5c0b6; /* warm grey — headings, primary text */
+    --iw-ink-secondary: #9a9590; /* mid grey — body narrative */
+    --iw-ink-tertiary: #6a6560; /* dark grey — labels, metadata */
+    --iw-ink-ghost: #4a4642; /* near-invisible — placeholder, disabled */
 
     /* --- Borders --- */
-    --iw-border-strong:   #4A4542;   /* visible rule */
-    --iw-border-subtle:   #3A3835;   /* gentle boundary */
-    --iw-border-ghost:    #2C2A28;   /* barely-there */
+    --iw-border-strong: #4a4542; /* visible rule */
+    --iw-border-subtle: #3a3835; /* gentle boundary */
+    --iw-border-ghost: #2c2a28; /* barely-there */
 
     /* --- Accent: muted vermillion --- */
-    --iw-accent:          #C04030;   /* slightly dampened for dark bg */
-    --iw-accent-muted:    rgba(192, 64, 48, 0.14);
-    --iw-accent-border:   rgba(192, 64, 48, 0.45);
+    --iw-accent: #c04030; /* slightly dampened for dark bg */
+    --iw-accent-muted: rgba(192, 64, 48, 0.14);
+    --iw-accent-border: rgba(192, 64, 48, 0.45);
 
     /* --- Semantic colours --- */
-    --iw-success:         #4A9E74;
-    --iw-success-bg:      rgba(74, 158, 116, 0.10);
-    --iw-warning:         #A8883A;
-    --iw-warning-bg:      rgba(168, 136, 58, 0.10);
-    --iw-danger:          #A84040;
-    --iw-danger-bg:       rgba(168, 64, 64, 0.10);
-    --iw-info:            #4A6E9A;
-    --iw-info-bg:         rgba(74, 110, 154, 0.10);
+    --iw-success: #4a9e74;
+    --iw-success-bg: rgba(74, 158, 116, 0.1);
+    --iw-warning: #a8883a;
+    --iw-warning-bg: rgba(168, 136, 58, 0.1);
+    --iw-danger: #a84040;
+    --iw-danger-bg: rgba(168, 64, 64, 0.1);
+    --iw-info: #4a6e9a;
+    --iw-info-bg: rgba(74, 110, 154, 0.1);
 
     /* --- Ink wash gradient (lighter on dark) --- */
-    --iw-edge-wash: radial-gradient(
-      ellipse at 50% 100%,
-      rgba(197, 192, 182, 0.04) 0%,
-      transparent 70%
-    );
-
+    --iw-edge-wash: radial-gradient(ellipse at 50% 100%, rgba(197, 192, 182, 0.04) 0%, transparent 70%);
   }
 }
 ```
@@ -245,15 +253,15 @@ attributes — use the custom properties only.
 
 All primary text / background pairings meet WCAG AA (4.5:1 minimum):
 
-| Pair                                    | Approx. ratio | Pass |
-|-----------------------------------------|---------------|------|
-| `--iw-ink-primary` on `--iw-bg-primary` (light) | 16.5:1   | AA   |
-| `--iw-ink-secondary` on `--iw-bg-primary` (light) | 7.2:1  | AA   |
-| `--iw-ink-tertiary` on `--iw-bg-primary` (light)  | 3.8:1  | AA (large text / UI only) |
-| `--iw-ink-primary` on `--iw-bg-primary` (dark)    | 9.1:1  | AA   |
-| `--iw-ink-secondary` on `--iw-bg-primary` (dark)  | 4.7:1  | AA   |
-| `--iw-accent` on `--iw-bg-primary` (light)        | 5.2:1  | AA   |
-| `--iw-accent` on `--iw-bg-primary` (dark)         | 4.6:1  | AA   |
+| Pair                                              | Approx. ratio | Pass                      |
+| ------------------------------------------------- | ------------- | ------------------------- |
+| `--iw-ink-primary` on `--iw-bg-primary` (light)   | 16.5:1        | AA                        |
+| `--iw-ink-secondary` on `--iw-bg-primary` (light) | 7.2:1         | AA                        |
+| `--iw-ink-tertiary` on `--iw-bg-primary` (light)  | 3.8:1         | AA (large text / UI only) |
+| `--iw-ink-primary` on `--iw-bg-primary` (dark)    | 9.1:1         | AA                        |
+| `--iw-ink-secondary` on `--iw-bg-primary` (dark)  | 4.7:1         | AA                        |
+| `--iw-accent` on `--iw-bg-primary` (light)        | 5.2:1         | AA                        |
+| `--iw-accent` on `--iw-bg-primary` (dark)         | 4.6:1         | AA                        |
 
 `--iw-ink-tertiary` in light mode only meets AA for text ≥18px or bold ≥14px. Use it
 only for labels, tags, and footer text — never for body narrative.
@@ -356,7 +364,10 @@ inset well (e.g., a status card or NPC dialogue block).
 /* Atmosphere pills — borderless tags, very light */
 .iw-pill {
   display: inline-block;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 10px;
   letter-spacing: 0.06em;
   color: var(--iw-ink-tertiary);
@@ -409,7 +420,9 @@ style with a ghost border.
   align-items: center;
   cursor: pointer;
   text-align: left;
-  transition: border-color 200ms ease, color 200ms ease;
+  transition:
+    border-color 200ms ease,
+    color 200ms ease;
   box-sizing: border-box;
 }
 
@@ -425,7 +438,10 @@ style with a ghost border.
 
 /* ----- Secondary / POI button (explore, examine) ----- */
 .iw-btn-poi {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 12px;
   letter-spacing: 0.04em;
   color: var(--iw-ink-tertiary);
@@ -438,7 +454,10 @@ style with a ghost border.
   display: inline-flex;
   align-items: center;
   cursor: pointer;
-  transition: background 200ms ease, color 150ms ease, border-color 150ms ease;
+  transition:
+    background 200ms ease,
+    color 150ms ease,
+    border-color 150ms ease;
   box-sizing: border-box;
 }
 
@@ -450,9 +469,12 @@ style with a ghost border.
 
 /* ----- Continue / neutral button ----- */
 .iw-btn-continue {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 11px;
-  letter-spacing: 0.10em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--iw-ink-tertiary);
   background: transparent;
@@ -462,7 +484,9 @@ style with a ghost border.
   min-height: 44px;
   min-width: 44px;
   cursor: pointer;
-  transition: border-color 150ms ease, color 150ms ease;
+  transition:
+    border-color 150ms ease,
+    color 150ms ease;
   box-sizing: border-box;
 }
 
@@ -473,9 +497,12 @@ style with a ghost border.
 
 /* ----- Footer / UI button (panel toggles) ----- */
 .iw-btn-footer {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 10px;
-  letter-spacing: 0.10em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--iw-ink-ghost);
   background: transparent;
@@ -485,7 +512,9 @@ style with a ghost border.
   min-height: 44px;
   min-width: 44px;
   cursor: pointer;
-  transition: border-color 150ms ease, color 150ms ease;
+  transition:
+    border-color 150ms ease,
+    color 150ms ease;
   box-sizing: border-box;
 }
 
@@ -519,7 +548,7 @@ button:focus-visible,
   button:focus-visible,
   [data-prompt]:focus-visible,
   [tabindex]:focus-visible {
-    outline-color: rgba(192, 64, 48, 0.70);
+    outline-color: rgba(192, 64, 48, 0.7);
   }
 }
 ```
@@ -552,17 +581,39 @@ entirely (which can cause issues with JS-driven class toggling).
 }
 
 /* Stagger for button rows — each button reveals with a slight delay */
-.iw-btn-row .iw-btn-action:nth-child(1) { animation-delay: 0ms; }
-.iw-btn-row .iw-btn-action:nth-child(2) { animation-delay: 60ms; }
-.iw-btn-row .iw-btn-action:nth-child(3) { animation-delay: 120ms; }
-.iw-btn-row .iw-btn-action:nth-child(4) { animation-delay: 180ms; }
-.iw-btn-row .iw-btn-action:nth-child(5) { animation-delay: 240ms; }
+.iw-btn-row .iw-btn-action:nth-child(1) {
+  animation-delay: 0ms;
+}
+.iw-btn-row .iw-btn-action:nth-child(2) {
+  animation-delay: 60ms;
+}
+.iw-btn-row .iw-btn-action:nth-child(3) {
+  animation-delay: 120ms;
+}
+.iw-btn-row .iw-btn-action:nth-child(4) {
+  animation-delay: 180ms;
+}
+.iw-btn-row .iw-btn-action:nth-child(5) {
+  animation-delay: 240ms;
+}
 
 /* ----- Ink-bleed: die result appearing ----- */
 @keyframes iw-ink-bleed {
-  0%   { opacity: 0; transform: scale(0.88); filter: blur(2px); }
-  60%  { opacity: 1; transform: scale(1.03); filter: blur(0); }
-  100% { opacity: 1; transform: scale(1); filter: blur(0); }
+  0% {
+    opacity: 0;
+    transform: scale(0.88);
+    filter: blur(2px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.03);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
 }
 
 .iw-die-reveal {
@@ -571,8 +622,16 @@ entirely (which can cause issues with JS-driven class toggling).
 
 /* ----- Brush stroke: horizontal rule drawing in ----- */
 @keyframes iw-brush-draw {
-  from { transform: scaleX(0); transform-origin: left center; opacity: 0.6; }
-  to   { transform: scaleX(1); transform-origin: left center; opacity: 1; }
+  from {
+    transform: scaleX(0);
+    transform-origin: left center;
+    opacity: 0.6;
+  }
+  to {
+    transform: scaleX(1);
+    transform-origin: left center;
+    opacity: 1;
+  }
 }
 
 .iw-rule-animated {
@@ -581,8 +640,14 @@ entirely (which can cause issues with JS-driven class toggling).
 
 /* ----- Panel slide: overlay panel entering ----- */
 @keyframes iw-panel-in {
-  from { opacity: 0; transform: translateX(-8px); }
-  to   { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .iw-panel-in {
@@ -591,10 +656,21 @@ entirely (which can cause issues with JS-driven class toggling).
 
 /* ----- Seal stamp: accent badge appearing (outcome, verdict) ----- */
 @keyframes iw-stamp {
-  0%   { opacity: 0; transform: scale(1.25) rotate(-3deg); }
-  55%  { opacity: 1; transform: scale(0.96) rotate(0.5deg); }
-  80%  { transform: scale(1.02) rotate(0deg); }
-  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+  0% {
+    opacity: 0;
+    transform: scale(1.25) rotate(-3deg);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(0.96) rotate(0.5deg);
+  }
+  80% {
+    transform: scale(1.02) rotate(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
 }
 
 .iw-stamp-in {
@@ -678,7 +754,10 @@ A 0.5px brush-rule separates it from the body below.
 }
 
 .iw-scene-num {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 9px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -730,7 +809,10 @@ than a header.
 
 ```css
 .iw-section-label {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 9px;
   font-weight: 500;
   letter-spacing: 0.18em;
@@ -750,7 +832,10 @@ element — a seal stamp confirming the result. All other badges use `--iw-succe
 ```css
 .iw-badge {
   display: inline-block;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.14em;
@@ -760,11 +845,33 @@ element — a seal stamp confirming the result. All other badges use `--iw-succe
   border: 0.5px solid transparent;
 }
 
-.iw-badge--success      { background: var(--iw-success-bg);  color: var(--iw-success);  border-color: var(--iw-success); }
-.iw-badge--partial      { background: var(--iw-warning-bg);  color: var(--iw-warning);  border-color: var(--iw-warning); }
-.iw-badge--failure      { background: var(--iw-danger-bg);   color: var(--iw-danger);   border-color: var(--iw-danger); }
-.iw-badge--crit-success { background: var(--iw-success-bg);  color: var(--iw-success);  border-color: var(--iw-success); font-weight: 600; }
-.iw-badge--crit-failure { background: var(--iw-accent-muted); color: var(--iw-accent);  border-color: var(--iw-accent-border); font-weight: 600; }
+.iw-badge--success {
+  background: var(--iw-success-bg);
+  color: var(--iw-success);
+  border-color: var(--iw-success);
+}
+.iw-badge--partial {
+  background: var(--iw-warning-bg);
+  color: var(--iw-warning);
+  border-color: var(--iw-warning);
+}
+.iw-badge--failure {
+  background: var(--iw-danger-bg);
+  color: var(--iw-danger);
+  border-color: var(--iw-danger);
+}
+.iw-badge--crit-success {
+  background: var(--iw-success-bg);
+  color: var(--iw-success);
+  border-color: var(--iw-success);
+  font-weight: 600;
+}
+.iw-badge--crit-failure {
+  background: var(--iw-accent-muted);
+  color: var(--iw-accent);
+  border-color: var(--iw-accent-border);
+  font-weight: 600;
+}
 
 /* The seal stamp — used for crit success and story-significant outcomes */
 .iw-badge--seal {
@@ -788,14 +895,21 @@ brush stroke that fills left-to-right.
   flex-wrap: wrap;
   padding-block: var(--iw-space-sm);
   border-top: 0.5px solid var(--iw-border-ghost);
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 10px;
   letter-spacing: 0.06em;
   color: var(--iw-ink-ghost);
   margin-top: var(--iw-space-md);
 }
 
-.iw-hp-pips { display: flex; gap: 5px; align-items: center; }
+.iw-hp-pips {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
 
 .iw-pip {
   width: 7px;
@@ -840,7 +954,10 @@ name is set in small-caps above. Tone badge is a ghost pill beside the name.
 }
 
 .iw-dialogue-speaker {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 10px;
   font-variant: small-caps;
   letter-spacing: 0.12em;
@@ -916,7 +1033,11 @@ rule if a visual anchor is needed). Buttons are spaced evenly with flex gap.
 Conviction pips are larger ink circles, resting on a ghost baseline.
 
 ```css
-.iw-conviction-pips { display: flex; gap: 7px; align-items: center; }
+.iw-conviction-pips {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
 
 .iw-conviction-pip {
   width: 10px;
@@ -925,7 +1046,9 @@ Conviction pips are larger ink circles, resting on a ghost baseline.
   background: transparent;
   border: 0.5px solid var(--iw-border-strong);
   flex-shrink: 0;
-  transition: background 300ms ease, border-color 200ms ease;
+  transition:
+    background 300ms ease,
+    border-color 200ms ease;
 }
 
 .iw-conviction-pip--filled {
@@ -957,7 +1080,10 @@ The resolve table is a minimal two-column arrangement without table borders.
 .iw-resolve-table {
   width: 100%;
   border-collapse: collapse;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 11px;
   color: var(--iw-ink-secondary);
   margin-block: var(--iw-space-sm);
@@ -1006,40 +1132,40 @@ handles the case where it is CSP-blocked.
    1. Custom Properties — Light Mode
    -------------------------------------------------------------------------- */
 :host {
-  --iw-bg-primary:      #F5F2EB;
-  --iw-bg-secondary:    #EDE9E0;
-  --iw-bg-tertiary:     #E4DFD4;
-  --iw-bg-wash:         #F9F7F2;
+  --iw-bg-primary: #f5f2eb;
+  --iw-bg-secondary: #ede9e0;
+  --iw-bg-tertiary: #e4dfd4;
+  --iw-bg-wash: #f9f7f2;
 
-  --iw-ink-primary:     #1A1A1A;
-  --iw-ink-secondary:   #4A4A4A;
-  --iw-ink-tertiary:    #8A8A8A;
-  --iw-ink-ghost:       #B0AA9E;
+  --iw-ink-primary: #1a1a1a;
+  --iw-ink-secondary: #4a4a4a;
+  --iw-ink-tertiary: #8a8a8a;
+  --iw-ink-ghost: #b0aa9e;
 
-  --iw-border-strong:   #C5C0B6;
-  --iw-border-subtle:   #D9D4C8;
-  --iw-border-ghost:    #E4DFD4;
+  --iw-border-strong: #c5c0b6;
+  --iw-border-subtle: #d9d4c8;
+  --iw-border-ghost: #e4dfd4;
 
-  --iw-accent:          #D03A2D;
-  --iw-accent-muted:    rgba(208, 58, 45, 0.10);
-  --iw-accent-border:   rgba(208, 58, 45, 0.40);
+  --iw-accent: #d03a2d;
+  --iw-accent-muted: rgba(208, 58, 45, 0.1);
+  --iw-accent-border: rgba(208, 58, 45, 0.4);
 
-  --iw-success:         #3D7A5E;
-  --iw-success-bg:      rgba(61, 122, 94, 0.08);
-  --iw-warning:         #8A6B2A;
-  --iw-warning-bg:      rgba(138, 107, 42, 0.08);
-  --iw-danger:          #8A2A2A;
-  --iw-danger-bg:       rgba(138, 42, 42, 0.08);
-  --iw-info:            #2A4A6A;
-  --iw-info-bg:         rgba(42, 74, 106, 0.08);
+  --iw-success: #3d7a5e;
+  --iw-success-bg: rgba(61, 122, 94, 0.08);
+  --iw-warning: #8a6b2a;
+  --iw-warning-bg: rgba(138, 107, 42, 0.08);
+  --iw-danger: #8a2a2a;
+  --iw-danger-bg: rgba(138, 42, 42, 0.08);
+  --iw-info: #2a4a6a;
+  --iw-info-bg: rgba(42, 74, 106, 0.08);
 
-  --iw-edge-wash: radial-gradient(ellipse at 50% 100%, rgba(26,26,26,0.04) 0%, transparent 70%);
+  --iw-edge-wash: radial-gradient(ellipse at 50% 100%, rgba(26, 26, 26, 0.04) 0%, transparent 70%);
 
-  --iw-space-xs:  6px;
-  --iw-space-sm:  12px;
-  --iw-space-md:  20px;
-  --iw-space-lg:  32px;
-  --iw-space-xl:  52px;
+  --iw-space-xs: 6px;
+  --iw-space-sm: 12px;
+  --iw-space-md: 20px;
+  --iw-space-lg: 32px;
+  --iw-space-xl: 52px;
 
   --iw-radius-sm: 2px;
   --iw-radius-md: 3px;
@@ -1051,34 +1177,34 @@ handles the case where it is CSP-blocked.
    -------------------------------------------------------------------------- */
 @media (prefers-color-scheme: dark) {
   :host {
-    --iw-bg-primary:      #1A1816;
-    --iw-bg-secondary:    #232120;
-    --iw-bg-tertiary:     #2C2A28;
-    --iw-bg-wash:         #201E1C;
+    --iw-bg-primary: #1a1816;
+    --iw-bg-secondary: #232120;
+    --iw-bg-tertiary: #2c2a28;
+    --iw-bg-wash: #201e1c;
 
-    --iw-ink-primary:     #C5C0B6;
-    --iw-ink-secondary:   #9A9590;
-    --iw-ink-tertiary:    #6A6560;
-    --iw-ink-ghost:       #4A4642;
+    --iw-ink-primary: #c5c0b6;
+    --iw-ink-secondary: #9a9590;
+    --iw-ink-tertiary: #6a6560;
+    --iw-ink-ghost: #4a4642;
 
-    --iw-border-strong:   #4A4542;
-    --iw-border-subtle:   #3A3835;
-    --iw-border-ghost:    #2C2A28;
+    --iw-border-strong: #4a4542;
+    --iw-border-subtle: #3a3835;
+    --iw-border-ghost: #2c2a28;
 
-    --iw-accent:          #C04030;
-    --iw-accent-muted:    rgba(192, 64, 48, 0.14);
-    --iw-accent-border:   rgba(192, 64, 48, 0.45);
+    --iw-accent: #c04030;
+    --iw-accent-muted: rgba(192, 64, 48, 0.14);
+    --iw-accent-border: rgba(192, 64, 48, 0.45);
 
-    --iw-success:         #4A9E74;
-    --iw-success-bg:      rgba(74, 158, 116, 0.10);
-    --iw-warning:         #A8883A;
-    --iw-warning-bg:      rgba(168, 136, 58, 0.10);
-    --iw-danger:          #A84040;
-    --iw-danger-bg:       rgba(168, 64, 64, 0.10);
-    --iw-info:            #4A6E9A;
-    --iw-info-bg:         rgba(74, 110, 154, 0.10);
+    --iw-success: #4a9e74;
+    --iw-success-bg: rgba(74, 158, 116, 0.1);
+    --iw-warning: #a8883a;
+    --iw-warning-bg: rgba(168, 136, 58, 0.1);
+    --iw-danger: #a84040;
+    --iw-danger-bg: rgba(168, 64, 64, 0.1);
+    --iw-info: #4a6e9a;
+    --iw-info-bg: rgba(74, 110, 154, 0.1);
 
-    --iw-edge-wash: radial-gradient(ellipse at 50% 100%, rgba(197,192,182,0.04) 0%, transparent 70%);
+    --iw-edge-wash: radial-gradient(ellipse at 50% 100%, rgba(197, 192, 182, 0.04) 0%, transparent 70%);
   }
 }
 
@@ -1127,10 +1253,15 @@ handles the case where it is CSP-blocked.
   max-width: 640px;
 }
 
-.iw-narrative p + p { margin-top: var(--iw-space-sm); }
+.iw-narrative p + p {
+  margin-top: var(--iw-space-sm);
+}
 
 .iw-section-label {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 9px;
   font-weight: 500;
   letter-spacing: 0.18em;
@@ -1141,7 +1272,10 @@ handles the case where it is CSP-blocked.
 }
 
 .iw-meta {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 10px;
   letter-spacing: 0.06em;
   color: var(--iw-ink-ghost);
@@ -1156,7 +1290,9 @@ handles the case where it is CSP-blocked.
   margin-block: var(--iw-space-md);
 }
 
-.iw-section + .iw-section { margin-top: var(--iw-space-lg); }
+.iw-section + .iw-section {
+  margin-top: var(--iw-space-lg);
+}
 
 .iw-btn-row {
   display: flex;
@@ -1185,7 +1321,10 @@ handles the case where it is CSP-blocked.
 
 .iw-pill {
   display: inline-block;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 10px;
   letter-spacing: 0.06em;
   color: var(--iw-ink-tertiary);
@@ -1214,15 +1353,25 @@ handles the case where it is CSP-blocked.
   align-items: center;
   cursor: pointer;
   text-align: left;
-  transition: border-color 200ms ease, color 200ms ease;
+  transition:
+    border-color 200ms ease,
+    color 200ms ease;
   box-sizing: border-box;
 }
 
-.iw-btn-action:hover { color: var(--iw-accent); border-bottom-color: var(--iw-accent); }
-.iw-btn-action:active { opacity: 0.75; }
+.iw-btn-action:hover {
+  color: var(--iw-accent);
+  border-bottom-color: var(--iw-accent);
+}
+.iw-btn-action:active {
+  opacity: 0.75;
+}
 
 .iw-btn-poi {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 12px;
   letter-spacing: 0.04em;
   color: var(--iw-ink-tertiary);
@@ -1235,7 +1384,10 @@ handles the case where it is CSP-blocked.
   display: inline-flex;
   align-items: center;
   cursor: pointer;
-  transition: background 200ms ease, color 150ms ease, border-color 150ms ease;
+  transition:
+    background 200ms ease,
+    color 150ms ease,
+    border-color 150ms ease;
   box-sizing: border-box;
 }
 
@@ -1246,9 +1398,12 @@ handles the case where it is CSP-blocked.
 }
 
 .iw-btn-continue {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 11px;
-  letter-spacing: 0.10em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--iw-ink-tertiary);
   background: transparent;
@@ -1258,16 +1413,24 @@ handles the case where it is CSP-blocked.
   min-height: 44px;
   min-width: 44px;
   cursor: pointer;
-  transition: border-color 150ms ease, color 150ms ease;
+  transition:
+    border-color 150ms ease,
+    color 150ms ease;
   box-sizing: border-box;
 }
 
-.iw-btn-continue:hover { border-color: var(--iw-border-strong); color: var(--iw-ink-secondary); }
+.iw-btn-continue:hover {
+  border-color: var(--iw-border-strong);
+  color: var(--iw-ink-secondary);
+}
 
 .iw-btn-footer {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 10px;
-  letter-spacing: 0.10em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--iw-ink-ghost);
   background: transparent;
@@ -1277,11 +1440,16 @@ handles the case where it is CSP-blocked.
   min-height: 44px;
   min-width: 44px;
   cursor: pointer;
-  transition: border-color 150ms ease, color 150ms ease;
+  transition:
+    border-color 150ms ease,
+    color 150ms ease;
   box-sizing: border-box;
 }
 
-.iw-btn-footer:hover { border-color: var(--iw-border-subtle); color: var(--iw-ink-tertiary); }
+.iw-btn-footer:hover {
+  border-color: var(--iw-border-subtle);
+  color: var(--iw-ink-tertiary);
+}
 
 /* --------------------------------------------------------------------------
    8. Focus
@@ -1297,7 +1465,7 @@ button:focus-visible,
   button:focus-visible,
   [data-prompt]:focus-visible,
   [tabindex]:focus-visible {
-    outline-color: rgba(192, 64, 48, 0.70);
+    outline-color: rgba(192, 64, 48, 0.7);
   }
 }
 
@@ -1322,14 +1490,22 @@ button:focus-visible,
 }
 
 .iw-scene-num {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 9px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--iw-ink-ghost);
 }
 
-.iw-atmo-strip { display: flex; flex-wrap: wrap; gap: var(--iw-space-sm); margin-bottom: var(--iw-space-md); }
+.iw-atmo-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--iw-space-sm);
+  margin-bottom: var(--iw-space-md);
+}
 
 .iw-status-bar {
   display: flex;
@@ -1338,28 +1514,42 @@ button:focus-visible,
   flex-wrap: wrap;
   padding-block: var(--iw-space-sm);
   border-top: 0.5px solid var(--iw-border-ghost);
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 10px;
   letter-spacing: 0.06em;
   color: var(--iw-ink-ghost);
   margin-top: var(--iw-space-md);
 }
 
-.iw-hp-pips { display: flex; gap: 5px; align-items: center; }
+.iw-hp-pips {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
 
 .iw-pip {
-  width: 7px; height: 7px; border-radius: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
   background: var(--iw-ink-primary);
   border: 0.5px solid var(--iw-ink-secondary);
   flex-shrink: 0;
 }
 
-.iw-pip--empty { background: transparent; border-color: var(--iw-border-subtle); }
+.iw-pip--empty {
+  background: transparent;
+  border-color: var(--iw-border-subtle);
+}
 
 .iw-xp-track {
-  width: 56px; height: 2px;
+  width: 56px;
+  height: 2px;
   background: var(--iw-border-ghost);
-  border-radius: 1px; overflow: hidden;
+  border-radius: 1px;
+  overflow: hidden;
 }
 
 .iw-xp-fill {
@@ -1376,7 +1566,10 @@ button:focus-visible,
 }
 
 .iw-dialogue-speaker {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 10px;
   font-variant: small-caps;
   letter-spacing: 0.12em;
@@ -1428,7 +1621,10 @@ button:focus-visible,
    -------------------------------------------------------------------------- */
 .iw-badge {
   display: inline-block;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.14em;
@@ -1438,17 +1634,47 @@ button:focus-visible,
   border: 0.5px solid transparent;
 }
 
-.iw-badge--success      { background: var(--iw-success-bg); color: var(--iw-success); border-color: var(--iw-success); }
-.iw-badge--partial      { background: var(--iw-warning-bg); color: var(--iw-warning); border-color: var(--iw-warning); }
-.iw-badge--failure      { background: var(--iw-danger-bg);  color: var(--iw-danger);  border-color: var(--iw-danger); }
-.iw-badge--crit-success { background: var(--iw-success-bg); color: var(--iw-success); border-color: var(--iw-success); font-weight: 600; }
-.iw-badge--crit-failure { background: var(--iw-accent-muted); color: var(--iw-accent); border-color: var(--iw-accent-border); font-weight: 600; }
-.iw-badge--seal         { background: var(--iw-accent); color: var(--iw-bg-primary); border-color: transparent; letter-spacing: 0.16em; }
+.iw-badge--success {
+  background: var(--iw-success-bg);
+  color: var(--iw-success);
+  border-color: var(--iw-success);
+}
+.iw-badge--partial {
+  background: var(--iw-warning-bg);
+  color: var(--iw-warning);
+  border-color: var(--iw-warning);
+}
+.iw-badge--failure {
+  background: var(--iw-danger-bg);
+  color: var(--iw-danger);
+  border-color: var(--iw-danger);
+}
+.iw-badge--crit-success {
+  background: var(--iw-success-bg);
+  color: var(--iw-success);
+  border-color: var(--iw-success);
+  font-weight: 600;
+}
+.iw-badge--crit-failure {
+  background: var(--iw-accent-muted);
+  color: var(--iw-accent);
+  border-color: var(--iw-accent-border);
+  font-weight: 600;
+}
+.iw-badge--seal {
+  background: var(--iw-accent);
+  color: var(--iw-bg-primary);
+  border-color: transparent;
+  letter-spacing: 0.16em;
+}
 
 /* --------------------------------------------------------------------------
    11. Die roll
    -------------------------------------------------------------------------- */
-.iw-die-display { text-align: center; margin-block: var(--iw-space-lg); }
+.iw-die-display {
+  text-align: center;
+  margin-block: var(--iw-space-lg);
+}
 
 .iw-die-value {
   font-family: 'Noto Serif', Georgia, serif;
@@ -1462,7 +1688,10 @@ button:focus-visible,
 .iw-resolve-table {
   width: 100%;
   border-collapse: collapse;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 11px;
   color: var(--iw-ink-secondary);
   margin-block: var(--iw-space-sm);
@@ -1474,66 +1703,147 @@ button:focus-visible,
   border-top: 0.5px solid var(--iw-border-ghost);
 }
 
-.iw-resolve-table td:first-child { color: var(--iw-ink-ghost); width: 50%; }
-.iw-resolve-table td:last-child  { text-align: right; font-weight: 500; color: var(--iw-ink-primary); }
+.iw-resolve-table td:first-child {
+  color: var(--iw-ink-ghost);
+  width: 50%;
+}
+.iw-resolve-table td:last-child {
+  text-align: right;
+  font-weight: 500;
+  color: var(--iw-ink-primary);
+}
 
 /* --------------------------------------------------------------------------
    12. Conviction pips
    -------------------------------------------------------------------------- */
-.iw-conviction-pips { display: flex; gap: 7px; align-items: center; }
+.iw-conviction-pips {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
 
 .iw-conviction-pip {
-  width: 10px; height: 10px; border-radius: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
   background: transparent;
   border: 0.5px solid var(--iw-border-strong);
   flex-shrink: 0;
-  transition: background 300ms ease, border-color 200ms ease;
+  transition:
+    background 300ms ease,
+    border-color 200ms ease;
 }
 
-.iw-conviction-pip--filled { background: var(--iw-ink-primary); border-color: var(--iw-ink-primary); }
+.iw-conviction-pip--filled {
+  background: var(--iw-ink-primary);
+  border-color: var(--iw-ink-primary);
+}
 
 /* --------------------------------------------------------------------------
    13. Animations
    -------------------------------------------------------------------------- */
 @keyframes iw-ink-appear {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes iw-ink-bleed {
-  0%   { opacity: 0; transform: scale(0.88); filter: blur(2px); }
-  60%  { opacity: 1; transform: scale(1.03); filter: blur(0); }
-  100% { opacity: 1; transform: scale(1); filter: blur(0); }
+  0% {
+    opacity: 0;
+    transform: scale(0.88);
+    filter: blur(2px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.03);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
 }
 
 @keyframes iw-brush-draw {
-  from { transform: scaleX(0); transform-origin: left center; opacity: 0.6; }
-  to   { transform: scaleX(1); transform-origin: left center; opacity: 1; }
+  from {
+    transform: scaleX(0);
+    transform-origin: left center;
+    opacity: 0.6;
+  }
+  to {
+    transform: scaleX(1);
+    transform-origin: left center;
+    opacity: 1;
+  }
 }
 
 @keyframes iw-panel-in {
-  from { opacity: 0; transform: translateX(-8px); }
-  to   { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes iw-stamp {
-  0%   { opacity: 0; transform: scale(1.25) rotate(-3deg); }
-  55%  { opacity: 1; transform: scale(0.96) rotate(0.5deg); }
-  80%  { transform: scale(1.02) rotate(0deg); }
-  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+  0% {
+    opacity: 0;
+    transform: scale(1.25) rotate(-3deg);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(0.96) rotate(0.5deg);
+  }
+  80% {
+    transform: scale(1.02) rotate(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
 }
 
-.iw-appear      { animation: iw-ink-appear  320ms ease-out both; }
-.iw-die-reveal  { animation: iw-ink-bleed   450ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
-.iw-rule-draw   { animation: iw-brush-draw  600ms ease-out both; }
-.iw-panel-in    { animation: iw-panel-in    250ms ease-out both; }
-.iw-stamp-in    { animation: iw-stamp       380ms cubic-bezier(0.18, 0.89, 0.32, 1.28) both; }
+.iw-appear {
+  animation: iw-ink-appear 320ms ease-out both;
+}
+.iw-die-reveal {
+  animation: iw-ink-bleed 450ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+.iw-rule-draw {
+  animation: iw-brush-draw 600ms ease-out both;
+}
+.iw-panel-in {
+  animation: iw-panel-in 250ms ease-out both;
+}
+.iw-stamp-in {
+  animation: iw-stamp 380ms cubic-bezier(0.18, 0.89, 0.32, 1.28) both;
+}
 
-.iw-btn-row .iw-btn-action:nth-child(1) { animation: iw-ink-appear 320ms ease-out 0ms   both; }
-.iw-btn-row .iw-btn-action:nth-child(2) { animation: iw-ink-appear 320ms ease-out 60ms  both; }
-.iw-btn-row .iw-btn-action:nth-child(3) { animation: iw-ink-appear 320ms ease-out 120ms both; }
-.iw-btn-row .iw-btn-action:nth-child(4) { animation: iw-ink-appear 320ms ease-out 180ms both; }
-.iw-btn-row .iw-btn-action:nth-child(5) { animation: iw-ink-appear 320ms ease-out 240ms both; }
+.iw-btn-row .iw-btn-action:nth-child(1) {
+  animation: iw-ink-appear 320ms ease-out 0ms both;
+}
+.iw-btn-row .iw-btn-action:nth-child(2) {
+  animation: iw-ink-appear 320ms ease-out 60ms both;
+}
+.iw-btn-row .iw-btn-action:nth-child(3) {
+  animation: iw-ink-appear 320ms ease-out 120ms both;
+}
+.iw-btn-row .iw-btn-action:nth-child(4) {
+  animation: iw-ink-appear 320ms ease-out 180ms both;
+}
+.iw-btn-row .iw-btn-action:nth-child(5) {
+  animation: iw-ink-appear 320ms ease-out 240ms both;
+}
 
 /* --------------------------------------------------------------------------
    14. Reduced motion — must come last

@@ -1,4 +1,5 @@
 # Scenarios — Procedural Scenario Generation and Theme Adaptation
+
 > Module for text-adventure orchestrator. Always loaded — provides scenario selection and theme adaptation.
 
 Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: all other modules.
@@ -29,6 +30,7 @@ locations, characters, and hooks every time.
 ## Scenario Card Format
 
 Present four scenario cards in a widget. Each card contains:
+
 - **Scenario number** (1–4)
 - **Genre badge** — colour-coded by tone (horror = blue, thriller = teal, exploration = coral,
   sci-fi = purple, fantasy = amber, heist = pink, mystery = indigo, survival = grey)
@@ -44,9 +46,10 @@ Footer note: "Tap any card to select — your character sheet will be generated 
 ## Default Theme: Space
 
 ### 1. Generation Ship Colonist
+
 Tags: `deep space` · `survival` · `political`
 
-You have lived your entire life aboard the *Exodus Meridian*, a generation ship three centuries
+You have lived your entire life aboard the _Exodus Meridian_, a generation ship three centuries
 into a journey none of the original crew survived to see. Your section — Deck 14, Hydroponics —
 has just been sealed off. No announcement. No explanation. The bulkhead doors simply closed.
 
@@ -54,9 +57,10 @@ has just been sealed off. No announcement. No explanation. The bulkhead doors si
 **Tone:** Claustrophobic, political, slow-burn mystery with survival pressure.
 
 ### 2. Mining Barge Engineer
+
 Tags: `asteroid belt` · `blue collar` · `mystery`
 
-The *Grit Anvil* is a Kessler-class mining barge, held together by welding flux and stubbornness.
+The _Grit Anvil_ is a Kessler-class mining barge, held together by welding flux and stubbornness.
 You keep her running. Fourteen hours ago, the drill punched into something that is not rock. The
 core samples are warm. The company wants you to keep drilling.
 
@@ -64,10 +68,11 @@ core samples are warm. The company wants you to keep drilling.
 **Tone:** Industrial horror meets workplace drama. The mystery is underground.
 
 ### 3. Trade Station Bartender
+
 Tags: `station life` · `intrigue` · `social`
 
 Waypoint Sigma sits at the junction of three shipping lanes and two disputed borders. You pour
-drinks at the *Last Catch*, a bar where everyone talks too much. Tonight, a regular has not
+drinks at the _Last Catch_, a bar where everyone talks too much. Tonight, a regular has not
 shown up. Their tab is still open. Their ship is still docked. Their cabin does not answer.
 
 **Recommended modules:** geo-map, lore-codex, ai-npc, save-codex
@@ -77,6 +82,7 @@ shown up. Their tab is still open. Their ship is still docked. Their cabin does 
 
 Generate a fourth scenario that complements the above three. It should offer a distinct tone
 and gameplay style not already covered. Possibilities include:
+
 - **Salvage Operator** — derelict ships, environmental hazards, moral dilemmas about property
 - **Diplomatic Courier** — high-stakes delivery, faction politics, trust no one
 - **Research Station Scientist** — isolated outpost, scientific mystery, something has changed
@@ -92,6 +98,7 @@ The space scenarios above are defaults, not constraints.
 ### Fantasy
 
 Example scenarios:
+
 - **Village Blacksmith** — a frontier settlement, the forge, and something in the iron that should not be there
 - **Travelling Herbalist** — the roads between towns, folk medicine, and a plague that does not behave like a plague
 - **Tavern Keeper** — a crossroads inn, warring factions, and a guest who arrived without a shadow
@@ -103,6 +110,7 @@ and wilderness. Crew-manifest can model a party of companions.
 ### Horror
 
 Example scenarios:
+
 - **Lighthouse Keeper** — isolation, the fog, and the ships that keep arriving empty
 - **Asylum Orderly** — a patient who knows things they should not, and a ward that has too many beds
 - **Archaeologist** — a dig site, a sealed chamber, and inscriptions that change overnight
@@ -114,6 +122,7 @@ Time system is critical — horror thrives on the passage of night.
 ### Post-Apocalyptic
 
 Example scenarios:
+
 - **Settlement Medic** — limited supplies, a community, and a sickness that the old world had a name for
 - **Caravan Guard** — the road between safe zones, cargo that someone wants badly, and a shortcut through the dead zone
 - **Radio Operator** — a signal from somewhere that should be empty, and the choice of whether to answer
@@ -125,6 +134,7 @@ Example scenarios:
 ### Historical
 
 Example scenarios:
+
 - **Post-Roman Briton** — a crumbling villa, Saxon raids, and a community choosing between flight and resistance
 - **Medieval Pilgrim** — the road to a shrine, fellow travellers with hidden purposes, and miracles that may not be divine
 - **Age of Sail Navigator** — a ship, uncharted waters, and a captain whose orders stopped making sense three days ago
@@ -137,6 +147,7 @@ overland travel and settlements.
 ### Cyberpunk / Near-Future
 
 Example scenarios:
+
 - **Street Doc** — a back-alley clinic, corporate patients who pay in secrets, and a patient with implants that should not exist
 - **Courier** — data runs through a neon-lit megacity, rival gangs, and a package that fights back
 - **Corporate Whistleblower** — inside the arcology, evidence of something monstrous, and no one to trust
@@ -149,6 +160,7 @@ equipment with encumbrance.
 ### Steampunk / Ahistoric
 
 Example scenarios:
+
 - **Airship Engineer** — a dirigible fleet, clockwork automatons, and an invention that the guilds want suppressed
 - **Detective** — gaslight streets, a series of impossible crimes, and a suspect who was seen in two places at once
 - **Expedition Leader** — uncharted territories beyond the frontier, strange flora, and ruins predating recorded history
@@ -160,6 +172,7 @@ Technology is mechanical, not electronic. Steam-powered equivalents replace digi
 ### Wuxia / Martial Arts
 
 Example scenarios:
+
 - **Wandering Swordsman** — the jianghu, a debt of honour, and a martial arts tournament with a hidden agenda
 - **Temple Disciple** — a mountain monastery, a stolen scroll, and a technique that consumes the user
 - **Tea House Owner** — a neutral ground between rival sects, a poisoned guest, and a war that must not start
@@ -172,6 +185,7 @@ reputation. Geo-map for provinces and martial arts schools.
 ### Isekai / Portal Fantasy
 
 Example scenarios:
+
 - **Office Worker Transported** — modern knowledge in a medieval world, language barriers, no combat skills but lateral thinking
 - **Gamer Reborn** — a game-like interface overlays reality, levels are real, but the rules have hidden exceptions
 - **Historian Displaced** — academic knowledge of this era, but the history books were wrong about everything
@@ -185,6 +199,7 @@ until acclimatised (3+ successful social encounters). Progression is faster than
 ### Superhero
 
 Example scenarios:
+
 - **Newly Powered** — an origin event, unstable abilities, and a city that does not yet know what you are
 - **Retired Hero** — hung up the cape, but someone is using your old methods, and they are getting it wrong
 - **Villain's Henchman** — you work for the bad guy, you know it, and today's job crossed a line
@@ -197,6 +212,7 @@ Collateral damage tracked as a reputation metric. Gear replaced by costume/gadge
 ### Survival / Wilderness
 
 Example scenarios:
+
 - **Shipwreck Survivor** — a hostile coast, wreckage to salvage, and other survivors who may not cooperate
 - **Arctic Expedition** — a research station gone silent, dwindling supplies, and something moving under the ice
 - **Desert Nomad** — a caravan route gone dry, a rival clan, and an oasis that appeared on no map before last season
@@ -209,6 +225,7 @@ consumption rates. Shelter mechanics. Weather system affecting checks.
 ### Political Intrigue / Court Drama
 
 Example scenarios:
+
 - **Minor Noble** — a court of whispers, a betrothal that is a political weapon, and an alliance that smells of poison
 - **Spymaster's Apprentice** — the intelligence network, coded messages, and an agent who has gone silent in enemy territory
 - **Ambassador** — a peace negotiation, cultural misunderstandings weaponised, and a faction that profits from war
@@ -223,6 +240,7 @@ carries severe political consequences. Information as currency — intel items i
 ## Custom Scenarios
 
 The player may describe their own scenario concept. In this case:
+
 1. Ask clarifying questions about setting, tone, and role.
 2. Generate four scenario cards that explore different angles of their concept.
 3. Recommend appropriate modules based on the gameplay style implied.
@@ -252,6 +270,7 @@ Standard arcs are self-contained stories with beginning, middle, and end. They a
 available from level 1 and follow the standard 3-act pacing (10-15 scenes).
 
 At standard arc conclusion, the player is offered:
+
 - **Continue to next arc** — carry character forward into a new adventure
 - **Save** — preserve game state for later
 - **Export** — share the world as `.lore.md`
@@ -268,6 +287,7 @@ and deeper faction interplay. They are only offered when the player's character
 has reached level 5 or above.
 
 Epic scenario cards display an **EPIC** badge and include:
+
 - A hook that references the player's existing reputation and faction standings
 - Higher-tier adversaries (from bestiary.md elite/boss tiers)
 - Multi-faction conflict as a central theme
@@ -275,14 +295,14 @@ Epic scenario cards display an **EPIC** badge and include:
 
 **Epic Arc Scenario Hooks by Genre:**
 
-| Genre | Epic Arc Hook |
-|-------|--------------|
-| Space | "The Covenant Conspiracy" — a multi-system investigation into a corporate cover-up that reaches the colonial government |
-| Fantasy | "The Sundering" — a continent-spanning threat requiring alliances between rival kingdoms |
-| Horror | "The Convergence" — ancient entities stir across multiple sites, each connected to the player's past choices |
-| Cyberpunk | "Protocol Zero" — a rogue AI has compromised every faction the player has dealt with |
-| Post-Apocalyptic | "The Last Frequency" — a signal from before the fall offers salvation or extinction |
-| Historical | "The Crown Conspiracy" — political intrigue spanning three courts, each with agents the player has encountered |
+| Genre            | Epic Arc Hook                                                                                                           |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Space            | "The Covenant Conspiracy" — a multi-system investigation into a corporate cover-up that reaches the colonial government |
+| Fantasy          | "The Sundering" — a continent-spanning threat requiring alliances between rival kingdoms                                |
+| Horror           | "The Convergence" — ancient entities stir across multiple sites, each connected to the player's past choices            |
+| Cyberpunk        | "Protocol Zero" — a rogue AI has compromised every faction the player has dealt with                                    |
+| Post-Apocalyptic | "The Last Frequency" — a signal from before the fall offers salvation or extinction                                     |
+| Historical       | "The Crown Conspiracy" — political intrigue spanning three courts, each with agents the player has encountered          |
 
 ### Branching Arcs
 
@@ -290,6 +310,7 @@ Branching arcs present 2-3 possible follow-on arcs at conclusion. The player's
 choice determines the next adventure's scenario, setting, and stakes.
 
 Branching scenario cards display a **BRANCHING** badge and include:
+
 - A description of each path's consequences
 - Visual differentiation between paths (different genre pills, tone indicators)
 - No "recommended" labels — the player decides

@@ -15,6 +15,23 @@ best-for:
   - any scenario where technology is a theme
 ---
 
+```json tag-contract
+{
+  "id": "terminal",
+  "kind": "style",
+  "version": "1.4.0",
+  "summary": "Retro-futuristic terminal style with hard edges, electric accents, monospace UI, and starship or hacker-workstation readouts.",
+  "mustRead": [
+    "Pair with styles/style-reference.md for structural contracts.",
+    "Use monospace precision, hard borders, and compact readout hierarchy."
+  ],
+  "render": [
+    "Status bars, dice, and mechanical panels should read like system calculations or sensor data.",
+    "Best for space opera, cyberpunk, military sci-fi, hacker, heist, and hard-sci-fi scenarios."
+  ]
+}
+```
+
 # Terminal Style
 
 ## Design Philosophy
@@ -62,15 +79,15 @@ Google Fonts import (may be CSP-blocked — fallback stack above must render acc
 
 Base unit: 4px. All sizing is a multiple of this unit.
 
-| Role                    | Size  | Weight | Letter-spacing |
-|-------------------------|-------|--------|----------------|
-| Widget heading / loc    | 15px  | 600    | 0.04em         |
-| Section label / caps    | 9px   | 500    | 0.18em         |
-| Narrative / body        | 13px  | 400    | 0.01em         |
-| Button label            | 11px  | 400    | 0.08em         |
-| Stat / data readout     | 12px  | 500    | 0.06em         |
-| Micro label / pill      | 10px  | 400    | 0.10em         |
-| Die value (large)       | 40px  | 600    | 0              |
+| Role                 | Size | Weight | Letter-spacing |
+| -------------------- | ---- | ------ | -------------- |
+| Widget heading / loc | 15px | 600    | 0.04em         |
+| Section label / caps | 9px  | 500    | 0.18em         |
+| Narrative / body     | 13px | 400    | 0.01em         |
+| Button label         | 11px | 400    | 0.08em         |
+| Stat / data readout  | 12px | 500    | 0.06em         |
+| Micro label / pill   | 10px | 400    | 0.10em         |
+| Die value (large)    | 40px | 600    | 0              |
 
 All text-transform: uppercase is reserved for section labels and status
 badges only. Headings and buttons use sentence case.
@@ -83,93 +100,95 @@ badges only. Headings and buttons use sentence case.
 
 ```css
 /* Background layers */
---t-bg-base:        #0A0E14;   /* Near-black. The screen itself. */
---t-bg-surface:     #0F1520;   /* Cards, panels, elevated surfaces. */
---t-bg-inset:       #141C28;   /* Inset areas, code blocks, resolve panels. */
---t-bg-overlay:     #0D1219;   /* Panel overlays, modals. */
+--t-bg-base: #0a0e14; /* Near-black. The screen itself. */
+--t-bg-surface: #0f1520; /* Cards, panels, elevated surfaces. */
+--t-bg-inset: #141c28; /* Inset areas, code blocks, resolve panels. */
+--t-bg-overlay: #0d1219; /* Panel overlays, modals. */
 
 /* Text */
---t-text-primary:   #B3B1AD;   /* Body text. Warm light, not pure white. */
---t-text-secondary: #7A8694;   /* Secondary info, stat labels. */
---t-text-muted:     #4A5460;   /* Disabled, placeholders, tertiary labels. */
---t-text-inverse:   #0A0E14;   /* Text on bright accent backgrounds. */
+--t-text-primary: #b3b1ad; /* Body text. Warm light, not pure white. */
+--t-text-secondary: #7a8694; /* Secondary info, stat labels. */
+--t-text-muted: #4a5460; /* Disabled, placeholders, tertiary labels. */
+--t-text-inverse: #0a0e14; /* Text on bright accent backgrounds. */
 
 /* Borders */
---t-border-hard:    #1E2836;   /* Hard dividers, card outlines. */
---t-border-soft:    #162030;   /* Subtle separators, inner lines. */
---t-border-glow:    #00D9FF40; /* Glowing border on focus/active (cyan at 25% opacity). */
+--t-border-hard: #1e2836; /* Hard dividers, card outlines. */
+--t-border-soft: #162030; /* Subtle separators, inner lines. */
+--t-border-glow: #00d9ff40; /* Glowing border on focus/active (cyan at 25% opacity). */
 
 /* Accent — electric cyan (primary interactive) */
---t-accent-cyan:    #00D9FF;   /* Links, active states, primary CTAs. WCAG AA on #0A0E14. */
---t-accent-cyan-bg: #00D9FF14; /* Cyan tint background (8% opacity). */
---t-accent-cyan-dim:#0099BB;   /* Dimmed cyan for secondary use in dark mode. */
+--t-accent-cyan: #00d9ff; /* Links, active states, primary CTAs. WCAG AA on #0A0E14. */
+--t-accent-cyan-bg: #00d9ff14; /* Cyan tint background (8% opacity). */
+--t-accent-cyan-dim: #0099bb; /* Dimmed cyan for secondary use in dark mode. */
 
 /* Accent — electric magenta (secondary interactive, special actions) */
---t-accent-magenta: #FF006E;   /* Special actions, barter, critical attention. */
---t-accent-magenta-bg: #FF006E14; /* Magenta tint background. */
+--t-accent-magenta: #ff006e; /* Special actions, barter, critical attention. */
+--t-accent-magenta-bg: #ff006e14; /* Magenta tint background. */
 
 /* Status — success (green) */
---t-success:        #39FF14;   /* Success badges, HP pips, teal data. WCAG AA on #0A0E14. */
---t-success-bg:     #39FF1410; /* Success tint background. */
---t-success-dim:    #1FAA08;   /* Dimmed for secondary success use. */
+--t-success: #39ff14; /* Success badges, HP pips, teal data. WCAG AA on #0A0E14. */
+--t-success-bg: #39ff1410; /* Success tint background. */
+--t-success-dim: #1faa08; /* Dimmed for secondary success use. */
 
 /* Status — danger (red) */
---t-danger:         #FF3131;   /* Failure badges, enemy HP, critical conditions. */
---t-danger-bg:      #FF313114; /* Danger tint background. */
+--t-danger: #ff3131; /* Failure badges, enemy HP, critical conditions. */
+--t-danger-bg: #ff313114; /* Danger tint background. */
 
 /* Status — warning (amber) */
---t-warning:        #FFB800;   /* Partial success, caution states. WCAG AA on #0A0E14. */
---t-warning-bg:     #FFB80014; /* Warning tint background. */
+--t-warning: #ffb800; /* Partial success, caution states. WCAG AA on #0A0E14. */
+--t-warning-bg: #ffb80014; /* Warning tint background. */
 
 /* Status — special / mystery */
---t-special:        #BD00FF;   /* XP, level-up, mystery/unknown states. */
---t-special-bg:     #BD00FF14; /* Special tint background. */
+--t-special: #bd00ff; /* XP, level-up, mystery/unknown states. */
+--t-special-bg: #bd00ff14; /* Special tint background. */
 
 /* Scanline effect — applied via pseudo-element, motion-safe only */
 --t-scanline-color: rgba(0, 0, 0, 0.18);
---t-scanline-size:  3px;
+--t-scanline-size: 3px;
 
-  /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
-  --ta-font-heading:              'IBM Plex Mono', 'Cascadia Code', 'SF Mono', 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
-  --ta-font-body:                 'IBM Plex Mono', 'Cascadia Code', 'SF Mono', 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
-  --ta-color-accent:              var(--t-accent-cyan);
-  --ta-color-accent-hover:        color-mix(in srgb, var(--t-accent-cyan) 85%, white);
-  --ta-color-accent-bg:           var(--t-accent-cyan-bg);
-  --ta-color-accent-bg-hover:     color-mix(in srgb, var(--t-accent-cyan-bg) 80%, var(--t-accent-cyan));
-  --ta-color-success:             var(--t-success);
-  --ta-color-success-border:      var(--t-success-dim);
-  --ta-color-danger:              var(--t-danger);
-  --ta-color-danger-border:       color-mix(in srgb, var(--t-danger) 70%, black);
-  --ta-color-danger-bg:           var(--t-danger-bg);
-  --ta-color-danger-bg-hover:     color-mix(in srgb, var(--t-danger-bg) 80%, var(--t-danger));
-  --ta-color-warning:             var(--t-warning);
-  --ta-color-warning-border:      color-mix(in srgb, var(--t-warning) 70%, black);
-  --ta-color-warning-bg:          var(--t-warning-bg);
-  --ta-color-xp:                  var(--t-special);
-  --ta-color-focus:               var(--t-accent-cyan);
-  --ta-color-conviction:          #7C6BF0;
-  --ta-color-conviction-border:   #6B5CE0;
-  --ta-badge-success-bg:          var(--t-success-bg);
-  --ta-badge-success-text:        var(--t-success);
-  --ta-badge-partial-bg:          var(--t-warning-bg);
-  --ta-badge-partial-text:        var(--t-warning);
-  --ta-badge-failure-bg:          var(--t-danger-bg);
-  --ta-badge-failure-text:        var(--t-danger);
-  --ta-badge-crit-success-border: var(--t-success);
-  --ta-badge-crit-failure-border: var(--t-danger);
-  --ta-color-credits:             var(--t-accent-magenta);
-  --ta-color-tab-active:          var(--t-accent-cyan);
-  --ta-color-info:                #00BFFF;
-  --ta-btn-primary-text:          #ffffff;
-  --ta-border-style-poi:          1px dashed;
-  --ta-die-spin-duration:         0.4s;
+/* ── CSS Custom Property Contract (required by style-reference.md) ─ */
+--ta-font-heading:
+  'IBM Plex Mono', 'Cascadia Code', 'SF Mono', 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+--ta-font-body:
+  'IBM Plex Mono', 'Cascadia Code', 'SF Mono', 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+--ta-color-accent: var(--t-accent-cyan);
+--ta-color-accent-hover: color-mix(in srgb, var(--t-accent-cyan) 85%, white);
+--ta-color-accent-bg: var(--t-accent-cyan-bg);
+--ta-color-accent-bg-hover: color-mix(in srgb, var(--t-accent-cyan-bg) 80%, var(--t-accent-cyan));
+--ta-color-success: var(--t-success);
+--ta-color-success-border: var(--t-success-dim);
+--ta-color-danger: var(--t-danger);
+--ta-color-danger-border: color-mix(in srgb, var(--t-danger) 70%, black);
+--ta-color-danger-bg: var(--t-danger-bg);
+--ta-color-danger-bg-hover: color-mix(in srgb, var(--t-danger-bg) 80%, var(--t-danger));
+--ta-color-warning: var(--t-warning);
+--ta-color-warning-border: color-mix(in srgb, var(--t-warning) 70%, black);
+--ta-color-warning-bg: var(--t-warning-bg);
+--ta-color-xp: var(--t-special);
+--ta-color-focus: var(--t-accent-cyan);
+--ta-color-conviction: #7c6bf0;
+--ta-color-conviction-border: #6b5ce0;
+--ta-badge-success-bg: var(--t-success-bg);
+--ta-badge-success-text: var(--t-success);
+--ta-badge-partial-bg: var(--t-warning-bg);
+--ta-badge-partial-text: var(--t-warning);
+--ta-badge-failure-bg: var(--t-danger-bg);
+--ta-badge-failure-text: var(--t-danger);
+--ta-badge-crit-success-border: var(--t-success);
+--ta-badge-crit-failure-border: var(--t-danger);
+--ta-color-credits: var(--t-accent-magenta);
+--ta-color-tab-active: var(--t-accent-cyan);
+--ta-color-info: #00bfff;
+--ta-btn-primary-text: #ffffff;
+--ta-border-style-poi: 1px dashed;
+--ta-die-spin-duration: 0.4s;
 
-  /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
-  --sta-text-primary:             var(--t-text-primary);
-  --sta-text-secondary:           var(--t-text-secondary);
-  --sta-text-tertiary:            var(--t-text-muted);
-  --sta-border-tertiary:          var(--t-border-hard);
-  --sta-color-text-emphasis:      #ffffff;
+/* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
+--sta-text-primary: var(--t-text-primary);
+--sta-text-secondary: var(--t-text-secondary);
+--sta-text-tertiary: var(--t-text-muted);
+--sta-border-tertiary: var(--t-border-hard);
+--sta-color-text-emphasis: #ffffff;
 ```
 
 ### Design Tokens — Light Mode
@@ -180,40 +199,40 @@ to values that maintain WCAG AA contrast on white/near-white backgrounds.
 ```css
 @media (prefers-color-scheme: light) {
   :host {
-    --t-bg-base:        #FFFFFF;
-    --t-bg-surface:     #F5F6F8;
-    --t-bg-inset:       #ECEEF2;
-    --t-bg-overlay:     #F0F2F5;
+    --t-bg-base: #ffffff;
+    --t-bg-surface: #f5f6f8;
+    --t-bg-inset: #eceef2;
+    --t-bg-overlay: #f0f2f5;
 
-    --t-text-primary:   #1A2030;
+    --t-text-primary: #1a2030;
     --t-text-secondary: #445068;
-    --t-text-muted:     #8892A0;
-    --t-text-inverse:   #FFFFFF;
+    --t-text-muted: #8892a0;
+    --t-text-inverse: #ffffff;
 
-    --t-border-hard:    #D0D6DF;
-    --t-border-soft:    #E2E6EB;
-    --t-border-glow:    #006E8040;
+    --t-border-hard: #d0d6df;
+    --t-border-soft: #e2e6eb;
+    --t-border-glow: #006e8040;
 
     /* Accents are darkened to maintain contrast on light backgrounds */
-    --t-accent-cyan:    #006E80;   /* Dark teal. Contrast 7.2:1 on white. */
-    --t-accent-cyan-bg: #006E8010;
-    --t-accent-cyan-dim:#004F5C;
+    --t-accent-cyan: #006e80; /* Dark teal. Contrast 7.2:1 on white. */
+    --t-accent-cyan-bg: #006e8010;
+    --t-accent-cyan-dim: #004f5c;
 
-    --t-accent-magenta: #B5004E;   /* Dark rose. Contrast 6.1:1 on white. */
-    --t-accent-magenta-bg: #B5004E0E;
+    --t-accent-magenta: #b5004e; /* Dark rose. Contrast 6.1:1 on white. */
+    --t-accent-magenta-bg: #b5004e0e;
 
-    --t-success:        #1A7A08;   /* Dark green. Contrast 5.8:1 on white. */
-    --t-success-bg:     #1A7A0810;
-    --t-success-dim:    #0F5205;
+    --t-success: #1a7a08; /* Dark green. Contrast 5.8:1 on white. */
+    --t-success-bg: #1a7a0810;
+    --t-success-dim: #0f5205;
 
-    --t-danger:         #C0000F;   /* Dark red. Contrast 7.4:1 on white. */
-    --t-danger-bg:      #C0000F0E;
+    --t-danger: #c0000f; /* Dark red. Contrast 7.4:1 on white. */
+    --t-danger-bg: #c0000f0e;
 
-    --t-warning:        #8A6000;   /* Dark amber. Contrast 6.9:1 on white. */
-    --t-warning-bg:     #8A600010;
+    --t-warning: #8a6000; /* Dark amber. Contrast 6.9:1 on white. */
+    --t-warning-bg: #8a600010;
 
-    --t-special:        #7200A8;   /* Dark violet. Contrast 6.3:1 on white. */
-    --t-special-bg:     #7200A80E;
+    --t-special: #7200a8; /* Dark violet. Contrast 6.3:1 on white. */
+    --t-special-bg: #7200a80e;
   }
 }
 ```
@@ -222,14 +241,14 @@ to values that maintain WCAG AA contrast on white/near-white backgrounds.
 
 All foreground/background pairings used for interactive text meet 4.5:1 minimum:
 
-| Foreground         | Background     | Ratio (dark) | Ratio (light) |
-|--------------------|----------------|-------------|---------------|
-| `--t-accent-cyan`  | `--t-bg-base`  | 8.3:1       | 7.2:1         |
-| `--t-success`      | `--t-bg-base`  | 9.1:1       | 5.8:1         |
-| `--t-warning`      | `--t-bg-base`  | 6.4:1       | 6.9:1         |
-| `--t-danger`       | `--t-bg-base`  | 5.1:1       | 7.4:1         |
-| `--t-text-primary` | `--t-bg-base`  | 7.8:1       | 14.2:1        |
-| `--t-text-secondary`| `--t-bg-base` | 4.6:1       | 5.1:1         |
+| Foreground           | Background    | Ratio (dark) | Ratio (light) |
+| -------------------- | ------------- | ------------ | ------------- |
+| `--t-accent-cyan`    | `--t-bg-base` | 8.3:1        | 7.2:1         |
+| `--t-success`        | `--t-bg-base` | 9.1:1        | 5.8:1         |
+| `--t-warning`        | `--t-bg-base` | 6.4:1        | 6.9:1         |
+| `--t-danger`         | `--t-bg-base` | 5.1:1        | 7.4:1         |
+| `--t-text-primary`   | `--t-bg-base` | 7.8:1        | 14.2:1        |
+| `--t-text-secondary` | `--t-bg-base` | 4.6:1        | 5.1:1         |
 
 ---
 
@@ -313,7 +332,10 @@ sensitivity).
   .root::before {
     content: '';
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: repeating-linear-gradient(
       to bottom,
       transparent 0px,
@@ -328,7 +350,9 @@ sensitivity).
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .root::before { display: none; }
+  .root::before {
+    display: none;
+  }
 }
 ```
 
@@ -366,7 +390,9 @@ the monospace grid. Every button meets the 44px minimum touch target.
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .t-btn { transition: none; }
+  .t-btn {
+    transition: none;
+  }
 }
 ```
 
@@ -475,7 +501,8 @@ accent. This avoids the outline being swallowed by bordered elements.
 ### Disabled States
 
 ```css
-:disabled, [aria-disabled="true"] {
+:disabled,
+[aria-disabled='true'] {
   opacity: 0.32;
   cursor: not-allowed;
   text-shadow: none;
@@ -494,7 +521,9 @@ an imperceptible 1ms (the element still updates, it just does not animate).
 ```css
 /* Global reduced-motion override — placed at the end of any style block */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -509,9 +538,22 @@ value snaps in with a brief brightness flare.
 
 ```css
 @keyframes t-die-settle {
-  0%   { opacity: 0.3; filter: blur(1px); }
-  60%  { opacity: 0.8; filter: blur(0); color: var(--t-accent-cyan); text-shadow: 0 0 16px var(--t-accent-cyan); }
-  100% { opacity: 1;   filter: blur(0); color: var(--t-text-primary); text-shadow: none; }
+  0% {
+    opacity: 0.3;
+    filter: blur(1px);
+  }
+  60% {
+    opacity: 0.8;
+    filter: blur(0);
+    color: var(--t-accent-cyan);
+    text-shadow: 0 0 16px var(--t-accent-cyan);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    color: var(--t-text-primary);
+    text-shadow: none;
+  }
 }
 
 .die-value.settling {
@@ -521,14 +563,23 @@ value snaps in with a brief brightness flare.
 /* Natural 20 — hold the glow */
 .die-value.crit-success {
   color: var(--t-success);
-  text-shadow: 0 0 20px var(--t-success), 0 0 40px var(--t-success);
+  text-shadow:
+    0 0 20px var(--t-success),
+    0 0 40px var(--t-success);
   animation: none;
 }
 
 /* Natural 1 — danger pulse */
 @keyframes t-crit-fail-pulse {
-  0%, 100% { color: var(--t-danger); text-shadow: 0 0 8px var(--t-danger); }
-  50%       { color: var(--t-text-primary); text-shadow: none; }
+  0%,
+  100% {
+    color: var(--t-danger);
+    text-shadow: 0 0 8px var(--t-danger);
+  }
+  50% {
+    color: var(--t-text-primary);
+    text-shadow: none;
+  }
 }
 .die-value.crit-failure {
   animation: t-crit-fail-pulse 800ms ease-in-out 2;
@@ -542,8 +593,14 @@ distance is small (8px) — enough to feel intentional, not theatrical.
 
 ```css
 @keyframes t-panel-in {
-  from { opacity: 0; transform: translateY(-8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .panel-content[data-panel].visible {
@@ -557,9 +614,15 @@ Buttons compress slightly on active to simulate a physical key press.
 
 ```css
 @keyframes t-key-press {
-  0%   { transform: scale(1); }
-  40%  { transform: scale(0.97); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(0.97);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .t-btn:active {
@@ -573,8 +636,14 @@ When a pip fills during a social encounter, it brightens in from dim.
 
 ```css
 @keyframes t-pip-fill {
-  from { background: transparent; box-shadow: none; }
-  to   { background: var(--t-success); box-shadow: 0 0 6px var(--t-success); }
+  from {
+    background: transparent;
+    box-shadow: none;
+  }
+  to {
+    background: var(--t-success);
+    box-shadow: 0 0 6px var(--t-success);
+  }
 }
 
 .conviction-pip.filling {
@@ -586,8 +655,12 @@ When a pip fills during a social encounter, it brightens in from dim.
 
 ```css
 @keyframes t-xp-fill {
-  from { width: var(--xp-from, 0%); }
-  to   { width: var(--xp-to, 0%); }
+  from {
+    width: var(--xp-from, 0%);
+  }
+  to {
+    width: var(--xp-to, 0%);
+  }
 }
 
 .xp-fill.animating {
@@ -601,8 +674,14 @@ The continue button pulses softly to draw attention when the brief text loads.
 
 ```css
 @keyframes t-pulse-border {
-  0%, 100% { border-color: var(--t-border-hard); }
-  50%       { border-color: var(--t-accent-cyan); box-shadow: 0 0 8px var(--t-accent-cyan); }
+  0%,
+  100% {
+    border-color: var(--t-border-hard);
+  }
+  50% {
+    border-color: var(--t-accent-cyan);
+    box-shadow: 0 0 8px var(--t-accent-cyan);
+  }
 }
 
 .continue-btn {
@@ -760,14 +839,13 @@ suits the grid aesthetic. XP is a flat progress bar with tick marks.
 .xp-track {
   width: 64px;
   height: 4px;
-  background:
-    repeating-linear-gradient(
-      to right,
-      var(--t-border-hard) 0px,
-      var(--t-border-hard) 1px,
-      transparent 1px,
-      transparent 8px
-    );
+  background: repeating-linear-gradient(
+    to right,
+    var(--t-border-hard) 0px,
+    var(--t-border-hard) 1px,
+    transparent 1px,
+    transparent 8px
+  );
   border: 1px solid var(--t-border-hard);
   border-radius: 0;
   overflow: hidden;
@@ -783,7 +861,9 @@ suits the grid aesthetic. XP is a flat progress bar with tick marks.
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .xp-fill { transition: none; }
+  .xp-fill {
+    transition: none;
+  }
 }
 ```
 
@@ -875,7 +955,9 @@ The die value is the centrepiece — large, monospace, and lit.
 
 .roll-btn:hover {
   background: var(--t-accent-cyan-bg);
-  box-shadow: 0 0 0 1px var(--t-accent-cyan), 0 0 12px var(--t-accent-cyan);
+  box-shadow:
+    0 0 0 1px var(--t-accent-cyan),
+    0 0 12px var(--t-accent-cyan);
 }
 
 .roll-btn:disabled {
@@ -905,7 +987,9 @@ The die value is the centrepiece — large, monospace, and lit.
   letter-spacing: 0.04em;
 }
 
-.resolve-row:last-child { border-bottom: none; }
+.resolve-row:last-child {
+  border-bottom: none;
+}
 
 .resolve-label {
   color: var(--t-text-muted);
@@ -1138,73 +1222,75 @@ the iframe into the host page.
 
 /* ── Design tokens ─────────────────────────────────────────── */
 .root {
-  --t-bg-base:           #0A0E14;
-  --t-bg-surface:        #0F1520;
-  --t-bg-inset:          #141C28;
-  --t-bg-overlay:        #0D1219;
+  --t-bg-base: #0a0e14;
+  --t-bg-surface: #0f1520;
+  --t-bg-inset: #141c28;
+  --t-bg-overlay: #0d1219;
 
-  --t-text-primary:      #B3B1AD;
-  --t-text-secondary:    #7A8694;
-  --t-text-muted:        #4A5460;
-  --t-text-inverse:      #0A0E14;
+  --t-text-primary: #b3b1ad;
+  --t-text-secondary: #7a8694;
+  --t-text-muted: #4a5460;
+  --t-text-inverse: #0a0e14;
 
-  --t-border-hard:       #1E2836;
-  --t-border-soft:       #162030;
+  --t-border-hard: #1e2836;
+  --t-border-soft: #162030;
 
-  --t-accent-cyan:       #00D9FF;
-  --t-accent-cyan-bg:    #00D9FF14;
-  --t-accent-cyan-dim:   #0099BB;
+  --t-accent-cyan: #00d9ff;
+  --t-accent-cyan-bg: #00d9ff14;
+  --t-accent-cyan-dim: #0099bb;
 
-  --t-accent-magenta:    #FF006E;
-  --t-accent-magenta-bg: #FF006E14;
+  --t-accent-magenta: #ff006e;
+  --t-accent-magenta-bg: #ff006e14;
 
-  --t-success:           #39FF14;
-  --t-success-bg:        #39FF1410;
-  --t-success-dim:       #1FAA08;
+  --t-success: #39ff14;
+  --t-success-bg: #39ff1410;
+  --t-success-dim: #1faa08;
 
-  --t-danger:            #FF3131;
-  --t-danger-bg:         #FF313114;
+  --t-danger: #ff3131;
+  --t-danger-bg: #ff313114;
 
-  --t-warning:           #FFB800;
-  --t-warning-bg:        #FFB80014;
+  --t-warning: #ffb800;
+  --t-warning-bg: #ffb80014;
 
-  --t-special:           #BD00FF;
-  --t-special-bg:        #BD00FF14;
+  --t-special: #bd00ff;
+  --t-special-bg: #bd00ff14;
 
   /* ── CSS Custom Property Contract (required by style-reference.md) ── */
-  --ta-font-heading:              'IBM Plex Mono', 'Cascadia Code', 'SF Mono', 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
-  --ta-font-body:                 'IBM Plex Mono', 'Cascadia Code', 'SF Mono', 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
-  --ta-color-accent:              var(--t-accent-cyan);
-  --ta-color-accent-hover:        color-mix(in srgb, var(--t-accent-cyan) 85%, white);
-  --ta-color-accent-bg:           var(--t-accent-cyan-bg);
-  --ta-color-accent-bg-hover:     color-mix(in srgb, var(--t-accent-cyan-bg) 80%, var(--t-accent-cyan));
-  --ta-color-success:             var(--t-success);
-  --ta-color-success-border:      var(--t-success-dim);
-  --ta-color-danger:              var(--t-danger);
-  --ta-color-danger-border:       color-mix(in srgb, var(--t-danger) 70%, black);
-  --ta-color-danger-bg:           var(--t-danger-bg);
-  --ta-color-danger-bg-hover:     color-mix(in srgb, var(--t-danger-bg) 80%, var(--t-danger));
-  --ta-color-warning:             var(--t-warning);
-  --ta-color-warning-border:      color-mix(in srgb, var(--t-warning) 70%, black);
-  --ta-color-warning-bg:          var(--t-warning-bg);
-  --ta-color-xp:                  var(--t-special);
-  --ta-color-focus:               var(--t-accent-cyan);
-  --ta-color-conviction:          #7C6BF0;
-  --ta-color-conviction-border:   #6B5CE0;
-  --ta-badge-success-bg:          var(--t-success-bg);
-  --ta-badge-success-text:        var(--t-success);
-  --ta-badge-partial-bg:          var(--t-warning-bg);
-  --ta-badge-partial-text:        var(--t-warning);
-  --ta-badge-failure-bg:          var(--t-danger-bg);
-  --ta-badge-failure-text:        var(--t-danger);
+  --ta-font-heading:
+    'IBM Plex Mono', 'Cascadia Code', 'SF Mono', 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+  --ta-font-body:
+    'IBM Plex Mono', 'Cascadia Code', 'SF Mono', 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+  --ta-color-accent: var(--t-accent-cyan);
+  --ta-color-accent-hover: color-mix(in srgb, var(--t-accent-cyan) 85%, white);
+  --ta-color-accent-bg: var(--t-accent-cyan-bg);
+  --ta-color-accent-bg-hover: color-mix(in srgb, var(--t-accent-cyan-bg) 80%, var(--t-accent-cyan));
+  --ta-color-success: var(--t-success);
+  --ta-color-success-border: var(--t-success-dim);
+  --ta-color-danger: var(--t-danger);
+  --ta-color-danger-border: color-mix(in srgb, var(--t-danger) 70%, black);
+  --ta-color-danger-bg: var(--t-danger-bg);
+  --ta-color-danger-bg-hover: color-mix(in srgb, var(--t-danger-bg) 80%, var(--t-danger));
+  --ta-color-warning: var(--t-warning);
+  --ta-color-warning-border: color-mix(in srgb, var(--t-warning) 70%, black);
+  --ta-color-warning-bg: var(--t-warning-bg);
+  --ta-color-xp: var(--t-special);
+  --ta-color-focus: var(--t-accent-cyan);
+  --ta-color-conviction: #7c6bf0;
+  --ta-color-conviction-border: #6b5ce0;
+  --ta-badge-success-bg: var(--t-success-bg);
+  --ta-badge-success-text: var(--t-success);
+  --ta-badge-partial-bg: var(--t-warning-bg);
+  --ta-badge-partial-text: var(--t-warning);
+  --ta-badge-failure-bg: var(--t-danger-bg);
+  --ta-badge-failure-text: var(--t-danger);
   --ta-badge-crit-success-border: var(--t-success);
   --ta-badge-crit-failure-border: var(--t-danger);
-  --ta-color-credits:             var(--t-accent-magenta);
-  --ta-color-tab-active:          var(--t-accent-cyan);
-  --ta-color-info:                #00BFFF;
-  --ta-btn-primary-text:          #ffffff;
-  --ta-border-style-poi:          1px dashed;
-  --ta-die-spin-duration:         0.4s;
+  --ta-color-credits: var(--t-accent-magenta);
+  --ta-color-tab-active: var(--t-accent-cyan);
+  --ta-color-info: #00bfff;
+  --ta-btn-primary-text: #ffffff;
+  --ta-border-style-poi: 1px dashed;
+  --ta-die-spin-duration: 0.4s;
 
   /* --- Speaker colours (multi-dialogue) --- */
   --speaker-color-0: #33ff33;
@@ -1218,37 +1304,37 @@ the iframe into the host page.
 /* ── Light mode token overrides ────────────────────────────── */
 @media (prefers-color-scheme: light) {
   .root {
-    --t-bg-base:           #FFFFFF;
-    --t-bg-surface:        #F5F6F8;
-    --t-bg-inset:          #ECEEF2;
-    --t-bg-overlay:        #F0F2F5;
-    --t-text-primary:      #1A2030;
-    --t-text-secondary:    #445068;
-    --t-text-muted:        #8892A0;
-    --t-text-inverse:      #FFFFFF;
-    --t-border-hard:       #D0D6DF;
-    --t-border-soft:       #E2E6EB;
-    --t-accent-cyan:       #006E80;
-    --t-accent-cyan-bg:    #006E8010;
-    --t-accent-cyan-dim:   #004F5C;
-    --t-accent-magenta:    #B5004E;
-    --t-accent-magenta-bg: #B5004E0E;
-    --t-success:           #1A7A08;
-    --t-success-bg:        #1A7A0810;
-    --t-success-dim:       #0F5205;
-    --t-danger:            #C0000F;
-    --t-danger-bg:         #C0000F0E;
-    --t-warning:           #8A6000;
-    --t-warning-bg:        #8A600010;
-    --t-special:           #7200A8;
-    --t-special-bg:        #7200A80E;
+    --t-bg-base: #ffffff;
+    --t-bg-surface: #f5f6f8;
+    --t-bg-inset: #eceef2;
+    --t-bg-overlay: #f0f2f5;
+    --t-text-primary: #1a2030;
+    --t-text-secondary: #445068;
+    --t-text-muted: #8892a0;
+    --t-text-inverse: #ffffff;
+    --t-border-hard: #d0d6df;
+    --t-border-soft: #e2e6eb;
+    --t-accent-cyan: #006e80;
+    --t-accent-cyan-bg: #006e8010;
+    --t-accent-cyan-dim: #004f5c;
+    --t-accent-magenta: #b5004e;
+    --t-accent-magenta-bg: #b5004e0e;
+    --t-success: #1a7a08;
+    --t-success-bg: #1a7a0810;
+    --t-success-dim: #0f5205;
+    --t-danger: #c0000f;
+    --t-danger-bg: #c0000f0e;
+    --t-warning: #8a6000;
+    --t-warning-bg: #8a600010;
+    --t-special: #7200a8;
+    --t-special-bg: #7200a80e;
   }
 }
 
 /* ── Root / global ─────────────────────────────────────────── */
 .root {
-  font-family: 'IBM Plex Mono', 'Cascadia Code', 'SF Mono', 'Fira Code',
-               'Consolas', 'Liberation Mono', 'Courier New', monospace;
+  font-family:
+    'IBM Plex Mono', 'Cascadia Code', 'SF Mono', 'Fira Code', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
   font-size: 13px;
   line-height: 1.6;
   color: var(--t-text-primary);
@@ -1258,17 +1344,22 @@ the iframe into the host page.
 
 /* Scanline overlay — dark mode only, motion-safe */
 @media (prefers-color-scheme: dark) {
-  .root { position: relative; }
+  .root {
+    position: relative;
+  }
   .root::after {
     content: '';
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: repeating-linear-gradient(
       to bottom,
       transparent 0px,
       transparent 2px,
-      rgba(0,0,0,0.18) 2px,
-      rgba(0,0,0,0.18) 3px
+      rgba(0, 0, 0, 0.18) 2px,
+      rgba(0, 0, 0, 0.18) 3px
     );
     pointer-events: none;
     z-index: 9999;
@@ -1276,7 +1367,9 @@ the iframe into the host page.
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .root::after { display: none; }
+  .root::after {
+    display: none;
+  }
 }
 
 /* ── Focus ──────────────────────────────────────────────────── */
@@ -1288,87 +1381,155 @@ the iframe into the host page.
 
 /* ── Location bar ───────────────────────────────────────────── */
 .loc-bar {
-  display: flex; justify-content: space-between; align-items: baseline;
-  padding-bottom: 8px; margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
   border-bottom: 1px solid var(--t-border-hard);
 }
 .loc-name {
-  font-size: 15px; font-weight: 600; letter-spacing: 0.04em;
-  color: var(--t-accent-cyan); text-shadow: 0 0 10px var(--t-accent-cyan);
-  text-transform: uppercase; margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--t-accent-cyan);
+  text-shadow: 0 0 10px var(--t-accent-cyan);
+  text-transform: uppercase;
+  margin: 0;
 }
-.loc-name::before { content: '> '; color: var(--t-text-muted); text-shadow: none; }
-.scene-num { font-size: 10px; letter-spacing: 0.14em; color: var(--t-text-muted); text-transform: uppercase; }
+.loc-name::before {
+  content: '> ';
+  color: var(--t-text-muted);
+  text-shadow: none;
+}
+.scene-num {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--t-text-muted);
+  text-transform: uppercase;
+}
 
 /* ── Atmosphere strip ───────────────────────────────────────── */
-.atmo-strip { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.atmo-strip {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
 .atmo-pill {
-  font-size: 10px; letter-spacing: 0.08em; padding: 2px 8px;
-  border: 1px solid var(--t-border-hard); border-radius: 2px;
-  color: var(--t-text-muted); background: transparent;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+  border: 1px solid var(--t-border-hard);
+  border-radius: 2px;
+  color: var(--t-text-muted);
+  background: transparent;
 }
 
 /* ── Narrative ──────────────────────────────────────────────── */
 .narrative {
-  font-size: 13px; line-height: 1.9; color: var(--t-text-primary);
-  letter-spacing: 0.01em; margin: 0 0 16px;
-  border-left: 2px solid var(--t-border-hard); padding-left: 12px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: var(--t-text-primary);
+  letter-spacing: 0.01em;
+  margin: 0 0 16px;
+  border-left: 2px solid var(--t-border-hard);
+  padding-left: 12px;
 }
 
 /* ── Section labels ─────────────────────────────────────────── */
 .section-label {
-  font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--t-text-muted); margin: 16px 0 8px;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--t-text-muted);
+  margin: 16px 0 8px;
 }
-.section-label::before { content: '// '; color: var(--t-accent-cyan); opacity: 0.5; }
+.section-label::before {
+  content: '// ';
+  color: var(--t-accent-cyan);
+  opacity: 0.5;
+}
 
 /* ── Button row ─────────────────────────────────────────────── */
-.btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
 
 /* Shared button base */
 .root button {
   font-family: 'IBM Plex Mono', 'Cascadia Code', 'SF Mono', 'Consolas', monospace;
-  font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
-  padding: 8px 16px; min-height: 44px; min-width: 44px; box-sizing: border-box;
-  border-radius: 0; cursor: pointer;
-  transition: background-color 80ms linear, border-color 80ms linear,
-              color 80ms linear, box-shadow 80ms linear;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  min-height: 44px;
+  min-width: 44px;
+  box-sizing: border-box;
+  border-radius: 0;
+  cursor: pointer;
+  transition:
+    background-color 80ms linear,
+    border-color 80ms linear,
+    color 80ms linear,
+    box-shadow 80ms linear;
 }
-.root button:disabled { opacity: 0.32; cursor: not-allowed; text-shadow: none; box-shadow: none; }
+.root button:disabled {
+  opacity: 0.32;
+  cursor: not-allowed;
+  text-shadow: none;
+  box-shadow: none;
+}
 
 /* Action button — primary CTA */
-.btn-action, .action-btn, .continue-btn, .roll-btn {
+.btn-action,
+.action-btn,
+.continue-btn,
+.roll-btn {
   background: var(--t-accent-cyan-bg);
   border: 1px solid var(--t-accent-cyan);
   color: var(--t-accent-cyan);
   text-shadow: 0 0 8px var(--t-accent-cyan);
 }
-.btn-action:hover, .action-btn:hover, .continue-btn:hover, .roll-btn:hover {
+.btn-action:hover,
+.action-btn:hover,
+.continue-btn:hover,
+.roll-btn:hover {
   background: color-mix(in srgb, var(--t-accent-cyan) 18%, transparent);
   box-shadow: 0 0 0 1px var(--t-accent-cyan);
 }
 
 /* POI / explore button — dashed outline */
-.btn-poi, .poi-btn {
+.btn-poi,
+.poi-btn {
   background: transparent;
   border: 1px dashed var(--t-border-hard);
   color: var(--t-text-secondary);
   text-shadow: none;
 }
-.btn-poi:hover, .poi-btn:hover {
-  border-style: solid; border-color: var(--t-text-secondary);
-  color: var(--t-text-primary); background: var(--t-bg-surface);
+.btn-poi:hover,
+.poi-btn:hover {
+  border-style: solid;
+  border-color: var(--t-text-secondary);
+  color: var(--t-text-primary);
+  background: var(--t-bg-surface);
 }
 
 /* Footer / ghost button */
-.footer-btn, .panel-close-btn {
+.footer-btn,
+.panel-close-btn {
   background: transparent;
   border: 1px solid var(--t-border-hard);
   color: var(--t-text-muted);
   text-shadow: none;
 }
-.footer-btn:hover, .panel-close-btn:hover {
-  border-color: var(--t-text-secondary); color: var(--t-text-secondary);
+.footer-btn:hover,
+.panel-close-btn:hover {
+  border-color: var(--t-text-secondary);
+  color: var(--t-text-secondary);
   background: var(--t-bg-surface);
 }
 
@@ -1398,37 +1559,66 @@ the iframe into the host page.
 
 /* ── Status bar ─────────────────────────────────────────────── */
 .status-bar {
-  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
-  padding: 10px 0; margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 10px 0;
+  margin-top: 8px;
   border-top: 1px solid var(--t-border-hard);
-  font-size: 10px; letter-spacing: 0.08em; color: var(--t-text-muted);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--t-text-muted);
 }
 .pip {
-  width: 8px; height: 8px; border-radius: 0;
-  background: var(--t-success); border: 1px solid var(--t-success-dim);
+  width: 8px;
+  height: 8px;
+  border-radius: 0;
+  background: var(--t-success);
+  border: 1px solid var(--t-success-dim);
   box-shadow: 0 0 4px var(--t-success);
 }
-.pip.empty { background: transparent; border-color: var(--t-border-hard); box-shadow: none; }
-.hp-pips { display: flex; gap: 4px; align-items: center; }
+.pip.empty {
+  background: transparent;
+  border-color: var(--t-border-hard);
+  box-shadow: none;
+}
+.hp-pips {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
 .xp-track {
-  width: 64px; height: 4px; border-radius: 0; overflow: hidden;
+  width: 64px;
+  height: 4px;
+  border-radius: 0;
+  overflow: hidden;
   background: repeating-linear-gradient(
     to right,
-    var(--t-border-hard) 0px, var(--t-border-hard) 1px,
-    transparent 1px, transparent 8px
+    var(--t-border-hard) 0px,
+    var(--t-border-hard) 1px,
+    transparent 1px,
+    transparent 8px
   );
-  border: 1px solid var(--t-border-hard); position: relative;
+  border: 1px solid var(--t-border-hard);
+  position: relative;
 }
 .xp-fill {
-  height: 100%; background: var(--t-special);
-  box-shadow: 2px 0 8px var(--t-special); border-radius: 0;
+  height: 100%;
+  background: var(--t-special);
+  box-shadow: 2px 0 8px var(--t-special);
+  border-radius: 0;
   transition: width 600ms ease-out;
 }
 
 /* ── Footer row ─────────────────────────────────────────────── */
 .footer-row {
-  display: flex; justify-content: flex-start; gap: 8px; flex-wrap: wrap;
-  margin-top: 14px; padding-top: 10px;
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding-top: 10px;
   border-top: 1px solid var(--t-border-hard);
 }
 
@@ -1439,127 +1629,302 @@ the iframe into the host page.
   padding: 12px;
 }
 .panel-header {
-  display: flex; align-items: baseline; justify-content: space-between;
-  padding-bottom: 10px; margin-bottom: 12px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
   border-bottom: 1px solid var(--t-border-hard);
 }
 .panel-title {
-  font-size: 11px; font-weight: 600; letter-spacing: 0.18em;
-  text-transform: uppercase; color: var(--t-accent-cyan);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--t-accent-cyan);
   text-shadow: 0 0 8px var(--t-accent-cyan);
 }
 .panel-content {
-  display: none; font-size: 12px; line-height: 1.7; color: var(--t-text-secondary);
+  display: none;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--t-text-secondary);
 }
 
 /* ── Outcome badges ─────────────────────────────────────────── */
 .badge {
-  display: inline-block; font-size: 10px; font-weight: 500;
-  letter-spacing: 0.18em; text-transform: uppercase;
-  padding: 4px 14px; border-radius: 0; border: 1px solid currentColor;
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 4px 14px;
+  border-radius: 0;
+  border: 1px solid currentColor;
 }
-.badge.crit-success { color: var(--t-success); background: var(--t-success-bg); text-shadow: 0 0 8px var(--t-success); }
-.badge.success      { color: var(--t-success); background: var(--t-success-bg); }
-.badge.partial      { color: var(--t-warning); background: var(--t-warning-bg); }
-.badge.failure      { color: var(--t-danger);  background: var(--t-danger-bg);  }
-.badge.crit-failure { color: var(--t-danger);  background: var(--t-danger-bg);  text-shadow: 0 0 8px var(--t-danger); }
+.badge.crit-success {
+  color: var(--t-success);
+  background: var(--t-success-bg);
+  text-shadow: 0 0 8px var(--t-success);
+}
+.badge.success {
+  color: var(--t-success);
+  background: var(--t-success-bg);
+}
+.badge.partial {
+  color: var(--t-warning);
+  background: var(--t-warning-bg);
+}
+.badge.failure {
+  color: var(--t-danger);
+  background: var(--t-danger-bg);
+}
+.badge.crit-failure {
+  color: var(--t-danger);
+  background: var(--t-danger-bg);
+  text-shadow: 0 0 8px var(--t-danger);
+}
 
 /* ── Dice roll ──────────────────────────────────────────────── */
-.die-display { text-align: center; margin: 16px 0; }
+.die-display {
+  text-align: center;
+  margin: 16px 0;
+}
 .die-value {
-  font-size: 40px; font-weight: 600; letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums; display: inline-block; line-height: 1;
+  font-size: 40px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  display: inline-block;
+  line-height: 1;
 }
 .resolve-block {
-  background: var(--t-bg-inset); border: 1px solid var(--t-border-hard);
-  border-radius: 0; padding: 12px; margin-bottom: 16px;
+  background: var(--t-bg-inset);
+  border: 1px solid var(--t-border-hard);
+  border-radius: 0;
+  padding: 12px;
+  margin-bottom: 16px;
 }
 .resolve-row {
-  display: flex; justify-content: space-between; align-items: baseline;
-  font-size: 11px; color: var(--t-text-secondary);
-  padding: 3px 0; border-bottom: 1px solid var(--t-border-soft);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 11px;
+  color: var(--t-text-secondary);
+  padding: 3px 0;
+  border-bottom: 1px solid var(--t-border-soft);
   letter-spacing: 0.04em;
 }
-.resolve-row:last-child { border-bottom: none; }
+.resolve-row:last-child {
+  border-bottom: none;
+}
 .resolve-label {
-  color: var(--t-text-muted); text-transform: uppercase;
-  font-size: 9px; letter-spacing: 0.14em;
+  color: var(--t-text-muted);
+  text-transform: uppercase;
+  font-size: 9px;
+  letter-spacing: 0.14em;
 }
 
 /* ── Combat ─────────────────────────────────────────────────── */
 .init-bar {
-  display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
-  margin-bottom: 12px; padding-bottom: 10px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
   border-bottom: 1px solid var(--t-border-hard);
 }
-.init-label { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--t-text-muted); margin-right: 4px; }
-.init-chip  { font-size: 10px; letter-spacing: 0.06em; padding: 3px 10px; border: 1px solid var(--t-border-hard); color: var(--t-text-secondary); }
-.init-chip.active { border-color: var(--t-success); color: var(--t-success); text-shadow: 0 0 6px var(--t-success); }
-.enemy-card { padding: 10px 12px; border: 1px solid var(--t-border-hard); background: var(--t-bg-surface); }
-.enemy-card .pip { background: var(--t-danger); border-color: var(--t-danger); box-shadow: 0 0 3px var(--t-danger); }
-.enemy-card .pip.empty { background: transparent; border-color: var(--t-border-hard); box-shadow: none; }
+.init-label {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--t-text-muted);
+  margin-right: 4px;
+}
+.init-chip {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  padding: 3px 10px;
+  border: 1px solid var(--t-border-hard);
+  color: var(--t-text-secondary);
+}
+.init-chip.active {
+  border-color: var(--t-success);
+  color: var(--t-success);
+  text-shadow: 0 0 6px var(--t-success);
+}
+.enemy-card {
+  padding: 10px 12px;
+  border: 1px solid var(--t-border-hard);
+  background: var(--t-bg-surface);
+}
+.enemy-card .pip {
+  background: var(--t-danger);
+  border-color: var(--t-danger);
+  box-shadow: 0 0 3px var(--t-danger);
+}
+.enemy-card .pip.empty {
+  background: transparent;
+  border-color: var(--t-border-hard);
+  box-shadow: none;
+}
 
 /* ── Social encounter ───────────────────────────────────────── */
 .conviction-pip {
-  width: 12px; height: 12px; border-radius: 0;
-  background: transparent; border: 1px solid var(--t-border-hard);
+  width: 12px;
+  height: 12px;
+  border-radius: 0;
+  background: transparent;
+  border: 1px solid var(--t-border-hard);
 }
 .conviction-pip.filled {
-  background: var(--t-success); border-color: var(--t-success);
+  background: var(--t-success);
+  border-color: var(--t-success);
   box-shadow: 0 0 6px var(--t-success);
 }
-.disposition-badge { border-radius: 0; letter-spacing: 0.14em; padding: 3px 10px; border: 1px solid currentColor; }
-.disposition-badge.suspicious { background: var(--t-warning-bg); color: var(--t-warning); }
-.disposition-badge.hostile    { background: var(--t-danger-bg);  color: var(--t-danger);  }
-.disposition-badge.neutral    { background: transparent;         color: var(--t-text-muted); border-color: var(--t-border-hard); }
-.disposition-badge.friendly   { background: var(--t-success-bg); color: var(--t-success); }
+.disposition-badge {
+  border-radius: 0;
+  letter-spacing: 0.14em;
+  padding: 3px 10px;
+  border: 1px solid currentColor;
+}
+.disposition-badge.suspicious {
+  background: var(--t-warning-bg);
+  color: var(--t-warning);
+}
+.disposition-badge.hostile {
+  background: var(--t-danger-bg);
+  color: var(--t-danger);
+}
+.disposition-badge.neutral {
+  background: transparent;
+  color: var(--t-text-muted);
+  border-color: var(--t-border-hard);
+}
+.disposition-badge.friendly {
+  background: var(--t-success-bg);
+  color: var(--t-success);
+}
 
 /* ── Merchant / shop ────────────────────────────────────────── */
 .credits-display {
-  font-size: 12px; font-weight: 500; letter-spacing: 0.08em;
-  color: var(--t-warning); text-shadow: 0 0 8px var(--t-warning);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--t-warning);
+  text-shadow: 0 0 8px var(--t-warning);
 }
-.tab-btn.active { color: var(--t-accent-cyan); border-bottom-color: var(--t-accent-cyan); }
-.item-card { border: 1px solid var(--t-border-hard); border-radius: 0; background: var(--t-bg-surface); }
-.item-type-badge { border-radius: 0; border: 1px solid var(--t-border-hard); letter-spacing: 0.12em; text-transform: uppercase; }
+.tab-btn.active {
+  color: var(--t-accent-cyan);
+  border-bottom-color: var(--t-accent-cyan);
+}
+.item-card {
+  border: 1px solid var(--t-border-hard);
+  border-radius: 0;
+  background: var(--t-bg-surface);
+}
+.item-type-badge {
+  border-radius: 0;
+  border: 1px solid var(--t-border-hard);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
 
 /* ── Fallback prompt ────────────────────────────────────────── */
-.fallback-text { font-size: 11px; color: var(--t-text-muted); margin-top: 8px; display: none; }
+.fallback-text {
+  font-size: 11px;
+  color: var(--t-text-muted);
+  margin-top: 8px;
+  display: none;
+}
 .fallback-text code {
-  display: block; margin-top: 4px; padding: 8px;
-  background: var(--t-bg-inset); border: 1px solid var(--t-border-hard);
-  color: var(--t-text-secondary); word-break: break-all;
+  display: block;
+  margin-top: 4px;
+  padding: 8px;
+  background: var(--t-bg-inset);
+  border: 1px solid var(--t-border-hard);
+  color: var(--t-text-secondary);
+  word-break: break-all;
 }
 
 /* ── Animations ─────────────────────────────────────────────── */
 @keyframes t-die-settle {
-  0%   { opacity: 0.3; filter: blur(1px); }
-  60%  { opacity: 0.8; color: var(--t-accent-cyan); text-shadow: 0 0 16px var(--t-accent-cyan); }
-  100% { opacity: 1;   color: var(--t-text-primary); text-shadow: none; }
+  0% {
+    opacity: 0.3;
+    filter: blur(1px);
+  }
+  60% {
+    opacity: 0.8;
+    color: var(--t-accent-cyan);
+    text-shadow: 0 0 16px var(--t-accent-cyan);
+  }
+  100% {
+    opacity: 1;
+    color: var(--t-text-primary);
+    text-shadow: none;
+  }
 }
 @keyframes t-crit-fail-pulse {
-  0%, 100% { color: var(--t-danger); text-shadow: 0 0 8px var(--t-danger); }
-  50%       { color: var(--t-text-primary); text-shadow: none; }
+  0%,
+  100% {
+    color: var(--t-danger);
+    text-shadow: 0 0 8px var(--t-danger);
+  }
+  50% {
+    color: var(--t-text-primary);
+    text-shadow: none;
+  }
 }
 @keyframes t-pulse-border {
-  0%, 100% { border-color: var(--t-border-hard); box-shadow: none; }
-  50%       { border-color: var(--t-accent-cyan); box-shadow: 0 0 8px var(--t-accent-cyan); }
+  0%,
+  100% {
+    border-color: var(--t-border-hard);
+    box-shadow: none;
+  }
+  50% {
+    border-color: var(--t-accent-cyan);
+    box-shadow: 0 0 8px var(--t-accent-cyan);
+  }
 }
 @keyframes t-xp-fill {
-  from { width: var(--xp-from, 0%); }
-  to   { width: var(--xp-to, 0%); }
+  from {
+    width: var(--xp-from, 0%);
+  }
+  to {
+    width: var(--xp-to, 0%);
+  }
 }
 
-.die-value.settling      { animation: t-die-settle 400ms ease-out forwards; }
-.die-value.crit-success  { color: var(--t-success); text-shadow: 0 0 20px var(--t-success), 0 0 40px var(--t-success); animation: none; }
-.die-value.crit-failure  { animation: t-crit-fail-pulse 800ms ease-in-out 2; }
-.continue-btn            { animation: t-pulse-border 2s ease-in-out infinite; }
-.continue-btn:hover      { animation: none; border-color: var(--t-accent-cyan); }
-.xp-fill.animating       { animation: t-xp-fill 600ms ease-out forwards; }
+.die-value.settling {
+  animation: t-die-settle 400ms ease-out forwards;
+}
+.die-value.crit-success {
+  color: var(--t-success);
+  text-shadow:
+    0 0 20px var(--t-success),
+    0 0 40px var(--t-success);
+  animation: none;
+}
+.die-value.crit-failure {
+  animation: t-crit-fail-pulse 800ms ease-in-out 2;
+}
+.continue-btn {
+  animation: t-pulse-border 2s ease-in-out infinite;
+}
+.continue-btn:hover {
+  animation: none;
+  border-color: var(--t-accent-cyan);
+}
+.xp-fill.animating {
+  animation: t-xp-fill 600ms ease-out forwards;
+}
 
 /* ── Reduced motion — all animations and transitions disabled ── */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

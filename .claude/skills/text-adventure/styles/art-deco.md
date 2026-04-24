@@ -10,6 +10,23 @@ best-for:
   - avoid: [sci-fi, cyberpunk, post-apocalyptic, whimsical-fantasy]
 ---
 
+```json tag-contract
+{
+  "id": "art-deco",
+  "kind": "style",
+  "version": "1.4.0",
+  "summary": "Symmetrical 1920s luxury style with deep navy, warm gold, hard geometry, uppercase headings, and generous spacing.",
+  "mustRead": [
+    "Pair with styles/style-reference.md for structural contracts.",
+    "Use gold as punctuation for borders, dividers, and focus states; avoid gold fills behind body text."
+  ],
+  "render": [
+    "Panels should feel framed and geometric, with hard corners and centered formal hierarchy.",
+    "Body text stays readable mixed-case; uppercase and letter spacing are reserved for headings and labels."
+  ]
+}
+```
+
 ## Design Philosophy
 
 Art Deco is geometry made glamorous. Every element submits to symmetry, strong vertical
@@ -51,15 +68,15 @@ produce an acceptable Art Deco character when the web fonts cannot load.
 
 ### Sizing Scale
 
-| Role                  | Size  | Weight | Transform  | Letter-spacing |
-|-----------------------|-------|--------|------------|----------------|
-| Widget title (h1)     | 22px  | 700    | uppercase  | 0.25em         |
-| Section heading (h2)  | 16px  | 600    | uppercase  | 0.2em          |
-| Sub-heading (h3)      | 14px  | 600    | uppercase  | 0.15em         |
-| Body / narrative      | 15px  | 400    | none       | 0.02em         |
-| Caption / label       | 11px  | 400    | uppercase  | 0.12em         |
-| Stat value            | 18px  | 700    | none       | 0              |
-| Button label          | 11px  | 600    | uppercase  | 0.12em         |
+| Role                 | Size | Weight | Transform | Letter-spacing |
+| -------------------- | ---- | ------ | --------- | -------------- |
+| Widget title (h1)    | 22px | 700    | uppercase | 0.25em         |
+| Section heading (h2) | 16px | 600    | uppercase | 0.2em          |
+| Sub-heading (h3)     | 14px | 600    | uppercase | 0.15em         |
+| Body / narrative     | 15px | 400    | none      | 0.02em         |
+| Caption / label      | 11px | 400    | uppercase | 0.12em         |
+| Stat value           | 18px | 700    | none      | 0              |
+| Button label         | 11px | 600    | uppercase | 0.12em         |
 
 ---
 
@@ -67,50 +84,50 @@ produce an acceptable Art Deco character when the web fonts cannot load.
 
 ### Light Mode (default)
 
-| Token                        | Hex       | Role                                     |
-|------------------------------|-----------|------------------------------------------|
-| `--ad-bg-primary`            | `#F2E9D8` | Cream — main widget background           |
-| `--ad-bg-secondary`          | `#E8DCCA` | Slightly darker cream — card surfaces    |
-| `--ad-bg-panel`              | `#EDE3D1` | Overlay / panel background               |
-| `--ad-bg-input`              | `#FAF5EC` | Input and select fields                  |
-| `--ad-text-primary`          | `#1B2838` | Deep navy — all primary body text        |
-| `--ad-text-secondary`        | `#3A4A5C` | Mid navy — secondary labels              |
-| `--ad-text-muted`            | `#6B7A8D` | Slate — captions, disabled states        |
-| `--ad-text-on-gold`          | `#1B1008` | Near-black — text placed on gold fills   |
-| `--ad-gold`                  | `#C9A84C` | Primary accent — borders, dividers, icons|
-| `--ad-gold-light`            | `#E0C97A` | Highlight gold — hover states            |
-| `--ad-gold-dark`             | `#9E7A28` | Shadow gold — pressed / active states    |
-| `--ad-jade`                  | `#2A7F62` | Success, positive outcomes, health high  |
-| `--ad-copper`                | `#B87333` | Warning, moderate danger, health mid     |
-| `--ad-crimson`               | `#8B2635` | Danger, failure, health low              |
-| `--ad-navy`                  | `#1B2838` | Structural navy — same as text-primary   |
-| `--ad-border-primary`        | `#C9A84C` | Gold border — featured containers        |
-| `--ad-border-secondary`      | `#B8A87A` | Warm tan — standard borders              |
-| `--ad-border-muted`          | `#CFC5AE` | Subtle border — dividers, input edges    |
-| `--ad-shadow`                | `rgba(27,40,56,0.15)` | Box shadow tint             |
+| Token                   | Hex                   | Role                                      |
+| ----------------------- | --------------------- | ----------------------------------------- |
+| `--ad-bg-primary`       | `#F2E9D8`             | Cream — main widget background            |
+| `--ad-bg-secondary`     | `#E8DCCA`             | Slightly darker cream — card surfaces     |
+| `--ad-bg-panel`         | `#EDE3D1`             | Overlay / panel background                |
+| `--ad-bg-input`         | `#FAF5EC`             | Input and select fields                   |
+| `--ad-text-primary`     | `#1B2838`             | Deep navy — all primary body text         |
+| `--ad-text-secondary`   | `#3A4A5C`             | Mid navy — secondary labels               |
+| `--ad-text-muted`       | `#6B7A8D`             | Slate — captions, disabled states         |
+| `--ad-text-on-gold`     | `#1B1008`             | Near-black — text placed on gold fills    |
+| `--ad-gold`             | `#C9A84C`             | Primary accent — borders, dividers, icons |
+| `--ad-gold-light`       | `#E0C97A`             | Highlight gold — hover states             |
+| `--ad-gold-dark`        | `#9E7A28`             | Shadow gold — pressed / active states     |
+| `--ad-jade`             | `#2A7F62`             | Success, positive outcomes, health high   |
+| `--ad-copper`           | `#B87333`             | Warning, moderate danger, health mid      |
+| `--ad-crimson`          | `#8B2635`             | Danger, failure, health low               |
+| `--ad-navy`             | `#1B2838`             | Structural navy — same as text-primary    |
+| `--ad-border-primary`   | `#C9A84C`             | Gold border — featured containers         |
+| `--ad-border-secondary` | `#B8A87A`             | Warm tan — standard borders               |
+| `--ad-border-muted`     | `#CFC5AE`             | Subtle border — dividers, input edges     |
+| `--ad-shadow`           | `rgba(27,40,56,0.15)` | Box shadow tint                           |
 
 ### Dark Mode
 
-| Token                        | Hex       | Role                                     |
-|------------------------------|-----------|------------------------------------------|
-| `--ad-bg-primary`            | `#0D1520` | Midnight blue — main background          |
-| `--ad-bg-secondary`          | `#152030` | Slightly lighter — card surfaces         |
-| `--ad-bg-panel`              | `#111C2A` | Overlay / panel background               |
-| `--ad-bg-input`              | `#0A1018` | Input fields                             |
-| `--ad-text-primary`          | `#F2E9D8` | Cream — primary body text                |
-| `--ad-text-secondary`        | `#C8BAA4` | Warm grey — secondary labels             |
-| `--ad-text-muted`            | `#7A8A9A` | Slate — captions, disabled states        |
-| `--ad-text-on-gold`          | `#0D0A04` | Near-black — text on gold fills          |
-| `--ad-gold`                  | `#D4AF55` | Gold accent — slightly brighter for dark |
-| `--ad-gold-light`            | `#EDD080` | Highlight gold                           |
-| `--ad-gold-dark`             | `#A07C25` | Shadow gold                              |
-| `--ad-jade`                  | `#3AA882` | Success — brighter on dark bg            |
-| `--ad-copper`                | `#D4894A` | Warning — warmer on dark bg              |
-| `--ad-crimson`               | `#C0384A` | Danger — more saturated on dark bg       |
-| `--ad-border-primary`        | `#D4AF55` | Gold border                              |
-| `--ad-border-secondary`      | `#4A5A6A` | Mid-slate border                         |
-| `--ad-border-muted`          | `#2A3A4A` | Subtle border                            |
-| `--ad-shadow`                | `rgba(0,0,0,0.4)` | Deeper shadow on dark bg          |
+| Token                   | Hex               | Role                                     |
+| ----------------------- | ----------------- | ---------------------------------------- |
+| `--ad-bg-primary`       | `#0D1520`         | Midnight blue — main background          |
+| `--ad-bg-secondary`     | `#152030`         | Slightly lighter — card surfaces         |
+| `--ad-bg-panel`         | `#111C2A`         | Overlay / panel background               |
+| `--ad-bg-input`         | `#0A1018`         | Input fields                             |
+| `--ad-text-primary`     | `#F2E9D8`         | Cream — primary body text                |
+| `--ad-text-secondary`   | `#C8BAA4`         | Warm grey — secondary labels             |
+| `--ad-text-muted`       | `#7A8A9A`         | Slate — captions, disabled states        |
+| `--ad-text-on-gold`     | `#0D0A04`         | Near-black — text on gold fills          |
+| `--ad-gold`             | `#D4AF55`         | Gold accent — slightly brighter for dark |
+| `--ad-gold-light`       | `#EDD080`         | Highlight gold                           |
+| `--ad-gold-dark`        | `#A07C25`         | Shadow gold                              |
+| `--ad-jade`             | `#3AA882`         | Success — brighter on dark bg            |
+| `--ad-copper`           | `#D4894A`         | Warning — warmer on dark bg              |
+| `--ad-crimson`          | `#C0384A`         | Danger — more saturated on dark bg       |
+| `--ad-border-primary`   | `#D4AF55`         | Gold border                              |
+| `--ad-border-secondary` | `#4A5A6A`         | Mid-slate border                         |
+| `--ad-border-muted`     | `#2A3A4A`         | Subtle border                            |
+| `--ad-shadow`           | `rgba(0,0,0,0.4)` | Deeper shadow on dark bg                 |
 
 ### WCAG AA Compliance Notes
 
@@ -175,7 +192,7 @@ Used between sections, after headings, and as decorative separators:
   border: none;
   border-top: 1px solid var(--ad-border-primary);
   margin: var(--ad-space-md) auto;
-  width: 60%;   /* centred — symmetry principle */
+  width: 60%; /* centred — symmetry principle */
 }
 
 /* Heading underline variant */
@@ -206,11 +223,13 @@ Applied to featured panels via pseudo-elements — no extra HTML required:
   border-style: solid;
 }
 .ad-bracketed::before {
-  top: 6px; left: 6px;
+  top: 6px;
+  left: 6px;
   border-width: 1px 0 0 1px;
 }
 .ad-bracketed::after {
-  bottom: 6px; right: 6px;
+  bottom: 6px;
+  right: 6px;
   border-width: 0 1px 1px 0;
 }
 ```
@@ -224,6 +243,7 @@ Applied to featured panels via pseudo-elements — no extra HTML required:
 Three button variants covering all widget use-cases.
 
 **Primary (action / sendPrompt):** Engraved gold border, cream fill on hover.
+
 ```css
 .ad-btn-primary {
   font-family: 'Raleway', system-ui, sans-serif;
@@ -234,28 +254,36 @@ Three button variants covering all widget use-cases.
   color: var(--ad-text-primary);
   background: transparent;
   border: 1px solid var(--ad-gold);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 2px var(--ad-shadow);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 1px 2px var(--ad-shadow);
   padding: 10px 24px;
   min-height: 44px;
   min-width: 44px;
   box-sizing: border-box;
   cursor: pointer;
   border-radius: var(--ad-radius-sm);
-  transition: background 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    color 0.2s ease;
 }
 .ad-btn-primary:hover {
   background: var(--ad-gold);
   color: var(--ad-text-on-gold);
-  box-shadow: inset 0 1px 0 var(--ad-gold-light), 0 2px 8px var(--ad-shadow);
+  box-shadow:
+    inset 0 1px 0 var(--ad-gold-light),
+    0 2px 8px var(--ad-shadow);
 }
 .ad-btn-primary:active {
   background: var(--ad-gold-dark);
   color: var(--ad-text-on-gold);
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 ```
 
 **Secondary (panel toggles, continue):** Muted border, subtle hover.
+
 ```css
 .ad-btn-secondary {
   font-family: 'Raleway', system-ui, sans-serif;
@@ -272,7 +300,10 @@ Three button variants covering all widget use-cases.
   box-sizing: border-box;
   cursor: pointer;
   border-radius: var(--ad-radius-sm);
-  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease;
 }
 .ad-btn-secondary:hover {
   border-color: var(--ad-gold);
@@ -281,6 +312,7 @@ Three button variants covering all widget use-cases.
 ```
 
 **Ghost / close:** Borderless, text only, minimal footprint.
+
 ```css
 .ad-btn-ghost {
   font-family: 'Raleway', system-ui, sans-serif;
@@ -298,7 +330,9 @@ Three button variants covering all widget use-cases.
   cursor: pointer;
   transition: color 0.2s ease;
 }
-.ad-btn-ghost:hover { color: var(--ad-text-primary); }
+.ad-btn-ghost:hover {
+  color: var(--ad-text-primary);
+}
 ```
 
 ### Focus States
@@ -328,17 +362,17 @@ state changes are still communicated without motion.
 ```css
 /* Base transition durations — referenced by components */
 :host {
-  --ad-dur-fast:   0.15s;
+  --ad-dur-fast: 0.15s;
   --ad-dur-normal: 0.25s;
-  --ad-dur-slow:   0.45s;
-  --ad-ease:       cubic-bezier(0.4, 0, 0.2, 1);
+  --ad-dur-slow: 0.45s;
+  --ad-ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
   :host {
-    --ad-dur-fast:   0.01s;
+    --ad-dur-fast: 0.01s;
     --ad-dur-normal: 0.01s;
-    --ad-dur-slow:   0.01s;
+    --ad-dur-slow: 0.01s;
   }
 }
 
@@ -348,7 +382,7 @@ state changes are still communicated without motion.
   opacity: 0;
   transition:
     transform var(--ad-dur-normal) var(--ad-ease),
-    opacity   var(--ad-dur-normal) var(--ad-ease);
+    opacity var(--ad-dur-normal) var(--ad-ease);
 }
 #panel-overlay.visible {
   transform: translateY(0);
@@ -377,27 +411,41 @@ state changes are still communicated without motion.
 
 /* Stat value pulse — used when a stat changes value */
 @keyframes ad-stat-pulse {
-  0%   { color: var(--ad-gold); }
-  100% { color: var(--ad-text-primary); }
+  0% {
+    color: var(--ad-gold);
+  }
+  100% {
+    color: var(--ad-text-primary);
+  }
 }
 .ad-stat-updated {
   animation: ad-stat-pulse 1.2s var(--ad-ease) forwards;
 }
 @media (prefers-reduced-motion: reduce) {
-  .ad-stat-updated { animation: none; }
+  .ad-stat-updated {
+    animation: none;
+  }
 }
 
 /* Button press ripple-substitute — border flash */
 @keyframes ad-btn-flash {
-  0%   { box-shadow: 0 0 0 0 var(--ad-gold); }
-  60%  { box-shadow: 0 0 0 6px rgba(201,168,76,0); }
-  100% { box-shadow: 0 0 0 0 rgba(201,168,76,0); }
+  0% {
+    box-shadow: 0 0 0 0 var(--ad-gold);
+  }
+  60% {
+    box-shadow: 0 0 0 6px rgba(201, 168, 76, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(201, 168, 76, 0);
+  }
 }
 .ad-btn-primary:active {
   animation: ad-btn-flash 0.4s ease-out;
 }
 @media (prefers-reduced-motion: reduce) {
-  .ad-btn-primary:active { animation: none; }
+  .ad-btn-primary:active {
+    animation: none;
+  }
 }
 ```
 
@@ -567,91 +615,91 @@ every standard component class used by the text adventure engine.
 
 :host {
   /* Colour — light mode */
-  --ad-bg-primary:       #F2E9D8;
-  --ad-bg-secondary:     #E8DCCA;
-  --ad-bg-panel:         #EDE3D1;
-  --ad-bg-input:         #FAF5EC;
-  --ad-text-primary:     #1B2838;
-  --ad-text-secondary:   #3A4A5C;
-  --ad-text-muted:       #6B7A8D;
-  --ad-text-on-gold:     #1B1008;
-  --ad-gold:             #C9A84C;
-  --ad-gold-light:       #E0C97A;
-  --ad-gold-dark:        #9E7A28;
-  --ad-jade:             #2A7F62;
-  --ad-copper:           #B87333;
-  --ad-crimson:          #8B2635;
-  --ad-border-primary:   #C9A84C;
-  --ad-border-secondary: #B8A87A;
-  --ad-border-muted:     #CFC5AE;
-  --ad-shadow:           rgba(27,40,56,0.15);
+  --ad-bg-primary: #f2e9d8;
+  --ad-bg-secondary: #e8dcca;
+  --ad-bg-panel: #ede3d1;
+  --ad-bg-input: #faf5ec;
+  --ad-text-primary: #1b2838;
+  --ad-text-secondary: #3a4a5c;
+  --ad-text-muted: #6b7a8d;
+  --ad-text-on-gold: #1b1008;
+  --ad-gold: #c9a84c;
+  --ad-gold-light: #e0c97a;
+  --ad-gold-dark: #9e7a28;
+  --ad-jade: #2a7f62;
+  --ad-copper: #b87333;
+  --ad-crimson: #8b2635;
+  --ad-border-primary: #c9a84c;
+  --ad-border-secondary: #b8a87a;
+  --ad-border-muted: #cfc5ae;
+  --ad-shadow: rgba(27, 40, 56, 0.15);
 
   /* Typography */
   --ad-font-heading: 'Playfair Display', 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
-  --ad-font-body:    'Raleway', 'Gill Sans', 'Gill Sans MT', Calibri, system-ui, sans-serif;
-  --ad-font-mono:    'IBM Plex Mono', 'Courier New', Courier, monospace;
+  --ad-font-body: 'Raleway', 'Gill Sans', 'Gill Sans MT', Calibri, system-ui, sans-serif;
+  --ad-font-mono: 'IBM Plex Mono', 'Courier New', Courier, monospace;
 
   /* Spacing */
-  --ad-space-xs:  4px;
-  --ad-space-sm:  8px;
-  --ad-space-md:  16px;
-  --ad-space-lg:  24px;
-  --ad-space-xl:  40px;
+  --ad-space-xs: 4px;
+  --ad-space-sm: 8px;
+  --ad-space-md: 16px;
+  --ad-space-lg: 24px;
+  --ad-space-xl: 40px;
 
   /* Radii */
   --ad-radius-sm: 2px;
   --ad-radius-md: 0px;
 
   /* Motion */
-  --ad-dur-fast:   0.15s;
+  --ad-dur-fast: 0.15s;
   --ad-dur-normal: 0.25s;
-  --ad-dur-slow:   0.45s;
-  --ad-ease:       cubic-bezier(0.4, 0, 0.2, 1);
+  --ad-dur-slow: 0.45s;
+  --ad-ease: cubic-bezier(0.4, 0, 0.2, 1);
 
   /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
-  --ta-font-heading:              var(--ad-font-heading);
-  --ta-font-body:                 var(--ad-font-mono);
-  --ta-font-serif:                var(--ad-font-heading);
-  --ta-color-accent:              var(--ad-gold);
-  --ta-color-accent-hover:        var(--ad-gold-light);
-  --ta-color-accent-bg:           rgba(196, 164, 80, 0.12);
-  --ta-color-accent-bg-hover:     rgba(196, 164, 80, 0.20);
-  --ta-color-success:             var(--ad-jade);
-  --ta-color-success-border:      color-mix(in srgb, var(--ad-jade) 70%, black);
-  --ta-color-danger:              var(--ad-crimson);
-  --ta-color-danger-border:       color-mix(in srgb, var(--ad-crimson) 70%, black);
-  --ta-color-danger-bg:           rgba(139, 34, 56, 0.12);
-  --ta-color-danger-bg-hover:     rgba(139, 34, 56, 0.20);
-  --ta-color-warning:             var(--ad-copper);
-  --ta-color-warning-border:      color-mix(in srgb, var(--ad-copper) 70%, black);
-  --ta-color-warning-bg:          rgba(180, 120, 60, 0.12);
-  --ta-color-xp:                  var(--ad-gold);
-  --ta-color-focus:               var(--ad-gold);
-  --ta-color-conviction:          #5B7A7A;
-  --ta-color-conviction-border:   #4A6868;
-  --ta-color-bg-secondary:        var(--ad-bg-secondary);
-  --ta-color-credits:             var(--ad-gold);
-  --ta-color-tab-active:          var(--ad-gold);
-  --ta-color-info:                var(--ad-copper);
-  --ta-btn-primary-text:          #ffffff;
-  --ta-color-xp-border:           color-mix(in srgb, var(--ad-gold) 50%, transparent);
-  --ta-badge-success-bg:          rgba(42, 127, 98, 0.12);
-  --ta-badge-success-text:        var(--ad-jade);
-  --ta-badge-partial-bg:          rgba(180, 120, 60, 0.12);
-  --ta-badge-partial-text:        var(--ad-copper);
-  --ta-badge-failure-bg:          rgba(139, 38, 54, 0.12);
-  --ta-badge-failure-text:        var(--ad-crimson);
+  --ta-font-heading: var(--ad-font-heading);
+  --ta-font-body: var(--ad-font-mono);
+  --ta-font-serif: var(--ad-font-heading);
+  --ta-color-accent: var(--ad-gold);
+  --ta-color-accent-hover: var(--ad-gold-light);
+  --ta-color-accent-bg: rgba(196, 164, 80, 0.12);
+  --ta-color-accent-bg-hover: rgba(196, 164, 80, 0.2);
+  --ta-color-success: var(--ad-jade);
+  --ta-color-success-border: color-mix(in srgb, var(--ad-jade) 70%, black);
+  --ta-color-danger: var(--ad-crimson);
+  --ta-color-danger-border: color-mix(in srgb, var(--ad-crimson) 70%, black);
+  --ta-color-danger-bg: rgba(139, 34, 56, 0.12);
+  --ta-color-danger-bg-hover: rgba(139, 34, 56, 0.2);
+  --ta-color-warning: var(--ad-copper);
+  --ta-color-warning-border: color-mix(in srgb, var(--ad-copper) 70%, black);
+  --ta-color-warning-bg: rgba(180, 120, 60, 0.12);
+  --ta-color-xp: var(--ad-gold);
+  --ta-color-focus: var(--ad-gold);
+  --ta-color-conviction: #5b7a7a;
+  --ta-color-conviction-border: #4a6868;
+  --ta-color-bg-secondary: var(--ad-bg-secondary);
+  --ta-color-credits: var(--ad-gold);
+  --ta-color-tab-active: var(--ad-gold);
+  --ta-color-info: var(--ad-copper);
+  --ta-btn-primary-text: #ffffff;
+  --ta-color-xp-border: color-mix(in srgb, var(--ad-gold) 50%, transparent);
+  --ta-badge-success-bg: rgba(42, 127, 98, 0.12);
+  --ta-badge-success-text: var(--ad-jade);
+  --ta-badge-partial-bg: rgba(180, 120, 60, 0.12);
+  --ta-badge-partial-text: var(--ad-copper);
+  --ta-badge-failure-bg: rgba(139, 38, 54, 0.12);
+  --ta-badge-failure-text: var(--ad-crimson);
   --ta-badge-crit-success-border: var(--ad-jade);
   --ta-badge-crit-failure-border: var(--ad-crimson);
-  --ta-border-style-poi:          1px dashed;
-  --ta-die-spin-duration:         0.5s;
+  --ta-border-style-poi: 1px dashed;
+  --ta-die-spin-duration: 0.5s;
 
   /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
-  --sta-text-primary:             var(--ad-text-primary);
-  --sta-text-secondary:           var(--ad-text-secondary);
-  --sta-text-tertiary:            var(--ad-text-muted);
-  --sta-border-tertiary:          var(--ad-border-muted);
-  --sta-color-text-emphasis:      #ffffff;
+  --sta-text-primary: var(--ad-text-primary);
+  --sta-text-secondary: var(--ad-text-secondary);
+  --sta-text-tertiary: var(--ad-text-muted);
+  --sta-border-tertiary: var(--ad-border-muted);
+  --sta-color-text-emphasis: #ffffff;
 
   /* --- Speaker colours (multi-dialogue) --- */
   --speaker-color-0: #c9a84c;
@@ -665,66 +713,66 @@ every standard component class used by the text adventure engine.
 /* Dark mode token overrides */
 @media (prefers-color-scheme: dark) {
   :host {
-    --ad-bg-primary:       #0D1520;
-    --ad-bg-secondary:     #152030;
-    --ad-bg-panel:         #111C2A;
-    --ad-bg-input:         #0A1018;
-    --ad-text-primary:     #F2E9D8;
-    --ad-text-secondary:   #C8BAA4;
-    --ad-text-muted:       #7A8A9A;
-    --ad-text-on-gold:     #0D0A04;
-    --ad-gold:             #D4AF55;
-    --ad-gold-light:       #EDD080;
-    --ad-gold-dark:        #A07C25;
-    --ad-jade:             #3AA882;
-    --ad-copper:           #D4894A;
-    --ad-crimson:          #C0384A;
-    --ad-border-primary:   #D4AF55;
-    --ad-border-secondary: #4A5A6A;
-    --ad-border-muted:     #2A3A4A;
-    --ad-shadow:           rgba(0,0,0,0.4);
+    --ad-bg-primary: #0d1520;
+    --ad-bg-secondary: #152030;
+    --ad-bg-panel: #111c2a;
+    --ad-bg-input: #0a1018;
+    --ad-text-primary: #f2e9d8;
+    --ad-text-secondary: #c8baa4;
+    --ad-text-muted: #7a8a9a;
+    --ad-text-on-gold: #0d0a04;
+    --ad-gold: #d4af55;
+    --ad-gold-light: #edd080;
+    --ad-gold-dark: #a07c25;
+    --ad-jade: #3aa882;
+    --ad-copper: #d4894a;
+    --ad-crimson: #c0384a;
+    --ad-border-primary: #d4af55;
+    --ad-border-secondary: #4a5a6a;
+    --ad-border-muted: #2a3a4a;
+    --ad-shadow: rgba(0, 0, 0, 0.4);
 
     /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
-    --ta-font-heading:              var(--ad-font-heading);
-    --ta-font-body:                 var(--ad-font-mono);
-    --ta-color-accent:              var(--ad-gold);
-    --ta-color-accent-hover:        var(--ad-gold-light);
-    --ta-color-accent-bg:           rgba(196, 164, 80, 0.12);
-    --ta-color-accent-bg-hover:     rgba(196, 164, 80, 0.20);
-    --ta-color-success:             var(--ad-jade);
-    --ta-color-success-border:      color-mix(in srgb, var(--ad-jade) 70%, black);
-    --ta-color-danger:              var(--ad-crimson);
-    --ta-color-danger-border:       color-mix(in srgb, var(--ad-crimson) 70%, black);
-    --ta-color-danger-bg:           rgba(180, 40, 50, 0.12);
-    --ta-color-danger-bg-hover:     rgba(180, 40, 50, 0.20);
-    --ta-color-warning:             var(--ad-copper);
-    --ta-color-warning-border:      color-mix(in srgb, var(--ad-copper) 70%, black);
-    --ta-color-warning-bg:          rgba(180, 120, 60, 0.12);
-    --ta-color-xp:                  var(--ad-gold);
-    --ta-color-focus:               var(--ad-gold);
-    --ta-color-conviction:          #7C6BF0;
-    --ta-color-conviction-border:   #6B5CE0;
-    --ta-badge-success-bg:          rgba(80, 160, 100, 0.15);
-    --ta-badge-success-text:        var(--ad-jade);
-    --ta-badge-partial-bg:          rgba(180, 120, 60, 0.15);
-    --ta-badge-partial-text:        var(--ad-copper);
-    --ta-badge-failure-bg:          rgba(180, 40, 50, 0.15);
-    --ta-badge-failure-text:        var(--ad-crimson);
+    --ta-font-heading: var(--ad-font-heading);
+    --ta-font-body: var(--ad-font-mono);
+    --ta-color-accent: var(--ad-gold);
+    --ta-color-accent-hover: var(--ad-gold-light);
+    --ta-color-accent-bg: rgba(196, 164, 80, 0.12);
+    --ta-color-accent-bg-hover: rgba(196, 164, 80, 0.2);
+    --ta-color-success: var(--ad-jade);
+    --ta-color-success-border: color-mix(in srgb, var(--ad-jade) 70%, black);
+    --ta-color-danger: var(--ad-crimson);
+    --ta-color-danger-border: color-mix(in srgb, var(--ad-crimson) 70%, black);
+    --ta-color-danger-bg: rgba(180, 40, 50, 0.12);
+    --ta-color-danger-bg-hover: rgba(180, 40, 50, 0.2);
+    --ta-color-warning: var(--ad-copper);
+    --ta-color-warning-border: color-mix(in srgb, var(--ad-copper) 70%, black);
+    --ta-color-warning-bg: rgba(180, 120, 60, 0.12);
+    --ta-color-xp: var(--ad-gold);
+    --ta-color-focus: var(--ad-gold);
+    --ta-color-conviction: #7c6bf0;
+    --ta-color-conviction-border: #6b5ce0;
+    --ta-badge-success-bg: rgba(80, 160, 100, 0.15);
+    --ta-badge-success-text: var(--ad-jade);
+    --ta-badge-partial-bg: rgba(180, 120, 60, 0.15);
+    --ta-badge-partial-text: var(--ad-copper);
+    --ta-badge-failure-bg: rgba(180, 40, 50, 0.15);
+    --ta-badge-failure-text: var(--ad-crimson);
     --ta-badge-crit-success-border: var(--ad-jade);
     --ta-badge-crit-failure-border: var(--ad-crimson);
-    --ta-color-credits:             var(--ad-gold);
-    --ta-color-tab-active:          var(--ad-gold);
-    --ta-border-style-poi:          1px dashed;
-    --ta-die-spin-duration:         0.5s;
+    --ta-color-credits: var(--ad-gold);
+    --ta-color-tab-active: var(--ad-gold);
+    --ta-border-style-poi: 1px dashed;
+    --ta-die-spin-duration: 0.5s;
   }
 }
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   :host {
-    --ad-dur-fast:   0.01s;
+    --ad-dur-fast: 0.01s;
     --ad-dur-normal: 0.01s;
-    --ad-dur-slow:   0.01s;
+    --ad-dur-slow: 0.01s;
   }
 }
 
@@ -741,7 +789,9 @@ every standard component class used by the text adventure engine.
 
 /* ── Headings ────────────────────────────────────────────── */
 
-h1, h2, h3,
+h1,
+h2,
+h3,
 .ad-title,
 .panel-title {
   font-family: var(--ad-font-heading);
@@ -750,7 +800,8 @@ h1, h2, h3,
   color: var(--ad-text-primary);
 }
 
-h1, .ad-title {
+h1,
+.ad-title {
   font-size: 22px;
   font-weight: 700;
   letter-spacing: 0.25em;
@@ -772,7 +823,8 @@ h3 {
 }
 
 /* Gold rule beneath headings */
-h1::after, h2::after {
+h1::after,
+h2::after {
   content: '';
   display: block;
   width: 48px;
@@ -815,7 +867,9 @@ select:focus-visible {
   color: var(--ad-text-primary);
   background: transparent;
   border: 1px solid var(--ad-gold);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 1px 3px var(--ad-shadow);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 1px 3px var(--ad-shadow);
   padding: 10px 28px;
   min-height: 44px;
   min-width: 44px;
@@ -823,15 +877,17 @@ select:focus-visible {
   cursor: pointer;
   border-radius: var(--ad-radius-sm);
   transition:
-    background  var(--ad-dur-normal) var(--ad-ease),
-    color       var(--ad-dur-normal) var(--ad-ease),
-    box-shadow  var(--ad-dur-normal) var(--ad-ease);
+    background var(--ad-dur-normal) var(--ad-ease),
+    color var(--ad-dur-normal) var(--ad-ease),
+    box-shadow var(--ad-dur-normal) var(--ad-ease);
 }
 
 .continue-btn:hover {
   background: var(--ad-gold);
   color: var(--ad-text-on-gold);
-  box-shadow: inset 0 1px 0 var(--ad-gold-light), 0 2px 8px var(--ad-shadow);
+  box-shadow:
+    inset 0 1px 0 var(--ad-gold-light),
+    0 2px 8px var(--ad-shadow);
 }
 
 /* ── Location Bar ────────────────────────────────────────── */
@@ -904,7 +960,7 @@ select:focus-visible {
   margin-bottom: 2px;
   transition:
     background var(--ad-dur-fast) var(--ad-ease),
-    color      var(--ad-dur-fast) var(--ad-ease),
+    color var(--ad-dur-fast) var(--ad-ease),
     border-left-color var(--ad-dur-fast) var(--ad-ease);
 }
 
@@ -926,7 +982,9 @@ select:focus-visible {
   color: var(--ad-text-primary);
   background: transparent;
   border: 1px solid var(--ad-gold);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 1px 2px var(--ad-shadow);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 1px 2px var(--ad-shadow);
   padding: 10px 20px;
   min-height: 44px;
   min-width: 44px;
@@ -935,7 +993,7 @@ select:focus-visible {
   border-radius: var(--ad-radius-sm);
   transition:
     background var(--ad-dur-normal) var(--ad-ease),
-    color      var(--ad-dur-normal) var(--ad-ease),
+    color var(--ad-dur-normal) var(--ad-ease),
     box-shadow var(--ad-dur-normal) var(--ad-ease);
 }
 
@@ -943,14 +1001,16 @@ select:focus-visible {
 [data-prompt]:hover {
   background: var(--ad-gold);
   color: var(--ad-text-on-gold);
-  box-shadow: inset 0 1px 0 var(--ad-gold-light), 0 2px 8px var(--ad-shadow);
+  box-shadow:
+    inset 0 1px 0 var(--ad-gold-light),
+    0 2px 8px var(--ad-shadow);
 }
 
 .action-btn:active,
 [data-prompt]:active {
   background: var(--ad-gold-dark);
   color: var(--ad-text-on-gold);
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.25);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 /* ── Status Bar ──────────────────────────────────────────── */
@@ -1012,7 +1072,7 @@ select:focus-visible {
   border-radius: var(--ad-radius-sm);
   transition:
     border-color var(--ad-dur-fast) var(--ad-ease),
-    color        var(--ad-dur-fast) var(--ad-ease);
+    color var(--ad-dur-fast) var(--ad-ease);
 }
 
 .footer-btn:hover {
@@ -1053,12 +1113,14 @@ select:focus-visible {
 }
 
 #panel-overlay::before {
-  top: 8px; left: 8px;
+  top: 8px;
+  left: 8px;
   border-width: 1px 0 0 1px;
 }
 
 #panel-overlay::after {
-  bottom: 8px; right: 8px;
+  bottom: 8px;
+  right: 8px;
   border-width: 0 1px 1px 0;
 }
 
@@ -1099,7 +1161,7 @@ select:focus-visible {
   border-radius: var(--ad-radius-sm);
   transition:
     border-color var(--ad-dur-fast) var(--ad-ease),
-    color        var(--ad-dur-fast) var(--ad-ease);
+    color var(--ad-dur-fast) var(--ad-ease);
 }
 
 .panel-close-btn:hover {
@@ -1107,7 +1169,9 @@ select:focus-visible {
   color: var(--ad-text-primary);
 }
 
-.panel-content { display: none; }
+.panel-content {
+  display: none;
+}
 
 /* ── Die Roll Widget ─────────────────────────────────────── */
 
@@ -1168,13 +1232,21 @@ select:focus-visible {
 .outcome-partial::before {
   content: '';
   position: absolute;
-  left: 0; top: 0; bottom: 0;
+  left: 0;
+  top: 0;
+  bottom: 0;
   width: 3px;
 }
 
-.outcome-success::before  { background: var(--ad-jade); }
-.outcome-failure::before  { background: var(--ad-crimson); }
-.outcome-partial::before  { background: var(--ad-copper); }
+.outcome-success::before {
+  background: var(--ad-jade);
+}
+.outcome-failure::before {
+  background: var(--ad-crimson);
+}
+.outcome-partial::before {
+  background: var(--ad-copper);
+}
 
 /* ── Gold Divider ────────────────────────────────────────── */
 

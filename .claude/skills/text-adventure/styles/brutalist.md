@@ -11,6 +11,23 @@ best-for:
   - avoid_for: [whimsy, high-fantasy, cosy, romance]
 ---
 
+```json tag-contract
+{
+  "id": "brutalist",
+  "kind": "style",
+  "version": "1.4.0",
+  "summary": "Raw high-contrast style with hard edges, thick borders, system fonts, black-white structure, and red urgency accents.",
+  "mustRead": [
+    "Pair with styles/style-reference.md for structural contracts.",
+    "Use hard right angles, flat surfaces, and inversion states; avoid shadows, gradients, and decorative softness."
+  ],
+  "render": [
+    "Interface hierarchy comes from weight, scale, borders, and spacing rather than ornament.",
+    "Best for grim, urgent, political, survival, or oppressive scenarios."
+  ]
+}
+```
+
 ## Design Philosophy
 
 Brutalist design borrows from raw concrete architecture and the DIY urgency of punk
@@ -55,15 +72,15 @@ Code / Consolas), and Linux (Liberation Mono).
 
 ### Scale and Weights
 
-| Role              | Size    | Weight | Transform   | Letter-spacing |
-|-------------------|---------|--------|-------------|----------------|
-| Scene heading     | 28–32px | 900    | uppercase   | 0.05em         |
-| Section label     | 11px    | 700    | uppercase   | 0.12em         |
-| Body text         | 16px    | 400    | none        | 0              |
-| Stat value        | 22px    | 700    | none        | -0.02em        |
-| Mono / dice       | 15px    | 600    | none        | 0.04em         |
-| Button label      | 13px    | 700    | uppercase   | 0.08em         |
-| Caption / flavour | 13px    | 400    | none        | 0              |
+| Role              | Size    | Weight | Transform | Letter-spacing |
+| ----------------- | ------- | ------ | --------- | -------------- |
+| Scene heading     | 28–32px | 900    | uppercase | 0.05em         |
+| Section label     | 11px    | 700    | uppercase | 0.12em         |
+| Body text         | 16px    | 400    | none      | 0              |
+| Stat value        | 22px    | 700    | none      | -0.02em        |
+| Mono / dice       | 15px    | 600    | none      | 0.04em         |
+| Button label      | 13px    | 700    | uppercase | 0.08em         |
+| Caption / flavour | 13px    | 400    | none      | 0              |
 
 **Rule:** Never use `font-weight` below 400 in this theme. Thin type looks weak
 against raw black borders. Headings must be 700 or heavier — 900 preferred.
@@ -80,33 +97,33 @@ the engine's CSS requires no modification.
 Pure white surfaces, pure black text and borders, red for critical/danger.
 
 | Token                          | Hex       | Role                                          |
-|--------------------------------|-----------|-----------------------------------------------|
-| `--bru-bg`                   | `#FFFFFF` | Page / widget background                      |
-| `--bru-surface`              | `#FFFFFF` | Card, panel, inset surface background         |
-| `--bru-surface-raised`       | `#F5F5F5` | Slightly elevated surface (status bar, pills) |
-| `--bru-text-primary`         | `#000000` | Primary body and heading text                 |
-| `--bru-text-secondary`       | `#333333` | Secondary labels, descriptions                |
-| `--bru-text-tertiary`        | `#555555` | Captions, timestamps, meta text               |
-| `--bru-text-inverse`         | `#FFFFFF` | Text on filled/inverted backgrounds           |
-| `--bru-border-primary`       | `#000000` | Primary borders (2–3px)                       |
-| `--bru-border-secondary`     | `#333333` | Secondary borders (1–2px)                     |
-| `--bru-border-tertiary`      | `#888888` | Tertiary / subtle borders                     |
-| `--bru-accent`               | `#FF0000` | Red accent — danger, crits, HP loss, warnings |
-| `--bru-accent-muted`         | `#CC0000` | Darker red for hover/active on red elements   |
-| `--bru-success`              | `#000000` | Success state — no colour, just bold text     |
-| `--bru-warning`              | `#000000` | Warning state — uppercase label suffices      |
-| `--bru-danger`               | `#FF0000` | Danger state — red                            |
-| `--bru-info`                 | `#000000` | Info state — black                            |
-| `--bru-interactive-bg`       | `#FFFFFF` | Button / interactive default background       |
-| `--bru-interactive-bg-hover` | `#000000` | Button background on hover (inversion)        |
-| `--bru-interactive-text`     | `#000000` | Button / interactive default text             |
-| `--bru-interactive-text-hover`| `#FFFFFF`| Button text on hover (inversion)              |
-| `--bru-pip-full`             | `#000000` | Filled HP/XP pip                              |
-| `--bru-pip-empty`            | `#CCCCCC` | Empty HP/XP pip                               |
-| `--bru-pip-danger`           | `#FF0000` | HP pip when at critical threshold             |
-| `--bru-overlay-bg`           | `#FFFFFF` | Panel overlay background                      |
-| `--bru-selection-bg`         | `#000000` | Text selection background                     |
-| `--bru-selection-text`       | `#FFFFFF` | Text selection foreground                     |
+| ------------------------------ | --------- | --------------------------------------------- |
+| `--bru-bg`                     | `#FFFFFF` | Page / widget background                      |
+| `--bru-surface`                | `#FFFFFF` | Card, panel, inset surface background         |
+| `--bru-surface-raised`         | `#F5F5F5` | Slightly elevated surface (status bar, pills) |
+| `--bru-text-primary`           | `#000000` | Primary body and heading text                 |
+| `--bru-text-secondary`         | `#333333` | Secondary labels, descriptions                |
+| `--bru-text-tertiary`          | `#555555` | Captions, timestamps, meta text               |
+| `--bru-text-inverse`           | `#FFFFFF` | Text on filled/inverted backgrounds           |
+| `--bru-border-primary`         | `#000000` | Primary borders (2–3px)                       |
+| `--bru-border-secondary`       | `#333333` | Secondary borders (1–2px)                     |
+| `--bru-border-tertiary`        | `#888888` | Tertiary / subtle borders                     |
+| `--bru-accent`                 | `#FF0000` | Red accent — danger, crits, HP loss, warnings |
+| `--bru-accent-muted`           | `#CC0000` | Darker red for hover/active on red elements   |
+| `--bru-success`                | `#000000` | Success state — no colour, just bold text     |
+| `--bru-warning`                | `#000000` | Warning state — uppercase label suffices      |
+| `--bru-danger`                 | `#FF0000` | Danger state — red                            |
+| `--bru-info`                   | `#000000` | Info state — black                            |
+| `--bru-interactive-bg`         | `#FFFFFF` | Button / interactive default background       |
+| `--bru-interactive-bg-hover`   | `#000000` | Button background on hover (inversion)        |
+| `--bru-interactive-text`       | `#000000` | Button / interactive default text             |
+| `--bru-interactive-text-hover` | `#FFFFFF` | Button text on hover (inversion)              |
+| `--bru-pip-full`               | `#000000` | Filled HP/XP pip                              |
+| `--bru-pip-empty`              | `#CCCCCC` | Empty HP/XP pip                               |
+| `--bru-pip-danger`             | `#FF0000` | HP pip when at critical threshold             |
+| `--bru-overlay-bg`             | `#FFFFFF` | Panel overlay background                      |
+| `--bru-selection-bg`           | `#000000` | Text selection background                     |
+| `--bru-selection-text`         | `#FFFFFF` | Text selection foreground                     |
 
 ### Dark Mode
 
@@ -115,70 +132,70 @@ Invert everything. White borders on black, red stays red (it always stands out).
 ```css
 @media (prefers-color-scheme: dark) {
   :host {
-    --bru-bg:                    #000000;
-    --bru-surface:               #000000;
-    --bru-surface-raised:        #111111;
-    --bru-text-primary:          #FFFFFF;
-    --bru-text-secondary:        #CCCCCC;
-    --bru-text-tertiary:         #999999;
-    --bru-text-inverse:          #000000;
-    --bru-border-primary:        #FFFFFF;
-    --bru-border-secondary:      #CCCCCC;
-    --bru-border-tertiary:       #777777;
-    --bru-accent:                #FF0000;
-    --bru-accent-muted:          #CC0000;
-    --bru-interactive-bg:        #000000;
-    --bru-interactive-bg-hover:  #FFFFFF;
-    --bru-interactive-text:      #FFFFFF;
-    --bru-interactive-text-hover:#000000;
-    --bru-pip-full:              #FFFFFF;
-    --bru-pip-empty:             #333333;
-    --bru-pip-danger:            #FF0000;
-    --bru-overlay-bg:            #000000;
-    --bru-selection-bg:          #FFFFFF;
-    --bru-selection-text:        #000000;
+    --bru-bg: #000000;
+    --bru-surface: #000000;
+    --bru-surface-raised: #111111;
+    --bru-text-primary: #ffffff;
+    --bru-text-secondary: #cccccc;
+    --bru-text-tertiary: #999999;
+    --bru-text-inverse: #000000;
+    --bru-border-primary: #ffffff;
+    --bru-border-secondary: #cccccc;
+    --bru-border-tertiary: #777777;
+    --bru-accent: #ff0000;
+    --bru-accent-muted: #cc0000;
+    --bru-interactive-bg: #000000;
+    --bru-interactive-bg-hover: #ffffff;
+    --bru-interactive-text: #ffffff;
+    --bru-interactive-text-hover: #000000;
+    --bru-pip-full: #ffffff;
+    --bru-pip-empty: #333333;
+    --bru-pip-danger: #ff0000;
+    --bru-overlay-bg: #000000;
+    --bru-selection-bg: #ffffff;
+    --bru-selection-text: #000000;
 
     /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
-    --ta-font-heading:              var(--font-sans);
-    --ta-font-body:                 var(--font-mono);
-    --ta-color-accent:              var(--bru-accent);
-    --ta-color-accent-hover:        var(--bru-accent-muted);
-    --ta-color-accent-bg:           var(--bru-interactive-bg);
-    --ta-color-accent-bg-hover:     var(--bru-interactive-bg-hover);
-    --ta-color-success:             var(--bru-success);
-    --ta-color-success-border:      color-mix(in srgb, var(--bru-success) 70%, black);
-    --ta-color-danger:              var(--bru-danger);
-    --ta-color-danger-border:       color-mix(in srgb, var(--bru-danger) 70%, black);
-    --ta-color-danger-bg:           rgba(255, 0, 0, 0.08);
-    --ta-color-danger-bg-hover:     rgba(255, 0, 0, 0.15);
-    --ta-color-warning:             var(--bru-warning);
-    --ta-color-warning-border:      color-mix(in srgb, var(--bru-warning) 70%, black);
-    --ta-color-warning-bg:          rgba(255, 200, 0, 0.08);
-    --ta-color-xp:                  var(--bru-info);
-    --ta-color-focus:               var(--bru-accent);
-    --ta-color-conviction:          var(--bru-accent);
-    --ta-color-conviction-border:   var(--bru-accent-muted);
-    --ta-badge-success-bg:          rgba(0, 128, 0, 0.10);
-    --ta-badge-success-text:        var(--bru-success);
-    --ta-badge-partial-bg:          rgba(255, 200, 0, 0.10);
-    --ta-badge-partial-text:        var(--bru-warning);
-    --ta-badge-failure-bg:          rgba(255, 0, 0, 0.10);
-    --ta-badge-failure-text:        var(--bru-danger);
+    --ta-font-heading: var(--font-sans);
+    --ta-font-body: var(--font-mono);
+    --ta-color-accent: var(--bru-accent);
+    --ta-color-accent-hover: var(--bru-accent-muted);
+    --ta-color-accent-bg: var(--bru-interactive-bg);
+    --ta-color-accent-bg-hover: var(--bru-interactive-bg-hover);
+    --ta-color-success: var(--bru-success);
+    --ta-color-success-border: color-mix(in srgb, var(--bru-success) 70%, black);
+    --ta-color-danger: var(--bru-danger);
+    --ta-color-danger-border: color-mix(in srgb, var(--bru-danger) 70%, black);
+    --ta-color-danger-bg: rgba(255, 0, 0, 0.08);
+    --ta-color-danger-bg-hover: rgba(255, 0, 0, 0.15);
+    --ta-color-warning: var(--bru-warning);
+    --ta-color-warning-border: color-mix(in srgb, var(--bru-warning) 70%, black);
+    --ta-color-warning-bg: rgba(255, 200, 0, 0.08);
+    --ta-color-xp: var(--bru-info);
+    --ta-color-focus: var(--bru-accent);
+    --ta-color-conviction: var(--bru-accent);
+    --ta-color-conviction-border: var(--bru-accent-muted);
+    --ta-badge-success-bg: rgba(0, 128, 0, 0.1);
+    --ta-badge-success-text: var(--bru-success);
+    --ta-badge-partial-bg: rgba(255, 200, 0, 0.1);
+    --ta-badge-partial-text: var(--bru-warning);
+    --ta-badge-failure-bg: rgba(255, 0, 0, 0.1);
+    --ta-badge-failure-text: var(--bru-danger);
     --ta-badge-crit-success-border: var(--bru-success);
     --ta-badge-crit-failure-border: var(--bru-danger);
-    --ta-color-credits:             var(--bru-warning);
-    --ta-color-tab-active:          var(--bru-accent);
-    --ta-color-info:                var(--bru-info);
-    --ta-btn-primary-text:          #ffffff;
-    --ta-border-style-poi:          2px dashed;
-    --ta-die-spin-duration:         0.3s;
+    --ta-color-credits: var(--bru-warning);
+    --ta-color-tab-active: var(--bru-accent);
+    --ta-color-info: var(--bru-info);
+    --ta-btn-primary-text: #ffffff;
+    --ta-border-style-poi: 2px dashed;
+    --ta-die-spin-duration: 0.3s;
 
     /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
-    --sta-text-primary:             var(--bru-text-primary);
-    --sta-text-secondary:           var(--bru-text-secondary);
-    --sta-text-tertiary:            var(--bru-text-tertiary);
-    --sta-border-tertiary:          var(--bru-border-tertiary);
-    --sta-color-text-emphasis:      var(--bru-text-inverse);
+    --sta-text-primary: var(--bru-text-primary);
+    --sta-text-secondary: var(--bru-text-secondary);
+    --sta-text-tertiary: var(--bru-text-tertiary);
+    --sta-border-tertiary: var(--bru-border-tertiary);
+    --sta-color-text-emphasis: var(--bru-text-inverse);
   }
 
   /* --- Speaker colours (multi-dialogue) --- */
@@ -206,16 +223,8 @@ where large-text rules apply.
 No magic numbers. All spacing derives from a base-8 scale.
 
 ```css
---space-1:  4px
---space-2:  8px
---space-3:  12px
---space-4:  16px
---space-5:  20px
---space-6:  24px
---space-8:  32px
---space-10: 40px
---space-12: 48px
---space-16: 64px
+--space-1: 4px --space-2: 8px --space-3: 12px --space-4: 16px --space-5: 20px --space-6: 24px --space-8: 32px
+  --space-10: 40px --space-12: 48px --space-16: 64px;
 ```
 
 **Layout rules for brutalist theme:**
@@ -235,15 +244,11 @@ No magic numbers. All spacing derives from a base-8 scale.
 **The single most important rule of this theme:** borders replace all other depth cues.
 
 ```css
---border-radius:     0px   /* Everywhere. No exceptions. */
---border-radius-sm:  0px
---border-radius-md:  0px
---border-radius-lg:  0px
---border-radius-full:0px   /* Overrides pill shapes — pips use CSS shapes instead */
-
---border-width-heavy: 3px  /* Widget containers, primary panels, action buttons */
---border-width-medium:2px  /* Secondary borders, section dividers, form inputs    */
---border-width-light: 1px  /* Tertiary details, inner separators                  */
+--border-radius: 0px /* Everywhere. No exceptions. */ --border-radius-sm: 0px --border-radius-md: 0px
+  --border-radius-lg: 0px --border-radius-full: 0px /* Overrides pill shapes — pips use CSS shapes instead */
+  --border-width-heavy: 3px /* Widget containers, primary panels, action buttons */ --border-width-medium: 2px
+  /* Secondary borders, section dividers, form inputs    */ --border-width-light: 1px
+  /* Tertiary details, inner separators                  */;
 ```
 
 **Surface rules:**
@@ -267,11 +272,13 @@ have not requested reduced motion).
 
 ```css
 /* Primary action button */
-.btn, button, [role="button"] {
+.btn,
+button,
+[role='button'] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 44px;   /* WCAG 2.5.5 touch target */
+  min-height: 44px; /* WCAG 2.5.5 touch target */
   min-width: 44px;
   padding: 10px 20px;
   font-family: var(--font-sans);
@@ -286,27 +293,34 @@ have not requested reduced motion).
   cursor: pointer;
   box-sizing: border-box;
   text-decoration: none;
-  transition: background 80ms linear, color 80ms linear;
+  transition:
+    background 80ms linear,
+    color 80ms linear;
 }
 
-.btn:hover, button:hover, [role="button"]:hover {
+.btn:hover,
+button:hover,
+[role='button']:hover {
   background: var(--bru-interactive-bg-hover);
   color: var(--bru-interactive-text-hover);
   outline: none;
 }
 
-.btn:active, button:active {
+.btn:active,
+button:active {
   /* Slight scale on press — perceptible but not decorative */
   transform: scale(0.98);
 }
 
 /* Danger / critical action button */
-.btn-danger, button.danger {
+.btn-danger,
+button.danger {
   border-color: var(--bru-accent);
   color: var(--bru-accent);
 }
 
-.btn-danger:hover, button.danger:hover {
+.btn-danger:hover,
+button.danger:hover {
   background: var(--bru-accent);
   color: var(--bru-text-inverse);
 }
@@ -354,7 +368,9 @@ aesthetic makes excellent focus rings natural rather than intrusive.
 ### Form Inputs
 
 ```css
-input, select, textarea {
+input,
+select,
+textarea {
   font-family: var(--font-sans);
   font-size: 16px;
   font-weight: 400;
@@ -369,7 +385,9 @@ input, select, textarea {
   appearance: none;
 }
 
-input:focus, select:focus, textarea:focus {
+input:focus,
+select:focus,
+textarea:focus {
   outline: 3px solid var(--bru-border-primary);
   outline-offset: 0;
 }
@@ -387,10 +405,14 @@ without any motion.
 ```css
 /* Only apply transitions if the user has NOT requested reduced motion */
 @media (prefers-reduced-motion: no-preference) {
-
   /* Button colour swap — fast enough to feel instant, slow enough to be legible */
-  .btn, button, [role="button"] {
-    transition: background 80ms linear, color 80ms linear, border-color 80ms linear;
+  .btn,
+  button,
+  [role='button'] {
+    transition:
+      background 80ms linear,
+      color 80ms linear,
+      border-color 80ms linear;
   }
 
   /* Panel overlay fade */
@@ -404,9 +426,15 @@ without any motion.
   }
 
   @keyframes pip-flash {
-    0%   { background: var(--bru-pip-danger); }
-    50%  { background: var(--bru-pip-empty);  }
-    100% { background: var(--bru-pip-danger); }
+    0% {
+      background: var(--bru-pip-danger);
+    }
+    50% {
+      background: var(--bru-pip-empty);
+    }
+    100% {
+      background: var(--bru-pip-danger);
+    }
   }
 
   /* Dice roll — rapid flicker of numbers before settle */
@@ -415,17 +443,39 @@ without any motion.
   }
 
   @keyframes dice-flicker {
-    0%   { opacity: 1; }
-    10%  { opacity: 0; }
-    20%  { opacity: 1; }
-    30%  { opacity: 0; }
-    40%  { opacity: 1; }
-    50%  { opacity: 0; }
-    60%  { opacity: 1; }
-    70%  { opacity: 0; }
-    80%  { opacity: 1; }
-    90%  { opacity: 0; }
-    100% { opacity: 1; }
+    0% {
+      opacity: 1;
+    }
+    10% {
+      opacity: 0;
+    }
+    20% {
+      opacity: 1;
+    }
+    30% {
+      opacity: 0;
+    }
+    40% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+    60% {
+      opacity: 1;
+    }
+    70% {
+      opacity: 0;
+    }
+    80% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
   }
 
   /* Outcome badge entrance — slam down, no bounce */
@@ -434,8 +484,14 @@ without any motion.
   }
 
   @keyframes badge-slam {
-    from { transform: translateY(-8px); opacity: 0; }
-    to   { transform: translateY(0);    opacity: 1; }
+    from {
+      transform: translateY(-8px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
   }
 
   /* Section reveal — content appears line by line on first load */
@@ -444,15 +500,20 @@ without any motion.
   }
 
   @keyframes content-appear {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
-
 }
 
 /* When reduced motion IS requested: ensure no accidental inherited transitions */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -575,60 +636,60 @@ of any widget to apply the brutalist theme. All custom properties are defined on
 
 :host {
   /* --- Colour tokens: light mode --- */
-  --bru-bg:                     #FFFFFF;
-  --bru-surface:                #FFFFFF;
-  --bru-surface-raised:         #F5F5F5;
-  --bru-text-primary:           #000000;
-  --bru-text-secondary:         #333333;
-  --bru-text-tertiary:          #555555;
-  --bru-text-inverse:           #FFFFFF;
-  --bru-border-primary:         #000000;
-  --bru-border-secondary:       #333333;
-  --bru-border-tertiary:        #888888;
-  --bru-accent:                 #FF0000;
-  --bru-accent-muted:           #CC0000;
-  --bru-success:                #000000;
-  --bru-warning:                #000000;
-  --bru-danger:                 #FF0000;
-  --bru-info:                   #000000;
-  --bru-interactive-bg:         #FFFFFF;
-  --bru-interactive-bg-hover:   #000000;
-  --bru-interactive-text:       #000000;
-  --bru-interactive-text-hover: #FFFFFF;
-  --bru-pip-full:               #000000;
-  --bru-pip-empty:              #CCCCCC;
-  --bru-pip-danger:             #FF0000;
-  --bru-overlay-bg:             #FFFFFF;
-  --bru-selection-bg:           #000000;
-  --bru-selection-text:         #FFFFFF;
+  --bru-bg: #ffffff;
+  --bru-surface: #ffffff;
+  --bru-surface-raised: #f5f5f5;
+  --bru-text-primary: #000000;
+  --bru-text-secondary: #333333;
+  --bru-text-tertiary: #555555;
+  --bru-text-inverse: #ffffff;
+  --bru-border-primary: #000000;
+  --bru-border-secondary: #333333;
+  --bru-border-tertiary: #888888;
+  --bru-accent: #ff0000;
+  --bru-accent-muted: #cc0000;
+  --bru-success: #000000;
+  --bru-warning: #000000;
+  --bru-danger: #ff0000;
+  --bru-info: #000000;
+  --bru-interactive-bg: #ffffff;
+  --bru-interactive-bg-hover: #000000;
+  --bru-interactive-text: #000000;
+  --bru-interactive-text-hover: #ffffff;
+  --bru-pip-full: #000000;
+  --bru-pip-empty: #cccccc;
+  --bru-pip-danger: #ff0000;
+  --bru-overlay-bg: #ffffff;
+  --bru-selection-bg: #000000;
+  --bru-selection-text: #ffffff;
 
   /* --- Border radii: zero everywhere --- */
-  --border-radius:      0px;
-  --border-radius-sm:   0px;
-  --border-radius-md:   0px;
-  --border-radius-lg:   0px;
+  --border-radius: 0px;
+  --border-radius-sm: 0px;
+  --border-radius-md: 0px;
+  --border-radius-lg: 0px;
   --border-radius-full: 0px;
 
   /* --- Border widths --- */
-  --border-width-heavy:  3px;
+  --border-width-heavy: 3px;
   --border-width-medium: 2px;
-  --border-width-light:  1px;
+  --border-width-light: 1px;
 
   /* --- Spacing scale (base-8) --- */
-  --space-1:  4px;
-  --space-2:  8px;
-  --space-3:  12px;
-  --space-4:  16px;
-  --space-5:  20px;
-  --space-6:  24px;
-  --space-8:  32px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
   --space-10: 40px;
   --space-12: 48px;
   --space-16: 64px;
 
   /* --- Typography --- */
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: ui-monospace, "Cascadia Code", "SF Mono", "Consolas", "Liberation Mono", monospace;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Code', 'SF Mono', 'Consolas', 'Liberation Mono', monospace;
   --font-size-base: 16px;
   --line-height-base: 1.6;
 }
@@ -636,39 +697,42 @@ of any widget to apply the brutalist theme. All custom properties are defined on
 /* --- Dark mode token overrides --- */
 @media (prefers-color-scheme: dark) {
   :host {
-    --bru-bg:                     #000000;
-    --bru-surface:                #000000;
-    --bru-surface-raised:         #111111;
-    --bru-text-primary:           #FFFFFF;
-    --bru-text-secondary:         #CCCCCC;
-    --bru-text-tertiary:          #999999;
-    --bru-text-inverse:           #000000;
-    --bru-border-primary:         #FFFFFF;
-    --bru-border-secondary:       #CCCCCC;
-    --bru-border-tertiary:        #777777;
-    --bru-accent:                 #FF0000;
-    --bru-accent-muted:           #CC0000;
-    --bru-interactive-bg:         #000000;
-    --bru-interactive-bg-hover:   #FFFFFF;
-    --bru-interactive-text:       #FFFFFF;
+    --bru-bg: #000000;
+    --bru-surface: #000000;
+    --bru-surface-raised: #111111;
+    --bru-text-primary: #ffffff;
+    --bru-text-secondary: #cccccc;
+    --bru-text-tertiary: #999999;
+    --bru-text-inverse: #000000;
+    --bru-border-primary: #ffffff;
+    --bru-border-secondary: #cccccc;
+    --bru-border-tertiary: #777777;
+    --bru-accent: #ff0000;
+    --bru-accent-muted: #cc0000;
+    --bru-interactive-bg: #000000;
+    --bru-interactive-bg-hover: #ffffff;
+    --bru-interactive-text: #ffffff;
     --bru-interactive-text-hover: #000000;
-    --bru-pip-full:               #FFFFFF;
-    --bru-pip-empty:              #333333;
-    --bru-pip-danger:             #FF0000;
-    --bru-overlay-bg:             #000000;
-    --bru-selection-bg:           #FFFFFF;
-    --bru-selection-text:         #000000;
+    --bru-pip-full: #ffffff;
+    --bru-pip-empty: #333333;
+    --bru-pip-danger: #ff0000;
+    --bru-overlay-bg: #000000;
+    --bru-selection-bg: #ffffff;
+    --bru-selection-text: #000000;
   }
 }
 
 /* --- Base reset --- */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-body, .root {
+body,
+.root {
   font-family: var(--font-sans);
   font-size: var(--font-size-base);
   line-height: var(--line-height-base);
@@ -692,7 +756,12 @@ body, .root {
 }
 
 /* --- Typography --- */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-sans);
   font-weight: 900;
   line-height: 1.1;
@@ -701,12 +770,27 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--bru-text-primary);
 }
 
-h1 { font-size: 32px; margin-bottom: var(--space-4); }
-h2 { font-size: 26px; margin-bottom: var(--space-3); }
-h3 { font-size: 20px; margin-bottom: var(--space-3); }
-h4 { font-size: 16px; margin-bottom: var(--space-2); }
+h1 {
+  font-size: 32px;
+  margin-bottom: var(--space-4);
+}
+h2 {
+  font-size: 26px;
+  margin-bottom: var(--space-3);
+}
+h3 {
+  font-size: 20px;
+  margin-bottom: var(--space-3);
+}
+h4 {
+  font-size: 16px;
+  margin-bottom: var(--space-2);
+}
 
-p { margin-bottom: var(--space-4); line-height: 1.7; }
+p {
+  margin-bottom: var(--space-4);
+  line-height: 1.7;
+}
 
 .label {
   font-size: 11px;
@@ -724,14 +808,17 @@ p { margin-bottom: var(--space-4); line-height: 1.7; }
 }
 
 /* --- Section dividers --- */
-.section-divider, hr {
+.section-divider,
+hr {
   border: none;
   border-top: var(--border-width-medium) solid var(--bru-border-primary);
   margin: var(--space-8) 0;
 }
 
 /* --- Buttons --- */
-button, .btn, [role="button"] {
+button,
+.btn,
+[role='button'] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -752,17 +839,22 @@ button, .btn, [role="button"] {
   appearance: none;
 }
 
-button:hover, .btn:hover, [role="button"]:hover {
+button:hover,
+.btn:hover,
+[role='button']:hover {
   background: var(--bru-interactive-bg-hover);
   color: var(--bru-interactive-text-hover);
   border-color: var(--bru-border-primary);
 }
 
-button:active, .btn:active {
+button:active,
+.btn:active {
   transform: scale(0.98);
 }
 
-button:disabled, .btn:disabled, [disabled] {
+button:disabled,
+.btn:disabled,
+[disabled] {
   opacity: 0.4;
   cursor: not-allowed;
   pointer-events: none;
@@ -792,7 +884,9 @@ button:disabled, .btn:disabled, [disabled] {
   color: var(--bru-interactive-text-hover);
 }
 
-.btn-full { width: 100%; }
+.btn-full {
+  width: 100%;
+}
 
 /* --- Focus states --- */
 :focus-visible {
@@ -805,7 +899,9 @@ button:disabled, .btn:disabled, [disabled] {
 }
 
 /* --- Form inputs --- */
-input, select, textarea {
+input,
+select,
+textarea {
   font-family: var(--font-sans);
   font-size: 16px;
   font-weight: 400;
@@ -819,7 +915,9 @@ input, select, textarea {
   appearance: none;
 }
 
-input:focus, select:focus, textarea:focus {
+input:focus,
+select:focus,
+textarea:focus {
   outline: 3px solid var(--bru-border-primary);
   outline-offset: 0;
 }
@@ -988,7 +1086,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 .tag.equipped::before {
-  content: "[EQ] ";
+  content: '[EQ] ';
   font-family: var(--font-mono);
   opacity: 0.6;
 }
@@ -1230,26 +1328,45 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* --- Utility classes --- */
-.text-danger { color: var(--bru-accent); }
-.text-muted  { color: var(--bru-text-tertiary); }
-.text-mono   { font-family: var(--font-mono); }
-.text-upper  { text-transform: uppercase; }
-.text-bold   { font-weight: 700; }
-.text-heavy  { font-weight: 900; }
+.text-danger {
+  color: var(--bru-accent);
+}
+.text-muted {
+  color: var(--bru-text-tertiary);
+}
+.text-mono {
+  font-family: var(--font-mono);
+}
+.text-upper {
+  text-transform: uppercase;
+}
+.text-bold {
+  font-weight: 700;
+}
+.text-heavy {
+  font-weight: 900;
+}
 .sr-only {
   position: absolute;
-  width: 1px; height: 1px;
-  padding: 0; margin: -1px;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
   overflow: hidden;
-  clip: rect(0,0,0,0);
+  clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
 }
 
 /* --- Micro-interactions (motion-safe only) --- */
 @media (prefers-reduced-motion: no-preference) {
-  button, .btn, [role="button"] {
-    transition: background 80ms linear, color 80ms linear, border-color 80ms linear;
+  button,
+  .btn,
+  [role='button'] {
+    transition:
+      background 80ms linear,
+      color 80ms linear,
+      border-color 80ms linear;
   }
 
   .panel-overlay {
@@ -1261,9 +1378,15 @@ input:focus, select:focus, textarea:focus {
   }
 
   @keyframes pip-flash {
-    0%   { background: var(--bru-pip-danger); }
-    50%  { background: var(--bru-pip-empty);  }
-    100% { background: var(--bru-pip-danger); }
+    0% {
+      background: var(--bru-pip-danger);
+    }
+    50% {
+      background: var(--bru-pip-empty);
+    }
+    100% {
+      background: var(--bru-pip-danger);
+    }
   }
 
   .dice-rolling {
@@ -1271,9 +1394,23 @@ input:focus, select:focus, textarea:focus {
   }
 
   @keyframes dice-flicker {
-    0%, 20%, 40%, 60%, 80%  { opacity: 1; }
-    10%, 30%, 50%, 70%, 90% { opacity: 0; }
-    100% { opacity: 1; }
+    0%,
+    20%,
+    40%,
+    60%,
+    80% {
+      opacity: 1;
+    }
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
   }
 
   .outcome-badge {
@@ -1281,13 +1418,21 @@ input:focus, select:focus, textarea:focus {
   }
 
   @keyframes badge-slam {
-    from { transform: translateY(-8px); opacity: 0; }
-    to   { transform: translateY(0);    opacity: 1; }
+    from {
+      transform: translateY(-8px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

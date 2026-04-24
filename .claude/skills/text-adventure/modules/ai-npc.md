@@ -1,10 +1,11 @@
 # AI NPC — Live Character Engine
+
 > Module for text-adventure orchestrator. Loaded for named NPCs with narrative weight requiring live dialogue.
 
 This skill defines how to construct, host, and manage AI-powered NPCs whose dialogue is generated
 live via the Anthropic API. NPCs are not scripted dialogue trees — they are characters with genuine
 knowledge limits, agendas, secrets, and evolving dispositions. The player converses with them in
-freeform text. Responses feel real because they *are* real: each NPC runs as a constrained model call
+freeform text. Responses feel real because they _are_ real: each NPC runs as a constrained model call
 with a carefully engineered system prompt.
 
 Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: lore-codex, crew-manifest modules.
@@ -13,11 +14,11 @@ Loaded by the text-adventure orchestrator (SKILL.md). Works alongside: lore-code
 
 ## § CLI Commands
 
-| Action | Command | Tool |
-|--------|---------|------|
-| Render NPC dialogue | `tag render dialogue --style <style>` | Run via Bash tool |
-| Create NPC | `tag state create-npc <id> --tier <tier> --name "<name>" --pronouns <p> --role <role>` | Run via Bash tool |
-| Hidden contested roll | `tag compute contest <STAT> <npc_id>` | Run via Bash tool |
+| Action                | Command                                                                                | Tool              |
+| --------------------- | -------------------------------------------------------------------------------------- | ----------------- |
+| Render NPC dialogue   | `tag render dialogue --style <style>`                                                  | Run via Bash tool |
+| Create NPC            | `tag state create-npc <id> --tier <tier> --name "<name>" --pronouns <p> --role <role>` | Run via Bash tool |
+| Hidden contested roll | `tag compute contest <STAT> <npc_id>`                                                  | Run via Bash tool |
 
 ---
 
@@ -31,6 +32,7 @@ Hidden Contested Rolls below) and shape the NPC's system prompt for dialogue.
 Add a `stats` field to every NPC definition object:
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 stats: {
   STR: 10, DEX: 12, CON: 11, INT: 14, WIS: 13, CHA: 15,
@@ -43,13 +45,13 @@ stats: {
 NPC level reflects narrative importance, not combat power. Set stats to match the
 NPC's archetype — a scientist gets high INT/WIS, a dock worker gets high STR/CON.
 
-| NPC Level | Stat Range | Typical Role |
-|-----------|-----------|--------------|
-| 1-2 | 8-12 | Commoner, minor background character |
-| 3-4 | 10-14 | Competent professional, recurring NPC |
-| 5-6 | 12-16 | Skilled specialist, faction operative |
-| 7-8 | 13-17 | Expert, faction leader, antagonist |
-| 9-10 | 14-18 | Master, legendary figure, final adversary |
+| NPC Level | Stat Range | Typical Role                              |
+| --------- | ---------- | ----------------------------------------- |
+| 1-2       | 8-12       | Commoner, minor background character      |
+| 3-4       | 10-14      | Competent professional, recurring NPC     |
+| 5-6       | 12-16      | Skilled specialist, faction operative     |
+| 7-8       | 13-17      | Expert, faction leader, antagonist        |
+| 9-10      | 14-18      | Master, legendary figure, final adversary |
 
 You MUST use `tag state create-npc <id> --name "<name>" --tier <tier> --pronouns <pronouns> --role <role>`
 to create every NPC when they first appear in the narrative. Never invent NPC stats manually —
@@ -62,27 +64,27 @@ Stats persist in `gmState.rosterMutations` and carry forward across arcs.
 ### Stat Modifier Table
 
 | Stat Value | Modifier |
-|-----------|----------|
-| 8-9 | -1 |
-| 10-11 | +0 |
-| 12-13 | +1 |
-| 14-15 | +2 |
-| 16-17 | +3 |
-| 18-19 | +4 |
+| ---------- | -------- |
+| 8-9        | -1       |
+| 10-11      | +0       |
+| 12-13      | +1       |
+| 14-15      | +2       |
+| 16-17      | +3       |
+| 18-19      | +4       |
 
 ### System Prompt Stat Integration
 
 When building the NPC's system prompt for dialogue, translate stats into narrative
 capabilities. Never expose numbers — describe what the NPC can do:
 
-| High Stat | System Prompt Addition |
-|-----------|----------------------|
-| STR 14+ | "You are physically imposing. People think twice before challenging you." |
-| DEX 14+ | "You are quick and precise. You notice small movements and react fast." |
-| CON 14+ | "You are resilient and hard to rattle. Pain and discomfort barely register." |
-| INT 14+ | "You are sharp and analytical. You spot logical flaws and inconsistencies." |
-| WIS 14+ | "You are perceptive and intuitive. You read people well and notice what others miss." |
-| CHA 14+ | "You are magnetic and persuasive. People naturally listen when you speak." |
+| High Stat | System Prompt Addition                                                                |
+| --------- | ------------------------------------------------------------------------------------- |
+| STR 14+   | "You are physically imposing. People think twice before challenging you."             |
+| DEX 14+   | "You are quick and precise. You notice small movements and react fast."               |
+| CON 14+   | "You are resilient and hard to rattle. Pain and discomfort barely register."          |
+| INT 14+   | "You are sharp and analytical. You spot logical flaws and inconsistencies."           |
+| WIS 14+   | "You are perceptive and intuitive. You read people well and notice what others miss." |
+| CHA 14+   | "You are magnetic and persuasive. People naturally listen when you speak."            |
 
 ---
 
@@ -98,6 +100,7 @@ then resolves the NPC's roll secretly using their stat modifier.
 ### NPCs Without Explicit Stats
 
 If an NPC lacks a stat block, the GM assigns level-appropriate defaults:
+
 - Background NPC: level 2, all stats 10
 - Named recurring NPC: level 4, primary stat 13, others 10-11
 - Faction leader or antagonist: level 7, primary stat 16, secondary 14, others 11-12
@@ -138,27 +141,33 @@ Every NPC is encoded as a JavaScript object before the widget renders. This obje
 system prompt, the portrait, the disposition engine, and the knowledge fence.
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 const npc = {
   id: 'maren_voss',
   name: 'Dr Maren Voss',
-  pronouns: 'she/her',   // she/her | he/him | they/them — MUST match procedural seed if generated
+  pronouns: 'she/her', // she/her | he/him | they/them — MUST match procedural seed if generated
   role: 'Chief Science Officer, Ulysses Covenant',
   portrait: { initials: 'MV', ramp: 'purple' },
 
   voice: {
-    pattern: 'Clipped, precise. Uses technical jargon without explaining it. Rarely asks questions — states observations. Dry sardonic streak emerges under stress.',
+    pattern:
+      'Clipped, precise. Uses technical jargon without explaining it. Rarely asks questions — states observations. Dry sardonic streak emerges under stress.',
     speaks_in: 'short declarative sentences',
-    verbal_tics: ['quantifies everything', 'deflects personal questions with data', 'pauses before answering anything emotional'],
-    never_says: ['I don\'t know', 'I\'m scared', 'please help me'],
+    verbal_tics: [
+      'quantifies everything',
+      'deflects personal questions with data',
+      'pauses before answering anything emotional',
+    ],
+    never_says: ["I don't know", "I'm scared", 'please help me'],
   },
 
   disposition: {
-    initial: 'guarded',       // guarded | neutral | friendly | hostile | desperate | broken
+    initial: 'guarded', // guarded | neutral | friendly | hostile | desperate | broken
     current: 'guarded',
-    toward_player: 50,        // 0–100: 0 = will attack, 100 = complete trust
+    toward_player: 50, // 0–100: 0 = will attack, 100 = complete trust
     triggers: {
-      hostile:  ['threaten her', 'mention the Covenant board', 'accuse her of negligence'],
+      hostile: ['threaten her', 'mention the Covenant board', 'accuse her of negligence'],
       friendly: ['mention patient welfare', 'ask about her research', 'show medical expertise'],
       desperate: ['lower deck incident revealed', 'she learns the ship is beyond saving'],
     },
@@ -180,15 +189,13 @@ const npc = {
       'The manifest falsification — she will deny this until disposition reaches 80+',
       'Her own mental state — she will always claim she is functional',
     ],
-    will_never_reveal: [
-      'The access code to the captain\'s log (she genuinely does not have it)',
-    ],
+    will_never_reveal: ["The access code to the captain's log (she genuinely does not have it)"],
   },
 
   agenda: [
     'Primary: Contain knowledge of the incident — she believes disclosure causes panic',
     'Secondary: Find out how much the player already knows before committing to a story',
-    'Personal: She wants to be told it\'s not her fault',
+    "Personal: She wants to be told it's not her fault",
   ],
 
   world_flags: {
@@ -200,6 +207,7 @@ const npc = {
 ```
 
 **Field rules:**
+
 - `pronouns` is mandatory. Use it consistently in all narrative prose, system prompts, and
   dialogue tags. For procedurally generated NPCs, this value comes from the seed and must
   not be overridden — it ensures gender consistency across save/resume cycles.
@@ -220,6 +228,7 @@ The system prompt is generated dynamically from the NPC definition object. It ha
 sections. Order matters — the model weights earlier instructions more heavily.
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 function buildSystemPrompt(npc, gmState) {
   return `
@@ -265,6 +274,7 @@ Never ask more than one question per response. Never say "certainly", "of course
 ```
 
 **Critical system prompt rules:**
+
 - Always open with the identity anchor ("You are [name]...") as the very first line.
 - The "never break frame" instruction must be explicit — without it, the model will occasionally
   narrate in third person or offer game-mechanic explanations.
@@ -282,6 +292,7 @@ Never ask more than one question per response. Never say "certainly", "of course
 ## The Widget Structure
 
 The AI NPC dialogue widget is a self-contained HTML artifact produced by the CLI. It handles:
+
 - Rendering the conversation history
 - Capturing player input
 - Making API calls with the full conversation context
@@ -305,11 +316,13 @@ The API receives the last N turns of conversation, not the full history. This ke
 predictable and prevents context bloat.
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
-messages: conversationHistory.slice(-12)  // last 6 exchanges
+messages: conversationHistory.slice(-12); // last 6 exchanges
 ```
 
 **Trimming rules:**
+
 - Always keep the opening line (first assistant message) — it anchors the character's initial stance.
 - Never trim below 4 messages — the model needs recent context to maintain consistency. Below
   this threshold the NPC loses track of what was just said, contradicts its own statements from
@@ -319,6 +332,7 @@ messages: conversationHistory.slice(-12)  // last 6 exchanges
   rather than dropping it entirely:
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 function buildHistorySummary(oldHistory) {
   const keyFacts = [];
@@ -338,6 +352,7 @@ Append `buildHistorySummary()` output to the system prompt when `conversationHis
 ## Disposition Engine
 
 Disposition is a continuous 0–100 trust score mapped to six named states. It drives:
+
 - The badge label and colour in the widget header
 - The system prompt's trust context line
 - World state events when thresholds are crossed
@@ -352,16 +367,16 @@ Disposition is a continuous 0–100 trust score mapped to six named states. It d
 
 **Trust delta reference:**
 
-| Player action | Delta |
-|---|---|
-| Uses NPC's name or role with respect | +3 |
-| Demonstrates relevant expertise | +5 |
-| Expresses genuine empathy | +8 |
-| Reveals information the NPC values | +10 |
-| Contradicts or challenges NPC's account | −5 |
-| Threatens or intimidates | −15 |
-| Names a faction/person NPC fears or distrusts | −10 |
-| Lies and NPC detects it (trust < 40) | −8 |
+| Player action                                 | Delta |
+| --------------------------------------------- | ----- |
+| Uses NPC's name or role with respect          | +3    |
+| Demonstrates relevant expertise               | +5    |
+| Expresses genuine empathy                     | +8    |
+| Reveals information the NPC values            | +10   |
+| Contradicts or challenges NPC's account       | −5    |
+| Threatens or intimidates                      | −15   |
+| Names a faction/person NPC fears or distrusts | −10   |
+| Lies and NPC detects it (trust < 40)          | −8    |
 
 Deltas are applied in `checkTriggers()` (player text) and in the response analysis block (NPC text).
 Do not award trust for questions alone — only for the quality and content of what the player says.
@@ -382,6 +397,7 @@ Run `tag render dialogue --style <style>` via Bash tool once per NPC. The CLI ha
 NPC switching UI automatically when multiple NPCs are present.
 
 NPCs can reference each other in their `knowledge` arrays:
+
 ```js
 knowledge.knows: [
   'Holt knows the captain personally — she trusts him in ways she does not trust strangers',
@@ -425,7 +441,9 @@ Pre-built profiles for common adventure NPC roles. Copy, rename, and adapt voice
 match your scenario. All use the same disposition engine and widget template.
 
 ### The Gatekeeper
+
 Holds access to something the player needs. Will not yield it without cost.
+
 ```js
 agenda: ['Control access', 'Extract maximum value from the player', 'Avoid accountability'],
 disposition.initial: 'neutral',
@@ -433,7 +451,9 @@ voice.pattern: 'Bureaucratic, measured. Every answer hedged. Nothing given freel
 ```
 
 ### The Reluctant Witness
+
 Saw something. Afraid to say. Wants to be convinced it is safe to talk.
+
 ```js
 agenda: ['Assess whether the player is trustworthy', 'Protect themselves first', 'Unburden the secret'],
 disposition.initial: 'guarded',
@@ -441,8 +461,10 @@ voice.pattern: 'Evasive, self-interrupting. Starts sentences and abandons them. 
 ```
 
 ### The True Believer
+
 Committed to a cause or faction the player may be working against. Not a villain — genuinely
 believes they are right.
+
 ```js
 agenda: ['Recruit or convert the player', 'Test whether the player is ideologically safe', 'Protect the mission above all else'],
 disposition.initial: 'friendly',  // disarmingly open, but shifts hard when challenged
@@ -450,8 +472,10 @@ voice.pattern: 'Warm, certain, slightly evangelical. Phrases the cause in moral 
 ```
 
 ### The Broken Expert
+
 Was the best at something. A catastrophic failure destroyed their confidence. Knows more than
 anyone but will not trust their own knowledge.
+
 ```js
 agenda: ['Avoid being put in charge again', 'Help from a safe distance', 'Have their expertise acknowledged without responsibility'],
 disposition.initial: 'neutral',
@@ -459,7 +483,9 @@ voice.pattern: 'Self-deprecating, brilliant in flashes. Correct answers followed
 ```
 
 ### The Adversary with a Point
+
 Opposes the player but is not wrong. Their objection to the player's goal is legitimate.
+
 ```js
 agenda: ['Stop the player\'s current plan', 'Propose an alternative if the player will listen', 'Not be the villain in this story'],
 disposition.initial: 'hostile',  // starts confrontational, but shifts if the player genuinely engages

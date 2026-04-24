@@ -1,4 +1,5 @@
 # Adventure Exporting — World-Sharing via `.lore.md` Export
+
 > Module for text-adventure orchestrator. Loaded on demand — when the player requests a world
 > export, or when the GM offers it at a milestone.
 
@@ -9,6 +10,7 @@ same world. It is world-sharing, not save-sharing. The exported file contains th
 but strips the player's character so a new player creates their own.
 
 **Export vs Save:**
+
 - `.save.md` = continue MY character in MY game (save-codex module)
 - Exported `.lore.md` = share MY WORLD for SOMEONE ELSE to play a new character in
 
@@ -61,39 +63,39 @@ Everything the GM needs to run the world for a new player. The export is a compl
 briefing — the new player never sees the `.lore.md` contents. They experience the world
 through play.
 
-| Source | What is exported | Transformation |
-|--------|-----------------|----------------|
-| `gmState.worldHistory` | Epochs, power structures, past conflicts, cultural layer | Direct copy + new entries from resolved threads |
-| `gmState.rosterMutations` / ai-npc roster | All NPCs with current state | Dispositions, secrets (ALL — revealed and unrevealed), alive/dead status preserved |
-| `gmState.mapState` / geo-map | All locations (discovered and undiscovered) | Current physical state preserved (damage, changes, items); discovery states reset to undiscovered |
-| `gmState.storyArchitect.storyThreads` | All story threads | Resolved -> world history events; Active/Escalating -> seeded threads; Dormant -> dormant; Abandoned -> removed |
-| `gmState.factions` | All faction standings | Current standings become the starting state for the new player |
-| Bestiary module state | Current creature pool | Encounter tables generated from the bestiary's active creature set |
-| `gmState.time` | Calendar and current date | Export date becomes the new adventure's start date |
-| `gmState.worldFlags` | All permanent world consequences | Preserved as starting world state — bridges stay destroyed, alliances persist |
+| Source                                    | What is exported                                         | Transformation                                                                                                  |
+| ----------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `gmState.worldHistory`                    | Epochs, power structures, past conflicts, cultural layer | Direct copy + new entries from resolved threads                                                                 |
+| `gmState.rosterMutations` / ai-npc roster | All NPCs with current state                              | Dispositions, secrets (ALL — revealed and unrevealed), alive/dead status preserved                              |
+| `gmState.mapState` / geo-map              | All locations (discovered and undiscovered)              | Current physical state preserved (damage, changes, items); discovery states reset to undiscovered               |
+| `gmState.storyArchitect.storyThreads`     | All story threads                                        | Resolved -> world history events; Active/Escalating -> seeded threads; Dormant -> dormant; Abandoned -> removed |
+| `gmState.factions`                        | All faction standings                                    | Current standings become the starting state for the new player                                                  |
+| Bestiary module state                     | Current creature pool                                    | Encounter tables generated from the bestiary's active creature set                                              |
+| `gmState.time`                            | Calendar and current date                                | Export date becomes the new adventure's start date                                                              |
+| `gmState.worldFlags`                      | All permanent world consequences                         | Preserved as starting world state — bridges stay destroyed, alliances persist                                   |
 
 ## What Gets Stripped
 
 Everything specific to the original player's personal experience.
 
-| Source | What is stripped | Reason |
-|--------|-----------------|--------|
-| `gmState.character` | Player character stats, name, class, background | New player creates their own character |
-| `gmState.character.inventory` | All equipment and items | New player starts fresh |
-| `gmState.quests` | Player's quest log | Resolved quests become world history; active quests become available story threads |
-| `gmState.visitedRooms` | Player's exploration history | All rooms reset to undiscovered for fog of war |
-| `gmState.rollHistory` | All dice roll records | Cosmetic — not relevant to the new world |
-| `gmState.codex` (discovery states) | Player's codex progress | All entries reset to locked — new player discovers through play |
+| Source                             | What is stripped                                | Reason                                                                             |
+| ---------------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `gmState.character`                | Player character stats, name, class, background | New player creates their own character                                             |
+| `gmState.character.inventory`      | All equipment and items                         | New player starts fresh                                                            |
+| `gmState.quests`                   | Player's quest log                              | Resolved quests become world history; active quests become available story threads |
+| `gmState.visitedRooms`             | Player's exploration history                    | All rooms reset to undiscovered for fog of war                                     |
+| `gmState.rollHistory`              | All dice roll records                           | Cosmetic — not relevant to the new world                                           |
+| `gmState.codex` (discovery states) | Player's codex progress                         | All entries reset to locked — new player discovers through play                    |
 
 ## What Gets Added
 
 The original player's adventure becomes part of the world's history.
 
-| Addition | Purpose |
-|----------|---------|
-| **Previous Adventurer entry** | Original player's character becomes a historical figure or NPC in the world |
+| Addition                                | Purpose                                                                                |
+| --------------------------------------- | -------------------------------------------------------------------------------------- |
+| **Previous Adventurer entry**           | Original player's character becomes a historical figure or NPC in the world            |
 | **Consequences of the First Adventure** | World flags set by the original player become permanent features of the exported world |
-| **Post-adventure epoch** | If the original adventure resolved a major conflict, a new epoch entry is created |
+| **Post-adventure epoch**                | If the original adventure resolved a major conflict, a new epoch entry is created      |
 
 ---
 
@@ -136,6 +138,7 @@ operate on this snapshot, not on the live state — the game continues unaffecte
 process.
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 const exportSnapshot = JSON.parse(JSON.stringify(gmState));
 ```
@@ -149,11 +152,12 @@ If the original adventure resolved a major conflict (any story thread with `type
 `status: "resolved"`), create a new epoch entry:
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 const newEpoch = {
   id: generateEpochId(exportSnapshot),
   name: deriveEpochName(resolvedMainThread),
-  timeframe: exportSnapshot.time.date + " (recent)",
+  timeframe: exportSnapshot.time.date + ' (recent)',
   definingEvent: resolvedMainThread.resolution,
   consequences: deriveConsequences(exportSnapshot.worldFlags, resolvedMainThread),
   survivors: deriveSurvivors(exportSnapshot.factions, exportSnapshot.rosterMutations),
@@ -183,6 +187,7 @@ For each NPC, update their profile to reflect the passage of the original advent
 
 ```markdown
 ### Seren Voss — The Grey Coat Woman
+
 - **Role:** Catalyst / quest giver
 - **Disposition start:** Friendly (was Neutral-guarded; shifted through events of the
   previous adventure)
@@ -213,6 +218,7 @@ original player. For each location:
 
 ```markdown
 ### The Oxidiser — Bar Floor
+
 - **Type:** Interior, social hub
 - **Description:** Twenty-three stools, nine booths, one battered pool table. The sign
   outside has been re-painted — the old name is the same, but the lettering is sharper
@@ -230,14 +236,14 @@ original player. For each location:
 
 Transform `gmState.storyArchitect.storyThreads` according to their status:
 
-| Original status | Export transformation |
-|-----------------|---------------------|
-| **resolved** | Becomes a "past conflict" entry in World History. Resolution recorded as a world event. Connected NPC arcs updated to reflect the outcome. |
-| **active** | Becomes a **seeded** thread in the Story Spine. The new player can discover and engage with it. Decision points reset — the new player makes their own choices. |
-| **escalating** | Becomes a **seeded** thread with higher priority. The escalation context is preserved as narrative setup — "tensions have been rising since..." |
-| **dormant** | Stays **dormant**. The reactivation condition is preserved. |
-| **abandoned** | Removed from the Story Spine. Passive effects persist through world flags but the thread itself is not offered to the new player. |
-| **seeded** (never engaged) | Preserved as **seeded**. Identical to the original — the new player encounters it fresh. |
+| Original status               | Export transformation                                                                                                                                            |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **resolved**                  | Becomes a "past conflict" entry in World History. Resolution recorded as a world event. Connected NPC arcs updated to reflect the outcome.                       |
+| **active**                    | Becomes a **seeded** thread in the Story Spine. The new player can discover and engage with it. Decision points reset — the new player makes their own choices.  |
+| **escalating**                | Becomes a **seeded** thread with higher priority. The escalation context is preserved as narrative setup — "tensions have been rising since..."                  |
+| **dormant**                   | Stays **dormant**. The reactivation condition is preserved.                                                                                                      |
+| **abandoned**                 | Removed from the Story Spine. Passive effects persist through world flags but the thread itself is not offered to the new player.                                |
+| **seeded** (never engaged)    | Preserved as **seeded**. Identical to the original — the new player encounters it fresh.                                                                         |
 | **climaxing** / **resolving** | Treated as **active** for export purposes — the climax is reset so the new player can experience it. Context from the original escalation is preserved as setup. |
 
 Foreshadowing entries are regenerated from the converted threads. Paid-off foreshadowing is
@@ -256,6 +262,7 @@ Export `gmState.factions` with current standings as the new starting state:
 ## Faction Dynamics
 
 ### Station Authority
+
 - **Starting disposition:** Friendly (+35)
 - **Context:** The previous adventurer cooperated extensively with Station Authority
   during the Oxidiser Conspiracy. Officer Tomas remembers and speaks well of outside
@@ -291,6 +298,7 @@ Authority, confronted Seren Voss, and ultimately helped expose the Consortium's 
 arrangement.
 
 **Major decisions:**
+
 - Allied with Station Authority over the Grey Network
 - Revealed the bond documentation to Inspector Torr
 - Spared Renko when he was caught passing information
@@ -301,6 +309,7 @@ passed to a new owner. Regulars still mention him — "the old bartender" — wi
 particular warmth reserved for someone who did the right thing and paid for it.
 
 **World impact:**
+
 - Station Authority standing: +35 (residual goodwill)
 - Grey Network standing: -20 (Voss considers him a necessary loss)
 - The bond documentation is now semi-public knowledge
@@ -315,6 +324,7 @@ historical reference — someone NPCs mention, whose decisions shaped the world,
 not available for conversation.
 
 **Fate determination:**
+
 - If the adventure concluded fully (Act 3 resolved), the character **left the area** or
   **settled into a background role**. They are referenced but not present.
 - If the export happened mid-adventure (Act 1 or Act 2), the character **is still somewhere
@@ -327,10 +337,11 @@ NPCs who interacted significantly with the original player (trust >= 40 or trust
 gain a reference in their profile:
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 npc.previousAdventurerRelationship = {
   knew: true,
-  sentiment: deriveSentiment(npc.trust),  // "fond", "wary", "hostile", "indifferent"
+  sentiment: deriveSentiment(npc.trust), // "fond", "wary", "hostile", "indifferent"
   referenceStyle: deriveReferenceStyle(npc),
   // e.g. "Mentions 'the bartender' when discussing the conspiracy.
   //  Speaks with guarded respect."
@@ -359,6 +370,7 @@ Use the adventure-authoring Encounter Tables format: d6 tables, escalation-tiere
 appropriate, at least one social and one empty result per table.
 
 World flags influence table composition:
+
 - `faction_{name}_hostile` -> increase hostile faction patrol encounters
 - `creature_{type}_cleared` -> remove that creature type from location tables
 - `location_{name}_damaged` -> add environmental hazard entries
@@ -372,36 +384,36 @@ with additional export-specific fields:
 ---
 format: text-adventure-lore
 version: 1
-skill-version: "1.0.0"
+skill-version: '1.0.0'
 
-title: "Freeport Meridian — After the Conspiracy"
-subtitle: "An exported world from The Oxidiser Conspiracy"
-author: "Exported from live session"
+title: 'Freeport Meridian — After the Conspiracy'
+subtitle: 'An exported world from The Oxidiser Conspiracy'
+author: 'Exported from live session'
 theme: space
 tone: thriller
 acts: 3
-estimated-scenes: "15-20"
-players: "1"
+estimated-scenes: '15-20'
+players: '1'
 difficulty: moderate
 
 exported: true
-exported-from: "Gareth Williams — Scene 12"
-exported-date: "2026-03-20T08:30:00Z"
-original-seed: "pale-threshold-7"
+exported-from: 'Gareth Williams — Scene 12'
+exported-date: '2026-03-20T08:30:00Z'
+original-seed: 'pale-threshold-7'
 rulebook: d20_system
-world-state: "post-act-1"
+world-state: 'post-act-1'
 previous-adventurer:
-  name: "Gareth Williams"
-  class: "Bartender"
-  fate: "Left Freeport Meridian after uncovering the conspiracy"
+  name: 'Gareth Williams'
+  class: 'Bartender'
+  fate: 'Left Freeport Meridian after uncovering the conspiracy'
 
 recommended-styles:
   output: Sci-Fi-Narrator
   visual: station
 
-calendar-system: "Station Standard (24h, 365-day cycle)"
-start-date: "2347-03-16"
-start-time: "0900 hours"
+calendar-system: 'Station Standard (24h, 365-day cycle)'
+start-date: '2347-03-16'
+start-time: '0900 hours'
 
 required-modules:
   - core-systems
@@ -419,14 +431,14 @@ optional-modules:
 
 **Export-specific frontmatter fields:**
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `exported` | boolean | Always `true` — identifies this as an exported world, not a hand-authored adventure |
-| `exported-from` | string | Character name and scene number at time of export |
-| `exported-date` | string | ISO 8601 timestamp of the real-world export time |
-| `original-seed` | string | World generation seed (if the original game was procedural/hybrid) |
-| `world-state` | string | Narrative state: `"post-act-1"`, `"post-act-2"`, `"post-adventure"`, `"mid-adventure"` |
-| `previous-adventurer` | object | Name, class, and fate summary of the original player's character |
+| Field                 | Type    | Description                                                                            |
+| --------------------- | ------- | -------------------------------------------------------------------------------------- |
+| `exported`            | boolean | Always `true` — identifies this as an exported world, not a hand-authored adventure    |
+| `exported-from`       | string  | Character name and scene number at time of export                                      |
+| `exported-date`       | string  | ISO 8601 timestamp of the real-world export time                                       |
+| `original-seed`       | string  | World generation seed (if the original game was procedural/hybrid)                     |
+| `world-state`         | string  | Narrative state: `"post-act-1"`, `"post-act-2"`, `"post-adventure"`, `"mid-adventure"` |
+| `previous-adventurer` | object  | Name, class, and fate summary of the original player's character                       |
 
 These fields are informational. The GM reads them for context when loading the exported
 `.lore.md` — they do not change how the file is parsed. An exported `.lore.md` loads
@@ -467,21 +479,21 @@ and download mechanism automatically.
 
 The GM provides the export data via `tag state` fields:
 
-| Field | Source |
-|-------|--------|
-| `characterName` | `gmState.character.name` |
-| `characterClass` | `gmState.character.class` |
-| `scenesPlayed` | `gmState.scene` |
-| `locationCount` | `Object.keys(gmState.mapState?.rooms ?? {}).length` |
-| `npcCount` | `(gmState.rosterMutations ?? []).length` |
-| `threadCount` | `(gmState.storyArchitect?.storyThreads ?? []).length` |
-| `factionCount` | `Object.keys(gmState.factions ?? {}).length` |
-| `flagCount` | `Object.keys(gmState.worldFlags ?? {}).length` |
-| `worldState` | Derived: `"post-act-1"`, `"post-act-2"`, etc. |
-| `exportCount` | `gmState.exportState?.exportCount ?? 0` |
-| `originalSeed` | `gmState.seed ?? null` |
-| `adventurerFate` | Derived from character fate |
-| `loreFileContent` | Complete `.lore.md` string (Steps 2-10) |
+| Field             | Source                                                |
+| ----------------- | ----------------------------------------------------- |
+| `characterName`   | `gmState.character.name`                              |
+| `characterClass`  | `gmState.character.class`                             |
+| `scenesPlayed`    | `gmState.scene`                                       |
+| `locationCount`   | `Object.keys(gmState.mapState?.rooms ?? {}).length`   |
+| `npcCount`        | `(gmState.rosterMutations ?? []).length`              |
+| `threadCount`     | `(gmState.storyArchitect?.storyThreads ?? []).length` |
+| `factionCount`    | `Object.keys(gmState.factions ?? {}).length`          |
+| `flagCount`       | `Object.keys(gmState.worldFlags ?? {}).length`        |
+| `worldState`      | Derived: `"post-act-1"`, `"post-act-2"`, etc.         |
+| `exportCount`     | `gmState.exportState?.exportCount ?? 0`               |
+| `originalSeed`    | `gmState.seed ?? null`                                |
+| `adventurerFate`  | Derived from character fate                           |
+| `loreFileContent` | Complete `.lore.md` string (Steps 2-10)               |
 
 The export button uses `sendPrompt()` to ask Claude to generate the `.lore.md` as a
 downloadable artifact. If `sendPrompt()` is unavailable, the widget falls back to
@@ -494,11 +506,12 @@ displaying the content in a readonly textarea with a copy button.
 The Adventure Exporting module adds a single key to `gmState`:
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 gmState.exportState = {
-  available: true,          // whether export is currently possible
-  lastExport: null,         // ISO timestamp of last export, or null
-  exportCount: 0,           // how many times this world has been exported
+  available: true, // whether export is currently possible
+  lastExport: null, // ISO timestamp of last export, or null
+  exportCount: 0, // how many times this world has been exported
 };
 ```
 
@@ -520,18 +533,18 @@ export_count               // number of exports (numeric flag)
 
 ### Dependency on Other Modules
 
-| Module | What export reads from it |
-|--------|--------------------------|
-| adventure-authoring | Target file format, section structure, frontmatter schema |
-| save-codex | sendPrompt download pattern, file naming convention |
-| story-architect | Story threads, foreshadowing, consequence chains, NPC arcs, pacing |
-| world-history | Epochs, power structures, past conflicts, cultural layer |
-| core-systems | Factions, quests, economy state, time/calendar |
-| lore-codex | Codex entries (all reset to locked in export) |
-| ai-npc | NPC profiles, trust values, dispositions, secrets |
-| geo-map | Location atlas, room graph, physical state |
-| bestiary | Creature pool for encounter table generation |
-| procedural-world-gen | Seed string (preserved in frontmatter for hybrid mode) |
+| Module               | What export reads from it                                          |
+| -------------------- | ------------------------------------------------------------------ |
+| adventure-authoring  | Target file format, section structure, frontmatter schema          |
+| save-codex           | sendPrompt download pattern, file naming convention                |
+| story-architect      | Story threads, foreshadowing, consequence chains, NPC arcs, pacing |
+| world-history        | Epochs, power structures, past conflicts, cultural layer           |
+| core-systems         | Factions, quests, economy state, time/calendar                     |
+| lore-codex           | Codex entries (all reset to locked in export)                      |
+| ai-npc               | NPC profiles, trust values, dispositions, secrets                  |
+| geo-map              | Location atlas, room graph, physical state                         |
+| bestiary             | Creature pool for encounter table generation                       |
+| procedural-world-gen | Seed string (preserved in frontmatter for hybrid mode)             |
 
 ---
 
@@ -555,36 +568,36 @@ The GM offers an export. The player accepts. Here is the resulting `.lore.md` (a
 ---
 format: text-adventure-lore
 version: 1
-skill-version: "1.0.0"
+skill-version: '1.0.0'
 
-title: "Freeport Meridian — After the Conspiracy"
-subtitle: "An exported world from The Oxidiser Conspiracy"
-author: "Exported from live session"
+title: 'Freeport Meridian — After the Conspiracy'
+subtitle: 'An exported world from The Oxidiser Conspiracy'
+author: 'Exported from live session'
 theme: space
 tone: thriller
 acts: 3
-estimated-scenes: "15-20"
-players: "1"
+estimated-scenes: '15-20'
+players: '1'
 difficulty: moderate
 
 exported: true
-exported-from: "Gareth Williams — Scene 12"
-exported-date: "2026-03-20T08:30:00Z"
-original-seed: "pale-threshold-7"
+exported-from: 'Gareth Williams — Scene 12'
+exported-date: '2026-03-20T08:30:00Z'
+original-seed: 'pale-threshold-7'
 rulebook: d20_system
-world-state: "post-act-1"
+world-state: 'post-act-1'
 previous-adventurer:
-  name: "Gareth Williams"
-  class: "Bartender"
-  fate: "Left Freeport Meridian after uncovering the conspiracy"
+  name: 'Gareth Williams'
+  class: 'Bartender'
+  fate: 'Left Freeport Meridian after uncovering the conspiracy'
 
 recommended-styles:
   output: Sci-Fi-Narrator
   visual: station
 
-calendar-system: "Station Standard (24h, 365-day cycle)"
-start-date: "2347-03-16"
-start-time: "0900 hours"
+calendar-system: 'Station Standard (24h, 365-day cycle)'
+start-date: '2347-03-16'
+start-time: '0900 hours'
 
 required-modules:
   - core-systems
@@ -601,6 +614,7 @@ optional-modules:
 ## World History
 
 ### Epoch 1 — The Founding Compact (~340 years ago)
+
 - **Era:** Foundation
 - **Key event:** Six independent mining consortia signed the Compact, pooling transit
   rights and establishing Freeport Meridian at the waypoint.
@@ -611,6 +625,7 @@ optional-modules:
   attendance has dwindled.
 
 ### Epoch 2 — The Expansion Wars (~190-160 years ago)
+
 - **Era:** Conflict
 - **Key event:** Three decades of intermittent conflict as rival sector powers
   contested transit routes. The station changed administrative control four times.
@@ -622,6 +637,7 @@ optional-modules:
   outer-ring residents.
 
 ### Epoch 3 — The Great Refit (~80 years ago)
+
 - **Era:** Modernisation
 - **Key event:** A twenty-year infrastructure project funded by a Sector Authority
   development bond — the first Sector money accepted by Meridian governance.
@@ -633,6 +649,7 @@ optional-modules:
   The technical culture is now more Sector-aligned than the governance.
 
 ### Epoch 4 — The Quiet Decade (~25-15 years ago)
+
 - **Era:** Prosperity
 - **Key event:** Ten years of relative prosperity — high transit traffic, low faction
   conflict. The Oxidiser bar opened during this period.
@@ -642,6 +659,7 @@ optional-modules:
   of stability the current climate cannot meet.
 
 ### Epoch 5 — The Contract Dispute (~8 years ago to present)
+
 - **Era:** Tension
 - **Key event:** The Consortium attempted to renegotiate resupply contracts with the
   outer ring's independent operators. The outer ring refused. Transit traffic on Level 2
@@ -652,6 +670,7 @@ optional-modules:
   The Oxidiser bar is still open — barely.
 
 ### Epoch 6 — The Oxidiser Conspiracy (recent)
+
 - **Era:** Upheaval
 - **Key event:** A bartender named Gareth Williams discovered a cargo manifest
   discrepancy that led to the exposure of the Consortium's bond arrangement with
@@ -663,7 +682,6 @@ optional-modules:
   The Outer Ring Residents' Association is preparing legal action with actual evidence.
   The Oxidiser bar has a new owner. Regulars still mention "the old bartender."
 
-
 ## Previous Adventurer
 
 ### Gareth Williams — The Bartender Who Uncovered the Conspiracy
@@ -673,6 +691,7 @@ secret. When a data chip appeared under his bar counter with his name etched int
 it, he could have ignored it. He did not.
 
 **Major decisions:**
+
 - Allied with Station Authority over the Grey Network
 - Revealed the bond documentation to Inspector Torr
 - Discovered the crawlway maintenance network beneath The Oxidiser
@@ -683,6 +702,7 @@ passed to a new owner. The master keycard was left behind — the back office
 is unlocked.
 
 **NPCs who remember him:**
+
 - Seren Voss — guarded respect. "He did what he thought was right. I cannot
   fault the intent, only the cost."
 - Renko — warm nostalgia. "Best bartender this station ever had. Not saying
@@ -690,10 +710,10 @@ is unlocked.
 - Officer Tomas — professional appreciation. "A civilian who understood procedure.
   Rare and valuable."
 
-
 ## Location Atlas
 
 ### The Oxidiser — Bar Floor
+
 - **Type:** Interior, social hub
 - **Description:** Twenty-three stools, nine booths, one battered pool table.
   Strip-lighting casts everything in amber. A photograph behind the bar shows
@@ -712,6 +732,7 @@ is unlocked.
   reference the old bartender. The crawlway access is an established route.
 
 ### Deck 3 — Cargo Bay
+
 - **Type:** Interior, transit zone
 - **Description:** High-ceilinged bay with rows of cargo containers, automated
   drones scanning crate manifests. The lighting was replaced recently — brighter
@@ -726,6 +747,7 @@ is unlocked.
   presence has increased since the conspiracy was exposed.
 
 ### Deck 6-7 Crawlways
+
 - **Type:** Interior, transit route (maintenance)
 - **Description:** Narrow maintenance corridors running between the main decks.
   Dim emergency lighting. Cables and pipe runs along the walls. Boot prints in
@@ -740,10 +762,10 @@ is unlocked.
 - **Story relevance:** Discovered by the previous adventurer. Now an
   established alternative route through the station.
 
-
 ## NPC Roster
 
 ### Seren Voss — The Grey Coat Woman
+
 - **Role:** Catalyst / potential ally or antagonist
 - **Species/Background:** Human, off-station. Expensive taste, real-gravity
   bearing. Mid-forties, sharp eyes, no wasted movements.
@@ -765,6 +787,7 @@ is unlocked.
   qualities — courage, discretion, willingness to act.
 
 ### Renko — The Regular
+
 - **Role:** Informant / comic relief / canary
 - **Species/Background:** Human, station-born. Dock worker, forty years on
   Meridian, knows everyone's business.
@@ -785,6 +808,7 @@ is unlocked.
   the old bartender to anyone who listens. These stories are mostly accurate.
 
 ### Officer Tomas — Station Authority
+
 - **Role:** Ally / law enforcement contact
 - **Species/Background:** Human, transferred to Meridian five years ago.
   Thorough, principled, occasionally inflexible.
@@ -805,15 +829,16 @@ is unlocked.
   reference Gareth Williams as an example of productive civilian cooperation
   if the topic arises naturally.
 
-
 ## Story Spine
 
 ### Act 1 — The Aftermath (Scenes 1-5)
+
 **Tension range:** 2-5
 **Goal:** Establish the post-conspiracy world, introduce the new player to a
 changed station, plant seeds for the next conflict.
 
 #### Beat 1: Arrival (Scene 1)
+
 - **Type:** Discovery
 - **Setup:** The new player arrives on Freeport Meridian — or has been here
   all along and is now drawn into events. The station is different from what
@@ -827,6 +852,7 @@ changed station, plant seeds for the next conflict.
   - Follow rumours of the Grey Network -> encounter Voss's rebuilt operation
 
 #### Beat 2: Echoes (Scenes 2-3)
+
 - **Type:** Discovery / social
 - **Setup:** The consequences of the previous adventure are visible everywhere.
   Empty units on Level 2. Increased security on Deck 3. Outer-ring residents
@@ -837,26 +863,29 @@ changed station, plant seeds for the next conflict.
   - Investigate independently -> find details neither side advertises
 
 ### Act 2 — The New Conflict (Scenes 6-12)
+
 **Tension range:** 4-8
 **Goal:** The post-conspiracy power vacuum creates a new conflict. The outer ring
 is preparing legal action. The Consortium is manoeuvring. The Grey Network is
 rebuilding. The new player is drawn in — by choice or circumstance.
 
 #### Beat 4: The Reversal
+
 - **Type:** Revelation
 - **Setup:** [Seeded — the specific reversal depends on the new player's choices
   and the GM's adaptation of the post-conspiracy dynamics. The previous adventure's
   consequences create multiple possible reversal vectors.]
 
 ### Act 3 — Resolution (Scenes 13-15+)
+
 **Tension range:** 6-10 then 3-4
 **Goal:** Climax and denouement for the new conflict, shaped by the new player's
 decisions and the world the previous adventurer left behind.
 
-
 ## Encounter Tables
 
 ### The Oxidiser — Random Patrons (d6)
+
 1. A transit crew member asking about "the old bartender" — heard the story on
    another station
 2. Off-duty Authority officer, more relaxed than they used to be, willing to chat
@@ -870,21 +899,23 @@ decisions and the world the previous adventurer left behind.
 ### Deck 3 Cargo Bay — Encounters by Escalation Tier
 
 #### Tier 1 — Post-Conspiracy Quiet (d4)
+
 1. Empty — security cameras active, the bay is calmer than it used to be
 2. Authority inspector reviewing manifests with notably more attention than before
 3. Dock worker who remembers the conspiracy — will share opinions freely
 4. Automated cargo drone. New model — Authority-requisitioned after the conspiracy.
 
 #### Tier 2 — Tensions Rising (d4)
+
 1. Grey Network operative, cautiously re-establishing presence. Testing the waters.
 2. Authority patrol — doubled since the conspiracy. They know the player's face.
 3. Outer-ring courier using unofficial channels. The network survived, diminished.
 4. A locked cargo container with manifests that do not quite add up. Again.
 
-
 ## Loot and Rewards
 
 ### Act 1 Rewards
+
 - **Exploring post-conspiracy Oxidiser:** 25 XP, Renko as contact, stories of the
   previous adventurer
 - **Meeting Officer Tomas:** 30 XP, Authority trust +10, access to public records
@@ -894,18 +925,18 @@ decisions and the world the previous adventurer left behind.
 
 ### Merchant Inventory — Vex's Salvage Emporium (Deck 5)
 
-| Item | Type | Tier | Price | Effect |
-|------|------|------|-------|--------|
-| Stim Pack | Consumable | 1 | 25 cr | Restore 2d6 HP |
-| Signal Jammer | Gear | 2 | 80 cr | +2 Stealth near electronics |
-| Authority-Issue Scanner | Gear | 2 | 120 cr | +2 Investigation in cargo areas |
-| Patched Enviro-Suit | Armour | 2 | 150 cr | +2 AC, resist vacuum (1 scene) |
-| Consortium Access Token | Gear | 3 | 350 cr | Bypass Tier 1 Consortium security |
-
+| Item                    | Type       | Tier | Price  | Effect                            |
+| ----------------------- | ---------- | ---- | ------ | --------------------------------- |
+| Stim Pack               | Consumable | 1    | 25 cr  | Restore 2d6 HP                    |
+| Signal Jammer           | Gear       | 2    | 80 cr  | +2 Stealth near electronics       |
+| Authority-Issue Scanner | Gear       | 2    | 120 cr | +2 Investigation in cargo areas   |
+| Patched Enviro-Suit     | Armour     | 2    | 150 cr | +2 AC, resist vacuum (1 scene)    |
+| Consortium Access Token | Gear       | 3    | 350 cr | Bypass Tier 1 Consortium security |
 
 ## Faction Dynamics
 
 ### Station Authority
+
 - **Starting disposition:** Friendly (+10)
 - **Context:** The previous adventurer cooperated extensively with Station Authority.
   Residual goodwill extends to new faces — slightly. Officer Tomas speaks well of
@@ -918,6 +949,7 @@ decisions and the world the previous adventurer left behind.
 - **At -50 (Hostile):** Wanted status, security patrols actively searching
 
 ### The Grey Network
+
 - **Starting disposition:** Hostile (-20)
 - **Context:** The previous adventurer's alliance with Authority disrupted Grey Network
   operations. Seren Voss is cautious about new faces. Trust must be built from scratch
@@ -930,6 +962,7 @@ decisions and the world the previous adventurer left behind.
 - **At -50 (Hostile):** Grey Network operatives treat the player as a direct threat
 
 ### Meridian Docking Consortium
+
 - **Starting disposition:** Neutral-wary (-10)
 - **Context:** The Consortium is weakened after the bond documentation exposure. They
   are defensive, politically manoeuvring, and suspicious of outsiders asking questions.
@@ -939,6 +972,7 @@ decisions and the world the previous adventurer left behind.
   claims, publishes evidence of Consortium misconduct
 
 ### Linked Factions
+
 - Station Authority and The Grey Network are **opposed**. Gaining +20 with one
   imposes -10 on the other.
 - The Consortium and Station Authority are **uneasy allies**. The bond arrangement

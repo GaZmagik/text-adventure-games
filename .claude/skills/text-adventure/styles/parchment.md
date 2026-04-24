@@ -14,6 +14,23 @@ best-for:
   - any genre where tactile warmth suits the fiction
 ---
 
+```json tag-contract
+{
+  "id": "parchment",
+  "kind": "style",
+  "version": "1.4.0",
+  "summary": "Warm manuscript style with aged-paper surfaces, serif typography, burgundy and gold accents, and shadow-based depth.",
+  "mustRead": [
+    "Pair with styles/style-reference.md for structural contracts.",
+    "Use tactile paper, ink, wax, and leather cues without obscuring body text readability."
+  ],
+  "render": [
+    "Depth should come from soft page shadows rather than hard technical borders.",
+    "Best for fantasy, historical, gothic, mystery, and dark-fantasy scenarios."
+  ]
+}
+```
+
 ## Design Philosophy
 
 Parchment renders the game as a living document — the kind a monastic scribe might produce
@@ -51,15 +68,15 @@ Lora → Merriweather → Georgia → Times New Roman → any serif.
 
 ### Scale
 
-| Role               | Size    | Weight | Line Height |
-|--------------------|---------|--------|-------------|
-| Scene title (h2)   | 22px    | 700    | 1.2         |
-| Panel heading (h3) | 16px    | 600    | 1.3         |
-| Section label      | 10px    | 600    | 1.4 (caps)  |
-| Body / narrative   | 15px    | 400    | 1.85        |
-| Caption / atmo     | 12px    | 400    | 1.5 (italic)|
-| Mechanical (mono)  | 11px    | 500    | 1.4         |
-| Footer / UI micro  | 10px    | 400    | 1.4         |
+| Role               | Size | Weight | Line Height  |
+| ------------------ | ---- | ------ | ------------ |
+| Scene title (h2)   | 22px | 700    | 1.2          |
+| Panel heading (h3) | 16px | 600    | 1.3          |
+| Section label      | 10px | 600    | 1.4 (caps)   |
+| Body / narrative   | 15px | 400    | 1.85         |
+| Caption / atmo     | 12px | 400    | 1.5 (italic) |
+| Mechanical (mono)  | 11px | 500    | 1.4          |
+| Footer / UI micro  | 10px | 400    | 1.4          |
 
 Narrative body uses a generous 1.85 line-height — wider than UI default — to evoke the
 airy layout of typeset books and give the eye room to breathe between long passages.
@@ -142,13 +159,13 @@ both apply the dark set.
 
 All text/background pairings meet a minimum 4.5:1 contrast ratio:
 
-| Text token           | On background           | Approx ratio |
-|----------------------|-------------------------|--------------|
-| `--pt-text-primary`  | `--pt-bg-page` (light)  | ~12:1        |
-| `--pt-text-secondary`| `--pt-bg-page` (light)  | ~5.5:1       |
-| `--pt-text-inverse`  | `--pt-accent-burgundy`  | ~7:1         |
-| `--pt-text-primary`  | `--pt-bg-page` (dark)   | ~11:1        |
-| `--pt-text-secondary`| `--pt-bg-page` (dark)   | ~5:1         |
+| Text token            | On background          | Approx ratio |
+| --------------------- | ---------------------- | ------------ |
+| `--pt-text-primary`   | `--pt-bg-page` (light) | ~12:1        |
+| `--pt-text-secondary` | `--pt-bg-page` (light) | ~5.5:1       |
+| `--pt-text-inverse`   | `--pt-accent-burgundy` | ~7:1         |
+| `--pt-text-primary`   | `--pt-bg-page` (dark)  | ~11:1        |
+| `--pt-text-secondary` | `--pt-bg-page` (dark)  | ~5:1         |
 
 `--pt-text-tertiary` meets 4.5:1 against page background in both modes. It must not be
 used for meaningful body text — only decorative labels and disabled states.
@@ -192,9 +209,9 @@ CSS radial gradients layered to simulate fibrous paper:
 
 ```css
 background-image:
-  radial-gradient(ellipse at 20% 30%, rgba(196,150,60,0.04) 0%, transparent 60%),
-  radial-gradient(ellipse at 80% 70%, rgba(139,34,82,0.03) 0%, transparent 50%),
-  radial-gradient(ellipse at 50% 50%, rgba(44,24,16,0.02) 0%, transparent 80%);
+  radial-gradient(ellipse at 20% 30%, rgba(196, 150, 60, 0.04) 0%, transparent 60%),
+  radial-gradient(ellipse at 80% 70%, rgba(139, 34, 82, 0.03) 0%, transparent 50%),
+  radial-gradient(ellipse at 50% 50%, rgba(44, 24, 16, 0.02) 0%, transparent 80%);
 ```
 
 Apply to `.root` or the page wrapper. These gradients are subtle and purpose-built to add
@@ -228,7 +245,7 @@ All buttons use `min-height: 44px; min-width: 44px` (WCAG 2.5.5 touch target).
 These replace the coral/coral-hover palette with burgundy on parchment:
 
 ```css
-background: rgba(139, 34, 82, 0.10);
+background: rgba(139, 34, 82, 0.1);
 border: 1px solid var(--pt-border-accent);
 color: var(--pt-text-primary);
 box-shadow: var(--pt-shadow-button);
@@ -238,8 +255,9 @@ border-radius: var(--pt-radius-md);
 ```
 
 Hover state simulates embossed leather depression:
+
 ```css
-background: rgba(139, 34, 82, 0.20);
+background: rgba(139, 34, 82, 0.2);
 box-shadow: var(--pt-shadow-button-press);
 transform: translateY(1px);
 ```
@@ -247,6 +265,7 @@ transform: translateY(1px);
 #### Continue / primary CTA (`.continue-btn`)
 
 Solid burgundy with cream text and gold underline accent:
+
 ```css
 background: var(--pt-accent-burgundy);
 color: var(--pt-text-inverse);
@@ -262,6 +281,7 @@ border-radius: var(--pt-radius-md);
 #### Footer toggle buttons (`.footer-btn`)
 
 Minimal, ink-toned — they should recede from the narrative:
+
 ```css
 background: transparent;
 border: 0.5px solid var(--pt-border-medium);
@@ -299,7 +319,6 @@ instant state changes (no intermediate animation, no transform).
 ```css
 /* === Motion-permitted transitions === */
 @media (prefers-reduced-motion: no-preference) {
-
   /* Button press */
   .action-btn,
   .btn-action,
@@ -308,17 +327,24 @@ instant state changes (no intermediate animation, no transform).
     transition:
       background 0.15s ease,
       box-shadow 0.15s ease,
-      transform   0.10s ease,
+      transform 0.1s ease,
       border-color 0.15s ease;
   }
 
   /* Panel slide-in from right edge */
   .panel {
-    transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
-                opacity   0.18s ease;
+    transition:
+      transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.18s ease;
   }
-  .panel[hidden] { transform: translateX(16px); opacity: 0; }
-  .panel:not([hidden]) { transform: translateX(0);  opacity: 1; }
+  .panel[hidden] {
+    transform: translateX(16px);
+    opacity: 0;
+  }
+  .panel:not([hidden]) {
+    transform: translateX(0);
+    opacity: 1;
+  }
 
   /* Narrative progressive reveal — fade up */
   .narrative {
@@ -332,7 +358,9 @@ instant state changes (no intermediate animation, no transform).
 
   /* Pip fill (HP dots) */
   .pip {
-    transition: background 0.2s ease, border-color 0.2s ease;
+    transition:
+      background 0.2s ease,
+      border-color 0.2s ease;
   }
 
   /* Die roll result number count-up — handled by JS;
@@ -342,19 +370,30 @@ instant state changes (no intermediate animation, no transform).
   }
 
   @keyframes pt-fade-up {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0);   }
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   @keyframes pt-pop {
-    from { transform: scale(0.85); opacity: 0.6; }
-    to   { transform: scale(1);    opacity: 1;   }
+    from {
+      transform: scale(0.85);
+      opacity: 0.6;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
 }
 
 /* === Reduced-motion: instant state changes, no animation === */
 @media (prefers-reduced-motion: reduce) {
-
   .action-btn,
   .btn-action,
   .continue-btn,
@@ -364,7 +403,7 @@ instant state changes (no intermediate animation, no transform).
   .pip,
   .die-result-value {
     transition: none;
-    animation:  none;
+    animation: none;
   }
 }
 ```
@@ -414,11 +453,14 @@ See Interactive Elements above. Remove the dashed-border default; replace with s
 ### Danger action (`.danger-btn`)
 
 Retain the red/coral intent but shift hue towards aged crimson:
+
 ```
 background: rgba(180, 40, 40, 0.10);
 border-color: rgba(180, 40, 40, 0.35);
 ```
+
 Hover:
+
 ```
 background: rgba(180, 40, 40, 0.22);
 ```
@@ -524,89 +566,94 @@ tag after the base engine styles. It uses the CSS cascade — only override what
 
 /* ── Custom Properties: Light (default) ─────────────────────────── */
 :host {
-  --pt-bg-page:             #F5F0E8;
-  --pt-bg-surface:          #EDE6D6;
-  --pt-bg-inset:            #E4DACA;
-  --pt-bg-accent-wash:      #FAF6EE;
+  --pt-bg-page: #f5f0e8;
+  --pt-bg-surface: #ede6d6;
+  --pt-bg-inset: #e4daca;
+  --pt-bg-accent-wash: #faf6ee;
 
-  --pt-text-primary:        #2C1810;
-  --pt-text-secondary:      #5C3D2E;
-  --pt-text-tertiary:       #8B6B55;
-  --pt-text-inverse:        #F5F0E8;
+  --pt-text-primary: #2c1810;
+  --pt-text-secondary: #5c3d2e;
+  --pt-text-tertiary: #8b6b55;
+  --pt-text-inverse: #f5f0e8;
 
-  --pt-accent-burgundy:     #8B2252;
-  --pt-accent-burgundy-dark:#6B1A3E;
-  --pt-accent-gold:         #C4963C;
-  --pt-accent-gold-light:   #DDB96A;
-  --pt-accent-green:        #2D5016;
-  --pt-accent-green-mid:    #3D6B1F;
+  --pt-accent-burgundy: #8b2252;
+  --pt-accent-burgundy-dark: #6b1a3e;
+  --pt-accent-gold: #c4963c;
+  --pt-accent-gold-light: #ddb96a;
+  --pt-accent-green: #2d5016;
+  --pt-accent-green-mid: #3d6b1f;
 
-  --pt-border-soft:         rgba(44, 24, 16, 0.12);
-  --pt-border-medium:       rgba(44, 24, 16, 0.22);
-  --pt-border-accent:       rgba(139, 34, 82, 0.35);
-  --pt-border-gold:         rgba(196, 150, 60, 0.45);
+  --pt-border-soft: rgba(44, 24, 16, 0.12);
+  --pt-border-medium: rgba(44, 24, 16, 0.22);
+  --pt-border-accent: rgba(139, 34, 82, 0.35);
+  --pt-border-gold: rgba(196, 150, 60, 0.45);
 
-  --pt-shadow-page:         0 2px 12px rgba(44, 24, 16, 0.10);
-  --pt-shadow-surface:      0 1px  6px rgba(44, 24, 16, 0.08);
-  --pt-shadow-inset:        inset 0 1px 4px rgba(44, 24, 16, 0.08);
-  --pt-shadow-lift:         0 4px 20px rgba(44, 24, 16, 0.16);
-  --pt-shadow-button:       0 2px 6px rgba(44, 24, 16, 0.20),
-                            inset 0 1px 0 rgba(255,255,255,0.25);
-  --pt-shadow-button-press: 0 1px 2px rgba(44, 24, 16, 0.25),
-                            inset 0 1px 3px rgba(44, 24, 16, 0.15);
+  --pt-shadow-page: 0 2px 12px rgba(44, 24, 16, 0.1);
+  --pt-shadow-surface: 0 1px 6px rgba(44, 24, 16, 0.08);
+  --pt-shadow-inset: inset 0 1px 4px rgba(44, 24, 16, 0.08);
+  --pt-shadow-lift: 0 4px 20px rgba(44, 24, 16, 0.16);
+  --pt-shadow-button: 0 2px 6px rgba(44, 24, 16, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  --pt-shadow-button-press: 0 1px 2px rgba(44, 24, 16, 0.25), inset 0 1px 3px rgba(44, 24, 16, 0.15);
 
-  --pt-radius-sm:   4px;
-  --pt-radius-md:   8px;
-  --pt-radius-lg:   12px;
-  --pt-radius-xl:   16px;
+  --pt-space-xs: 4px;
+  --pt-space-sm: 8px;
+  --pt-space-md: 16px;
+  --pt-space-lg: 24px;
+  --pt-space-xl: 36px;
+  --pt-space-2xl: 52px;
+
+  --pt-radius-sm: 4px;
+  --pt-radius-md: 8px;
+  --pt-radius-lg: 12px;
+  --pt-radius-xl: 16px;
   --pt-radius-pill: 999px;
 
   --pt-font-serif: 'Lora', 'Merriweather', Georgia, 'Times New Roman', serif;
-  --pt-font-mono:  'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  --pt-font-mono: 'IBM Plex Mono', 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
 
   --pt-content-max: 680px;
 
   /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
-  --ta-font-heading:              var(--pt-font-serif);
-  --ta-font-body:                 var(--pt-font-mono);
-  --ta-color-accent:              var(--pt-accent-burgundy);
-  --ta-color-accent-hover:        var(--pt-accent-burgundy-dark);
-  --ta-color-accent-bg:           rgba(139, 34, 82, 0.08);
-  --ta-color-accent-bg-hover:     rgba(139, 34, 82, 0.15);
-  --ta-color-success:             var(--pt-accent-green);
-  --ta-color-success-border:      var(--pt-accent-green-mid);
-  --ta-color-danger:              var(--pt-accent-burgundy);
-  --ta-color-danger-border:       var(--pt-accent-burgundy-dark);
-  --ta-color-danger-bg:           rgba(139, 34, 82, 0.08);
-  --ta-color-danger-bg-hover:     rgba(139, 34, 82, 0.15);
-  --ta-color-warning:             var(--pt-accent-gold);
-  --ta-color-warning-border:      color-mix(in srgb, var(--pt-accent-gold) 70%, black);
-  --ta-color-warning-bg:          rgba(196, 150, 60, 0.08);
-  --ta-color-xp:                  var(--pt-accent-gold);
-  --ta-color-focus:               var(--pt-accent-burgundy);
-  --ta-color-conviction:          #7C6BF0;
-  --ta-color-conviction-border:   #6B5CE0;
-  --ta-badge-success-bg:          rgba(45, 80, 22, 0.10);
-  --ta-badge-success-text:        var(--pt-accent-green);
-  --ta-badge-partial-bg:          rgba(196, 150, 60, 0.10);
-  --ta-badge-partial-text:        var(--pt-accent-gold);
-  --ta-badge-failure-bg:          rgba(139, 34, 82, 0.10);
-  --ta-badge-failure-text:        var(--pt-accent-burgundy);
+  --ta-font-heading: var(--pt-font-serif);
+  --ta-font-body: var(--pt-font-mono);
+  --ta-color-accent: var(--pt-accent-burgundy);
+  --ta-color-accent-hover: var(--pt-accent-burgundy-dark);
+  --ta-color-accent-bg: rgba(139, 34, 82, 0.08);
+  --ta-color-accent-bg-hover: rgba(139, 34, 82, 0.15);
+  --ta-color-success: var(--pt-accent-green);
+  --ta-color-success-border: var(--pt-accent-green-mid);
+  --ta-color-danger: var(--pt-accent-burgundy);
+  --ta-color-danger-border: var(--pt-accent-burgundy-dark);
+  --ta-color-danger-bg: rgba(139, 34, 82, 0.08);
+  --ta-color-danger-bg-hover: rgba(139, 34, 82, 0.15);
+  --ta-color-warning: var(--pt-accent-gold);
+  --ta-color-warning-border: color-mix(in srgb, var(--pt-accent-gold) 70%, black);
+  --ta-color-warning-bg: rgba(196, 150, 60, 0.08);
+  --ta-color-xp: var(--pt-accent-gold);
+  --ta-color-focus: var(--pt-accent-burgundy);
+  --ta-color-conviction: #7c6bf0;
+  --ta-color-conviction-border: #6b5ce0;
+  --ta-badge-success-bg: rgba(45, 80, 22, 0.1);
+  --ta-badge-success-text: var(--pt-accent-green);
+  --ta-badge-partial-bg: rgba(196, 150, 60, 0.1);
+  --ta-badge-partial-text: var(--pt-accent-gold);
+  --ta-badge-failure-bg: rgba(139, 34, 82, 0.1);
+  --ta-badge-failure-text: var(--pt-accent-burgundy);
   --ta-badge-crit-success-border: var(--pt-accent-green-mid);
   --ta-badge-crit-failure-border: var(--pt-accent-burgundy);
-  --ta-color-credits:             var(--pt-accent-gold);
-  --ta-color-tab-active:          var(--pt-accent-burgundy);
-  --ta-color-info:                #2B5A8A;
-  --ta-btn-primary-text:          #1a1a1a;
-  --ta-border-style-poi:          1px dashed;
-  --ta-die-spin-duration:         0.5s;
+  --ta-color-credits: var(--pt-accent-gold);
+  --ta-color-tab-active: var(--pt-accent-burgundy);
+  --ta-color-info: #2b5a8a;
+  --ta-btn-primary-text: #1a1a1a;
+  --ta-border-style-poi: 1px dashed;
+  --ta-die-spin-duration: 0.5s;
 
   /* ── --sta-* aliases (consumed by common-css.ts shared widgets) ─── */
-  --sta-text-primary:             var(--pt-text-primary);
-  --sta-text-secondary:           var(--pt-text-secondary);
-  --sta-text-tertiary:            var(--pt-text-tertiary);
-  --sta-border-tertiary:          var(--pt-border-soft);
-  --sta-color-text-emphasis:      #1a1a1a;
+  --sta-text-primary: var(--pt-text-primary);
+  --sta-text-secondary: var(--pt-text-secondary);
+  --sta-text-tertiary: var(--pt-text-tertiary);
+  --sta-border-tertiary: var(--pt-border-soft);
+  --sta-color-text-emphasis: #1a1a1a;
 
   /* --- Speaker colours (multi-dialogue) --- */
   --speaker-color-0: #6b3a2a;
@@ -620,116 +667,116 @@ tag after the base engine styles. It uses the CSS cascade — only override what
 /* ── Custom Properties: Dark ─────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
   :host {
-    --pt-bg-page:             #1C1410;
-    --pt-bg-surface:          #261C16;
-    --pt-bg-inset:            #150F0B;
-    --pt-bg-accent-wash:      #2E221A;
+    --pt-bg-page: #1c1410;
+    --pt-bg-surface: #261c16;
+    --pt-bg-inset: #150f0b;
+    --pt-bg-accent-wash: #2e221a;
 
-    --pt-text-primary:        #E8DCC8;
-    --pt-text-secondary:      #C4A882;
-    --pt-text-tertiary:       #8B7355;
-    --pt-text-inverse:        #1C1410;
+    --pt-text-primary: #e8dcc8;
+    --pt-text-secondary: #c4a882;
+    --pt-text-tertiary: #8b7355;
+    --pt-text-inverse: #1c1410;
 
-    --pt-accent-burgundy:     #C4527A;
-    --pt-accent-burgundy-dark:#A83860;
-    --pt-accent-gold:         #D4A84C;
-    --pt-accent-gold-light:   #E8C47A;
-    --pt-accent-green:        #5A8C2A;
-    --pt-accent-green-mid:    #6BA030;
+    --pt-accent-burgundy: #c4527a;
+    --pt-accent-burgundy-dark: #a83860;
+    --pt-accent-gold: #d4a84c;
+    --pt-accent-gold-light: #e8c47a;
+    --pt-accent-green: #5a8c2a;
+    --pt-accent-green-mid: #6ba030;
 
-    --pt-border-soft:         rgba(232, 220, 200, 0.08);
-    --pt-border-medium:       rgba(232, 220, 200, 0.15);
-    --pt-border-accent:       rgba(196, 82, 122, 0.30);
-    --pt-border-gold:         rgba(212, 168, 76, 0.35);
+    --pt-border-soft: rgba(232, 220, 200, 0.08);
+    --pt-border-medium: rgba(232, 220, 200, 0.15);
+    --pt-border-accent: rgba(196, 82, 122, 0.3);
+    --pt-border-gold: rgba(212, 168, 76, 0.35);
 
-    --pt-shadow-page:         0 2px 16px rgba(0, 0, 0, 0.40);
-    --pt-shadow-surface:      0 1px  8px rgba(0, 0, 0, 0.30);
-    --pt-shadow-inset:        inset 0 1px 6px rgba(0, 0, 0, 0.35);
-    --pt-shadow-lift:         0 6px 24px rgba(0, 0, 0, 0.50);
-    --pt-shadow-button:       0 2px  8px rgba(0, 0, 0, 0.40),
-                              inset 0 1px 0 rgba(255,255,255,0.08);
-    --pt-shadow-button-press: 0 1px  2px rgba(0, 0, 0, 0.50),
-                              inset 0 2px 4px rgba(0, 0, 0, 0.30);
+    --pt-shadow-page: 0 2px 16px rgba(0, 0, 0, 0.4);
+    --pt-shadow-surface: 0 1px 8px rgba(0, 0, 0, 0.3);
+    --pt-shadow-inset: inset 0 1px 6px rgba(0, 0, 0, 0.35);
+    --pt-shadow-lift: 0 6px 24px rgba(0, 0, 0, 0.5);
+    --pt-shadow-button: 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    --pt-shadow-button-press: 0 1px 2px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(0, 0, 0, 0.3);
 
-  /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
-  --ta-font-heading:              var(--pt-font-serif);
-  --ta-font-body:                 var(--pt-font-mono);
-  --ta-color-accent:              var(--pt-accent-burgundy);
-  --ta-color-accent-hover:        var(--pt-accent-burgundy-dark);
-  --ta-color-accent-bg:           rgba(139, 34, 82, 0.08);
-  --ta-color-accent-bg-hover:     rgba(139, 34, 82, 0.15);
-  --ta-color-success:             var(--pt-accent-green);
-  --ta-color-success-border:      var(--pt-accent-green-mid);
-  --ta-color-danger:              var(--pt-accent-burgundy);
-  --ta-color-danger-border:       var(--pt-accent-burgundy-dark);
-  --ta-color-danger-bg:           rgba(139, 34, 82, 0.08);
-  --ta-color-danger-bg-hover:     rgba(139, 34, 82, 0.15);
-  --ta-color-warning:             var(--pt-accent-gold);
-  --ta-color-warning-border:      color-mix(in srgb, var(--pt-accent-gold) 70%, black);
-  --ta-color-warning-bg:          rgba(196, 150, 60, 0.08);
-  --ta-color-xp:                  var(--pt-accent-gold);
-  --ta-color-focus:               var(--pt-accent-burgundy);
-  --ta-color-conviction:          #7C6BF0;
-  --ta-color-conviction-border:   #6B5CE0;
-  --ta-badge-success-bg:          rgba(45, 80, 22, 0.10);
-  --ta-badge-success-text:        var(--pt-accent-green);
-  --ta-badge-partial-bg:          rgba(196, 150, 60, 0.10);
-  --ta-badge-partial-text:        var(--pt-accent-gold);
-  --ta-badge-failure-bg:          rgba(139, 34, 82, 0.10);
-  --ta-badge-failure-text:        var(--pt-accent-burgundy);
-  --ta-badge-crit-success-border: var(--pt-accent-green-mid);
-  --ta-badge-crit-failure-border: var(--pt-accent-burgundy);
-  --ta-color-credits:             var(--pt-accent-gold);
-  --ta-color-tab-active:          var(--pt-accent-burgundy);
-  --ta-color-info:                #2B5A8A;
-  --ta-btn-primary-text:          #1a1a1a;
-  --ta-border-style-poi:          1px dashed;
-  --ta-die-spin-duration:         0.5s;
+    /* ── CSS Custom Property Contract (required by style-reference.md) ─ */
+    --ta-font-heading: var(--pt-font-serif);
+    --ta-font-body: var(--pt-font-mono);
+    --ta-color-accent: var(--pt-accent-burgundy);
+    --ta-color-accent-hover: var(--pt-accent-burgundy-dark);
+    --ta-color-accent-bg: rgba(139, 34, 82, 0.08);
+    --ta-color-accent-bg-hover: rgba(139, 34, 82, 0.15);
+    --ta-color-success: var(--pt-accent-green);
+    --ta-color-success-border: var(--pt-accent-green-mid);
+    --ta-color-danger: var(--pt-accent-burgundy);
+    --ta-color-danger-border: var(--pt-accent-burgundy-dark);
+    --ta-color-danger-bg: rgba(139, 34, 82, 0.08);
+    --ta-color-danger-bg-hover: rgba(139, 34, 82, 0.15);
+    --ta-color-warning: var(--pt-accent-gold);
+    --ta-color-warning-border: color-mix(in srgb, var(--pt-accent-gold) 70%, black);
+    --ta-color-warning-bg: rgba(196, 150, 60, 0.08);
+    --ta-color-xp: var(--pt-accent-gold);
+    --ta-color-focus: var(--pt-accent-burgundy);
+    --ta-color-conviction: #7c6bf0;
+    --ta-color-conviction-border: #6b5ce0;
+    --ta-badge-success-bg: rgba(45, 80, 22, 0.1);
+    --ta-badge-success-text: var(--pt-accent-green);
+    --ta-badge-partial-bg: rgba(196, 150, 60, 0.1);
+    --ta-badge-partial-text: var(--pt-accent-gold);
+    --ta-badge-failure-bg: rgba(139, 34, 82, 0.1);
+    --ta-badge-failure-text: var(--pt-accent-burgundy);
+    --ta-badge-crit-success-border: var(--pt-accent-green-mid);
+    --ta-badge-crit-failure-border: var(--pt-accent-burgundy);
+    --ta-color-credits: var(--pt-accent-gold);
+    --ta-color-tab-active: var(--pt-accent-burgundy);
+    --ta-color-info: #2b5a8a;
+    --ta-btn-primary-text: #1a1a1a;
+    --ta-border-style-poi: 1px dashed;
+    --ta-die-spin-duration: 0.5s;
   }
 }
 
-[data-theme="dark"] {
-  --pt-bg-page:             #1C1410;
-  --pt-bg-surface:          #261C16;
-  --pt-bg-inset:            #150F0B;
-  --pt-bg-accent-wash:      #2E221A;
-  --pt-text-primary:        #E8DCC8;
-  --pt-text-secondary:      #C4A882;
-  --pt-text-tertiary:       #8B7355;
-  --pt-text-inverse:        #1C1410;
-  --pt-accent-burgundy:     #C4527A;
-  --pt-accent-burgundy-dark:#A83860;
-  --pt-accent-gold:         #D4A84C;
-  --pt-accent-gold-light:   #E8C47A;
-  --pt-accent-green:        #5A8C2A;
-  --pt-accent-green-mid:    #6BA030;
-  --pt-border-soft:         rgba(232, 220, 200, 0.08);
-  --pt-border-medium:       rgba(232, 220, 200, 0.15);
-  --pt-border-accent:       rgba(196, 82, 122, 0.30);
-  --pt-border-gold:         rgba(212, 168, 76, 0.35);
-  --pt-shadow-page:         0 2px 16px rgba(0, 0, 0, 0.40);
-  --pt-shadow-surface:      0 1px  8px rgba(0, 0, 0, 0.30);
-  --pt-shadow-inset:        inset 0 1px 6px rgba(0, 0, 0, 0.35);
-  --pt-shadow-lift:         0 6px 24px rgba(0, 0, 0, 0.50);
-  --pt-shadow-button:       0 2px  8px rgba(0, 0, 0, 0.40),
-                            inset 0 1px 0 rgba(255,255,255,0.08);
-  --pt-shadow-button-press: 0 1px  2px rgba(0, 0, 0, 0.50),
-                            inset 0 2px 4px rgba(0, 0, 0, 0.30);
+[data-theme='dark'] {
+  --pt-bg-page: #1c1410;
+  --pt-bg-surface: #261c16;
+  --pt-bg-inset: #150f0b;
+  --pt-bg-accent-wash: #2e221a;
+  --pt-text-primary: #e8dcc8;
+  --pt-text-secondary: #c4a882;
+  --pt-text-tertiary: #8b7355;
+  --pt-text-inverse: #1c1410;
+  --pt-accent-burgundy: #c4527a;
+  --pt-accent-burgundy-dark: #a83860;
+  --pt-accent-gold: #d4a84c;
+  --pt-accent-gold-light: #e8c47a;
+  --pt-accent-green: #5a8c2a;
+  --pt-accent-green-mid: #6ba030;
+  --pt-border-soft: rgba(232, 220, 200, 0.08);
+  --pt-border-medium: rgba(232, 220, 200, 0.15);
+  --pt-border-accent: rgba(196, 82, 122, 0.3);
+  --pt-border-gold: rgba(212, 168, 76, 0.35);
+  --pt-shadow-page: 0 2px 16px rgba(0, 0, 0, 0.4);
+  --pt-shadow-surface: 0 1px 8px rgba(0, 0, 0, 0.3);
+  --pt-shadow-inset: inset 0 1px 6px rgba(0, 0, 0, 0.35);
+  --pt-shadow-lift: 0 6px 24px rgba(0, 0, 0, 0.5);
+  --pt-shadow-button: 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --pt-shadow-button-press: 0 1px 2px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* ── Page & Root ─────────────────────────────────────────────────── */
-.root, body {
+.root,
+body {
   background-color: var(--pt-bg-page);
   background-image:
-    radial-gradient(ellipse at 20% 30%, rgba(196,150,60,0.04) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 70%, rgba(139, 34,82,0.03) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 50%, rgba( 44, 24,16,0.02) 0%, transparent 80%);
+    radial-gradient(ellipse at 20% 30%, rgba(196, 150, 60, 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 70%, rgba(139, 34, 82, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(44, 24, 16, 0.02) 0%, transparent 80%);
   color: var(--pt-text-primary);
   font-family: var(--pt-font-serif);
 }
 
 /* ── Typography ──────────────────────────────────────────────────── */
-h1, h2, h3, h4 {
+h1,
+h2,
+h3,
+h4 {
   font-family: var(--pt-font-serif);
   color: var(--pt-text-primary);
   font-weight: 700;
@@ -738,7 +785,7 @@ h1, h2, h3, h4 {
 /* Override engine's Syne heading font */
 .scene-title,
 .panel-heading,
-[class*="heading"] {
+[class*='heading'] {
   font-family: var(--pt-font-serif) !important;
 }
 
@@ -786,7 +833,7 @@ h1, h2, h3, h4 {
 
 /* ── Section labels ──────────────────────────────────────────────── */
 .section-label,
-[class*="label--section"] {
+[class*='label--section'] {
   font-family: var(--pt-font-serif);
   font-size: 10px;
   font-weight: 600;
@@ -822,8 +869,13 @@ h1, h2, h3, h4 {
   height: 0.5px;
   background: var(--pt-border-gold);
 }
-.pt-divider--ornate::before { content: ''; }
-.pt-divider--ornate[data-glyph]::after { content: attr(data-glyph); flex: none; }
+.pt-divider--ornate::before {
+  content: '';
+}
+.pt-divider--ornate[data-glyph]::after {
+  content: attr(data-glyph);
+  flex: none;
+}
 
 .pt-divider--subtle {
   border-top: 0.5px solid var(--pt-border-soft);
@@ -881,7 +933,7 @@ h1, h2, h3, h4 {
 @media (prefers-color-scheme: dark) {
   .action-btn,
   .btn-action {
-    background: rgba(196, 82, 122, 0.10);
+    background: rgba(196, 82, 122, 0.1);
     border-color: var(--pt-border-accent) !important;
   }
 
@@ -893,7 +945,7 @@ h1, h2, h3, h4 {
 
 /* ── Buttons — danger ────────────────────────────────────────────── */
 .danger-btn {
-  background: rgba(180, 40, 40, 0.10);
+  background: rgba(180, 40, 40, 0.1);
   border-color: rgba(180, 40, 40, 0.35) !important;
   font-family: var(--pt-font-serif);
 }
@@ -1003,7 +1055,7 @@ select:focus-visible,
 
 .pip.damaged {
   background: rgba(180, 40, 40, 0.25);
-  border-color: rgba(180, 40, 40, 0.50);
+  border-color: rgba(180, 40, 40, 0.5);
 }
 
 /* ── XP bar ──────────────────────────────────────────────────────── */
@@ -1013,11 +1065,7 @@ select:focus-visible,
 }
 
 .xp-fill {
-  background: linear-gradient(
-    90deg,
-    var(--pt-accent-gold),
-    var(--pt-accent-burgundy)
-  );
+  background: linear-gradient(90deg, var(--pt-accent-gold), var(--pt-accent-burgundy));
   border-radius: 2px;
 }
 
@@ -1135,7 +1183,6 @@ select:focus-visible,
 
 /* ── Micro-interactions ──────────────────────────────────────────── */
 @media (prefers-reduced-motion: no-preference) {
-
   .action-btn,
   .btn-action,
   .continue-btn,
@@ -1143,16 +1190,16 @@ select:focus-visible,
   .panel-close-btn,
   .danger-btn {
     transition:
-      background     0.15s ease,
-      box-shadow     0.15s ease,
-      transform      0.10s ease,
-      border-color   0.15s ease;
+      background 0.15s ease,
+      box-shadow 0.15s ease,
+      transform 0.1s ease,
+      border-color 0.15s ease;
   }
 
   .panel {
     transition:
-      transform  0.22s cubic-bezier(0.22, 1, 0.36, 1),
-      opacity    0.18s ease;
+      transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.18s ease;
   }
 
   .panel[hidden] {
@@ -1175,8 +1222,8 @@ select:focus-visible,
 
   .pip {
     transition:
-      background    0.20s ease,
-      border-color  0.20s ease;
+      background 0.2s ease,
+      border-color 0.2s ease;
   }
 
   .die-result-value {
@@ -1184,13 +1231,25 @@ select:focus-visible,
   }
 
   @keyframes pt-fade-up {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0);   }
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   @keyframes pt-pop {
-    from { transform: scale(0.85); opacity: 0.6; }
-    to   { transform: scale(1);    opacity: 1;   }
+    from {
+      transform: scale(0.85);
+      opacity: 0.6;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
 }
 
@@ -1206,7 +1265,7 @@ select:focus-visible,
   .pip,
   .die-result-value {
     transition: none;
-    animation:  none;
+    animation: none;
   }
 }
 

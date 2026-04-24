@@ -1,5 +1,28 @@
 # Prose Craft — Sentence-Level Narrative Quality
+
 > Module for text-adventure orchestrator. Always loaded — this is a core Tier 1 module.
+
+```json tag-contract
+{
+  "id": "prose-craft",
+  "kind": "module",
+  "version": "1.4.0",
+  "summary": "Live scene prose discipline: show-don't-tell, sensory specificity, rhythm control, voice differentiation, and prose gate checks.",
+  "mustRead": [
+    "Read before every scene, not just once per session.",
+    "Apply the checklist to all narrative blocks before show_widget."
+  ],
+  "commands": [
+    "tag prose-check /tmp/scene.html",
+    "tag prose-gate --manual",
+    "tag prose-gate --llm /tmp/prose-check-result.json"
+  ],
+  "outputs": [
+    "Narrative prose should avoid filter words, named emotions, summary openings, stat language, and portentous filler.",
+    "Dialogue speakers need distinct length, diction, and cadence patterns."
+  ]
+}
+```
 
 This module enforces sentence-level prose quality in all narrative output. High-level
 guidance (voice, genre, pacing) lives in the user's configured output style. This module
@@ -23,12 +46,13 @@ prose discipline.
 ## The Cardinal Rule
 
 **Never comment on your own prose.** The narrative must never acknowledge that it is
-a narrative. The GM is invisible. The world simply *is*. Meta-commentary shatters
+a narrative. The GM is invisible. The world simply _is_. Meta-commentary shatters
 the fictional frame — the player stops experiencing the world and starts evaluating
 the writing. Once that shift happens it is almost impossible to recover within the
 same scene; the reader is now an editor, not an adventurer.
 
 Violations include:
+
 - Counting words or sentences: "He delivered his message in six words" (then writing
   seven words, or any number of words — the count itself is the violation)
 - Describing brevity or length: "The message was brief", "She spoke at length"
@@ -45,7 +69,7 @@ the brevity directly without being told about it.
 
 ## Show, Don't Tell
 
-The reader should *experience* the world, not receive a report about it.
+The reader should _experience_ the world, not receive a report about it.
 
 ### Emotions
 
@@ -54,32 +78,32 @@ is a closed door — the reader receives a label and moves on. A shown emotion (
 whitened around the cup handle") is an open one — the reader infers the feeling themselves
 and invests more deeply because the conclusion was theirs, not the narrator's.
 
-| Telling (forbidden) | Showing (required) |
-|---------------------|-------------------|
-| She was angry | Her knuckles whitened around the cup handle |
-| He felt afraid | His breath came in shallow pulls |
-| They were relieved | Shoulders dropped. Someone laughed — too loud |
-| She was suspicious | Her eyes tracked his hands, not his face |
-| He was sad | He turned the ring on his finger, slowly, the way he did when the chair across from him was empty |
+| Telling (forbidden) | Showing (required)                                                                                |
+| ------------------- | ------------------------------------------------------------------------------------------------- |
+| She was angry       | Her knuckles whitened around the cup handle                                                       |
+| He felt afraid      | His breath came in shallow pulls                                                                  |
+| They were relieved  | Shoulders dropped. Someone laughed — too loud                                                     |
+| She was suspicious  | Her eyes tracked his hands, not his face                                                          |
+| He was sad          | He turned the ring on his finger, slowly, the way he did when the chair across from him was empty |
 
 ### Character Traits
 
 Reveal through action and choice, never through labels.
 
-| Telling (forbidden) | Showing (required) |
-|---------------------|-------------------|
-| The captain was brave | The captain stepped through the airlock first |
-| She was intelligent | She spotted the pattern before the second body dropped |
-| He was dishonest | His story changed between the tavern and the gate |
+| Telling (forbidden)   | Showing (required)                                     |
+| --------------------- | ------------------------------------------------------ |
+| The captain was brave | The captain stepped through the airlock first          |
+| She was intelligent   | She spotted the pattern before the second body dropped |
+| He was dishonest      | His story changed between the tavern and the gate      |
 
 ### Atmosphere
 
 Deliver through specific sensory detail, never through adjectives alone.
 
-| Telling (forbidden) | Showing (required) |
-|---------------------|-------------------|
-| The room was creepy | Water pooled beneath pipes that hadn't carried water in years |
-| It was a beautiful day | Light caught the frost on the rail and split into colours |
+| Telling (forbidden)    | Showing (required)                                                              |
+| ---------------------- | ------------------------------------------------------------------------------- |
+| The room was creepy    | Water pooled beneath pipes that hadn't carried water in years                   |
+| It was a beautiful day | Light caught the frost on the rail and split into colours                       |
 | The city was dangerous | Three locks on every door, and still the baker kept a knife beneath the counter |
 
 ---
@@ -91,13 +115,13 @@ Deliver through specific sensory detail, never through adjectives alone.
 The verb is the engine of the sentence. A strong verb eliminates the need for
 adverbs and qualifiers.
 
-| Weak (avoid) | Strong (prefer) |
-|-------------|----------------|
-| walked slowly | crept, shuffled, ambled |
-| said angrily | snapped, snarled, spat |
+| Weak (avoid)        | Strong (prefer)              |
+| ------------------- | ---------------------------- |
+| walked slowly       | crept, shuffled, ambled      |
+| said angrily        | snapped, snarled, spat       |
 | looked at carefully | studied, scrutinised, traced |
-| ran quickly | bolted, sprinted, tore |
-| hit hard | slammed, cracked, hammered |
+| ran quickly         | bolted, sprinted, tore       |
+| hit hard            | slammed, cracked, hammered   |
 
 ### Eliminate Wasted Motion
 
@@ -111,13 +135,13 @@ adverbs and qualifiers.
 
 Filter words place a narrator between the reader and the experience. Remove them.
 
-| Filtered (remove) | Direct (use) |
-|-------------------|-------------|
-| He noticed the door was open | The door was open |
-| She felt the ground shake | The ground shook |
-| They realised the ship was moving | The ship was moving |
-| He could see smoke rising | Smoke rose from the treeline |
-| She heard footsteps behind her | Footsteps behind her |
+| Filtered (remove)                 | Direct (use)                 |
+| --------------------------------- | ---------------------------- |
+| He noticed the door was open      | The door was open            |
+| She felt the ground shake         | The ground shook             |
+| They realised the ship was moving | The ship was moving          |
+| He could see smoke rising         | Smoke rose from the treeline |
+| She heard footsteps behind her    | Footsteps behind her         |
 
 **Exception:** Filter words are valid when the act of perception IS the point —
 "She listened, but heard nothing" (the absence is the information).
@@ -131,11 +155,13 @@ Filter words place a narrator between the reader and the experience. Remove them
 Monotonous rhythm kills immersion. Mix sentence lengths deliberately.
 
 **Bad (monotonous):**
+
 > The guard stood at the gate. He held a spear in his right hand. His armour was
 > dented and scratched. The gate behind him was tall and iron. He watched the
 > road with tired eyes.
 
 **Good (varied):**
+
 > The guard stood at the gate, spear loose in one hand, armour dented from use
 > rather than ceremony. Behind him: iron, twenty feet of it, bolted into stone
 > that had outlasted three dynasties. He watched the road. Tired eyes, but watching.
@@ -171,14 +197,14 @@ In action and tension, fragments accelerate pace.
 
 Every NPC must sound distinct. Differentiate through:
 
-| Dimension | Example variation |
-|-----------|------------------|
-| Vocabulary | Educated vs. vernacular, technical vs. plain |
-| Sentence length | Clipped military vs. flowing academic |
-| Formality | "You will address the council" vs. "Talk to the boss" |
-| Rhythm | Measured pauses vs. rapid-fire |
-| Tics and habits | Repeated phrases, verbal pauses, dialect markers |
-| What they don't say | Evasion patterns, uncomfortable silences, deflection |
+| Dimension           | Example variation                                     |
+| ------------------- | ----------------------------------------------------- |
+| Vocabulary          | Educated vs. vernacular, technical vs. plain          |
+| Sentence length     | Clipped military vs. flowing academic                 |
+| Formality           | "You will address the council" vs. "Talk to the boss" |
+| Rhythm              | Measured pauses vs. rapid-fire                        |
+| Tics and habits     | Repeated phrases, verbal pauses, dialect markers      |
+| What they don't say | Evasion patterns, uncomfortable silences, deflection  |
 
 ### "As You Know, Bob"
 
@@ -187,6 +213,7 @@ benefit. When characters narrate shared knowledge aloud, the dialogue sounds
 artificial — the player instantly senses the characters are performing for an
 audience rather than speaking to each other, and every NPC in the scene loses
 credibility. If the reader needs context, deliver it through:
+
 - A character who genuinely doesn't know (the player)
 - Environmental detail (signs, documents, overheard conversation)
 - Brief narrator context woven into action
@@ -204,13 +231,13 @@ makes a place feel real; without it the player processes the scene as a menu of
 objects rather than a space they are standing in, and tension drops because danger
 you can only see is less threatening than danger you can smell or feel.
 
-| Sense | Example |
-|-------|---------|
-| Sound | The hum of the life support shifted pitch — lower, intermittent |
-| Smell | Ozone and hot metal. The corridor had been sealed since the fire |
-| Temperature | The air thinned as you climbed. Cold enough to see your breath by the third landing |
-| Texture | The wall was slick — not water, something viscous, body-warm |
-| Taste | Copper in the back of your throat. The air recycler was circulating something it shouldn't |
+| Sense          | Example                                                                                      |
+| -------------- | -------------------------------------------------------------------------------------------- |
+| Sound          | The hum of the life support shifted pitch — lower, intermittent                              |
+| Smell          | Ozone and hot metal. The corridor had been sealed since the fire                             |
+| Temperature    | The air thinned as you climbed. Cold enough to see your breath by the third landing          |
+| Texture        | The wall was slick — not water, something viscous, body-warm                                 |
+| Taste          | Copper in the back of your throat. The air recycler was circulating something it shouldn't   |
 | Proprioception | The floor tilted — not enough to stumble, but enough to know the station was no longer level |
 
 ### Atmosphere Discipline
@@ -234,13 +261,13 @@ and starvation.
 
 ### Density by Scene Type
 
-| Scene type | Paragraphs | When to use |
-|------------|-----------|-------------|
-| **Act opener** | 6–10 | First scene of a new act or arc. Write like the opening chapter of a novel: world-building (the place has history), sensory grounding (3+ senses, specific physical detail), character establishment (through action, not summary), NPC introduction (observed, not announced), tension (what is wrong), hook (the event forcing a choice). Short story density — you have 65K+ chars of headroom. |
-| **Climax / set piece** | 6–10 | Boss fights, revelations, betrayals, escapes. The narrative earns its length through escalating tension and consequence. Match or exceed act opener density — this is what the story has been building toward. |
-| **Standard scene** | 2–4 | Mid-arc exploration, NPC dialogue, investigation. Focused on the current objective. One sensory beat, one plot beat, one choice. |
-| **Transition** | 1–2 | Moving between locations or time-skipping. Brief and purposeful — establish the new context, nothing more. |
-| **Aftermath** | 2–3 | Immediately following a climax or major decision. Show consequences landing. Shorter than the event itself. |
+| Scene type             | Paragraphs | When to use                                                                                                                                                                                                                                                                                                                                                                                        |
+| ---------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Act opener**         | 6–10       | First scene of a new act or arc. Write like the opening chapter of a novel: world-building (the place has history), sensory grounding (3+ senses, specific physical detail), character establishment (through action, not summary), NPC introduction (observed, not announced), tension (what is wrong), hook (the event forcing a choice). Short story density — you have 65K+ chars of headroom. |
+| **Climax / set piece** | 6–10       | Boss fights, revelations, betrayals, escapes. The narrative earns its length through escalating tension and consequence. Match or exceed act opener density — this is what the story has been building toward.                                                                                                                                                                                     |
+| **Standard scene**     | 2–4        | Mid-arc exploration, NPC dialogue, investigation. Focused on the current objective. One sensory beat, one plot beat, one choice.                                                                                                                                                                                                                                                                   |
+| **Transition**         | 1–2        | Moving between locations or time-skipping. Brief and purposeful — establish the new context, nothing more.                                                                                                                                                                                                                                                                                         |
+| **Aftermath**          | 2–3        | Immediately following a climax or major decision. Show consequences landing. Shorter than the event itself.                                                                                                                                                                                                                                                                                        |
 
 ### Act Opener Discipline
 
@@ -249,6 +276,7 @@ feels like, this is the level of detail you can expect, this is how seriously th
 takes your time.
 
 **An act opener MUST include:**
+
 - A grounding paragraph: where are we, what do the senses report, what is different
   from before?
 - An atmospheric paragraph: what is the mood, the tension, the unspoken thing hanging
@@ -259,6 +287,7 @@ takes your time.
   door that should not be open.
 
 **An act opener MUST NOT:**
+
 - Rush to the first choice. Let the world breathe.
 - Summarise the arc's premise in narrator voice. Show the premise through the environment.
 - Open with dialogue. Ground the player in the physical space first.
@@ -266,12 +295,14 @@ takes your time.
 ### The "Earned Length" Principle
 
 A scene earns additional paragraphs through:
+
 - A new location the player has never visited (describe it fully the first time)
 - A major NPC appearing for the first time (establish their physical presence)
 - A revelation that changes the player's understanding (let the implication land)
 - Sensory shifts (temperature drops, lights fail, a smell appears) that signal danger
 
 A scene does NOT earn additional paragraphs through:
+
 - Restating information the player already knows
 - Describing routine actions ("You walk down the corridor...")
 - Padding with atmosphere when nothing atmospheric has changed

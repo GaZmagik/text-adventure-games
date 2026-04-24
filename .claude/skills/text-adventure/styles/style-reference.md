@@ -5,6 +5,23 @@
 > this folder. Load one visual style per session. If no visual style is selected, the
 > GM auto-selects one based on the output style or scenario theme.
 
+```json tag-contract
+{
+  "id": "style-reference",
+  "kind": "style-reference",
+  "version": "1.4.0",
+  "summary": "Shared structural contract for ta-* widgets, scene progressive reveal, panels, footer, prompt wiring, and CSS tokens.",
+  "mustRead": [
+    "Root scene structure is reveal brief, reveal full, scene content, panel overlay, scene meta, and footer.",
+    "Use data-prompt for all player actions and footer/panel controls."
+  ],
+  "render": [
+    "tag render emits CDN-backed custom elements and compact data attributes.",
+    "Full standalone widgets remain available through tag render <widget>."
+  ]
+}
+```
+
 > **This file is mandatory reading before rendering any widget.**
 > The orchestrator (SKILL.md) defines rules and inlines the critical patterns (progressive
 > reveal, panel toggle, PANEL_DATA). This file provides supplementary implementation code:
@@ -30,55 +47,55 @@ font values.
 ```css
 :host {
   /* ── Typography ──────────────────────────────────────────────── */
-  --ta-font-heading:        /* Heading / display font stack */;
-  --ta-font-body:           /* Body / UI mono font stack */;
+  --ta-font-heading: /* Heading / display font stack */;
+  --ta-font-body: /* Body / UI mono font stack */;
 
   /* ── Colour — Core palette ───────────────────────────────────── */
-  --ta-color-accent:        /* Primary accent (action buttons, active states) */;
-  --ta-color-accent-hover:  /* Accent hover / pressed state */;
-  --ta-color-accent-bg:     /* Accent translucent background */;
+  --ta-color-accent: /* Primary accent (action buttons, active states) */;
+  --ta-color-accent-hover: /* Accent hover / pressed state */;
+  --ta-color-accent-bg: /* Accent translucent background */;
   --ta-color-accent-bg-hover: /* Accent translucent background — hover */;
 
   /* ── Colour — Semantic ───────────────────────────────────────── */
-  --ta-color-success:       /* Success / positive (HP pips, teal badges) */;
-  --ta-color-success-border:/* Success border / darker tint */;
-  --ta-color-danger:        /* Danger / negative (enemy HP, attack) */;
+  --ta-color-success: /* Success / positive (HP pips, teal badges) */;
+  --ta-color-success-border: /* Success border / darker tint */;
+  --ta-color-danger: /* Danger / negative (enemy HP, attack) */;
   --ta-color-danger-border: /* Danger border / darker tint */;
-  --ta-color-danger-bg:     /* Danger translucent background */;
-  --ta-color-danger-bg-hover:/* Danger translucent background — hover */;
-  --ta-color-warning:       /* Warning / caution (amber badges, suspicious) */;
-  --ta-color-warning-border:/* Warning border */;
-  --ta-color-warning-bg:    /* Warning translucent background */;
-  --ta-color-xp:            /* XP bar fill colour */;
-  --ta-color-focus:         /* Focus-visible outline colour */;
+  --ta-color-danger-bg: /* Danger translucent background */;
+  --ta-color-danger-bg-hover: /* Danger translucent background — hover */;
+  --ta-color-warning: /* Warning / caution (amber badges, suspicious) */;
+  --ta-color-warning-border: /* Warning border */;
+  --ta-color-warning-bg: /* Warning translucent background */;
+  --ta-color-xp: /* XP bar fill colour */;
+  --ta-color-focus: /* Focus-visible outline colour */;
 
   /* ── Colour — Conviction / social ────────────────────────────── */
   /* IMPORTANT: Must be purple/violet — distinct from --ta-color-accent (location cyan).
      Suggested values: fill #7C6BF0, border #6B5CE0 */
-  --ta-color-conviction:        /* Conviction pip fill — use purple/violet, not cyan */;
+  --ta-color-conviction: /* Conviction pip fill — use purple/violet, not cyan */;
   --ta-color-conviction-border: /* Conviction pip border — use purple/violet, not cyan */;
 
   /* ── Colour — Outcome badges ─────────────────────────────────── */
-  --ta-badge-success-bg:    /* Success badge background */;
-  --ta-badge-success-text:  /* Success badge text */;
-  --ta-badge-partial-bg:    /* Partial success badge background */;
-  --ta-badge-partial-text:  /* Partial success badge text */;
-  --ta-badge-failure-bg:    /* Failure badge background */;
-  --ta-badge-failure-text:  /* Failure badge text */;
+  --ta-badge-success-bg: /* Success badge background */;
+  --ta-badge-success-text: /* Success badge text */;
+  --ta-badge-partial-bg: /* Partial success badge background */;
+  --ta-badge-partial-text: /* Partial success badge text */;
+  --ta-badge-failure-bg: /* Failure badge background */;
+  --ta-badge-failure-text: /* Failure badge text */;
   --ta-badge-crit-success-border: /* Critical success badge border */;
   --ta-badge-crit-failure-border: /* Critical failure badge border */;
 
   /* ── Colour — Credits / currency ─────────────────────────────── */
-  --ta-color-credits:       /* Currency display colour */;
+  --ta-color-credits: /* Currency display colour */;
 
   /* ── Colour — Tab active indicator ───────────────────────────── */
-  --ta-color-tab-active:    /* Active tab underline colour */;
+  --ta-color-tab-active: /* Active tab underline colour */;
 
   /* ── Decorative — borders & shapes ───────────────────────────── */
-  --ta-border-style-poi:    /* POI button border style (e.g. "1px dashed") */;
+  --ta-border-style-poi: /* POI button border style (e.g. "1px dashed") */;
 
   /* ── Animation — die roll ────────────────────────────────────── */
-  --ta-die-spin-duration:   /* Die spin animation duration (e.g. "0.6s") */;
+  --ta-die-spin-duration: /* Die spin animation duration (e.g. "0.6s") */;
 }
 ```
 
@@ -94,26 +111,45 @@ Use `#panel-overlay` (ID selector) to match the HTML element.
 
 ```css
 /* @extract:shared */
-#panel-overlay { display: none; padding: 0; }
+#panel-overlay {
+  display: none;
+  padding: 0;
+}
 .panel-header {
-  display: flex; align-items: baseline; justify-content: space-between;
-  padding-bottom: 10px; margin-bottom: 12px;
-  border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
 }
 .panel-title {
   font-family: var(--ta-font-heading);
-  font-size: 18px; font-weight: 600; color: var(--sta-text-primary, #EEF0FF);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--sta-text-primary, #eef0ff);
 }
 .panel-close-btn {
   font-family: var(--ta-font-body);
-  font-size: 11px; letter-spacing: 0.08em;
-  background: transparent; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
-  border-radius: var(--sta-radius-md, 6px); padding: 8px 14px;
-  min-height: 44px; min-width: 44px; box-sizing: border-box;
-  color: var(--sta-text-tertiary, #545880); cursor: pointer;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  background: transparent;
+  border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
+  border-radius: var(--sta-radius-md, 6px);
+  padding: 8px 14px;
+  min-height: 44px;
+  min-width: 44px;
+  box-sizing: border-box;
+  color: var(--sta-text-tertiary, #545880);
+  cursor: pointer;
 }
-.panel-close-btn:hover { border-color: var(--sta-border-secondary, rgba(154,160,192,0.35)); color: var(--sta-text-secondary, #9AA0C0); }
-.panel-content { display: none; }
+.panel-close-btn:hover {
+  border-color: var(--sta-border-secondary, rgba(154, 160, 192, 0.35));
+  color: var(--sta-text-secondary, #9aa0c0);
+}
+.panel-content {
+  display: none;
+}
 ```
 
 ---
@@ -122,6 +158,7 @@ Use `#panel-overlay` (ID selector) to match the HTML element.
 
 **You MUST use `tag render scene --style <name>` to generate scene widgets.** The CLI
 produces correct HTML with real CSS from the active style file. The structural requirements are:
+
 - `id="panel-overlay"` and `id="scene-content"` for the panel toggle system.
 - `id="reveal-brief"` and `id="reveal-full"` for progressive reveal.
 - Panel toggle buttons use `data-panel` attributes + `addEventListener` — never inline `onclick` or `sendPrompt()`.
@@ -135,6 +172,7 @@ reveal wrapper. That element carries the runtime contract in attributes and also
 ships inspectable fallback buttons inside its light DOM for verify/no-JS mode.
 
 **`<ta-footer>` contract:**
+
 - `data-modules="<space separated modules>"` declares which module-driven panel buttons the runtime must render.
 - `data-save-prompt="..."` is always required so Save remains copyable if the runtime fails.
 - `data-export-prompt="..."` is required when `adventure-exporting` is active.
@@ -149,19 +187,20 @@ the button and panel-content div for every matching row. Character and Save are 
 included regardless of `modules_active`. Export is included only when `adventure-exporting`
 appears in `modules_active`. **Do NOT guess or improvise — use this table.**
 
-| `modules_active` value | `<ta-footer>` fallback button HTML | Panel-content div |
-|---|---|---|
-| *(always)* | `<button class="footer-btn" data-panel="character" aria-expanded="false">Character</button>` | `<div class="panel-content" data-panel="character"></div>` |
-| `lore-codex` | `<button class="footer-btn" data-panel="codex" aria-expanded="false">Codex</button>` | `<div class="panel-content" data-panel="codex"></div>` |
-| `ship-systems` | `<button class="footer-btn" data-panel="ship" aria-expanded="false">Ship</button>` | `<div class="panel-content" data-panel="ship"></div>` |
-| `crew-manifest` | `<button class="footer-btn" data-panel="crew" aria-expanded="false">Crew</button>` | `<div class="panel-content" data-panel="crew"></div>` |
-| `star-chart` | `<button class="footer-btn" data-panel="nav" aria-expanded="false">Nav chart</button>` | `<div class="panel-content" data-panel="nav"></div>` |
-| `geo-map` | `<button class="footer-btn" data-panel="map" aria-expanded="false">Map</button>` | `<div class="panel-content" data-panel="map"></div>` |
-| `core-systems` | `<button class="footer-btn" data-panel="quests" aria-expanded="false">Quests</button>` | `<div class="panel-content" data-panel="quests"></div>` |
-| *(always)* | `<button class="footer-btn" id="save-btn" data-prompt="Run \`tag save generate\` via the Bash tool to produce my save payload. The CLI generates the checksummed SF2 string — never hand-code save encoding, checksums, or base64. Present the result as a downloadable .save.md file with YAML frontmatter." title="Run \`tag save generate\` via the Bash tool to produce my save payload. The CLI generates the checksummed SF2 string — never hand-code save encoding, checksums, or base64. Present the result as a downloadable .save.md file with YAML frontmatter.">Save ↗</button>` | *(none)* |
-| `adventure-exporting` | `<button class="footer-btn" id="export-btn" data-prompt="Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format." title="Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format.">Export ↗</button>` | *(none)* |
+| `modules_active` value | `<ta-footer>` fallback button HTML                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Panel-content div                                          |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| _(always)_             | `<button class="footer-btn" data-panel="character" aria-expanded="false">Character</button>`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | `<div class="panel-content" data-panel="character"></div>` |
+| `lore-codex`           | `<button class="footer-btn" data-panel="codex" aria-expanded="false">Codex</button>`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | `<div class="panel-content" data-panel="codex"></div>`     |
+| `ship-systems`         | `<button class="footer-btn" data-panel="ship" aria-expanded="false">Ship</button>`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | `<div class="panel-content" data-panel="ship"></div>`      |
+| `crew-manifest`        | `<button class="footer-btn" data-panel="crew" aria-expanded="false">Crew</button>`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | `<div class="panel-content" data-panel="crew"></div>`      |
+| `star-chart`           | `<button class="footer-btn" data-panel="nav" aria-expanded="false">Nav chart</button>`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | `<div class="panel-content" data-panel="nav"></div>`       |
+| `geo-map`              | `<button class="footer-btn" data-panel="map" aria-expanded="false">Map</button>`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | `<div class="panel-content" data-panel="map"></div>`       |
+| `core-systems`         | `<button class="footer-btn" data-panel="quests" aria-expanded="false">Quests</button>`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | `<div class="panel-content" data-panel="quests"></div>`    |
+| _(always)_             | `<button class="footer-btn" id="save-btn" data-prompt="Run \`tag save generate\` via the Bash tool to produce my save payload. The CLI generates the checksummed SF2 string — never hand-code save encoding, checksums, or base64. Present the result as a downloadable .save.md file with YAML frontmatter." title="Run \`tag save generate\` via the Bash tool to produce my save payload. The CLI generates the checksummed SF2 string — never hand-code save encoding, checksums, or base64. Present the result as a downloadable .save.md file with YAML frontmatter.">Save ↗</button>` | _(none)_                                                   |
+| `adventure-exporting`  | `<button class="footer-btn" id="export-btn" data-prompt="Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format." title="Export my world as a downloadable .lore.md file following the exact format in modules/adventure-exporting.md. Use YAML frontmatter plus structured world data sections. Never invent a custom format.">Export ↗</button>`                                                                                             | _(none)_                                                   |
 
 **Algorithm (every scene widget):**
+
 1. Start with Character button (always present).
 2. Read `modules_active` from the current `#scene-meta`.
 3. For each value in `modules_active`, if it appears in the table above, include both
@@ -200,7 +239,7 @@ Close button only; the scene footer is not their responsibility.
     </div>
   </div>
   <!-- Scene metadata (hidden, machine-readable — consumed by Turn-Start Module Checklist) -->
-  <div id="scene-meta" style="display:none" data-meta='{ SEE SCHEMA BELOW }'></div>
+  <div id="scene-meta" style="display:none" data-meta="{ SEE SCHEMA BELOW }"></div>
   <!-- Footer (always visible, outside reveal) -->
   <div class="footer-row">
     <!-- REQUIRED: Use the Module Footer Button Table above to build this row.
@@ -208,16 +247,22 @@ Close button only; the scene footer is not their responsibility.
          Do NOT guess button labels or data-panel values — copy from the table. -->
     <button class="footer-btn" data-panel="character" aria-expanded="false">Character</button>
     <!-- Add one button per active module from the Module Footer Button Table -->
-    <button class="footer-btn" id="save-btn" data-prompt="Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md. Use YAML frontmatter plus an encoded SC1: or SF1: payload string. Never write game state as human-readable markdown.">Save ↗</button>
+    <button
+      class="footer-btn"
+      id="save-btn"
+      data-prompt="Generate my save file as a downloadable .save.md file following the exact format in modules/save-codex.md. Use YAML frontmatter plus an encoded SC1: or SF1: payload string. Never write game state as human-readable markdown."
+    >
+      Save ↗
+    </button>
     <!-- Include Export ↗ only if adventure-exporting is in modules_active -->
   </div>
 </div>
 
 <script>
-document.querySelectorAll('[data-panel]').forEach(btn => {
-  btn.addEventListener('click', () => togglePanel(btn.dataset.panel));
-});
-document.getElementById('panel-close-btn').addEventListener('click', closePanel);
+  document.querySelectorAll('[data-panel]').forEach(btn => {
+    btn.addEventListener('click', () => togglePanel(btn.dataset.panel));
+  });
+  document.getElementById('panel-close-btn').addEventListener('click', closePanel);
 </script>
 ```
 
@@ -264,12 +309,7 @@ not gated behind the continue button.
     "elapsed": 3,
     "hour": 12
   },
-  "modules_active": [
-    "prose-craft",
-    "story-architect",
-    "ai-npc",
-    "core-systems"
-  ],
+  "modules_active": ["prose-craft", "story-architect", "ai-npc", "core-systems"],
   "npcs_present": ["Herald", "Magistrate Varro"],
   "threads_advanced": ["main-quest", "faction-tension"],
   "pending_rolls": [],
@@ -290,36 +330,36 @@ not gated behind the continue button.
 
 **Session context (set at game start, rarely changes):**
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `skill_version` | string | yes | Current skill version — enables compatibility checks on resume |
-| `arc` | integer | yes | Current campaign arc number (starts at 1) |
-| `theme` | string | yes | Genre: `space`, `fantasy`, `horror`, `historical`, `post-apocalyptic` |
-| `mode` | string | yes | World generation: `procedural`, `authored`, `hybrid` — determines if procedural-world-gen loads |
-| `rulebook` | string | yes | Active rule system: `d20_system`, `gurps_lite`, `pf2e_lite`, `shadowrun_lite`, `narrative_engine` |
+| Field           | Type    | Required | Description                                                                                       |
+| --------------- | ------- | -------- | ------------------------------------------------------------------------------------------------- |
+| `skill_version` | string  | yes      | Current skill version — enables compatibility checks on resume                                    |
+| `arc`           | integer | yes      | Current campaign arc number (starts at 1)                                                         |
+| `theme`         | string  | yes      | Genre: `space`, `fantasy`, `horror`, `historical`, `post-apocalyptic`                             |
+| `mode`          | string  | yes      | World generation: `procedural`, `authored`, `hybrid` — determines if procedural-world-gen loads   |
+| `rulebook`      | string  | yes      | Active rule system: `d20_system`, `gurps_lite`, `pf2e_lite`, `shadowrun_lite`, `narrative_engine` |
 
 **Scene state (changes every turn):**
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `scene` | integer | yes | Current scene number from gmState |
-| `type` | string | yes | Scene category: `exploration`, `social`, `combat`, `discovery`, `quiet`, `transition` |
-| `location` | string | yes | Current location name |
-| `time` | object | yes | Current in-world time — `period`, `date`, `elapsed` (days), `hour` (0–23 internal). Only expose `date`/`hour` in player-facing UI if `playerKnowsDate`/`playerKnowsTime` is true in gmState. |
-| `modules_active` | string[] | yes | All modules currently loaded — used by Turn-Start Module Checklist to verify continuity |
-| `npcs_present` | string[] | yes | Named NPCs in the scene (empty array if none) |
-| `threads_advanced` | string[] | yes | Story threads touched by this scene |
-| `pending_rolls` | object[] | no | Unresolved rolls carried into next turn (rare) |
-| `atmosphere` | object | yes | Two or three sensory properties used in this scene's prose |
-| `next_scene_hints` | object | no | GM's anticipation of what the next turn will need — informs pre-loading |
+| Field              | Type     | Required | Description                                                                                                                                                                                  |
+| ------------------ | -------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scene`            | integer  | yes      | Current scene number from gmState                                                                                                                                                            |
+| `type`             | string   | yes      | Scene category: `exploration`, `social`, `combat`, `discovery`, `quiet`, `transition`                                                                                                        |
+| `location`         | string   | yes      | Current location name                                                                                                                                                                        |
+| `time`             | object   | yes      | Current in-world time — `period`, `date`, `elapsed` (days), `hour` (0–23 internal). Only expose `date`/`hour` in player-facing UI if `playerKnowsDate`/`playerKnowsTime` is true in gmState. |
+| `modules_active`   | string[] | yes      | All modules currently loaded — used by Turn-Start Module Checklist to verify continuity                                                                                                      |
+| `npcs_present`     | string[] | yes      | Named NPCs in the scene (empty array if none)                                                                                                                                                |
+| `threads_advanced` | string[] | yes      | Story threads touched by this scene                                                                                                                                                          |
+| `pending_rolls`    | object[] | no       | Unresolved rolls carried into next turn (rare)                                                                                                                                               |
+| `atmosphere`       | object   | yes      | Two or three sensory properties used in this scene's prose                                                                                                                                   |
+| `next_scene_hints` | object   | no       | GM's anticipation of what the next turn will need — informs pre-loading                                                                                                                      |
 
 ### `next_scene_hints` Sub-Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `likely_type` | string | Best guess at next scene type based on player options presented |
-| `modules_needed` | string[] | Modules the GM anticipates needing — Turn-Start Checklist uses this to pre-load |
-| `anticipated_rolls` | string[] | Attributes likely to be tested if the player takes the expected path |
+| Field               | Type     | Description                                                                     |
+| ------------------- | -------- | ------------------------------------------------------------------------------- |
+| `likely_type`       | string   | Best guess at next scene type based on player options presented                 |
+| `modules_needed`    | string[] | Modules the GM anticipates needing — Turn-Start Checklist uses this to pre-load |
+| `anticipated_rolls` | string[] | Attributes likely to be tested if the player takes the expected path            |
 
 **Rule:** `modules_active` must always include `prose-craft`. If it doesn't, the
 Turn-Start Module Checklist will flag it as an error and force a reload.
@@ -327,7 +367,10 @@ Turn-Start Module Checklist will flag it as an error and force a reload.
 ### HTML Pattern
 
 ```html
-<div id="scene-meta" style="display:none" data-meta='{
+<div
+  id="scene-meta"
+  style="display:none"
+  data-meta='{
   "skill_version": "1.4.0",
   "arc": 1,
   "theme": "historical",
@@ -351,7 +394,8 @@ Turn-Start Module Checklist will flag it as an error and force a reload.
     "modules_needed": ["ai-npc", "prose-craft"],
     "anticipated_rolls": ["CHA"]
   }
-}'></div>
+}'
+></div>
 ```
 
 **Escaping:** The JSON value sits inside a single-quoted HTML attribute (`data-meta='...'`).
@@ -374,9 +418,10 @@ gets tested is a missed opportunity for drama.
 
 DCs must scale with the player's growing power. As the player gains levels, proficiencies, and
 equipment bonuses, maintain tension by:
+
 - Raising baseline DCs for recurring challenge types (Act 1: Moderate 12, Act 3: Hard 16).
 - Introducing disadvantage conditions (fatigue, injury, time pressure, hostile environment).
-- Designing checks where high rolls produce *complications* alongside success (you pick the
+- Designing checks where high rolls produce _complications_ alongside success (you pick the
   lock, but the mechanism triggers an alarm).
 - Never letting bonus stacking trivialise rolls — if modified totals routinely exceed 20,
   the difficulty curve is broken.
@@ -385,6 +430,7 @@ equipment bonuses, maintain tension by:
 
 The `sendPrompt()` function in Claude.ai widget iframes is not always available due to timing
 and sandboxing. For die roll widgets, always include a fallback:
+
 - Display the roll result and a copyable prompt string (e.g., "I rolled 14 + 3 = 17. Continue.")
 - Show a clear "Copy and paste this to continue" instruction alongside the sendPrompt button.
 - Never rely solely on sendPrompt for progression — the player must always have a manual path.
@@ -395,14 +441,14 @@ and sandboxing. For die roll widgets, always include a fallback:
 
 Use these as placeholder text while widgets generate:
 
-| Widget | Example messages |
-|--------|-----------------|
-| Scene | "Painting the shadows...", "Setting the stage...", "World is breathing..." |
-| Roll | "Fate loading dice...", "Probability consulting gravity...", "The numbers decide..." |
-| Map | "Charting the unknown...", "Surveying the dark...", "Corridors taking shape..." |
-| Combat | "Enemies sizing you up...", "Initiative calculating...", "Tension escalating..." |
-| Character | "Forging your identity...", "Stats crystallising...", "Sheet materialising..." |
-| Outcome | "Consequences assembling...", "Reality settling...", "The world reacts..." |
+| Widget    | Example messages                                                                     |
+| --------- | ------------------------------------------------------------------------------------ |
+| Scene     | "Painting the shadows...", "Setting the stage...", "World is breathing..."           |
+| Roll      | "Fate loading dice...", "Probability consulting gravity...", "The numbers decide..." |
+| Map       | "Charting the unknown...", "Surveying the dark...", "Corridors taking shape..."      |
+| Combat    | "Enemies sizing you up...", "Initiative calculating...", "Tension escalating..."     |
+| Character | "Forging your identity...", "Stats crystallising...", "Sheet materialising..."       |
+| Outcome   | "Consequences assembling...", "Reality settling...", "The world reacts..."           |
 
 ---
 
@@ -419,13 +465,13 @@ a consistent box model so animations and states work identically across die type
 /* These properties must be set by the visual style, or fall back to the host
    theme. Die shapes reference only these variables — never hardcoded colours. */
 :host {
-  --die-border-color:       /* Default die border */;
-  --die-bg:                 /* Default die background */;
-  --die-text-color:         /* Die label / face value colour */;
-  --die-hover-bg:           /* Background on hover */;
-  --die-hover-border:       /* Border colour on hover */;
-  --die-rolled-bg:          /* Background after roll is locked */;
-  --die-rolled-border:      /* Border colour after roll is locked */;
+  --die-border-color: /* Default die border */;
+  --die-bg: /* Default die background */;
+  --die-text-color: /* Die label / face value colour */;
+  --die-hover-bg: /* Background on hover */;
+  --die-hover-border: /* Border colour on hover */;
+  --die-rolled-bg: /* Background after roll is locked */;
+  --die-rolled-border: /* Border colour after roll is locked */;
   --die-animation-duration: /* Spin/roll animation duration (e.g. "0.6s") */;
 }
 ```
@@ -435,9 +481,15 @@ a consistent box model so animations and states work identically across die type
 ```css
 /* @extract:dice */
 /* Applied alongside die shape classes: .die-d20.die--sm, .die-d20.die--lg */
-.die--sm  { --die-size: 80px;  }
-.die--md  { --die-size: 100px; } /* default */
-.die--lg  { --die-size: 120px; }
+.die--sm {
+  --die-size: 80px;
+}
+.die--md {
+  --die-size: 100px;
+} /* default */
+.die--lg {
+  --die-size: 120px;
+}
 ```
 
 ### Shared Die Base
@@ -447,9 +499,9 @@ and `transform` to create their specific form.
 
 ```css
 /* @extract:dice */
-[class^="die-"] {
+[class^='die-'] {
   --die-size: 100px; /* overridden by .die--sm / .die--lg */
-  width:  var(--die-size);
+  width: var(--die-size);
   height: var(--die-size);
   display: inline-flex;
   align-items: center;
@@ -457,7 +509,10 @@ and `transform` to create their specific form.
   flex-direction: column;
   gap: 2px;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    transform 0.2s;
   background: var(--die-bg);
   border: 1.5px solid var(--die-border-color);
   color: var(--die-text-color);
@@ -465,23 +520,23 @@ and `transform` to create their specific form.
   user-select: none;
 }
 
-[class^="die-"]:hover {
+[class^='die-']:hover {
   background: var(--die-hover-bg);
   border-color: var(--die-hover-border);
   transform: scale(1.05);
 }
 
-[class^="die-"]:active {
+[class^='die-']:active {
   transform: scale(0.95);
 }
 
-[class^="die-"]:focus-visible {
+[class^='die-']:focus-visible {
   outline: 2px solid var(--ta-color-focus);
   outline-offset: 3px;
 }
 
 /* Rolled / locked state — dimmed, non-interactive */
-[class^="die-"].rolled {
+[class^='die-'].rolled {
   background: var(--die-rolled-bg);
   border-color: var(--die-rolled-border);
   cursor: default;
@@ -505,7 +560,6 @@ and `transform` to create their specific form.
   color: inherit;
   line-height: 1;
 }
-
 ```
 
 ---
@@ -533,13 +587,27 @@ and `transform` to create their specific form.
 
 /* d4: wobble / tip animation — rolls on its point */
 @keyframes die-d4-wobble {
-  0%   { transform: rotate(0deg)   scale(1);    }
-  15%  { transform: rotate(-18deg) scale(1.1);  }
-  35%  { transform: rotate(14deg)  scale(1.08); }
-  55%  { transform: rotate(-10deg) scale(1.05); }
-  75%  { transform: rotate(6deg)   scale(1.02); }
-  90%  { transform: rotate(-3deg)  scale(1.01); }
-  100% { transform: rotate(0deg)   scale(1);    }
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  15% {
+    transform: rotate(-18deg) scale(1.1);
+  }
+  35% {
+    transform: rotate(14deg) scale(1.08);
+  }
+  55% {
+    transform: rotate(-10deg) scale(1.05);
+  }
+  75% {
+    transform: rotate(6deg) scale(1.02);
+  }
+  90% {
+    transform: rotate(-3deg) scale(1.01);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -565,11 +633,21 @@ and `transform` to create their specific form.
 
 /* d6: single-axis rotation — tumbles forward */
 @keyframes die-d6-rotate {
-  0%   { transform: rotateX(0deg)   scale(1);    }
-  25%  { transform: rotateX(90deg)  scale(1.08); }
-  50%  { transform: rotateX(180deg) scale(1.05); }
-  75%  { transform: rotateX(270deg) scale(1.08); }
-  100% { transform: rotateX(360deg) scale(1);    }
+  0% {
+    transform: rotateX(0deg) scale(1);
+  }
+  25% {
+    transform: rotateX(90deg) scale(1.08);
+  }
+  50% {
+    transform: rotateX(180deg) scale(1.05);
+  }
+  75% {
+    transform: rotateX(270deg) scale(1.08);
+  }
+  100% {
+    transform: rotateX(360deg) scale(1);
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -605,12 +683,24 @@ and `transform` to create their specific form.
 
 /* d8: diamond spin — rotates on its axis through all four points */
 @keyframes die-d8-spin {
-  0%   { transform: rotate(0deg)   scale(1);    }
-  20%  { transform: rotate(90deg)  scale(1.12); }
-  40%  { transform: rotate(180deg) scale(1.05); }
-  60%  { transform: rotate(270deg) scale(1.1);  }
-  80%  { transform: rotate(330deg) scale(1.02); }
-  100% { transform: rotate(360deg) scale(1);    }
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  20% {
+    transform: rotate(90deg) scale(1.12);
+  }
+  40% {
+    transform: rotate(180deg) scale(1.05);
+  }
+  60% {
+    transform: rotate(270deg) scale(1.1);
+  }
+  80% {
+    transform: rotate(330deg) scale(1.02);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -647,10 +737,18 @@ and `transform` to create their specific form.
 
 /* d10: flip animation — tumbles end-over-end on the Y axis */
 @keyframes die-d10-flip {
-  0%   { transform: perspective(300px) rotateY(0deg)   scale(1);    }
-  30%  { transform: perspective(300px) rotateY(120deg) scale(1.1);  }
-  60%  { transform: perspective(300px) rotateY(240deg) scale(1.05); }
-  100% { transform: perspective(300px) rotateY(360deg) scale(1);    }
+  0% {
+    transform: perspective(300px) rotateY(0deg) scale(1);
+  }
+  30% {
+    transform: perspective(300px) rotateY(120deg) scale(1.1);
+  }
+  60% {
+    transform: perspective(300px) rotateY(240deg) scale(1.05);
+  }
+  100% {
+    transform: perspective(300px) rotateY(360deg) scale(1);
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -687,12 +785,24 @@ and `transform` to create their specific form.
 
 /* d12: complex multi-axis rotation — the heaviest-feeling die */
 @keyframes die-d12-tumble {
-  0%   { transform: rotate(0deg)   rotateX(0deg)    scale(1);    }
-  20%  { transform: rotate(72deg)  rotateX(60deg)   scale(1.15); }
-  40%  { transform: rotate(144deg) rotateX(120deg)  scale(1.08); }
-  60%  { transform: rotate(216deg) rotateX(180deg)  scale(1.12); }
-  80%  { transform: rotate(288deg) rotateX(240deg)  scale(1.04); }
-  100% { transform: rotate(360deg) rotateX(360deg)  scale(1);    }
+  0% {
+    transform: rotate(0deg) rotateX(0deg) scale(1);
+  }
+  20% {
+    transform: rotate(72deg) rotateX(60deg) scale(1.15);
+  }
+  40% {
+    transform: rotate(144deg) rotateX(120deg) scale(1.08);
+  }
+  60% {
+    transform: rotate(216deg) rotateX(180deg) scale(1.12);
+  }
+  80% {
+    transform: rotate(288deg) rotateX(240deg) scale(1.04);
+  }
+  100% {
+    transform: rotate(360deg) rotateX(360deg) scale(1);
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -718,12 +828,24 @@ is the simplest and most recognisable form for the most iconic RPG die.
 
 /* d20: rotate + scale — proven from perception_check_scene.html */
 @keyframes die-d20-roll {
-  0%   { transform: rotate(0deg)   scale(1);    }
-  20%  { transform: rotate(72deg)  scale(1.15); }
-  40%  { transform: rotate(180deg) scale(1.05); }
-  60%  { transform: rotate(270deg) scale(1.12); }
-  80%  { transform: rotate(340deg) scale(1.02); }
-  100% { transform: rotate(360deg) scale(1);    }
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  20% {
+    transform: rotate(72deg) scale(1.15);
+  }
+  40% {
+    transform: rotate(180deg) scale(1.05);
+  }
+  60% {
+    transform: rotate(270deg) scale(1.12);
+  }
+  80% {
+    transform: rotate(340deg) scale(1.02);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -764,14 +886,24 @@ The outer ring is the structural element; the inner pip indicates the units die.
 
 /* d100: two-stage roll — outer (tens) then inner (units) */
 @keyframes die-d100-tens {
-  0%   { transform: rotate(0deg)   scale(1);    }
-  45%  { transform: rotate(180deg) scale(1.1);  }
-  100% { transform: rotate(360deg) scale(1);    }
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  45% {
+    transform: rotate(180deg) scale(1.1);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
 }
 
 @keyframes die-d100-units {
-  0%   { transform: translate(-50%, -50%) rotate(0deg);    }
-  100% { transform: translate(-50%, -50%) rotate(-540deg); }
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(-540deg);
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -808,7 +940,7 @@ These classes are taken directly from the proven pattern.
 /* @extract:dice */
 /* Check panel container */
 .check-panel {
-  background: var(--sta-bg-secondary, #22263A);
+  background: var(--sta-bg-secondary, #22263a);
   border: 0.5px solid var(--die-border-color);
   border-radius: var(--border-radius-lg);
   padding: 1.25rem;
@@ -847,10 +979,10 @@ These classes are taken directly from the proven pattern.
   font-family: var(--ta-font-body);
   font-size: 12px;
   color: var(--sta-text-tertiary, #545880);
-  background: var(--sta-bg-secondary, #22263A);
+  background: var(--sta-bg-secondary, #22263a);
   padding: 3px 10px;
   border-radius: var(--sta-radius-md, 6px);
-  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
 }
 
 /* Breakdown row */
@@ -866,8 +998,8 @@ These classes are taken directly from the proven pattern.
 .cb-item {
   text-align: center;
   padding: 8px 12px;
-  background: var(--sta-bg-secondary, #22263A);
-  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  background: var(--sta-bg-secondary, #22263a);
+  border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
   border-radius: 6px;
   min-width: 80px;
 }
@@ -888,7 +1020,7 @@ These classes are taken directly from the proven pattern.
   font-family: var(--ta-font-body);
   font-size: 18px;
   font-weight: 500;
-  color: var(--sta-text-primary, #EEF0FF);
+  color: var(--sta-text-primary, #eef0ff);
   margin-top: 2px;
 }
 
@@ -937,8 +1069,14 @@ These classes are taken directly from the proven pattern.
 }
 
 @keyframes die-result-reveal {
-  from { opacity: 0; transform: scale(0.85); }
-  to   { opacity: 1; transform: scale(1);    }
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .result-total {
@@ -967,14 +1105,16 @@ These classes are taken directly from the proven pattern.
   margin-top: 10px;
   background: var(--ta-color-accent-bg);
   border: 0.5px solid var(--ta-color-accent);
-  color: var(--sta-text-primary, #EEF0FF);
+  color: var(--sta-text-primary, #eef0ff);
   font-family: var(--ta-font-body);
   font-size: 14px;
   font-weight: 500;
   padding: 12px;
   border-radius: var(--sta-radius-md, 6px);
   cursor: pointer;
-  transition: background 0.2s, transform 0.15s;
+  transition:
+    background 0.2s,
+    transform 0.15s;
   letter-spacing: 0.06em;
 }
 
@@ -1000,13 +1140,13 @@ These classes are taken directly from the proven pattern.
 <style>
   /* Die custom properties — set by visual style */
   :host {
-    --die-border-color: var(--sta-border-secondary, rgba(154,160,192,0.35));
-    --die-bg:           transparent;
-    --die-text-color:   var(--sta-text-primary, #EEF0FF);
-    --die-hover-bg:     var(--sta-bg-secondary, #22263A);
-    --die-hover-border: var(--sta-border-primary, rgba(78,205,196,0.6));
-    --die-rolled-bg:    var(--sta-bg-secondary, #22263A);
-    --die-rolled-border:var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    --die-border-color: var(--sta-border-secondary, rgba(154, 160, 192, 0.35));
+    --die-bg: transparent;
+    --die-text-color: var(--sta-text-primary, #eef0ff);
+    --die-hover-bg: var(--sta-bg-secondary, #22263a);
+    --die-hover-border: var(--sta-border-primary, rgba(78, 205, 196, 0.6));
+    --die-rolled-bg: var(--sta-bg-secondary, #22263a);
+    --die-rolled-border: var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
     --die-animation-duration: 0.6s;
   }
 
@@ -1017,9 +1157,7 @@ These classes are taken directly from the proven pattern.
 <div class="roll-root">
   <!-- Narrative context -->
   <h2 class="roll-heading">Perception Check</h2>
-  <p class="roll-action">
-    You scan the room, watching for anything out of place.
-  </p>
+  <p class="roll-action">You scan the room, watching for anything out of place.</p>
 
   <!-- Check panel -->
   <div class="check-panel">
@@ -1074,81 +1212,90 @@ These classes are taken directly from the proven pattern.
 </div>
 
 <script>
-(function() {
-  const MODIFIER   = 2;  /* attribute modifier */
-  const PROFICIENCY = 2;  /* proficiency bonus — 0 if not proficient */
-  const DC         = 14;  /* difficulty class */
+  (function () {
+    const MODIFIER = 2; /* attribute modifier */
+    const PROFICIENCY = 2; /* proficiency bonus — 0 if not proficient */
+    const DC = 14; /* difficulty class */
 
-  let rolled = false;
-  let rawVal = 0;
-  let finalTotal = 0;
+    let rolled = false;
+    let rawVal = 0;
+    let finalTotal = 0;
 
-  document.getElementById('diceBtn').addEventListener('click', function() {
-    if (rolled) return;
-    const btn  = this;
-    const face = document.getElementById('diceFace');
-    btn.classList.add('rolling');
+    document.getElementById('diceBtn').addEventListener('click', function () {
+      if (rolled) return;
+      const btn = this;
+      const face = document.getElementById('diceFace');
+      btn.classList.add('rolling');
 
-    /* Flicker animation — show random numbers before landing */
-    let flicks = 0;
-    const maxFlicks = 12;
-    const interval = setInterval(function() {
-      face.textContent = Math.floor(Math.random() * 20) + 1;
-      flicks++;
-      if (flicks >= maxFlicks) {
-        clearInterval(interval);
-        rawVal     = Math.floor(Math.random() * 20) + 1;
-        finalTotal = rawVal + MODIFIER + PROFICIENCY;
-        face.textContent = rawVal;
-        document.getElementById('rawRoll').textContent   = rawVal;
-        document.getElementById('totalRoll').textContent = finalTotal;
-        btn.classList.remove('rolling');
-        btn.classList.add('rolled');
-        rolled = true;
+      /* Flicker animation — show random numbers before landing */
+      let flicks = 0;
+      const maxFlicks = 12;
+      const interval = setInterval(function () {
+        face.textContent = Math.floor(Math.random() * 20) + 1;
+        flicks++;
+        if (flicks >= maxFlicks) {
+          clearInterval(interval);
+          rawVal = Math.floor(Math.random() * 20) + 1;
+          finalTotal = rawVal + MODIFIER + PROFICIENCY;
+          face.textContent = rawVal;
+          document.getElementById('rawRoll').textContent = rawVal;
+          document.getElementById('totalRoll').textContent = finalTotal;
+          btn.classList.remove('rolling');
+          btn.classList.add('rolled');
+          rolled = true;
 
-        /* Determine outcome */
-        const resultNum = document.getElementById('resultNum');
-        const resultTag = document.getElementById('resultTag');
-        resultNum.textContent = finalTotal;
+          /* Determine outcome */
+          const resultNum = document.getElementById('resultNum');
+          const resultTag = document.getElementById('resultTag');
+          resultNum.textContent = finalTotal;
 
-        if (rawVal === 20) {
-          resultTag.textContent = 'Natural 20 — Critical Success';
-        } else if (rawVal === 1) {
-          resultTag.textContent = 'Natural 1 — Critical Failure';
-        } else if (finalTotal >= DC + 5) {
-          resultTag.textContent = 'Exceptional Success';
-        } else if (finalTotal >= DC) {
-          resultTag.textContent = 'Success';
-        } else if (DC - finalTotal <= 3) {
-          resultTag.textContent = 'Partial Success';
-        } else {
-          resultTag.textContent = 'Failure';
+          if (rawVal === 20) {
+            resultTag.textContent = 'Natural 20 — Critical Success';
+          } else if (rawVal === 1) {
+            resultTag.textContent = 'Natural 1 — Critical Failure';
+          } else if (finalTotal >= DC + 5) {
+            resultTag.textContent = 'Exceptional Success';
+          } else if (finalTotal >= DC) {
+            resultTag.textContent = 'Success';
+          } else if (DC - finalTotal <= 3) {
+            resultTag.textContent = 'Partial Success';
+          } else {
+            resultTag.textContent = 'Failure';
+          }
+
+          document.getElementById('resultArea').classList.add('show');
+          document.getElementById('diceHint').textContent = 'Roll locked in';
+
+          const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 400;
+          setTimeout(function () {
+            document.getElementById('proceedBtn').classList.add('show');
+          }, delay);
         }
+      }, 55);
+    });
 
-        document.getElementById('resultArea').classList.add('show');
-        document.getElementById('diceHint').textContent = 'Roll locked in';
-
-        const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 400;
-        setTimeout(function() {
-          document.getElementById('proceedBtn').classList.add('show');
-        }, delay);
+    document.getElementById('proceedBtn').addEventListener('click', function () {
+      const prompt =
+        'I rolled a natural ' +
+        rawVal +
+        ' on the d20, plus modifier ' +
+        MODIFIER +
+        ', plus proficiency ' +
+        PROFICIENCY +
+        ', for a total of ' +
+        finalTotal +
+        ' against DC ' +
+        DC +
+        '. Continue.';
+      if (typeof sendPrompt === 'function') {
+        sendPrompt(prompt);
+      } else {
+        /* Fallback: show copyable prompt */
+        const hint = document.getElementById('diceHint');
+        hint.textContent = prompt;
       }
-    }, 55);
-  });
-
-  document.getElementById('proceedBtn').addEventListener('click', function() {
-    const prompt = 'I rolled a natural ' + rawVal + ' on the d20, plus modifier '
-      + MODIFIER + ', plus proficiency ' + PROFICIENCY
-      + ', for a total of ' + finalTotal + ' against DC ' + DC + '. Continue.';
-    if (typeof sendPrompt === 'function') {
-      sendPrompt(prompt);
-    } else {
-      /* Fallback: show copyable prompt */
-      const hint = document.getElementById('diceHint');
-      hint.textContent = prompt;
-    }
-  });
-})();
+    });
+  })();
 </script>
 ```
 
@@ -1167,9 +1314,9 @@ with staggered delays for sequential reveal.
 .obs-card {
   position: relative;
   padding: 12px 14px 12px 18px;
-  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
   border-radius: var(--sta-radius-md, 6px);
-  background: var(--sta-bg-secondary, #22263A);
+  background: var(--sta-bg-secondary, #22263a);
   margin-bottom: 10px;
   animation: obs-card-in 0.4s ease-out both;
 }
@@ -1186,17 +1333,33 @@ with staggered delays for sequential reveal.
 }
 
 /* Accent variants — visual styles provide the actual colour values */
-.obs-card.obs-danger::before   { background: var(--ta-color-danger);  }
-.obs-card.obs-warning::before  { background: var(--ta-color-warning); }
-.obs-card.obs-success::before  { background: var(--ta-color-success); }
-.obs-card.obs-neutral::before  { background: var(--sta-border-secondary, rgba(154,160,192,0.35)); }
+.obs-card.obs-danger::before {
+  background: var(--ta-color-danger);
+}
+.obs-card.obs-warning::before {
+  background: var(--ta-color-warning);
+}
+.obs-card.obs-success::before {
+  background: var(--ta-color-success);
+}
+.obs-card.obs-neutral::before {
+  background: var(--sta-border-secondary, rgba(154, 160, 192, 0.35));
+}
 
 /* Staggered reveal — apply nth-of-type delays or inline style="--obs-delay: Ns" */
-.obs-card { animation-delay: var(--obs-delay, 0s); }
+.obs-card {
+  animation-delay: var(--obs-delay, 0s);
+}
 
 @keyframes obs-card-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0);   }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -1204,7 +1367,9 @@ with staggered delays for sequential reveal.
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .obs-card { animation: none; }
+  .obs-card {
+    animation: none;
+  }
 }
 
 /* Card header: icon + name + role + status tag */
@@ -1225,7 +1390,7 @@ with staggered delays for sequential reveal.
   font-family: var(--ta-font-body);
   font-size: 13px;
   font-weight: 600;
-  color: var(--sta-text-primary, #EEF0FF);
+  color: var(--sta-text-primary, #eef0ff);
 }
 
 .obs-role {
@@ -1242,21 +1407,32 @@ with staggered delays for sequential reveal.
   text-transform: uppercase;
   padding: 2px 8px;
   border-radius: 999px;
-  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
   color: var(--sta-text-tertiary, #545880);
   margin-left: auto; /* push to right of header row */
 }
 
-.obs-status.danger  { border-color: var(--ta-color-danger-border);  color: var(--ta-color-danger);  background: var(--ta-color-danger-bg);  }
-.obs-status.warning { border-color: var(--ta-color-warning-border); color: var(--ta-color-warning); background: var(--ta-color-warning-bg); }
-.obs-status.success { border-color: var(--ta-color-success-border); color: var(--ta-color-success);                                         }
+.obs-status.danger {
+  border-color: var(--ta-color-danger-border);
+  color: var(--ta-color-danger);
+  background: var(--ta-color-danger-bg);
+}
+.obs-status.warning {
+  border-color: var(--ta-color-warning-border);
+  color: var(--ta-color-warning);
+  background: var(--ta-color-warning-bg);
+}
+.obs-status.success {
+  border-color: var(--ta-color-success-border);
+  color: var(--ta-color-success);
+}
 
 /* Card body */
 .obs-body {
   font-family: var(--ta-font-serif, Georgia, 'Times New Roman', serif);
   font-size: 12px;
   line-height: 1.7;
-  color: var(--sta-text-secondary, #9AA0C0);
+  color: var(--sta-text-secondary, #9aa0c0);
   margin-bottom: 8px;
 }
 
@@ -1282,7 +1458,7 @@ with staggered delays for sequential reveal.
   font-family: var(--ta-font-serif, Georgia, 'Times New Roman', serif);
   font-size: 11px;
   line-height: 1.6;
-  color: var(--sta-text-secondary, #9AA0C0);
+  color: var(--sta-text-secondary, #9aa0c0);
 }
 ```
 
@@ -1298,14 +1474,14 @@ with staggered delays for sequential reveal.
     <span class="obs-status warning">Nervous</span>
   </div>
   <p class="obs-body">
-    He hasn't touched his drink in twenty minutes. His eyes track the door
-    every few seconds — always the same interval, like clockwork.
+    He hasn't touched his drink in twenty minutes. His eyes track the door every few seconds — always the same interval,
+    like clockwork.
   </p>
   <div class="obs-detail">
     <span class="obs-detail-icon" aria-hidden="true">&#x1F50E;</span>
     <span class="obs-detail-text">
-      <strong>High roll detail:</strong> The rhythm is too regular. He's counting
-      something — waiting for a signal, not a person.
+      <strong>High roll detail:</strong> The rhythm is too regular. He's counting something — waiting for a signal, not
+      a person.
     </span>
   </div>
 </div>
@@ -1317,9 +1493,7 @@ with staggered delays for sequential reveal.
     <span class="obs-role">Civilians</span>
     <span class="obs-status">Normal</span>
   </div>
-  <p class="obs-body">
-    Absorbed in their own conversation. Not relevant.
-  </p>
+  <p class="obs-body">Absorbed in their own conversation. Not relevant.</p>
 </div>
 
 <div class="obs-card obs-danger" style="--obs-delay: 0.3s">
@@ -1330,14 +1504,12 @@ with staggered delays for sequential reveal.
     <span class="obs-status danger">Threat</span>
   </div>
   <p class="obs-body">
-    Standing, not sitting. Facing the room, not the bar. Jacket is too
-    heavy for the station's climate.
+    Standing, not sitting. Facing the room, not the bar. Jacket is too heavy for the station's climate.
   </p>
   <div class="obs-detail">
     <span class="obs-detail-icon" aria-hidden="true">&#x1F50E;</span>
     <span class="obs-detail-text">
-      <strong>High roll detail:</strong> The bulge under the left arm is a
-      shoulder holster, not a comm unit.
+      <strong>High roll detail:</strong> The bulge under the left arm is a shoulder holster, not a comm unit.
     </span>
   </div>
 </div>
@@ -1360,10 +1532,12 @@ where each option has distinct mechanical weight.
   text-align: left;
   padding: 14px 16px;
   background: transparent;
-  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
   border-radius: var(--sta-radius-md, 6px);
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
   margin-bottom: 8px;
   font-family: var(--ta-font-body);
 }
@@ -1379,7 +1553,9 @@ where each option has distinct mechanical weight.
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .action-card { transition: none; }
+  .action-card {
+    transition: none;
+  }
 }
 
 /* Card inner layout */
@@ -1415,14 +1591,14 @@ where each option has distinct mechanical weight.
 .action-card-title {
   font-size: 13px;
   font-weight: 600;
-  color: var(--sta-text-primary, #EEF0FF);
+  color: var(--sta-text-primary, #eef0ff);
   margin-bottom: 3px;
 }
 
 .action-card-desc {
   font-size: 12px;
   line-height: 1.6;
-  color: var(--sta-text-secondary, #9AA0C0);
+  color: var(--sta-text-secondary, #9aa0c0);
   margin-bottom: 6px;
 }
 
@@ -1434,7 +1610,7 @@ where each option has distinct mechanical weight.
   color: var(--sta-text-tertiary, #545880);
   padding: 3px 8px;
   border-radius: var(--sta-radius-md, 6px);
-  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
   display: inline-block;
 }
 ```
@@ -1450,8 +1626,8 @@ where each option has distinct mechanical weight.
     <div class="action-card-body">
       <div class="action-card-title">Stay quiet. Keep working.</div>
       <p class="action-card-desc">
-        You say nothing. Thirty years behind this bar have taught you that
-        silence is its own kind of answer — and its own kind of pressure.
+        You say nothing. Thirty years behind this bar have taught you that silence is its own kind of answer — and its
+        own kind of pressure.
       </p>
       <span class="action-card-mech">WIS check — DC 10 — Insight passive</span>
     </div>
@@ -1464,8 +1640,7 @@ where each option has distinct mechanical weight.
     <div class="action-card-body">
       <div class="action-card-title">Slide the chip back.</div>
       <p class="action-card-desc">
-        You push the credit chip back across the bar without a word.
-        The message is clear enough.
+        You push the credit chip back across the bar without a word. The message is clear enough.
       </p>
       <span class="action-card-mech">CHA check — DC 12 — Persuasion or Intimidation</span>
     </div>
@@ -1478,8 +1653,7 @@ where each option has distinct mechanical weight.
     <div class="action-card-body">
       <div class="action-card-title">Ask him directly.</div>
       <p class="action-card-desc">
-        You lean across the bar, voice low enough that only he hears it.
-        "What is it you actually want?"
+        You lean across the bar, voice low enough that only he hears it. "What is it you actually want?"
       </p>
       <span class="action-card-mech">CHA check — DC 13 — Persuasion</span>
     </div>
@@ -1508,158 +1682,312 @@ three POI buttons, three action buttons, status bar, and panel footer.
 
 ```html
 <style>
-  .root { font-family: var(--ta-font-body); padding: 1rem 0 1.5rem; }
+  .root {
+    font-family: var(--ta-font-body);
+    padding: 1rem 0 1.5rem;
+  }
 
   /* Progressive reveal */
   .brief-text {
-    font-size: 14px; line-height: 1.7; color: var(--sta-text-primary, #EEF0FF);
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--sta-text-primary, #eef0ff);
     margin: 0 0 1rem;
   }
   .continue-btn {
-    font-family: var(--ta-font-body); font-size: 11px;
-    letter-spacing: 0.1em; padding: 8px 20px; min-height: 44px; min-width: 44px; box-sizing: border-box;
-    background: transparent; border: 0.5px solid var(--sta-border-secondary, rgba(154,160,192,0.35));
-    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-primary, #EEF0FF);
+    font-family: var(--ta-font-body);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    padding: 8px 20px;
+    min-height: 44px;
+    min-width: 44px;
+    box-sizing: border-box;
+    background: transparent;
+    border: 0.5px solid var(--sta-border-secondary, rgba(154, 160, 192, 0.35));
+    border-radius: var(--sta-radius-md, 6px);
+    color: var(--sta-text-primary, #eef0ff);
     cursor: pointer;
   }
-  .continue-btn:hover { background: var(--sta-bg-secondary, #22263A); }
-  button:focus-visible, [data-prompt]:focus-visible { outline: 2px solid var(--ta-color-focus); outline-offset: 2px; }
+  .continue-btn:hover {
+    background: var(--sta-bg-secondary, #22263a);
+  }
+  button:focus-visible,
+  [data-prompt]:focus-visible {
+    outline: 2px solid var(--ta-color-focus);
+    outline-offset: 2px;
+  }
 
   /* Location bar */
   .loc-bar {
-    display: flex; justify-content: space-between; align-items: baseline;
-    padding-bottom: 8px; margin-bottom: 12px;
-    border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+    border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
   }
   .loc-name {
-    font-family: var(--ta-font-heading); font-size: 16px; font-weight: 700;
-    color: var(--sta-text-primary, #EEF0FF); margin: 0;
+    font-family: var(--ta-font-heading);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--sta-text-primary, #eef0ff);
+    margin: 0;
   }
   .scene-num {
-    font-size: 10px; letter-spacing: 0.12em; color: var(--sta-text-tertiary, #545880);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--sta-text-tertiary, #545880);
     text-transform: uppercase;
   }
 
   /* Atmosphere strip */
-  .atmo-strip { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .atmo-strip {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
   .atmo-pill {
-    font-size: 10px; letter-spacing: 0.08em; padding: 3px 10px;
-    border-radius: 999px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
     color: var(--sta-text-tertiary, #545880);
   }
 
   /* Narrative */
   .narrative {
-    font-size: 13px; line-height: 1.8; color: var(--sta-text-primary, #EEF0FF);
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--sta-text-primary, #eef0ff);
     margin: 0 0 16px;
   }
 
   /* POI + action buttons */
   .section-label {
-    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--sta-text-tertiary, #545880); margin: 16px 0 8px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--sta-text-tertiary, #545880);
+    margin: 16px 0 8px;
   }
-  .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
 
   /* POI/explore buttons — outlined style, no fill */
-  .poi-btn, .btn-poi {
-    font-family: var(--ta-font-body); font-size: 11px;
-    letter-spacing: 0.06em; padding: 7px 14px;
-    background: transparent; border: var(--ta-border-style-poi) var(--sta-border-secondary, rgba(154,160,192,0.35));
-    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-secondary, #9AA0C0);
-    cursor: pointer; transition: background 0.12s;
+  .poi-btn,
+  .btn-poi {
+    font-family: var(--ta-font-body);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    padding: 7px 14px;
+    background: transparent;
+    border: var(--ta-border-style-poi) var(--sta-border-secondary, rgba(154, 160, 192, 0.35));
+    border-radius: var(--sta-radius-md, 6px);
+    color: var(--sta-text-secondary, #9aa0c0);
+    cursor: pointer;
+    transition: background 0.12s;
   }
-  .poi-btn:hover, .btn-poi:hover {
-    background: var(--sta-bg-secondary, #22263A);
+  .poi-btn:hover,
+  .btn-poi:hover {
+    background: var(--sta-bg-secondary, #22263a);
     border-style: solid;
   }
 
   /* Action/advance buttons — accent-coloured */
-  .action-btn, .btn-action {
-    font-family: var(--ta-font-body); font-size: 11px;
-    letter-spacing: 0.06em; padding: 7px 14px;
-    background: var(--ta-color-accent-bg); border: 0.5px solid var(--ta-color-accent);
-    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-primary, #EEF0FF);
-    cursor: pointer; transition: background 0.12s;
+  .action-btn,
+  .btn-action {
+    font-family: var(--ta-font-body);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    padding: 7px 14px;
+    background: var(--ta-color-accent-bg);
+    border: 0.5px solid var(--ta-color-accent);
+    border-radius: var(--sta-radius-md, 6px);
+    color: var(--sta-text-primary, #eef0ff);
+    cursor: pointer;
+    transition: background 0.12s;
   }
-  .action-btn:hover, .btn-action:hover { background: var(--ta-color-accent-bg-hover); }
+  .action-btn:hover,
+  .btn-action:hover {
+    background: var(--ta-color-accent-bg-hover);
+  }
 
   /* Status bar */
   .status-bar {
-    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
-    padding: 10px 0; margin-top: 8px;
-    border-top: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
-    font-size: 10px; color: var(--sta-text-tertiary, #545880);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 10px 0;
+    margin-top: 8px;
+    border-top: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
+    font-size: 10px;
+    color: var(--sta-text-tertiary, #545880);
     letter-spacing: 0.06em;
   }
-  .hp-pips { display: flex; gap: 4px; align-items: center; }
-  .pip {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--ta-color-success); border: 0.5px solid var(--ta-color-success-border);
+  .hp-pips {
+    display: flex;
+    gap: 4px;
+    align-items: center;
   }
-  .pip.empty { background: transparent; border-color: var(--sta-border-tertiary, rgba(84,88,128,0.4)); }
+  .pip {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ta-color-success);
+    border: 0.5px solid var(--ta-color-success-border);
+  }
+  .pip.empty {
+    background: transparent;
+    border-color: var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
+  }
   .sr-only {
-    position: absolute; width: 1px; height: 1px;
-    padding: 0; margin: -1px; overflow: hidden;
-    clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
   .xp-track {
-    width: 60px; height: 3px; background: var(--sta-border-tertiary, rgba(84,88,128,0.4));
-    border-radius: 2px; overflow: hidden;
+    width: 60px;
+    height: 3px;
+    background: var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
+    border-radius: 2px;
+    overflow: hidden;
   }
-  .xp-fill { height: 100%; width: 0%; background: var(--ta-color-xp); border-radius: 2px; }
+  .xp-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--ta-color-xp);
+    border-radius: 2px;
+  }
 
   /* Footer */
   .footer-row {
-    display: flex; justify-content: flex-start; gap: 8px; flex-wrap: wrap;
-    margin-top: 14px; padding-top: 10px;
-    border-top: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    display: flex;
+    justify-content: flex-start;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
   }
   .footer-btn {
-    font-family: var(--ta-font-body); font-size: 10px;
-    letter-spacing: 0.08em; padding: 8px 14px;
-    min-height: 44px; min-width: 44px; box-sizing: border-box;
-    background: transparent; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
-    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-tertiary, #545880);
+    font-family: var(--ta-font-body);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    padding: 8px 14px;
+    min-height: 44px;
+    min-width: 44px;
+    box-sizing: border-box;
+    background: transparent;
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
+    border-radius: var(--sta-radius-md, 6px);
+    color: var(--sta-text-tertiary, #545880);
     cursor: pointer;
   }
-  .footer-btn:hover { border-color: var(--sta-border-secondary, rgba(154,160,192,0.35)); color: var(--sta-text-secondary, #9AA0C0); }
+  .footer-btn:hover {
+    border-color: var(--sta-border-secondary, rgba(154, 160, 192, 0.35));
+    color: var(--sta-text-secondary, #9aa0c0);
+  }
 
   /* Panels */
-  #panel-overlay { display: none; padding: 0; }
+  #panel-overlay {
+    display: none;
+    padding: 0;
+  }
   .panel-header {
-    display: flex; align-items: baseline; justify-content: space-between;
-    padding-bottom: 10px; margin-bottom: 12px;
-    border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
   }
   .panel-title {
-    font-family: var(--ta-font-heading); font-size: 18px; font-weight: 600;
-    color: var(--sta-text-primary, #EEF0FF);
+    font-family: var(--ta-font-heading);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--sta-text-primary, #eef0ff);
   }
   .panel-close-btn {
-    font-family: var(--ta-font-body); font-size: 10px;
-    letter-spacing: 0.08em; background: transparent;
-    border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
-    border-radius: var(--sta-radius-md, 6px); padding: 8px 14px;
-    min-height: 44px; min-width: 44px; box-sizing: border-box;
-    color: var(--sta-text-tertiary, #545880); cursor: pointer;
+    font-family: var(--ta-font-body);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    background: transparent;
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
+    border-radius: var(--sta-radius-md, 6px);
+    padding: 8px 14px;
+    min-height: 44px;
+    min-width: 44px;
+    box-sizing: border-box;
+    color: var(--sta-text-tertiary, #545880);
+    cursor: pointer;
   }
-  .panel-close-btn:hover { border-color: var(--sta-border-secondary, rgba(154,160,192,0.35)); color: var(--sta-text-secondary, #9AA0C0); }
-  .panel-content { display: none; font-size: 12px; line-height: 1.7; color: var(--sta-text-secondary, #9AA0C0); }
+  .panel-close-btn:hover {
+    border-color: var(--sta-border-secondary, rgba(154, 160, 192, 0.35));
+    color: var(--sta-text-secondary, #9aa0c0);
+  }
+  .panel-content {
+    display: none;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--sta-text-secondary, #9aa0c0);
+  }
 
-  .fallback-text { font-size: 11px; color: var(--sta-text-tertiary, #545880); margin-top: 8px; display: none; }
+  .fallback-text {
+    font-size: 11px;
+    color: var(--sta-text-tertiary, #545880);
+    margin-top: 8px;
+    display: none;
+  }
   .copy-btn {
-    font-family: var(--ta-font-body); font-size: 10px; letter-spacing: 0.06em;
-    padding: 4px 10px; min-height: 44px; min-width: 44px; box-sizing: border-box;
-    background: transparent; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
-    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-tertiary, #545880);
-    cursor: pointer; margin-left: 8px; vertical-align: middle;
+    font-family: var(--ta-font-body);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    padding: 4px 10px;
+    min-height: 44px;
+    min-width: 44px;
+    box-sizing: border-box;
+    background: transparent;
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
+    border-radius: var(--sta-radius-md, 6px);
+    color: var(--sta-text-tertiary, #545880);
+    cursor: pointer;
+    margin-left: 8px;
+    vertical-align: middle;
   }
-  .copy-btn:hover { border-color: var(--sta-border-secondary, rgba(154,160,192,0.35)); color: var(--sta-text-secondary, #9AA0C0); }
+  .copy-btn:hover {
+    border-color: var(--sta-border-secondary, rgba(154, 160, 192, 0.35));
+    color: var(--sta-text-secondary, #9aa0c0);
+  }
 
-  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-  #reveal-full.revealed { animation: fade-in 0.25s ease-out; }
-  @media (prefers-reduced-motion: reduce) { #reveal-full.revealed { animation: none; } }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  #reveal-full.revealed {
+    animation: fade-in 0.25s ease-out;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #reveal-full.revealed {
+      animation: none;
+    }
+  }
 </style>
 
 <div class="root">
@@ -1687,33 +2015,42 @@ three POI buttons, three action buttons, status bar, and panel footer.
 
       <!-- Narrative -->
       <p class="narrative">
-        You step off the boarding ramp into a wide, grey corridor. The docking bay is quiet
-        — too quiet for a station of this size. Cargo crates are stacked haphazardly along the
-        far wall, several bearing shipping stamps you do not recognise. A console near the inner
-        door blinks an amber warning cycle, and beyond it a corridor stretches deeper into the
-        station. A figure in a patched flight jacket leans against the bulkhead, watching you
-        with studied disinterest.
+        You step off the boarding ramp into a wide, grey corridor. The docking bay is quiet — too quiet for a station of
+        this size. Cargo crates are stacked haphazardly along the far wall, several bearing shipping stamps you do not
+        recognise. A console near the inner door blinks an amber warning cycle, and beyond it a corridor stretches
+        deeper into the station. A figure in a patched flight jacket leans against the bulkhead, watching you with
+        studied disinterest.
       </p>
 
       <!-- Points of interest — outlined (btn-poi) with search icon prefix -->
       <p class="section-label">Points of interest</p>
       <div class="btn-row">
         <button class="btn-poi" data-prompt="I examine the blinking console.">&#x1F50D; Investigate the console</button>
-        <button class="btn-poi" data-prompt="I look down the corridor beyond the inner door.">&#x1F50D; Check the corridor</button>
-        <button class="btn-poi" data-prompt="I approach the stranger in the flight jacket.">&#x1F50D; Talk to the stranger</button>
+        <button class="btn-poi" data-prompt="I look down the corridor beyond the inner door.">
+          &#x1F50D; Check the corridor
+        </button>
+        <button class="btn-poi" data-prompt="I approach the stranger in the flight jacket.">
+          &#x1F50D; Talk to the stranger
+        </button>
       </div>
 
       <!-- Actions — accent-coloured (btn-action) -->
       <p class="section-label">What do you do?</p>
       <div class="btn-row">
-        <button class="btn-action" data-prompt="I head straight through the inner door into the station.">Push deeper into the station</button>
-        <button class="btn-action" data-prompt="I search the cargo crates for useful supplies.">Search the cargo crates</button>
-        <button class="btn-action" data-prompt="I wait here and observe the bay before moving on.">Wait and observe</button>
+        <button class="btn-action" data-prompt="I head straight through the inner door into the station.">
+          Push deeper into the station
+        </button>
+        <button class="btn-action" data-prompt="I search the cargo crates for useful supplies.">
+          Search the cargo crates
+        </button>
+        <button class="btn-action" data-prompt="I wait here and observe the bay before moving on.">
+          Wait and observe
+        </button>
       </div>
 
       <!-- Fallback prompt -->
       <p class="fallback-text" id="fallback">
-        If the buttons above do not work, copy one of these prompts and paste it into the chat:<br>
+        If the buttons above do not work, copy one of these prompts and paste it into the chat:<br />
         <code id="fallback-prompt"></code><button class="copy-btn" id="fallback-copy-btn">Copy</button>
       </p>
 
@@ -1721,8 +2058,8 @@ three POI buttons, three action buttons, status bar, and panel footer.
       <div class="status-bar">
         <span>HP</span>
         <div class="hp-pips">
-          <span class="pip"></span><span class="pip"></span><span class="pip"></span>
-          <span class="pip"></span><span class="pip"></span><span class="pip"></span>
+          <span class="pip"></span><span class="pip"></span><span class="pip"></span> <span class="pip"></span
+          ><span class="pip"></span><span class="pip"></span>
           <span class="sr-only">6 of 6 HP</span>
         </div>
         <span>XP</span>
@@ -1738,8 +2075,11 @@ three POI buttons, three action buttons, status bar, and panel footer.
         <button class="panel-close-btn" id="panel-close-btn">Close</button>
       </div>
       <div class="panel-content" data-panel="character">
-        <p><strong>Kael — Soldier</strong><br>Level 1 &middot; 0 / 100 XP</p>
-        <p>STR 16 (+3) &middot; DEX 12 (+1) &middot; CON 14 (+2)<br>INT 10 (+0) &middot; WIS 8 (-1) &middot; CHA 11 (+0)</p>
+        <p><strong>Kael — Soldier</strong><br />Level 1 &middot; 0 / 100 XP</p>
+        <p>
+          STR 16 (+3) &middot; DEX 12 (+1) &middot; CON 14 (+2)<br />INT 10 (+0) &middot; WIS 8 (-1) &middot; CHA 11
+          (+0)
+        </p>
         <p>Equipped: Pulse Rifle (+3 ranged) &middot; Flak Vest (AC 13)</p>
         <p>Inventory: Ration pack, med-stim x2, torch</p>
       </div>
@@ -1747,10 +2087,10 @@ three POI buttons, three action buttons, status bar, and panel footer.
         <p><em>No lore entries discovered yet.</em></p>
       </div>
       <div class="panel-content" data-panel="ship">
-        <p><strong>The Vagrant</strong> — Light Freighter<br>Hull: 10 / 10 &middot; Fuel: 8 / 10</p>
+        <p><strong>The Vagrant</strong> — Light Freighter<br />Hull: 10 / 10 &middot; Fuel: 8 / 10</p>
       </div>
       <div class="panel-content" data-panel="nav">
-        <p>Current location: Kellos Station, outer ring<br>No destinations charted.</p>
+        <p>Current location: Kellos Station, outer ring<br />No destinations charted.</p>
       </div>
     </div>
   </div>
@@ -1765,76 +2105,82 @@ three POI buttons, three action buttons, status bar, and panel footer.
 </div>
 
 <script>
-/* Progressive reveal — continue button */
-document.getElementById('continue-reveal-btn').addEventListener('click', function() {
-  document.getElementById('reveal-brief').style.display = 'none';
-  document.getElementById('reveal-full').style.display = 'block';
-  document.getElementById('reveal-full').classList.add('revealed');
-});
+  /* Progressive reveal — continue button */
+  document.getElementById('continue-reveal-btn').addEventListener('click', function () {
+    document.getElementById('reveal-brief').style.display = 'none';
+    document.getElementById('reveal-full').style.display = 'block';
+    document.getElementById('reveal-full').classList.add('revealed');
+  });
 
-/* Panel toggle system */
-let activePanel = null;
-function togglePanel(panelId) {
-  const overlay = document.getElementById('panel-overlay');
-  const scene = document.getElementById('scene-content');
-  const title = document.getElementById('panel-title-text');
-  if (activePanel === panelId) {
-    overlay.style.display = 'none'; scene.style.display = 'block';
+  /* Panel toggle system */
+  let activePanel = null;
+  function togglePanel(panelId) {
+    const overlay = document.getElementById('panel-overlay');
+    const scene = document.getElementById('scene-content');
+    const title = document.getElementById('panel-title-text');
+    if (activePanel === panelId) {
+      overlay.style.display = 'none';
+      scene.style.display = 'block';
+      activePanel = null;
+      document.querySelectorAll('[data-panel]').forEach(b => b.setAttribute('aria-expanded', 'false'));
+      return;
+    }
+    overlay.style.display = 'block';
+    scene.style.display = 'none';
+    activePanel = panelId;
+    title.textContent = panelId.charAt(0).toUpperCase() + panelId.slice(1);
+    document
+      .querySelectorAll('.panel-content')
+      .forEach(p => (p.style.display = p.dataset.panel === panelId ? 'block' : 'none'));
+    document
+      .querySelectorAll('[data-panel]')
+      .forEach(b => b.setAttribute('aria-expanded', b.dataset.panel === panelId ? 'true' : 'false'));
+    title.focus();
+  }
+  function closePanel() {
+    document.getElementById('panel-overlay').style.display = 'none';
+    document.getElementById('scene-content').style.display = 'block';
     activePanel = null;
     document.querySelectorAll('[data-panel]').forEach(b => b.setAttribute('aria-expanded', 'false'));
-    return;
   }
-  overlay.style.display = 'block'; scene.style.display = 'none';
-  activePanel = panelId;
-  title.textContent = panelId.charAt(0).toUpperCase() + panelId.slice(1);
-  document.querySelectorAll('.panel-content').forEach(p =>
-    p.style.display = p.dataset.panel === panelId ? 'block' : 'none');
-  document.querySelectorAll('[data-panel]').forEach(b =>
-    b.setAttribute('aria-expanded', b.dataset.panel === panelId ? 'true' : 'false'));
-  title.focus();
-}
-function closePanel() {
-  document.getElementById('panel-overlay').style.display = 'none';
-  document.getElementById('scene-content').style.display = 'block';
-  activePanel = null;
-  document.querySelectorAll('[data-panel]').forEach(b => b.setAttribute('aria-expanded', 'false'));
-}
 
-/* Panel toggle + close — event delegation via data-panel attributes */
-document.querySelectorAll('[data-panel]').forEach(btn => {
-  btn.addEventListener('click', () => togglePanel(btn.dataset.panel));
-});
-document.getElementById('panel-close-btn').addEventListener('click', closePanel);
+  /* Panel toggle + close — event delegation via data-panel attributes */
+  document.querySelectorAll('[data-panel]').forEach(btn => {
+    btn.addEventListener('click', () => togglePanel(btn.dataset.panel));
+  });
+  document.getElementById('panel-close-btn').addEventListener('click', closePanel);
 
-/* sendPrompt with fallback — all data-prompt buttons */
-document.querySelectorAll('[data-prompt]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const prompt = btn.dataset.prompt;
-    if (typeof sendPrompt === 'function') {
-      sendPrompt(prompt);
-    } else {
-      const fb = document.getElementById('fallback');
-      const fp = document.getElementById('fallback-prompt');
-      if (fb && fp) {
-        fp.textContent = prompt;
-        fb.style.display = 'block';
+  /* sendPrompt with fallback — all data-prompt buttons */
+  document.querySelectorAll('[data-prompt]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const prompt = btn.dataset.prompt;
+      if (typeof sendPrompt === 'function') {
+        sendPrompt(prompt);
+      } else {
+        const fb = document.getElementById('fallback');
+        const fp = document.getElementById('fallback-prompt');
+        if (fb && fp) {
+          fp.textContent = prompt;
+          fb.style.display = 'block';
+        }
       }
-    }
+    });
   });
-});
 
-/* Copy button — fallback prompt */
-document.querySelectorAll('.copy-btn').forEach(function(btn) {
-  btn.addEventListener('click', function() {
-    const code = this.previousElementSibling;
-    if (code && navigator.clipboard) {
-      navigator.clipboard.writeText(code.textContent).then(() => {
-        this.textContent = 'Copied!';
-        setTimeout(() => { this.textContent = 'Copy'; }, 2000);
-      });
-    }
+  /* Copy button — fallback prompt */
+  document.querySelectorAll('.copy-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const code = this.previousElementSibling;
+      if (code && navigator.clipboard) {
+        navigator.clipboard.writeText(code.textContent).then(() => {
+          this.textContent = 'Copied!';
+          setTimeout(() => {
+            this.textContent = 'Copy';
+          }, 2000);
+        });
+      }
+    });
   });
-});
 </script>
 ```
 
@@ -1847,109 +2193,218 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
 
 ```html
 <style>
-  .combat-root { font-family: var(--ta-font-body); padding: 1rem 0 1.5rem; }
+  .combat-root {
+    font-family: var(--ta-font-body);
+    padding: 1rem 0 1.5rem;
+  }
 
   /* Initiative bar */
   .init-bar {
-    display: flex; gap: 6px; align-items: center; margin-bottom: 14px;
-    padding-bottom: 10px; border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
   }
   .init-label {
-    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--sta-text-tertiary, #545880); margin-right: 4px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--sta-text-tertiary, #545880);
+    margin-right: 4px;
   }
   .init-chip {
-    font-size: 10px; letter-spacing: 0.06em; padding: 3px 10px;
-    border-radius: var(--sta-radius-md, 6px); border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
-    color: var(--sta-text-secondary, #9AA0C0);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    padding: 3px 10px;
+    border-radius: var(--sta-radius-md, 6px);
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
+    color: var(--sta-text-secondary, #9aa0c0);
   }
   .init-chip.active {
-    border-color: var(--ta-color-success); color: var(--ta-color-success); font-weight: 500;
+    border-color: var(--ta-color-success);
+    color: var(--ta-color-success);
+    font-weight: 500;
   }
 
   /* Encounter heading */
   .encounter-heading {
-    font-family: var(--ta-font-heading); font-size: 16px; font-weight: 700;
-    color: var(--sta-text-primary, #EEF0FF); margin: 0 0 4px;
+    font-family: var(--ta-font-heading);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--sta-text-primary, #eef0ff);
+    margin: 0 0 4px;
   }
   .encounter-sub {
-    font-size: 11px; color: var(--sta-text-tertiary, #545880); margin: 0 0 16px;
+    font-size: 11px;
+    color: var(--sta-text-tertiary, #545880);
+    margin: 0 0 16px;
   }
 
   /* Enemy cards */
-  .enemy-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+  .enemy-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
   .enemy-card {
-    flex: 1; min-width: 140px; padding: 10px 12px;
-    border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    flex: 1;
+    min-width: 140px;
+    padding: 10px 12px;
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
     border-radius: var(--sta-radius-md, 6px);
   }
   .enemy-name {
-    font-size: 12px; font-weight: 500; color: var(--sta-text-primary, #EEF0FF);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--sta-text-primary, #eef0ff);
     margin: 0 0 6px;
   }
   .enemy-role {
-    font-size: 10px; color: var(--sta-text-tertiary, #545880); margin: 0 0 8px;
+    font-size: 10px;
+    color: var(--sta-text-tertiary, #545880);
+    margin: 0 0 8px;
   }
-  .hp-row { display: flex; gap: 4px; align-items: center; }
-  .hp-label { font-size: 10px; color: var(--sta-text-tertiary, #545880); margin-right: 4px; }
+  .hp-row {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .hp-label {
+    font-size: 10px;
+    color: var(--sta-text-tertiary, #545880);
+    margin-right: 4px;
+  }
   .pip {
-    width: 8px; height: 8px; border-radius: 50%;
-    border: 0.5px solid var(--ta-color-danger-border); background: var(--ta-color-danger);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 0.5px solid var(--ta-color-danger-border);
+    background: var(--ta-color-danger);
   }
-  .pip.empty { background: transparent; border-color: var(--sta-border-tertiary, rgba(84,88,128,0.4)); }
+  .pip.empty {
+    background: transparent;
+    border-color: var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
+  }
   .sr-only {
-    position: absolute; width: 1px; height: 1px;
-    padding: 0; margin: -1px; overflow: hidden;
-    clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   /* Player status */
   .player-status {
-    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
-    padding: 10px 0; margin-bottom: 14px;
-    border-top: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
-    border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
-    font-size: 11px; color: var(--sta-text-primary, #EEF0FF);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 10px 0;
+    margin-bottom: 14px;
+    border-top: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
+    border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
+    font-size: 11px;
+    color: var(--sta-text-primary, #eef0ff);
   }
   .player-pip {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--ta-color-success); border: 0.5px solid var(--ta-color-success-border);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ta-color-success);
+    border: 0.5px solid var(--ta-color-success-border);
   }
-  .player-pip.empty { background: transparent; border-color: var(--sta-border-tertiary, rgba(84,88,128,0.4)); }
-  .player-pips { display: flex; gap: 4px; align-items: center; }
+  .player-pip.empty {
+    background: transparent;
+    border-color: var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
+  }
+  .player-pips {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
   .condition-tag {
-    font-size: 10px; letter-spacing: 0.08em; padding: 2px 8px;
-    border-radius: 999px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
     color: var(--sta-text-tertiary, #545880);
   }
 
   /* Action panel */
   .section-label {
-    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--sta-text-tertiary, #545880); margin: 0 0 8px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--sta-text-tertiary, #545880);
+    margin: 0 0 8px;
   }
-  .action-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
   .action-btn {
-    font-family: var(--ta-font-body); font-size: 11px;
-    letter-spacing: 0.06em; padding: 8px 16px;
-    background: transparent; border: 0.5px solid var(--sta-border-secondary, rgba(154,160,192,0.35));
-    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-primary, #EEF0FF);
-    cursor: pointer; transition: background 0.12s;
+    font-family: var(--ta-font-body);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    padding: 8px 16px;
+    background: transparent;
+    border: 0.5px solid var(--sta-border-secondary, rgba(154, 160, 192, 0.35));
+    border-radius: var(--sta-radius-md, 6px);
+    color: var(--sta-text-primary, #eef0ff);
+    cursor: pointer;
+    transition: background 0.12s;
   }
-  .action-btn:hover { background: var(--sta-bg-secondary, #22263A); }
-  .action-btn.attack { border-color: var(--ta-color-danger); color: var(--ta-color-danger); }
-  .action-btn.attack:hover { background: var(--ta-color-danger-bg); }
-  .action-btn.retreat { border-color: var(--sta-text-tertiary, #545880); color: var(--sta-text-tertiary, #545880); }
+  .action-btn:hover {
+    background: var(--sta-bg-secondary, #22263a);
+  }
+  .action-btn.attack {
+    border-color: var(--ta-color-danger);
+    color: var(--ta-color-danger);
+  }
+  .action-btn.attack:hover {
+    background: var(--ta-color-danger-bg);
+  }
+  .action-btn.retreat {
+    border-color: var(--sta-text-tertiary, #545880);
+    color: var(--sta-text-tertiary, #545880);
+  }
 
-  .fallback-text { font-size: 11px; color: var(--sta-text-tertiary, #545880); margin-top: 8px; display: none; }
-  .copy-btn {
-    font-family: var(--ta-font-body); font-size: 10px; letter-spacing: 0.06em;
-    padding: 4px 10px; min-height: 44px; min-width: 44px; box-sizing: border-box;
-    background: transparent; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
-    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-tertiary, #545880);
-    cursor: pointer; margin-left: 8px; vertical-align: middle;
+  .fallback-text {
+    font-size: 11px;
+    color: var(--sta-text-tertiary, #545880);
+    margin-top: 8px;
+    display: none;
   }
-  .copy-btn:hover { border-color: var(--sta-border-secondary, rgba(154,160,192,0.35)); color: var(--sta-text-secondary, #9AA0C0); }
+  .copy-btn {
+    font-family: var(--ta-font-body);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    padding: 4px 10px;
+    min-height: 44px;
+    min-width: 44px;
+    box-sizing: border-box;
+    background: transparent;
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
+    border-radius: var(--sta-radius-md, 6px);
+    color: var(--sta-text-tertiary, #545880);
+    cursor: pointer;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .copy-btn:hover {
+    border-color: var(--sta-border-secondary, rgba(154, 160, 192, 0.35));
+    color: var(--sta-text-secondary, #9aa0c0);
+  }
 </style>
 
 <div class="combat-root">
@@ -1973,8 +2428,7 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
       <p class="enemy-role">Melee &middot; DEF 11</p>
       <div class="hp-row">
         <span class="hp-label">HP</span>
-        <span class="pip"></span><span class="pip"></span>
-        <span class="pip"></span><span class="pip"></span>
+        <span class="pip"></span><span class="pip"></span> <span class="pip"></span><span class="pip"></span>
         <span class="sr-only">4 of 4 HP</span>
       </div>
     </div>
@@ -1983,8 +2437,7 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
       <p class="enemy-role">Ranged &middot; DEF 12</p>
       <div class="hp-row">
         <span class="hp-label">HP</span>
-        <span class="pip"></span><span class="pip"></span>
-        <span class="pip"></span><span class="pip"></span>
+        <span class="pip"></span><span class="pip"></span> <span class="pip"></span><span class="pip"></span>
         <span class="sr-only">4 of 4 HP</span>
       </div>
     </div>
@@ -1993,8 +2446,7 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
       <p class="enemy-role">Ranged &middot; DEF 13</p>
       <div class="hp-row">
         <span class="hp-label">HP</span>
-        <span class="pip"></span><span class="pip"></span>
-        <span class="pip"></span><span class="pip"></span>
+        <span class="pip"></span><span class="pip"></span> <span class="pip"></span><span class="pip"></span>
         <span class="sr-only">4 of 4 HP</span>
       </div>
     </div>
@@ -2005,9 +2457,8 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
     <span>Kael</span>
     <span>HP</span>
     <div class="player-pips">
-      <span class="player-pip"></span><span class="player-pip"></span>
-      <span class="player-pip"></span><span class="player-pip"></span>
-      <span class="player-pip"></span><span class="player-pip"></span>
+      <span class="player-pip"></span><span class="player-pip"></span> <span class="player-pip"></span
+      ><span class="player-pip"></span> <span class="player-pip"></span><span class="player-pip"></span>
       <span class="sr-only">6 of 6 HP</span>
     </div>
     <span>6 / 6</span>
@@ -2017,7 +2468,9 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
   <!-- Action panel -->
   <p class="section-label">Your turn — choose an action</p>
   <div class="action-row">
-    <button class="action-btn attack" data-prompt="I attack the Pirate with the blade using my Pulse Rifle.">Attack</button>
+    <button class="action-btn attack" data-prompt="I attack the Pirate with the blade using my Pulse Rifle.">
+      Attack
+    </button>
     <button class="action-btn" data-prompt="I use a skill. Show me my available abilities.">Skill</button>
     <button class="action-btn" data-prompt="I use an item from my inventory.">Item</button>
     <button class="action-btn retreat" data-prompt="I attempt to retreat from the fight.">Retreat</button>
@@ -2025,40 +2478,42 @@ action panel with four options. Uses `data-prompt` + `addEventListener`.
 
   <!-- Fallback -->
   <p class="fallback-text" id="combat-fallback">
-    If the buttons above do not work, copy one of these prompts and paste it into the chat:<br>
+    If the buttons above do not work, copy one of these prompts and paste it into the chat:<br />
     <code id="combat-fallback-prompt"></code><button class="copy-btn" id="combat-copy-btn">Copy</button>
   </p>
 </div>
 
 <script>
-document.querySelectorAll('[data-prompt]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const prompt = btn.dataset.prompt;
-    if (typeof sendPrompt === 'function') {
-      sendPrompt(prompt);
-    } else {
-      const fb = document.getElementById('combat-fallback');
-      const fp = document.getElementById('combat-fallback-prompt');
-      if (fb && fp) {
-        fp.textContent = prompt;
-        fb.style.display = 'block';
+  document.querySelectorAll('[data-prompt]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const prompt = btn.dataset.prompt;
+      if (typeof sendPrompt === 'function') {
+        sendPrompt(prompt);
+      } else {
+        const fb = document.getElementById('combat-fallback');
+        const fp = document.getElementById('combat-fallback-prompt');
+        if (fb && fp) {
+          fp.textContent = prompt;
+          fb.style.display = 'block';
+        }
       }
-    }
+    });
   });
-});
 
-/* Copy button — fallback prompt */
-document.querySelectorAll('.copy-btn').forEach(function(btn) {
-  btn.addEventListener('click', function() {
-    const code = this.previousElementSibling;
-    if (code && navigator.clipboard) {
-      navigator.clipboard.writeText(code.textContent).then(() => {
-        this.textContent = 'Copied!';
-        setTimeout(() => { this.textContent = 'Copy'; }, 2000);
-      });
-    }
+  /* Copy button — fallback prompt */
+  document.querySelectorAll('.copy-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const code = this.previousElementSibling;
+      if (code && navigator.clipboard) {
+        navigator.clipboard.writeText(code.textContent).then(() => {
+          this.textContent = 'Copied!';
+          setTimeout(() => {
+            this.textContent = 'Copy';
+          }, 2000);
+        });
+      }
+    });
   });
-});
 </script>
 ```
 
@@ -2072,123 +2527,229 @@ revealed sequentially via button clicks — never combined or skipped.
 
 ```html
 <style>
-  .roll-root { font-family: var(--ta-font-body); padding: 1rem 0 1.5rem; }
+  .roll-root {
+    font-family: var(--ta-font-body);
+    padding: 1rem 0 1.5rem;
+  }
 
   .roll-heading {
-    font-family: var(--ta-font-heading); font-size: 16px; font-weight: 700;
-    color: var(--sta-text-primary, #EEF0FF); margin: 0 0 4px;
+    font-family: var(--ta-font-heading);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--sta-text-primary, #eef0ff);
+    margin: 0 0 4px;
   }
   .roll-action {
-    font-size: 12px; color: var(--sta-text-secondary, #9AA0C0); margin: 0 0 16px;
+    font-size: 12px;
+    color: var(--sta-text-secondary, #9aa0c0);
+    margin: 0 0 16px;
     line-height: 1.6;
   }
 
   /* Attribute reveal */
   .attr-row {
-    display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px;
-    padding: 10px 14px; border-radius: var(--sta-radius-md, 6px);
-    background: var(--sta-bg-secondary, #22263A);
-    border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    border-radius: var(--sta-radius-md, 6px);
+    background: var(--sta-bg-secondary, #22263a);
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
   }
   .attr-name {
-    font-size: 13px; font-weight: 500; color: var(--sta-text-primary, #EEF0FF);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--sta-text-primary, #eef0ff);
   }
   .attr-mod {
-    font-size: 11px; color: var(--sta-text-tertiary, #545880);
+    font-size: 11px;
+    color: var(--sta-text-tertiary, #545880);
   }
 
   /* Roll button */
   .roll-btn {
-    font-family: var(--ta-font-body); font-size: 14px;
-    font-weight: 500; letter-spacing: 0.12em; padding: 12px 32px;
-    background: transparent; border: 1px solid var(--sta-border-primary, rgba(78,205,196,0.6));
-    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-primary, #EEF0FF);
-    cursor: pointer; display: block; margin: 0 auto 16px;
+    font-family: var(--ta-font-body);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    padding: 12px 32px;
+    background: transparent;
+    border: 1px solid var(--sta-border-primary, rgba(78, 205, 196, 0.6));
+    border-radius: var(--sta-radius-md, 6px);
+    color: var(--sta-text-primary, #eef0ff);
+    cursor: pointer;
+    display: block;
+    margin: 0 auto 16px;
     transition: background 0.12s;
   }
-  .roll-btn:hover { background: var(--sta-bg-secondary, #22263A); }
-  .roll-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .roll-btn:hover {
+    background: var(--sta-bg-secondary, #22263a);
+  }
+  .roll-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
 
   /* Die display */
   .die-display {
-    display: none; text-align: center; margin-bottom: 16px;
+    display: none;
+    text-align: center;
+    margin-bottom: 16px;
   }
   .die-value {
-    font-size: 36px; font-weight: 700; color: var(--sta-text-primary, #EEF0FF);
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--sta-text-primary, #eef0ff);
     display: inline-block;
   }
   @keyframes die-spin {
-    0%   { transform: rotateX(0deg);   opacity: 0.4; }
-    50%  { transform: rotateX(180deg); opacity: 0.7; }
-    100% { transform: rotateX(360deg); opacity: 1;   }
+    0% {
+      transform: rotateX(0deg);
+      opacity: 0.4;
+    }
+    50% {
+      transform: rotateX(180deg);
+      opacity: 0.7;
+    }
+    100% {
+      transform: rotateX(360deg);
+      opacity: 1;
+    }
   }
-  .die-value.spinning { animation: die-spin var(--ta-die-spin-duration, 0.6s) ease-out; }
+  .die-value.spinning {
+    animation: die-spin var(--ta-die-spin-duration, 0.6s) ease-out;
+  }
 
   /* Reduced motion — disable die animation and all transitions */
   @media (prefers-reduced-motion: reduce) {
-    .die-value.spinning { animation: none; opacity: 1; }
-    * { transition-duration: 0.01ms !important; }
+    .die-value.spinning {
+      animation: none;
+      opacity: 1;
+    }
+    * {
+      transition-duration: 0.01ms !important;
+    }
   }
 
   /* Resolve block */
   .resolve-block {
-    display: none; padding: 12px 14px; margin-bottom: 16px;
+    display: none;
+    padding: 12px 14px;
+    margin-bottom: 16px;
     border-radius: var(--sta-radius-md, 6px);
-    border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
-    background: var(--sta-bg-secondary, #22263A);
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
+    background: var(--sta-bg-secondary, #22263a);
   }
   .resolve-row {
-    display: flex; justify-content: space-between; align-items: baseline;
-    font-size: 12px; color: var(--sta-text-secondary, #9AA0C0); margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 12px;
+    color: var(--sta-text-secondary, #9aa0c0);
+    margin-bottom: 6px;
   }
-  .resolve-row:last-child { margin-bottom: 0; }
-  .resolve-label { color: var(--sta-text-tertiary, #545880); }
+  .resolve-row:last-child {
+    margin-bottom: 0;
+  }
+  .resolve-label {
+    color: var(--sta-text-tertiary, #545880);
+  }
 
   /* Outcome badge */
   .outcome-badge {
-    display: none; text-align: center; margin-bottom: 16px;
+    display: none;
+    text-align: center;
+    margin-bottom: 16px;
   }
   .badge {
-    display: inline-block; font-size: 11px; font-weight: 500;
-    letter-spacing: 0.14em; text-transform: uppercase;
-    padding: 5px 16px; border-radius: var(--sta-radius-md, 6px);
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 5px 16px;
+    border-radius: var(--sta-radius-md, 6px);
   }
-  .badge.success      { background: var(--ta-badge-success-bg); color: var(--ta-badge-success-text); }
-  .badge.partial      { background: var(--ta-badge-partial-bg); color: var(--ta-badge-partial-text); }
-  .badge.failure      { background: var(--ta-badge-failure-bg); color: var(--ta-badge-failure-text); }
-  .badge.crit-success { background: var(--ta-badge-success-bg); color: var(--ta-badge-success-text); border: 1px solid var(--ta-badge-crit-success-border); }
-  .badge.crit-failure { background: var(--ta-badge-failure-bg); color: var(--ta-badge-failure-text); border: 1px solid var(--ta-badge-crit-failure-border); }
+  .badge.success {
+    background: var(--ta-badge-success-bg);
+    color: var(--ta-badge-success-text);
+  }
+  .badge.partial {
+    background: var(--ta-badge-partial-bg);
+    color: var(--ta-badge-partial-text);
+  }
+  .badge.failure {
+    background: var(--ta-badge-failure-bg);
+    color: var(--ta-badge-failure-text);
+  }
+  .badge.crit-success {
+    background: var(--ta-badge-success-bg);
+    color: var(--ta-badge-success-text);
+    border: 1px solid var(--ta-badge-crit-success-border);
+  }
+  .badge.crit-failure {
+    background: var(--ta-badge-failure-bg);
+    color: var(--ta-badge-failure-text);
+    border: 1px solid var(--ta-badge-crit-failure-border);
+  }
 
   /* Continue stage */
-  .continue-stage { display: none; text-align: center; }
+  .continue-stage {
+    display: none;
+    text-align: center;
+  }
   .continue-btn {
-    font-family: var(--ta-font-body); font-size: 11px;
-    letter-spacing: 0.1em; padding: 8px 20px;
-    min-height: 44px; min-width: 44px; box-sizing: border-box;
-    background: transparent; border: 0.5px solid var(--sta-border-secondary, rgba(154,160,192,0.35));
-    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-primary, #EEF0FF);
+    font-family: var(--ta-font-body);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    padding: 8px 20px;
+    min-height: 44px;
+    min-width: 44px;
+    box-sizing: border-box;
+    background: transparent;
+    border: 0.5px solid var(--sta-border-secondary, rgba(154, 160, 192, 0.35));
+    border-radius: var(--sta-radius-md, 6px);
+    color: var(--sta-text-primary, #eef0ff);
     cursor: pointer;
   }
-  .continue-btn:hover { background: var(--sta-bg-secondary, #22263A); }
+  .continue-btn:hover {
+    background: var(--sta-bg-secondary, #22263a);
+  }
   .fallback-text {
-    font-size: 11px; color: var(--sta-text-tertiary, #545880); margin-top: 8px; display: none;
+    font-size: 11px;
+    color: var(--sta-text-tertiary, #545880);
+    margin-top: 8px;
+    display: none;
   }
   .copy-btn {
-    font-family: var(--ta-font-body); font-size: 10px; letter-spacing: 0.06em;
-    padding: 4px 10px; min-height: 44px; min-width: 44px; box-sizing: border-box;
-    background: transparent; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
-    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-tertiary, #545880);
-    cursor: pointer; margin-left: 8px; vertical-align: middle;
+    font-family: var(--ta-font-body);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    padding: 4px 10px;
+    min-height: 44px;
+    min-width: 44px;
+    box-sizing: border-box;
+    background: transparent;
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
+    border-radius: var(--sta-radius-md, 6px);
+    color: var(--sta-text-tertiary, #545880);
+    cursor: pointer;
+    margin-left: 8px;
+    vertical-align: middle;
   }
-  .copy-btn:hover { border-color: var(--sta-border-secondary, rgba(154,160,192,0.35)); color: var(--sta-text-secondary, #9AA0C0); }
+  .copy-btn:hover {
+    border-color: var(--sta-border-secondary, rgba(154, 160, 192, 0.35));
+    color: var(--sta-text-secondary, #9aa0c0);
+  }
 </style>
 
 <div class="roll-root">
   <!-- Stage 1: Declare -->
   <h2 class="roll-heading">Stealth Check</h2>
   <p class="roll-action">
-    You press yourself against the cold bulkhead and edge past the open doorway,
-    willing your boots to stay silent on the grated flooring.
+    You press yourself against the cold bulkhead and edge past the open doorway, willing your boots to stay silent on
+    the grated flooring.
   </p>
   <div class="attr-row">
     <span class="attr-name">DEX</span>
@@ -2228,110 +2789,129 @@ revealed sequentially via button clicks — never combined or skipped.
   <div class="continue-stage" id="continue-stage">
     <button class="continue-btn" id="continue-btn" data-prompt="">Continue</button>
     <p class="fallback-text" id="roll-fallback">
-      If the button above does not work, copy this prompt and paste it into the chat:<br>
+      If the button above does not work, copy this prompt and paste it into the chat:<br />
       <code id="roll-fallback-prompt"></code><button class="copy-btn" id="roll-copy-btn">Copy</button>
     </p>
   </div>
 </div>
 
 <script>
-(function() {
-  const MODIFIER = 1;
-  const DC = 14;
-  let rolled = false;
+  (function () {
+    const MODIFIER = 1;
+    const DC = 14;
+    let rolled = false;
 
-  document.getElementById('roll-btn').addEventListener('click', function() {
-    if (rolled) return;
-    rolled = true;
-    this.disabled = true;
+    document.getElementById('roll-btn').addEventListener('click', function () {
+      if (rolled) return;
+      rolled = true;
+      this.disabled = true;
 
-    const raw = Math.floor(Math.random() * 20) + 1;
-    const total = raw + MODIFIER;
+      const raw = Math.floor(Math.random() * 20) + 1;
+      const total = raw + MODIFIER;
 
-    /* Stage 2: Animate */
-    const dieDisplay = document.getElementById('die-display');
-    const dieValue = document.getElementById('die-value');
-    dieDisplay.style.display = 'block';
+      /* Stage 2: Animate */
+      const dieDisplay = document.getElementById('die-display');
+      const dieValue = document.getElementById('die-value');
+      dieDisplay.style.display = 'block';
 
-    /* Spin through random numbers for 0.6s */
-    let spinCount = 0;
-    const spinInterval = setInterval(() => {
-      dieValue.textContent = Math.floor(Math.random() * 20) + 1;
-      spinCount++;
-      if (spinCount >= 12) {
-        clearInterval(spinInterval);
-        dieValue.textContent = raw;
-        dieValue.classList.add('spinning');
+      /* Spin through random numbers for 0.6s */
+      let spinCount = 0;
+      const spinInterval = setInterval(() => {
+        dieValue.textContent = Math.floor(Math.random() * 20) + 1;
+        spinCount++;
+        if (spinCount >= 12) {
+          clearInterval(spinInterval);
+          dieValue.textContent = raw;
+          dieValue.classList.add('spinning');
 
-        /* Stage 3: Resolve — after brief pause */
-        setTimeout(() => {
-          document.getElementById('raw-roll').textContent = raw;
-          document.getElementById('total-roll').textContent = total;
-          document.getElementById('resolve-block').style.display = 'block';
+          /* Stage 3: Resolve — after brief pause */
+          setTimeout(() => {
+            document.getElementById('raw-roll').textContent = raw;
+            document.getElementById('total-roll').textContent = total;
+            document.getElementById('resolve-block').style.display = 'block';
 
-          /* Determine outcome */
-          let badgeClass, badgeText;
-          if (raw === 20) {
-            badgeClass = 'crit-success'; badgeText = 'Critical Success';
-          } else if (raw === 1) {
-            badgeClass = 'crit-failure'; badgeText = 'Critical Failure';
-          } else if (total >= DC) {
-            if (total - DC <= 1) {
-              badgeClass = 'partial'; badgeText = 'Partial Success';
+            /* Determine outcome */
+            let badgeClass, badgeText;
+            if (raw === 20) {
+              badgeClass = 'crit-success';
+              badgeText = 'Critical Success';
+            } else if (raw === 1) {
+              badgeClass = 'crit-failure';
+              badgeText = 'Critical Failure';
+            } else if (total >= DC) {
+              if (total - DC <= 1) {
+                badgeClass = 'partial';
+                badgeText = 'Partial Success';
+              } else {
+                badgeClass = 'success';
+                badgeText = 'Success';
+              }
+            } else if (DC - total <= 3) {
+              badgeClass = 'partial';
+              badgeText = 'Partial Success';
             } else {
-              badgeClass = 'success'; badgeText = 'Success';
+              badgeClass = 'failure';
+              badgeText = 'Failure';
             }
-          } else if (DC - total <= 3) {
-            badgeClass = 'partial'; badgeText = 'Partial Success';
-          } else {
-            badgeClass = 'failure'; badgeText = 'Failure';
-          }
 
-          const badgeEl = document.getElementById('badge-text');
-          badgeEl.className = 'badge ' + badgeClass;
-          badgeEl.textContent = badgeText;
-          document.getElementById('outcome-badge').style.display = 'block';
+            const badgeEl = document.getElementById('badge-text');
+            badgeEl.className = 'badge ' + badgeClass;
+            badgeEl.textContent = badgeText;
+            document.getElementById('outcome-badge').style.display = 'block';
 
-          /* Stage 4: Continue */
-          const promptText = 'I rolled ' + raw + ' plus ' + MODIFIER + ' equals ' + total + ' against DC ' + DC + '. ' + badgeText + '. Continue.';
-          const continueBtn = document.getElementById('continue-btn');
-          continueBtn.dataset.prompt = promptText;
+            /* Stage 4: Continue */
+            const promptText =
+              'I rolled ' +
+              raw +
+              ' plus ' +
+              MODIFIER +
+              ' equals ' +
+              total +
+              ' against DC ' +
+              DC +
+              '. ' +
+              badgeText +
+              '. Continue.';
+            const continueBtn = document.getElementById('continue-btn');
+            continueBtn.dataset.prompt = promptText;
 
-          const fallbackPrompt = document.getElementById('roll-fallback-prompt');
-          fallbackPrompt.textContent = promptText;
+            const fallbackPrompt = document.getElementById('roll-fallback-prompt');
+            fallbackPrompt.textContent = promptText;
 
-          const revealDelay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 400;
-          setTimeout(function() {
-            document.getElementById('continue-stage').style.display = 'block';
-          }, revealDelay);
-        }, 300);
-      }
-    }, 50);
-  });
+            const revealDelay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 400;
+            setTimeout(function () {
+              document.getElementById('continue-stage').style.display = 'block';
+            }, revealDelay);
+          }, 300);
+        }
+      }, 50);
+    });
 
-  /* Continue button — sendPrompt with fallback */
-  document.getElementById('continue-btn').addEventListener('click', function() {
-    const prompt = this.dataset.prompt;
-    if (typeof sendPrompt === 'function') {
-      sendPrompt(prompt);
-    } else {
-      document.getElementById('roll-fallback').style.display = 'block';
-    }
-  });
-
-  /* Copy button — fallback prompt */
-  document.querySelectorAll('.copy-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      const code = this.previousElementSibling;
-      if (code && navigator.clipboard) {
-        navigator.clipboard.writeText(code.textContent).then(() => {
-          this.textContent = 'Copied!';
-          setTimeout(() => { this.textContent = 'Copy'; }, 2000);
-        });
+    /* Continue button — sendPrompt with fallback */
+    document.getElementById('continue-btn').addEventListener('click', function () {
+      const prompt = this.dataset.prompt;
+      if (typeof sendPrompt === 'function') {
+        sendPrompt(prompt);
+      } else {
+        document.getElementById('roll-fallback').style.display = 'block';
       }
     });
-  });
-})();
+
+    /* Copy button — fallback prompt */
+    document.querySelectorAll('.copy-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const code = this.previousElementSibling;
+        if (code && navigator.clipboard) {
+          navigator.clipboard.writeText(code.textContent).then(() => {
+            this.textContent = 'Copied!';
+            setTimeout(() => {
+              this.textContent = 'Copy';
+            }, 2000);
+          });
+        }
+      });
+    });
+  })();
 </script>
 ```
 
@@ -2346,130 +2926,232 @@ barter, and leave buttons use `data-prompt` + `addEventListener`.
 
 ```html
 <style>
-  .shop-root { font-family: var(--ta-font-body); padding: 1rem 0 1.5rem; }
+  .shop-root {
+    font-family: var(--ta-font-body);
+    padding: 1rem 0 1.5rem;
+  }
 
   /* Merchant header */
   .merchant-header {
-    display: flex; justify-content: space-between; align-items: baseline;
-    padding-bottom: 8px; margin-bottom: 4px;
-    border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 8px;
+    margin-bottom: 4px;
+    border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
   }
   .merchant-name {
-    font-family: var(--ta-font-heading); font-size: 16px; font-weight: 700;
-    color: var(--sta-text-primary, #EEF0FF); margin: 0;
+    font-family: var(--ta-font-heading);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--sta-text-primary, #eef0ff);
+    margin: 0;
   }
   .credits-display {
-    font-size: 12px; font-weight: 500; letter-spacing: 0.06em;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
     color: var(--ta-color-credits);
   }
   .merchant-flavour {
-    font-size: 11px; color: var(--sta-text-tertiary, #545880); margin: 4px 0 14px;
+    font-size: 11px;
+    color: var(--sta-text-tertiary, #545880);
+    margin: 4px 0 14px;
     line-height: 1.6;
   }
 
   /* Tab bar */
   .tab-bar {
-    display: flex; gap: 0; margin-bottom: 14px;
-    border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    display: flex;
+    gap: 0;
+    margin-bottom: 14px;
+    border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
   }
   .tab-btn {
     font-family: var(--ta-font-body);
-    font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
-    padding: 8px 16px; background: transparent; border: none;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
     border-bottom: 2px solid transparent;
-    color: var(--sta-text-tertiary, #545880); cursor: pointer;
-    transition: color 0.12s, border-color 0.12s;
+    color: var(--sta-text-tertiary, #545880);
+    cursor: pointer;
+    transition:
+      color 0.12s,
+      border-color 0.12s;
   }
-  .tab-btn:hover { color: var(--sta-text-secondary, #9AA0C0); }
+  .tab-btn:hover {
+    color: var(--sta-text-secondary, #9aa0c0);
+  }
   .tab-btn.active {
-    color: var(--sta-text-primary, #EEF0FF);
+    color: var(--sta-text-primary, #eef0ff);
     border-bottom-color: var(--ta-color-tab-active);
   }
-  .tab-panel { display: none; }
-  .tab-panel.active { display: block; }
+  .tab-panel {
+    display: none;
+  }
+  .tab-panel.active {
+    display: block;
+  }
 
   /* Item grid */
-  .item-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .item-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
   .item-card {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 10px; padding: 10px 12px;
-    border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
     border-radius: var(--sta-radius-md, 6px);
     flex-wrap: wrap;
   }
-  .item-info { flex: 1; min-width: 160px; }
+  .item-info {
+    flex: 1;
+    min-width: 160px;
+  }
   .item-name {
-    font-size: 12px; font-weight: 500; color: var(--sta-text-primary, #EEF0FF);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--sta-text-primary, #eef0ff);
     margin: 0 0 2px;
   }
   .item-type-badge {
-    display: inline-block; font-size: 10px; letter-spacing: 0.08em;
-    text-transform: uppercase; padding: 2px 8px;
-    border-radius: 999px; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
-    color: var(--sta-text-tertiary, #545880); margin-right: 6px;
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
+    color: var(--sta-text-tertiary, #545880);
+    margin-right: 6px;
   }
   .item-effect {
-    font-size: 10px; color: var(--sta-text-tertiary, #545880); margin: 4px 0 0;
+    font-size: 10px;
+    color: var(--sta-text-tertiary, #545880);
+    margin: 4px 0 0;
     line-height: 1.5;
   }
   .item-price {
-    font-size: 12px; font-weight: 500; color: var(--sta-text-primary, #EEF0FF);
-    white-space: nowrap; margin-right: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--sta-text-primary, #eef0ff);
+    white-space: nowrap;
+    margin-right: 8px;
   }
-  .item-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+  .item-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
+  }
 
   /* Button styles — action (buy/barter) and poi (inspect) */
   .btn-action {
     font-family: var(--ta-font-body);
-    font-size: 10px; letter-spacing: 0.06em; padding: 6px 12px;
-    min-height: 44px; min-width: 44px; box-sizing: border-box;
-    background: var(--ta-color-accent-bg); border: 0.5px solid var(--ta-color-accent);
-    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-primary, #EEF0FF);
-    cursor: pointer; transition: background 0.12s;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    padding: 6px 12px;
+    min-height: 44px;
+    min-width: 44px;
+    box-sizing: border-box;
+    background: var(--ta-color-accent-bg);
+    border: 0.5px solid var(--ta-color-accent);
+    border-radius: var(--sta-radius-md, 6px);
+    color: var(--sta-text-primary, #eef0ff);
+    cursor: pointer;
+    transition: background 0.12s;
   }
-  .btn-action:hover { background: var(--ta-color-accent-bg-hover); }
+  .btn-action:hover {
+    background: var(--ta-color-accent-bg-hover);
+  }
   .btn-poi {
     font-family: var(--ta-font-body);
-    font-size: 10px; letter-spacing: 0.06em; padding: 6px 12px;
-    min-height: 44px; min-width: 44px; box-sizing: border-box;
-    background: transparent; border: var(--ta-border-style-poi) var(--sta-border-secondary, rgba(154,160,192,0.35));
-    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-secondary, #9AA0C0);
-    cursor: pointer; transition: background 0.12s;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    padding: 6px 12px;
+    min-height: 44px;
+    min-width: 44px;
+    box-sizing: border-box;
+    background: transparent;
+    border: var(--ta-border-style-poi) var(--sta-border-secondary, rgba(154, 160, 192, 0.35));
+    border-radius: var(--sta-radius-md, 6px);
+    color: var(--sta-text-secondary, #9aa0c0);
+    cursor: pointer;
+    transition: background 0.12s;
   }
-  .btn-poi:hover { background: var(--sta-bg-secondary, #22263A); border-style: solid; }
+  .btn-poi:hover {
+    background: var(--sta-bg-secondary, #22263a);
+    border-style: solid;
+  }
 
   /* Footer actions row */
   .shop-footer {
-    display: flex; justify-content: space-between; align-items: center;
-    gap: 8px; flex-wrap: wrap; margin-top: 14px; padding-top: 10px;
-    border-top: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
   }
 
   /* Sell tab — empty state */
   .sell-empty {
-    font-size: 11px; color: var(--sta-text-tertiary, #545880); padding: 16px 0;
+    font-size: 11px;
+    color: var(--sta-text-tertiary, #545880);
+    padding: 16px 0;
     text-align: center;
   }
 
   /* Focus-visible for keyboard navigation */
   button:focus-visible {
-    outline: 2px solid var(--ta-color-focus); outline-offset: 2px;
+    outline: 2px solid var(--ta-color-focus);
+    outline-offset: 2px;
   }
 
   /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
-    * { transition-duration: 0.01ms !important; }
+    * {
+      transition-duration: 0.01ms !important;
+    }
   }
 
-  .fallback-text { font-size: 11px; color: var(--sta-text-tertiary, #545880); margin-top: 8px; display: none; }
-  .copy-btn {
-    font-family: var(--ta-font-body); font-size: 10px; letter-spacing: 0.06em;
-    padding: 4px 10px; min-height: 44px; min-width: 44px; box-sizing: border-box;
-    background: transparent; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
-    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-tertiary, #545880);
-    cursor: pointer; margin-left: 8px; vertical-align: middle;
+  .fallback-text {
+    font-size: 11px;
+    color: var(--sta-text-tertiary, #545880);
+    margin-top: 8px;
+    display: none;
   }
-  .copy-btn:hover { border-color: var(--sta-border-secondary, rgba(154,160,192,0.35)); color: var(--sta-text-secondary, #9AA0C0); }
+  .copy-btn {
+    font-family: var(--ta-font-body);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    padding: 4px 10px;
+    min-height: 44px;
+    min-width: 44px;
+    box-sizing: border-box;
+    background: transparent;
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
+    border-radius: var(--sta-radius-md, 6px);
+    color: var(--sta-text-tertiary, #545880);
+    cursor: pointer;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .copy-btn:hover {
+    border-color: var(--sta-border-secondary, rgba(154, 160, 192, 0.35));
+    color: var(--sta-text-secondary, #9aa0c0);
+  }
 </style>
 
 <div class="shop-root">
@@ -2557,61 +3239,71 @@ barter, and leave buttons use `data-prompt` + `addEventListener`.
 
   <!-- Fallback -->
   <p class="fallback-text" id="shop-fallback">
-    If the buttons above do not work, copy one of these prompts and paste it into the chat:<br>
+    If the buttons above do not work, copy one of these prompts and paste it into the chat:<br />
     <code id="shop-fallback-prompt"></code><button class="copy-btn" id="shop-copy-btn">Copy</button>
   </p>
 </div>
 
 <script>
-(function() {
-  /* Tab switching — pure JS, no sendPrompt */
-  document.querySelectorAll('.tab-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var tabId = this.dataset.tab;
-      document.querySelectorAll('.tab-btn').forEach(function(t) { t.classList.remove('active'); });
-      document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
-      this.classList.add('active');
-      var targetPanel = document.getElementById('tab-' + tabId);
-      if (targetPanel) { targetPanel.classList.add('active'); }
-    });
-  });
-
-  /* sendPrompt with fallback — showFallback helper */
-  function showFallback(promptText) {
-    var fb = document.getElementById('shop-fallback');
-    var fp = document.getElementById('shop-fallback-prompt');
-    if (fb && fp) {
-      fp.textContent = promptText;
-      fb.style.display = 'block';
-    }
-  }
-
-  document.querySelectorAll('[data-prompt]').forEach(function(btn) {
-    /* Skip tab buttons — they use data-tab, not data-prompt for action */
-    if (btn.classList.contains('tab-btn')) { return; }
-    btn.addEventListener('click', function() {
-      var prompt = this.dataset.prompt;
-      if (typeof sendPrompt === 'function') {
-        sendPrompt(prompt);
-      } else {
-        showFallback(prompt);
-      }
-    });
-  });
-
-  /* Copy button — fallback prompt */
-  document.querySelectorAll('.copy-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var code = this.previousElementSibling;
-      if (code && navigator.clipboard) {
-        navigator.clipboard.writeText(code.textContent).then(function() {
-          btn.textContent = 'Copied!';
-          setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
+  (function () {
+    /* Tab switching — pure JS, no sendPrompt */
+    document.querySelectorAll('.tab-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var tabId = this.dataset.tab;
+        document.querySelectorAll('.tab-btn').forEach(function (t) {
+          t.classList.remove('active');
         });
-      }
+        document.querySelectorAll('.tab-panel').forEach(function (p) {
+          p.classList.remove('active');
+        });
+        this.classList.add('active');
+        var targetPanel = document.getElementById('tab-' + tabId);
+        if (targetPanel) {
+          targetPanel.classList.add('active');
+        }
+      });
     });
-  });
-})();
+
+    /* sendPrompt with fallback — showFallback helper */
+    function showFallback(promptText) {
+      var fb = document.getElementById('shop-fallback');
+      var fp = document.getElementById('shop-fallback-prompt');
+      if (fb && fp) {
+        fp.textContent = promptText;
+        fb.style.display = 'block';
+      }
+    }
+
+    document.querySelectorAll('[data-prompt]').forEach(function (btn) {
+      /* Skip tab buttons — they use data-tab, not data-prompt for action */
+      if (btn.classList.contains('tab-btn')) {
+        return;
+      }
+      btn.addEventListener('click', function () {
+        var prompt = this.dataset.prompt;
+        if (typeof sendPrompt === 'function') {
+          sendPrompt(prompt);
+        } else {
+          showFallback(prompt);
+        }
+      });
+    });
+
+    /* Copy button — fallback prompt */
+    document.querySelectorAll('.copy-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var code = this.previousElementSibling;
+        if (code && navigator.clipboard) {
+          navigator.clipboard.writeText(code.textContent).then(function () {
+            btn.textContent = 'Copied!';
+            setTimeout(function () {
+              btn.textContent = 'Copy';
+            }, 2000);
+          });
+        }
+      });
+    });
+  })();
 </script>
 ```
 
@@ -2626,111 +3318,186 @@ All approach buttons use `data-prompt` + `addEventListener`.
 
 ```html
 <style>
-  .social-root { font-family: var(--ta-font-body); padding: 1rem 0 1.5rem; }
+  .social-root {
+    font-family: var(--ta-font-body);
+    padding: 1rem 0 1.5rem;
+  }
 
   /* NPC header */
   .npc-header {
-    display: flex; justify-content: space-between; align-items: baseline;
-    padding-bottom: 8px; margin-bottom: 4px;
-    border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 8px;
+    margin-bottom: 4px;
+    border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
   }
   .npc-name {
-    font-family: var(--ta-font-heading); font-size: 16px; font-weight: 700;
-    color: var(--sta-text-primary, #EEF0FF); margin: 0;
+    font-family: var(--ta-font-heading);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--sta-text-primary, #eef0ff);
+    margin: 0;
   }
   .disposition-badge {
-    display: inline-block; font-size: 10px; font-weight: 500;
-    letter-spacing: 0.1em; text-transform: uppercase;
-    padding: 3px 12px; border-radius: 999px;
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 12px;
+    border-radius: 999px;
   }
   .disposition-badge.suspicious {
-    background: var(--ta-color-warning-bg); color: var(--ta-color-warning);
+    background: var(--ta-color-warning-bg);
+    color: var(--ta-color-warning);
     border: 0.5px solid var(--ta-color-warning-border);
   }
 
   /* Stakes text */
   .stakes-text {
-    font-size: 12px; line-height: 1.7; color: var(--sta-text-secondary, #9AA0C0);
-    margin: 8px 0 16px; padding: 10px 14px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--sta-text-secondary, #9aa0c0);
+    margin: 8px 0 16px;
+    padding: 10px 14px;
     border-radius: var(--sta-radius-md, 6px);
-    background: var(--sta-bg-secondary, #22263A);
-    border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+    background: var(--sta-bg-secondary, #22263a);
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
   }
   .stakes-label {
-    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--sta-text-tertiary, #545880); display: block; margin-bottom: 4px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--sta-text-tertiary, #545880);
+    display: block;
+    margin-bottom: 4px;
   }
 
   /* Conviction meter */
   .conviction-row {
-    display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
   }
   .conviction-label {
-    font-size: 10px; letter-spacing: 0.08em; color: var(--sta-text-tertiary, #545880);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--sta-text-tertiary, #545880);
   }
-  .conviction-pips { display: flex; gap: 6px; align-items: center; }
+  .conviction-pips {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
   .conviction-pip {
-    width: 10px; height: 10px; border-radius: 50%;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
     border: 0.5px solid var(--ta-color-conviction-border);
     background: transparent;
   }
   .conviction-pip.filled {
-    background: var(--ta-color-conviction); border-color: var(--ta-color-conviction-border);
+    background: var(--ta-color-conviction);
+    border-color: var(--ta-color-conviction-border);
   }
 
   /* Round indicator */
   .round-indicator {
-    font-size: 10px; letter-spacing: 0.08em; color: var(--sta-text-tertiary, #545880);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--sta-text-tertiary, #545880);
     margin-bottom: 16px;
   }
 
   /* Approach buttons */
   .section-label {
-    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--sta-text-tertiary, #545880); margin: 0 0 8px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--sta-text-tertiary, #545880);
+    margin: 0 0 8px;
   }
-  .approach-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .approach-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
   .btn-action {
     font-family: var(--ta-font-body);
-    font-size: 11px; letter-spacing: 0.06em; padding: 8px 14px;
-    background: var(--ta-color-accent-bg); border: 0.5px solid var(--ta-color-accent);
-    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-primary, #EEF0FF);
-    cursor: pointer; transition: background 0.12s;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    padding: 8px 14px;
+    background: var(--ta-color-accent-bg);
+    border: 0.5px solid var(--ta-color-accent);
+    border-radius: var(--sta-radius-md, 6px);
+    color: var(--sta-text-primary, #eef0ff);
+    cursor: pointer;
+    transition: background 0.12s;
   }
-  .btn-action:hover { background: var(--ta-color-accent-bg-hover); }
+  .btn-action:hover {
+    background: var(--ta-color-accent-bg-hover);
+  }
   .approach-stat {
-    font-size: 10px; color: var(--sta-text-tertiary, #545880); margin-left: 4px;
+    font-size: 10px;
+    color: var(--sta-text-tertiary, #545880);
+    margin-left: 4px;
   }
 
   /* NPC reaction area */
   .npc-reaction {
-    font-size: 12px; line-height: 1.7; color: var(--sta-text-secondary, #9AA0C0);
-    margin: 0 0 16px; padding: 12px 14px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--sta-text-secondary, #9aa0c0);
+    margin: 0 0 16px;
+    padding: 12px 14px;
     border-radius: var(--sta-radius-md, 6px);
-    border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
-    background: var(--sta-bg-secondary, #22263A);
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
+    background: var(--sta-bg-secondary, #22263a);
     font-style: italic;
   }
 
   /* Focus-visible for keyboard navigation */
   button:focus-visible {
-    outline: 2px solid var(--ta-color-focus); outline-offset: 2px;
+    outline: 2px solid var(--ta-color-focus);
+    outline-offset: 2px;
   }
 
   /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
-    * { transition-duration: 0.01ms !important; }
+    * {
+      transition-duration: 0.01ms !important;
+    }
   }
 
-  .fallback-text { font-size: 11px; color: var(--sta-text-tertiary, #545880); margin-top: 8px; display: none; }
-  .copy-btn {
-    font-family: var(--ta-font-body); font-size: 10px; letter-spacing: 0.06em;
-    padding: 4px 10px; min-height: 44px; min-width: 44px; box-sizing: border-box;
-    background: transparent; border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
-    border-radius: var(--sta-radius-md, 6px); color: var(--sta-text-tertiary, #545880);
-    cursor: pointer; margin-left: 8px; vertical-align: middle;
+  .fallback-text {
+    font-size: 11px;
+    color: var(--sta-text-tertiary, #545880);
+    margin-top: 8px;
+    display: none;
   }
-  .copy-btn:hover { border-color: var(--sta-border-secondary, rgba(154,160,192,0.35)); color: var(--sta-text-secondary, #9AA0C0); }
+  .copy-btn {
+    font-family: var(--ta-font-body);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    padding: 4px 10px;
+    min-height: 44px;
+    min-width: 44px;
+    box-sizing: border-box;
+    background: transparent;
+    border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
+    border-radius: var(--sta-radius-md, 6px);
+    color: var(--sta-text-tertiary, #545880);
+    cursor: pointer;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .copy-btn:hover {
+    border-color: var(--sta-border-secondary, rgba(154, 160, 192, 0.35));
+    color: var(--sta-text-secondary, #9aa0c0);
+  }
 </style>
 
 <div class="social-root">
@@ -2762,64 +3529,84 @@ All approach buttons use `data-prompt` + `addEventListener`.
 
   <!-- NPC reaction -->
   <p class="npc-reaction">
-    Voss narrows her eyes, arms folded across a battered flight harness. "Everybody
-    has a reason to skip inspection. Most of those reasons interest my security team
-    a great deal." She tilts her head, waiting.
+    Voss narrows her eyes, arms folded across a battered flight harness. "Everybody has a reason to skip inspection.
+    Most of those reasons interest my security team a great deal." She tilts her head, waiting.
   </p>
 
   <!-- Approach buttons -->
   <p class="section-label">Choose your approach</p>
   <div class="approach-row">
-    <button class="btn-action" data-prompt="I attempt Persuasion. I appeal to reason and explain why an inspection is unnecessary.">Persuasion <span class="approach-stat">(CHA)</span></button>
-    <button class="btn-action" data-prompt="I attempt Deception. I fabricate a convincing cover story to avoid the inspection.">Deception <span class="approach-stat">(CHA)</span></button>
-    <button class="btn-action" data-prompt="I attempt Intimidation. I make it clear that delaying us would be unwise.">Intimidation <span class="approach-stat">(STR)</span></button>
-    <button class="btn-action" data-prompt="I attempt Insight. I read Captain Voss to find leverage or understand her true concern.">Insight <span class="approach-stat">(INT)</span></button>
-    <button class="btn-action" data-prompt="I attempt Performance. I put on a show to distract and charm Captain Voss.">Performance <span class="approach-stat">(CHA)</span></button>
+    <button
+      class="btn-action"
+      data-prompt="I attempt Persuasion. I appeal to reason and explain why an inspection is unnecessary."
+    >
+      Persuasion <span class="approach-stat">(CHA)</span>
+    </button>
+    <button
+      class="btn-action"
+      data-prompt="I attempt Deception. I fabricate a convincing cover story to avoid the inspection."
+    >
+      Deception <span class="approach-stat">(CHA)</span>
+    </button>
+    <button class="btn-action" data-prompt="I attempt Intimidation. I make it clear that delaying us would be unwise.">
+      Intimidation <span class="approach-stat">(STR)</span>
+    </button>
+    <button
+      class="btn-action"
+      data-prompt="I attempt Insight. I read Captain Voss to find leverage or understand her true concern."
+    >
+      Insight <span class="approach-stat">(INT)</span>
+    </button>
+    <button class="btn-action" data-prompt="I attempt Performance. I put on a show to distract and charm Captain Voss.">
+      Performance <span class="approach-stat">(CHA)</span>
+    </button>
   </div>
 
   <!-- Fallback -->
   <p class="fallback-text" id="social-fallback">
-    If the buttons above do not work, copy one of these prompts and paste it into the chat:<br>
+    If the buttons above do not work, copy one of these prompts and paste it into the chat:<br />
     <code id="social-fallback-prompt"></code><button class="copy-btn" id="social-copy-btn">Copy</button>
   </p>
 </div>
 
 <script>
-(function() {
-  /* sendPrompt with fallback — showFallback helper */
-  function showFallback(promptText) {
-    var fb = document.getElementById('social-fallback');
-    var fp = document.getElementById('social-fallback-prompt');
-    if (fb && fp) {
-      fp.textContent = promptText;
-      fb.style.display = 'block';
+  (function () {
+    /* sendPrompt with fallback — showFallback helper */
+    function showFallback(promptText) {
+      var fb = document.getElementById('social-fallback');
+      var fp = document.getElementById('social-fallback-prompt');
+      if (fb && fp) {
+        fp.textContent = promptText;
+        fb.style.display = 'block';
+      }
     }
-  }
 
-  document.querySelectorAll('[data-prompt]').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var prompt = this.dataset.prompt;
-      if (typeof sendPrompt === 'function') {
-        sendPrompt(prompt);
-      } else {
-        showFallback(prompt);
-      }
+    document.querySelectorAll('[data-prompt]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var prompt = this.dataset.prompt;
+        if (typeof sendPrompt === 'function') {
+          sendPrompt(prompt);
+        } else {
+          showFallback(prompt);
+        }
+      });
     });
-  });
 
-  /* Copy button — fallback prompt */
-  document.querySelectorAll('.copy-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var code = this.previousElementSibling;
-      if (code && navigator.clipboard) {
-        navigator.clipboard.writeText(code.textContent).then(function() {
-          btn.textContent = 'Copied!';
-          setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
-        });
-      }
+    /* Copy button — fallback prompt */
+    document.querySelectorAll('.copy-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var code = this.previousElementSibling;
+        if (code && navigator.clipboard) {
+          navigator.clipboard.writeText(code.textContent).then(function () {
+            btn.textContent = 'Copied!';
+            setTimeout(function () {
+              btn.textContent = 'Copy';
+            }, 2000);
+          });
+        }
+      });
     });
-  });
-})();
+  })();
 </script>
 ```
 
@@ -2835,7 +3622,10 @@ All approach buttons use `data-prompt` + `addEventListener`.
 /* @extract:atmosphere:dust */
 .atmo-dust {
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   pointer-events: none;
   overflow: hidden;
   z-index: 0;
@@ -2844,22 +3634,33 @@ All approach buttons use `data-prompt` + `addEventListener`.
 .atmo-dust::after {
   content: '';
   position: absolute;
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
   background-image:
-    radial-gradient(1px 1px at 20% 30%, var(--ta-color-accent, rgba(255,255,255,0.3)) 0%, transparent 100%),
-    radial-gradient(1px 1px at 60% 70%, var(--ta-color-accent, rgba(255,255,255,0.2)) 0%, transparent 100%),
-    radial-gradient(1.5px 1.5px at 40% 50%, var(--ta-color-accent, rgba(255,255,255,0.25)) 0%, transparent 100%);
+    radial-gradient(1px 1px at 20% 30%, var(--ta-color-accent, rgba(255, 255, 255, 0.3)) 0%, transparent 100%),
+    radial-gradient(1px 1px at 60% 70%, var(--ta-color-accent, rgba(255, 255, 255, 0.2)) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 40% 50%, var(--ta-color-accent, rgba(255, 255, 255, 0.25)) 0%, transparent 100%);
   animation: atmo-drift 20s linear infinite;
 }
-.atmo-dust::after { animation-delay: -10s; opacity: 0.5; }
+.atmo-dust::after {
+  animation-delay: -10s;
+  opacity: 0.5;
+}
 
 @keyframes atmo-drift {
-  0% { transform: translateY(0) translateX(0); }
-  100% { transform: translateY(-30px) translateX(15px); }
+  0% {
+    transform: translateY(0) translateX(0);
+  }
+  100% {
+    transform: translateY(-30px) translateX(15px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .atmo-dust::before, .atmo-dust::after { animation: none; }
+  .atmo-dust::before,
+  .atmo-dust::after {
+    animation: none;
+  }
 }
 ```
 
@@ -2869,7 +3670,10 @@ All approach buttons use `data-prompt` + `addEventListener`.
 /* @extract:atmosphere:rain */
 .atmo-rain {
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   pointer-events: none;
   overflow: hidden;
   z-index: 0;
@@ -2878,23 +3682,38 @@ All approach buttons use `data-prompt` + `addEventListener`.
 .atmo-rain::after {
   content: '';
   position: absolute;
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
   background-image:
-    linear-gradient(175deg, var(--ta-color-accent, rgba(180,200,255,0.15)) 0%, transparent 40%),
-    repeating-linear-gradient(175deg,
-      transparent 0px, transparent 3px,
-      var(--ta-color-accent, rgba(180,200,255,0.08)) 3px, var(--ta-color-accent, rgba(180,200,255,0.08)) 4px);
+    linear-gradient(175deg, var(--ta-color-accent, rgba(180, 200, 255, 0.15)) 0%, transparent 40%),
+    repeating-linear-gradient(
+      175deg,
+      transparent 0px,
+      transparent 3px,
+      var(--ta-color-accent, rgba(180, 200, 255, 0.08)) 3px,
+      var(--ta-color-accent, rgba(180, 200, 255, 0.08)) 4px
+    );
   animation: atmo-rain-fall 0.6s linear infinite;
 }
-.atmo-rain::after { animation-delay: -0.3s; opacity: 0.6; }
+.atmo-rain::after {
+  animation-delay: -0.3s;
+  opacity: 0.6;
+}
 
 @keyframes atmo-rain-fall {
-  0% { transform: translateY(-10px); }
-  100% { transform: translateY(10px); }
+  0% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(10px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .atmo-rain::before, .atmo-rain::after { animation: none; }
+  .atmo-rain::before,
+  .atmo-rain::after {
+    animation: none;
+  }
 }
 ```
 
@@ -2904,7 +3723,10 @@ All approach buttons use `data-prompt` + `addEventListener`.
 /* @extract:atmosphere:snow */
 .atmo-snow {
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   pointer-events: none;
   overflow: hidden;
   z-index: 0;
@@ -2913,23 +3735,34 @@ All approach buttons use `data-prompt` + `addEventListener`.
 .atmo-snow::after {
   content: '';
   position: absolute;
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
   background-image:
-    radial-gradient(2px 2px at 10% 20%, var(--ta-color-accent, rgba(255,255,255,0.6)) 0%, transparent 100%),
-    radial-gradient(1.5px 1.5px at 50% 80%, var(--ta-color-accent, rgba(255,255,255,0.4)) 0%, transparent 100%),
-    radial-gradient(2px 2px at 75% 40%, var(--ta-color-accent, rgba(255,255,255,0.5)) 0%, transparent 100%),
-    radial-gradient(1px 1px at 30% 60%, var(--ta-color-accent, rgba(255,255,255,0.3)) 0%, transparent 100%);
+    radial-gradient(2px 2px at 10% 20%, var(--ta-color-accent, rgba(255, 255, 255, 0.6)) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 50% 80%, var(--ta-color-accent, rgba(255, 255, 255, 0.4)) 0%, transparent 100%),
+    radial-gradient(2px 2px at 75% 40%, var(--ta-color-accent, rgba(255, 255, 255, 0.5)) 0%, transparent 100%),
+    radial-gradient(1px 1px at 30% 60%, var(--ta-color-accent, rgba(255, 255, 255, 0.3)) 0%, transparent 100%);
   animation: atmo-snow-fall 8s linear infinite;
 }
-.atmo-snow::after { animation-delay: -4s; opacity: 0.7; }
+.atmo-snow::after {
+  animation-delay: -4s;
+  opacity: 0.7;
+}
 
 @keyframes atmo-snow-fall {
-  0% { transform: translateY(-20px) translateX(0); }
-  100% { transform: translateY(20px) translateX(8px); }
+  0% {
+    transform: translateY(-20px) translateX(0);
+  }
+  100% {
+    transform: translateY(20px) translateX(8px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .atmo-snow::before, .atmo-snow::after { animation: none; }
+  .atmo-snow::before,
+  .atmo-snow::after {
+    animation: none;
+  }
 }
 ```
 
@@ -2939,7 +3772,10 @@ All approach buttons use `data-prompt` + `addEventListener`.
 /* @extract:atmosphere:sparks */
 .atmo-sparks {
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   pointer-events: none;
   overflow: hidden;
   z-index: 0;
@@ -2948,22 +3784,35 @@ All approach buttons use `data-prompt` + `addEventListener`.
 .atmo-sparks::after {
   content: '';
   position: absolute;
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
   background-image:
-    radial-gradient(1px 1px at 25% 80%, var(--ta-color-warning, rgba(255,200,50,0.8)) 0%, transparent 100%),
-    radial-gradient(1.5px 1.5px at 60% 75%, var(--ta-color-warning, rgba(255,180,30,0.6)) 0%, transparent 100%),
-    radial-gradient(1px 1px at 80% 85%, var(--ta-color-warning, rgba(255,220,80,0.7)) 0%, transparent 100%);
+    radial-gradient(1px 1px at 25% 80%, var(--ta-color-warning, rgba(255, 200, 50, 0.8)) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 60% 75%, var(--ta-color-warning, rgba(255, 180, 30, 0.6)) 0%, transparent 100%),
+    radial-gradient(1px 1px at 80% 85%, var(--ta-color-warning, rgba(255, 220, 80, 0.7)) 0%, transparent 100%);
   animation: atmo-spark-rise 1.2s ease-out infinite;
 }
-.atmo-sparks::after { animation-delay: -0.6s; opacity: 0.8; }
+.atmo-sparks::after {
+  animation-delay: -0.6s;
+  opacity: 0.8;
+}
 
 @keyframes atmo-spark-rise {
-  0% { transform: translateY(0) scale(1); opacity: 1; }
-  100% { transform: translateY(-40px) scale(0.5); opacity: 0; }
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-40px) scale(0.5);
+    opacity: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .atmo-sparks::before, .atmo-sparks::after { animation: none; }
+  .atmo-sparks::before,
+  .atmo-sparks::after {
+    animation: none;
+  }
 }
 ```
 
@@ -2973,7 +3822,10 @@ All approach buttons use `data-prompt` + `addEventListener`.
 /* @extract:atmosphere:smoke */
 .atmo-smoke {
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   pointer-events: none;
   overflow: hidden;
   z-index: 0;
@@ -2982,21 +3834,34 @@ All approach buttons use `data-prompt` + `addEventListener`.
 .atmo-smoke::after {
   content: '';
   position: absolute;
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
   background-image:
-    radial-gradient(40px 30px at 30% 90%, var(--ta-color-bg-secondary, rgba(120,120,120,0.12)) 0%, transparent 100%),
-    radial-gradient(50px 40px at 70% 85%, var(--ta-color-bg-secondary, rgba(100,100,100,0.10)) 0%, transparent 100%);
+    radial-gradient(40px 30px at 30% 90%, var(--ta-color-bg-secondary, rgba(120, 120, 120, 0.12)) 0%, transparent 100%),
+    radial-gradient(50px 40px at 70% 85%, var(--ta-color-bg-secondary, rgba(100, 100, 100, 0.1)) 0%, transparent 100%);
   animation: atmo-smoke-rise 6s ease-out infinite;
 }
-.atmo-smoke::after { animation-delay: -3s; opacity: 0.7; }
+.atmo-smoke::after {
+  animation-delay: -3s;
+  opacity: 0.7;
+}
 
 @keyframes atmo-smoke-rise {
-  0% { transform: translateY(0) scaleX(1); opacity: 0.8; }
-  100% { transform: translateY(-60px) scaleX(1.3); opacity: 0; }
+  0% {
+    transform: translateY(0) scaleX(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-60px) scaleX(1.3);
+    opacity: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .atmo-smoke::before, .atmo-smoke::after { animation: none; }
+  .atmo-smoke::before,
+  .atmo-smoke::after {
+    animation: none;
+  }
 }
 ```
 
@@ -3006,7 +3871,10 @@ All approach buttons use `data-prompt` + `addEventListener`.
 /* @extract:atmosphere:stars */
 .atmo-stars {
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   pointer-events: none;
   overflow: hidden;
   z-index: 0;
@@ -3015,24 +3883,36 @@ All approach buttons use `data-prompt` + `addEventListener`.
 .atmo-stars::after {
   content: '';
   position: absolute;
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
   background-image:
-    radial-gradient(1px 1px at 15% 25%, var(--ta-color-accent, rgba(255,255,255,0.9)) 0%, transparent 100%),
-    radial-gradient(1.5px 1.5px at 55% 15%, var(--ta-color-accent, rgba(255,255,255,0.7)) 0%, transparent 100%),
-    radial-gradient(1px 1px at 85% 35%, var(--ta-color-accent, rgba(255,255,255,0.8)) 0%, transparent 100%),
-    radial-gradient(2px 2px at 35% 70%, var(--ta-color-accent, rgba(255,255,255,0.6)) 0%, transparent 100%),
-    radial-gradient(1px 1px at 70% 60%, var(--ta-color-accent, rgba(255,255,255,0.75)) 0%, transparent 100%);
+    radial-gradient(1px 1px at 15% 25%, var(--ta-color-accent, rgba(255, 255, 255, 0.9)) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 55% 15%, var(--ta-color-accent, rgba(255, 255, 255, 0.7)) 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 35%, var(--ta-color-accent, rgba(255, 255, 255, 0.8)) 0%, transparent 100%),
+    radial-gradient(2px 2px at 35% 70%, var(--ta-color-accent, rgba(255, 255, 255, 0.6)) 0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 60%, var(--ta-color-accent, rgba(255, 255, 255, 0.75)) 0%, transparent 100%);
   animation: atmo-star-twinkle 4s ease-in-out infinite alternate;
 }
-.atmo-stars::after { animation-delay: -2s; opacity: 0.6; }
+.atmo-stars::after {
+  animation-delay: -2s;
+  opacity: 0.6;
+}
 
 @keyframes atmo-star-twinkle {
-  0% { opacity: 0.6; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .atmo-stars::before, .atmo-stars::after { animation: none; opacity: 0.8; }
+  .atmo-stars::before,
+  .atmo-stars::after {
+    animation: none;
+    opacity: 0.8;
+  }
 }
 ```
 
@@ -3042,7 +3922,10 @@ All approach buttons use `data-prompt` + `addEventListener`.
 /* @extract:atmosphere:embers */
 .atmo-embers {
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   pointer-events: none;
   overflow: hidden;
   z-index: 0;
@@ -3051,23 +3934,38 @@ All approach buttons use `data-prompt` + `addEventListener`.
 .atmo-embers::after {
   content: '';
   position: absolute;
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
   background-image:
-    radial-gradient(2px 2px at 20% 85%, var(--ta-color-danger, rgba(255,100,30,0.8)) 0%, transparent 100%),
-    radial-gradient(1.5px 1.5px at 55% 80%, var(--ta-color-warning, rgba(255,140,20,0.7)) 0%, transparent 100%),
-    radial-gradient(2px 2px at 80% 88%, var(--ta-color-danger, rgba(255,80,20,0.6)) 0%, transparent 100%);
+    radial-gradient(2px 2px at 20% 85%, var(--ta-color-danger, rgba(255, 100, 30, 0.8)) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 55% 80%, var(--ta-color-warning, rgba(255, 140, 20, 0.7)) 0%, transparent 100%),
+    radial-gradient(2px 2px at 80% 88%, var(--ta-color-danger, rgba(255, 80, 20, 0.6)) 0%, transparent 100%);
   animation: atmo-ember-rise 3s ease-out infinite;
 }
-.atmo-embers::after { animation-delay: -1.5s; opacity: 0.8; }
+.atmo-embers::after {
+  animation-delay: -1.5s;
+  opacity: 0.8;
+}
 
 @keyframes atmo-ember-rise {
-  0% { transform: translateY(0) translateX(0); opacity: 1; }
-  60% { opacity: 0.8; }
-  100% { transform: translateY(-50px) translateX(12px); opacity: 0; }
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 1;
+  }
+  60% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-50px) translateX(12px);
+    opacity: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .atmo-embers::before, .atmo-embers::after { animation: none; }
+  .atmo-embers::before,
+  .atmo-embers::after {
+    animation: none;
+  }
 }
 ```
 
@@ -3076,16 +3974,37 @@ All approach buttons use `data-prompt` + `addEventListener`.
 ```css
 /* @extract:atmosphere:core */
 @keyframes atmo-shake {
-  0%, 100% { transform: translate(0); }
-  10% { transform: translate(-4px, 2px); }
-  20% { transform: translate(3px, -3px); }
-  30% { transform: translate(-2px, 4px); }
-  40% { transform: translate(4px, -1px); }
-  50% { transform: translate(-3px, 3px); }
-  60% { transform: translate(2px, -4px); }
-  70% { transform: translate(-4px, 1px); }
-  80% { transform: translate(3px, 2px); }
-  90% { transform: translate(-1px, -3px); }
+  0%,
+  100% {
+    transform: translate(0);
+  }
+  10% {
+    transform: translate(-4px, 2px);
+  }
+  20% {
+    transform: translate(3px, -3px);
+  }
+  30% {
+    transform: translate(-2px, 4px);
+  }
+  40% {
+    transform: translate(4px, -1px);
+  }
+  50% {
+    transform: translate(-3px, 3px);
+  }
+  60% {
+    transform: translate(2px, -4px);
+  }
+  70% {
+    transform: translate(-4px, 1px);
+  }
+  80% {
+    transform: translate(3px, 2px);
+  }
+  90% {
+    transform: translate(-1px, -3px);
+  }
 }
 
 .atmo-shake {
@@ -3093,7 +4012,9 @@ All approach buttons use `data-prompt` + `addEventListener`.
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .atmo-shake { animation: none; }
+  .atmo-shake {
+    animation: none;
+  }
 }
 ```
 
@@ -3103,19 +4024,29 @@ All approach buttons use `data-prompt` + `addEventListener`.
 /* @extract:atmosphere:core */
 .atmo-flash {
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   pointer-events: none;
   z-index: 10;
   opacity: 0;
   animation: atmo-flash-in 0.3s ease-out forwards;
 }
 @keyframes atmo-flash-in {
-  0% { opacity: 0.3; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .atmo-flash { animation: none; opacity: 0; }
+  .atmo-flash {
+    animation: none;
+    opacity: 0;
+  }
 }
 ```
 
@@ -3127,14 +4058,19 @@ All approach buttons use `data-prompt` + `addEventListener`.
 .atmo-letterbox::after {
   content: '';
   position: fixed;
-  left: 0; right: 0;
+  left: 0;
+  right: 0;
   height: 0;
   background: #000;
   z-index: 20;
   transition: height 0.8s ease-in-out;
 }
-.atmo-letterbox::before { top: 0; }
-.atmo-letterbox::after { bottom: 0; }
+.atmo-letterbox::before {
+  top: 0;
+}
+.atmo-letterbox::after {
+  bottom: 0;
+}
 .atmo-letterbox.active::before,
 .atmo-letterbox.active::after {
   height: 40px;
@@ -3142,7 +4078,9 @@ All approach buttons use `data-prompt` + `addEventListener`.
 
 @media (prefers-reduced-motion: reduce) {
   .atmo-letterbox::before,
-  .atmo-letterbox::after { transition: none; }
+  .atmo-letterbox::after {
+    transition: none;
+  }
 }
 ```
 
@@ -3150,45 +4088,83 @@ All approach buttons use `data-prompt` + `addEventListener`.
 
 ```css
 /* @extract:atmosphere:core */
-.atmo-light-safe    { filter: brightness(1.05) saturate(1.1); }
-.atmo-light-tense   { filter: brightness(0.95) saturate(0.9); }
-.atmo-light-danger  { filter: brightness(0.9) saturate(1.2) contrast(1.05); }
-.atmo-light-horror  { filter: brightness(0.8) saturate(0.6) contrast(1.1); }
-.atmo-light-awe     { filter: brightness(1.1) saturate(1.15); }
+.atmo-light-safe {
+  filter: brightness(1.05) saturate(1.1);
+}
+.atmo-light-tense {
+  filter: brightness(0.95) saturate(0.9);
+}
+.atmo-light-danger {
+  filter: brightness(0.9) saturate(1.2) contrast(1.05);
+}
+.atmo-light-horror {
+  filter: brightness(0.8) saturate(0.6) contrast(1.1);
+}
+.atmo-light-awe {
+  filter: brightness(1.1) saturate(1.15);
+}
 
 /* Gradient overlays via a sibling ::after on the root */
 .atmo-light-safe::after {
   content: '';
-  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-  background: radial-gradient(ellipse at 50% 100%, var(--ta-color-warning, rgba(255,180,80,0.05)) 0%, transparent 70%);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    ellipse at 50% 100%,
+    var(--ta-color-warning, rgba(255, 180, 80, 0.05)) 0%,
+    transparent 70%
+  );
   pointer-events: none;
   z-index: 1;
 }
 .atmo-light-tense::after {
   content: '';
-  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-  background: radial-gradient(ellipse at 50% 0%, var(--ta-color-info, rgba(80,120,200,0.08)) 0%, transparent 70%);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at 50% 0%, var(--ta-color-info, rgba(80, 120, 200, 0.08)) 0%, transparent 70%);
   pointer-events: none;
   z-index: 1;
 }
 .atmo-light-danger::after {
   content: '';
-  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-  background: radial-gradient(ellipse at 50% 50%, var(--ta-color-danger, rgba(200,40,40,0.10)) 0%, transparent 70%);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at 50% 50%, var(--ta-color-danger, rgba(200, 40, 40, 0.1)) 0%, transparent 70%);
   pointer-events: none;
   z-index: 1;
 }
 .atmo-light-horror::after {
   content: '';
-  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-  background: radial-gradient(ellipse at 50% 50%, var(--ta-color-conviction, rgba(80,0,120,0.12)) 0%, transparent 70%);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    var(--ta-color-conviction, rgba(80, 0, 120, 0.12)) 0%,
+    transparent 70%
+  );
   pointer-events: none;
   z-index: 1;
 }
 .atmo-light-awe::after {
   content: '';
-  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-  background: radial-gradient(ellipse at 50% 30%, var(--ta-color-xp, rgba(200,160,30,0.08)) 0%, transparent 70%);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at 50% 30%, var(--ta-color-xp, rgba(200, 160, 30, 0.08)) 0%, transparent 70%);
   pointer-events: none;
   z-index: 1;
 }
@@ -3210,9 +4186,17 @@ All approach buttons use `data-prompt` + `addEventListener`.
   animation: atmo-flicker 3s infinite;
 }
 @keyframes atmo-flicker {
-  0%, 95%, 100% { opacity: 1; }
-  96% { opacity: 0.92; }
-  97% { opacity: 0.98; }
+  0%,
+  95%,
+  100% {
+    opacity: 1;
+  }
+  96% {
+    opacity: 0.92;
+  }
+  97% {
+    opacity: 0.98;
+  }
 }
 
 .atmo-degrade-3 {
@@ -3220,14 +4204,31 @@ All approach buttons use `data-prompt` + `addEventListener`.
   animation: atmo-glitch 2s infinite;
 }
 @keyframes atmo-glitch {
-  0%, 90%, 100% { transform: translate(0); filter: saturate(0.5) brightness(0.85); }
-  91% { transform: translate(-2px, 1px); filter: saturate(0.3) brightness(0.7) hue-rotate(10deg); }
-  93% { transform: translate(1px, -1px); filter: saturate(0.5) brightness(0.85); }
-  95% { transform: translate(-1px, 0); filter: saturate(0.4) brightness(0.75) hue-rotate(-5deg); }
+  0%,
+  90%,
+  100% {
+    transform: translate(0);
+    filter: saturate(0.5) brightness(0.85);
+  }
+  91% {
+    transform: translate(-2px, 1px);
+    filter: saturate(0.3) brightness(0.7) hue-rotate(10deg);
+  }
+  93% {
+    transform: translate(1px, -1px);
+    filter: saturate(0.5) brightness(0.85);
+  }
+  95% {
+    transform: translate(-1px, 0);
+    filter: saturate(0.4) brightness(0.75) hue-rotate(-5deg);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .atmo-degrade-2, .atmo-degrade-3 { animation: none; }
+  .atmo-degrade-2,
+  .atmo-degrade-3 {
+    animation: none;
+  }
 }
 ```
 
@@ -3238,37 +4239,64 @@ All approach buttons use `data-prompt` + `addEventListener`.
 /* Time classes use ::before, lighting classes use ::after — no conflict */
 .atmo-time-dawn::before {
   content: '';
-  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(180deg, rgba(255,180,140,0.05) 0%, transparent 60%);
-  pointer-events: none; z-index: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(255, 180, 140, 0.05) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 1;
 }
-.atmo-time-morning { /* No overlay — baseline bright state */ }
+.atmo-time-morning {
+  /* No overlay — baseline bright state */
+}
 .atmo-time-afternoon::before {
   content: '';
-  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(180deg, rgba(255,200,80,0.03) 0%, transparent 50%);
-  pointer-events: none; z-index: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(255, 200, 80, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 1;
 }
 .atmo-time-evening::before {
   content: '';
-  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(180deg, rgba(200,120,30,0.08) 0%, transparent 70%);
-  pointer-events: none; z-index: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(200, 120, 30, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 1;
 }
 .atmo-time-night::before {
   content: '';
-  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(180deg, rgba(20,40,100,0.12) 0%, transparent 80%);
-  pointer-events: none; z-index: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(20, 40, 100, 0.12) 0%, transparent 80%);
+  pointer-events: none;
+  z-index: 1;
 }
 .atmo-time-midnight {
   filter: brightness(0.92);
 }
 .atmo-time-midnight::before {
   content: '';
-  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,10,0.15);
-  pointer-events: none; z-index: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 10, 0.15);
+  pointer-events: none;
+  z-index: 1;
 }
 ```
 
@@ -3276,20 +4304,33 @@ All approach buttons use `data-prompt` + `addEventListener`.
 
 ```css
 /* @extract:atmosphere:core */
-.atmo-status-safe    .status-bar { border-color: color-mix(in srgb, var(--ta-color-success) 30%, transparent); }
-.atmo-status-caution .status-bar { border-color: color-mix(in srgb, var(--ta-color-warning) 40%, transparent); }
-.atmo-status-danger  .status-bar { border-color: color-mix(in srgb, var(--ta-color-danger)  50%, transparent); }
+.atmo-status-safe .status-bar {
+  border-color: color-mix(in srgb, var(--ta-color-success) 30%, transparent);
+}
+.atmo-status-caution .status-bar {
+  border-color: color-mix(in srgb, var(--ta-color-warning) 40%, transparent);
+}
+.atmo-status-danger .status-bar {
+  border-color: color-mix(in srgb, var(--ta-color-danger) 50%, transparent);
+}
 .atmo-status-critical .status-bar {
   border-color: var(--ta-color-danger);
   animation: atmo-status-pulse 1.2s ease-in-out infinite;
 }
 @keyframes atmo-status-pulse {
-  0%, 100% { border-color: var(--ta-color-danger); }
-  50% { border-color: color-mix(in srgb, var(--ta-color-danger) 40%, transparent); }
+  0%,
+  100% {
+    border-color: var(--ta-color-danger);
+  }
+  50% {
+    border-color: color-mix(in srgb, var(--ta-color-danger) 40%, transparent);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .atmo-status-critical .status-bar { animation: none; }
+  .atmo-status-critical .status-bar {
+    animation: none;
+  }
 }
 ```
 
@@ -3299,7 +4340,8 @@ All approach buttons use `data-prompt` + `addEventListener`.
 /* @extract:atmosphere:core */
 .atmo-toast {
   position: absolute;
-  top: -40px; left: 50%;
+  top: -40px;
+  left: 50%;
   transform: translateX(-50%);
   padding: 6px 16px;
   font-family: var(--ta-font-body);
@@ -3310,7 +4352,9 @@ All approach buttons use `data-prompt` + `addEventListener`.
   border-radius: 4px;
   background: var(--ta-color-accent-bg);
   opacity: 0;
-  transition: top 0.3s ease-out, opacity 0.3s;
+  transition:
+    top 0.3s ease-out,
+    opacity 0.3s;
   z-index: 15;
   pointer-events: none;
   white-space: nowrap;
@@ -3324,8 +4368,13 @@ All approach buttons use `data-prompt` + `addEventListener`.
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .atmo-toast { transition: none; }
-  .atmo-toast.visible { top: 8px; opacity: 1; }
+  .atmo-toast {
+    transition: none;
+  }
+  .atmo-toast.visible {
+    top: 8px;
+    opacity: 1;
+  }
 }
 ```
 
@@ -3358,7 +4407,9 @@ All approach buttons use `data-prompt` + `addEventListener`.
   padding: 0 4px;
   border-radius: 2px;
   cursor: default;
-  transition: background 0.3s, color 0.3s;
+  transition:
+    background 0.3s,
+    color 0.3s;
   user-select: none;
 }
 .atmo-redacted.revealable {
@@ -3374,7 +4425,9 @@ All approach buttons use `data-prompt` + `addEventListener`.
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .atmo-redacted { transition: none; }
+  .atmo-redacted {
+    transition: none;
+  }
 }
 ```
 
@@ -3385,7 +4438,7 @@ All approach buttons use `data-prompt` + `addEventListener`.
 .dialogue-block {
   margin: var(--sta-space-md, 14px) 0;
   padding: var(--sta-space-sm, 8px) var(--sta-space-md, 14px);
-  border-left: 2px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  border-left: 2px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
   border-radius: 0 var(--sta-radius-md, 6px) var(--sta-radius-md, 6px) 0;
 }
 .dialogue-speaker {
@@ -3396,13 +4449,17 @@ All approach buttons use `data-prompt` + `addEventListener`.
   color: var(--sta-text-tertiary, #545880);
   margin-bottom: 4px;
 }
-.dialogue-speaker.npc { color: var(--ta-color-accent); }
-.dialogue-speaker.player { color: var(--ta-color-success, #2BA882); }
+.dialogue-speaker.npc {
+  color: var(--ta-color-accent);
+}
+.dialogue-speaker.player {
+  color: var(--ta-color-success, #2ba882);
+}
 .dialogue-text {
   font-family: var(--ta-font-serif, Georgia, 'Times New Roman', serif);
   font-size: 14px;
   line-height: 1.7;
-  color: var(--sta-text-secondary, #9AA0C0);
+  color: var(--sta-text-secondary, #9aa0c0);
 }
 ```
 
@@ -3414,37 +4471,45 @@ All approach buttons use `data-prompt` + `addEventListener`.
   font-family: var(--ta-font-body);
   font-size: 11px;
   padding: var(--sta-space-sm, 8px) var(--sta-space-md, 14px);
-  border: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.4));
+  border: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.4));
   border-radius: var(--sta-radius-md, 6px);
-  background: var(--sta-bg-secondary, rgba(34,38,58,0.5));
+  background: var(--sta-bg-secondary, rgba(34, 38, 58, 0.5));
   margin: var(--sta-space-sm, 8px) 0;
 }
 .data-line {
   display: flex;
   justify-content: space-between;
   padding: 3px 0;
-  border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.2));
+  border-bottom: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.2));
 }
-.data-line:last-child { border-bottom: none; }
+.data-line:last-child {
+  border-bottom: none;
+}
 .data-label {
   color: var(--sta-text-tertiary, #545880);
   letter-spacing: 0.06em;
 }
 .data-value {
-  color: var(--sta-text-primary, #EEF0FF);
+  color: var(--sta-text-primary, #eef0ff);
   font-weight: 500;
 }
 .data-divider {
-  border-top: 0.5px solid var(--sta-border-tertiary, rgba(84,88,128,0.3));
+  border-top: 0.5px solid var(--sta-border-tertiary, rgba(84, 88, 128, 0.3));
   margin: var(--sta-space-sm, 8px) 0;
 }
-.data-ok { color: var(--ta-color-success, #2BA882); }
-.data-danger { color: var(--ta-color-danger, #E84855); }
-.data-flag { color: var(--ta-color-warning, #F0A500); }
+.data-ok {
+  color: var(--ta-color-success, #2ba882);
+}
+.data-danger {
+  color: var(--ta-color-danger, #e84855);
+}
+.data-flag {
+  color: var(--ta-color-warning, #f0a500);
+}
 .data-quote {
   font-family: var(--ta-font-serif, Georgia, serif);
   font-style: italic;
-  color: var(--sta-text-secondary, #9AA0C0);
+  color: var(--sta-text-secondary, #9aa0c0);
   padding: var(--sta-space-sm, 8px);
   border-left: 2px solid var(--ta-color-accent);
 }
@@ -3461,84 +4526,237 @@ Scene widgets should use inline SVG for star charts, floor plans, ship cross-sec
 ### Ship Cross-Section
 
 ```html
-<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:400px;margin:12px auto;display:block">
+<svg
+  viewBox="0 0 400 160"
+  xmlns="http://www.w3.org/2000/svg"
+  style="width:100%;max-width:400px;margin:12px auto;display:block"
+>
   <!-- Hull outline -->
-  <path d="M40,80 Q40,30 120,25 L320,25 Q380,30 380,80 Q380,130 320,135 L120,135 Q40,130 40,80Z"
-        fill="none" stroke="var(--sta-border-primary, rgba(78,205,196,0.6))" stroke-width="1.5"/>
+  <path
+    d="M40,80 Q40,30 120,25 L320,25 Q380,30 380,80 Q380,130 320,135 L120,135 Q40,130 40,80Z"
+    fill="none"
+    stroke="var(--sta-border-primary, rgba(78,205,196,0.6))"
+    stroke-width="1.5"
+  />
   <!-- Bridge -->
-  <rect x="300" y="55" width="60" height="50" rx="4"
-        fill="var(--sta-color-accent-bg, rgba(78,205,196,0.10))"
-        stroke="var(--sta-color-accent, #4ECDC4)" stroke-width="0.5"/>
-  <text x="330" y="83" text-anchor="middle" fill="var(--sta-text-tertiary, #545880)"
-        font-family="var(--sta-font-mono, monospace)" font-size="8">BRIDGE</text>
+  <rect
+    x="300"
+    y="55"
+    width="60"
+    height="50"
+    rx="4"
+    fill="var(--sta-color-accent-bg, rgba(78,205,196,0.10))"
+    stroke="var(--sta-color-accent, #4ECDC4)"
+    stroke-width="0.5"
+  />
+  <text
+    x="330"
+    y="83"
+    text-anchor="middle"
+    fill="var(--sta-text-tertiary, #545880)"
+    font-family="var(--sta-font-mono, monospace)"
+    font-size="8"
+  >
+    BRIDGE
+  </text>
   <!-- Engine block -->
-  <rect x="60" y="50" width="80" height="60" rx="4"
-        fill="var(--sta-color-success-bg, rgba(43,168,130,0.10))"
-        stroke="var(--sta-color-success, #2BA882)" stroke-width="0.5"/>
-  <text x="100" y="83" text-anchor="middle" fill="var(--sta-text-tertiary, #545880)"
-        font-family="var(--sta-font-mono, monospace)" font-size="8">ENGINES</text>
+  <rect
+    x="60"
+    y="50"
+    width="80"
+    height="60"
+    rx="4"
+    fill="var(--sta-color-success-bg, rgba(43,168,130,0.10))"
+    stroke="var(--sta-color-success, #2BA882)"
+    stroke-width="0.5"
+  />
+  <text
+    x="100"
+    y="83"
+    text-anchor="middle"
+    fill="var(--sta-text-tertiary, #545880)"
+    font-family="var(--sta-font-mono, monospace)"
+    font-size="8"
+  >
+    ENGINES
+  </text>
   <!-- Damaged system (red) -->
-  <rect x="180" y="35" width="70" height="30" rx="4"
-        fill="var(--sta-color-danger-bg, rgba(232,72,85,0.10))"
-        stroke="var(--sta-color-danger, #E84855)" stroke-width="0.5"/>
-  <text x="215" y="53" text-anchor="middle" fill="var(--sta-color-danger, #E84855)"
-        font-family="var(--sta-font-mono, monospace)" font-size="7">SHIELDS [DMG]</text>
+  <rect
+    x="180"
+    y="35"
+    width="70"
+    height="30"
+    rx="4"
+    fill="var(--sta-color-danger-bg, rgba(232,72,85,0.10))"
+    stroke="var(--sta-color-danger, #E84855)"
+    stroke-width="0.5"
+  />
+  <text
+    x="215"
+    y="53"
+    text-anchor="middle"
+    fill="var(--sta-color-danger, #E84855)"
+    font-family="var(--sta-font-mono, monospace)"
+    font-size="7"
+  >
+    SHIELDS [DMG]
+  </text>
 </svg>
 ```
 
 ### Star Chart / Navigation
 
 ```html
-<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:300px;margin:12px auto;display:block">
+<svg
+  viewBox="0 0 300 200"
+  xmlns="http://www.w3.org/2000/svg"
+  style="width:100%;max-width:300px;margin:12px auto;display:block"
+>
   <!-- Grid -->
   <defs>
     <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
-      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="var(--sta-border-tertiary, rgba(84,88,128,0.4))" stroke-width="0.3"/>
+      <path
+        d="M 30 0 L 0 0 0 30"
+        fill="none"
+        stroke="var(--sta-border-tertiary, rgba(84,88,128,0.4))"
+        stroke-width="0.3"
+      />
     </pattern>
   </defs>
-  <rect width="300" height="200" fill="url(#grid)"/>
+  <rect width="300" height="200" fill="url(#grid)" />
   <!-- Jump route -->
-  <line x1="80" y1="120" x2="200" y2="60" stroke="var(--sta-color-accent, #4ECDC4)" stroke-width="1" stroke-dasharray="4,3"/>
+  <line
+    x1="80"
+    y1="120"
+    x2="200"
+    y2="60"
+    stroke="var(--sta-color-accent, #4ECDC4)"
+    stroke-width="1"
+    stroke-dasharray="4,3"
+  />
   <!-- Current position -->
-  <circle cx="80" cy="120" r="6" fill="var(--sta-color-accent, #4ECDC4)"/>
-  <text x="80" y="140" text-anchor="middle" fill="var(--sta-text-secondary, #9AA0C0)"
-        font-family="var(--sta-font-mono, monospace)" font-size="8">YOU</text>
+  <circle cx="80" cy="120" r="6" fill="var(--sta-color-accent, #4ECDC4)" />
+  <text
+    x="80"
+    y="140"
+    text-anchor="middle"
+    fill="var(--sta-text-secondary, #9AA0C0)"
+    font-family="var(--sta-font-mono, monospace)"
+    font-size="8"
+  >
+    YOU
+  </text>
   <!-- Destination -->
-  <circle cx="200" cy="60" r="5" fill="none" stroke="var(--sta-color-warning, #F0A500)" stroke-width="1"/>
-  <text x="200" y="50" text-anchor="middle" fill="var(--sta-color-warning, #F0A500)"
-        font-family="var(--sta-font-mono, monospace)" font-size="7">CERES</text>
+  <circle cx="200" cy="60" r="5" fill="none" stroke="var(--sta-color-warning, #F0A500)" stroke-width="1" />
+  <text
+    x="200"
+    y="50"
+    text-anchor="middle"
+    fill="var(--sta-color-warning, #F0A500)"
+    font-family="var(--sta-font-mono, monospace)"
+    font-size="7"
+  >
+    CERES
+  </text>
   <!-- Hazard zone -->
-  <circle cx="150" cy="100" r="20" fill="var(--sta-color-danger-bg, rgba(232,72,85,0.10))"
-          stroke="var(--sta-color-danger, #E84855)" stroke-width="0.5" stroke-dasharray="2,2"/>
-  <text x="150" y="103" text-anchor="middle" fill="var(--sta-color-danger, #E84855)"
-        font-family="var(--sta-font-mono, monospace)" font-size="6">EZ-4471</text>
+  <circle
+    cx="150"
+    cy="100"
+    r="20"
+    fill="var(--sta-color-danger-bg, rgba(232,72,85,0.10))"
+    stroke="var(--sta-color-danger, #E84855)"
+    stroke-width="0.5"
+    stroke-dasharray="2,2"
+  />
+  <text
+    x="150"
+    y="103"
+    text-anchor="middle"
+    fill="var(--sta-color-danger, #E84855)"
+    font-family="var(--sta-font-mono, monospace)"
+    font-size="6"
+  >
+    EZ-4471
+  </text>
 </svg>
 ```
 
 ### Floor Plan / Zone Layout
 
 ```html
-<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:300px;margin:12px auto;display:block">
+<svg
+  viewBox="0 0 300 180"
+  xmlns="http://www.w3.org/2000/svg"
+  style="width:100%;max-width:300px;margin:12px auto;display:block"
+>
   <!-- Room outlines -->
-  <rect x="10" y="10" width="120" height="80" rx="2" fill="var(--sta-bg-tertiary, #2A2F47)"
-        stroke="var(--sta-border-secondary, rgba(154,160,192,0.35))" stroke-width="0.5"/>
-  <rect x="140" y="10" width="150" height="80" rx="2" fill="var(--sta-bg-tertiary, #2A2F47)"
-        stroke="var(--sta-border-secondary, rgba(154,160,192,0.35))" stroke-width="0.5"/>
-  <rect x="10" y="100" width="280" height="70" rx="2" fill="var(--sta-bg-tertiary, #2A2F47)"
-        stroke="var(--sta-border-secondary, rgba(154,160,192,0.35))" stroke-width="0.5"/>
+  <rect
+    x="10"
+    y="10"
+    width="120"
+    height="80"
+    rx="2"
+    fill="var(--sta-bg-tertiary, #2A2F47)"
+    stroke="var(--sta-border-secondary, rgba(154,160,192,0.35))"
+    stroke-width="0.5"
+  />
+  <rect
+    x="140"
+    y="10"
+    width="150"
+    height="80"
+    rx="2"
+    fill="var(--sta-bg-tertiary, #2A2F47)"
+    stroke="var(--sta-border-secondary, rgba(154,160,192,0.35))"
+    stroke-width="0.5"
+  />
+  <rect
+    x="10"
+    y="100"
+    width="280"
+    height="70"
+    rx="2"
+    fill="var(--sta-bg-tertiary, #2A2F47)"
+    stroke="var(--sta-border-secondary, rgba(154,160,192,0.35))"
+    stroke-width="0.5"
+  />
   <!-- Door (open) -->
-  <rect x="126" y="35" width="18" height="6" rx="1" fill="var(--sta-color-success, #2BA882)"/>
+  <rect x="126" y="35" width="18" height="6" rx="1" fill="var(--sta-color-success, #2BA882)" />
   <!-- Door (locked) -->
-  <rect x="80" y="87" width="18" height="6" rx="1" fill="var(--sta-color-danger, #E84855)"/>
+  <rect x="80" y="87" width="18" height="6" rx="1" fill="var(--sta-color-danger, #E84855)" />
   <!-- Player position -->
-  <circle cx="70" cy="50" r="5" fill="var(--sta-color-accent, #4ECDC4)"/>
+  <circle cx="70" cy="50" r="5" fill="var(--sta-color-accent, #4ECDC4)" />
   <!-- Room labels -->
-  <text x="70" y="75" text-anchor="middle" fill="var(--sta-text-tertiary, #545880)"
-        font-family="var(--sta-font-mono, monospace)" font-size="7">CARGO BAY</text>
-  <text x="215" y="55" text-anchor="middle" fill="var(--sta-text-tertiary, #545880)"
-        font-family="var(--sta-font-mono, monospace)" font-size="7">BRIDGE</text>
-  <text x="150" y="140" text-anchor="middle" fill="var(--sta-text-tertiary, #545880)"
-        font-family="var(--sta-font-mono, monospace)" font-size="7">CORRIDOR</text>
+  <text
+    x="70"
+    y="75"
+    text-anchor="middle"
+    fill="var(--sta-text-tertiary, #545880)"
+    font-family="var(--sta-font-mono, monospace)"
+    font-size="7"
+  >
+    CARGO BAY
+  </text>
+  <text
+    x="215"
+    y="55"
+    text-anchor="middle"
+    fill="var(--sta-text-tertiary, #545880)"
+    font-family="var(--sta-font-mono, monospace)"
+    font-size="7"
+  >
+    BRIDGE
+  </text>
+  <text
+    x="150"
+    y="140"
+    text-anchor="middle"
+    fill="var(--sta-text-tertiary, #545880)"
+    font-family="var(--sta-font-mono, monospace)"
+    font-size="7"
+  >
+    CORRIDOR
+  </text>
 </svg>
 ```
 
@@ -3555,9 +4773,16 @@ Scene widgets should use inline SVG for star charts, floor plans, ship cross-sec
 
 ```css
 /* @extract:scene */
-.obs-card.obs-accent::before { background: var(--ta-color-accent); }
-.obs-card.obs-xp::before { background: var(--ta-color-xp, #8B7CF8); }
-.obs-status.xp { border-color: var(--ta-color-xp-border, rgba(139,124,248,0.5)); color: var(--ta-color-xp, #8B7CF8); }
+.obs-card.obs-accent::before {
+  background: var(--ta-color-accent);
+}
+.obs-card.obs-xp::before {
+  background: var(--ta-color-xp, #8b7cf8);
+}
+.obs-status.xp {
+  border-color: var(--ta-color-xp-border, rgba(139, 124, 248, 0.5));
+  color: var(--ta-color-xp, #8b7cf8);
+}
 .loc-time {
   font-family: var(--ta-font-body);
   font-size: 11px;

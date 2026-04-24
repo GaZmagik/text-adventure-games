@@ -1,4 +1,5 @@
 # Genre Mechanics — Optional Rule Overlays
+
 > Module for text-adventure orchestrator. Loaded when the scenario theme activates genre-specific mechanics. Provides thematic systems that layer on top of core-systems without replacing them.
 
 Loaded by the text-adventure orchestrator (SKILL.md). Depends on: core-systems.
@@ -23,13 +24,13 @@ safe location, advances time by one period).
 
 ### Spell Schools
 
-| School | Domain | Examples |
-|--------|--------|----------|
-| Elemental | Damage | Fireball, lightning bolt, frost shard |
-| Restoration | Healing | Mend wounds, purify, revitalise |
-| Illusion | Social / Stealth | Disguise, invisibility, phantom sound |
-| Enchantment | Buffs / Debuffs | Strengthen, weaken, charm, slow |
-| Divination | Information | Detect magic, scry, reveal hidden |
+| School      | Domain           | Examples                              |
+| ----------- | ---------------- | ------------------------------------- |
+| Elemental   | Damage           | Fireball, lightning bolt, frost shard |
+| Restoration | Healing          | Mend wounds, purify, revitalise       |
+| Illusion    | Social / Stealth | Disguise, invisibility, phantom sound |
+| Enchantment | Buffs / Debuffs  | Strengthen, weaken, charm, slow       |
+| Divination  | Information      | Detect magic, scry, reveal hidden     |
 
 ### Casting
 
@@ -37,24 +38,26 @@ Casting a spell requires an action. Each spell has a tier (1–5). Casting costs
 spell tier.
 
 **Resolution:** Roll d20 + INT vs DC (10 + spell tier x 2).
+
 - **Success:** Spell takes effect as described.
 - **Failure:** Mana is spent, but the spell has no effect.
 - **Critical failure (natural 1):** Mana is spent, spell fails, and a wild magic surge occurs.
 
 ### Wild Magic Surge Table (d6)
 
-| Roll | Effect |
-|------|--------|
-| 1 | Caster takes 1d6 damage from uncontrolled magical backlash. |
-| 2 | A random ally is healed for 1d6 HP by stray restorative energy. |
-| 3 | A loud, unnatural noise erupts — all enemies in the area are alerted. |
-| 4 | Temporary blindness afflicts the caster (disadvantage on all checks for 1 round). |
-| 5 | The spell hits the wrong target (GM determines who, friend or foe). |
-| 6 | The spell works as intended but at double the mana cost. |
+| Roll | Effect                                                                            |
+| ---- | --------------------------------------------------------------------------------- |
+| 1    | Caster takes 1d6 damage from uncontrolled magical backlash.                       |
+| 2    | A random ally is healed for 1d6 HP by stray restorative energy.                   |
+| 3    | A loud, unnatural noise erupts — all enemies in the area are alerted.             |
+| 4    | Temporary blindness afflicts the caster (disadvantage on all checks for 1 round). |
+| 5    | The spell hits the wrong target (GM determines who, friend or foe).               |
+| 6    | The spell works as intended but at double the mana cost.                          |
 
 ### Learning Spells
 
 Characters discover new spells through:
+
 - **Scrolls:** Found as loot or purchased from merchants. Consumed on learning.
 - **NPC teachers:** Require a favour, payment, or quest completion.
 - **Level-up choices:** At each level, the character may learn one new spell from any known school.
@@ -80,43 +83,43 @@ witnessing extreme violence, or reading forbidden texts — the GM calls for a s
 
 **Resolution:** Roll d20 + INT vs DC (varies by horror severity).
 
-| Severity | DC | Examples |
-|----------|----|----------|
-| Unsettling | 10 | Strange noises, minor gore, eerie atmosphere |
-| Disturbing | 13 | Witnessing a supernatural event, grotesque scenes |
-| Horrifying | 16 | Encountering an eldritch entity, extreme body horror |
-| Reality-breaking | 19 | Direct contact with cosmic horrors, witnessing impossible events |
+| Severity         | DC  | Examples                                                         |
+| ---------------- | --- | ---------------------------------------------------------------- |
+| Unsettling       | 10  | Strange noises, minor gore, eerie atmosphere                     |
+| Disturbing       | 13  | Witnessing a supernatural event, grotesque scenes                |
+| Horrifying       | 16  | Encountering an eldritch entity, extreme body horror             |
+| Reality-breaking | 19  | Direct contact with cosmic horrors, witnessing impossible events |
 
 - **Failure:** Lose 1d4 sanity.
 - **Critical failure (natural 1):** Lose 1d6 sanity and gain a temporary madness (see table below).
 
 ### Sanity Thresholds
 
-| Threshold | Condition | Effect |
-|-----------|-----------|--------|
-| 75% | Nervous | Disadvantage on CHA checks — the character's unease shows. |
-| 50% | Paranoid | Disadvantage on all social checks. The GM may insert hallucination prompts into scene descriptions (the player cannot be certain what is real). |
-| 25% | Unhinged | The GM may narrate unreliable perceptions — what the character sees may not be what is there. |
-| 0% | Catatonic | The character is incapacitated and cannot act until sanity is restored above 0. |
+| Threshold | Condition | Effect                                                                                                                                          |
+| --------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| 75%       | Nervous   | Disadvantage on CHA checks — the character's unease shows.                                                                                      |
+| 50%       | Paranoid  | Disadvantage on all social checks. The GM may insert hallucination prompts into scene descriptions (the player cannot be certain what is real). |
+| 25%       | Unhinged  | The GM may narrate unreliable perceptions — what the character sees may not be what is there.                                                   |
+| 0%        | Catatonic | The character is incapacitated and cannot act until sanity is restored above 0.                                                                 |
 
 ### Sanity Recovery
 
-| Method | Recovery |
-|--------|----------|
-| Safe rest (full rest at a secure location) | 1d4 sanity |
+| Method                                                                  | Recovery   |
+| ----------------------------------------------------------------------- | ---------- |
+| Safe rest (full rest at a secure location)                              | 1d4 sanity |
 | Professional help (therapist, priest, healer — if available in setting) | 2d4 sanity |
-| Completing a quest objective | 1d6 sanity |
+| Completing a quest objective                                            | 1d6 sanity |
 
 ### Temporary Madness Table (d6)
 
-| Roll | Effect |
-|------|--------|
-| 1 | **Flee:** The character flees uncontrollably for 1 round, moving away from the source. |
-| 2 | **Frozen in terror:** The character gains the Stunned condition for 1 round. |
-| 3 | **Babbling:** The character cannot communicate coherently for 2 rounds. |
-| 4 | **Lash out:** The character attacks the nearest creature (friend or foe) on their next action. |
-| 5 | **Faint:** The character falls unconscious for 1 round, then awakens prone. |
-| 6 | **Scream:** The character screams involuntarily, alerting all enemies in the area. |
+| Roll | Effect                                                                                         |
+| ---- | ---------------------------------------------------------------------------------------------- |
+| 1    | **Flee:** The character flees uncontrollably for 1 round, moving away from the source.         |
+| 2    | **Frozen in terror:** The character gains the Stunned condition for 1 round.                   |
+| 3    | **Babbling:** The character cannot communicate coherently for 2 rounds.                        |
+| 4    | **Lash out:** The character attacks the nearest creature (friend or foe) on their next action. |
+| 5    | **Faint:** The character falls unconscious for 1 round, then awakens prone.                    |
+| 6    | **Scream:** The character screams involuntarily, alerting all enemies in the area.             |
 
 ---
 
@@ -137,13 +140,13 @@ round of meditation (requires an action). Full recovery on rest.
 
 ### Technique Types
 
-| Type | Domain | Examples |
-|------|--------|----------|
-| Strike | Damage + effect | Iron Fist (bonus damage), Thunder Palm (knockback) |
-| Flow | Defensive / movement | Water Step (dodge bonus), Wind Walk (double movement) |
-| Pressure Point | Disable | Nerve Strike (paralyse limb), Qi Block (silence spellcasting) |
-| Inner Force | Buff | Iron Skin (damage reduction), Focus (bonus to next check) |
-| External Force | Ranged / area | Gale Fist (ranged strike), Shockwave (area damage) |
+| Type           | Domain               | Examples                                                      |
+| -------------- | -------------------- | ------------------------------------------------------------- |
+| Strike         | Damage + effect      | Iron Fist (bonus damage), Thunder Palm (knockback)            |
+| Flow           | Defensive / movement | Water Step (dodge bonus), Wind Walk (double movement)         |
+| Pressure Point | Disable              | Nerve Strike (paralyse limb), Qi Block (silence spellcasting) |
+| Inner Force    | Buff                 | Iron Skin (damage reduction), Focus (bonus to next check)     |
+| External Force | Ranged / area        | Gale Fist (ranged strike), Shockwave (area damage)            |
 
 ### Using Techniques
 
@@ -159,12 +162,13 @@ A chain can only extend to two techniques — no further chaining beyond the sec
 
 Tracked on a scale of 0–10. Starting value: 5.
 
-| Action | Honour Change |
-|--------|---------------|
-| Honourable act (keeping a promise, fair combat, protecting the weak) | +1 |
-| Dishonourable act (breaking an oath, attacking the defenceless, treachery) | −1 |
+| Action                                                                     | Honour Change |
+| -------------------------------------------------------------------------- | ------------- |
+| Honourable act (keeping a promise, fair combat, protecting the weak)       | +1            |
+| Dishonourable act (breaking an oath, attacking the defenceless, treachery) | −1            |
 
 **Effects:**
+
 - **Honour 7+:** Wuxia NPCs treat the character with respect. Disposition starts one step
   friendlier. Some advanced techniques require honour 7+ to use.
 - **Honour 3−:** Wuxia NPCs distrust the character. Disposition starts one step more hostile.
@@ -184,42 +188,43 @@ setting where digital intrusion and cyberware are central.
 ICE (Intrusion Countermeasures Electronics) represents digital security difficulty. It
 replaces standard DC for all hacking checks.
 
-| ICE Rating | Security Level | Examples |
-|------------|----------------|----------|
-| 1–3 | Civilian | Personal devices, home networks, small business systems |
-| 4–6 | Corporate | Corporate servers, government databases, secure comms |
-| 7–9 | Military | Military networks, intelligence agencies, secure vaults |
-| 10 | Black ICE (lethal) | Top-secret installations, AI cores, megacorp mainframes |
+| ICE Rating | Security Level     | Examples                                                |
+| ---------- | ------------------ | ------------------------------------------------------- |
+| 1–3        | Civilian           | Personal devices, home networks, small business systems |
+| 4–6        | Corporate          | Corporate servers, government databases, secure comms   |
+| 7–9        | Military           | Military networks, intelligence agencies, secure vaults |
+| 10         | Black ICE (lethal) | Top-secret installations, AI cores, megacorp mainframes |
 
 ### Hacking Checks
 
 **Resolution:** Roll d20 + INT vs DC (ICE rating x 2).
 
 **Tool bonuses:**
+
 - Basic cyberdeck: +2
 - Military-grade cyberdeck: +4
 - Custom/modified deck: +1 to +3 (based on quality)
 
 ### Hack Types
 
-| Hack | Purpose |
-|------|---------|
-| Bypass | Open locked doors, disable cameras, circumvent security |
-| Extract | Steal data, copy files, download intelligence |
-| Inject | Plant false data, alter records, forge credentials |
-| Crash | Disable systems, shut down networks, cause malfunctions |
-| Trace | Find information, track targets, map network topology |
+| Hack    | Purpose                                                 |
+| ------- | ------------------------------------------------------- |
+| Bypass  | Open locked doors, disable cameras, circumvent security |
+| Extract | Steal data, copy files, download intelligence           |
+| Inject  | Plant false data, alter records, forge credentials      |
+| Crash   | Disable systems, shut down networks, cause malfunctions |
+| Trace   | Find information, track targets, map network topology   |
 
 ### Countermeasures
 
 On a failed hacking check, the system fights back. Severity depends on the ICE rating.
 
-| ICE Level | Countermeasure | Effect |
-|-----------|----------------|--------|
-| 1–3 | Mild | Alert triggered — security is aware of the intrusion. |
-| 4–6 | Moderate | Deck damaged — the hacker suffers −2 to their next hack attempt. |
-| 7–9 | Severe | Neural feedback — 2d6 strain damage to the hacker. |
-| 10 | Lethal | Black ICE strikes — 3d6 damage + Stunned condition. |
+| ICE Level | Countermeasure | Effect                                                           |
+| --------- | -------------- | ---------------------------------------------------------------- |
+| 1–3       | Mild           | Alert triggered — security is aware of the intrusion.            |
+| 4–6       | Moderate       | Deck damaged — the hacker suffers −2 to their next hack attempt. |
+| 7–9       | Severe         | Neural feedback — 2d6 strain damage to the hacker.               |
+| 10        | Lethal         | Black ICE strikes — 3d6 damage + Stunned condition.              |
 
 ### Augmentations
 
@@ -230,11 +235,11 @@ a "humanity cost" of 1–3, representing the psychological toll of replacing fle
 the character's CHA modifier, the character suffers disadvantage on all social checks — the
 uncanny valley effect makes others instinctively uncomfortable.
 
-| Augmentation Tier | Humanity Cost | Examples |
-|-------------------|---------------|----------|
-| Minor | 1 | Retinal HUD, subdermal pocket, reflex booster |
-| Standard | 2 | Cyberlimb, neural interface, dermal plating |
-| Major | 3 | Full body conversion, military combat suite, AI co-processor |
+| Augmentation Tier | Humanity Cost | Examples                                                     |
+| ----------------- | ------------- | ------------------------------------------------------------ |
+| Minor             | 1             | Retinal HUD, subdermal pocket, reflex booster                |
+| Standard          | 2             | Cyberlimb, neural interface, dermal plating                  |
+| Major             | 3             | Full body conversion, military combat suite, AI co-processor |
 
 ---
 
@@ -252,15 +257,16 @@ where characters possess extraordinary abilities beyond normal human capability.
 
 ### Power Tiers
 
-| Tier | Usage | Cost | Examples |
-|------|-------|------|----------|
-| Minor | At-will (no limit) | None | Enhanced Reflexes (+2 to DEX checks, passive) |
-| Standard | 1 per encounter | None | Force Blast (ranged attack, 3d6 damage, knockback) |
-| Major | 1 per session | None | Time Stop (take 3 consecutive actions, usable once per session) |
+| Tier     | Usage              | Cost | Examples                                                        |
+| -------- | ------------------ | ---- | --------------------------------------------------------------- |
+| Minor    | At-will (no limit) | None | Enhanced Reflexes (+2 to DEX checks, passive)                   |
+| Standard | 1 per encounter    | None | Force Blast (ranged attack, 3d6 damage, knockback)              |
+| Major    | 1 per session      | None | Time Stop (take 3 consecutive actions, usable once per session) |
 
 ### Power Creation
 
 The player defines each power with:
+
 - **Name:** A distinctive title.
 - **Tier:** Minor, Standard, or Major.
 - **Effect:** Mechanical description of what the power does.
@@ -272,13 +278,14 @@ The GM approves all power definitions, ensuring they are balanced and thematical
 
 Tracked on a scale of 0–10. Using powers in populated areas risks collateral damage.
 
-| Power Tier | Collateral Risk |
-|------------|----------------|
-| Minor | No collateral risk. |
-| Standard | +1 collateral per use in a populated area. |
-| Major | +2 collateral per reckless use in a populated area. |
+| Power Tier | Collateral Risk                                     |
+| ---------- | --------------------------------------------------- |
+| Minor      | No collateral risk.                                 |
+| Standard   | +1 collateral per use in a populated area.          |
+| Major      | +2 collateral per reckless use in a populated area. |
 
 **Collateral thresholds:**
+
 - **Collateral 5+:** Media attention — the character's actions are reported. Public opinion shifts.
 - **Collateral 8+:** Authorities intervene — law enforcement or government agencies take action.
 - **Collateral 10:** Full crackdown — the character is hunted and public spaces become hostile.
@@ -291,6 +298,7 @@ media coverage, or resolving a public crisis can reduce collateral by 1–2 poin
 An obligation-like mechanic representing the risk of exposure.
 
 **Each session:** Roll d20.
+
 - **5 or lower:** An NPC grows suspicious — they notice something odd, ask probing questions,
   or connect dots. The GM narrates the close call.
 - **Natural 1:** An NPC discovers the truth. The GM determines which NPC and the consequences.
@@ -309,12 +317,12 @@ wilderness expeditions, or any scenario where basic resources are not guaranteed
 
 Four resource types are tracked, each measured in days of supply:
 
-| Resource | Purpose | Starting Amount (GM sets based on scenario) |
-|----------|---------|---------------------------------------------|
-| Food | Sustenance | Varies |
-| Water | Hydration | Varies |
-| Fuel | Travel and heating | Varies |
-| Medical supplies | Healing | Varies |
+| Resource         | Purpose            | Starting Amount (GM sets based on scenario) |
+| ---------------- | ------------------ | ------------------------------------------- |
+| Food             | Sustenance         | Varies                                      |
+| Water            | Hydration          | Varies                                      |
+| Fuel             | Travel and heating | Varies                                      |
+| Medical supplies | Healing            | Varies                                      |
 
 ### Daily Consumption
 
@@ -325,14 +333,14 @@ Four resource types are tracked, each measured in days of supply:
 
 ### Scarcity Effects
 
-| Deprivation | Duration | Effect |
-|-------------|----------|--------|
-| No food | 1 day | Exhausted condition. |
-| No food | 3+ days | Exhausted + 1d4 damage per day. |
-| No water | 1 day | Exhausted + Injured condition. |
-| No water | 2+ days | Incapacitated — the character cannot act until water is found. |
-| No fuel | Ongoing | Cannot travel. No heating (cold hazard applies if applicable). |
-| No medical supplies | Ongoing | Healing actions are unavailable. |
+| Deprivation         | Duration | Effect                                                         |
+| ------------------- | -------- | -------------------------------------------------------------- |
+| No food             | 1 day    | Exhausted condition.                                           |
+| No food             | 3+ days  | Exhausted + 1d4 damage per day.                                |
+| No water            | 1 day    | Exhausted + Injured condition.                                 |
+| No water            | 2+ days  | Incapacitated — the character cannot act until water is found. |
+| No fuel             | Ongoing  | Cannot travel. No heating (cold hazard applies if applicable). |
+| No medical supplies | Ongoing  | Healing actions are unavailable.                               |
 
 ### Foraging
 
@@ -340,12 +348,12 @@ The character may spend time searching for resources in the environment.
 
 **Resolution:** Roll d20 + INT or STR (player's choice) vs DC based on environment.
 
-| Environment | DC | Examples |
-|-------------|-----|----------|
-| Abundant | 8 | Forest, river valley, intact settlement |
-| Moderate | 12 | Plains, light woodland, partially looted town |
-| Scarce | 16 | Desert, tundra, heavily looted ruins |
-| Barren | 20 | Wasteland, irradiated zone, deep underground |
+| Environment | DC  | Examples                                      |
+| ----------- | --- | --------------------------------------------- |
+| Abundant    | 8   | Forest, river valley, intact settlement       |
+| Moderate    | 12  | Plains, light woodland, partially looted town |
+| Scarce      | 16  | Desert, tundra, heavily looted ruins          |
+| Barren      | 20  | Wasteland, irradiated zone, deep underground  |
 
 - **Success:** Find 1d4 days of food or water (player chooses which).
 - **Failure:** Nothing found. 1 hour wasted — the GM checks for a random encounter.
@@ -356,11 +364,11 @@ The character may combine salvaged items to create tools, weapons, or shelter.
 
 **Resolution:** Roll d20 + INT vs DC based on complexity.
 
-| Complexity | DC | Examples |
-|------------|-----|----------|
-| Simple | 10 | Torch, basic snare, crude shelter |
-| Moderate | 14 | Weapon repair, water filter, signal fire |
-| Complex | 18 | Firearm assembly, radio repair, fortified shelter |
+| Complexity | DC  | Examples                                          |
+| ---------- | --- | ------------------------------------------------- |
+| Simple     | 10  | Torch, basic snare, crude shelter                 |
+| Moderate   | 14  | Weapon repair, water filter, signal fire          |
+| Complex    | 18  | Firearm assembly, radio repair, fortified shelter |
 
 - **Success:** Item is created and added to inventory.
 - **Failure:** Components are consumed but the item is not created. The character may try again
@@ -377,13 +385,13 @@ warfare, or any setting where social manoeuvring is as important as combat.
 
 Each faction has a disposition toward the player, tracked on a simplified scale:
 
-| Disposition | Modifier | Effect |
-|-------------|----------|--------|
-| Hostile | −2 | Faction actively works against the character. Agents sent, rumours spread, access blocked. |
-| Unfriendly | −1 | Faction is wary. Higher prices, guarded NPCs, limited information. |
-| Neutral | 0 | Standard interactions. No bonuses or penalties. |
-| Friendly | +1 | Faction offers resources, information, and sanctuary when needed. |
-| Allied | +2 | Full support. Joint missions, shared intelligence, combat backup. |
+| Disposition | Modifier | Effect                                                                                     |
+| ----------- | -------- | ------------------------------------------------------------------------------------------ |
+| Hostile     | −2       | Faction actively works against the character. Agents sent, rumours spread, access blocked. |
+| Unfriendly  | −1       | Faction is wary. Higher prices, guarded NPCs, limited information.                         |
+| Neutral     | 0        | Standard interactions. No bonuses or penalties.                                            |
+| Friendly    | +1       | Faction offers resources, information, and sanctuary when needed.                          |
+| Allied      | +2       | Full support. Joint missions, shared intelligence, combat backup.                          |
 
 Disposition modifiers apply directly to social check DCs when interacting with faction members.
 
@@ -401,17 +409,18 @@ cannot be dropped or sold).
 Each "round" of political play (typically a day or a significant social event), the player
 may take **one intrigue action:**
 
-| Action | Attribute | Effect |
-|--------|-----------|--------|
-| Gather intelligence | INT | Learn a faction's current plans, alliances, or vulnerabilities. DC based on faction secrecy. |
-| Spread rumour | CHA | Shift one faction's view of another faction by one step (positive or negative). DC 14. |
-| Form alliance | CHA | Attempt to upgrade a faction's disposition toward the character by one step. DC based on current disposition (Hostile: 18, Unfriendly: 15, Neutral: 12, Friendly: 10). |
-| Sabotage | DEX | Undermine a faction's plans without being caught. DC based on faction vigilance. |
+| Action              | Attribute | Effect                                                                                                                                                                 |
+| ------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Gather intelligence | INT       | Learn a faction's current plans, alliances, or vulnerabilities. DC based on faction secrecy.                                                                           |
+| Spread rumour       | CHA       | Shift one faction's view of another faction by one step (positive or negative). DC 14.                                                                                 |
+| Form alliance       | CHA       | Attempt to upgrade a faction's disposition toward the character by one step. DC based on current disposition (Hostile: 18, Unfriendly: 15, Neutral: 12, Friendly: 10). |
+| Sabotage            | DEX       | Undermine a faction's plans without being caught. DC based on faction vigilance.                                                                                       |
 
 ### Discovery
 
 If the character is caught acting against a faction (failed sabotage, exposed rumour-spreading,
 revealed deception):
+
 - **Disposition drops by 2** immediately.
 - **The faction retaliates** — the GM determines the response based on the faction's nature and
   resources (assassination attempt, public denouncement, trade embargo, etc.).
@@ -422,12 +431,12 @@ revealed deception):
 
 A scenario may activate 1–2 overlays to create hybrid genres. Examples:
 
-| Combination | Genre | Active Overlays |
-|-------------|-------|-----------------|
-| Fantasy + Horror | Dark fantasy | Magic System + Sanity System |
-| Cyberpunk + Survival | Dystopian survival | Hacking System + Resource Scarcity |
-| Wuxia + Political Intrigue | Court martial arts | Chi/Ki System + Reputation Web |
-| Superhero + Horror | Eldritch heroes | Powers System + Sanity System |
+| Combination                | Genre              | Active Overlays                    |
+| -------------------------- | ------------------ | ---------------------------------- |
+| Fantasy + Horror           | Dark fantasy       | Magic System + Sanity System       |
+| Cyberpunk + Survival       | Dystopian survival | Hacking System + Resource Scarcity |
+| Wuxia + Political Intrigue | Court martial arts | Chi/Ki System + Reputation Web     |
+| Superhero + Horror         | Eldritch heroes    | Powers System + Sanity System      |
 
 ### Rules for Combining
 
@@ -446,6 +455,7 @@ A scenario may activate 1–2 overlays to create hybrid genres. Examples:
 Genre overlays add the following optional fields to `gmState`:
 
 <!-- CLI implementation detail — do not hand-code -->
+
 ```js
 // Magic System
 genreMagic: {
@@ -507,15 +517,15 @@ genreReputation: {
 
 Genre overlay flags use the prefix `genre_`:
 
-| Flag | Example |
-|------|---------|
-| `genre_magic_wildSurge_occurred` | Boolean — a wild magic surge happened this scene |
-| `genre_sanity_hallucination_active` | Boolean — the character is experiencing hallucinations |
-| `genre_chi_honour_changed` | Boolean — honour shifted this scene |
-| `genre_hacking_alert_triggered` | Boolean — a system alert is active |
-| `genre_powers_identity_exposed` | Boolean — secret identity has been discovered |
-| `genre_scarcity_foraging_attempted` | Boolean — foraging was attempted this day |
-| `genre_reputation_caught_sabotage` | Boolean — the character was caught in an intrigue action |
+| Flag                                | Example                                                  |
+| ----------------------------------- | -------------------------------------------------------- |
+| `genre_magic_wildSurge_occurred`    | Boolean — a wild magic surge happened this scene         |
+| `genre_sanity_hallucination_active` | Boolean — the character is experiencing hallucinations   |
+| `genre_chi_honour_changed`          | Boolean — honour shifted this scene                      |
+| `genre_hacking_alert_triggered`     | Boolean — a system alert is active                       |
+| `genre_powers_identity_exposed`     | Boolean — secret identity has been discovered            |
+| `genre_scarcity_foraging_attempted` | Boolean — foraging was attempted this day                |
+| `genre_reputation_caught_sabotage`  | Boolean — the character was caught in an intrigue action |
 
 ---
 
