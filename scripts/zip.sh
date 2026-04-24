@@ -3,16 +3,23 @@
 # Run from the project root: ./scripts/zip.sh
 #
 # Excludes dev-only files that are not needed by skill consumers:
-#   - *.spec.ts    (test files)
-#   - .gitignore   (git-only)
-#   - .tddignore   (TDD tooling)
-#   - bun.lock     (locks devDependencies only)
-#   - cli/tests/   (test support harness and fixtures)
-#   - node_modules (installed locally by setup.sh)
-#   - coverage/    (test coverage output)
-#   - bunfig.toml  (dev-only bun test config)
-#   - .DS_Store    (macOS junk)
-#   - *.lore.md    (plain-text lore; base64 variant is kept)
+#   - *.spec.ts          (test files)
+#   - .gitignore         (git-only)
+#   - .tddignore         (TDD tooling)
+#   - .prettierignore    (dev tooling)
+#   - prettier.config.js (dev tooling)
+#   - eslint.config.js   (dev tooling)
+#   - knip.json          (dev tooling)
+#   - bun.lock           (locks devDependencies only)
+#   - cli/tests/         (test support harness and fixtures)
+#   - cli/tsconfig.json  (typecheck only; Bun resolves types at runtime)
+#   - scripts/           (build/check scripts not needed at runtime)
+#   - docs/              (developer reference only)
+#   - node_modules       (installed locally by setup.sh)
+#   - coverage/          (test coverage output)
+#   - bunfig.toml        (dev-only bun test config)
+#   - .DS_Store          (macOS junk)
+#   - *.lore.md          (plain-text lore; base64 variant is kept)
 
 set -euo pipefail
 
@@ -81,11 +88,18 @@ zip -r "$OUTPUT" . \
 	-x "*.spec.ts" \
 	-x "bunfig.toml" \
 	-x "cli/bunfig.toml" \
+	-x "cli/tsconfig.json" \
 	-x ".gitignore" \
 	-x ".tddignore" \
+	-x ".prettierignore" \
+	-x "prettier.config.js" \
+	-x "eslint.config.js" \
+	-x "knip.json" \
 	-x "bun.lock" \
 	-x "node_modules/*" \
 	-x "cli/tests/*" \
+	-x "scripts/*" \
+	-x "docs/*" \
 	-x "assets/css/*" \
 	-x "assets/js/*" \
 	-x "assets/icons/*" \
