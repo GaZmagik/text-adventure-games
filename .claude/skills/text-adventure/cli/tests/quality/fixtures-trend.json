@@ -1,0 +1,27 @@
+{
+  "scene-rich-panels": {
+    "hydrationMs": 11.600000023841858,
+    "bundleLoadMs": 23.700000047683716,
+    "htmlSize": 4501
+  },
+  "quest-log-rich": {
+    "hydrationMs": 0,
+    "bundleLoadMs": 4.200000047683716,
+    "htmlSize": 9623
+  },
+  "map-route-overlay": {
+    "hydrationMs": 0,
+    "bundleLoadMs": 3.5,
+    "htmlSize": 8725
+  },
+  "dice-pool-volley": {
+    "hydrationMs": 0,
+    "bundleLoadMs": 31.700000047683716,
+    "htmlSize": 2550
+  },
+  "route-planner-rich": {
+    "hydrationMs": 0,
+    "bundleLoadMs": 1.399999976158142,
+    "htmlSize": 2744
+  }
+}

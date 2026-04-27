@@ -683,6 +683,7 @@ export const WIDGET_TYPE_NAMES = [
   'scenario-select',
   'character-creation',
   'arc-complete',
+  'chronicle',
 ] as const;
 
 /** Widgets that are rendered during the pre-game setup phase (before a scene exists). */

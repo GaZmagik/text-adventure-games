@@ -98,13 +98,17 @@ zip -r "$OUTPUT" . \
 	-x "bun.lock" \
 	-x "node_modules/*" \
 	-x "cli/tests/*" \
+	-x "cli/commands/dev.ts" \
 	-x "scripts/*" \
 	-x "docs/*" \
+	-x "playwright.config.ts" \
+	-x "playwright-report/*" \
+	-x "test-results/*" \
+	-x "scratch/*" \
 	-x "assets/css/*" \
 	-x "assets/js/*" \
 	-x "assets/icons/*" \
 	-x "icons/*" \
-	-x "scratch/*" \
 	-x "coverage/*" \
 	-x "*.lore.md"
 

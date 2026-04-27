@@ -146,6 +146,7 @@ import { renderSettings } from '../render/templates/settings';
 import { renderScenarioSelect } from '../render/templates/scenario-select';
 import { renderCharacterCreation } from '../render/templates/character-creation';
 import { renderArcComplete } from '../render/templates/arc-complete';
+import { renderChronicle } from '../render/templates/chronicle';
 import { loadNames, SCI_FI_THEMES } from '../data/names';
 
 // ── Widget registry ──────────────────────────────────────────────────
@@ -180,6 +181,7 @@ const TEMPLATES: Record<string, TemplateFn> = {
   'scenario-select': renderScenarioSelect,
   'character-creation': renderCharacterCreation,
   'arc-complete': renderArcComplete,
+  chronicle: renderChronicle,
 };
 
 /** Template registry keys — exported for parity testing in constants.spec.ts */

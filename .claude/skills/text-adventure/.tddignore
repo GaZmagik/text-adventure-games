@@ -9,3 +9,18 @@ assets/cdn-manifest.ts
 
 # Data constants — prose guidance strings only, no runtime logic
 cli/data/prose-guidance.ts
+
+# Test support modules — tested indirectly via the specs that import them
+cli/tests/browser/hydration-cases.ts
+cli/tests/browser/support.ts
+cli/tests/support/fixture-trends.ts
+cli/tests/support/reviewed-render-fixtures.ts
+
+# Package command integrates build+audit+zip; fully exercised by package-surface.spec.ts
+cli/commands/package.ts
+playwright.config.ts
+scripts/collect-fixture-trends.ts
+scripts/playwright-preview-server.ts
+
+# Scratch/exploration files — not production code
+scratch/test-dialogue.ts

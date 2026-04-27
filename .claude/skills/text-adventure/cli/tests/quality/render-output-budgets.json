@@ -1,0 +1,9 @@
+{
+  "fixtures": {
+    "scene-rich-panels": 24000,
+    "quest-log-rich": 10500,
+    "map-route-overlay": 9500,
+    "faction-board-worldgen": 4500,
+    "relationship-web-worldgen": 13500
+  }
+}

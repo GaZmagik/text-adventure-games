@@ -1,0 +1,39 @@
+{
+  "updatedAt": "2026-04-25",
+  "renderOutput": {
+    "faction-board-worldgen": {
+      "widget": "faction-board",
+      "chars": 4069
+    },
+    "map-route-overlay": {
+      "widget": "map",
+      "chars": 8665
+    },
+    "quest-log-rich": {
+      "widget": "quest-log",
+      "chars": 9563
+    },
+    "relationship-web-worldgen": {
+      "widget": "relationship-web",
+      "chars": 12250
+    },
+    "scene-rich-panels": {
+      "widget": "scene",
+      "chars": 21445
+    }
+  },
+  "hydrationObservedMs": {
+    "dicePool": 234,
+    "map": 114,
+    "questLog": 91,
+    "relationshipWeb": 87,
+    "scene": 138
+  },
+  "hydrationBudgetsMs": {
+    "dicePool": 3500,
+    "map": 3500,
+    "questLog": 2500,
+    "relationshipWeb": 3000,
+    "scene": 3500
+  }
+}
