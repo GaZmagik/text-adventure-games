@@ -47,7 +47,7 @@ describe('TDD parity', () => {
     const failures: string[] = [];
 
     for (const relPath of allTsFiles) {
-      if (relPath.endsWith('.spec.ts')) continue;
+      if (relPath.endsWith('.spec.ts') || relPath.endsWith('.playwright.ts')) continue;
 
       const expectedSpec = relPath.replace(/\.ts$/, '.spec.ts');
       if (specFiles.has(expectedSpec)) continue;

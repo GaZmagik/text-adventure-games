@@ -66,7 +66,7 @@ describe('TypeScript documentation coverage', () => {
         continue;
       }
 
-      if (relPath.endsWith('.spec.ts')) {
+      if (relPath.endsWith('.spec.ts') || relPath.endsWith('.playwright.ts')) {
         if (!/\bdescribe\s*\(/.test(source) || !/\b(?:test|it)\s*\(/.test(source)) {
           failures.push(`${relPath}: spec file must contain describe() and test()/it()`);
         }

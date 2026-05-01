@@ -111,7 +111,7 @@ describe('TypeScript coding standards', () => {
     const failures: string[] = [];
 
     for (const relPath of collectTsFiles(SKILL_DIR)) {
-      if (relPath.endsWith('.spec.ts') || GENERATED_TS_FILES.has(relPath)) continue;
+      if (relPath.endsWith('.spec.ts') || relPath.endsWith('.playwright.ts') || GENERATED_TS_FILES.has(relPath)) continue;
 
       const source = await Bun.file(join(SKILL_DIR, relPath)).text();
       for (const lineNumber of explicitAnyLineNumbers(source)) {

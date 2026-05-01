@@ -5,6 +5,7 @@ import { basename, join, resolve } from 'node:path';
 const SKILL_DIR = resolve(import.meta.dir, '../../..');
 const REPO_ROOT = resolve(SKILL_DIR, '../../..');
 const PACKAGE_JSON_PATH = join(SKILL_DIR, 'package.json');
+const PLAYWRIGHT_CONFIG_PATH = join(SKILL_DIR, 'playwright.config.ts');
 const ZIP_SCRIPT_PATH = join(REPO_ROOT, 'scripts', 'zip.sh');
 const ZIP_OUTPUT_PATH = join(REPO_ROOT, 'text-adventure.zip');
 const LOCAL_PATH_PATTERNS = [/\/home\/(?!claude\/)/, /file:\/\//i, /\/Users\//, /[A-Z]:\\\\/];
@@ -85,6 +86,17 @@ describe('package surface', () => {
     expect(pkg.exports).toBeUndefined();
     expect(pkg.files).toBeUndefined();
     expect(pkg.publishConfig).toBeUndefined();
+  });
+
+  test('browser regression tests are wired into project scripts and Playwright discovery', () => {
+    const pkg = JSON.parse(readFileSync(PACKAGE_JSON_PATH, 'utf-8')) as {
+      scripts?: Record<string, string>;
+    };
+    const config = readFileSync(PLAYWRIGHT_CONFIG_PATH, 'utf-8');
+
+    expect(pkg.scripts?.test).toContain('test:browser');
+    expect(pkg.scripts?.['test:browser']).toContain('playwright test');
+    expect(config).toContain('*.playwright.ts');
   });
 
   test('distribution zip excludes dev-only files and retains required runtime assets', async () => {

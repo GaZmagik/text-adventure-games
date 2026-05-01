@@ -27,7 +27,7 @@ export class FakeElement {
   ownerDocument: FakeDocument | null = null;
   private innerHtmlValue = '';
 
-  constructor(readonly tagName: string) {}
+  constructor(readonly tagName: string) { }
 
   get innerHTML(): string {
     return this.innerHtmlValue;
@@ -155,7 +155,7 @@ export class FakeElement {
     if (this.ownerDocument) this.ownerDocument.activeElement = this;
   }
 
-  select(): void {}
+  select(): void { }
 
   getBoundingClientRect(): { width: number; height: number } {
     return { width: 0, height: 0 };
@@ -276,18 +276,18 @@ function create2dContext(): Record<string, unknown> {
     textAlign: '',
     textBaseline: '',
     font: '',
-    fillRect() {},
-    fillText() {},
+    fillRect() { },
+    fillText() { },
     measureText(text: string) {
       return { width: text.length * 12 };
     },
-    beginPath() {},
-    arc() {},
-    fill() {},
-    save() {},
-    translate() {},
-    scale() {},
-    restore() {},
+    beginPath() { },
+    arc() { },
+    fill() { },
+    save() { },
+    translate() { },
+    scale() { },
+    restore() { },
   };
 }
 
@@ -318,8 +318,8 @@ export function createWebGLContext(): Record<string, unknown> {
     createShader() {
       return {};
     },
-    shaderSource() {},
-    compileShader() {},
+    shaderSource() { },
+    compileShader() { },
     getShaderParameter() {
       return true;
     },
@@ -329,40 +329,40 @@ export function createWebGLContext(): Record<string, unknown> {
     createProgram() {
       return {};
     },
-    attachShader() {},
-    linkProgram() {},
+    attachShader() { },
+    linkProgram() { },
     getProgramParameter() {
       return true;
     },
-    useProgram() {},
+    useProgram() { },
     getUniformLocation() {
       return {};
     },
-    uniform3f() {},
-    uniform1i() {},
-    uniformMatrix4fv() {},
+    uniform3f() { },
+    uniform1i() { },
+    uniformMatrix4fv() { },
     createBuffer() {
       return {};
     },
-    bindBuffer() {},
-    bufferData() {},
+    bindBuffer() { },
+    bufferData() { },
     getAttribLocation() {
       return 0;
     },
-    enableVertexAttribArray() {},
-    vertexAttribPointer() {},
+    enableVertexAttribArray() { },
+    vertexAttribPointer() { },
     createTexture() {
       return {};
     },
-    bindTexture() {},
-    pixelStorei() {},
-    texImage2D() {},
-    texParameteri() {},
-    viewport() {},
-    clear() {},
-    clearColor() {},
-    enable() {},
-    drawArrays() {},
+    bindTexture() { },
+    pixelStorei() { },
+    texImage2D() { },
+    texParameteri() { },
+    viewport() { },
+    clear() { },
+    clearColor() { },
+    enable() { },
+    drawArrays() { },
   };
 }
 

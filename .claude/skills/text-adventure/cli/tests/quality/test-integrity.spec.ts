@@ -29,7 +29,7 @@ function collectSpecFiles(dir: string): string[] {
       const stat = statSync(fullPath);
       if (stat.isDirectory()) {
         walk(fullPath);
-      } else if (stat.isFile() && fullPath.endsWith('.spec.ts')) {
+      } else if (stat.isFile() && (fullPath.endsWith('.spec.ts') || fullPath.endsWith('.playwright.ts'))) {
         files.push(normalisePath(relative(SKILL_DIR, fullPath)));
       }
     }
