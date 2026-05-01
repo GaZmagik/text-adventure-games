@@ -9,6 +9,7 @@ const BASE_URL = `http://${HOST}:${PORT}`;
 
 export default defineConfig({
   testDir: './cli/tests/browser',
+  testMatch: ['**/*.spec.ts', '**/*.playwright.ts'],
   fullyParallel: false,
   timeout: 30_000,
   expect: {
