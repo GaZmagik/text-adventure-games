@@ -1,11 +1,15 @@
 // Map command handlers mutate and inspect generated map state while preserving traversal history.
-import type { CommandResult, GmState, MapConnection, MapState, MapZone } from '../types';
+import type { CommandResult, GmState, MapConnection, MapState, MapZone, StatName } from '../types';
 import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState } from '../lib/state-store';
 import { recordHistory } from './state';
 import { planMapRoute } from '../lib/map-routing';
 
 const VALID_SUBCOMMANDS = ['enter', 'reveal', 'discover', 'unlock', 'inspect', 'route'] as const;
+
+function isCommandResult<T>(obj: unknown): obj is CommandResult<T> {
+  return !!obj && typeof obj === 'object' && 'ok' in (obj as Record<string, unknown>);
+}
 
 function getMapState(state: GmState, command: string): MapState | CommandResult {
   if (!state.mapState) {
@@ -84,7 +88,7 @@ async function loadMap(command: string): Promise<{ state: GmState; mapState: Map
   const state = await tryLoadState();
   if (!state) return noState(command);
   const mapState = getMapState(state, command);
-  if ('ok' in mapState) return mapState;
+  if (isCommandResult(mapState)) return mapState;
   return { state, mapState };
 }
 
@@ -141,6 +145,28 @@ async function handleEnter(args: string[]): Promise<CommandResult> {
   state.currentRoom = zoneId;
   state.visitedRooms = addUnique(state.visitedRooms, zoneId);
 
+  // Trigger hazards
+  const connection = findConnection(mapState, previous, zoneId);
+  const triggeredHazards = [...(connection?.hazards ?? []), ...(zone.hazards ?? [])];
+  for (const h of triggeredHazards) {
+    state._pendingRolls = [
+      ...(state._pendingRolls ?? []),
+      {
+        action: `${h.id}:${state.scene}`,
+        type: 'hazard',
+        stat: h.stat || 'DEX',
+        dc: h.dc,
+      },
+    ];
+  }
+
+  // Trigger encounters
+  let encounterTriggered = false;
+  if (connection?.encounterChance && Math.random() < connection.encounterChance) {
+    encounterTriggered = true;
+    // Note: In a full implementation, this might add an encounter-type pending roll or NPC
+  }
+
   recordHistory(state, 'map enter', 'mapState.currentZone', previous, zoneId);
   await saveState(state);
 
@@ -151,6 +177,8 @@ async function handleEnter(args: string[]): Promise<CommandResult> {
       currentRoom: state.currentRoom,
       visitedZones: mapState.visitedZones,
       revealedZones: mapState.revealedZones,
+      encounterTriggered,
+      hazardCount: triggeredHazards.length,
     },
     'map enter',
   );

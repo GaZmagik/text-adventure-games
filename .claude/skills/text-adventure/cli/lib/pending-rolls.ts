@@ -101,7 +101,7 @@ export function selectPendingRollForResolution(
 
   if (candidates.length === 0) return null;
 
-  candidates.sort((a, b) => a.action - b.action);
+  candidates.sort((a, b) => String(a.action).localeCompare(String(b.action)));
   return candidates[0] ?? null;
 }
 
