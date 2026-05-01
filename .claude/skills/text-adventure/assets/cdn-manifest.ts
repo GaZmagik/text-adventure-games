@@ -6,6 +6,7 @@ export const CSS_MANIFEST: Record<string, string> = {
   'art-deco': '5bd57708',
   'blueprint': '8942edb4',
   'brutalist': 'e9399598',
+  'high-contrast': '31f4eb00',
   'holographic': 'd1a814c8',
   'ink-wash': '6efa405c',
   'neon': '58d080d4',
@@ -21,8 +22,8 @@ export const CSS_MANIFEST: Record<string, string> = {
 };
 
 export const JS_MANIFEST: Record<string, string> = {
-  'ta-components.js': '3d7ec712',
-  'tag-scene.js': '3d31f2ec',
+  'ta-components.js': 'c0415118',
+  'tag-scene.js': 'dda99e68',
   'tag-soundscape.js': '6ec84062',
 };
 

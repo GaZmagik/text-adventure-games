@@ -110,6 +110,7 @@ zip -r "$OUTPUT" . \
 	-x "assets/icons/*" \
 	-x "icons/*" \
 	-x "coverage/*" \
+	-x "text-adventure.zip" \
 	-x "*.lore.md"
 
 # Re-add base64 lore files (*.lore.md exclusion above catches them too)
