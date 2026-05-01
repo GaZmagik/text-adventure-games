@@ -115,6 +115,18 @@ const questObjective = object({
   blockedReason: leaf(),
   npcId: leaf(),
   locationId: leaf(),
+  addedAtScene: leaf(),
+  requirements: nullable(
+    object({
+      deadline: leaf(),
+      minLevel: leaf(),
+      stat: leaf(),
+      dc: leaf(),
+      item: leaf(),
+      faction: leaf(),
+      minStanding: leaf(),
+    }),
+  ),
 });
 
 const _questClue = object({
@@ -208,6 +220,15 @@ const mapZone = object({
   loot: array(leaf()),
   connections: array(leaf()),
   icon: leaf(),
+  hazards: array(
+    object({
+      id: leaf(),
+      type: leaf(),
+      dc: leaf(),
+      description: leaf(),
+      stat: leaf(),
+    }),
+  ),
 });
 
 const mapConnection = object({
@@ -221,6 +242,16 @@ const mapConnection = object({
   keyItem: leaf(),
   travelTime: leaf(),
   status: leaf(),
+  hazards: array(
+    object({
+      id: leaf(),
+      type: leaf(),
+      dc: leaf(),
+      description: leaf(),
+      stat: leaf(),
+    }),
+  ),
+  encounterChance: leaf(),
 });
 
 const mapDoor = object({

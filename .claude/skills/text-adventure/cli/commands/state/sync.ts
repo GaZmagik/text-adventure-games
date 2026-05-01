@@ -157,6 +157,32 @@ function checkQuestWorldFlagSync(state: GmState, warnings: string[]): void {
 }
 
 /**
+ * Enforces quest-specific deadlines based on elapsed scenes.
+ */
+function checkQuestDeadlines(state: GmState, warnings: string[]): boolean {
+  let blocked = false;
+  for (const quest of state.quests) {
+    if (quest.status !== 'active') continue;
+    for (const obj of quest.objectives) {
+      if (obj.completed || obj.state === 'completed') continue;
+      const deadline = obj.requirements?.deadline;
+      if (deadline !== undefined) {
+        const startScene = obj.addedAtScene ?? quest.discoveredAtScene ?? 0;
+        const scenesElapsed = state.scene - startScene;
+        if (scenesElapsed > deadline) {
+          warnings.push(
+            `BLOCK: Quest objective "${quest.id}/${obj.id}" has FAILED (deadline exceeded: ` +
+              `${scenesElapsed}/${deadline} scenes).`,
+          );
+          blocked = true;
+        }
+      }
+    }
+  }
+  return blocked;
+}
+
+/**
  * Checks if the character has reached the XP threshold for a level-up.
  * @remarks
  * See decision-campaign-arcs-use-full-levelxp-carry-forward-with-selective-reset.md.
@@ -388,6 +414,7 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
   checkMissingModules(activeSet, warnings);
 
   checkQuestWorldFlagSync(state, warnings);
+  const deadlineBlocked = checkQuestDeadlines(state, warnings);
   checkLevelUpEligibility(state, warnings);
 
   const npcIds = new Set<string>();
@@ -411,8 +438,16 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
 
   const featureChecklist = buildFeatureChecklist(state);
   const status = warnings.length > 0 ? 'warnings' : 'clean';
+  const hasBlock = warnings.some(w => w.startsWith('BLOCK:'));
 
   if (apply) {
+    if (hasBlock) {
+      return fail(
+        `Cannot apply: hard block detected. ${warnings.find(w => w.startsWith('BLOCK:'))}`,
+        'Resolve the blocking issues before advancing.',
+        'state sync',
+      );
+    }
     // Block apply if scene widget was not verified — signed marker prevents forgery via echo
     if (state.scene > 0) {
       const lastVerifyScene = readSignedMarker(getVerifyMarkerPath());

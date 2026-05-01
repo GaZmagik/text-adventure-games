@@ -196,6 +196,17 @@ export type Quest = {
   updatedAtScene?: number;
 };
 
+export type QuestObjectiveRequirements = {
+  deadline?: number;
+  minLevel?: number;
+  stat?: StatName;
+  dc?: number;
+  item?: string;
+  faction?: string;
+  minStanding?: number;
+  [key: string]: unknown;
+};
+
 /**
  * Individual objective within a quest chain.
  */
@@ -208,6 +219,8 @@ export type QuestObjective = {
   blockedReason?: string;
   npcId?: string;
   locationId?: string;
+  addedAtScene?: number;
+  requirements?: QuestObjectiveRequirements;
 };
 
 export type QuestType = 'main' | 'side' | 'crew' | 'faction' | 'rumour';
@@ -281,7 +294,7 @@ export type RollRecord = {
   modifier?: number;
   total?: number;
   dc?: number;
-  action?: number;
+  action?: number | string;
   npcId?: string;
   skill?: string;
   outcome: RollOutcome;
@@ -415,6 +428,7 @@ export type MapZone = {
   loot?: string[];
   connections?: string[];
   icon?: string;
+  hazards?: Array<{ id: string; type: string; dc: number; description: string; stat?: StatName }>;
 };
 
 export type MapConnection = {
@@ -428,6 +442,8 @@ export type MapConnection = {
   keyItem?: string;
   travelTime?: string;
   status?: string;
+  hazards?: Array<{ id: string; type: string; dc: number; description: string; stat?: StatName }>;
+  encounterChance?: number;
 };
 
 export type MapDoor = {
@@ -587,7 +603,7 @@ export type ArcSummary = {
  * Used by the CLI to enforce dice widget interactivity.
  */
 export type PendingRoll = {
-  action: number;
+  action: number | string;
   type: 'contest' | 'hazard';
   stat: StatName;
   npc?: string;

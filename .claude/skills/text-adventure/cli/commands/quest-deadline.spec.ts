@@ -76,7 +76,48 @@ describe('quest deadlines', () => {
     const state = await loadState();
     const quest = state.quests.find(q => q.id === 'q1')!;
     const o2 = quest.objectives.find(o => o.id === 'o2')!;
+    expect(o2.addedAtScene).toBe(0);
     expect(o2.requirements?.deadline).toBe(10);
+  });
+
+  test('late-added objective deadline starts from the objective scene, not quest creation', async () => {
+    await handleState(['reset']);
+    await handleQuest([
+      'create',
+      '--id',
+      'q1',
+      '--title',
+      'Q1',
+      '--objective-id',
+      'o1',
+      '--objective',
+      'O1'
+    ]);
+
+    const state = await loadState();
+    state.scene = 5;
+    state.time.elapsed = 5;
+    await saveState(state);
+
+    await handleQuest([
+      'add-objective',
+      'q1',
+      '--id',
+      'o2',
+      '--desc',
+      'Timed O2',
+      '--deadline',
+      '2'
+    ]);
+
+    const updated = await loadState();
+    const objective = updated.quests.find(q => q.id === 'q1')!.objectives.find(o => o.id === 'o2')!;
+    expect(objective.addedAtScene).toBe(5);
+
+    const syncResult = await handleSync([]);
+    expect(syncResult.ok).toBe(true);
+    const syncData = syncResult.data as { warnings: string[] };
+    expect(syncData.warnings.some(w => w.includes('q1/o2'))).toBe(false);
   });
 
   test('sync blocks if deadline is exceeded', async () => {

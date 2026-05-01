@@ -1,7 +1,7 @@
 // tag CLI — Quest Command
 // Manage quests, objectives, and clues. Subcommands: complete, add-objective, add-clue, inspect, track, create, status, list.
 
-import type { CommandResult, GmState, Quest } from '../types';
+import type { CommandResult, GmState, Quest, QuestObjective } from '../types';
 import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState } from '../lib/state-store';
 import { parseArgs } from '../lib/args';
@@ -80,7 +80,7 @@ async function handleComplete(args: string[]): Promise<CommandResult> {
   state.worldFlags[`quest:${questId}:${objectiveId}:complete`] = true;
 
   // If ALL objectives now complete, set quest-level flag and mark quest completed
-  const allComplete = quest.objectives.every(o => o.completed);
+  const allComplete = quest.objectives.every(o => o.completed || o.state === 'completed');
   if (allComplete) {
     quest.status = 'completed';
     state.worldFlags[`quest:${questId}:complete`] = true;
@@ -117,9 +117,10 @@ async function handleAddObjective(args: string[]): Promise<CommandResult> {
     );
   }
 
-  const { flags } = parseArgs(args.slice(1), [], ['desc', 'id']);
+  const { flags } = parseArgs(args.slice(1), [], ['desc', 'id', 'deadline']);
   const objId = flags.id;
   const desc = flags.desc;
+  const deadline = flags.deadline ? parseInt(flags.deadline, 10) : undefined;
 
   if (!objId) {
     return fail(
@@ -150,7 +151,10 @@ async function handleAddObjective(args: string[]): Promise<CommandResult> {
   if ('error' in lookup) return lookup.error;
   const { quest } = lookup;
 
-  const newObjective = { id: objId, description: desc, completed: false };
+  const newObjective: QuestObjective = { id: objId, description: desc, completed: false, addedAtScene: state.scene };
+  if (deadline !== undefined && !isNaN(deadline)) {
+    newObjective.requirements = { deadline };
+  }
   quest.objectives.push(newObjective);
   quest.currentObjectiveId ??= objId;
   quest.updatedAtScene = state.scene;
@@ -279,11 +283,20 @@ async function handleTrack(args: string[]): Promise<CommandResult> {
 }
 
 async function handleCreate(args: string[]): Promise<CommandResult> {
-  const { flags } = parseArgs(args, [], ['id', 'title', 'objective-id', 'objective', 'type', 'priority']);
+  const { flags } = parseArgs(args, [], [
+    'id',
+    'title',
+    'objective-id',
+    'objective',
+    'type',
+    'priority',
+    'deadline',
+  ]);
   const questId = flags.id;
   const title = flags.title;
   const objectiveId = flags['objective-id'];
   const objectiveText = flags.objective;
+  const deadline = flags.deadline ? parseInt(flags.deadline, 10) : undefined;
 
   if (!questId) {
     return fail(
@@ -338,6 +351,17 @@ async function handleCreate(args: string[]): Promise<CommandResult> {
     );
   }
 
+  const objective: QuestObjective = {
+    id: objectiveId,
+    description: objectiveText,
+    completed: false,
+    state: 'active',
+    addedAtScene: state.scene,
+  };
+  if (deadline !== undefined && !isNaN(deadline)) {
+    objective.requirements = { deadline };
+  }
+
   const quest: Quest = {
     id: questId,
     title,
@@ -345,7 +369,7 @@ async function handleCreate(args: string[]): Promise<CommandResult> {
     type: (flags.type as Quest['type']) || 'side',
     priority: (flags.priority as Quest['priority']) || 'normal',
     currentObjectiveId: objectiveId,
-    objectives: [{ id: objectiveId, description: objectiveText, completed: false, state: 'active' }],
+    objectives: [objective],
     clues: [],
     discoveredAtScene: state.scene,
     updatedAtScene: state.scene,
@@ -369,12 +393,10 @@ async function handleList(): Promise<CommandResult> {
   if (!state) return noState('quest');
 
   const list = state.quests.map(quest => {
-    let completed = 0;
-    for (const o of quest.objectives) if (o.completed) completed++;
-    const total = quest.objectives.length;
-    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-    const tracked = state.worldFlags.trackedQuestId === quest.id || state.worldFlags.trackedQuest === quest.id;
-    return { id: quest.id, title: quest.title, status: quest.status, completed, total, percentage, tracked };
+    const progress = questProgress(quest);
+    const tracked =
+      state.worldFlags.trackedQuestId === quest.id || state.worldFlags.trackedQuest === quest.id;
+    return { id: quest.id, title: quest.title, status: quest.status, ...progress, tracked };
   });
 
   return ok(list, 'quest list');
