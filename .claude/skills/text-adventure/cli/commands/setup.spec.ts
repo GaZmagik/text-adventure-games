@@ -275,4 +275,30 @@ describe('tag setup apply', () => {
     expect(existsSync(join(tempDir, '.verified-rules'))).toBe(true);
     expect(existsSync(join(tempDir, '.verified-character'))).toBe(true);
   });
+
+  test('preserves previously activated modules when settings omits the modules field', async () => {
+    const priorState = createDefaultState();
+    priorState.modulesActive = ['gm-checklist', 'audio', 'atmosphere', 'star-chart'];
+    await saveState(priorState);
+
+    const settings = JSON.stringify({ rulebook: 'd20_system', visualStyle: 'station' });
+    const character = JSON.stringify({
+      name: 'Dex Carroway',
+      pronouns: 'he/him',
+      stats: { STR: 8, DEX: 12, CON: 10, INT: 17, WIS: 14, CHA: 11 },
+      hp: 8,
+      ac: 11,
+      proficiencies: ['History', 'Investigation'],
+      abilities: [],
+    });
+
+    const result = await handleSetup(['apply', '--settings', settings, '--character', character]);
+    expect(result.ok).toBe(true);
+
+    const state = await tryLoadState();
+    expect(state!.modulesActive).toContain('audio');
+    expect(state!.modulesActive).toContain('atmosphere');
+    expect(state!.modulesActive).toContain('star-chart');
+    expect(state!.modulesActive).toContain('gm-checklist');
+  });
 });

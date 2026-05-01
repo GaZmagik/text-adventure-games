@@ -66,7 +66,8 @@ function initTagScene(root) {
     if (target) {
       if (btn) lastPanelTrigger = btn;
       target.style.display = 'block';
-      title.textContent = panelName.charAt(0).toUpperCase() + panelName.slice(1);
+      var PANEL_LABELS = { nav: 'Nav chart', codex: 'Codex', ship: 'Ship', crew: 'Crew', quests: 'Quests', map: 'Map', character: 'Character' };
+      title.textContent = PANEL_LABELS[panelName] || (panelName.charAt(0).toUpperCase() + panelName.slice(1));
       setPanelState(true);
       if (btn) btn.setAttribute('aria-expanded', 'true');
       overlay.addEventListener('keydown', trapPanelFocus);
@@ -243,20 +244,24 @@ function initTagScene(root) {
   }
 
   var audioBtn = root.getElementById('audio-btn');
-  if (audioBtn && typeof SoundscapeEngine !== 'undefined') {
-    var soundscape = new SoundscapeEngine(root);
+  if (audioBtn) {
+    var soundscape = null;
     var soundType = audioBtn.getAttribute('data-sound') || 'ship-engine';
     var soundDuration = parseInt(audioBtn.getAttribute('data-duration') || '25', 10);
 
     audioBtn.addEventListener('click', function() {
+      if (typeof SoundscapeEngine === 'undefined') return;
+      if (!soundscape) soundscape = new SoundscapeEngine(root);
       if (soundscape.playing) {
         soundscape.stop();
+        audioBtn.textContent = '\\u266b Play';
       } else {
         soundscape.play(soundType, soundDuration);
         audioBtn.textContent = '\\u25a0 Stop';
         setTimeout(function() {
           if (!soundscape.playing) return;
           soundscape.stop();
+          audioBtn.textContent = '\\u266b Play';
         }, soundDuration * 1000);
       }
     });

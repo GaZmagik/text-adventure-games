@@ -153,7 +153,7 @@ export async function handleSetup(args: string[]): Promise<CommandResult> {
   const rulebook = String(settings.rulebook ?? 'd20_system');
   const difficulty = String(settings.difficulty ?? 'normal');
   const pacing = String(settings.pacing ?? 'normal');
-  const modules = Array.isArray(settings.modules) ? settings.modules.map(String) : state.modulesActive;
+  const modules = Array.isArray(settings.modules) ? settings.modules.map(String) : (existing?.modulesActive ?? state.modulesActive);
 
   state.visualStyle = visualStyle;
   state.worldFlags.rulebook = rulebook;

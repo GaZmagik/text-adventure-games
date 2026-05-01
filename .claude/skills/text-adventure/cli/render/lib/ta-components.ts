@@ -2069,7 +2069,11 @@ export const TA_COMPONENTS_CODE = String.raw`
       try {
         var d = JSON.parse(this.getAttribute('data-chart') || '{}');
         var h = '<style>.widget-starchart{font-family:var(--ta-font-body);padding:16px}.sc-canvas{width:100%;height:auto;background:radial-gradient(circle at 50% 25%,rgba(98,175,255,0.1),#040810);border-radius:14px;border:1px solid rgba(84,88,128,0.3)}</style>';
-        h += '<div class="widget-starchart"><div style="font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:#EEF0FF">Star Chart</div><div style="font-size:13px;color:#4ECDC4;margin-bottom:12px">' + escHtml(d.current||'???') + '</div>';
+        if (!d.systems || !d.systems.length) {
+          this.shadowRoot.innerHTML = h + '<div class="widget-starchart"><div style="font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:#EEF0FF">Star Chart</div><div style="font-size:13px;color:#545880;margin-top:8px">No star systems charted yet.</div></div>';
+          return;
+        }
+        h += '<div class="widget-starchart"><div style="font-family:var(--ta-font-heading);font-size:18px;font-weight:700;color:#EEF0FF">Star Chart</div><div style="font-size:13px;color:#4ECDC4;margin-bottom:12px">' + escHtml(d.current||'') + '</div>';
         h += '<svg class="sc-canvas" viewBox="0 0 280 180" role="img" aria-label="Starchart constellation">';
         (d.systems||[]).forEach(function(s){
           var isC = s.name === d.current;
