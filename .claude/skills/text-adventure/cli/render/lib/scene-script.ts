@@ -1,11 +1,35 @@
 /** Scene CDN/runtime source of truth — shadow-DOM-aware and shared with asset generation. */
 export const SCENE_SCRIPT_CODE = String.raw`
 function initTagScene(root) {
+  function setAriaHidden(el, hidden) {
+    if (el) el.setAttribute('aria-hidden', hidden ? 'true' : 'false');
+  }
+
+  function setRevealState(isFullVisible) {
+    var brief = root.getElementById('reveal-brief');
+    var full = root.getElementById('reveal-full');
+    if (brief) brief.style.display = isFullVisible ? 'none' : 'block';
+    if (full) full.style.display = isFullVisible ? 'block' : 'none';
+    setAriaHidden(brief, isFullVisible);
+    setAriaHidden(full, !isFullVisible);
+  }
+
+  function setPanelState(isOpen) {
+    var overlay = root.getElementById('panel-overlay');
+    var sceneContent = root.getElementById('scene-content');
+    if (overlay) overlay.style.display = isOpen ? 'block' : 'none';
+    if (sceneContent) sceneContent.style.display = isOpen ? 'none' : 'block';
+    setAriaHidden(overlay, !isOpen);
+    setAriaHidden(sceneContent, isOpen);
+  }
+
+  setRevealState(false);
+  setPanelState(false);
+
   var continueBtn = root.getElementById('continue-reveal-btn');
   if (continueBtn) {
     continueBtn.addEventListener('click', function() {
-      root.getElementById('reveal-brief').style.display = 'none';
-      root.getElementById('reveal-full').style.display = 'block';
+      setRevealState(true);
     });
   }
 
@@ -32,7 +56,6 @@ function initTagScene(root) {
 
   function togglePanel(panelName, btn) {
     var overlay = root.getElementById('panel-overlay');
-    var sceneContent = root.getElementById('scene-content');
     var panels = overlay.querySelectorAll('.panel-content');
     var title = root.getElementById('panel-title-text');
 
@@ -44,8 +67,7 @@ function initTagScene(root) {
       if (btn) lastPanelTrigger = btn;
       target.style.display = 'block';
       title.textContent = panelName.charAt(0).toUpperCase() + panelName.slice(1);
-      overlay.style.display = 'block';
-      sceneContent.style.display = 'none';
+      setPanelState(true);
       if (btn) btn.setAttribute('aria-expanded', 'true');
       overlay.addEventListener('keydown', trapPanelFocus);
       requestAnimationFrame(function() { root.getElementById('panel-title-text').focus(); });
@@ -54,9 +76,7 @@ function initTagScene(root) {
 
   function closePanel() {
     var overlay = root.getElementById('panel-overlay');
-    var sceneContent = root.getElementById('scene-content');
-    overlay.style.display = 'none';
-    sceneContent.style.display = 'block';
+    setPanelState(false);
     if (overlay.removeEventListener) overlay.removeEventListener('keydown', trapPanelFocus);
     root.querySelectorAll('.footer-btn[aria-expanded]').forEach(function(b) {
       b.setAttribute('aria-expanded', 'false');
@@ -99,6 +119,7 @@ function initTagScene(root) {
 
   function triggerFlash(el, cssColorVar, durationMs) {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!/^--[\w-]+$/.test(cssColorVar)) return;
     durationMs = durationMs || 300;
     var flash = document.createElement('div');
     flash.className = 'atmo-flash';
