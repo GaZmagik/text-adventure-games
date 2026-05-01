@@ -36,33 +36,32 @@ fi
 # Remove old zip to ensure a clean build (zip -r updates in-place)
 rm -f "$OUTPUT"
 
-# Detect version for CDN ref
-SKILL_VERSION=$(grep -m 1 "version: " "$SKILL_DIR/SKILL.md" | sed 's/.*version: //; s/["'\'']//g')
-if [ -z "$SKILL_VERSION" ]; then
-	echo "Warning: Could not detect version from SKILL.md, falling back to commit hash."
-	CURRENT_REF=$(git rev-parse --short HEAD 2>/dev/null || echo "main")
-else
-	CURRENT_REF="v${SKILL_VERSION}"
-fi
-
-# Check for explicit --release override
-for arg in "$@"; do
-	if [[ "$arg" == "v"* ]]; then
-		CURRENT_REF="$arg"
+# Determine CDN ref: --release <value> wins, then SKILL.md version, then short commit hash.
+CURRENT_REF=""
+EXTRA_ARGS=()
+i=1
+while [ $i -le $# ]; do
+	arg="${!i}"
+	if [[ "$arg" == "--release" ]]; then
+		i=$((i + 1))
+		CURRENT_REF="${!i}"
+	else
+		EXTRA_ARGS+=("$arg")
 	fi
+	i=$((i + 1))
 done
 
-# If --release is passed without a value in the command line, 
-# build-css.ts handles the fallback, but we want to show it here too.
-if [[ "$*" == *"--release"* ]] && [[ "$*" != *"--release v"* ]]; then
-	ARGS=("--release" "$CURRENT_REF" "${@/--release/}")
-else
-	ARGS=("$@")
-	# If no --release flag at all, default to the version tag for stability
-	if [[ "$*" != *"--release"* ]]; then
-		ARGS=("--release" "$CURRENT_REF" "$@")
+if [ -z "$CURRENT_REF" ]; then
+	SKILL_VERSION=$(grep -m 1 "version: " "$SKILL_DIR/SKILL.md" | sed 's/.*version: //; s/["'\'']//g')
+	if [ -n "$SKILL_VERSION" ]; then
+		CURRENT_REF="v${SKILL_VERSION}"
+	else
+		echo "Warning: Could not detect version from SKILL.md, falling back to commit hash."
+		CURRENT_REF=$(git rev-parse --short HEAD 2>/dev/null || echo "main")
 	fi
 fi
+
+ARGS=("--release" "$CURRENT_REF" "${EXTRA_ARGS[@]}")
 
 echo "Building CDN assets (immutable ref: $CURRENT_REF)..."
 cd "$SKILL_DIR/cli"
