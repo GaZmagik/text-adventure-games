@@ -20,6 +20,7 @@ const SKILL_DIR = resolve(CLI_DIR, '..');
 const STYLES_DIR = join(SKILL_DIR, 'styles');
 const DEFAULT_OUTPUT_DIR = join(SKILL_DIR, 'assets');
 const ICONS_DIR = join(SKILL_DIR, 'icons');
+const STATIC_NAMES_DIR = join(SKILL_DIR, 'assets', 'data', 'names');
 
 const CDN_ASSET_PATH = '/.claude/skills/text-adventure/assets';
 const SVG_VIEWBOX_RE = /^-?\d+(?:\.\d+)?(?:\s+-?\d+(?:\.\d+)?){3}$/;
@@ -343,6 +344,24 @@ export async function handleBuildCss(args: string[]): Promise<CommandResult> {
       bytes,
       path: outPath,
     });
+  }
+
+  // Copy static JSON datasets that ship alongside generated browser assets.
+  const namesOutputDir = join(outputDir, 'data', 'names');
+  mkdirSync(namesOutputDir, { recursive: true });
+  try {
+    const nameFiles = readdirSync(STATIC_NAMES_DIR)
+      .filter(file => file.endsWith('.json'))
+      .sort();
+    for (const file of nameFiles) {
+      const sourcePath = join(STATIC_NAMES_DIR, file);
+      const targetPath = join(namesOutputDir, file);
+      const content = await Bun.file(sourcePath).text();
+      await Bun.write(targetPath, content);
+      totalBytes += Buffer.byteLength(content, 'utf-8');
+    }
+  } catch {
+    /* static name data is optional during generation */
   }
 
   // ── SVG Sprite generation ───────────────────────────────────────────

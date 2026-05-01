@@ -17,7 +17,7 @@ export async function handleDev(args: string[]): Promise<CommandResult> {
     return fail('Invalid port number.', 'Provide a numeric port: --port 3000', 'dev');
   }
 
-  const HOST = '127.0.0.1';
+  const HOST = parsed.flags.host || '127.0.0.1';
   const SCRIPT_DIR = import.meta.dir;
   const SKILL_DIR = resolve(SCRIPT_DIR, '..');
 

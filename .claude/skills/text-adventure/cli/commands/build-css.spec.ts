@@ -221,6 +221,13 @@ describe('JS output files', () => {
   });
 });
 
+describe('static data output', () => {
+  it('copies shipped name datasets into the generated asset tree', () => {
+    const nameFiles = readdirSync(join(tmpDir, 'data', 'names')).sort();
+    expect(nameFiles).toEqual(['base.json', 'real-world.json', 'sci-fi.json']);
+  });
+});
+
 describe('SVG sprite output', () => {
   it('writes an icon sprite with symbol entries', () => {
     const spritePath = join(tmpDir, 'icons', 'sprite.svg');
