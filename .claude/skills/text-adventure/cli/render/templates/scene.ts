@@ -82,13 +82,13 @@ export function renderScene(state: GmState | null, styleName: string, options?: 
     tag: 'ta-scene',
     html: `
       <div class="root widget-scene" data-poi-budget="${esc(char?.poiMax ?? 2)}">
-        <div id="reveal-brief">
+        <div id="reveal-brief" aria-hidden="false">
           <p class="brief-text">${brief ? esc(brief) : '<!-- [BRIEF: 1-2 atmospheric sentences before Continue] -->'}</p>
-          <button class="continue-btn" id="continue-reveal-btn">Continue</button>
+          <button class="continue-btn" id="continue-reveal-btn" type="button">Continue</button>
         </div>
 
-        <div id="reveal-full" style="display:none">
-          <div id="scene-content">
+        <div id="reveal-full" style="display:none" aria-hidden="true">
+          <div id="scene-content" aria-hidden="false">
             <ta-loc-bar name="${esc(location)}" time="${esc(timeLabel)}"></ta-loc-bar>
 
             ${buildAtmosphereStrip(atmosphere, state.modulesActive ?? [])}
@@ -114,10 +114,10 @@ export function renderScene(state: GmState | null, styleName: string, options?: 
             ${questToast}
           </div>
 
-          <div id="panel-overlay" role="dialog" aria-modal="true" aria-labelledby="panel-title-text" style="display:none">
+          <div id="panel-overlay" role="dialog" aria-modal="true" aria-labelledby="panel-title-text" aria-hidden="true" style="display:none">
             <div class="panel-header">
               <h2 id="panel-title-text" tabindex="-1" class="panel-title">Panel</h2>
-              <button class="panel-close-btn" id="panel-close-btn" aria-label="Close panel">Close</button>
+              <button class="panel-close-btn" id="panel-close-btn" type="button" aria-label="Close panel">Close</button>
             </div>
             ${buildPanelDivs(state.modulesActive || [], state, panelMode)}
           </div>

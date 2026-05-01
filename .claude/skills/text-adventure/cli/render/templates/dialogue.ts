@@ -8,7 +8,16 @@ import { emitStandaloneCustomElement } from '../lib/shadow-wrapper';
 /**
  * Builds the plain HTML fallback for NPC dialogue.
  */
-function buildDialogueFallback(speaker: string, text: string, choices: { label: string; prompt: string }[]): string {
+interface DialogueChoice extends Record<string, unknown> {
+  label: string;
+  prompt: string;
+  cost?: string | number;
+}
+
+/**
+ * Builds a static HTML fallback for the dialogue widget.
+ */
+function buildDialogueFallback(speaker: string, text: string, choices: DialogueChoice[]): string {
   let html = `<div class="widget-dialogue"><div class="dlg-speaker">${esc(speaker)}</div>`;
   if (text) {
     html += `<div class="dlg-text">${esc(text)}</div>`;
@@ -16,7 +25,8 @@ function buildDialogueFallback(speaker: string, text: string, choices: { label: 
   if (choices.length > 0) {
     html += '<div class="dlg-choices">';
     choices.forEach(c => {
-      html += `<button class="dlg-choice-btn" data-prompt="${esc(c.prompt)}" title="${esc(c.prompt)}">${esc(c.label)}</button>`;
+      const cost = c.cost ? ` <span class="cost">(${esc(String(c.cost))})</span>` : '';
+      html += `<button class="dlg-choice-btn" data-prompt="${esc(c.prompt)}" title="${esc(c.prompt)}">${esc(c.label)}${cost}</button>`;
     });
     html += '</div>';
   }
@@ -49,8 +59,8 @@ export function renderDialogue(state: GmState | null, styleName: string, options
   // Dialogue text and options can be passed via options.data
   const dataRaw = (options?.data ?? {}) as Record<string, unknown>;
   const dialogueText = typeof dataRaw.text === 'string' ? dataRaw.text : '';
-  const choices: { label: string; prompt: string }[] = Array.isArray(dataRaw.choices)
-    ? (dataRaw.choices as { label: string; prompt: string }[])
+  const choices: DialogueChoice[] = Array.isArray(dataRaw.choices)
+    ? (dataRaw.choices as DialogueChoice[])
     : [];
 
   return emitStandaloneCustomElement({
