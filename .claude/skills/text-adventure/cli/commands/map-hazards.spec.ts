@@ -42,7 +42,7 @@ describe('map hazards and encounters', () => {
 
     const result = await handleMap(['enter', dest]);
     expect(result.ok).toBe(true);
-    
+
     const updated = await tryLoadState();
     const pending = updated?._pendingRolls || [];
     expect(pending.length).toBeGreaterThan(0);
@@ -63,7 +63,7 @@ describe('map hazards and encounters', () => {
     const connections = mapState.connections || [];
     const route = connections.find(c => c.from === current || (c.bidirectional !== false && c.to === current));
     if (!route) throw new Error('No route found');
-    
+
     const dest = route.from === current ? route.to : route.from;
 
     // Force encounter chance to 100%
@@ -79,12 +79,12 @@ describe('map hazards and encounters', () => {
     const state = await tryLoadState();
     const mapState = state?.mapState;
     if (!mapState) throw new Error('No map state');
-    
+
     const current = mapState.currentZone;
     const connections = mapState.connections || [];
     const route = connections.find(c => c.from === current || (c.bidirectional !== false && c.to === current));
     if (!route) throw new Error('No route found');
-    
+
     const dest = route.from === current ? route.to : route.from;
 
     // Inject a hazard into the destination zone

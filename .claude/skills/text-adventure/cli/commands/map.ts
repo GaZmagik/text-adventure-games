@@ -1,5 +1,5 @@
 // Map command handlers mutate and inspect generated map state while preserving traversal history.
-import type { CommandResult, GmState, MapConnection, MapState, MapZone, StatName } from '../types';
+import type { CommandResult, GmState, MapConnection, MapState, MapZone } from '../types';
 import { ok, fail, noState } from '../lib/errors';
 import { tryLoadState, saveState } from '../lib/state-store';
 import { recordHistory } from './state';

@@ -21,6 +21,3 @@ cli/commands/package.ts
 playwright.config.ts
 scripts/collect-fixture-trends.ts
 scripts/playwright-preview-server.ts
-
-# Scratch/exploration files — not production code
-scratch/test-dialogue.ts

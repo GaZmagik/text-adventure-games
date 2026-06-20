@@ -18,10 +18,11 @@ test.describe('Fixture Performance Trend Audit', () => {
     return;
   }
 
-  const baseline = JSON.parse(readFileSync(TREND_FILE, 'utf-8')) as Record<string, any>;
-  const fixtures = Object.keys(baseline);
-
-  for (const fixture of fixtures) {
+  const baseline = JSON.parse(readFileSync(TREND_FILE, 'utf-8')) as Record<
+    string,
+    { htmlSize: number; bundleLoadMs: number; hydrationMs: number }
+  >;
+  for (const [fixture, base] of Object.entries(baseline)) {
     test(`performance trend: ${fixture}`, async ({ page }) => {
       await page.goto(`/fixtures/${fixture}`);
       await page.waitForSelector('body', { state: 'attached' });
@@ -36,8 +37,6 @@ test.describe('Fixture Performance Trend Audit', () => {
           htmlSize: document.body.innerHTML.length,
         };
       });
-
-      const base = baseline[fixture];
 
       // 1. Check HTML Size
       if (base.htmlSize > 0) {

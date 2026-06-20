@@ -540,10 +540,7 @@ describe('tag verify', () => {
   test('fails when panel close button is missing', async () => {
     await setupState();
     let html = await renderComposedScene();
-    html = html.replace(
-      /<button class="panel-close-btn" id="panel-close-btn" aria-label="Close panel">Close<\/button>/,
-      '',
-    );
+    html = html.replace(/<button class="panel-close-btn" id="panel-close-btn"[^>]*>Close<\/button>/, '');
     const filePath = join(tempDir, 'missing-panel-close.html');
     writeFileSync(filePath, html, 'utf-8');
 

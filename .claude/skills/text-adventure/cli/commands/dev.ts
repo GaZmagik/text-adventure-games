@@ -25,10 +25,7 @@ export async function handleDev(args: string[]): Promise<CommandResult> {
   const watchers: ReturnType<typeof watch>[] = [];
 
   // Watch templates and styles
-  const dirsToWatch = [
-    join(SKILL_DIR, 'cli', 'render', 'templates'),
-    join(SKILL_DIR, 'styles'),
-  ];
+  const dirsToWatch = [join(SKILL_DIR, 'cli', 'render', 'templates'), join(SKILL_DIR, 'styles')];
 
   for (const dir of dirsToWatch) {
     try {
@@ -69,7 +66,7 @@ export async function handleDev(args: string[]): Promise<CommandResult> {
               'Cache-Control': 'no-cache',
               Connection: 'keep-alive',
             },
-          }
+          },
         );
       }
 
