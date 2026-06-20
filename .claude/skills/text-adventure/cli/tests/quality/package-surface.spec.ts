@@ -40,7 +40,10 @@ function isTextEntry(entry: string): boolean {
 }
 
 async function buildDistributionAudit(): Promise<DistributionAudit> {
-  runCommand(['bash', ZIP_SCRIPT_PATH], REPO_ROOT);
+  // --skip-ref-check: this is a local content audit, not a real publish, so the
+  // CDN ref need not be on origin (the on-origin guard would otherwise reject the
+  // default version-tag ref before it has been pushed).
+  runCommand(['bash', ZIP_SCRIPT_PATH, '--skip-ref-check'], REPO_ROOT);
   const entries = runCommand(['unzip', '-Z', '-1', ZIP_OUTPUT_PATH], REPO_ROOT)
     .split(/\r?\n/)
     .map(line => line.trim())
@@ -157,5 +160,56 @@ describe('package surface', () => {
     expect(runtimeBundleEntries.map(entry => basename(entry)).sort()).toEqual(
       expect.arrayContaining(['cdn-manifest.ts', 'base.json', 'real-world.json', 'sci-fi.json']),
     );
+  });
+});
+
+describe('zip.sh CDN ref resolution and on-origin guard', () => {
+  // --print-ref resolves the CDN ref, runs the guard, prints it, and exits before
+  // building — so these stay fast and side-effect-free (no asset build, no zip write).
+  function runZip(args: string[]): { code: number; stdout: string; stderr: string } {
+    const result = Bun.spawnSync(['bash', ZIP_SCRIPT_PATH, ...args], {
+      cwd: REPO_ROOT,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+    return { code: result.exitCode ?? -1, stdout: decode(result.stdout), stderr: decode(result.stderr) };
+  }
+
+  test('--dev pins the CDN ref to the current HEAD short SHA', () => {
+    const headSha = runCommand(['git', 'rev-parse', '--short', 'HEAD'], REPO_ROOT).trim();
+    const { code, stdout } = runZip(['--dev', '--print-ref', '--skip-ref-check']);
+    expect(code).toBe(0);
+    expect(stdout.trim()).toBe(headSha);
+  });
+
+  test('--release takes precedence over --dev', () => {
+    const { code, stdout } = runZip(['--dev', '--release', 'v9.9.9', '--print-ref', '--skip-ref-check']);
+    expect(code).toBe(0);
+    expect(stdout.trim()).toBe('v9.9.9');
+  });
+
+  test('default ref with no flag is the SKILL.md version tag (the publish-first trap --dev avoids)', () => {
+    const { code, stdout } = runZip(['--print-ref', '--skip-ref-check']);
+    expect(code).toBe(0);
+    expect(stdout.trim()).toMatch(/^v\d+\.\d+\.\d+/);
+  });
+
+  test('the guard rejects a CDN ref that is not reachable on origin', () => {
+    const { code, stderr } = runZip(['--release', 'definitely-not-pushed-zzz', '--print-ref']);
+    expect(code).not.toBe(0);
+    expect(stderr).toMatch(/not reachable on origin|push/i);
+  });
+
+  test('the guard accepts a ref that is reachable on origin', () => {
+    const originSha = runCommand(['git', 'rev-parse', '--short', 'origin/main'], REPO_ROOT).trim();
+    const { code, stdout } = runZip(['--release', originSha, '--print-ref']);
+    expect(code).toBe(0);
+    expect(stdout.trim()).toBe(originSha);
+  });
+
+  test('--skip-ref-check bypasses the guard for an unpushed ref', () => {
+    const { code, stdout } = runZip(['--release', 'definitely-not-pushed-zzz', '--print-ref', '--skip-ref-check']);
+    expect(code).toBe(0);
+    expect(stdout.trim()).toBe('definitely-not-pushed-zzz');
   });
 });
