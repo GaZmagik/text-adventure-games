@@ -18,7 +18,7 @@ test.describe('Update Baseline', () => {
       'route-planner-rich',
     ];
 
-    const results: Record<string, any> = {};
+    const results: Record<string, { hydrationMs: number; bundleLoadMs: number; htmlSize: number }> = {};
 
     for (const fixture of fixtures) {
       console.log(`Auditing ${fixture}...`);

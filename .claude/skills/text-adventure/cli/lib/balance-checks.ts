@@ -1,4 +1,4 @@
-import type { GmState, Quest, QuestObjective, StatName } from '../types';
+import type { GmState } from '../types';
 
 export type BalanceFailure = {
   id: string;
@@ -90,7 +90,7 @@ function checkQuestBalance(state: GmState, failures: BalanceFailure[]): void {
           // Check if item is in worldData loot
           const itemInLoot = Object.values(state.worldData?.rooms || {}).some(r => r.loot.includes(req.item!));
           if (!itemInLoot) {
-             failures.push({
+            failures.push({
               id: `${quest.id}:${objective.id}:item`,
               type: 'quest',
               severity: 'blocker',

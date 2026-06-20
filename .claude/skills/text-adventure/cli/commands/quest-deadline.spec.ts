@@ -38,7 +38,7 @@ describe('quest deadlines', () => {
       '--objective',
       'Rush to the base',
       '--deadline',
-      '5'
+      '5',
     ]);
     expect(result.ok).toBe(true);
 
@@ -49,28 +49,9 @@ describe('quest deadlines', () => {
 
   test('add objective with deadline', async () => {
     await handleState(['reset']);
-    await handleQuest([
-      'create',
-      '--id',
-      'q1',
-      '--title',
-      'Q1',
-      '--objective-id',
-      'o1',
-      '--objective',
-      'O1'
-    ]);
+    await handleQuest(['create', '--id', 'q1', '--title', 'Q1', '--objective-id', 'o1', '--objective', 'O1']);
 
-    const result = await handleQuest([
-      'add-objective',
-      'q1',
-      '--id',
-      'o2',
-      '--desc',
-      'Timed O2',
-      '--deadline',
-      '10'
-    ]);
+    const result = await handleQuest(['add-objective', 'q1', '--id', 'o2', '--desc', 'Timed O2', '--deadline', '10']);
     expect(result.ok).toBe(true);
 
     const state = await loadState();
@@ -82,33 +63,14 @@ describe('quest deadlines', () => {
 
   test('late-added objective deadline starts from the objective scene, not quest creation', async () => {
     await handleState(['reset']);
-    await handleQuest([
-      'create',
-      '--id',
-      'q1',
-      '--title',
-      'Q1',
-      '--objective-id',
-      'o1',
-      '--objective',
-      'O1'
-    ]);
+    await handleQuest(['create', '--id', 'q1', '--title', 'Q1', '--objective-id', 'o1', '--objective', 'O1']);
 
     const state = await loadState();
     state.scene = 5;
     state.time.elapsed = 5;
     await saveState(state);
 
-    await handleQuest([
-      'add-objective',
-      'q1',
-      '--id',
-      'o2',
-      '--desc',
-      'Timed O2',
-      '--deadline',
-      '2'
-    ]);
+    await handleQuest(['add-objective', 'q1', '--id', 'o2', '--desc', 'Timed O2', '--deadline', '2']);
 
     const updated = await loadState();
     const objective = updated.quests.find(q => q.id === 'q1')!.objectives.find(o => o.id === 'o2')!;
@@ -133,7 +95,7 @@ describe('quest deadlines', () => {
       '--objective',
       'O1',
       '--deadline',
-      '2'
+      '2',
     ]);
 
     // Move to scene 3

@@ -414,7 +414,7 @@ export async function handleSync(args: string[]): Promise<CommandResult> {
   checkMissingModules(activeSet, warnings);
 
   checkQuestWorldFlagSync(state, warnings);
-  const deadlineBlocked = checkQuestDeadlines(state, warnings);
+  checkQuestDeadlines(state, warnings);
   checkLevelUpEligibility(state, warnings);
 
   const npcIds = new Set<string>();

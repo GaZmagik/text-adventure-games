@@ -283,15 +283,7 @@ async function handleTrack(args: string[]): Promise<CommandResult> {
 }
 
 async function handleCreate(args: string[]): Promise<CommandResult> {
-  const { flags } = parseArgs(args, [], [
-    'id',
-    'title',
-    'objective-id',
-    'objective',
-    'type',
-    'priority',
-    'deadline',
-  ]);
+  const { flags } = parseArgs(args, [], ['id', 'title', 'objective-id', 'objective', 'type', 'priority', 'deadline']);
   const questId = flags.id;
   const title = flags.title;
   const objectiveId = flags['objective-id'];
@@ -394,8 +386,7 @@ async function handleList(): Promise<CommandResult> {
 
   const list = state.quests.map(quest => {
     const progress = questProgress(quest);
-    const tracked =
-      state.worldFlags.trackedQuestId === quest.id || state.worldFlags.trackedQuest === quest.id;
+    const tracked = state.worldFlags.trackedQuestId === quest.id || state.worldFlags.trackedQuest === quest.id;
     return { id: quest.id, title: quest.title, status: quest.status, ...progress, tracked };
   });
 

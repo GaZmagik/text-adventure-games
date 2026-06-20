@@ -59,9 +59,7 @@ export function renderDialogue(state: GmState | null, styleName: string, options
   // Dialogue text and options can be passed via options.data
   const dataRaw = (options?.data ?? {}) as Record<string, unknown>;
   const dialogueText = typeof dataRaw.text === 'string' ? dataRaw.text : '';
-  const choices: DialogueChoice[] = Array.isArray(dataRaw.choices)
-    ? (dataRaw.choices as DialogueChoice[])
-    : [];
+  const choices: DialogueChoice[] = Array.isArray(dataRaw.choices) ? (dataRaw.choices as DialogueChoice[]) : [];
 
   return emitStandaloneCustomElement({
     tag: 'ta-dialogue',

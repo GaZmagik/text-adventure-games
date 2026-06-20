@@ -1,25 +1,25 @@
 {
-  "updatedAt": "2026-04-25",
+  "updatedAt": "2026-06-20",
   "renderOutput": {
     "faction-board-worldgen": {
       "widget": "faction-board",
-      "chars": 4069
+      "chars": 3787
     },
     "map-route-overlay": {
       "widget": "map",
-      "chars": 8665
+      "chars": 8383
     },
     "quest-log-rich": {
       "widget": "quest-log",
-      "chars": 9563
+      "chars": 9281
     },
     "relationship-web-worldgen": {
       "widget": "relationship-web",
-      "chars": 12250
+      "chars": 11968
     },
     "scene-rich-panels": {
       "widget": "scene",
-      "chars": 21445
+      "chars": 20893
     }
   },
   "hydrationObservedMs": {
